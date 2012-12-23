@@ -88,9 +88,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 		if($this->initialOrderedStatusValue) {
 			/** @var $cfg iMSCP_Config_Handler_File */
 			$cfg = iMSCP_Registry::get('config');
-			# Overrides status to force scheduling of domain addition
 			$cfg->ITEM_ORDERED_STATUS = $this->initialOrderedStatusValue;
-
 			$domainAlias = decode_idna($event->getParam('domainAliasName'));
 			write_log("DomainAutoApproval plugin: Domain alias '$domainAlias' has been auto-approved", E_USER_NOTICE);
 		}
