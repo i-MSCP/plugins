@@ -34,50 +34,65 @@
 class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 {
 	/**
+	 * @var string Initial item ordered status value
+	 */
+	protected $initialOrderedStatusValue = '';
+
+	/**
 	 * Register a callback for the given event(s).
 	 *
 	 * @param iMSCP_Events_Manager_Interface $controller
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$controller->registerListener(iMSCP_Events::onAfterAddDomainAlias, $this);
+		$controller->registerListener(
+			array(iMSCP_Events::onBeforeAddDomainAlias, iMSCP_Events::onAfterAddDomainAlias), $this
+		);
+	}
+
+	/**
+	 * Implements the onBeforeAddDomainAlias listener method.
+	 *
+	 * @throws iMSCP_Plugin_Exception in case the domains config setting is wrong
+	 */
+	public function onBeforeAddDomainAlias()
+	{
+		$domains = $this->getConfigParam('domains'); # List of domain names for which auto-approval is enabled
+
+		if (is_array($domains)) {
+			$domainName = $_SESSION['user_logged'];
+
+			if (in_array(decode_idna($domainName), $domains)) {
+				/** @var $cfg iMSCP_Config_Handler_File */
+				$cfg = iMSCP_Registry::get('config');
+
+				# Overrides status to force scheduling of domain addition
+				$this->initialOrderedStatusValue = $cfg->ITEM_ORDERED_STATUS;
+				$cfg->ITEM_ORDERED_STATUS = $cfg->ITEM_ADD_STATUS;
+			}
+		} else {
+			throw new iMSCP_Plugin_Exception(
+				"DomainAutoApproval plugin: The 'domains' setting must be an array containing domain account names."
+			);
+		}
 	}
 
 	/**
 	 * Implements the onAfterAddDomainAlias listener method.
 	 *
 	 * @param iMSCP_Events_Event $event
-	 * @throws iMSCP_Plugin_Exception
+	 * @return void
 	 */
 	public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
 	{
-		$domainId = $event->getParam('domainId');
-		$domainAliasId = $event->getParam('domainAliasId');
-		$domains = $this->getConfigParam('domains');
+		if($this->initialOrderedStatusValue) {
+			/** @var $cfg iMSCP_Config_Handler_File */
+			$cfg = iMSCP_Registry::get('config');
+			# Overrides status to force scheduling of domain addition
+			$cfg->ITEM_ORDERED_STATUS = $this->initialOrderedStatusValue;
 
-		$query = 'SELECT `domain_name` FROM `domain` WHERE `domain_id` = ?';
-		$stmt = exec_query($query, $domainId);
-		$domainName = $stmt->fields['domain_name'];
-
-		if (is_array($domains)) {
-			if (in_array(encode_idna($domainName), $domains)) {
-				/** @var $cfg iMSCP_Config_Handler_File */
-				$cfg = iMSCP_Registry::get('config');
-				$query = 'UPDATE `domain_aliasses` SET `alias_status` = ? WHERE `alias_id` = ? AND `domain_id` = ?';
-				exec_query($query, array($cfg->ITEM_ADD_STATUS, $domainAliasId, $domainId));
-
-				update_reseller_c_props(get_reseller_id($domainId));
-
-				$domainAliasName = decode_idna($event->getParam('domainAliasName'));
-
-				send_request();
-				write_log("DomainAutoApproval: Domain alias scheduled for addition: $domainAliasName", E_USER_NOTICE);
-				set_page_message(tr('Alias scheduled for addition.'), 'success');
-				redirectTo('domains_manage.php');
-			}
-		} else {
-			throw new iMSCP_Plugin_Exception(
-				"DomainAutoApproval: The 'domains' setting must be an array containing domain account names.");
+			$domainAlias = decode_idna($event->getParam('domainAliasName'));
+			write_log("DomainAutoApproval plugin: Domain alias '$domainAlias' has been auto-approved", E_USER_NOTICE);
 		}
 	}
 }
