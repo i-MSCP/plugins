@@ -22,18 +22,19 @@ See http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 Installation:
 
-1. Copy this plugin directory into the gui/plugin diretory of your
-i-MSCP installation.
+1. Copy this plugin directory into the gui/plugins diretory of your
+   i-MSCP installation.
 
-2. Edit the config.php file to add domain names for which you want
-auto-approval of domain aliases
+2. Edit the config.php file to add domain names for which you enable
+   want auto-approval of domain aliases.
 
-3. Go to the plugins interface, update the plugin list and activate
-the plugin.
-
-4. Set permissions by doing:
+3. Set permissions by doing:
 
  # perl /var/www/imscp/engine/setup/set-gui-permissions.pl
+
+4. Go to the plugins interface, update the plugin list and activate
+   the plugin.
+
 
 See http://wiki.i-mscp.net/doku.php?id=plugins:management for more
 information about i-MSCP plugins management.
