@@ -30,7 +30,7 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.1',
+	'version' => '0.0.2',
 	'date' => '2012-12-23',
 	'name' => 'DomainAutoApproval',
 	'desc' => 'Plugin allowing auto-approval of new domain aliases',
