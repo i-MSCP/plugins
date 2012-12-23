@@ -1,0 +1,41 @@
+
+DomainAutoApproval plugin for i-MSCP
+
+Plugin allowing auto-approval of new domain aliases.
+
+If you install this plugin manually, make sure it is installed in
+gui/plugins/ - if the folder is called different it will not work!
+
+----
+Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+See http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+
+Installation:
+
+1. Copy this plugin directory into the gui/plugin diretory of your
+i-MSCP installation.
+
+2. Edit the config.php file to add domain names for which you want
+auto-approval of domain aliases
+
+3. Go to the plugins interface, update the plugin list and activate
+the plugin.
+
+4. Set permissions by doing:
+
+ # perl /var/www/imscp/engine/setup/set-gui-permissions.pl
+
+See http://wiki.i-mscp.net/doku.php?id=plugins:management for more
+information about i-MSCP plugins management.
+
+Thanks you for using i-MSCP
