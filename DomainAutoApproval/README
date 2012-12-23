@@ -28,7 +28,7 @@ Installation:
 2. Edit the config.php file to add domain names for which you enable
    want auto-approval of domain aliases.
 
-3. Set permissions by doing:
+3. Set permissions by running:
 
  # perl /var/www/imscp/engine/setup/set-gui-permissions.pl
 
