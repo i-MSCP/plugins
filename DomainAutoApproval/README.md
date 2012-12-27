@@ -25,7 +25,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 Plugin compatible with i-MSCP version >= 1.0.3.0
 
-### INSTALLATION AND UPDATE:
+### INSTALLATION AND UPDATE
 
 **1.** Backup your current plugins/DomainAutoApproval/config.php file
    if any
