@@ -42,6 +42,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	 * Register a callback for the given event(s).
 	 *
 	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @return void
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
@@ -54,26 +55,41 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	 * Implements the onBeforeAddDomainAlias listener method.
 	 *
 	 * @throws iMSCP_Plugin_Exception in case the domains config setting is wrong
+	 * @return void
 	 */
 	public function onBeforeAddDomainAlias()
 	{
+		$approvalRule = $this->getConfigParam('approval_rule');
+
+		if(null === $approvalRule) {
+			$approvalRule = true; // Keep compatibility with old config file
+		}
+
 		$domains = $this->getConfigParam('domains'); # List of domain names for which auto-approval is enabled
 
-		if (is_array($domains)) {
-			$domainName = $_SESSION['user_logged'];
+		if(is_array($domains)) {
+			$domainName = decode_idna($_SESSION['user_logged']);
 
-			if (in_array(decode_idna($domainName), $domains)) {
-				/** @var $cfg iMSCP_Config_Handler_File */
-				$cfg = iMSCP_Registry::get('config');
-
-				# Overrides status to force scheduling of domain addition
-				$this->initialOrderedStatusValue = $cfg->ITEM_ORDERED_STATUS;
-				$cfg->ITEM_ORDERED_STATUS = $cfg->ITEM_ADD_STATUS;
+			if($approvalRule) { // Any domain alias created by domain listed in the domains parameters will be approved
+				if (!in_array($domainName, $domains)) {
+					$domainName = false;
+				}
+			} else { // Any domain alias created by domain not listed in the domains parameters will be approved
+				if (in_array($domainName, $domains)) {
+					$domainName = false;
+				}
 			}
 		} else {
 			throw new iMSCP_Plugin_Exception(
 				"DomainAutoApproval plugin: The 'domains' setting must be an array containing domain account names."
 			);
+		}
+
+		if ($domainName) {
+			/** @var $cfg iMSCP_Config_Handler_File */
+			$cfg = iMSCP_Registry::get('config');
+			$this->initialOrderedStatusValue = $cfg->ITEM_ORDERED_STATUS;
+			$cfg->ITEM_ORDERED_STATUS = $cfg->ITEM_ADD_STATUS;
 		}
 	}
 

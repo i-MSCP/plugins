@@ -27,7 +27,11 @@
  */
 
 return array(
-	// Any domain alias created by domain accounts that are listed below will be auto-approved.
+	// If set to TRUE, any domain alias created by domain accounts listed in the 'domains' parameter will be
+	// auto-approved
+	// If set to FALSE, any domain alias created by domain accounts not listed in the 'domains' parameter will be
+	// auto approved
+	'approval_rule' => true,
 	'domains' => array(
 		'test.com' // Sample entry - Replace it by your own domain entries
 	)
