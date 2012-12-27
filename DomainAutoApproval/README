@@ -30,7 +30,7 @@ INSTALLATION AND UPDATE
 1. Backup your current plugins/DomainAutoApproval/config.php file
    if any
 
-2. Copy this plugin directory into the gui/plugins diretory of your
+2. Copy this plugin directory into the gui/plugins directory of your
    i-MSCP installation.
 
 3. Edit the config.php file to add domain names for which you want
@@ -51,4 +51,4 @@ AUTHORS AND CONTRIBUTORS
 
 Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
-Thanks you for using this plugin
+Thanks you for using this plugin.

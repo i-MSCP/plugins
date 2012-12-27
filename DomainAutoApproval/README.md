@@ -30,7 +30,7 @@ Plugin compatible with i-MSCP version >= 1.0.3.0
 **1.** Backup your current plugins/DomainAutoApproval/config.php file
    if any
 
-**2.** Copy this plugin directory into the gui/plugins diretory of your
+**2.** Copy this plugin directory into the gui/plugins directory of your
    i-MSCP installation.
 
 **3.** Edit the config.php file to add domain names for which you want
@@ -50,4 +50,4 @@ See the [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plu
 
 Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
-**Thanks you for using this plugin**
+**Thanks you for using this plugin.**
