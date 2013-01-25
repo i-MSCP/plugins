@@ -1,6 +1,34 @@
 <?php
+/**
+ * i-MSCP - internet Multi Server Control Panel
+ *
+ * i-MSCP - internet Multi Server Control Panel
+ * Copyright 2010-2013 by internet Multi Server Control Panel
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * Portions created by the i-MSCP Team are Copyright (C) 2010-2013 by
+ * i-MSCP - internet Multi Server Control Panel. All Rights Reserved.
+ *
+ * @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+ * @author      i-MSCP Team
+ * @link        http://i-mscp.net
+ */
+ 
 define('iMSCP_Min_Vers', '1.0.1.6');
-define('iMSCP_Max_Vers', '1.0.3.0');
+define('iMSCP_Max_Vers', '1.1.0-beta1');
 
 require 'imscp-lib.php';
 //error_reporting(E_ALL);
@@ -116,26 +144,26 @@ function createUser($reseller_id, $hp, $ip){
 	$createDefaultMail	= true;
 
 	$pure_user_pass		= urldecode($_POST['admin_pass']);
-	$admin_name			= encode_idna(urldecode($_POST['admin_name']));
-	$admin_pass			= crypt_user_pass($pure_user_pass);
-	$admin_type			= 'user';
+	$admin_name				= encode_idna(urldecode($_POST['admin_name']));
+	$admin_pass				= crypt_user_pass($pure_user_pass);
+	$admin_type				= 'user';
 	//$domain_created	= time();
-	$created_by			= $reseller_id;
-	$fname				= clean_input(urldecode($_POST['fname']));
-	$lname				= clean_input(urldecode($_POST['lname']));
-	$firm				= clean_input(urldecode($_POST['firm']));
-	$zip				= clean_input(urldecode($_POST['zip']));
-	$city				= clean_input(urldecode($_POST['city']));
-	$state				= clean_input(urldecode($_POST['state']));
-	$country			= clean_input(urldecode($_POST['country']));
-	$email				= clean_input(urldecode($_POST['email']));
-	$phone				= clean_input(urldecode($_POST['phone']));
-	$fax				='';
-	$street1			= clean_input(urldecode($_POST['street1']));
-	$street2			= clean_input(urldecode($_POST['street2']));
-	$customer_id		= clean_input(urldecode($_POST['customer_id']));
-	$gender				= 'U';
-	$domain_name		= encode_idna(urldecode($_POST['domain']));
+	$created_by				= $reseller_id;
+	$fname						= clean_input(urldecode($_POST['fname']));
+	$lname						= clean_input(urldecode($_POST['lname']));
+	$firm							= clean_input(urldecode($_POST['firm']));
+	$zip							= clean_input(urldecode($_POST['zip']));
+	$city							= clean_input(urldecode($_POST['city']));
+	$state						= clean_input(urldecode($_POST['state']));
+	$country					= clean_input(urldecode($_POST['country']));
+	$email						= clean_input(urldecode($_POST['email']));
+	$phone						= clean_input(urldecode($_POST['phone']));
+	$fax							='';
+	$street1					= clean_input(urldecode($_POST['street1']));
+	$street2					= clean_input(urldecode($_POST['street2']));
+	$customer_id			= clean_input(urldecode($_POST['customer_id']));
+	$gender						= 'U';
+	$domain_name			= encode_idna(urldecode($_POST['domain']));
 
 	$query = "
 		SELECT
