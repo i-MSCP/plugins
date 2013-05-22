@@ -1,7 +1,7 @@
 
 HelloWorld Plugin example for i-MSCP
 
-Plugin example for i-MSCP that simply says 'Hello World' when login
+Plugin sample for i-MSCP that simply says 'Hello World' when login
 page is loaded.
 
 If you install this plugin manually, make sure it is installed in
