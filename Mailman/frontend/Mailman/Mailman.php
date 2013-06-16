@@ -37,6 +37,12 @@
  */
 class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 {
+
+	/**
+	 * @var array
+	 */
+	protected $routes = array();
+
 	/**
 	 * Register a callback for the given event(s).
 	 *
@@ -44,7 +50,11 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$controller->registerListener(iMSCP_Events::onAdminScriptStart, $this);
+		$controller->registerListener(iMSCP_Events::onClientScriptStart, $this);
+
+		$this->routes = array(
+			'/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/client/mailman.php'
+		);
 	}
 
 	/**
@@ -52,7 +62,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 *
 	 * @return void
 	 */
-	public function onAdminScriptStart()
+	public function onClientScriptStart()
 	{
 		$this->injectMailmanLinks();
 
@@ -62,31 +72,32 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Get routes
+	 *
+	 * @return array
+	 */
+	public function getRoutes()
+	{
+		return $this->routes;
+	}
+
+	/**
 	 * Inject Mailman links into the navigation object
 	 */
 	protected function injectMailmanLinks()
 	{
-		iMSCP_Registry::get('navigation')->findOneBy('uri', '/admin/settings.php')->addPages(
-			array(
+		/** @var Zend_Navigation $navigation */
+		$navigation = iMSCP_Registry::get('navigation');
+
+		if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
+			$page->addPage(
 				array(
-					'label' => tohtml('Mailman'),
-					'uri' => '/admin/settings.php?plugin=mailman',
+					'label' => tohtml('E-Mail Lists'),
+					'uri' => '/client/mailman.php',
 					'title_class' => 'plugin'
-				),
-				array(
-					'label' => tohtml('Mailman'),
-					'uri' => '/admin/settings.php?plugin=mailman&action=edit',
-					'title_class' => 'plugin',
-					'visible' => 0
-				),
-				array(
-					'label' => tohtml('Mailman'),
-					'uri' => '/admin/settings.php?plugin=mailman&action=delete',
-					'title_class' => 'plugin',
-					'visible' => 0
 				)
-			)
-		);
+			);
+		}
 	}
 
 	/**
