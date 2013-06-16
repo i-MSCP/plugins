@@ -32,6 +32,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2013-06-16',
 	'name' => 'Mailman',
-	'desc' => 'Mailman plugin allowing to manage mailing-lists (using Mailman)',
+	'desc' => 'Plugin allowing to manage mailing-lists (using Mailman)',
 	'url' => 'http://i-mscp.net'
 );

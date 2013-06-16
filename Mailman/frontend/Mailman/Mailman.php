@@ -44,6 +44,60 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$controller->registerListener(array(), $this);
+		$controller->registerListener(iMSCP_Events::onAdminScriptStart, $this);
+	}
+
+	/**
+	 * Implements the onAdminScriptStart event
+	 *
+	 * @return void
+	 */
+	public function onAdminScriptStart()
+	{
+		$this->injectMailmanLinks();
+
+		if(isset($_REQUEST['plugin']) && $_REQUEST['plugin'] == 'mailman') {
+			$this->handleRequest();
+		}
+	}
+
+	/**
+	 * Inject Mailman links into the navigation object
+	 */
+	protected function injectMailmanLinks()
+	{
+		iMSCP_Registry::get('navigation')->findOneBy('uri', '/admin/settings.php')->addPages(
+			array(
+				array(
+					'label' => tohtml('Mailman'),
+					'uri' => '/admin/settings.php?plugin=mailman',
+					'title_class' => 'plugin'
+				),
+				array(
+					'label' => tohtml('Mailman'),
+					'uri' => '/admin/settings.php?plugin=mailman&action=edit',
+					'title_class' => 'plugin',
+					'visible' => 0
+				),
+				array(
+					'label' => tohtml('Mailman'),
+					'uri' => '/admin/settings.php?plugin=mailman&action=delete',
+					'title_class' => 'plugin',
+					'visible' => 0
+				)
+			)
+		);
+	}
+
+	/**
+	 * Handle Mailman plugin requests
+	 */
+	protected function handleRequest()
+	{
+		if(isset($_REQUEST['plugin']) && $_REQUEST['plugin'] == 'mailman') {
+			// Load mailman action script
+			require_once PLUGINS_PATH . '/Mailman/admin/mailman.php';
+			exit;
+		}
 	}
 }
