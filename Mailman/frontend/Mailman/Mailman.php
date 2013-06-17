@@ -29,7 +29,6 @@
 /**
  * Mailman Plugin.
  *
- *
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Mailman
@@ -37,11 +36,42 @@
  */
 class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 {
-
 	/**
 	 * @var array
 	 */
 	protected $routes = array();
+
+	/**
+	 * Process plugin installation
+	 *
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 */
+	public function install($pluginManager)
+	{
+		$db = iMSCP_Database::getInstance();
+
+		try {
+			$db->beginTransaction();
+			$this->addDbTable();
+			$db->commit();
+		} catch(iMSCP_Exception $e) {
+			$db->rollBack();
+			$pluginManager->setStatus($this->getName(), $e->getMessage());
+		}
+
+		$pluginManager->setStatus($this->getName(), 'enabled');
+	}
+
+	/**
+	 * Process plugin un-installation
+	 *
+	 * @return void
+	 */
+	public function _uninstall()
+	{
+		// Un-installation tasks are delegated to the engine - Just send backend request
+		send_request();
+	}
 
 	/**
 	 * Register a callback for the given event(s).
@@ -58,7 +88,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onAdminScriptStart event
+	 * Implements the onClientScriptStart event
 	 *
 	 * @return void
 	 */
@@ -86,17 +116,19 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	protected function injectMailmanLinks()
 	{
-		/** @var Zend_Navigation $navigation */
-		$navigation = iMSCP_Registry::get('navigation');
+		if (iMSCP_Registry::isRegistered('navigation')) {
+			/** @var Zend_Navigation $navigation */
+			$navigation = iMSCP_Registry::get('navigation');
 
-		if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
-			$page->addPage(
-				array(
-					'label' => tohtml('E-Mail Lists'),
-					'uri' => '/client/mailman.php',
-					'title_class' => 'plugin'
-				)
-			);
+			if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
+				$page->addPage(
+					array(
+						'label' => tohtml(tr('E-Mail Lists')),
+						'uri' => '/client/mailman.php',
+						'title_class' => 'plugin'
+					)
+				);
+			}
 		}
 	}
 
@@ -110,5 +142,28 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			require_once PLUGINS_PATH . '/Mailman/admin/mailman.php';
 			exit;
 		}
+	}
+
+	/**
+	 * Add mailman database table
+	 *
+	 * @return void
+	 */
+	protected function addDbTable()
+	{
+		$query = "
+			CREATE TABLE IF NOT EXISTS `mailman` (
+  				`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  				`mailman_admin_id` int(11) unsigned NOT NULL,
+  				`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  				`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  				`mailman_listname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  				`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  				PRIMARY KEY (`mailman_id`),
+  				KEY `mailman_admin_id` (`mailman_admin_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+		";
+
+		execute_query($query);
 	}
 }
