@@ -22,6 +22,10 @@ GNU General Public License for more details.
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
+### Sponsors
+
+This plugin is sponsored by [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
+
 ### REQUIREMENTS
 
 Plugin compatible with i-MSCP version >= 1.1.0.rc2.4
