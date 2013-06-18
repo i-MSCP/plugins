@@ -37,7 +37,7 @@
 class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 {
 	/**
-	 * @var array
+	 * @var array Map mailman URI endpoint to mailman action script
 	 */
 	protected $routes = array();
 
@@ -48,15 +48,10 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function install($pluginManager)
 	{
-		$db = iMSCP_Database::getInstance();
-
 		try {
-			$db->beginTransaction();
-			$this->addDbTable();
-			$db->commit();
-		} catch(iMSCP_Exception $e) {
-			$db->rollBack();
-			$pluginManager->setStatus($this->getName(), $e->getMessage());
+			$this->createDbTable();
+		} catch(iMSCP_Exception_Database $e) {
+			$pluginManager->setStatus($this->getName(), 'Installation failed: ' . $e->getMessage());
 		}
 
 		$pluginManager->setStatus($this->getName(), 'enabled');
@@ -82,12 +77,20 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		$controller->registerListener(
 			array(
-				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onClientScriptStart, iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
 		);
+	}
 
+	/**
+	 * Implements the onBeforePluginsRoute event
+	 *
+	 * @return void
+	 */
+	public function onBeforePluginsRoute()
+	{
 		$this->routes = array(
 			'/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/frontend/mailman.php'
 		);
@@ -156,26 +159,26 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Add mailman database table
+	 * Create mailman database table
 	 *
 	 * @return void
 	 */
-	protected function addDbTable()
+	protected function createDbTable()
 	{
-		$query = "
-			CREATE TABLE IF NOT EXISTS `mailman` (
-				`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				`mailman_admin_id` int(11) unsigned NOT NULL,
-				`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-				`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-				`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-				`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-				PRIMARY KEY (`mailman_id`),
-				UNIQUE KEY `mailman_list_name` (`mailman_admin_id`, `mailman_list_name`),
-				KEY `mailman_admin_id` (`mailman_admin_id`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-		";
-
-		execute_query($query);
+		execute_query(
+			"
+				CREATE TABLE IF NOT EXISTS `mailman` (
+					`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`mailman_admin_id` int(11) unsigned NOT NULL,
+					`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					PRIMARY KEY (`mailman_id`),
+					UNIQUE KEY `mailman_list_name` (`mailman_admin_id`, `mailman_list_name`),
+					KEY `mailman_admin_id` (`mailman_admin_id`)
+				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+			"
+		);
 	}
 }
