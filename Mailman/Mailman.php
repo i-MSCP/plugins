@@ -147,7 +147,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					array(
 						'label' => tohtml(tr('E-Mail Lists')),
 						'uri' => '/client/mailman.php',
-						'title_class' => 'plugin'
+						'title_class' => 'email',
+						'order' => 3
 					)
 				);
 			}
