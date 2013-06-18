@@ -38,17 +38,17 @@
 function mailman_manageList()
 {
 	if (
-		isset($_POST['id']) && isset($_POST['list']) && isset($_POST['admin_email']) &&
+		isset($_POST['list_id']) && isset($_POST['list_name']) && isset($_POST['admin_email']) &&
 		isset($_POST['admin_password']) && isset($_POST['admin_password_confirm'])
 	) {
 		$error = false;
-		$listId = clean_input($_POST['id']);
-		$listName = clean_input($_POST['list']);
+		$listId = clean_input($_POST['list_id']);
+		$listName = clean_input($_POST['list_name']);
 		$adminEmail = clean_input($_POST['admin_email']);
 		$adminPassword = clean_input($_POST['admin_password']);
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
-		if (!preg_match('/-+_.=a-z0-9+/i', $listName)) {
+		if (!preg_match('/[-_a-z0-9+]/i', $listName)) {
 			set_page_message(tr("Wrong list name syntax"), 'error');
 			$error = true;
 		}
@@ -95,8 +95,7 @@ function mailman_manageList()
 					UPDATE
 						`mailman`
 					SET
-						`mailman_admin_email` = ?, `mailman_admin_password` = ?, `mailman_list_name` = ?,
-						`mailman_status` = ?
+						`mailman_admin_email` = ?, `mailman_admin_password` = ?, `mailman_status` = ?
 					WHERE
 						`mailman_id` = ?
 					AND
@@ -104,7 +103,7 @@ function mailman_manageList()
 				';
 				$stmt = exec_query(
 					$query,
-					array($adminEmail, $adminPassword, $listName, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'])
+					array($adminEmail, $adminPassword, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'])
 				);
 
 				if(!$stmt->rowCount()) {
@@ -130,8 +129,8 @@ function mailman_manageList()
  */
 function mailman_deleteList()
 {
-	if (isset($_REQUEST['id'])) {
-		$listId = clean_input($_REQUEST['id']);
+	if (isset($_REQUEST['list_id'])) {
+		$listId = clean_input($_REQUEST['list_id']);
 
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
@@ -178,7 +177,7 @@ function mailman_generatePage($tpl)
 			$tpl->assign(
 				array(
 					'LIST_URL' => "http://lists.{$listData['domain_name']}/admin/{$listData['mailman_list_name']}",
-					'LIST' => tohtml($listData['mailman_list_name']),
+					'LIST_NAME' => tohtml($listData['mailman_list_name']),
 					'ADMIN_EMAIL' => tohtml($listData['mailman_admin_email']),
 					'ADMIN_PASSWORD' => '',
 					'STATUS' => tohtml(translate_dmn_status($listData['mailman_status']))
@@ -188,10 +187,10 @@ function mailman_generatePage($tpl)
 			if ($listData['mailman_status'] == $cfg->ITEM_OK_STATUS) {
 				$tpl->assign(
 					array(
-						'EDIT_LINK' => "mailman.php.php?action=edit&id=$listId",
+						'EDIT_LINK' => "mailman.php?action=edit&list_id=$listId",
 						'EDIT_ICON' => 'i_edit',
 						'TR_EDIT' => tr('Edit'),
-						'DELETE_LINK' => "mailman.php.php?action=edit&action=delete&id=$listId",
+						'DELETE_LINK' => "mailman.php?action=edit&action=delete&list_id=$listId",
 						'DELETE_ICON' => 'i_delete',
 						'TR_DELETE' => tr('Delete')
 					)
@@ -217,19 +216,21 @@ function mailman_generatePage($tpl)
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
-		$listId = clean_input($_REQUEST['id']);
+		$listId = clean_input($_REQUEST['list_id']);
 
 		if (isset($lists[$listId])) {
 			$listData = $lists[$listId];
 
 			$tpl->assign(
 				array(
-					'LIST' => tohtml($listData['list']),
-					'ADMIN_EMAIL' => tohtml($listData['admin_email']),
+					'LIST_DIALOG_OPEN' => 1,
+					'LIST_NAME' => tohtml($listData['mailman_list_name']),
+					'LIST_NAME_READONLY' => $cfg->HTML_READONLY,
+					'ADMIN_EMAIL' => tohtml($listData['mailman_admin_email']),
 					'ADMIN_PASSWORD' => '',
 					'ADMIN_PASSWORD_CONFIRM' => '',
-					'ID' => tohtml($listId),
-					'TR_ACTION' => tr('Update')
+					'LIST_ID' => tohtml($listId),
+					'ACTION' => 'edit'
 				)
 			);
 		} else {
@@ -238,12 +239,14 @@ function mailman_generatePage($tpl)
 	} else {
 		$tpl->assign(
 			array(
-				'LIST' => isset($_REQUEST['list']) ? tohtml($_REQUEST['list']) : '',
+				'LIST_DIALOG_OPEN' => isset($_REQUEST['list_name']) ? 1 : 0,
+				'LIST_NAME' => isset($_REQUEST['list_name']) ? tohtml($_REQUEST['list_name']) : '',
+				'LIST_NAME_READONLY' => '',
 				'ADMIN_EMAIL' => isset($_REQUEST['admin_email']) ? tohtml($_REQUEST['admin_email']) : '',
 				'ADMIN_PASSWORD' => '',
 				'ADMIN_PASSWORD_CONFIRM' => '',
-				'ID' => '-1',
-				'TR_ACTION' => tr('Add'),
+				'LIST_ID' => '-1',
+				'ACTION' => 'add'
 			)
 		);
 	}
@@ -266,11 +269,17 @@ if (isset($_REQUEST['action'])) {
 	if ($action === 'add') {
 		if (mailman_manageList()) {
 			set_page_message(tr('E-Mail list successfully scheduled for addition'), 'success');
+			redirectTo('mailman.php');
+		}
+	} elseif($action === 'edit') {
+		if (!empty($_POST) && mailman_manageList()) {
+			set_page_message(tr('E-Mail list successfully scheduled for update'), 'success');
+			redirectTo('mailman.php');
 		}
 	} elseif ($action === 'delete') {
 		mailman_deleteList();
 		set_page_message(tr('E-Mail list successfully scheduled for deletion'), 'success');
-	} elseif ($action !== 'edit') {
+	} else {
 		showBadRequestErrorPage();
 	}
 }
@@ -296,11 +305,14 @@ $tpl->assign(
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_LIST' => tr('Add list'),
 		'TR_MAIL_LIST' => tr('E-Mail List'),
-		'TR_LIST' => tr('List'),
+		'TR_LIST_NAME' => tr('List name'),
 		'TR_ADMIN_EMAIL' => tr('Admin email'),
 		'TR_ADMIN_PASSWORD' => tr('Password'),
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
-		'TR_URL' => tr('Url')
+		'TR_URL' => tr('Url'),
+		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s e-mail list.', false, '%s'),
+		'TR_APPLY' => tr('Apply'),
+		'TR_CANCEL' => tr('Cancel')
 	)
 );
 

@@ -1,21 +1,23 @@
 		<script type="text/javascript">
 			/*<![CDATA[*/
 			$(document).ready(function () {
-				$('#add_list_dialog').dialog({
+				$('#list_dialog').dialog({
 					bgiframe: true,
-					title: '{TR_MAIL_LISTS}',
+					title: '{TR_MAIL_LIST}',
 					hide: 'blind',
 					show: 'slide',
-					//focus:false,
-					autoOpen: false,
+					focus:false,
+					autoOpen: {LIST_DIALOG_OPEN},
 					width: '650',
 					modal: true,
 					dialogClass: 'body',
 					buttons: {
-						"{TR_ACTION}": function () {
-							$('#add_list_frm').submit();
+						"{TR_APPLY}": function () {
+							$('#list_frm').submit();
 						},
-						"Cancel": function () {
+						"{TR_CANCEL}": function () {
+							$('#list_frm').find("input[type=text], input[type=password]").val("");
+							$("#list_name").attr("readonly", false);
 							$(this).dialog("close");
 						}
 					}
@@ -23,10 +25,14 @@
 
 				// PHP Editor settings button
 				$('#add_list').button({ icons: { primary: 'ui-icon-gear'}}).click(function (e) {
-					$('#add_list_dialog').dialog('open');
+					$('#list_dialog').dialog('open');
 					return false;
 				});
 			});
+
+			function confirm_deletion(list_name) {
+				return confirm(sprintf('{TR_CONFIRM_DELETION}', list_name));
+			}
 			/*]]>*/
 		</script>
 		<!-- BDP: email_lists -->
@@ -45,12 +51,12 @@
 			</tr>
 			<!-- BDP: email_list -->
 			<tr>
-				<td>{LIST}</td>
+				<td>{LIST_NAME}</td>
 				<td><a href="{LIST_URL}">{LIST_URL}</a></td>
 				<td>{STATUS}</td>
 				<td>
 					<a href="{EDIT_LINK}" class="icon {EDIT_ICON}">{TR_EDIT}</a>
-					<a href="{DELETE_LINK}" class="icon {DELETE_ICON}">{TR_DELETE}</a>
+					<a href="{DELETE_LINK}" class="icon {DELETE_ICON}" onclick="return confirm_deletion('{LIST_NAME}')">{TR_DELETE}</a>
 				</td>
 			</tr>
 			<!-- EDP: email_list -->
@@ -67,17 +73,20 @@
 			<button id="add_list" value="Add list">{TR_ADD_LIST}</button>
 		</div>
 
-		<div id="add_list_dialog">
-			<form name="add_list_frm" id="add_list_frm" action="mailman.php" method="post" autocomplete="off">
+		<div id="list_dialog">
+			<form name="list_frm" id="list_frm" action="mailman.php" method="post" autocomplete="off">
 				<table>
 					<tr>
-						<td><label for="list">{TR_LIST}</label></td>
-						<td><input type="text" id="list" name="list" value="{LIST}"/></td>
+						<td><label for="list_name">{TR_LIST_NAME}</label></td>
+						<td>
+							<input type="text" id="list_name" name="list_name" value="{LIST_NAME}"{LIST_NAME_READONLY}/>
+						</td>
 					</tr>
 					<tr>
 						<td><label for="admin_email">{TR_ADMIN_EMAIL}</label></td>
-						<td><input type="text" id="admin_email" name="admin_email" value="{ADMIN_EMAIL}"
-								   autocomplete="off"/></td>
+						<td>
+							<input type="text" id="admin_email" name="admin_email" value="{ADMIN_EMAIL}" autocomplete="off"/>
+						</td>
 					</tr>
 					<tr>
 						<td><label for="admin_password">{TR_ADMIN_PASSWORD}</label></td>
@@ -89,7 +98,7 @@
 						</td>
 					</tr>
 				</table>
-				<input type="hidden" name="id" value="{ID}"/>
-				<input type="hidden" name="action" value="add"/>
+				<input type="hidden" name="list_id" value="{LIST_ID}"/>
+				<input type="hidden" name="action" value="{ACTION}"/>
 			</form>
 		</div>
