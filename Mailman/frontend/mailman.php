@@ -43,14 +43,13 @@ function mailman_manageList()
 	) {
 		$error = false;
 		$listId = clean_input($_POST['id']);
-		$list = clean_input($_POST['list']);
+		$listName = clean_input($_POST['list']);
 		$adminEmail = clean_input($_POST['admin_email']);
 		$adminPassword = clean_input($_POST['admin_password']);
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
-
-		if($list == '') {
-			set_page_message(tr("List field cannot be empty"), 'error');
+		if (!preg_match('/-+_.=a-z0-9+/i', $listName)) {
+			set_page_message(tr("Wrong list name syntax"), 'error');
 			$error = true;
 		}
 
@@ -67,36 +66,53 @@ function mailman_manageList()
 		}
 
 		if (!$error) {
-			/** @var $dbConfig iMSCP_Config_Handler_Db */
-			$dbConfig = iMSCP_Registry::get('dbConfig');
-
-			if (isset($dbConfig->PLUGIN_MAILMAN)) {
-				$config = json_decode($dbConfig->PLUGIN_MAILMAN, true);
-			} else {
-				$config = array();
-			}
-
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if ($listId == '-1') { // Add
-				$config[] = array(
-					'list' => $list,
-					'admin_email' => $adminEmail,
-					'admin_password' => $adminPassword,
-					'status' => $cfg->ITEM_ADD_STATUS,
+			if($listId === '-1') { // New E-mail list
+				$query = '
+					INSERT INTO mailman (
+						`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
+						`mailman_status`
+					) VALUES(
+						?, ?, ?, ?, ?
+					)
+				';
+
+				try {
+					exec_query(
+						$query,
+						array($_SESSION['user_id'], $adminEmail, $adminPassword, $listName, $cfg->ITEM_ADD_STATUS)
+					);
+				} catch(iMSCP_Exception_Database $e) {
+					if($e->getCode() == 23000) { // Duplicate entries
+						set_page_message(tr("The $listName e-mail list already exist."), 'error');
+						return false;
+					}
+				}
+			} else { // E-mail list update
+				$query = '
+					UPDATE
+						`mailman`
+					SET
+						`mailman_admin_email` = ?, `mailman_admin_password` = ?, `mailman_list_name` = ?,
+						`mailman_status` = ?
+					WHERE
+						`mailman_id` = ?
+					AND
+						`mailman_admin_id` = ?
+				';
+				$stmt = exec_query(
+					$query,
+					array($adminEmail, $adminPassword, $listName, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'])
 				);
-			} else { // Update
-				$config[$listId] = array(
-					'list' => $list,
-					'admin_email' => $adminEmail,
-					'admin_password' => $adminPassword,
-					'status' => $cfg->ITEM_CHANGE_STATUS
-				);
+
+				if(!$stmt->rowCount()) {
+					showBadRequestErrorPage();
+				}
 			}
 
-			$dbConfig->PLUGIN_MAILMAN = json_encode($config);
-			send_request();
+			//send_request();
 			return true;
 		} else {
 			return false;
@@ -117,22 +133,13 @@ function mailman_deleteList()
 	if (isset($_REQUEST['id'])) {
 		$listId = clean_input($_REQUEST['id']);
 
-		/** @var $dbConfig iMSCP_Config_Handler_Db */
-		$dbConfig = iMSCP_Registry::get('dbConfig');
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
 
-		if (isset($dbConfig->PLUGIN_MAILMAN)) {
-			$config = json_decode($dbConfig->PLUGIN_MAILMAN, true);
-		} else {
-			$config = array();
-		}
+		$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
+		$stmt = exec_query($query, array($cfg->ITEM_DELETE_STATUS, $listId, $_SESSION['user_id']));
 
-		if (isset($config[$listId])) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-			$config[$listId]['status'] = $cfg->ITEM_DELETE_STATUS;
-			$dbConfig->PLUGIN_MAILMAN = json_encode($config);
-			send_request();
-		} else {
+		if(!$stmt->rowCount()) {
 			showBadRequestErrorPage();
 		}
 	} else {
@@ -144,28 +151,41 @@ function mailman_deleteList()
  * Generate page.
  *
  * @param $tpl iMSCP_pTemplate
+ * @return void
  */
 function mailman_generatePage($tpl)
 {
 	/** @var iMSCP_Config_Handler_File $cfg */
 	$cfg = iMSCP_Registry::get('config');
 
-	/** @var $dbConfig iMSCP_Config_Handler_Db */
-	$dbConfig = iMSCP_Registry::get('dbConfig');
+	$query = '
+		SELECT
+			`t1`.*, `t2`.`domain_name`
+		FROM
+			`mailman` AS `t1`
+		INNER JOIN
+			`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
+		WHERE
+			`t1`.`mailman_admin_id` = ?
+		ORDER BY
+			`t1`.`mailman_list_name`
+	';
+	$stmt = exec_query($query, $_SESSION['user_id']);
+	$lists = $stmt->fetchAll(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC|PDO::FETCH_GROUP);
 
-	if (isset($dbConfig->PLUGIN_MAILMAN) && ($config = json_decode($dbConfig->PLUGIN_MAILMAN, true))) {
-		foreach ($config as $listId => $listData) {
+	if($stmt->rowCount()) {
+		foreach($lists as $listId => $listData) {
 			$tpl->assign(
 				array(
-					'LIST_URL' => isset($listData['list_url']) ? tohtml($listData['list_url']) : '#',
-					'LIST' => tohtml($listData['list']),
-					'ADMIN_EMAIL' => tohtml($listData['admin_email']),
+					'LIST_URL' => "http://lists.{$listData['domain_name']}/admin/{$listData['mailman_list_name']}",
+					'LIST' => tohtml($listData['mailman_list_name']),
+					'ADMIN_EMAIL' => tohtml($listData['mailman_admin_email']),
 					'ADMIN_PASSWORD' => '',
-					'STATUS' => tohtml(translate_dmn_status($listData['status']))
+					'STATUS' => tohtml(translate_dmn_status($listData['mailman_status']))
 				)
 			);
 
-			if ($listData['status'] == $cfg->ITEM_OK_STATUS) {
+			if ($listData['mailman_status'] == $cfg->ITEM_OK_STATUS) {
 				$tpl->assign(
 					array(
 						'EDIT_LINK' => "mailman.php.php?action=edit&id=$listId",
@@ -189,22 +209,23 @@ function mailman_generatePage($tpl)
 				);
 			}
 
-
 			$tpl->parse('EMAIL_LIST', '.email_list');
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You do not have created any E-mail list yet'), 'info');
+		set_page_message(tr('You have not created any e-mail lists.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
 		$listId = clean_input($_REQUEST['id']);
 
-		if (isset($config[$listId])) {
+		if (isset($lists[$listId])) {
+			$listData = $lists[$listId];
+
 			$tpl->assign(
 				array(
-					'LIST' => tohtml($config[$listId]['list']),
-					'ADMIN_EMAIL' => tohtml($config[$listId]['admin_email']),
+					'LIST' => tohtml($listData['list']),
+					'ADMIN_EMAIL' => tohtml($listData['admin_email']),
 					'ADMIN_PASSWORD' => '',
 					'ADMIN_PASSWORD_CONFIRM' => '',
 					'ID' => tohtml($listId),
@@ -243,13 +264,13 @@ if (isset($_REQUEST['action'])) {
 	$action = clean_input($_REQUEST['action']);
 
 	if ($action === 'add') {
-		if(mailman_manageList()) {
-			set_page_message(tr('E-mail list successfully scheduled for addition'), 'success');
+		if (mailman_manageList()) {
+			set_page_message(tr('E-Mail list successfully scheduled for addition'), 'success');
 		}
 	} elseif ($action === 'delete') {
 		mailman_deleteList();
-		set_page_message(tr('E-mail list successfully scheduled for deletion'), 'success');
-	} elseif($action !== 'edit') {
+		set_page_message(tr('E-Mail list successfully scheduled for deletion'), 'success');
+	} elseif ($action !== 'edit') {
 		showBadRequestErrorPage();
 	}
 }
@@ -258,7 +279,7 @@ $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(
 	array(
 		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/Mailman/client/mailman.tpl',
+		'page' => '../../plugins/Mailman/frontend/mailman.tpl',
 		'page_message' => 'layout',
 		'email_lists' => 'page',
 		'email_list' => 'email_lists'
@@ -270,7 +291,7 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Admin / Settings / Mailman'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'TR_MAIL_LISTS' => tr('E-Mail List'),
+		'TR_MAIL_LISTS' => tr('E-Mail Lists'),
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_LIST' => tr('Add list'),

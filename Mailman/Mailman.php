@@ -80,10 +80,16 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$controller->registerListener(iMSCP_Events::onClientScriptStart, $this);
+		$controller->registerListener(
+			array(
+				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onAfterDeleteCustomer
+			),
+			$this
+		);
 
 		$this->routes = array(
-			'/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/client/mailman.php'
+			'/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/frontend/mailman.php'
 		);
 	}
 
@@ -94,11 +100,27 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		$this->injectMailmanLinks();
+		$this->setupNavigation();
+	}
 
-		if(isset($_REQUEST['plugin']) && $_REQUEST['plugin'] == 'mailman') {
-			$this->handleRequest();
-		}
+	/**
+	 * Implements the onAfterDeleteCustomer event
+	 *
+	 * This event is called when a customer account is being deleted.
+	 * If triggered,  we remove any E-Mail lists for this customer
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onAfterDeleteCustomer($event)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		exec_query(
+			'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_admin_id` = ?',
+			array($cfg->ITEM_DELETE_STATUS, $event->getParam('customerId'))
+		);
 	}
 
 	/**
@@ -114,7 +136,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Inject Mailman links into the navigation object
 	 */
-	protected function injectMailmanLinks()
+	protected function setupNavigation()
 	{
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
@@ -133,18 +155,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Handle Mailman plugin requests
-	 */
-	protected function handleRequest()
-	{
-		if(isset($_REQUEST['plugin']) && $_REQUEST['plugin'] == 'mailman') {
-			// Load mailman action script
-			require_once PLUGINS_PATH . '/Mailman/admin/mailman.php';
-			exit;
-		}
-	}
-
-	/**
 	 * Add mailman database table
 	 *
 	 * @return void
@@ -153,15 +163,16 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		$query = "
 			CREATE TABLE IF NOT EXISTS `mailman` (
-  				`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  				`mailman_admin_id` int(11) unsigned NOT NULL,
-  				`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  				`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  				`mailman_listname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  				`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  				PRIMARY KEY (`mailman_id`),
-  				KEY `mailman_admin_id` (`mailman_admin_id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+				`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`mailman_admin_id` int(11) unsigned NOT NULL,
+				`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+				`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+				`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+				`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+				PRIMARY KEY (`mailman_id`),
+				UNIQUE KEY `mailman_list_name` (`mailman_admin_id`, `mailman_list_name`),
+				KEY `mailman_admin_id` (`mailman_admin_id`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 		";
 
 		execute_query($query);
