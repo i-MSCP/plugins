@@ -75,7 +75,7 @@ sub uninstall
 	}
 
 	$rdata = $database->doQuery(
-		'dummy', "UPDATE `plugin` SET `plugin_status` = 'disabled' WHERE `plugin_name` = `Mailman`'
+		'dummy', "UPDATE `plugin` SET `plugin_status` = 'disabled' WHERE `plugin_name` = `Mailman`"
 	);
 	unless($rdata eq 'HASH') {
 		error($rdata);
@@ -142,7 +142,7 @@ sub process
 	0;
 }
 
-=item _addList()
+=item _addList($domainName, $listName, $adminEmail, $adminPassword)
 
  Add the given list
 
@@ -174,7 +174,7 @@ sub _addList
 	0;
 }
 
-=item _updateList()
+=item _updateList($listName, $adminEmail, $adminPassword)
 
  Update the given list (admin email and password)
 
@@ -198,7 +198,7 @@ sub _updateList
 	0;
 }
 
-=item _deleteList()
+=item _deleteList($domainName, $listName)
 
  Delete the given list
 
@@ -221,7 +221,7 @@ sub _deleteList
 	0;
 }
 
-=item _addlListVhost()
+=item _addlListVhost($domainName, $listName)
 
  Add list vhost
 
@@ -239,13 +239,13 @@ sub _addlListVhost
 
 	# TODO create vhost file
 
-	my $rs = $httpd->enableSite("lists.$domain.conf");
+	my $rs = $httpd->enableSite("lists.$domainName.conf");
 	return $rs if $rs;
 
 	0;
 }
 
-=item _deleteListVhost()
+=item _deleteListVhost($domainName, $listName)
 
  Delete list vhost
 
@@ -259,7 +259,7 @@ sub _deleteListVhost
 	my $domainName = shift;
 	my $listName = shift;
 
-	my $rs = $httpd->disableSite("lists.$domain.conf");
+	my $rs = $httpd->disableSite("lists.$domainName.conf");
 	return $rs if $rs;
 
 	# TODO delete vhost file
