@@ -61,7 +61,7 @@ sub uninstall
 			FROM
 				`mailman` AS `t1`
 			INNER JOIN
-				`domain` AS ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
+				`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
 		"
 	);
 	unless($rdata eq 'HASH') {
@@ -109,6 +109,7 @@ sub process
 	my $database = iMSCP::Database->factory();
 	my $rs = 0;
 
+	# TODO todisable/toenable
 	my $rdata = $database->doQuery(
 		'mailman_id'
 		"
@@ -117,7 +118,7 @@ sub process
 			FROM
 				`mailman` AS `t1`
 			INNER JOIN
-				`domain` AS ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
+				`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
 			WHERE
 				`mailman_status` IN('toadd', 'change', 'delete')
 		"
