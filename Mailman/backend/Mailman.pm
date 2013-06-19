@@ -9,6 +9,7 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
 use Servers::httpd;
+use Servers::mta;
 use parent 'Common::SingletonClass';
 
 =item install()
@@ -23,7 +24,15 @@ sub install
 {
 	my $self = shift;
 
-	# TODO
+	my $rs = 0;
+
+	my ($stdout, $stderr);
+	$rs = execute('postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+
+	my $mta = Servers::mta->factory();
+	$rs = $mta->restart();
 
 	0;
 }
@@ -132,7 +141,7 @@ sub process
 					$rdata->{$_}->{'mailman_admin_password'}
 				);
 				return $rs if $rs;
-			} elsif($rdata->{$_}->{'mailman_status'} eq 'delete' {
+			} elsif($rdata->{$_}->{'mailman_status'} eq 'delete') {
 				$rs = $self->_deleteList($rdata->{$_}->{'domain_name'}, $rdata->{$_}->{'mailman_list_name'});
 				return $rs if $rs;
 			}
@@ -279,6 +288,7 @@ sub _getListVhostTemplate
 {
 
 	# TODO
+
 	0;
 }
 
