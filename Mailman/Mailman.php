@@ -44,29 +44,31 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Process plugin installation
 	 *
+	 *
 	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @throws iMSCP_Plugin_Exception in case installation fail
 	 */
 	public function install($pluginManager)
 	{
 		try {
 			$this->createDbTable();
 		} catch(iMSCP_Exception_Database $e) {
-			$pluginManager->setStatus($this->getName(), 'Installation failed: ' . $e->getMessage());
+			throw new iMSCP_Plugin_Exception($e->getMessage());
 		}
-
-		$pluginManager->setStatus($this->getName(), 'enabled');
 	}
 
 	/**
 	 * Process plugin un-installation
 	 *
+	 * @throws iMSCP_Plugin_Exception in case installation fail
 	 * @return void
 	 */
-	public function _uninstall()
+	/*
+	public function _uninstall($pluginManager)
 	{
-		// Un-installation tasks are delegated to the engine - Just send backend request
-		send_request();
+		// Un-installation tasks are delegated to the engine
 	}
+	*/
 
 	/**
 	 * Register a callback for the given event(s).
@@ -175,7 +177,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					PRIMARY KEY (`mailman_id`),
-					UNIQUE KEY `mailman_list_name` (`mailman_admin_id`, `mailman_list_name`),
+					UNIQUE KEY `mailman_list_name` (`mailman_list_name`),
 					KEY `mailman_admin_id` (`mailman_admin_id`)
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			"

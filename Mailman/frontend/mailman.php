@@ -69,24 +69,50 @@ function mailman_manageList()
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($listId === '-1') { // New E-mail list
-				$query = '
-					INSERT INTO mailman (
-						`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
-						`mailman_status`
-					) VALUES(
-						?, ?, ?, ?, ?
-					)
-				';
+			if($listId == '-1') { // New E-mail list
+
+				$db = iMSCP_Database::getInstance();
 
 				try {
+					$db->beginTransaction();
+
+					$query = '
+						INSERT INTO mailman (
+							`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
+							`mailman_status`
+						) VALUES(
+							?, ?, ?, ?, ?
+						)
+					';
 					exec_query(
 						$query,
 						array($_SESSION['user_id'], $adminEmail, $adminPassword, $listName, $cfg->ITEM_ADD_STATUS)
 					);
+
+					$query = '
+						INSERT INTO `domain_dns` (
+							`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
+							`protected`
+						) VALUES(
+							?, ?, ?, ?, ?, ?, ?
+						)
+					';
+					exec_query(
+						$query,
+						array(
+							get_user_domain_id($_SESSION['user_id']), 0, 'lists.domain.com.', 'IN', 'A',
+							$cfg->BASE_SERVER_IP
+						)
+					);
+
+					$db->commit();
 				} catch(iMSCP_Exception_Database $e) {
+					$db->rollBack();
+
 					if($e->getCode() == 23000) { // Duplicate entries
-						set_page_message(tr("The $listName e-mail list already exist."), 'error');
+						set_page_message(
+							tr("The $listName e-mail list already exists. Please, choose other name."), 'error'
+						);
 						return false;
 					}
 				}
@@ -100,10 +126,15 @@ function mailman_manageList()
 						`mailman_id` = ?
 					AND
 						`mailman_admin_id` = ?
+					AND
+						`mailman_status` = ?
 				';
 				$stmt = exec_query(
 					$query,
-					array($adminEmail, $adminPassword, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'])
+					array(
+						$adminEmail, $adminPassword, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'],
+						$cfg->ITEM_OK_STATUS
+					)
 				);
 
 				if(!$stmt->rowCount()) {
@@ -111,7 +142,8 @@ function mailman_manageList()
 				}
 			}
 
-			//send_request();
+			send_request();
+
 			return true;
 		} else {
 			return false;
