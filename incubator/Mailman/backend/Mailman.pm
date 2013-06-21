@@ -420,7 +420,7 @@ sub _updateList
 	$rs = $file->save();
 	return $rs if $rs;
 
-	my @cmdArgs = ('-q', '-i', escapeShell($tmpFile->filename), escapeShell($listName));
+	my @cmdArgs = ('-i', escapeShell($tmpFile->filename), escapeShell($listName));
 
 	$rs = execute("/usr/lib/mailman/bin/config_list @cmdArgs", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -431,7 +431,7 @@ sub _updateList
 
 	# Update admin password - Begin
 
-	@cmdArgs = ('-q', '-l', escapeShell($listName), escapeShell($adminPassword));
+	@cmdArgs = ('-q', '-l', escapeShell($listName), '-p', escapeShell($adminPassword));
 
 	$rs = execute("/var/lib/mailman/bin/change_pw @cmdArgs", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -629,10 +629,10 @@ sub _deleteListsVhost
 	my $adminId = shift;
 	my $domainName = shift;
 
-	my $database = iMSCP::Databasae->factory();
+	my $database = iMSCP::Database->factory();
 
 	my $rdata = $database->doQuery(
-		'mailman_id', 'SELECT `mailman_id` FROM `mailman` WHERE` mailman_admin_id` = ? LIMIT 2', $adminId
+		'mailman_id', 'SELECT `mailman_id` FROM `mailman` WHERE `mailman_admin_id` = ? LIMIT 2', $adminId
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
