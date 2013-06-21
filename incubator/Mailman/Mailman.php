@@ -58,19 +58,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Process plugin un-installation
-	 *
-	 * @throws iMSCP_Plugin_Exception in case installation fail
-	 * @return void
-	 */
-	/*
-	public function _uninstall($pluginManager)
-	{
-		// Un-installation tasks are delegated to the engine
-	}
-	*/
-
-	/**
 	 * Register a callback for the given event(s).
 	 *
 	 * @param iMSCP_Events_Manager_Interface $controller

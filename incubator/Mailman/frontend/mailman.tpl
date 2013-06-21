@@ -52,7 +52,7 @@
 			<!-- BDP: email_list -->
 			<tr>
 				<td>{LIST_NAME}</td>
-				<td><a href="{LIST_URL}">{LIST_URL}</a></td>
+				<td><a target="_blank" href="{LIST_URL}">{LIST_URL}</a></td>
 				<td>{STATUS}</td>
 				<td>
 					<a href="{EDIT_LINK}" class="icon {EDIT_ICON}">{TR_EDIT}</a>

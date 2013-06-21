@@ -184,7 +184,7 @@ sub run
 				);
 			} elsif($rdata->{$_}->{'mailman_status'} eq 'delete') {
 				$rs = $self->_deleteList(
-					$rdata->{$_}->{'mailman_admin_id'}
+					$rdata->{$_}->{'mailman_admin_id'},
 					$rdata->{$_}->{'domain_name'}, $rdata->{$_}->{'mailman_list_name'}
 				);
 
@@ -213,7 +213,6 @@ sub run
 
  Add list
 
- Param int $adminId
  Return int 0 on success, other on failure
 
 =cut
@@ -345,7 +344,7 @@ sub _addList
 
 =item _updateList($domainName, $listName, $adminEmail, $adminPassword)
 
- Update the given list (admin email and password)
+ Update list (admin email and password)
 
  Return int 0 on success, other on failure
 
@@ -395,7 +394,7 @@ sub _updateList
 	0;
 }
 
-=item _deleteList($domainName, $listName)
+=item _deleteList($adminId, $domainName, $listName)
 
  Delete list
 
@@ -406,11 +405,11 @@ sub _updateList
 sub _deleteList
 {
 	my $self = shift;
-	my $adminId = self;
+	my $adminId = shift;
 	my $domainName = shift;
 	my $listName = shift;
 
-	my @cmdArgs = ('-q', '-a', escapeShell($listName));
+	my @cmdArgs = ('-a', escapeShell($listName));
 	my ($stdout, $stderr);
 
 	my $rs = execute("/usr/lib/mailman/bin/rmlist @cmdArgs", \$stdout, \$stderr);
@@ -522,7 +521,7 @@ sub _deleteList
 
 =item _addlListsVhost($adminId, $domainName)
 
- Add lists apache vhost
+ Add lists vhost
 
  Return int 0 on success, other on failure
 
@@ -569,7 +568,7 @@ sub _addlListsVhost
 
 =item _deleteListsVhost($adminId, $domainName)
 
- Delete lists apache vhost
+ Delete lists vhost
 
  Return int 0 on success, other on failure
 
@@ -581,13 +580,13 @@ sub _deleteListsVhost
 	my $adminId = shift;
 	my $domainName = shift;
 
-	my $database = iMSCP::Databasae->factory();
+	#my $database = iMSCP::Databasae->factory();
 
-	my $rdata->(
-		'mailman_id',
-		"SELECT COUNT(`mailman_id`) AS list_count FROM mailman WHERE mailman_admin_id = ?",
-		$adminId
-	);
+	#my $rdata->(
+	#	'mailman_id',
+	#	"SELECT COUNT(`mailman_id`) AS list_count FROM mailman WHERE mailman_admin_id = ?",
+	#	$adminId
+	#);
 
 	my $httpd = Servers::httpd->factory();
 	my $vhostFilePath = "$httpd->{'tplValues'}->{'APACHE_SITES_DIR'}/lists.$domainName.conf";

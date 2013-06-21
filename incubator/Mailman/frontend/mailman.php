@@ -62,7 +62,7 @@ function mailman_manageList()
 			set_page_message(tr("Password doesn't matches"), 'error');
 			$error = true;
 		} elseif (!checkPasswordSyntax($adminPassword)) {
-			$error = 'true';
+			$error = true;
 		}
 
 		if (!$error) {
@@ -76,8 +76,51 @@ function mailman_manageList()
 				try {
 					$db->beginTransaction();
 
+					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
+					$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
+
 					$query = '
-						INSERT INTO mailman (
+						SELECT
+							`domain_id`
+						FROM
+							`domain_dns`
+						WHERE
+							`domain_id` = ?
+						AND
+							`domain_dns` = ?
+						AND
+							`domain_class` = ?
+						AND
+							`domain_type` = ?
+						AND
+							`domain_text` = ?
+					';
+					$stmt = exec_query(
+						$query, array($mainDmnProps['domain_id'], $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP)
+					);
+
+					if(!$stmt->rowCount()) {
+						$query = '
+							INSERT INTO `domain_dns` (
+								`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
+								`protected`
+							) VALUES(
+								?, ?, ?, ?, ?, ?, ?
+							)
+						';
+						exec_query(
+							$query,
+							array($mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP, 'yes')
+						);
+
+						exec_query(
+							'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
+							array($cfg->ITEM_DNSCHANGE_STATUS, $mainDmnProps['domain_id'])
+						);
+					}
+
+					$query = '
+						INSERT INTO `mailman` (
 							`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
 							`mailman_status`
 						) VALUES(
@@ -86,22 +129,9 @@ function mailman_manageList()
 					';
 					exec_query(
 						$query,
-						array($_SESSION['user_id'], $adminEmail, $adminPassword, $listName, $cfg->ITEM_ADD_STATUS)
-					);
-
-					$query = '
-						INSERT INTO `domain_dns` (
-							`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
-							`protected`
-						) VALUES(
-							?, ?, ?, ?, ?, ?, ?
-						)
-					';
-					exec_query(
-						$query,
 						array(
-							get_user_domain_id($_SESSION['user_id']), 0, 'lists.domain.com.', 'IN', 'A',
-							$cfg->BASE_SERVER_IP
+							$mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName,
+							$cfg->ITEM_ADD_STATUS
 						)
 					);
 
@@ -167,12 +197,62 @@ function mailman_deleteList()
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
-		$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
-		$stmt = exec_query($query, array($cfg->ITEM_DELETE_STATUS, $listId, $_SESSION['user_id']));
 
-		if(!$stmt->rowCount()) {
-			showBadRequestErrorPage();
+
+		$db = iMSCP_Database::getInstance();
+
+		try {
+			$db->beginTransaction();
+
+			$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
+			$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
+
+			$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
+			$stmt = exec_query($query, array($cfg->ITEM_DELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
+
+			if(!$stmt->rowCount()) {
+				showBadRequestErrorPage();
+			}
+
+			$stmt = exec_query(
+				"SELECT COUNT('mailman_id') AS `cnt` FROM `mailman` WHERE mailman_admin_id = ?",
+				$mainDmnProps['domain_id']
+			);
+
+			if($stmt->fields['cnt'] < 2) {
+				$query = '
+					DELETE FROM
+						`domain_dns`
+					WHERE
+						`domain_id` = ?
+					AND
+						`alias_id` = ?
+					AND
+						`domain_dns` = ?
+					AND
+						`domain_class` = ?
+					AND
+						`domain_type` = ?
+					AND
+						`domain_text` = ?
+				';
+				exec_query(
+					$query, array($mainDmnProps['domain_id'], '0', $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP)
+				);
+
+				exec_query(
+					'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
+					array($cfg->ITEM_DNSCHANGE_STATUS, $mainDmnProps['domain_id'])
+				);
+			}
+
+			$db->commit();
+		} catch(iMSCP_Exception_Database $e) {
+			$db->rollBack();
+			throw new iMSCP_Exception_Database($e->getMessage(), $e->getQuery(), $e->getCode(), $e);
 		}
+
+		send_request();
 	} else {
 		showBadRequestErrorPage();
 	}
@@ -301,12 +381,10 @@ if (isset($_REQUEST['action'])) {
 	if ($action === 'add') {
 		if (mailman_manageList()) {
 			set_page_message(tr('E-Mail list successfully scheduled for addition'), 'success');
-			redirectTo('mailman.php');
 		}
 	} elseif($action === 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
 			set_page_message(tr('E-Mail list successfully scheduled for update'), 'success');
-			redirectTo('mailman.php');
 		}
 	} elseif ($action === 'delete') {
 		mailman_deleteList();
@@ -314,6 +392,8 @@ if (isset($_REQUEST['action'])) {
 	} else {
 		showBadRequestErrorPage();
 	}
+
+	redirectTo('mailman.php');
 }
 
 $tpl = new iMSCP_pTemplate();
