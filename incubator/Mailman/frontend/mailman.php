@@ -31,7 +31,7 @@
  */
 
 /**
- * Add or update mailing-list
+ * Add or update list
  *
  * @return boolean TRUE on success, FALSE otherwise
  */
@@ -69,7 +69,7 @@ function mailman_manageList()
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($listId == '-1') { // New E-mail list
+			if($listId === '-1') { // New list
 
 				$db = iMSCP_Database::getInstance();
 
@@ -146,7 +146,7 @@ function mailman_manageList()
 						return false;
 					}
 				}
-			} else { // E-mail list update
+			} else { // List update
 				$query = '
 					UPDATE
 						`mailman`
@@ -172,6 +172,7 @@ function mailman_manageList()
 				}
 			}
 
+			// Send request to i-MSCP daemon
 			send_request();
 
 			return true;
@@ -185,8 +186,9 @@ function mailman_manageList()
 }
 
 /**
- * Delete mailing-list
+ * Delete list
  *
+ * @throws iMSCP_Exception_Database
  * @return void
  */
 function mailman_deleteList()
@@ -196,8 +198,6 @@ function mailman_deleteList()
 
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
-
-
 
 		$db = iMSCP_Database::getInstance();
 
@@ -252,6 +252,7 @@ function mailman_deleteList()
 			throw new iMSCP_Exception_Database($e->getMessage(), $e->getQuery(), $e->getCode(), $e);
 		}
 
+		// Send request to i-MSCP daemon
 		send_request();
 	} else {
 		showBadRequestErrorPage();

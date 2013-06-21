@@ -1,7 +1,5 @@
 ## Mailman v0.0.1 plugin for i-MSCP
 
-# WARNING: This plugin is still under development. It is not ready for use.
-
 Plugin allowing to manage mailing-lists (using Mailman).
 
 If you install this plugin manually, make sure it is installed in

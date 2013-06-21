@@ -44,11 +44,9 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Process plugin installation
 	 *
-	 *
-	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @throws iMSCP_Plugin_Exception in case installation fail
 	 */
-	public function install($pluginManager)
+	public function install()
 	{
 		try {
 			$this->createDbTable();
@@ -66,7 +64,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		$controller->registerListener(
 			array(
-				iMSCP_Events::onClientScriptStart, iMSCP_Events::onBeforePluginsRoute,
+				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
@@ -155,7 +154,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	protected function createDbTable()
 	{
 		execute_query(
-			"
+			'
 				CREATE TABLE IF NOT EXISTS `mailman` (
 					`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`mailman_admin_id` int(11) unsigned NOT NULL,
@@ -167,7 +166,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					UNIQUE KEY `mailman_list_name` (`mailman_list_name`),
 					KEY `mailman_admin_id` (`mailman_admin_id`)
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			"
+			'
 		);
 	}
 }
