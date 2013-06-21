@@ -29,38 +29,56 @@ sub install
 
 	my $rs = 0;
 
+	if(-f '/etc/mailman/mm_cfg.py') {
+		my $file = iMSCP::File->new('filename' => '/etc/mailman/mm_cfg.py');
+
+		my $fileContent = $file->get();
+		return 1 if ! $fileContent;
+
+		$fileContent =~ s#^(DEFAULT_URL_PATTERN\s*=\s*).*$#$1'http://%s/'#gm;
+		$fileContent =~ s/^#\s*(MTA\s*=\s*None)/$1/im;
+
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$rs = $file->save();
+		return $rs if $rs;
+
+		$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
+		return $rs if $rs;
+
+		$rs = $file->mode(0644);
+		return $rs if $rs;
+	} else {
+		error('File /etc/mailman/mm_cfg.py not found');
+		return 1;
+	}
+
 	my ($stdout, $stderr);
 	$rs = execute('postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	my $database = iMSCP::Database->factory();
-
-#	if(defined $main::execmode && $main::execmode eq 'setup') {
-#		my $rdata = $database->doQuery(
-#			'dummy',
-#			"
-#				UPDATE
-#					`mailman`
-#				SET
-#					`mailman_status` = 'change'
-#				WHERE
-#					`mailman_status` NOT IN('disabled', 'todisable', 'delete')
-#			"
-#		);
-#		unless(ref $rdata eq 'HASH') {
-#			error($rdata);
-#			return 1;
-#		}
-#
-#		$self->process();
-#	}
-
 	my $mta = Servers::mta->factory();
 
 	$rs = $mta->restart();
 	return $rs if $rs;
+
+	my $database = iMSCP::Database->factory();
+
+	if(defined $main::execmode && $main::execmode eq 'setup') {
+		my $rdata = $database->doQuery(
+			'dummy', "UPDATE `mailman` SET `mailman_status` = 'change' WHERE `mailman_status` NOT IN('toadd', 'delete')"
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
+
+		$rs = $self->run();
+		return $rs if $rs;
+	}
 
 	0;
 }
@@ -73,7 +91,7 @@ sub install
 
 =cut
 
-sub uninstall_disabled
+sub uninstall
 {
 	my $self = shift;
 
@@ -99,8 +117,30 @@ sub uninstall_disabled
 
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
-			$self->_deleteList($rdata->{$_}->{'domain_name'}, $rdata->{$_}->{'mailman_list_name'});
+			$self->_deleteList(
+				$rdata->{$_}->{'mailman_admin_id'}, $rdata->{$_}->{'domain_name'},
+				$rdata->{$_}->{'mailman_list_name'}
+			);
+
+			my @sql;
+
+			if($rs) {
+				@sql = (
+					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+					scalar getMessageByType('error'), $rdata->{$_}->{'mailman_id'}
+				);
+			} else {
+				@sql = ('DELETE FROM `mailman` WHERE `mailman_id` = ?', $rdata->{$_}->{'mailman_id'});
+			}
+
+			$rdata = $database->doQuery('dummy', @sql);
+			unless(ref $rdata eq 'HASH') {
+				error($rdata);
+				return 1;
+			}
+
 			return $rs if $rs;
+
 		}
 	}
 
@@ -230,7 +270,16 @@ sub _addList
 	my $rs = 0;
 
 	if(!$self->listExists($listName)) {
-		my @cmdArgs = ('-q', escapeShell($listName), escapeShell($adminEmail), escapeShell($adminPassword));
+		my @cmdArgs = (
+			'-q',
+			'-u',
+			escapeShell("lists.$domainName"),
+			'-e',
+			escapeShell($domainName),
+			escapeShell($listName),
+			escapeShell($adminEmail),
+			escapeShell($adminPassword)
+		);
 
 		$rs = execute("/usr/lib/mailman/bin/newlist @cmdArgs", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -580,24 +629,28 @@ sub _deleteListsVhost
 	my $adminId = shift;
 	my $domainName = shift;
 
-	#my $database = iMSCP::Databasae->factory();
+	my $database = iMSCP::Databasae->factory();
 
-	#my $rdata->(
-	#	'mailman_id',
-	#	"SELECT COUNT(`mailman_id`) AS list_count FROM mailman WHERE mailman_admin_id = ?",
-	#	$adminId
-	#);
+	my $rdata = $database->doQuery(
+		'mailman_id', 'SELECT `mailman_id` FROM `mailman` WHERE` mailman_admin_id` = ? LIMIT 2', $adminId
+	);
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1
+	}
 
-	my $httpd = Servers::httpd->factory();
-	my $vhostFilePath = "$httpd->{'tplValues'}->{'APACHE_SITES_DIR'}/lists.$domainName.conf";
+	if(scalar keys(%{$rdata}) == 1) {
+		my $httpd = Servers::httpd->factory();
+		my $vhostFilePath = "$httpd->{'tplValues'}->{'APACHE_SITES_DIR'}/lists.$domainName.conf";
 
-	if(-f $vhostFilePath) {
-		my $rs = $httpd->disableSite("lists.$domainName.conf");
-		return $rs if $rs;
+		if(-f $vhostFilePath) {
+			my $rs = $httpd->disableSite("lists.$domainName.conf");
+			return $rs if $rs;
 
-		my $file = iMSCP::File->new('filename' => $vhostFilePath);
-		$rs = $file->delFile();
-		return $rs if $rs;
+			my $file = iMSCP::File->new('filename' => $vhostFilePath);
+			$rs = $file->delFile();
+			return $rs if $rs;
+		}
 	}
 
 	0;
