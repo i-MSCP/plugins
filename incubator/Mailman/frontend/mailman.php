@@ -382,19 +382,20 @@ if (isset($_REQUEST['action'])) {
 	if ($action === 'add') {
 		if (mailman_manageList()) {
 			set_page_message(tr('E-Mail list successfully scheduled for addition'), 'success');
+			redirectTo('mailman.php');
 		}
 	} elseif($action === 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
 			set_page_message(tr('E-Mail list successfully scheduled for update'), 'success');
+			redirectTo('mailman.php');
 		}
 	} elseif ($action === 'delete') {
 		mailman_deleteList();
 		set_page_message(tr('E-Mail list successfully scheduled for deletion'), 'success');
+		redirectTo('mailman.php');
 	} else {
 		showBadRequestErrorPage();
 	}
-
-	redirectTo('mailman.php');
 }
 
 $tpl = new iMSCP_pTemplate();
