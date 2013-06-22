@@ -31,7 +31,7 @@ Plugin compatible with i-MSCP version >= 1.1.0.rc2.4
 For now, it's assumed that you are using Mailman as provided by the
 Debian/Ubuntu mailman package.
 
-### INSTALLATION AND UPDATE
+### INSTALLATION
 
 **1.** Install needed Debian/Ubuntu package if not already done
 
@@ -52,19 +52,38 @@ This is really needed. Without this list, mailman will refuse to start.
 	# cd /usr/local/src
 	# git clone git@github.com:i-MSCP/plugins.git
 
-**5.** Copy the plugin directory into the i-MSCP gui/plugins directory
+**5.** Create new Plugin archive
 
-	# cp -fR plugins/Mailman /var/www/imscp/gui/plugins
+	# tar cvzf Mailman.tar.gz plugins/Mailman
 
-**6.** Set permissions
+**3.** Plugin upload and installation
 
-	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the Mailman plugin archive
+	- Activate the plugin
 
-**7.** Login into the panel as admin, and activate the plugin through the plugins interface
+### UPDATE
 
-See the [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+**1.** Get the plugin from github
+
+	# cd /usr/local/src
+	# git clone git@github.com:i-MSCP/plugins.git
+
+**2.** Create new Plugin archive
+
+	# tar cvzf Mailman.tar.gz plugins/Mailman
+
+**3.** Plugin upload and update
+
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the Mailman plugin archive
+	- Force plugin re-installation
 
 ### AUTHORS AND CONTRIBUTORS
+
+### KNOWN BUGS
+
+ - [Debian Related - wrong permissions, causes archiving to fail](http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=603904 "Wrong permissions, causes archiving to fail")
 
 Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
