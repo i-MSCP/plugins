@@ -54,7 +54,8 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **5.** Create new Plugin archive
 
-	# tar cvzf Mailman.tar.gz plugins/Mailman
+	# cd plugins
+	# tar cvzf Mailman.tar.gz Mailman
 
 **6.** Plugin upload and installation
 
@@ -71,7 +72,8 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **2.** Create new Plugin archive
 
-	# tar cvzf Mailman.tar.gz plugins/Mailman
+	# cd plugins
+	# tar cvzf Mailman.tar.gz Mailman
 
 **3.** Plugin upload and update
 
