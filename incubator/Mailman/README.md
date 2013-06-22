@@ -79,11 +79,11 @@ This is really needed. Without this list, mailman will refuse to start.
 	- Upload the Mailman plugin archive
 	- Force plugin re-installation
 
-### AUTHORS AND CONTRIBUTORS
-
 ### KNOWN BUGS
 
  - [Debian Related - wrong permissions, causes archiving to fail](http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=603904 "Wrong permissions, causes archiving to fail")
+
+### AUTHORS AND CONTRIBUTORS
 
 Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
