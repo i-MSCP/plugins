@@ -1,5 +1,34 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+ Plugin::Mailman - i-MSCP Mailman plugin (backend)
+
+=cut
+
+# i-MSCP - internet Multi Server Control Panel
+# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# @category    i-MSCP
+# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @author      Laurent Declercq <l.declercq@nuxwin.com>
+# @link        http://i-mscp.net i-MSCP Home Site
+# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+
 package Plugin::Mailman;
 
 use strict;
@@ -15,9 +44,17 @@ use File::Temp;
 
 use parent 'Common::SingletonClass';
 
+=head1 DESCRIPTION
+
+ This package provides backend part for the i-MSCP Mailman plugin.
+
+=head1 PUBLIC METHODS
+
+=over 4
+
 =item install()
 
- Perform install tasks
+ Perform installation tasks
 
  Return int 0 on success, other on failure
 
@@ -27,7 +64,9 @@ sub install
 {
 	my $self = shift;
 
-	my $rs = 0;
+	# Check plugin requirements
+	my $rs = _checkRequirements();
+	return $rs if $rs;
 
 	if(-f '/etc/mailman/mm_cfg.py') {
 		my $file = iMSCP::File->new('filename' => '/etc/mailman/mm_cfg.py');
@@ -55,19 +94,19 @@ sub install
 	}
 
 	my ($stdout, $stderr);
-	$rs = execute('postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
+	$rs = execute('/usr/sbin/postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	my $mta = Servers::mta->factory();
 
-	$rs = $mta->restart();
-	return $rs if $rs;
-
-	my $database = iMSCP::Database->factory();
+	# Schedule MTA restart
+	$mta->{'restart'} = 'yes';
 
 	if(defined $main::execmode && $main::execmode eq 'setup') {
+		my $database = iMSCP::Database->factory();
+
 		my $rdata = $database->doQuery(
 			'dummy', "UPDATE `mailman` SET `mailman_status` = 'change' WHERE `mailman_status` NOT IN('toadd', 'delete')"
 		);
@@ -98,65 +137,63 @@ sub uninstall
 	my $database = iMSCP::Database->factory();
 	my $rs = 0;
 
-	# TODO check for table existence (Idempotence issue)
-	my $rdata = $database->doQuery(
-		'mailman_id',
-		'
-			SELECT
-				`t1`.*, `t2`.`domain_name`
-			FROM
-				`mailman` AS `t1`
-			INNER JOIN
-				`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
-		'
-	);
+	my $rdata = $database->doQuery('1', "SHOW TABLES LIKE 'mailman'");
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
 
 	if(%{$rdata}) {
-		for(keys %{$rdata}) {
-			$self->_deleteList(
-				$rdata->{$_}->{'mailman_admin_id'}, $rdata->{$_}->{'domain_name'},
-				$rdata->{$_}->{'mailman_list_name'}
-			);
-
-			my @sql;
-
-			if($rs) {
-				@sql = (
-					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
-					scalar getMessageByType('error'), $rdata->{$_}->{'mailman_id'}
-				);
-			} else {
-				@sql = ('DELETE FROM `mailman` WHERE `mailman_id` = ?', $rdata->{$_}->{'mailman_id'});
-			}
-
-			$rdata = $database->doQuery('dummy', @sql);
-			unless(ref $rdata eq 'HASH') {
-				error($rdata);
-				return 1;
-			}
-
-			return $rs if $rs;
-
+		$rdata = $database->doQuery(
+			'mailman_id',
+			'
+				SELECT
+					`t1`.*, `t2`.`domain_name`
+				FROM
+					`mailman` AS `t1`
+				INNER JOIN
+					`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
+			'
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
 		}
-	}
 
-	# Drop mailman table
-	$rdata = $database->doQuery('dummy', 'DROP TABLE IF EXISTS `mailman`');
-	unless(ref $rdata eq 'HASH') {
-		warning($rdata);
-		return 1;
-	}
+		if(%{$rdata}) {
+			for(keys %{$rdata}) {
+				$self->_deleteList(
+					$rdata->{$_}->{'mailman_admin_id'}, $rdata->{$_}->{'domain_name'},
+					$rdata->{$_}->{'mailman_list_name'}
+				);
 
-	$rdata = $database->doQuery(
-		'dummy', "UPDATE `plugin` SET `plugin_status` = 'disabled' WHERE `plugin_name` = `Mailman`"
-	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
+				my @sql;
+
+				if($rs) {
+					@sql = (
+						'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+						scalar getMessageByType('error'), $rdata->{$_}->{'mailman_id'}
+					);
+				} else {
+					@sql = ('DELETE FROM `mailman` WHERE `mailman_id` = ?', $rdata->{$_}->{'mailman_id'});
+				}
+
+				$rdata = $database->doQuery('dummy', @sql);
+				unless(ref $rdata eq 'HASH') {
+					error($rdata);
+					return 1;
+				}
+
+				return $rs if $rs;
+			}
+		}
+
+		# Drop mailman table
+		$rdata = $database->doQuery('dummy', 'DROP TABLE IF EXISTS `mailman`');
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
 	}
 
 	0;
@@ -201,7 +238,9 @@ sub run
 
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
-			if($rdata->{$_}->{'mailman_status'} eq 'toadd') {
+			my $status = $rdata->{$_}->{'mailman_status'};
+
+			if($status eq 'toadd') {
 				$rs = $self->_addList(
 					$rdata->{$_}->{'mailman_admin_id'}, $rdata->{$_}->{'domain_name'},
 					$rdata->{$_}->{'mailman_list_name'}, $rdata->{$_}->{'mailman_admin_email'},
@@ -212,7 +251,7 @@ sub run
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
 					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'mailman_id'}
 				);
-			} elsif($rdata->{$_}->{'mailman_status'} eq 'change') {
+			} elsif($status eq 'change') {
 				$rs = $self->_updateList(
 					$rdata->{$_}->{'domain_name'}, $rdata->{$_}->{'mailman_list_name'},
 					$rdata->{$_}->{'mailman_admin_email'}, $rdata->{$_}->{'mailman_admin_password'}
@@ -222,10 +261,10 @@ sub run
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
 					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'mailman_id'}
 				);
-			} elsif($rdata->{$_}->{'mailman_status'} eq 'delete') {
+			} elsif($status eq 'delete') {
 				$rs = $self->_deleteList(
-					$rdata->{$_}->{'mailman_admin_id'},
-					$rdata->{$_}->{'domain_name'}, $rdata->{$_}->{'mailman_list_name'}
+					$rdata->{$_}->{'mailman_admin_id'}, $rdata->{$_}->{'domain_name'},
+					$rdata->{$_}->{'mailman_list_name'}
 				);
 
 				if($rs) {
@@ -249,6 +288,12 @@ sub run
 	$rs;
 }
 
+=back
+
+=head1 PRIVATE METHODS
+
+=over 4
+
 =item _addList($adminId, $domainName, $listName, $adminEmail, $adminPassword)
 
  Add list
@@ -257,7 +302,7 @@ sub run
 
 =cut
 
-sub _addList
+sub _addList($$$$$$)
 {
 	my $self = shift;
 	my $adminId = shift;
@@ -269,7 +314,7 @@ sub _addList
 	my ($stdout, $stderr);
 	my $rs = 0;
 
-	if(!$self->listExists($listName)) {
+	if(!$self->_listExists($listName)) {
 		my @cmdArgs = (
 			'-q',
 			'-u',
@@ -373,14 +418,11 @@ sub _addList
 
 	# Add entries in mailboxes table - Ending
 
-	$rs = $mta->postmap($mta->{'MTA_TRANSPORT_HASH'});
-	return $rs if $rs;
+	# Schedule postmap of transport table
+	$mta->{'postmap'}->{$mta->{'MTA_TRANSPORT_HASH'}} = 'mailman_plugin';
 
-	$rs = $mta->postmap($mta->{'MTA_VIRTUAL_MAILBOX_HASH'});
-	return $rs if $rs;
-
-	$rs = $mta->restart();
-	return $rs if $rs;
+	# Schedule postmap of mailbox table
+	$mta->{'postmap'}->{$mta->{'MTA_VIRTUAL_MAILBOX_HASH'}} = 'mailman_plugin';
 
 	# MTA entries - Ending
 
@@ -399,7 +441,7 @@ sub _addList
 
 =cut
 
-sub _updateList
+sub _updateList($$$$$)
 {
 	my $self = shift;
 	my $domainName = shift;
@@ -451,7 +493,7 @@ sub _updateList
 
 =cut
 
-sub _deleteList
+sub _deleteList($$$$)
 {
 	my $self = shift;
 	my $adminId = shift;
@@ -551,14 +593,11 @@ sub _deleteList
 
 	# Remove entries from table - Ending
 
-	$rs = $mta->postmap($mta->{'MTA_TRANSPORT_HASH'});
-	return $rs if $rs;
+	# Schedule postmap of transport table
+	$mta->{'postmap'}->{$mta->{'MTA_TRANSPORT_HASH'}} = 'mailman_plugin';
 
-	$rs = $mta->postmap($mta->{'MTA_VIRTUAL_MAILBOX_HASH'});
-	return $rs if $rs;
-
-	$rs = $mta->restart();
-	return $rs if $rs;
+	# Schedule postmap of mailboxes table
+	$mta->{'postmap'}->{$mta->{'MTA_VIRTUAL_MAILBOX_HASH'}} = 'mailman_plugin';
 
 	# MTA entries - Ending
 
@@ -576,7 +615,7 @@ sub _deleteList
 
 =cut
 
-sub _addlListsVhost
+sub _addlListsVhost($$$)
 {
 	my $self = shift;
 	my $adminId = shift;
@@ -623,7 +662,7 @@ sub _addlListsVhost
 
 =cut
 
-sub _deleteListsVhost
+sub _deleteListsVhost($$$)
 {
 	my $self = shift;
 	my $adminId = shift;
@@ -697,7 +736,7 @@ EOF
 	$listVhostTpl;
 }
 
-=item listExists
+=item _listExists
 
  Whether or not the given list exists
 
@@ -705,7 +744,7 @@ EOF
 
 =cut
 
-sub listExists
+sub _listExists($$)
 {
 	my $self = shift;
 	my $listName = shift;
@@ -723,5 +762,44 @@ sub listExists
 
 	0;
 }
+
+=item _checkRequirements
+
+ Check requirements
+
+ Return int 0 if all requirements are meet, 1 otherwise
+
+=cut
+
+sub _checkRequirements
+{
+	my $self = shift;
+
+	my($rs, $stdout, $stderr);
+
+	if(! -d '/usr/lib/mailman') {
+		error('Unable to find mailman library directory. Install mailman first.');
+		return 1;
+	} elsif($main::imscpConfig{'MTA_SERVER'} ne 'postfix') {
+		error('Mailman plugin require i-MSCP Postfix server implementation');
+		return 1;
+	} elsif($main::imscpConfig{'HTTPD_SERVER'} !~ /^apache_/) {
+		error('Mailman plugin require i-MSCP Apache server implementation');
+		return 1;
+	} elsif($main::imscpConfig{'NAMED_SERVER'} ne 'bind') {
+		error('Mailman plugin require i-MSCP bind9 server implementation');
+		return 1;
+	}
+
+	0;
+}
+
+=back
+
+=head1 AUTHOR
+
+ Laurent Declercq <l.declercq@nuxwin.com>
+
+=cut
 
 1;
