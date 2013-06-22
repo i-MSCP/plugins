@@ -1,4 +1,4 @@
-## Mailman v0.0.2 plugin for i-MSCP
+## i-MSCP Mailman plugin v0.0.2
 
 Plugin allowing to manage mailing-lists through i-MSCP (using Mailman).
 
@@ -56,7 +56,7 @@ This is really needed. Without this list, mailman will refuse to start.
 
 	# tar cvzf Mailman.tar.gz plugins/Mailman
 
-**3.** Plugin upload and installation
+**6.** Plugin upload and installation
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the Mailman plugin archive
