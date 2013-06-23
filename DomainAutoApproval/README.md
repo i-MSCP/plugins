@@ -32,7 +32,7 @@ Plugin compatible with i-MSCP version >= 1.0.3.0
 **2.** Get the plugin
 
 	# cd /usr/local/src
-	# git clone git@github.com:i-MSCP/plugins.git
+	# git clone git://github.com/i-MSCP/plugins.git
 
 **3.** Copy the plugin directory into the gui/plugins directory of your
    i-MSCP installation.

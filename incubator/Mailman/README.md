@@ -50,7 +50,7 @@ This is really needed. Without this list, mailman will refuse to start.
 **4.** Get the plugin from github
 
 	# cd /usr/local/src
-	# git clone git@github.com:i-MSCP/plugins.git
+	# git clone git://github.com/i-MSCP/plugins.git
 
 **5.** Create new Plugin archive
 
@@ -67,7 +67,7 @@ This is really needed. Without this list, mailman will refuse to start.
 **1.** Get the plugin from github
 
 	# cd /usr/local/src
-	# git clone git@github.com:i-MSCP/plugins.git
+	# git clone git://github.com/i-MSCP/plugins.git
 
 **2.** Create new Plugin archive
 
