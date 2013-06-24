@@ -604,7 +604,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 	$street1			= (isset($postData['street1'])) ? clean_input(urldecode($postData['street1'])) : '';
 	$street2			= (isset($postData['street2'])) ? clean_input(urldecode($postData['street2'])) : '';
 	$customer_id		= (isset($postData['customer_id'])) ? clean_input(urldecode($postData['customer_id'])) : '';
-	$gender				= (isset($postData['gender'])) ? clean_input(urldecode($postData['customer_id'])) : 'U';
+	$gender				= (isset($postData['gender']) && $postData['gender'] == 'M' || isset($postData['gender']) && $postData['gender'] == 'F') ? clean_input(urldecode($postData['customer_id'])) : 'U';
 
 	try {
 		$db->beginTransaction();
