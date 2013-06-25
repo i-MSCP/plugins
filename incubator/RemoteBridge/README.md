@@ -45,6 +45,9 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 	- Add the url http(s)://adminurl.tld/remotebridge.php to your website where you want to manage i-MSCP accounts from
 	
 ### How to send data to the remote bridge (example)
+	function dataEncryption($dataToEncrypt, $ResellerUsername) {
+		return strtr(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($ResellerUsername), serialize($dataToEncrypt), MCRYPT_MODE_CBC, md5(md5($ResellerUsername)))), '+/=', '-_,');
+	}
 	$bridgeKey = '';
 	$ResellerUsername = '';
 
@@ -244,6 +247,20 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 
 	- (must be an array), array('alias1.tld', 'alias2.tld')
 
+### Customer data variable which are available
+
+	- fname: first name
+	- lname: last name
+	- firm: company
+	- zip: zipcode
+	- city: city
+	- state: state
+	- country: country
+	- phone: phone number
+	- fax: fax number
+	- street1: street
+	- street2: additional street informations
+	- gender: value can be "F=female, M=male"
 
 ### AUTHORS AND CONTRIBUTORS
 

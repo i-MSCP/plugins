@@ -330,7 +330,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	$phpini->loadRePerm($resellerId);
 
 	if(isset($postData['hp_mail'])) {
-		if (!resellerHasFeature('mail')) {
+		if (!resellerHasFeature('mail') && $postData['hp_mail'] != '-1') {
 			sendPostDataError('hp_mail', 'Your mail account limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_mail'], -1)) {
 			sendPostDataError('hp_mail', 'Incorrect mail accounts limit');
@@ -338,15 +338,15 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_mail', 'Variable not available in your post data');}
 	
 	if(isset($postData['external_mail'])) {
-		if (!resellerHasFeature('mail')) {
-			sendPostDataError('external_mail', 'Your mail account limit is disabled');
-		} elseif ($postData['external_mail'] != 'yes' && $postData['external_mail'] != 'no') {
+		if ($postData['external_mail'] != 'yes' && $postData['external_mail'] != 'no') {
 			sendPostDataError('external_mail', 'Incorrect value. Only yes or no is allowed');
+		} elseif (!resellerHasFeature('mail') && $postData['external_mail'] == 'yes') {
+			sendPostDataError('external_mail', 'Your mail account limit is disabled');
 		}
 	} else {sendPostDataError('external_mail', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_ftp'])) {
-		if (!resellerHasFeature('mail')) {
+		if (!resellerHasFeature('ftp') && $postData['hp_ftp'] != '-1') {
 			sendPostDataError('hp_ftp', 'Your ftp account limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_ftp'], -1)) {
 			sendPostDataError('hp_ftp', 'Incorrect FTP accounts limit');
@@ -354,7 +354,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_ftp', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_sql_db'])) {
-		if (!resellerHasFeature('sql_db')) {
+		if (!resellerHasFeature('sql_db') && $postData['hp_sql_db'] != '-1') {
 			sendPostDataError('hp_sql_db', 'Your SQL database limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_sql_db'], -1)) {
 			sendPostDataError('hp_sql_db', 'Incorrect SQL databases limit');
@@ -362,7 +362,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_sql_db', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_sql_user'])) {
-		if (!resellerHasFeature('sql_user')) {
+		if (!resellerHasFeature('sql_user') && $postData['hp_sql_user'] != '-1') {
 			sendPostDataError('hp_sql_user', 'Your SQL user limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_sql_user'], -1)) {
 			sendPostDataError('hp_sql_user', 'Incorrect SQL users limit');
@@ -370,7 +370,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_sql_db', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_sub'])) {
-		if (!resellerHasFeature('subdomains')) {
+		if (!resellerHasFeature('subdomains') && $postData['hp_sub'] != '-1') {
 			sendPostDataError('hp_sub', 'Your subdomains limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_sub'], -1)) {
 			sendPostDataError('hp_sub', 'Incorrect subdomains limit');
@@ -390,7 +390,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_disk', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_als'])) {
-		if (!resellerHasFeature('domain_aliases')) {
+		if (!resellerHasFeature('domain_aliases') && $postData['hp_als'] != '-1') {
 			sendPostDataError('hp_als', 'Your domain aliases limit is disabled');
 		} elseif (!imscp_limit_check($postData['hp_als'], -1)) {
 			sendPostDataError('hp_als', 'Incorrect aliases limit');
@@ -410,7 +410,7 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_cgi', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_backup'])) {
-		if ($postData['hp_backup'] != 'no' && $postData['hp_cgi'] != 'dmn' && $postData['hp_backup'] != 'sql' && $postData['hp_backup'] != 'full') {
+		if ($postData['hp_backup'] != 'no' && $postData['hp_backup'] != 'dmn' && $postData['hp_backup'] != 'sql' && $postData['hp_backup'] != 'full') {
 			sendPostDataError('hp_backup', 'Incorrect value. Only no, dmn, sql or full is allowed');
 		}
 	} else {sendPostDataError('hp_backup', 'Variable not available in your post data');}
@@ -422,10 +422,10 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_dns', 'Variable not available in your post data');}
 	
 	if(isset($postData['hp_allowsoftware'])) {
-		if(!resellerHasFeature('aps')) {
-			sendPostDataError('hp_allowsoftware', 'Your aps installer permission is disabled');
-		} elseif ($postData['hp_allowsoftware'] != 'yes' && $postData['hp_allowsoftware'] != 'no') {
+		if ($postData['hp_allowsoftware'] != 'yes' && $postData['hp_allowsoftware'] != 'no') {
 			sendPostDataError('hp_allowsoftware', 'Incorrect value. Only yes or no is allowed');
+		} elseif(!resellerHasFeature('aps') && $postData['hp_allowsoftware'] == 'yes') {
+			sendPostDataError('hp_allowsoftware', 'Your aps installer permission is disabled');
 		} elseif ($postData['hp_allowsoftware'] == 'yes' && $postData['hp_php'] == 'no') {
 			sendPostDataError('hp_allowsoftware', 'The software installer require PHP, but it is disabled');
 		}
@@ -604,7 +604,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 	$street1			= (isset($postData['street1'])) ? clean_input(urldecode($postData['street1'])) : '';
 	$street2			= (isset($postData['street2'])) ? clean_input(urldecode($postData['street2'])) : '';
 	$customer_id		= (isset($postData['customer_id'])) ? clean_input(urldecode($postData['customer_id'])) : '';
-	$gender				= (isset($postData['gender']) && $postData['gender'] == 'M' || isset($postData['gender']) && $postData['gender'] == 'F') ? clean_input(urldecode($postData['customer_id'])) : 'U';
+	$gender				= (isset($postData['gender']) && $postData['gender'] == 'M' || isset($postData['gender']) && $postData['gender'] == 'F') ? clean_input(urldecode($postData['gender'])) : 'U';
 
 	try {
 		$db->beginTransaction();
@@ -750,7 +750,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		exit;
 	}
 	
-	if(isset($postData['alias_domains']) && count($postData['alias_domains']) > 0) createAliasDomain($resellerId, $dmnId, $domain_ip_id);
+	if(isset($postData['alias_domains']) && count($postData['alias_domains']) > 0) createAliasDomain($resellerId, $dmnId, $domain_ip_id, $postData);
 	
 	echo(
 		createJsonMessage(
@@ -786,7 +786,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 	
 	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
 		$customerId = $stmt->fields['domain_admin_id'];
-		createAliasDomain($resellerId, $customerId, $resellerIpaddress);
+		createAliasDomain($resellerId, $customerId, $resellerIpaddress, $postData);
 		echo(
 			createJsonMessage(
 				array(
