@@ -72,11 +72,12 @@ class iMSCP_Plugin_DebugBar_Component_Version extends iMSCP_Plugin_DebugBar_Comp
 	public function getPanel()
 	{
 		$version = iMSCP_Registry::get('config')->Version;
-		$panel = '<h4>i-MSCP DebugBar v0.0.2</h4>' .
+		$pluginInfo = iMSCP_Registry::get('pluginManager')->load('Action', 'DebugBar')->getInfo();
+
+		$panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
 			'<p>©2010-2013 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .
-			'Author: <a href="mailto:l.declercq@nuxwin.com">Laurent Declercq</a><br />' .
-			'Includes images from the <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon set</a> by Mark James<br />
-                 Based upon project hosted at <a href="http://code.google.com/p/zfdebug">ZFDebug</a></p>';
+			'Author: <a href="mailto:' . $pluginInfo['email'] .'">' . $pluginInfo['author'] . '</a><br />' .
+			'Includes images from the <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon set</a> by Mark James</p>';
 		$panel .= '<h4>i-MSCP ' . $version . ' / PHP ' . phpversion() . ' with extensions:</h4>';
 		$extensions = get_loaded_extensions();
 		natcasesort($extensions);
