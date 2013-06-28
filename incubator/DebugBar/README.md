@@ -41,8 +41,6 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc3 (Not yet released)
 	- Upload the DebugBar plugin archive
 	- Activate the plugin
 
-**Note:** For older i-MSCP versions, you must install plugin directory manually.
-
 ### UPDATE
 
 **1.** Get the plugin from github
@@ -59,8 +57,6 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc3 (Not yet released)
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the DebugBar plugin archive
 	- Force plugin re-installation
-
-**Note:** For older i-MSCP version, you must install plugin directory manually.
 
 ### AUTHORS AND CONTRIBUTORS
 
