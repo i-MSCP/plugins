@@ -26,6 +26,9 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+/** @see iMSCP_Plugin_DebugBar_Component_Interface */
+require_once 'Interface.php';
+
 /**
  * Variables component for the i-MSCP DebugBar Plugin
  *
@@ -36,7 +39,7 @@
  * @subpackage  DebugBar_Component
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_DebugBar_Component_Variables extends iMSCP_Plugin_DebugBar_Component
+class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar_Component_Interface
 {
 	/**
 	 * @var string component unique identifier
@@ -83,25 +86,25 @@ class iMSCP_Plugin_DebugBar_Component_Variables extends iMSCP_Plugin_DebugBar_Co
 		$vars = '<h4>Variables</h4>';
 
 		$vars .= '<h4>$_GET:</h4>'
-			. '<div id="iMSCPdebug_get">' . $this->_humanize($_GET) . '</div>';
+			. '<div id="iMSCPdebug_get">' . $this->humanize($_GET) . '</div>';
 
 		$vars .= '<h4>$_POST:</h4>'
-			. '<div id="iMSCPdebug_post">' . $this->_humanize($_POST) . '</div>';
+			. '<div id="iMSCPdebug_post">' . $this->humanize($_POST) . '</div>';
 
 		$vars .= '<h4>$_COOKIE:</h4>'
-			. '<div id="iMSCPdebug_cookie">' . $this->_humanize($_COOKIE) . '</div>';
+			. '<div id="iMSCPdebug_cookie">' . $this->humanize($_COOKIE) . '</div>';
 
 		$vars .= '<h4>$_FILES:</h4>'
-			. '<div id="iMSCPdebug_file">' . $this->_humanize($_FILES) . '</div>';
+			. '<div id="iMSCPdebug_file">' . $this->humanize($_FILES) . '</div>';
 
 		$vars .= '<h4>$_SESSION:</h4>'
-			. '<div id="iMSCPdebug_session">' . $this->_humanize($_SESSION) . '</div>';
+			. '<div id="iMSCPdebug_session">' . $this->humanize($_SESSION) . '</div>';
 
 		$vars .= '<h4>$_SERVER:</h4>'
-			. '<div id="iMSCPdebug_server">' . $this->_humanize($_SERVER) . '</div>';
+			. '<div id="iMSCPdebug_server">' . $this->humanize($_SERVER) . '</div>';
 
 		$vars .= '<h4>$_ENV:</h4>'
-			. '<div id="iMSCPdebug_env">' . $this->_humanize($_ENV) . '</div>';
+			. '<div id="iMSCPdebug_env">' . $this->humanize($_ENV) . '</div>';
 
 		return $vars;
 	}
@@ -114,5 +117,38 @@ class iMSCP_Plugin_DebugBar_Component_Variables extends iMSCP_Plugin_DebugBar_Co
 	public function getIcon()
 	{
 		return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAFWSURBVBgZBcE/SFQBAAfg792dppJeEhjZn80MChpqdQ2iscmlscGi1nBPaGkviKKhONSpvSGHcCrBiDDjEhOC0I68sjvf+/V9RQCsLHRu7k0yvtN8MTMPICJieaLVS5IkafVeTkZEFLGy0JndO6vWNGVafPJVh2p8q/lqZl60DpIkaWcpa1nLYtpJkqR1EPVLz+pX4rj47FDbD2NKJ1U+6jTeTRdL/YuNrkLdhhuAZVP6ukqbh7V0TzmtadSEDZXKhhMG7ekZl24jGDLgtwEd6+jbdWAAEY0gKsPO+KPy01+jGgqlUjTK4ZroK/UVKoeOgJ5CpRyq5e2qjhF1laAS8c+Ymk1ZrVXXt2+9+fJBYUwDpZ4RR7Wtf9u9m2tF8Hwi9zJ3/tg5pW2FHVv7eZJHd75TBPD0QuYze7n4Zdv+ch7cfg8UAcDjq7mfwTycew1AEQAAAMB/0x+5JQ3zQMYAAAAASUVORK5CYII=';
+	}
+
+	/**
+	 * Transforms data into human readable format
+	 *
+	 * @param array $values Values to humanize
+	 * @return string
+	 */
+	protected function humanize($values)
+	{
+		if (is_array($values)) {
+			ksort($values);
+		}
+
+		$retVal = '<div class="pre">';
+
+		foreach ($values as $key => $value) {
+			$key = htmlspecialchars($key);
+
+			if (is_numeric($value)) {
+				$retVal .= $key . ' => ' . $value . '<br />';
+			} elseif (is_string($value)) {
+				$retVal .= $key . ' => \'' . htmlspecialchars($value) . '\'<br />';
+			} elseif (is_array($value)) {
+				$retVal .= $key . ' => ' . $this->humanize($value);
+			} elseif (is_object($value)) {
+				$retVal .= $key . ' => ' . get_class($value) . ' Object()<br />';
+			} elseif (is_null($value)) {
+				$retVal .= $key . ' => NULL<br />';
+			}
+		}
+
+		return $retVal . '</div>';
 	}
 }

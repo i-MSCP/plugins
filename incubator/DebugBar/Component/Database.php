@@ -26,6 +26,10 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+
+/** @see iMSCP_Plugin_DebugBar_Component_Interface */
+require_once 'Interface.php';
+
 /** @see iMSCP_Events_Listeners_Interface */
 require_once 'iMSCP/Events/Listeners/Interface.php';
 
@@ -40,8 +44,8 @@ require_once 'iMSCP/Events/Listeners/Interface.php';
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @Todo Replace the markers to see the parameters in queries strings
  */
-class iMSCP_Plugin_DebugBar_Component_Database extends iMSCP_Plugin_DebugBar_Component
-	implements iMSCP_Events_Listeners_Interface
+class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_Component_Interface,
+	iMSCP_Events_Listeners_Interface
 {
 	/**
 	 * @var string Component unique identifier

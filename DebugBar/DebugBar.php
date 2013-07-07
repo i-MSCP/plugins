@@ -90,6 +90,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 		$priority = 998;
 
 		foreach ($this->getConfigParam('components') as $component) {
+			require_once 'Component/' . $component . '.php';
 			$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
 			$component = new $componentClass();
 

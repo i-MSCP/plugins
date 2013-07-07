@@ -26,6 +26,9 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+/** @see iMSCP_Plugin_DebugBar_Component_Interface */
+require_once 'Interface.php';
+
 /**
  * Version component for the i-MSCP DebugBar Plugin
  *
@@ -36,7 +39,7 @@
  * @subpackage  DebugBar_Component
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_DebugBar_Component_Version extends iMSCP_Plugin_DebugBar_Component
+class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_Component_Interface
 {
 	/**
 	 * @var string Component unique identifier
@@ -72,7 +75,7 @@ class iMSCP_Plugin_DebugBar_Component_Version extends iMSCP_Plugin_DebugBar_Comp
 	public function getPanel()
 	{
 		$version = iMSCP_Registry::get('config')->Version;
-		$pluginInfo = iMSCP_Registry::get('pluginManager')->load('Action', 'DebugBar')->getInfo();
+		$pluginInfo = iMSCP_Registry::get('pluginManager')->load('DebugBar')->getInfo();
 
 		$panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
 			'<p>©2010-2013 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .

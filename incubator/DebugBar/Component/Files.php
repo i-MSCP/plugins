@@ -26,6 +26,9 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+/** @see iMSCP_Plugin_DebugBar_Component_Interface */
+require_once 'Interface.php';
+
 /**
  * Files component for the i-MSCP DebugBar Plugin
  *
@@ -36,8 +39,8 @@
  * @subpackage  DebugBar_Component
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_DebugBar_Component_Files extends iMSCP_Plugin_DebugBar_Component
-	implements iMSCP_Events_Listeners_Interface
+class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Component_Interface,
+	iMSCP_Events_Listeners_Interface
 {
 	/**
 	 * @var string Component unique identifier
