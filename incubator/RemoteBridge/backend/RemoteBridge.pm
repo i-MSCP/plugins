@@ -34,23 +34,6 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use parent 'Common::SingletonClass';
 
-=item install()
-
- Perform install tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-	my $self = shift;
-	
-	my $rs = 0;
-	
-	0;
-}
-
 =item uninstall()
 
  Perform un-installation tasks
@@ -77,7 +60,7 @@ sub uninstall
 
 =item run()
 
- Process all scheduled actions according lists status
+ Process all scheduled actions according remote bridges status
 
  Return int 0 on success, other on failure
 
@@ -90,17 +73,7 @@ sub run
 	my $rs = 0;
 	
 	my $rdata = iMSCP::Database->factory()->doQuery(
-		'bridge_id',
-		"
-			SELECT
-				*
-			FROM
-				`remote_bridge`
-			WHERE
-				`bridge_status` 
-			IN
-				('toadd', 'change', 'delete')
-		"
+		'bridge_id', "SELECT * FROM `remote_bridge` WHERE `bridge_status`  IN ('toadd', 'tochange', 'todelete')"
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -110,14 +83,12 @@ sub run
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
 			if($rdata->{$_}->{'bridge_status'} eq 'toadd') {
-				$rs = $self->_addRemoteBridge(
-					$rdata->{$_}->{'bridge_key'}, $rdata->{$_}->{'bridge_ipaddress'});
+				$rs = $self->_addRemoteBridge($rdata->{$_}->{'bridge_key'}, $rdata->{$_}->{'bridge_ipaddress'});
 				return $rs if $rs;
-			} elsif($rdata->{$_}->{'bridge_status'} eq 'change') {
-				$rs = $self->_updateRemoteBridge(
-					$rdata->{$_}->{'bridge_key'}, $rdata->{$_}->{'bridge_ipaddress'});
+			} elsif($rdata->{$_}->{'bridge_status'} eq 'tochange') {
+				$rs = $self->_updateRemoteBridge($rdata->{$_}->{'bridge_key'}, $rdata->{$_}->{'bridge_ipaddress'});
 				return $rs if $rs;
-			} elsif($rdata->{$_}->{'bridge_status'} eq 'delete') {
+			} elsif($rdata->{$_}->{'bridge_status'} eq 'todelete') {
 				$rs = $self->_deleteRemoteBridge($rdata->{$_}->{'bridge_key'}, $rdata->{$_}->{'bridge_ipaddress'});
 				return $rs if $rs;
 			}
@@ -127,7 +98,7 @@ sub run
 	0;
 }
 
-=item _addRemoteBridge($BridgeKey, $ServerIpaddress)
+=item _addRemoteBridge($bridgeKey, $serverIpAddr)
 
  Add the given remote bridge
 
@@ -138,11 +109,9 @@ sub run
 sub _addRemoteBridge
 {
 	my $self = shift;
-	my $BridgeKey = shift;
-	my $ServerIpaddress = shift;
-	
-	my $rs = 0;
-	
+	my $bridgeKey = shift;
+	my $serverIpAddr = shift;
+
 	my $rdata = iMSCP::Database->factory()->doQuery(
 		'dummy',
 		"
@@ -155,7 +124,7 @@ sub _addRemoteBridge
 			AND 
 				`bridge_ipaddress` = ?
 		",
-			$BridgeKey, $ServerIpaddress
+		$bridgeKey, $serverIpAddr
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -165,7 +134,7 @@ sub _addRemoteBridge
 	0;
 }
 
-=item _updateRemoteBridge($BridgeKey, $ServerIpaddress)
+=item _updateRemoteBridge($bridgeKey, $serverIpAddr)
 
  Update the given remote bridge (Bridge key and Server ipaddress)
 
@@ -176,11 +145,9 @@ sub _addRemoteBridge
 sub _updateRemoteBridge
 {
 	my $self = shift;
-	my $BridgeKey = shift;
-	my $ServerIpaddress = shift;
-	
-	my $rs = 0;
-	
+	my $bridgeKey = shift;
+	my $serverIpAddr = shift;
+
 	my $rdata = iMSCP::Database->factory()->doQuery(
 		'dummy',
 		"
@@ -193,7 +160,7 @@ sub _updateRemoteBridge
 			AND 
 				`bridge_ipaddress` = ?
 		",
-			$BridgeKey, $ServerIpaddress
+		$bridgeKey, $serverIpAddr
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -203,7 +170,7 @@ sub _updateRemoteBridge
 	0;
 }
 
-=item _deleteRemoteBridge($BridgeKey, $ServerIpaddress)
+=item _deleteRemoteBridge($bridgeKey, $serverIpAddr)
 
  Delete the given remote bridge
 
@@ -214,10 +181,8 @@ sub _updateRemoteBridge
 sub _deleteRemoteBridge
 {
 	my $self = shift;
-	my $BridgeKey = shift;
-	my $ServerIpaddress = shift;
-	
-	my $rs = 0;
+	my $bridgeKey = shift;
+	my $serverIpAddr = shift;
 
 	my $rdata = iMSCP::Database->factory()->doQuery(
 		'dummy', 
@@ -229,7 +194,7 @@ sub _deleteRemoteBridge
 			AND 
 				`bridge_ipaddress` = ?
 		",
-			$BridgeKey, $ServerIpaddress
+		$bridgeKey, $serverIpAddr
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);

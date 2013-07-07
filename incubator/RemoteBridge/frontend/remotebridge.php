@@ -37,9 +37,7 @@
  */
 function bridge_manageKEY()
 {
-	if (
-		isset($_POST['bridge_id']) && isset($_POST['bridge_ipaddress']) && isset($_POST['bridge_key'])
-	) {
+	if (isset($_POST['bridge_id']) && isset($_POST['bridge_ipaddress']) && isset($_POST['bridge_key'])) {
 		$error = false;
 		$bridgeID = clean_input($_POST['bridge_id']);
 		$serverIpaddress = clean_input($_POST['bridge_ipaddress']);
@@ -70,8 +68,7 @@ function bridge_manageKEY()
 
 				try {
 					exec_query(
-						$query,
-						array($_SESSION['user_id'], $serverIpaddress, $bridgeKey, $cfg->ITEM_ADD_STATUS)
+						$query, array($_SESSION['user_id'], $serverIpaddress, $bridgeKey, $cfg->ITEM_TOADD_STATUS)
 					);
 				} catch(iMSCP_Exception_Database $e) {
 					if($e->getCode() == 23000) { // Duplicate entries
@@ -92,7 +89,7 @@ function bridge_manageKEY()
 				';
 				$stmt = exec_query(
 					$query,
-					array($serverIpaddress, $bridgeKey, $cfg->ITEM_CHANGE_STATUS, $bridgeID, $_SESSION['user_id'])
+					array($serverIpaddress, $bridgeKey, $cfg->ITEM_TOCHANGE_STATUS, $bridgeID, $_SESSION['user_id'])
 				);
 
 				if(!$stmt->rowCount()) {
@@ -135,7 +132,7 @@ function bridge_deleteKEY()
 			AND 
 				`bridge_admin_id` = ?
 		';
-		$stmt = exec_query($query, array($cfg->ITEM_DELETE_STATUS, $bridgeID, $_SESSION['user_id']));
+		$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $bridgeID, $_SESSION['user_id']));
 
 		if(!$stmt->rowCount()) {
 			showBadRequestErrorPage();
@@ -210,11 +207,8 @@ function bridge_generatePage($tpl)
 
 			$tpl->parse('BRIDGE_LIST', '.bridge_list');
 		}
-		$tpl->assign(
-			array(
-				$tpl->assign('ADD_BRIDGEKEY', '')
-			)
-		);
+
+		$tpl->assign('ADD_BRIDGEKEY', '');
 	} else {
 		$tpl->assign('BRIDGE_LISTS', '');
 		set_page_message(tr('You have not created any remote bridge.'), 'info');
@@ -313,7 +307,6 @@ $tpl->assign(
 		'TR_ADD_BRIDGE' => tr('Add Remote Bridge'),
 		'TR_REMOTE_BRIDGE' => tr('Remote Bridge'),
 		'TR_BRIDGE_IPADDRESS' => tr('Server ipaddress'),
-		'TR_BRIDGE_KEY' => tr('Bridge key'),
 		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s Remote Bridge.', false, '%s'),
 		'TR_APPLY' => tr('Apply'),
 		'TR_CANCEL' => tr('Cancel')

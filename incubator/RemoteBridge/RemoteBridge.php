@@ -38,44 +38,23 @@
 class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 {
 	/**
-	 * @var array
+	 * @var array Routes
 	 */
 	protected $routes = array();
 
 	/**
 	 * Process plugin installation
-	 *
+	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
-	 */
-	public function install($pluginManager)
-	{
-		$db = iMSCP_Database::getInstance();
-
-		try {
-			$db->beginTransaction();
-			$this->addDbTable();
-			$db->commit();
-		} catch(iMSCP_Exception $e) {
-			$db->rollBack();
-			$pluginManager->setStatus($this->getName(), $e->getMessage());
-		}
-
-		$pluginManager->setStatus($this->getName(), 'install');
-		
-		// Send backend request to do the install job on backend side
-        send_request();
-	}
-
-	/**
-	 * Process plugin un-installation
-	 *
 	 * @return void
 	 */
-	public function uninstall($pluginManager)
+	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
-		// Un-installation tasks are delegated to the engine - Just send backend request
-		$pluginManager->setStatus($this->getName(), 'uninstall');
-		send_request();
+		try {
+			$this->addDbTable();
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
 	}
 
 	/**
@@ -87,15 +66,26 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	{
 		$controller->registerListener(
 			array(
+				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onAfterDeleteUser
 			),
 			$this
 		);
+	}
+
+	/**
+	 * Implements the onBeforePluginsRoute event
+	 *
+	 * @return void
+	 */
+	public function onBeforePluginsRoute()
+	{
+		$pluginName = $this->getName();
 
 		$this->routes = array(
-			'/reseller/remotebridge.php' => PLUGINS_PATH . '/' . $this->getName() . '/frontend/remotebridge.php',
-			'/remotebridge.php' => PLUGINS_PATH . '/' . $this->getName() . '/public/remotebridge.php'
+			'/reseller/remotebridge.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/remotebridge.php',
+			'/remotebridge.php' => PLUGINS_PATH . '/' . $pluginName . '/public/remotebridge.php'
 		);
 	}
 
@@ -113,7 +103,6 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	 * Implements the onAfterDeleteUser event
 	 *
 	 * This event is called when a reseller account is being deleted.
-	 * If triggered, the RemoteBridge access
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -125,7 +114,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 
 		exec_query(
 			'UPDATE `remote_bridge` SET `bridge_status` = ? WHERE `bridge_admin_id` = ?',
-			array($cfg->ITEM_DELETE_STATUS, $event->getParam('userId'))
+			array($cfg->ITEM_TODELETE_STATUS, $event->getParam('userId'))
 		);
 		
 		send_request();

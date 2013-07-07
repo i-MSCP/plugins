@@ -1,6 +1,6 @@
 ## i-MSCP RemoteBridge plugin v0.0.1
 
-Plugin allows to manage i-MSCP accounts from a remote website.
+Plugin allowing to manage i-MSCP accounts from a remote Web site.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
+Plugin compatible with i-MSCP versions >= 1.1.0.rc3 (Not yet released)
 
 ### INSTALLATION
 
@@ -43,7 +43,25 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 	- Activate the plugin
 	- Login into the panel as reseller, and create a Bridge key and a server ipaddress which should have access to remote bringe
 	- Add the url http(s)://adminurl.tld/remotebridge.php to your website where you want to manage i-MSCP accounts from
-	
+
+### UPDATE
+
+**1.** Get the plugin from github
+
+	# cd /usr/local/src
+	# git clone git://github.com/i-MSCP/plugins.git
+
+**2.** Create new Plugin archive
+
+	# cd plugins
+	# tar cvzf RemoteBridge.tar.gz RemoteBridge
+
+**3.** Plugin upload and update
+
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the RemoteBridge plugin archive
+	- Force plugin re-installation
+
 ### How to send data to the remote bridge (example)
 	function dataEncryption($dataToEncrypt, $ResellerUsername) {
 		return strtr(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($ResellerUsername), serialize($dataToEncrypt), MCRYPT_MODE_CBC, md5(md5($ResellerUsername)))), '+/=', '-_,');
@@ -71,25 +89,8 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 	echo $httpResponse;
 	curl_close($ch);
 
-### UPDATE
-
-**1.** Get the plugin from github
-
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
-
-**2.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf RemoteBridge.tar.gz RemoteBridge
-
-**3.** Plugin upload and update
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the RemoteBridge plugin archive
-	- Force plugin re-installation
-
 ### Post data variables which are available / required
+
 **1.** key (required)
 
 	- This is your own bridge key
@@ -99,6 +100,7 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 	- This is a encrypted data array
 	
 ### Encrypted array variables which are available / required
+
 **1.** action (required)
 
 	- This actions are available: create, terminate, suspend, unsuspend, addalias
@@ -121,7 +123,7 @@ Plugin compatible with i-MSCP versions >= 1.1.0.rc2.4 (Not yet released)
 
 **1.5.** action addalias
 
-	- adds new alias domains to an existing i-MSCP acount (is not need while creating a new account. Use alias_domains for this! 
+	- adds new alias domains to an existing i-MSCP acount (is not need while creating a new account. Use alias_domains for this!
 
 **2.** reseller_username (required)
 
