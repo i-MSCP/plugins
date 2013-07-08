@@ -97,7 +97,7 @@ function bridge_manageKEY()
 				}
 			}
 
-			send_request();
+			runBridgeRequest();
 			
 			return true;
 		} else {
@@ -138,17 +138,87 @@ function bridge_deleteKEY()
 			showBadRequestErrorPage();
 		}
 		
-		send_request();
+		runBridgeRequest();
 	} else {
 		showBadRequestErrorPage();
 	}
 }
 
-/**
- * Generate page.
- *
- * @param $tpl iMSCP_pTemplate
- */
+function runBridgeRequest()
+{
+	/** @var iMSCP_Config_Handler_File $cfg */
+	$cfg = iMSCP_Registry::get('config');
+
+	$query = "
+		SELECT
+			*
+		FROM
+			`remote_bridge`
+		WHERE
+			`bridge_admin_id` = ?
+		AND
+			`bridge_status`  IN ('toadd', 'tochange', 'todelete')
+	";
+	$stmt = exec_query($query, $_SESSION['user_id']);
+	$bridgelists = $stmt->fetchAll(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC|PDO::FETCH_GROUP);
+	
+	if($stmt->rowCount()) {
+		foreach($bridgelists as $bridgeID => $bridgeData) {
+			if($bridgeData['bridge_status'] == 'toadd') {
+				addRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
+			} elseif($bridgeData['bridge_status'] == 'tochange') {
+				updateRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
+			} elseif($bridgeData['bridge_status'] == 'todelete') {
+				deleteRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
+			}
+		}
+	}
+}
+
+function addRemoteBridge($bridgeKey,$serverIpAddr)
+{
+	$query = "
+		UPDATE 
+			`remote_bridge` 
+		SET 
+			`bridge_status` = 'ok' 
+		WHERE 
+			`bridge_key` = ? 
+		AND 
+			`bridge_ipaddress` = ?
+	";
+	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+}
+
+function updateRemoteBridge($bridgeKey,$serverIpAddr)
+{
+	$query = "
+		UPDATE 
+			`remote_bridge` 
+		SET 
+			`bridge_status` = 'ok' 
+		WHERE 
+			`bridge_key` = ? 
+		AND 
+			`bridge_ipaddress` = ?
+	";
+	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+}
+
+function deleteRemoteBridge($bridgeKey,$serverIpAddr)
+{
+	$query = "
+		DELETE FROM
+			`remote_bridge` 
+		WHERE 
+			`bridge_key` = ? 
+		AND 
+			`bridge_ipaddress` = ?
+	";
+	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+}
+
+
 /**
  * Generate page.
  *
