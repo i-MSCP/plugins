@@ -44,6 +44,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 
 	/**
 	 * Process plugin installation
+	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
@@ -59,6 +60,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	
 	/**
 	 * Process plugin uninstallation
+	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
@@ -173,7 +175,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	 */
 	protected function createDbTable()
 	{
-		$query = "
+		$query = '
 			CREATE TABLE IF NOT EXISTS `remote_bridge` (
 				`bridge_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`bridge_admin_id` int(11) unsigned NOT NULL,
@@ -184,7 +186,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 				UNIQUE KEY `bridge_api_key` (`bridge_admin_id`, `bridge_ipaddress`),
 				KEY `bridge_admin_id` (`bridge_admin_id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-		";
+		';
 
 		execute_query($query);
 	}
@@ -196,10 +198,6 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	 */
 	protected function dropDbTable()
 	{
-		$query = "
-			DROP TABLE IF EXISTS `remote_bridge`;
-		";
-
-		execute_query($query);
+		execute_query('DROP TABLE IF EXISTS `remote_bridge`');
 	}
 }
