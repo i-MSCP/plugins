@@ -52,7 +52,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onBeforeAddDomainAlias listener method.
+	 * Implements the onBeforeAddDomainAlias listener
 	 *
 	 * @throws iMSCP_Plugin_Exception in case the domains config setting is wrong
 	 * @return void
@@ -65,16 +65,16 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 			$approvalRule = true; // Keep compatibility with old config file
 		}
 
-		$domains = $this->getConfigParam('domains'); # List of domain names for which auto-approval is enabled
+		$domains = $this->getConfigParam('domains'); # List of domain names from config file
 
 		if(is_array($domains)) {
 			$domainName = decode_idna($_SESSION['user_logged']);
 
-			if($approvalRule) { // Any domain alias created by domain listed in the domains parameters will be approved
+			if($approvalRule) {
 				if (!in_array($domainName, $domains)) {
 					$domainName = false;
 				}
-			} else { // Any domain alias created by domain not listed in the domains parameters will be approved
+			} else {
 				if (in_array($domainName, $domains)) {
 					$domainName = false;
 				}
@@ -89,7 +89,8 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 			/** @var $cfg iMSCP_Config_Handler_File */
 			$cfg = iMSCP_Registry::get('config');
 			$this->initialOrderedStatusValue = $cfg->ITEM_ORDERED_STATUS;
-			$cfg->ITEM_ORDERED_STATUS = $cfg->ITEM_ADD_STATUS;
+			$cfg->ITEM_ORDERED_STATUS = $cfg->exists('ITEM_ADD_STATUS')
+				? $cfg->ITEM_ADD_STATUS : $cfg->ITEM_TOADD_STATUS;
 		}
 	}
 

@@ -1,4 +1,4 @@
-## DomainAutoApproval v0.0.4 plugin for i-MSCP
+## DomainAutoApproval v0.0.5 plugin for i-MSCP
 
 Plugin allowing auto-approval of new domain aliases.
 
@@ -26,8 +26,7 @@ Plugin compatible with i-MSCP version >= 1.0.3.0
 
 ### INSTALLATION AND UPDATE
 
-**1.** Backup your current plugins/DomainAutoApproval/config.php file
-   if any
+**1.** Backup your current plugins/DomainAutoApproval/config.php file if any
 
 **2.** Get the plugin
 

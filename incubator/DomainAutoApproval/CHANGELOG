@@ -5,6 +5,9 @@ i-MSCP DomainAutoApproval plugin ChangeLog
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
+2013-07-20: Laurent Declercq
+	- RELEASE i-MSCP DomainAutoApproval plugin 0.0.5
+
 	- Default value for approval rule is now set to FALSE in configuration file
 	- Fixed: #843: Bug - Plugin - DomainAutoApproval: Configuration variable `ITEM_ADD_STATUS` is missing
 
