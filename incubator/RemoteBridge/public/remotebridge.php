@@ -62,7 +62,7 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 				exit(
 					createJsonMessage(
 						array(
-							'level'		=> 'Error',
+							'level'	=> 'Error',
 							'message'	=> 'No domain in post data available!'
 						)
 					)
@@ -76,7 +76,7 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 				exit(
 					createJsonMessage(
 						array(
-							'level'		=> 'Error',
+							'level'	=> 'Error',
 							'message'	=> 'No domain in post data available!'
 						)
 					)
@@ -90,7 +90,7 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 				exit(
 					createJsonMessage(
 						array(
-							'level'		=> 'Error',
+							'level'	=> 'Error',
 							'message'	=> 'No domain in post data available!'
 						)
 					)
@@ -102,7 +102,7 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'This action '.$action.' is not implemented'
 				)
 			)
@@ -117,7 +117,7 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 exit(
 	createJsonMessage(
 		array(
-			'level'		=> 'Error',
+			'level'	=> 'Error',
 			'message'	=> 'Direct access to remote bridge not allowed!'
 		)
 	)
@@ -132,7 +132,7 @@ function decryptPostData($brideKey, $ipaddress, $encryptedData) {
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'No data in your post vars available!'
 				)
 			)
@@ -145,7 +145,7 @@ function decryptPostData($brideKey, $ipaddress, $encryptedData) {
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'No data in your post vars available!'
 				)
 			)
@@ -183,7 +183,7 @@ function checkiMSCP_Version() {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'iMSCP version '.$cfg->Version.' is not compatible with the remote bridge. Check www.i-mscp.net for newer versions'
 					)
 				)
@@ -211,7 +211,7 @@ function checkRemoteIpaddress($ipaddress) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Your ipaddress ('.$ipaddress.') does not have access to the remote bridge!'
 				)
 			)
@@ -236,7 +236,7 @@ function checkResellerLoginData($reseller_username, $reseller_password) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> format_message($result->getMessages())
 					)
 				)
@@ -248,7 +248,7 @@ function checkResellerLoginData($reseller_username, $reseller_password) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Login data is missing!'
 				)
 			)
@@ -301,7 +301,7 @@ function checkResellerHostingPlan($resellerId, $hosting_plan) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'No such hosting plan named: '.$hosting_plan.'!'
 				)
 			)
@@ -316,10 +316,9 @@ function checkResellerHostingPlan($resellerId, $hosting_plan) {
 			'phpini_system', 'phpini_perm_allow_url_fopen', 'phpini_perm_display_errors',
 			'phpini_perm_disable_functions', 'phpini_post_max_size', 'phpini_upload_max_filesize',
 			'phpini_max_execution_time', 'phpini_max_input_time', 'phpini_memory_limit',
-			'external_mail'/*, 'web_folder_protection'*/
+			'external_mail', 'web_folder_protection'
 		),
-		//array_pad(explode(';', $props), 24, 'no') #will be activated if web_folder_protection is hosting plans include web_folder_protection
-		array_pad(explode(';', $props), 23, 'no')
+		array_pad(explode(';', $props), 24, 'no')
 	);
 
 	return $result;
@@ -496,7 +495,7 @@ function sendPostDataError($PostVar, $ErrorMessage) {
 	exit(
 		createJsonMessage(
 			array(
-				'level'		=> 'Error',
+				'level'	=> 'Error',
 				'message'	=> 'Post var '.$PostVar.': '.$ErrorMessage.'!'
 			)
 		)
@@ -518,7 +517,7 @@ function checkResellerAssignedIP($resellerId){
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Reseller does not have any ipaddress assigned!'
 				)
 			)
@@ -533,7 +532,7 @@ function checkResellerAssignedIP($resellerId){
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Can not retrieve reseller ipaddress!'
 				)
 			)
@@ -544,7 +543,7 @@ function checkResellerAssignedIP($resellerId){
 }
 
 function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -553,7 +552,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'No domain, user password, or user emailaddress in post data available!'
 				)
 			)
@@ -569,7 +568,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'The domain '.$postData['domain'].' is not valid!'
 				)
 			)
@@ -580,7 +579,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Domain '.$dmnUsername.' already exist on this server'
 				)
 			)
@@ -591,20 +590,20 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 	$admin_pass			= cryptPasswordWithSalt($pure_user_pass);
 	$admin_type			= 'user';
 	$created_by			= $resellerId;
-	$fname				= (isset($postData['fname'])) ? clean_input(urldecode($postData['fname'])) : '';
-	$lname				= (isset($postData['lname'])) ? clean_input(urldecode($postData['lname'])) : '';
+	$fname			= (isset($postData['fname'])) ? clean_input(urldecode($postData['fname'])) : '';
+	$lname			= (isset($postData['lname'])) ? clean_input(urldecode($postData['lname'])) : '';
 	$firm				= (isset($postData['firm'])) ? clean_input(urldecode($postData['firm'])) : '';
 	$zip				= (isset($postData['zip'])) ? clean_input(urldecode($postData['zip'])) : '';
 	$city				= (isset($postData['city'])) ? clean_input(urldecode($postData['city'])) : '';
-	$state				= (isset($postData['state'])) ? clean_input(urldecode($postData['state'])) : '';
+	$state			= (isset($postData['state'])) ? clean_input(urldecode($postData['state'])) : '';
 	$country			= (isset($postData['country'])) ? clean_input(urldecode($postData['country'])) : '';
 	$userEmail			= (isset($postData['email'])) ? clean_input(urldecode($postData['email'])) : '';
-	$phone				= (isset($postData['phone'])) ? clean_input(urldecode($postData['phone'])) : '';
+	$phone			= (isset($postData['phone'])) ? clean_input(urldecode($postData['phone'])) : '';
 	$fax				= (isset($postData['fax'])) ? clean_input(urldecode($postData['fax'])) : '';
 	$street1			= (isset($postData['street1'])) ? clean_input(urldecode($postData['street1'])) : '';
 	$street2			= (isset($postData['street2'])) ? clean_input(urldecode($postData['street2'])) : '';
 	$customer_id		= (isset($postData['customer_id'])) ? clean_input(urldecode($postData['customer_id'])) : '';
-	$gender				= (isset($postData['gender']) && $postData['gender'] == 'M' || isset($postData['gender']) && $postData['gender'] == 'F') ? clean_input(urldecode($postData['gender'])) : 'U';
+	$gender			= (isset($postData['gender']) && $postData['gender'] == 'M' || isset($postData['gender']) && $postData['gender'] == 'F') ? clean_input(urldecode($postData['gender'])) : 'U';
 
 	try {
 		$db->beginTransaction();
@@ -626,41 +625,39 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			)
 		);
 
-		$recordId						= $db->insertId();
+		$recordId = $db->insertId();
 		
 		iMSCP_Events_Manager::getInstance()->dispatch(
 			iMSCP_Events::onBeforeAddDomain,
 			array(
-				'domainName' => $dmnUsername,
-				'createdBy' => $resellerId,
-				'customerId' => $recordId,
-				'customerEmail' => $userEmail
+				'domainName'	=> $dmnUsername,
+				'createdBy'		=> $resellerId,
+				'customerId'	=> $recordId,
+				'customerEmail'	=> $userEmail
 			)
 		);
 		
-		$dmnExpire						= 0;
+		$dmnExpire					= 0;
 		$domain_mailacc_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_mail'] : $resellerHostingPlan['hp_mail'];
 		$domain_ftpacc_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_ftp'] : $resellerHostingPlan['hp_ftp'];
 		$domain_traffic_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_traff'] : $resellerHostingPlan['hp_traff'];
-		$domain_sqld_limit				= (count($resellerHostingPlan) == 0) ? $postData['hp_sql_db'] : $resellerHostingPlan['hp_sql_db'];
-		$domain_sqlu_limit				= (count($resellerHostingPlan) == 0) ? $postData['hp_sql_user'] : $resellerHostingPlan['hp_sql_user'];
-		$domain_subd_limit				= (count($resellerHostingPlan) == 0) ? $postData['hp_sub'] : $resellerHostingPlan['hp_sub'];
-		$domain_alias_limit				= (count($resellerHostingPlan) == 0) ? $postData['hp_als'] : $resellerHostingPlan['hp_als'];
-		$domain_ip_id					= $resellerIpaddress;
-		$domain_disk_limit				= (count($resellerHostingPlan) == 0) ? $postData['hp_disk'] : $resellerHostingPlan['hp_disk'];
-		$domain_php						= (count($resellerHostingPlan) == 0) ? $postData['hp_php'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_php']);
-		$domain_cgi						= (count($resellerHostingPlan) == 0) ? $postData['hp_cgi'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_cgi']);
-		$allowbackup					= (count($resellerHostingPlan) == 0) ? $postData['hp_backup'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_backup']);
-		$domain_dns						= (count($resellerHostingPlan) == 0) ? $postData['hp_dns'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_dns']);
+		$domain_sqld_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_sql_db'] : $resellerHostingPlan['hp_sql_db'];
+		$domain_sqlu_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_sql_user'] : $resellerHostingPlan['hp_sql_user'];
+		$domain_subd_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_sub'] : $resellerHostingPlan['hp_sub'];
+		$domain_alias_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_als'] : $resellerHostingPlan['hp_als'];
+		$domain_ip_id				= $resellerIpaddress;
+		$domain_disk_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_disk'] : $resellerHostingPlan['hp_disk'];
+		$domain_php					= (count($resellerHostingPlan) == 0) ? $postData['hp_php'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_php']);
+		$domain_cgi					= (count($resellerHostingPlan) == 0) ? $postData['hp_cgi'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_cgi']);
+		$allowbackup				= (count($resellerHostingPlan) == 0) ? $postData['hp_backup'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_backup']);
+		$domain_dns					= (count($resellerHostingPlan) == 0) ? $postData['hp_dns'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_dns']);
 		$domain_software_allowed		= (count($resellerHostingPlan) == 0) ? $postData['hp_allowsoftware'] : preg_replace("/\_/", '', $resellerHostingPlan['hp_allowsoftware']);
-		$phpini_perm_system				= (count($resellerHostingPlan) == 0) ? $postData['phpini_system'] : $resellerHostingPlan['phpini_system'];
-		$phpini_perm_allow_url_fopen	= (count($resellerHostingPlan) == 0) ? $postData['phpini_perm_allow_url_fopen'] : $resellerHostingPlan['phpini_perm_allow_url_fopen'];
+		$phpini_perm_system			= (count($resellerHostingPlan) == 0) ? $postData['phpini_system'] : $resellerHostingPlan['phpini_system'];
+		$phpini_perm_allow_url_fopen		= (count($resellerHostingPlan) == 0) ? $postData['phpini_perm_allow_url_fopen'] : $resellerHostingPlan['phpini_perm_allow_url_fopen'];
 		$phpini_perm_display_errors		= (count($resellerHostingPlan) == 0) ? $postData['phpini_perm_display_errors'] : $resellerHostingPlan['phpini_perm_display_errors'];
 		$phpini_perm_disable_functions	= (count($resellerHostingPlan) == 0) ? $postData['phpini_perm_disable_functions'] : $resellerHostingPlan['phpini_perm_disable_functions'];
 		$domain_external_mail			= (count($resellerHostingPlan) == 0) ? $postData['external_mail'] : preg_replace("/\_/", '', $resellerHostingPlan['external_mail']);
-		//$webFolderProtection			= (count($resellerHostingPlan) == 0) ? $postData['web_folder_protection'] : preg_replace("/\_/", '', $resellerHostingPlan['web_folder_protection']); 
-		#will be activated if web_folder_protection is hosting plans include web_folder_protection
-		$webFolderProtection			= (count($resellerHostingPlan) == 0) ? $postData['web_folder_protection'] : 'no';
+		$webFolderProtection			= (count($resellerHostingPlan) == 0) ? $postData['web_folder_protection'] : preg_replace("/\_/", '', $resellerHostingPlan['web_folder_protection']); 
 
 		$query = "
 			INSERT INTO `domain` (
@@ -723,11 +720,11 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		iMSCP_Events_Manager::getInstance()->dispatch(
 			iMSCP_Events::onAfterAddDomain,
 			array(
-				'domainName' => $dmnUsername,
-				'createdBy' => $resellerId,
-				'customerId' => $recordId,
-				'customerEmail' => $userEmail,
-				'domainId' => $dmnId
+				'domainName'	=> $dmnUsername,
+				'createdBy'		=> $resellerId,
+				'customerId'	=> $recordId,
+				'customerEmail'	=> $userEmail,
+				'domainId'		=> $dmnId
 			)
 		);
 		
@@ -741,7 +738,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Error while creating user: '.$e->getMessage().', '.$e->getQuery().', '.$e->getCode()
 				)
 			)
@@ -755,7 +752,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 	echo(
 		createJsonMessage(
 			array(
-				'level'		=> 'Success',
+				'level'	=> 'Success',
 				'message'	=> 'User '.$dmnUsername.' added successfull!'
 			)
 		)
@@ -763,7 +760,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 }
 
 function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -772,7 +769,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'No domain or domain aliases in post data available!'
 				)
 			)
@@ -790,7 +787,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Success',
+					'level'	=> 'Success',
 					'message'	=> 'Domain aliases: '.implode(', ',$postData['alias_domains']).' succesfully added!'
 				)
 			)
@@ -799,7 +796,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Unknown domain '.$dmnUsername.'!'
 				)
 			)
@@ -808,7 +805,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 }
 
 function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -821,7 +818,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 			exit(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'The domain '.decode_idna($alias_domain).' is not valid!'
 					)
 				)
@@ -832,7 +829,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 			exit(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'Alias domain '.$alias_domain.' already exist on this server'
 					)
 				)
@@ -916,7 +913,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				echo(
 					createJsonMessage(
 						array(
-							'level'		=> 'Error',
+							'level'	=> 'Error',
 							'message'	=> 'Error while creating alias domain: '.$e->getMessage().', '.$e->getQuery().', '.$e->getCode()
 						)
 					)
@@ -932,7 +929,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 
 /* Delete User */
 function deleteUser($resellerId, $domain) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -948,7 +945,7 @@ function deleteUser($resellerId, $domain) {
 				echo(
 					createJsonMessage(
 						array(
-							'level'		=> 'Error',
+							'level'	=> 'Error',
 							'message'	=> 'Customer account '.$dmnUsername.' not found!'
 						)
 					)
@@ -959,7 +956,7 @@ function deleteUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Success',
+						'level'	=> 'Success',
 						'message'	=> 'Customer account:'.$dmnUsername.'  successfully scheduled for deletion!'
 					)
 				)
@@ -971,7 +968,7 @@ function deleteUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'System was unable to schedule deletion of the customer account:'.$dmnUsername.'!'
 					)
 				)
@@ -983,7 +980,7 @@ function deleteUser($resellerId, $domain) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Unknown domain '.$dmnUsername.'!'
 				)
 			)
@@ -993,7 +990,7 @@ function deleteUser($resellerId, $domain) {
 
 /* Disable User */
 function disableUser($resellerId, $domain) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -1012,7 +1009,7 @@ function disableUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Success',
+						'level'	=> 'Success',
 						'message'	=> 'Domain '.$dmnUsername.' succesfully disabled!'
 					)
 				)
@@ -1021,7 +1018,7 @@ function disableUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'Can not disable domain '.$dmnUsername.'. Current domain status is: '.$stmt->fields['domain_status']
 					)
 				)
@@ -1031,7 +1028,7 @@ function disableUser($resellerId, $domain) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Unknown domain '.$dmnUsername.'!'
 				)
 			)
@@ -1041,7 +1038,7 @@ function disableUser($resellerId, $domain) {
 
 /* Enable User */
 function enableUser($resellerId, $domain) {
-	$db		= iMSCP_Registry::get('db');
+	$db	= iMSCP_Registry::get('db');
 	$cfg	= iMSCP_Registry::get('config');
 	$auth	= iMSCP_Authentication::getInstance();
 	
@@ -1060,7 +1057,7 @@ function enableUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Success',
+						'level'	=> 'Success',
 						'message'	=> 'Domain '.$dmnUsername.' succesfully activated!'
 					)
 				)
@@ -1069,7 +1066,7 @@ function enableUser($resellerId, $domain) {
 			echo(
 				createJsonMessage(
 					array(
-						'level'		=> 'Error',
+						'level'	=> 'Error',
 						'message'	=> 'Can not activate domain '.$dmnUsername.'. Current domain status is: '.$stmt->fields['domain_status']
 					)
 				)
@@ -1079,7 +1076,7 @@ function enableUser($resellerId, $domain) {
 		echo(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Unknown domain '.$dmnUsername.'!'
 				)
 			)
@@ -1113,7 +1110,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> sprintf("Password is shorter than %s characters!", $cfg->PASSWD_CHARS)
 				)
 			)
@@ -1123,7 +1120,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Password cannot be greater than 30 characters!'
 				)
 			)
@@ -1135,7 +1132,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> 'Password includes not permitted signs!'
 				)
 			)
@@ -1147,7 +1144,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 		exit(
 			createJsonMessage(
 				array(
-					'level'		=> 'Error',
+					'level'	=> 'Error',
 					'message'	=> sprintf("Password must be at least %s character long and contain letters and numbers to be valid!", $cfg->PASSWD_CHARS)
 				)
 			)
