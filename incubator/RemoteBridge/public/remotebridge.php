@@ -26,7 +26,7 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-define('iMSCP_Min_Vers', '1.1.0.rc2.4');
+define('iMSCP_Min_Vers', '1.1.0.rc3');
 
 $filter = iMSCP_Registry::set(
 	'bufferFilter',
