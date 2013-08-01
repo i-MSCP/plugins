@@ -72,7 +72,7 @@ class iMSCP_Plugin_ApsStandard extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
-				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onClientScriptStart
 
 			),
 			$this
@@ -89,6 +89,7 @@ class iMSCP_Plugin_ApsStandard extends iMSCP_Plugin_Action
 		$pluginRootDir = PLUGINS_PATH . DIRECTORY_SEPARATOR . $this->getName();
 
 		$this->routes = array(
+			'/admin/aps' => $pluginRootDir . '/frontend/scripts/admin/aps.php',
 			'/admin/aps/upload' => $pluginRootDir . '/frontend/scripts/admin/aps.php',
 			'/admin/aps/scan' => $pluginRootDir . '/frontend/scripts/admin/aps.php',
 			'/admin/aps/manage_packages' =>  $pluginRootDir . '/frontend/scripts/admin/aps.php',
@@ -148,33 +149,43 @@ class iMSCP_Plugin_ApsStandard extends iMSCP_Plugin_Action
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
+			// TODO Add APS icons
 			if ($uiLevel == 'admin') {
-				if (($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
-					$page->addPages(
-						array(
+				$navigation->addPage(
+					array(
+						'label' => 'APS Installer',
+						'uri' => "/admin/aps",
+						'class' => 'custom_link',
+						'order' => 3,
+						'pages' => array(
+							array(
+								'label' => tohtml(tr('Overview')),
+								'uri' => '/admin/aps',
+								'title_class' => 'aps'
+							),
 							array(
 								'label' => tohtml(tr('Upload new packages')),
 								'uri' => '/admin/aps/upload',
-								'title_class' => 'aps',
+								'title_class' => 'aps'
 							),
 							array(
 								'label' => tohtml(tr('Scan for new packages')),
 								'uri' => '/admin/aps/scan',
-								'title_class' => 'aps',
+								'title_class' => 'aps'
 							),
 							array(
 								'label' => tohtml(tr('Manage packages')),
 								'uri' => '/admin/aps/manage_packages',
-								'title_class' => 'aps',
+								'title_class' => 'aps'
 							),
 							array(
 								'label' => tohtml(tr('Manage instances')),
 								'uri' => '/admin/aps/manage_instances',
-								'title_class' => 'aps',
+								'title_class' => 'aps'
 							)
 						)
-					);
-				}
+					)
+				);
 			}
 		}
 	}
