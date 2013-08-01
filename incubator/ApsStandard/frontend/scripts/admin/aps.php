@@ -41,19 +41,16 @@ $tpl->define_dynamic(
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => tr('Admin / Settings / {TR_TITLE}'),
+		'TR_PAGE_TITLE' => tr('Admin / APS Installer / {TR_TITLE}'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo()
 	)
 );
 
-$pageContent = 'APS_PAGE_CONTENT'; // TODO Replace by partial content from APS controller
-$tpl->define_no_file('page', $pageContent);
-
 generateNavigation($tpl);
 generatePageMessage($tpl);
 
-$tpl->parse('LAYOUT_CONTENT', 'page');
+$tpl->assign('LAYOUT_CONTENT', 'APS page content goes here'); // TODO Replace by partial content from APS controller
 
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 
