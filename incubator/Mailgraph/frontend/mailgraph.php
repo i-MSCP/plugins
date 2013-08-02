@@ -124,7 +124,6 @@ $cfg = iMSCP_Registry::get('config');
 
 $hostname = $cfg->SERVER_HOSTNAME ;
 
-
 if(isset($_GET['action']) && $_GET['action'] === 'syncgraphs') {
 	send_request();
 	set_page_message(
@@ -152,7 +151,7 @@ $tpl->assign(
 		'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
 		'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $hostname),
 		'TR_UPDATE_TOOLTIP' => tr('Schedules update of statistical graphics according the last available data. This can take few seconds.'),
-		'TR_UPDATE' => tr('Update')
+		'TR_UPDATE' => tr('Force update')
 	)
 );
 

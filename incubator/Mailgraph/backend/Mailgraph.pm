@@ -61,7 +61,70 @@ sub install
 		return 1;
 	}
 
+	my $rs = $self->_registerCronjob();
+	return $rs if $rs;
+
 	$self->run();
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	$self->install();
+}
+
+=item update()
+
+ Perform update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my $self = shift;
+
+	$self->install();
+}
+
+=item disable()
+
+ Perform disable tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub disable
+{
+	my $self = shift;
+
+	$self->uninstall();
+}
+
+=item uninstall()
+
+ Perform uninstall tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub uninstall
+{
+	my $self = shift;
+
+	$self->_unregisterCronjob();
 }
 
 =item run()
@@ -103,12 +166,12 @@ sub _buildMailgraph
 {
 	my $self = shift;
 
-	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
-	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
-
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph.rrd';
 
 	return 0 if ! -f $mailgraph_rrd;
+
+	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xpoints = 540;
 	my $points_per_sample = 3;
@@ -117,22 +180,22 @@ sub _buildMailgraph
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
 	my $day_mailgraph_title = 'Mailgraph - Daily - ' . $hostname;
-	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png';
+	my $day_outputfile = $imgGraphsDir . '/mailgraph_day.png';
 
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
 	my $week_mailgraph_title = 'Mailgraph - Weekly - ' . $hostname;
-	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_week.png';
+	my $week_outputfile = $imgGraphsDir . '/mailgraph_week.png';
 
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
 	my $month_mailgraph_title = 'Mailgraph - Monthly - ' . $hostname;
-	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_month.png';
+	my $month_outputfile = $imgGraphsDir . '//mailgraph_month.png';
 
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
 	my $year_mailgraph_title = 'Mailgraph - Yearly - ' . $hostname;
-	my $year_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_year.png';
+	my $year_outputfile = $imgGraphsDir . '/mailgraph_year.png';
 
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
@@ -212,7 +275,7 @@ sub _createMailgraphPicture
 	my $set_outputfile = shift;
 	my $set_date = shift;
 
-	my %MailgraphColor = (
+	my %mailgraphColor = (
 		sent => '000099',
 		received => '009900'
 	);
@@ -224,7 +287,7 @@ sub _createMailgraphPicture
 		"CDEF:rmsent=msent,60,*",
 		"CDEF:dsent=sent,UN,0,sent,IF,$set_step,*",
 		"CDEF:ssent=PREV,UN,dsent,PREV,IF,dsent,+",
-		"AREA:rsent#$MailgraphColor{sent}:Sent    ",
+		"AREA:rsent#$mailgraphColor{sent}:Sent    ",
 		'GPRINT:ssent:MAX:total\: %8.0lf msgs',
 		'GPRINT:rsent:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmsent:MAX:max\: %4.0lf msgs/min\l',
@@ -235,7 +298,7 @@ sub _createMailgraphPicture
 		"CDEF:rmrecv=mrecv,60,*",
 		"CDEF:drecv=recv,UN,0,recv,IF,$set_step,*",
 		"CDEF:srecv=PREV,UN,drecv,PREV,IF,drecv,+",
-		"LINE2:rrecv#$MailgraphColor{received}:Received",
+		"LINE2:rrecv#$mailgraphColor{received}:Received",
 		'GPRINT:srecv:MAX:total\: %8.0lf msgs',
 		'GPRINT:rrecv:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmrecv:MAX:max\: %4.0lf msgs/min\l',
@@ -288,13 +351,13 @@ sub _buildMailgraphVirus
 {
 	my $self = shift;
 
-	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
-	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
-
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph.rrd';
 	my $mailgraph_virus_rrd = '/var/lib/mailgraph/mailgraph_virus.rrd';
 
 	return 0 if ! -f $mailgraph_rrd || ! -f $mailgraph_virus_rrd;
+
+	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xpoints = 540;
 	my $points_per_sample = 3;
@@ -303,22 +366,22 @@ sub _buildMailgraphVirus
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
 	my $day_mailgraph_title = 'Mailgraph virus - Daily - ' . $hostname;
-	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_day.png';
+	my $day_outputfile = $imgGraphsDir . '/mailgraph_virus_day.png';
 
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
 	my $week_mailgraph_title = 'Mailgraph virus - Weekly - ' . $hostname;
-	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_week.png';
+	my $week_outputfile = $imgGraphsDir . '/mailgraph_virus_week.png';
 
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
 	my $month_mailgraph_title = 'Mailgraph virus - Monthly - ' . $hostname;
-	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_month.png';
+	my $month_outputfile = $imgGraphsDir . '/mailgraph_virus_month.png';
 
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
 	my $year_mailgraph_title = 'Mailgraph virus - Yearly - ' . $hostname;
-	my $year_outputfile = $guiPluginDir .'/Mailgraph/tmp_graph/mailgraph_virus_year.png';
+	my $year_outputfile = $imgGraphsDir .'/mailgraph_virus_year.png';
 
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
@@ -504,12 +567,12 @@ sub _buildMailgraphGreylist
 {
 	my $self = shift;
 
-	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
-	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
-
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph_greylist.rrd';
 
 	return 0 if ! -f $mailgraph_rrd;
+
+	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xpoints = 540;
 	my $points_per_sample = 3;
@@ -518,22 +581,22 @@ sub _buildMailgraphGreylist
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
 	my $day_mailgraph_title = 'Mailgraph greylist - Daily - ' . $hostname;
-	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png';
+	my $day_outputfile = $imgGraphsDir . '/mailgraph_greylist_day.png';
 
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
 	my $week_mailgraph_title = 'Mailgraph greylist - Weekly - ' . $hostname;
-	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png';
+	my $week_outputfile = $imgGraphsDir . '/mailgraph_greylist_week.png';
 
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
 	my $month_mailgraph_title = 'Mailgraph greylist - Monthly - ' . $hostname;
-	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png';
+	my $month_outputfile = $imgGraphsDir . '/mailgraph_greylist_month.png';
 
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
 	my $year_mailgraph_title = 'Mailgraph greylist - Yearly - ' . $hostname;
-	my $year_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png';
+	my $year_outputfile = $imgGraphsDir . '/mailgraph_greylist_year.png';
 
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
@@ -666,15 +729,78 @@ sub _createMailgraphGreylistPicture
 	error($stderr) if $stderr;
 	return 1 if ($stderr);
 
+	my $file = iMSCP::File->new('filename' => $set_outputfile);
+
 	my $panelUname =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-
-	my $file = iMSCP::File->new('filename' => $set_outputfile);
 
 	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
 
 	$file->mode(0644);
+}
+
+=item _registerCronjob()
+
+ Register mailgraph cronjob
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _registerCronjob
+{
+	my $self = shift;
+
+	my $cronjobFilePath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/cronjob.pl';
+
+	my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
+
+	my $cronjobFileContent = $cronjobFile->get();
+	return 1 if ! $cronjobFileContent;
+
+	require iMSCP::Templator;
+	iMSCP::Templator->import();
+
+	$cronjobFileContent = process(
+		{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },
+		$cronjobFileContent
+	);
+
+	my $rs = $cronjobFile->set($cronjobFileContent);
+	return $rs if $rs;
+
+	$rs = $cronjobFile->save();
+	return $rs if $rs;
+
+	require Servers::cron;
+	Servers::cron->getInstance()->addTask(
+		{
+			'TASKID' => 'PLUGINS:Mailgraph',
+			'MINUTE' => '05', # TODO Get the value from plugin conffile
+			'HOUR' => '*',
+			'DAY' => '*',
+			'MONTH' => '*',
+			'DWEEK' => '*',
+			'COMMAND' => "umask 027; perl $cronjobFilePath >/dev/null 2>&1"
+		}
+	);
+}
+
+=item _unregisterCronjob()
+
+ Unregister mailgraph cronjob
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _unregisterCronjob
+{
+	my $self = shift;
+
+	require Servers::cron;
+	Servers::cron->getInstance()->deleteTask('PLUGINS:Mailgraph');
 }
 
 =back
