@@ -29,7 +29,7 @@
 return array(
 	'author'	=> 'Sascha Bay',
 	'email'	=> 'info@space2place.de',
-	'version'	=> '0.0.2',
+	'version'	=> '0.0.1',
 	'date'	=> '2013-08-01',
 	'name'	=> 'Mailgraph',
 	'desc'	=> 'Plugin generates simple mail statistics frontend for postfix and sendmail',
