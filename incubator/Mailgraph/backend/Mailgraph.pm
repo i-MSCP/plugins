@@ -31,9 +31,9 @@ package Plugin::Mailgraph;
 use strict;
 use warnings;
 
-use RRDs;
 use iMSCP::Debug;
 use iMSCP::File;
+use RRDs;
 
 use parent 'Common::SingletonClass';
 
@@ -119,10 +119,7 @@ sub enable
 {
 	my $self = shift;
 
-	my $rs = $self->_unregisterCronjob();
-	return $rs if $rs;
-
-	$rs = $self->_registerCronjob();
+	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
 	$self->run();
@@ -783,39 +780,62 @@ sub _registerCronjob
 {
 	my $self = shift;
 
-	my $cronjobFilePath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/cronjob.pl';
+	require iMSCP::Database;
 
-	my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
+	my $db = iMSCP::Database->factory();
 
-	my $cronjobFileContent = $cronjobFile->get();
-	return 1 if ! $cronjobFileContent;
-
-	require iMSCP::Templator;
-	iMSCP::Templator->import();
-
-	$cronjobFileContent = process(
-		{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },
-		$cronjobFileContent
+	my $rdata = $db->doQuery(
+		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Mailgraph'
 	);
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
 
-	my $rs = $cronjobFile->set($cronjobFileContent);
-	return $rs if $rs;
+	require JSON;
+	JSON->import();
 
-	$rs = $cronjobFile->save();
-	return $rs if $rs;
+	my $cronjobConfig = decode_json($rdata->{'Mailgraph'}->{'plugin_config'});
 
-	require Servers::cron;
-	Servers::cron->getInstance()->addTask(
-		{
-			'TASKID' => 'PLUGINS:Mailgraph',
-			'MINUTE' => '05', # TODO Get the value from plugin conffile
-			'HOUR' => '*',
-			'DAY' => '*',
-			'MONTH' => '*',
-			'DWEEK' => '*',
-			'COMMAND' => "umask 027; perl $cronjobFilePath >/dev/null 2>&1"
-		}
-	);
+	if($cronjobConfig->{'cronjob_enabled'}) {
+		my $cronjobFilePath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/cronjob.pl';
+
+		my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
+
+		my $cronjobFileContent = $cronjobFile->get();
+		return 1 if ! $cronjobFileContent;
+
+		require iMSCP::Templator;
+		iMSCP::Templator->import();
+
+		$cronjobFileContent = process(
+			{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },
+			$cronjobFileContent
+		);
+
+		my $rs = $cronjobFile->set($cronjobFileContent);
+		return $rs if $rs;
+
+		$rs = $cronjobFile->save();
+		return $rs if $rs;
+
+		# TODO Check syntax for config values
+
+		require Servers::cron;
+		Servers::cron->getInstance()->addTask(
+			{
+				'TASKID' => 'PLUGINS:Mailgraph',
+				'MINUTE' => $cronjobConfig->{'cronjob_config'}->{'minute'},
+				'HOUR' => $cronjobConfig->{'cronjob_config'}->{'hour'},
+				'DAY' => $cronjobConfig->{'cronjob_config'}->{'day'},
+				'MONTH' => $cronjobConfig->{'cronjob_config'}->{'month'},
+				'DWEEK' => $cronjobConfig->{'cronjob_config'}->{'dweek'},
+				'COMMAND' => "umask 027; perl $cronjobFilePath >/dev/null 2>&1"
+			}
+		);
+	} else {
+		0;
+	}
 }
 
 =item _unregisterCronjob()
