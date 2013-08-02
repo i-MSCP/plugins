@@ -32,6 +32,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2013-08-01',
 	'name' => 'Mailgraph',
-	'desc' => 'Plugin providing simple mail statistics frontend for Postfix and Sendmail',
+	'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail)',
 	'url' => 'http://i-mscp.net'
 );

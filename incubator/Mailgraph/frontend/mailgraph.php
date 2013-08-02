@@ -38,78 +38,73 @@
  */
 function mailgraph_generatePage($tpl)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
-	send_request();
-	
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_day.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
 		$tpl->assign('MAILGRAPH_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_DAY_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_week.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_week.png')) {
 		$tpl->assign('MAILGRAPH_WEEK_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_WEEK_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_month.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_month.png')) {
 		$tpl->assign('MAILGRAPH_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_MONTH_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_year.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_year.png')) {
 		$tpl->assign('MAILGRAPH_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_YEAR_EXIST', '');
 	}	
 	
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_DAY_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_WEEK_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_WEEK_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_MONTH_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_YEAR_EXIST', '');
 	}
 	
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_DAY_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_NOT_EXIST','');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_EXIST','');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_EXIST', '');
 	}
 
-	if(file_exists($cfg->GUI_ROOT_DIR.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
+	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_EXIST', '');
@@ -127,6 +122,16 @@ check_login('admin');
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
+$hostname = $cfg->SERVER_HOSTNAME ;
+
+
+if(isset($_GET['action']) && $_GET['action'] === 'syncgraphs') {
+	send_request();
+	set_page_message(
+		tr('Statistical graphics successfully scheduled for update. This can take few seconds.'), 'success'
+	);
+	redirectTo('mailgraph.php');
+}
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(
@@ -142,17 +147,17 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'MAILGRAPHIC_NOT_EXIST'	=> tr('The requested graphic does not exist!'),
-		'TR_MAILGRAPH' => tr("Mailgraph - %s", $cfg->SERVER_HOSTNAME),
-		'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $cfg->SERVER_HOSTNAME),
-		'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $cfg->SERVER_HOSTNAME)
+		'MAILGRAPHIC_NOT_EXIST'	=> tr("The requested graphic doesn't exist."),
+		'TR_MAILGRAPH' => tr("Mailgraph - %s", $hostname),
+		'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
+		'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $hostname),
+		'TR_UPDATE_TOOLTIP' => tr('Schedules update of statistical graphics according the last available data. This can take few seconds.'),
+		'TR_UPDATE' => tr('Update')
 	)
 );
 
 generateNavigation($tpl);
-
 mailgraph_generatePage($tpl);
-
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

@@ -35,7 +35,8 @@ check_login('admin');
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
-$whichGraph = (isset($_GET['graph']) && $_GET['graph'] != '') ? $_GET['graph'] : '';
+$whichGraph = (isset($_GET['graph']) && $_GET['graph'] != '') ? clean_input($_GET['graph']) : '';
+
 switch ($whichGraph) {
 	case 'mailgraph_day':
 		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_day.png');
