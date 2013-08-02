@@ -46,7 +46,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
 
-**5.** Go to the panel plugins interface, update the plugin list and activate the plugin.
+**6.** Go to the panel plugins interface, update the plugin list and activate the plugin.
 
 ### AUTHORS AND CONTRIBUTORS
 
