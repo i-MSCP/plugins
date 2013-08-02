@@ -29,7 +29,6 @@
 /**
  * Mailgraph Plugin.
  *
- *
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Mailgraph
@@ -42,7 +41,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	 */
 	protected $routes = array();
 
-		/**
+	/**
 	 * Register a callback for the given event(s).
 	 *
 	 * @param iMSCP_Events_Manager_Interface $controller
@@ -59,7 +58,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onBeforePluginsRoute event
+	 * onBeforePluginsRoute listener
 	 *
 	 * @return void
 	 */
@@ -74,7 +73,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onAdminScriptStart event
+	 * onAdminScriptStart listener
 	 *
 	 * @return void
 	 */

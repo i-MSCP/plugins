@@ -17,13 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# @category i-MSCP
-# @package iMSCP_Plugin
-# @subpackage Mailgraph
-# @copyright 2010-2013 by i-MSCP | http://i-mscp.net
-# @author Sascha Bay <info@space2place.de>
-# @link http://i-mscp.net i-MSCP Home Site
-# @license http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+# @category    i-MSCP
+# @package     iMSCP_Plugin
+# @subpackage  Mailgraph
+# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @author      Sascha Bay <info@space2place.de>
+# @link        http://i-mscp.net i-MSCP Home Site
+# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::Mailgraph;
 
@@ -35,6 +35,14 @@ use iMSCP::Debug;
 use iMSCP::File;
 
 use parent 'Common::SingletonClass';
+
+=head1 DESCRIPTION
+
+ This package provides backend part for the i-MSCP Mailgraph plugin.
+
+=head1 PUBLIC METHODS
+
+=over 4
 
 =item install()
 
@@ -48,39 +56,12 @@ sub install
 {
 	my $self = shift;
 
-	my $rs = 0;
-	
-	if(! -d '/var/lib/mailgraph' || ! -f '/etc/default/mailgraph') {
+	if(! -x '/usr/sbin/mailgraph') {
 		error('Unable to find mailgraph. Install mailgraph first.');
 		return 1;
 	}
-	
-	$rs = $self->_setMailgraphVariables();
-	return $rs if $rs;
-	
-	$rs = $self->_setMailgraphVirusVariables();
-	return $rs if $rs;
-	
-	$rs = $self->_setMailgraphGreylistVariables();
-	return $rs if $rs;
-	
-	0;
-}
 
-=item uninstall()
-
- Perform un-installation tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub uninstall
-{
-	my $self = shift;
-	my $rs = 0;
-	
-	0;
+	$self->run();
 }
 
 =item run()
@@ -94,66 +75,70 @@ sub uninstall
 sub run
 {
 	my $self = shift;
-	my $rs = 0;
-	
-	$rs = $self->_setMailgraphVariables();
+
+	my $rs = $self->_buildMailgraph();
 	return $rs if $rs;
-	
-	$rs = $self->_setMailgraphVirusVariables();
+
+	$rs = $self->_buildMailgraphVirus();
 	return $rs if $rs;
-	
-	$rs = $self->_setMailgraphGreylistVariables();
-	return $rs if $rs;
-	
-	$rs;
+
+	$self->_buildMailgraphGreylist();
 }
 
-=item _setMailgraphVariables()
+=back
 
- sets the mailgraph graphic varibales
+=head1 PRIVATE METHODS
+
+=over 4
+
+=item _buildMailgraph()
+
+ Build mailgraph
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setMailgraphVariables
+sub _buildMailgraph
 {
 	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
+	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
+
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph.rrd';
-	
+
+	return 0 if ! -f $mailgraph_rrd;
+
 	my $xpoints = 540;
 	my $points_per_sample = 3;
 	my $ypoints = 160;
-	
+
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
-	my $day_mailgraph_title = 'Mailgraph - Daily - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $day_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_day.png';
-	
+	my $day_mailgraph_title = 'Mailgraph - Daily - ' . $hostname;
+	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png';
+
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
-	my $week_mailgraph_title = 'Mailgraph - Weekly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $week_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_week.png';
-	
+	my $week_mailgraph_title = 'Mailgraph - Weekly - ' . $hostname;
+	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_week.png';
+
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
-	my $month_mailgraph_title = 'Mailgraph - Monthly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $month_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_month.png';
-	
+	my $month_mailgraph_title = 'Mailgraph - Monthly - ' . $hostname;
+	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_month.png';
+
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
-	my $year_mailgraph_title = 'Mailgraph - Yearly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $year_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_year.png';
-	
+	my $year_mailgraph_title = 'Mailgraph - Yearly - ' . $hostname;
+	my $year_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_year.png';
+
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
 	$date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
-	
-	$rs = $self->_createMailgraphPicture(
+
+	my $rs = $self->_createMailgraphPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -165,7 +150,7 @@ sub _setMailgraphVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphPicture(
 		$mailgraph_rrd,
 		$xpoints,
@@ -178,7 +163,7 @@ sub _setMailgraphVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphPicture(
 		$mailgraph_rrd,
 		$xpoints,
@@ -191,8 +176,8 @@ sub _setMailgraphVariables
 		$date
 	);
 	return $rs if $rs;
-	
-	$rs = $self->_createMailgraphPicture(
+
+	$self->_createMailgraphPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -203,9 +188,6 @@ sub _setMailgraphVariables
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
-	
-	0;
 }
 
 =item _createMailgraphPicture()
@@ -219,6 +201,7 @@ sub _setMailgraphVariables
 sub _createMailgraphPicture
 {
 	my $self = shift;
+
 	my $rrdfile = shift;
 	my $set_xpoints = shift;
 	my $set_ypoints = shift;
@@ -229,14 +212,11 @@ sub _createMailgraphPicture
 	my $set_outputfile = shift;
 	my $set_date = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
 	my %MailgraphColor = (
-		sent       => '000099',
-		received   => '009900'		
+		sent => '000099',
+		received => '009900'
 	);
-	
+
 	my @RRDArgs = (
 		"DEF:sent=$rrdfile:sent:AVERAGE",
 		"DEF:msent=$rrdfile:sent:MAX",
@@ -260,7 +240,7 @@ sub _createMailgraphPicture
 		'GPRINT:rrecv:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmrecv:MAX:max\: %4.0lf msgs/min\l',
 	);
-	
+
 	RRDs::graph($set_outputfile,
 		'--imgformat', 'PNG',
 		'--title', $set_title,
@@ -275,75 +255,76 @@ sub _createMailgraphPicture
 		'--color', 'SHADEA#ffffff',
 		'--color', 'SHADEB#ffffff',
 		'--color', 'BACK#ffffff',
-
 		$RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
-
 		@RRDArgs,
-
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
-	
-	$stdout = RRDs::error;
-	error($stdout) if $stdout;
-	
+
+	my $stderr = RRDs::error;
+	error($stderr) if $stderr;
+	return 1 if $stderr;
+
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
-		
-	$rs = $file->owner('vu2000', 'vu2000');
+
+	my $panelUname =
+	my $panelGName =
+		$main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+
+	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
-	
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-	
-	0;
+
+	$file->mode(0644);
 }
 
-=item _setMailgraphVirusVariables()
+=item _buildMailgraphVirus()
 
- sets the mailgraph graphic varibales for viruses
+ Build mailgraph for viruses
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setMailgraphVirusVariables
+sub _buildMailgraphVirus
 {
 	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
+	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
+
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph.rrd';
 	my $mailgraph_virus_rrd = '/var/lib/mailgraph/mailgraph_virus.rrd';
-	
+
+	return 0 if ! -f $mailgraph_rrd || ! -f $mailgraph_virus_rrd;
+
 	my $xpoints = 540;
 	my $points_per_sample = 3;
 	my $ypoints = 96;
-	
+
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
-	my $day_mailgraph_title = 'Mailgraph virus - Daily - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $day_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_day.png';
-	
+	my $day_mailgraph_title = 'Mailgraph virus - Daily - ' . $hostname;
+	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_day.png';
+
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
-	my $week_mailgraph_title = 'Mailgraph virus - Weekly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $week_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_week.png';
-	
+	my $week_mailgraph_title = 'Mailgraph virus - Weekly - ' . $hostname;
+	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_week.png';
+
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
-	my $month_mailgraph_title = 'Mailgraph virus - Monthly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $month_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_month.png';
-	
+	my $month_mailgraph_title = 'Mailgraph virus - Monthly - ' . $hostname;
+	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_month.png';
+
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
-	my $year_mailgraph_title = 'Mailgraph virus - Yearly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $year_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_virus_year.png';
-	
+	my $year_mailgraph_title = 'Mailgraph virus - Yearly - ' . $hostname;
+	my $year_outputfile = $guiPluginDir .'/Mailgraph/tmp_graph/mailgraph_virus_year.png';
+
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
 	$date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
-	
-	$rs = $self->_createMailgraphVirusPicture(
+
+	my $rs = $self->_createMailgraphVirusPicture(
 		$mailgraph_rrd,
 		$mailgraph_virus_rrd,
 		$xpoints,
@@ -356,7 +337,7 @@ sub _setMailgraphVirusVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphVirusPicture(
 		$mailgraph_rrd,
 		$mailgraph_virus_rrd,
@@ -370,7 +351,7 @@ sub _setMailgraphVirusVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphVirusPicture(
 		$mailgraph_rrd,
 		$mailgraph_virus_rrd,
@@ -384,8 +365,8 @@ sub _setMailgraphVirusVariables
 		$date
 	);
 	return $rs if $rs;
-	
-	$rs = $self->_createMailgraphVirusPicture(
+
+	$self->_createMailgraphVirusPicture(
 		$mailgraph_rrd,
 		$mailgraph_virus_rrd,
 		$xpoints,
@@ -397,9 +378,6 @@ sub _setMailgraphVirusVariables
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
-
-	0;
 }
 
 =item _createMailgraphVirusPicture()
@@ -413,6 +391,7 @@ sub _setMailgraphVirusVariables
 sub _createMailgraphVirusPicture
 {
 	my $self = shift;
+
 	my $rrdfile = shift;
 	my $rrdvirusfile = shift;
 	my $set_xpoints = shift;
@@ -424,16 +403,13 @@ sub _createMailgraphVirusPicture
 	my $set_outputfile = shift;
 	my $set_date = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
-	my %MailgraphColor = (
-		rejected	=> 'AA0000',
-		bounced	=> '000000',
-		virus		=> 'DDBB00',
-		spam		=> '999999'
+	my %mailgraphColor = (
+		rejected => 'AA0000',
+		bounced => '000000',
+		virus => 'DDBB00',
+		spam => '999999'
 	);
-	
+
 	my @RRDArgs = (
 		"DEF:rejected=$rrdfile:rejected:AVERAGE",
 		"DEF:mrejected=$rrdfile:rejected:MAX",
@@ -441,46 +417,47 @@ sub _createMailgraphVirusPicture
 		"CDEF:drejected=rejected,UN,0,rejected,IF,$set_step,*",
 		"CDEF:srejected=PREV,UN,drejected,PREV,IF,drejected,+",
 		"CDEF:rmrejected=mrejected,60,*",
-		"LINE2:rrejected#$MailgraphColor{rejected}:Rejected",
+		"LINE2:rrejected#$mailgraphColor{rejected}:Rejected",
 		'GPRINT:srejected:MAX:total\: %8.0lf msgs',
 		'GPRINT:rrejected:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmrejected:MAX:max\: %4.0lf msgs/min\l',
-		
+
 		"DEF:bounced=$rrdfile:bounced:AVERAGE",
 		"DEF:mbounced=$rrdfile:bounced:MAX",
 		"CDEF:rbounced=bounced,60,*",
 		"CDEF:dbounced=bounced,UN,0,bounced,IF,$set_step,*",
 		"CDEF:sbounced=PREV,UN,dbounced,PREV,IF,dbounced,+",
 		"CDEF:rmbounced=mbounced,60,*",
-		"AREA:rbounced#$MailgraphColor{bounced}:Bounced ",
+		"AREA:rbounced#$mailgraphColor{bounced}:Bounced ",
 		'GPRINT:sbounced:MAX:total\: %8.0lf msgs',
 		'GPRINT:rbounced:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmbounced:MAX:max\: %4.0lf msgs/min\l',
-		
+
 		"DEF:virus=$rrdvirusfile:virus:AVERAGE",
 		"DEF:mvirus=$rrdvirusfile:virus:MAX",
 		"CDEF:rvirus=virus,60,*",
 		"CDEF:dvirus=virus,UN,0,virus,IF,$set_step,*",
 		"CDEF:svirus=PREV,UN,dvirus,PREV,IF,dvirus,+",
 		"CDEF:rmvirus=mvirus,60,*",
-		"AREA:rvirus#$MailgraphColor{virus}:Viruses ",
+		"AREA:rvirus#$mailgraphColor{virus}:Viruses ",
 		'GPRINT:svirus:MAX:total\: %8.0lf msgs',
 		'GPRINT:rvirus:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmvirus:MAX:max\: %4.0lf msgs/min\l',
-		
+
 		"DEF:spam=$rrdvirusfile:spam:AVERAGE",
 		"DEF:mspam=$rrdvirusfile:spam:MAX",
 		"CDEF:rspam=spam,60,*",
 		"CDEF:dspam=spam,UN,0,spam,IF,$set_step,*",
 		"CDEF:sspam=PREV,UN,dspam,PREV,IF,dspam,+",
 		"CDEF:rmspam=mspam,60,*",
-		"AREA:rspam#$MailgraphColor{spam}:Spam    ",
+		"AREA:rspam#$mailgraphColor{spam}:Spam    ",
 		'GPRINT:sspam:MAX:total\: %8.0lf msgs',
 		'GPRINT:rspam:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmspam:MAX:max\: %4.0lf msgs/min\l',
 	);
-	
-	RRDs::graph($set_outputfile,
+
+	RRDs::graph(
+		$set_outputfile,
 		'--imgformat', 'PNG',
 		'--title', $set_title,
 		'--width', $set_xpoints,
@@ -494,74 +471,75 @@ sub _createMailgraphVirusPicture
 		'--color', 'SHADEA#ffffff',
 		'--color', 'SHADEB#ffffff',
 		'--color', 'BACK#ffffff',
-
 		$RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
-
 		@RRDArgs,
-
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
-	
-	$stdout = RRDs::error;
-	error($stdout) if $stdout;
-	
+
+	my $stderr = RRDs::error;
+	error($stderr) if $stderr;
+	return 1 if $stderr;
+
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
-		
-	$rs = $file->owner('vu2000', 'vu2000');
+
+	my $panelUname =
+	my $panelGName =
+		$main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+
+	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
-	
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-	
-	0;
+
+	$file->mode(0644);
 }
 
-=item _setMailgraphGreylistVariables()
+=item _buildMailgraphGreylist()
 
- sets the mailgraph graphic varibales for greylist
+ Build mailgraph for greylist
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setMailgraphGreylistVariables
+sub _buildMailgraphGreylist
 {
 	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
+	my $guiPluginDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins';
+	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
+
 	my $mailgraph_rrd = '/var/lib/mailgraph/mailgraph_greylist.rrd';
-	
+
+	return 0 if ! -f $mailgraph_rrd;
+
 	my $xpoints = 540;
 	my $points_per_sample = 3;
 	my $ypoints = 96;
-	
+
 	my $day_range = 3600*24*1;
 	my $day_step = $day_range*$points_per_sample/$xpoints;
-	my $day_mailgraph_title = 'Mailgraph greylist - Daily - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $day_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_day.png';
-	
+	my $day_mailgraph_title = 'Mailgraph greylist - Daily - ' . $hostname;
+	my $day_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png';
+
 	my $week_range = 3600*24*7;
 	my $week_step = $week_range*$points_per_sample/$xpoints;
-	my $week_mailgraph_title = 'Mailgraph greylist - Weekly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $week_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_week.png';
-	
+	my $week_mailgraph_title = 'Mailgraph greylist - Weekly - ' . $hostname;
+	my $week_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png';
+
 	my $month_range = 3600*24*30;
 	my $month_step = $month_range*$points_per_sample/$xpoints;
-	my $month_mailgraph_title = 'Mailgraph greylist - Monthly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $month_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_month.png';
-	
+	my $month_mailgraph_title = 'Mailgraph greylist - Monthly - ' . $hostname;
+	my $month_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png';
+
 	my $year_range = 3600*24*365;
 	my $year_step = $year_range*$points_per_sample/$xpoints;
-	my $year_mailgraph_title = 'Mailgraph greylist - Yearly - '.$main::imscpConfig{'SERVER_HOSTNAME'};
-	my $year_outputfile = $main::imscpConfig{'GUI_ROOT_DIR'}.'/plugins/Mailgraph/tmp_graph/mailgraph_greylist_year.png';
-	
+	my $year_mailgraph_title = 'Mailgraph greylist - Yearly - ' . $hostname;
+	my $year_outputfile = $guiPluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png';
+
 	my $endrange  = time; $endrange -= $endrange % $day_step;
 	my $date = localtime(time);
 	$date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
-	
-	$rs = $self->_createMailgraphGreylistPicture(
+
+	my $rs = $self->_createMailgraphGreylistPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -573,7 +551,7 @@ sub _setMailgraphGreylistVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphGreylistPicture(
 		$mailgraph_rrd,
 		$xpoints,
@@ -586,7 +564,7 @@ sub _setMailgraphGreylistVariables
 		$date
 	);
 	return $rs if $rs;
-	
+
 	$rs = $self->_createMailgraphGreylistPicture(
 		$mailgraph_rrd,
 		$xpoints,
@@ -599,8 +577,8 @@ sub _setMailgraphGreylistVariables
 		$date
 	);
 	return $rs if $rs;
-	
-	$rs = $self->_createMailgraphGreylistPicture(
+
+	$self->_createMailgraphGreylistPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -611,9 +589,6 @@ sub _setMailgraphGreylistVariables
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
-	
-	0;
 }
 
 =item _createMailgraphGreylistPicture()
@@ -627,6 +602,7 @@ sub _setMailgraphGreylistVariables
 sub _createMailgraphGreylistPicture
 {
 	my $self = shift;
+
 	my $rrdfile = shift;
 	my $set_xpoints = shift;
 	my $set_ypoints = shift;
@@ -637,14 +613,11 @@ sub _createMailgraphGreylistPicture
 	my $set_outputfile = shift;
 	my $set_date = shift;
 
-	my ($stdout, $stderr);
-	my $rs = 0;
-	
-	my %MailgraphColor = (
-		greylisted	=> '999999',
-		delayed	=> '006400',
+	my %mailgraphColor = (
+		greylisted => '999999',
+		delayed => '006400',
 	);
-	
+
 	my @RRDArgs = (
 		"DEF:greylisted=$rrdfile:greylisted:AVERAGE",
 		"DEF:mgreylisted=$rrdfile:greylisted:MAX",
@@ -652,7 +625,7 @@ sub _createMailgraphGreylistPicture
 		"CDEF:dgreylisted=greylisted,UN,0,greylisted,IF,$set_step,*",
 		"CDEF:sgreylisted=PREV,UN,dgreylisted,PREV,IF,dgreylisted,+",
 		"CDEF:rmgreylisted=mgreylisted,60,*",
-		"AREA:rgreylisted#$MailgraphColor{greylisted}:Greylisted",
+		"AREA:rgreylisted#$mailgraphColor{greylisted}:Greylisted",
 		'GPRINT:sgreylisted:MAX:total\: %8.0lf msgs',
 		'GPRINT:rgreylisted:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmgreylisted:MAX:max\: %4.0lf msgs/min\l',
@@ -663,13 +636,14 @@ sub _createMailgraphGreylistPicture
 		"CDEF:ddelayed=delayed,UN,0,delayed,IF,$set_step,*",
 		"CDEF:sdelayed=PREV,UN,ddelayed,PREV,IF,ddelayed,+",
 		"CDEF:rmdelayed=mdelayed,60,*",
-		"LINE2:rdelayed#$MailgraphColor{delayed}:Delayed   ",
+		"LINE2:rdelayed#$mailgraphColor{delayed}:Delayed   ",
 		'GPRINT:sdelayed:MAX:total\: %8.0lf msgs',
 		'GPRINT:rdelayed:AVERAGE:avg\: %5.2lf msgs/min',
 		'GPRINT:rmdelayed:MAX:max\: %4.0lf msgs/min\l',
 	);
-	
-	RRDs::graph($set_outputfile,
+
+	RRDs::graph(
+		$set_outputfile,
 		'--imgformat', 'PNG',
 		'--title', $set_title,
 		'--width', $set_xpoints,
@@ -683,26 +657,32 @@ sub _createMailgraphGreylistPicture
 		'--color', 'SHADEA#ffffff',
 		'--color', 'SHADEB#ffffff',
 		'--color', 'BACK#ffffff',
-
 		$RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
-
 		@RRDArgs,
-
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
-	
-	$stdout = RRDs::error;
-	error($stdout) if $stdout;
-	
+
+	my $stderr = RRDs::error;
+	error($stderr) if $stderr;
+	return 1 if ($stderr);
+
+	my $panelUname =
+	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
-		
-	$rs = $file->owner('vu2000', 'vu2000');
+
+	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
-	
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-	
-	0;
+
+	$file->mode(0644);
 }
+
+=back
+
+=head1 AUTHOR
+
+ Sascha Bay <info@space2place.de>
+
+=cut
 
 1;
