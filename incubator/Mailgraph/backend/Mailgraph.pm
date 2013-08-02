@@ -22,6 +22,7 @@
 # @subpackage  Mailgraph
 # @copyright   2010-2013 by i-MSCP | http://i-mscp.net
 # @author      Sascha Bay <info@space2place.de>
+# @contributor Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -38,7 +39,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provides backend part for the i-MSCP Mailgraph plugin.
+ This package provides the backend part for the i-MSCP Mailgraph plugin.
 
 =head1 PUBLIC METHODS
 
@@ -57,7 +58,7 @@ sub install
 	my $self = shift;
 
 	if(! -x '/usr/sbin/mailgraph') {
-		error('Unable to find mailgraph. Install mailgraph first.');
+		error('Unable to find mailgraph daemon. Please, install the mailgraph package first.');
 		return 1;
 	}
 
@@ -79,7 +80,10 @@ sub change
 {
 	my $self = shift;
 
-	$self->install();
+	my $rs = $self->_registerCronjob();
+	return $rs if $rs;
+
+	$self->run();
 }
 
 =item update()
@@ -94,7 +98,34 @@ sub update
 {
 	my $self = shift;
 
-	$self->install();
+	my $rs = $self->_unregisterCronjob();
+	return $rs if $rs;
+
+	$rs = $self->_registerCronjob();
+	return $rs if $rs;
+
+	$self->run();
+}
+
+=item enable()
+
+ Perform enable tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub enable
+{
+	my $self = shift;
+
+	my $rs = $self->_unregisterCronjob();
+	return $rs if $rs;
+
+	$rs = $self->_registerCronjob();
+	return $rs if $rs;
+
+	$self->run();
 }
 
 =item disable()
@@ -129,7 +160,7 @@ sub uninstall
 
 =item run()
 
- Run all scheduled actions according new mailgraph graphics
+ Create statistical graphics using the last available statistics data
 
  Return int 0 on success, other on failure
 
@@ -323,9 +354,9 @@ sub _createMailgraphPicture
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
 
-	my $stderr = RRDs::error;
-	error($stderr) if $stderr;
-	return 1 if $stderr;
+	my $errorMsg = RRDs::error;
+	error($errorMsg) if $errorMsg;
+	return 1 if $errorMsg;
 
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
 
@@ -539,9 +570,9 @@ sub _createMailgraphVirusPicture
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
 
-	my $stderr = RRDs::error;
-	error($stderr) if $stderr;
-	return 1 if $stderr;
+	my $errorMsg = RRDs::error;
+	error($errorMsg) if $errorMsg;
+	return 1 if $errorMsg;
 
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
 
@@ -725,9 +756,9 @@ sub _createMailgraphGreylistPicture
 		'COMMENT: Last updated\:['.$set_date.']\r',
 	);
 
-	my $stderr = RRDs::error;
-	error($stderr) if $stderr;
-	return 1 if ($stderr);
+	my $errorMsg = RRDs::error;
+	error($errorMsg) if $errorMsg;
+	return 1 if ($errorMsg);
 
 	my $file = iMSCP::File->new('filename' => $set_outputfile);
 
@@ -800,14 +831,15 @@ sub _unregisterCronjob
 	my $self = shift;
 
 	require Servers::cron;
-	Servers::cron->getInstance()->deleteTask('PLUGINS:Mailgraph');
+	Servers::cron->getInstance()->deleteTask({ 'TASKID' => 'PLUGINS:Mailgraph' });
 }
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS AND CONTRIBUTORS
 
  Sascha Bay <info@space2place.de>
+ Laurent Declercq <l.declercq@nuxwin.com>
 
 =cut
 
