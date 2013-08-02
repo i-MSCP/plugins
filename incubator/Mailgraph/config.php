@@ -28,11 +28,13 @@
 
 return array(
 	'cronjob_enabled' => true, // TRUE to enable Mailgraph plugin cronjob (default), FALSE to disable it
+
+	// See https://en.wikipedia.org/wiki/Cron#Format for allowed values
 	'cronjob_config' => array(
-		'minute' => '05', // minute ( value from 0 to 59 or * for every minutes)
-		'hour' => '*', // hour (value from 0 to 23 or * for every hours)
-		'day' => '*', // day ( value from 1 to 31 or * for every days)
-		'month' => '*', // month ( value from 1 to 12 or * for every months )
-		'dweek' => '*' // day of the week (value from 0 to 6 or * for every day of the week)
+		'minute' => '5',
+		'hour' => '*',
+		'day' => '*',
+		'month' => '*',
+		'dweek' => '*'
 	)
 );
