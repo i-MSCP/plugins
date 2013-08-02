@@ -229,13 +229,13 @@ $tpl->define_dynamic(
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => tr('Statistics / Mailgraph Postfix'),
+		'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'MAILGRAPHIC_NOT_EXIST'	=> tr('The requested graphic does not exist!'),
-		'TR_MAILGRAPH_POSTFIX' => tr("Mailgraph Postfix - %s", $cfg->SERVER_HOSTNAME),
-		'TR_MAILGRAPH_VIRUS_POSTFIX' => tr("Mailgraph Postfix virus - %s", $cfg->SERVER_HOSTNAME),
-		'TR_MAILGRAPH_GREYLIST_POSTFIX' => tr("Mailgraph Postfix greylist - %s", $cfg->SERVER_HOSTNAME)
+		'TR_MAILGRAPH' => tr("Mailgraph - %s", $cfg->SERVER_HOSTNAME),
+		'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $cfg->SERVER_HOSTNAME),
+		'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $cfg->SERVER_HOSTNAME)
 	)
 );
 

@@ -105,7 +105,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 			if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
 				$page->addPage(
 					array(
-						'label' => tohtml(tr('Mailgraph postfix')),
+						'label' => tohtml(tr('Mailgraph')),
 						'uri' => '/admin/mailgraph.php',
 						'title_class' => 'stats'
 					)
