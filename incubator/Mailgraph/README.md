@@ -1,4 +1,4 @@
-## i-MSCP Mailgraph plugin v0.0.2
+## i-MSCP Mailgraph plugin v0.0.1
 
 Plugin generates simple mail statistics frontend for postfix and sendmail
 
@@ -22,28 +22,35 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc3
-	installation of mailgraph (apt-get install mailgraph)
-	
+	- i-MSCP versions >= 1.1.0.rc3
+	- mailgraph Debian package
+
 ### INSTALLATION AND UPDATE
 
-**1.** Get the plugin
+**1.** Install needed Debian/Ubuntu package if not already done
+
+	# apt-get install mailgraph
+
+**2.** Get the plugin
 
 	# cd /usr/local/src
 	# git clone git://github.com/i-MSCP/plugins.git
 
-**2.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
+**3.** Backup your current plugins/Mailgraph/config.php file if any
+
+**4.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
 
 	# cp -fR plugins/Mailgraph /var/www/imscp/gui/plugins
 
-**3.** Set permissions by running:
+**5.** Set permissions by running:
 
 	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
 
-**4.** Go to the panel plugins interface, update the plugin list and activate the plugin.
+**5.** Go to the panel plugins interface, update the plugin list and activate the plugin.
 
 ### AUTHORS AND CONTRIBUTORS
 
 Sascha Bay <info@space2place.de> (Author)
+Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
 
 **Thank you for using this plugin.**
