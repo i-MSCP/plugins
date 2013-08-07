@@ -27,9 +27,6 @@
  */
 
 /**
- * OpenDKIM Plugin.
- *
- *
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  OpenDKIM

@@ -27,5 +27,5 @@
  */
 
 return array(
-	'opendkim_port' => '52123' #Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535
+	'opendkim_port' => '12345' #Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535)
 );

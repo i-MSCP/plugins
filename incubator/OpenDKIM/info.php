@@ -27,11 +27,11 @@
  */
 
 return array(
-	'author'	=> 'Sascha Bay',
-	'email'	=> 'info@space2place.de',
-	'version'	=> '0.0.1',
-	'date'	=> '2013-08-05',
-	'name'	=> 'OpenDKIM',
-	'desc'	=> 'Plugin allows to manage OpenDKIM with i-MSCP',
-	'url'		=> 'http://i-mscp.net'
+	'author' => 'Sascha Bay',
+	'email' => 'info@space2place.de',
+	'version' => '0.0.1',
+	'date' => '2013-08-05',
+	'name' => 'OpenDKIM',
+	'desc' => 'Plugin allows to manage OpenDKIM with i-MSCP',
+	'url' => 'http://i-mscp.net'
 );

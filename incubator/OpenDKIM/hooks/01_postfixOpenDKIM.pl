@@ -62,11 +62,13 @@ sub onAfterMtaBuildOpenDKIM
 {
 	my $fileContent = shift;
 	
-	my $PostfixOpenDKIMConfig;	
+	my $postfixOpendkimConfig;	
 	my $imscpDbName = $main::imscpConfig{'DATABASE_NAME'};
 	
 	my $db = iMSCP::Database->factory();
+	
 	$db->set('DATABASE_NAME', $imscpDbName);
+	
 	my $rs = $db->connect();
 	if($rs) {
 		error("Unable to connect to the i-MSCP '$imscpDbName' SQL database: $rs");
@@ -76,34 +78,36 @@ sub onAfterMtaBuildOpenDKIM
 	my $rdata = $db->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'OpenDKIM'
 	);
+	
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
+	
 	require JSON;
 	JSON->import();
 	
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$PostfixOpenDKIMConfig = "# Start Added by Plugins::OpenDKIM\n";
-		$PostfixOpenDKIMConfig .= "milter_default_action = accept\n";
-		$PostfixOpenDKIMConfig .= "milter_protocol = 2\n";
-		$PostfixOpenDKIMConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$PostfixOpenDKIMConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$PostfixOpenDKIMConfig .= "# Added by Plugins::OpenDKIM End\n";
+		$postfixOpendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$postfixOpendkimConfig .= "milter_default_action = accept\n";
+		$postfixOpendkimConfig .= "milter_protocol = 2\n";
+		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
+		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
+		$postfixOpendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$PostfixOpenDKIMConfig = "# Start Added by Plugins::OpenDKIM\n";
-		$PostfixOpenDKIMConfig .= "milter_default_action = accept\n";
-		$PostfixOpenDKIMConfig .= "milter_protocol = 2\n";
-		$PostfixOpenDKIMConfig .= "smtpd_milters = inet:localhost:12345\n";
-		$PostfixOpenDKIMConfig .= "non_smtpd_milters = inet:localhost:12345\n";
+		$postfixOpendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$postfixOpendkimConfig .= "milter_default_action = accept\n";
+		$postfixOpendkimConfig .= "milter_protocol = 2\n";
+		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
+		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
 	}
 	
 	if ($$fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-		$$fileContent =~ s/^# Start Added by Plugins.*End\n/$PostfixOpenDKIMConfig/sgm;
+		$$fileContent =~ s/^# Start Added by Plugins.*End\n/$postfixOpendkimConfig/sgm;
 	} else {
-		$$fileContent .= "$PostfixOpenDKIMConfig";
+		$$fileContent .= "$postfixOpendkimConfig";
 	}
 	
 	0;
