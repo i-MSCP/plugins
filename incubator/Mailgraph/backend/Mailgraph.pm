@@ -182,6 +182,24 @@ sub run
 
 =over 4
 
+=item _init()
+
+ Initialize plugin
+
+ Return Plugin::Mailgraph
+
+=cut
+
+sub _init
+{
+	my $self = shift;
+
+	# Force return value from plugin module
+	$self->{'FORCE_RETVAL'} = 'yes';
+
+	$self;
+}
+
 =item _buildMailgraph()
 
  Build mailgraph
