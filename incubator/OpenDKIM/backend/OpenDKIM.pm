@@ -575,8 +575,9 @@ sub _restartDaemonPostfix
 	
 	my $mta = Servers::mta->factory();
 
-	my $rs = $mta->restart();
-	return 1 if $rs;
+	$mta->{'restart'} = 'yes';
+	
+	0;
 }
 
 =item _checkRequirements
