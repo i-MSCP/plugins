@@ -63,6 +63,11 @@ sub install
 		return 1;
 	}
 	
+	if(! -x '/usr/bin/opendkim-genkey') {
+		error('Unable to find opendkim-genkey. Please, install the opendkim-tools package first.');
+		return 1;
+	}
+	
 	my $rs = $self->_checkRequirements();
 	return 1 if $rs;
 	
@@ -232,7 +237,8 @@ sub uninstall
 sub run
 {
 	my $self = shift;
-
+	
+	0;
 }
 
 =back
@@ -432,7 +438,7 @@ sub _createOpenDKIMTableFileDir
 	my $self = shift;
 	
 	my $rs = iMSCP::Dir->new('dirname' => '/etc/imscp/opendkim')->make(
-		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'} , 'mode' => 0750 }
+		{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
 	);
 	return 1 if $rs;
 	
@@ -460,10 +466,10 @@ sub _createOpenDKIMKeyTableFile
 	my $rs = $KeyTable->save();
 	return 1 if $rs;
 
-	$rs = $KeyTable->mode(0644);
+	$rs = $KeyTable->mode(0640);
 	return 1 if $rs;
 
-	$rs = $KeyTable->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
+	$rs = $KeyTable->owner('opendkim', 'opendkim');
 	return 1 if $rs;
 }
 
@@ -484,10 +490,10 @@ sub _createOpenDKIMSigningTableFile
 	my $rs = $SigningTable->save();
 	return 1 if $rs;
 
-	$rs = $SigningTable->mode(0644);
+	$rs = $SigningTable->mode(0640);
 	return 1 if $rs;
 
-	$rs = $SigningTable->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
+	$rs = $SigningTable->owner('opendkim', 'opendkim');
 	return 1 if $rs;
 }
 
@@ -503,13 +509,13 @@ sub _registerOpenDKIMHook
 {
 	my $self = shift;
 
-	my $hookOpendkim = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/OpenDKIM/hooks/01_postfixOpenDKIM.pl';
+	my $hookOpendkim = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/OpenDKIM/hooks/01_hookOpenDKIM.pl';
 	
 	my $file = iMSCP::File->new('filename' => $hookOpendkim);
-	my $rs = $file->copyFile($main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_postfixOpenDKIM.pl');
+	my $rs = $file->copyFile($main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
 	return 1 if $rs;
 	
-	$file = iMSCP::File->new('filename' => $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_postfixOpenDKIM.pl');
+	$file = iMSCP::File->new('filename' => $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
 	
 	$rs = $file->mode(0640);
 	return 1 if $rs;
@@ -530,7 +536,7 @@ sub _unregisterOpenDKIMHook
 {
 	my $self = shift;
 
-	my $hookOpendkim = $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_postfixOpenDKIM.pl';
+	my $hookOpendkim = $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl';
 	
 	if(-f $hookOpendkim) {
 		my $rs = iMSCP::File->new('filename' => $hookOpendkim)->delFile();

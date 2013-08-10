@@ -24,6 +24,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	Plugin compatible with i-MSCP versions >= 1.1.0.rc3
 	installation of opendkim (apt-get install opendkim)
+	installation of opendkim-tools (apt-get install opendkim-tools)
 	
 ### INSTALLATION AND UPDATE
 
