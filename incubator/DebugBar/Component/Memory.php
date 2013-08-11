@@ -147,8 +147,9 @@ class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Co
 	 */
 	public function getTab()
 	{
-		return bytesHuman($this->_memory['whole'] = memory_get_peak_usage()) . ' of ' .
-		str_replace('M', ' MiB', ini_get("memory_limit"));
+		return $this->_memory['whole'] =
+				bytesHuman(memory_get_peak_usage(true)) . ' / ' .
+				bytesHuman(utils_getPhpValueInBytes(ini_get('memory_limit')));
 	}
 
 	/**
@@ -160,7 +161,7 @@ class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Co
 	{
 		$panel = '<h4>Memory Usage</h4>';
 		$panel .= "<pre>\t<strong>Script:</strong> " . bytesHuman($this->_memory['endScript'] - $this->_memory['startScript']) . PHP_EOL;
-		$panel .= "\t<strong>Whole Application:</strong> " . bytesHuman($this->_memory['whole']) . PHP_EOL . "</pre>";
+		$panel .= "\t<strong>Whole Application:</strong> " . $this->_memory['whole'] . PHP_EOL . "</pre>";
 
 		if (isset($this->_memory['user']) && count($this->_memory['user'])) {
 			$panel .= "<pre>";

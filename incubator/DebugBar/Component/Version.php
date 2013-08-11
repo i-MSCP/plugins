@@ -79,7 +79,7 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
 
 		$panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
 			'<p>©2010-2013 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .
-			'Author: <a href="mailto:' . $pluginInfo['email'] .'">' . $pluginInfo['author'] . '</a><br />' .
+			'Author: <a href="mailto:' . $pluginInfo['email'] . '">' . $pluginInfo['author'] . '</a><br />' .
 			'Includes images from the <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon set</a> by Mark James</p>';
 		$panel .= '<h4>i-MSCP ' . $version . ' / PHP ' . phpversion() . ' with extensions:</h4>';
 		$extensions = get_loaded_extensions();
