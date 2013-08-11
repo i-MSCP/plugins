@@ -112,13 +112,15 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 							}
 
 							$this->components[] = $component;
+						} else {
+							throw new iMSCP_Plugin_Exception("DebugBar plugin: Unknown component: $component");
 						}
 					}
 
 					$controller->registerListener($this->getListenedEvents(), $this, 999);
 				} else {
 					throw new iMSCP_Plugin_Exception(
-						'DebugBar plugin: compoenents parameter must be an array containing list of DeburBar component'
+						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
 					);
 				}
 			}
