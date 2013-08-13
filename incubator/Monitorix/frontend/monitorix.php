@@ -34,9 +34,11 @@
  * Generate page
  *
  * @param $tpl iMSCP_pTemplate
+ * @param iMSCP_Plugin_Manager $pluginManager
+ * @param string $graphName
  * @return void
  */
-function monitorix_generateSelect($tpl, $pluginManager, $graph_name='')
+function monitorix_generateSelect($tpl, $pluginManager, $graphName='')
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
@@ -45,6 +47,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graph_name='')
 	
 	if (($plugin = $pluginManager->load('Monitorix', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
+
 		foreach ($pluginConfig['graph_enabled'] as $key => $value) {
 			if($value == 'y') {
 				$tpl->assign(
@@ -53,15 +56,19 @@ function monitorix_generateSelect($tpl, $pluginManager, $graph_name='')
 						'TR_MONITORIX_SELECT_NAME' => $pluginConfig['graph_title'][$key],
 						'MONITORIXGRAPH_WIDTH' => $pluginConfig['graph_width'],
 						'MONITORIXGRAPH_HEIGHT' => $pluginConfig['graph_height'],
-						'MONITORIX_NAME_SELECTED' => ($graph_name != '' && $graph_name === $key) ? $cfg->HTML_SELECTED : '',
+						'MONITORIX_NAME_SELECTED' => ($graphName != '' && $graphName === $key) ? $cfg->HTML_SELECTED : '',
 					)
 				);
+
 				$tpl->parse('MONITORIX_ITEM', '.monitorix_item');
 			}
 		}
+
 		$tpl->assign(
 			array(
-				'TR_MONITORIXGRAPH' => ($graph_name != '') ? tr("Monitorix - %s - %s", $hostname, $pluginConfig['graph_title'][$graph_name]) : tr("Monitorix - %s", $hostname)
+				'TR_MONITORIXGRAPH' => ($graphName != '')
+					? tr("Monitorix - %s - %s", $hostname, $pluginConfig['graph_title'][$graphName])
+					: tr("Monitorix - %s", $hostname)
 			)
 		);
 	} else {
@@ -74,7 +81,14 @@ function monitorix_generateSelect($tpl, $pluginManager, $graph_name='')
 	}
 }
 
-function monitorix_selectedGraphic($tpl, $pluginManager, $graph_name, $show_when)
+/**
+ *
+ * @param iMSCP_pTemplate $tpl
+ * @param iMSCP_Plugin_Manager $pluginManager
+ * @param $graphName
+ * @param $showWhen
+ */
+function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
@@ -84,26 +98,20 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graph_name, $show_when
 	
 	if($dirHandle = @opendir($graphDirectory)) {
 		while(($file = @readdir($dirHandle)) !== FALSE) {
-			if(!is_dir($file) && preg_match("/^$graph_name\d+[a-y]?[z]\.\d$show_when\.png/", $file)) {
+			if(!is_dir($file) && preg_match("/^$graphName\d+[a-y]?[z]\.\d$showWhen\.png/", $file)) {
 				array_push($monitorixGraphics, $file);
 			}
 		}
 		closedir($dirHandle);
 		if(count($monitorixGraphics) > 0) {
 			sort($monitorixGraphics);
+
 			foreach ($monitorixGraphics as $graphValue) {
-				$tpl->assign(
-					array(
-						'MONITORIXGRAPH' => 'graph=' . pathinfo($graphValue, PATHINFO_FILENAME)
-					)
-				);
+				$tpl->assign('MONITORIXGRAPH', 'graph=' . pathinfo($graphValue, PATHINFO_FILENAME));
 				$tpl->parse('MONITORIX_GRAPH_ITEM', '.monitorix_graph_item');
 			}
-			$tpl->assign(
-				array(
-					'MONITORIXGRAPH_ERROR' => ''
-				)
-			);
+
+			$tpl->assign('MONITORIXGRAPH_ERROR', '');
 		} else {
 			$tpl->assign(
 				array(
@@ -120,13 +128,13 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graph_name, $show_when
 			)
 		);
 	}
-	
+
 	$tpl->assign(
 		array(
-			'M_DAY_SELECTED' => ($show_when === 'day') ? $cfg->HTML_SELECTED : '',
-			'M_WEEK_SELECTED' => ($show_when === 'week') ? $cfg->HTML_SELECTED : '',
-			'M_MONTH_SELECTED' => ($show_when === 'month') ? $cfg->HTML_SELECTED : '',
-			'M_YEAR_SELECTED' => ($show_when === 'year') ? $cfg->HTML_SELECTED : '',
+			'M_DAY_SELECTED' => ($showWhen === 'day') ? $cfg->HTML_SELECTED : '',
+			'M_WEEK_SELECTED' => ($showWhen === 'week') ? $cfg->HTML_SELECTED : '',
+			'M_MONTH_SELECTED' => ($showWhen === 'month') ? $cfg->HTML_SELECTED : '',
+			'M_YEAR_SELECTED' => ($showWhen === 'year') ? $cfg->HTML_SELECTED : '',
 			'MONITORIXGRAPH_NOT_SELECTED' => ''
 		)
 	);
@@ -161,7 +169,7 @@ $tpl->define_dynamic(
 	)
 );
 
-$graph_name = (isset($_POST['graph_name']) && $_POST['graph_name'] !== '-1') ? clean_input($_POST['graph_name']) : '';
+$graphName = (isset($_POST['graph_name']) && $_POST['graph_name'] !== '-1') ? clean_input($_POST['graph_name']) : '';
 
 if(isset($_GET['action']) && $_GET['action'] === 'syncgraphs') {
 	send_request();
@@ -172,7 +180,7 @@ if(isset($_GET['action']) && $_GET['action'] === 'syncgraphs') {
 }
 
 if(isset($_POST['action']) && $_POST['action'] === 'go_show') {
-	if($graph_name == '') {
+	if($graphName == '') {
 		$tpl->assign(
 			array(
 				'M_DAY_SELECTED' => $cfg->HTML_SELECTED,
@@ -184,7 +192,7 @@ if(isset($_POST['action']) && $_POST['action'] === 'go_show') {
 			)
 		);
 	} else {
-		monitorix_selectedGraphic($tpl, $pluginManager, $graph_name, clean_input($_POST['show_when']));
+		monitorix_selectedGraphic($tpl, $pluginManager, $graphName, clean_input($_POST['show_when']));
 	}
 } else {
 	$tpl->assign(
@@ -204,7 +212,7 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Statistics / Monitorix'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'MONITORIXGRAPHIC_NOT_EXIST'	=> tr("The requested graphic doesn't exist."),
+		'MONITORIXGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
 		'MONITORIXGRAPHIC_NOT_SELECTED' => tr("No monitorix graph selected."),
 		'TR_UPDATE_TOOLTIP' => tr('Schedules update of statistical graphics according the last available data. This can take few seconds.'),
 		'TR_UPDATE' => tr('Force update'),
@@ -218,7 +226,7 @@ $tpl->assign(
 );
 
 generateNavigation($tpl);
-monitorix_generateSelect($tpl, $pluginManager, substr($graph_name,1));
+monitorix_generateSelect($tpl, $pluginManager, substr($graphName, 1));
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

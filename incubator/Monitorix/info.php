@@ -32,6 +32,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2013-08-08',
 	'name' => 'Monitorix',
-	'desc' => 'Plugin provides lightweight system monitoring tool for Linux/UNIX servers',
+	'desc' => 'Plugin providing lightweight system monitoring tool for Linux/UNIX servers',
 	'url' => 'http://i-mscp.net'
 );
