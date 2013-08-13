@@ -59,7 +59,7 @@ function mailman_manageList()
 		}
 
 		if ($adminPassword != $adminPasswordConfirm) {
-			set_page_message(tr("Password doesn't matches"), 'error');
+			set_page_message(tr("Passwords do not matches"), 'error');
 			$error = true;
 		} elseif (!checkPasswordSyntax($adminPassword)) {
 			$error = true;
@@ -115,7 +115,7 @@ function mailman_manageList()
 
 						exec_query(
 							'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
-							array($cfg->ITEM_DNSCHANGE_STATUS, $mainDmnProps['domain_id'])
+							array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
 						);
 					}
 
@@ -131,7 +131,7 @@ function mailman_manageList()
 						$query,
 						array(
 							$mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName,
-							$cfg->ITEM_ADD_STATUS
+							$cfg->ITEM_TOADD_STATUS
 						)
 					);
 
@@ -162,7 +162,7 @@ function mailman_manageList()
 				$stmt = exec_query(
 					$query,
 					array(
-						$adminEmail, $adminPassword, $cfg->ITEM_CHANGE_STATUS, $listId, $_SESSION['user_id'],
+						$adminEmail, $adminPassword, $cfg->ITEM_TOCHANGE_STATUS, $listId, $_SESSION['user_id'],
 						$cfg->ITEM_OK_STATUS
 					)
 				);
@@ -208,7 +208,7 @@ function mailman_deleteList()
 			$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
 
 			$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
-			$stmt = exec_query($query, array($cfg->ITEM_DELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
+			$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
 
 			if(!$stmt->rowCount()) {
 				showBadRequestErrorPage();
@@ -242,7 +242,7 @@ function mailman_deleteList()
 
 				exec_query(
 					'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
-					array($cfg->ITEM_DNSCHANGE_STATUS, $mainDmnProps['domain_id'])
+					array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
 				);
 			}
 

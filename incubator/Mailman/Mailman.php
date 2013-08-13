@@ -70,7 +70,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 
 		try {
-			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_DELETE_STATUS);
+			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TODELETE_STATUS);
 		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -170,7 +170,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 
 		exec_query(
 			'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_admin_id` = ?',
-			array($cfg->ITEM_DELETE_STATUS, $event->getParam('customerId'))
+			array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
 		);
 	}
 

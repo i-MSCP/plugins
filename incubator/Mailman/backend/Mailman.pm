@@ -71,6 +71,7 @@ sub install
 	my $rs = _checkRequirements();
 	return $rs if $rs;
 
+	# Update mailman configuration file
 	if(-f '/etc/mailman/mm_cfg.py') {
 		my $file = iMSCP::File->new('filename' => '/etc/mailman/mm_cfg.py');
 
@@ -105,6 +106,7 @@ sub install
 	);
 	return $rs if $rs;
 
+	# Add Postfix configuration
 	my ($stdout, $stderr);
 	$rs = execute('/usr/sbin/postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -116,22 +118,35 @@ sub install
 	# Schedule MTA restart
 	$mta->{'restart'} = 'yes';
 
-	#if(defined $main::execmode && $main::execmode eq 'setup') {
-	#	my $database = iMSCP::Database->factory();
-	#
-	#	my $rdata = $database->doQuery(
-	#		'dummy', "UPDATE `mailman` SET `mailman_status` = 'change' WHERE `mailman_status` NOT IN('toadd', 'delete')"
-	#	);
-	#	unless(ref $rdata eq 'HASH') {
-	#		error($rdata);
-	#		return 1;
-	#	}
-
-	#	$rs = $self->run();
-	#	return $rs if $rs;
-	#}
-
 	0;
+}
+
+=item change()
+
+ Update mailman plugin
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->install();
+	return $rs if $rs;
+
+	my $database = iMSCP::Database->factory();
+
+	my $rdata = $database->doQuery(
+		'dummy', "UPDATE `mailman` SET `mailman_status` = 'tochange' WHERE `mailman_status` NOT IN('toadd', 'todelete')"
+	);
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+
+	$self->run();
 }
 
 =item update()
@@ -146,7 +161,7 @@ sub update
 {
 	my $self = shift;
 
-	$self->install();
+	$self->change();
 }
 
 =item uninstall()
