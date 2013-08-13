@@ -44,14 +44,74 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Process plugin installation
 	 *
-	 * @throws iMSCP_Plugin_Exception in case installation fail
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager
+	 * @return void
 	 */
-	public function install()
+	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
 			$this->createDbTable();
 		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage());
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Process plugin uninstallation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager
+	 * @return void
+	 */
+	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		try {
+			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_DELETE_STATUS);
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Schedule reactivation of all mailman lists
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		try {
+			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TOENABLE_STATUS);
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Schedule deactivation of all mailman lists
+	 *
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager
+	 * @return void
+	 */
+	public function disable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		try {
+			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TODISABLE_STATUS);
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -64,8 +124,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		$controller->registerListener(
 			array(
-				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onBeforePluginsRoute,
+				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
@@ -161,6 +221,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					`mailman_dns_id` int(11) unsigned NOT NULL,
 					`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					PRIMARY KEY (`mailman_id`),
 					UNIQUE KEY `mailman_list_name` (`mailman_list_name`),

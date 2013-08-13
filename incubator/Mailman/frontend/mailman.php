@@ -325,7 +325,7 @@ function mailman_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You have not created any e-mail lists.'), 'info');
+		set_page_message(tr('You do not have created any email lists.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
@@ -381,17 +381,17 @@ if (isset($_REQUEST['action'])) {
 
 	if ($action === 'add') {
 		if (mailman_manageList()) {
-			set_page_message(tr('E-Mail list successfully scheduled for addition'), 'success');
+			set_page_message(tr('EMail list successfully scheduled for addition'), 'success');
 			redirectTo('mailman.php');
 		}
 	} elseif($action === 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
-			set_page_message(tr('E-Mail list successfully scheduled for update'), 'success');
+			set_page_message(tr('EMail list successfully scheduled for update'), 'success');
 			redirectTo('mailman.php');
 		}
 	} elseif ($action === 'delete') {
 		mailman_deleteList();
-		set_page_message(tr('E-Mail list successfully scheduled for deletion'), 'success');
+		set_page_message(tr('EMail list successfully scheduled for deletion'), 'success');
 		redirectTo('mailman.php');
 	} else {
 		showBadRequestErrorPage();
@@ -418,13 +418,13 @@ $tpl->assign(
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_LIST' => tr('Add list'),
-		'TR_MAIL_LIST' => tr('E-Mail List'),
+		'TR_MAIL_LIST' => tr('EMail List'),
 		'TR_LIST_NAME' => tr('List name'),
 		'TR_ADMIN_EMAIL' => tr('Admin email'),
 		'TR_ADMIN_PASSWORD' => tr('Password'),
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
 		'TR_URL' => tr('Url'),
-		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s e-mail list.', false, '%s'),
+		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s email list.', false, '%s'),
 		'TR_APPLY' => tr('Apply'),
 		'TR_CANCEL' => tr('Cancel')
 	)

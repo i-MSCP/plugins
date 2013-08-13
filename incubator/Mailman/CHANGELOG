@@ -13,3 +13,8 @@ Version 0.0.1
 -------------------------------------------------------------------------------------
 Version 0.0.2
 -------------------------------------------------------------------------------------
+
+	- Added Implemented enable/disable list methods
+	- Fixed: Unable to uninstall (wrong SQL query)
+	- Fixed: Avoid to many postfix restart on update
+	- Update according i-MSCP plugin API changes
