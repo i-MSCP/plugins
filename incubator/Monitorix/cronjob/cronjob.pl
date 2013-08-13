@@ -41,7 +41,7 @@ newDebug('monitorix-plugin-cronjob.log');
 
 silent(1);
 
-iMSCP::Boot->getInstance()->boot({ 'config_readonly' => 'yes', 'nolock' => 'yes' });
+iMSCP::Boot->getInstance()->boot({ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nolock' => 'yes' });
 
 my $pluginFile = "$main::imscpConfig{'ENGINE_ROOT_DIR'}/Plugins/Monitorix.pm";
 my $rs = 0;

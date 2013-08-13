@@ -62,20 +62,20 @@ sub install
 		error('Unable to find monitorix daemon. Please take a look on the README.md and install the monitorix package first.');
 		return 1;
 	}
-	
+
 	if(! -f '/usr/share/monitorix/cgi/monitorix.cgi') {
 		error('Unable to find monitorix cgi script. Please check the path: /usr/share/monitorix/cgi/monitorix.cgi');
 		return 1;
 	}
 
 	my $rs = $self->_checkRequirements();
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_registerCronjob();
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonMonitorix();
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$self->run();
 }
@@ -91,7 +91,7 @@ sub install
 sub change
 {
 	my $self = shift;
-	
+
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
@@ -111,11 +111,11 @@ sub update
 	my $self = shift;
 
 	my $rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_restartDaemonMonitorix();
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_unregisterCronjob();
 	return $rs if $rs;
 
@@ -155,8 +155,7 @@ sub disable
 {
 	my $self = shift;
 
-	my $rs = $self->_unregisterCronjob();
-	return 1 if $rs;
+	$self->_unregisterCronjob();
 }
 
 =item uninstall()
@@ -172,24 +171,26 @@ sub uninstall
 	my $self = shift;
 
 	my $rs = $self->_unregisterCronjob();
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_modifyMonitorixCgiFile('remove');
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_modifyMonitorixSystemConfig('remove');
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = $self->_restartDaemonMonitorix();
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	if(-f '/etc/apache2/conf.d/monitorix.old') {
 		$rs = $self->_modifyDefaultMonitorixApacheConfig('add');
-		return 1 if $rs;
-			
+		return $rs if $rs;
+
 		$rs = $self->_restartDaemonApache();
-		return 1 if $rs;
+		return $rs if $rs;
 	}
+
+	0;
 }
 
 =item run()
@@ -204,8 +205,7 @@ sub run
 {
 	my $self = shift;
 
-	my $rs = $self->_buildMonitorixGraphics();
-	return 1 if $rs;
+	$self->_buildMonitorixGraphics();
 }
 
 =back
@@ -243,17 +243,15 @@ sub _init
 sub _buildMonitorixGraphics
 {
 	my $self = shift;
-	
-	my $rs = 0;
-	
+
 	my $monitorixGraphColor;
-	
+
 	my $db = iMSCP::Database->factory();
 
 	my $rdata = $db->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
 	);
-	
+
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
@@ -270,19 +268,18 @@ sub _buildMonitorixGraphics
 		$monitorixGraphColor = 'white';
 	}
 	
-	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'}))
-	{
+	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
 		if($monitorixConfigValue eq 'y') {
-			$rs = $self->_createMonitorixGraphics(
+			my $rs = $self->_createMonitorixGraphics(
 				$monitorixConfigKey,
 				$monitorixGraphColor
 			);
-			return 1 if $rs;
+
+			return $rs if $rs;
 		}
 	}
 	
-	$rs = $self->_setMonitorixGraphicsPermission();
-	return 1 if $rs;
+	$self->_setMonitorixGraphicsPermission();
 }
 
 =item _createMonitorixGraphics()
@@ -299,30 +296,25 @@ sub _createMonitorixGraphics
 
 	my $graph = shift;
 	my $graphColor = shift;
-	
-	my $rs = 0;
 
 	my ($stdout, $stderr);
-	
-	$rs = execute('/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag', \$stdout, \$stderr);
+
+	my $rs = execute('/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag', \$stdout, \$stderr);
 	error($stderr) if $stderr && $rs;
-	
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = execute('/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=week color=' . $graphColor . ' silent=imagetag', \$stdout, \$stderr);
 	error($stderr) if $stderr && $rs;
-	
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = execute('/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=month color=' . $graphColor . ' silent=imagetag', \$stdout, \$stderr);
 	error($stderr) if $stderr && $rs;
-	
-	return 1 if $rs;
-	
+	return $rs if $rs;
+
 	$rs = execute('/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=year color=' . $graphColor . ' silent=imagetag', \$stdout, \$stderr);
 	error($stderr) if $stderr && $rs;
-	
-	return 1 if $rs;
+
+	$rs;
 }
 
 =item _setMonitorixGraphicsPermission()
@@ -336,9 +328,9 @@ sub _createMonitorixGraphics
 sub _setMonitorixGraphicsPermission
 {
 	my $self = shift;
-	
+
 	my $rs = 0;
-	
+
 	my $panelUname =
 	my $panelGName =
 		$main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
@@ -355,19 +347,21 @@ sub _setMonitorixGraphicsPermission
 			
 			if($_ !~ /^.*\d+[a-y]?[z]\.\d.*\.png/) { # Remove useless files, only zoom graphics are needed
 				$rs = $file->delFile();
-				return 1 if $rs;
+				return $rs if $rs;
 			} else {
 				$rs = $file->owner($panelUname, $panelGName);
-				return 1 if $rs;
+				return $rs if $rs;
 
 				$rs = $file->mode(0644);
-				return 1 if $rs;
+				return $rs if $rs;
 			}
 		}
 	} else {
-		error('Unable to open folder: ' . $monitorixImgGraphsDir);
-		return 1;
+		error("Unable to open folder: $monitorixImgGraphsDir");
+		$rs = 1;
 	}
+
+	$rs;
 }
 
 =item _modifyMonitorixSystemConfig()
@@ -384,17 +378,23 @@ sub _modifyMonitorixSystemConfig
 	my $action = shift;
 
 	my $monitorixSystemConfig = '/etc/monitorix.conf';
-	return 1 if ! -f $monitorixSystemConfig;
-	
+	if(! -f $monitorixSystemConfig) {
+		error("File $monitorixSystemConfig is missing.")
+		return 1;
+	}
+
 	my $file = iMSCP::File->new('filename' => $monitorixSystemConfig);
 
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
-	
+	if(! $fileContent) {
+		error('Unable to read $monitorixSystemConfig.');
+		return 1;
+	}
+
 	my $monitorixBaseDirConfig = "# Start_BaseDir Added by Plugins::Monitorix\n";
 	$monitorixBaseDirConfig .= "base_dir = /var/www/imscp/gui/plugins/Monitorix/\n";
 	$monitorixBaseDirConfig .= "# Added by Plugins::Monitorix End_BaseDir\n";
-	
+
 	my $monitorixImgDirConfig = "# Start_ImgDir Added by Plugins::Monitorix\n";
 	$monitorixImgDirConfig .= "imgs_dir = tmp_graph/\n";
 	$monitorixImgDirConfig .= "# Added by Plugins::Monitorix End_ImgDir\n";
@@ -403,28 +403,28 @@ sub _modifyMonitorixSystemConfig
 		if ($fileContent =~ /^base_dir = \/usr\/share\/monitorix\//gm) {
 			$fileContent =~ s/^base_dir = \/usr\/share\/monitorix\//$monitorixBaseDirConfig/gm;
 		}
+
 		if ($fileContent =~ /^# Start_BaseDir Added by Plugins.*End_BaseDir\n/sgm) {
 			$fileContent =~ s/^# Start BaseDir added by Plugins.*End_BaseDir\n/$monitorixBaseDirConfig/sgm;
 		}
-		
+
 		if ($fileContent =~ /^imgs_dir = imgs\//gm) {
 			$fileContent =~ s/^imgs_dir = imgs\//$monitorixImgDirConfig/gm;
 		}
+
 		if ($fileContent =~ /^# Start_ImgDir Added by Plugins.*End_ImgDir\n/sgm) {
 			$fileContent =~ s/^# Start ImgDir added by Plugins.*End_ImgDir\n/$monitorixImgDirConfig/sgm;
 		}
-	}
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$fileContent =~ s/^# Start_BaseDir Added by Plugins.*End_BaseDir\n/base_dir = \/usr\/share\/monitorix\//sgm;
-		
+
 		$fileContent =~ s/^# Start_ImgDir Added by Plugins.*End_ImgDir\n/imgs_dir = imgs\//sgm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return 1 if $rs;
 
-	$rs = $file->save();
-	return 1 if $rs;
+	$file->save();
 }
 
 =item _modifyMonitorixSystemConfigEnabledGraphics()
@@ -440,39 +440,43 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 	my $self = shift;
 
 	my $monitorixCgi = '/etc/monitorix.conf';
-	return 1 if ! -f $monitorixCgi;
-	
+	if(! -f $monitorixSystemConfig) {
+		error("File $monitorixSystemConfig is missing.")
+		return 1;
+	}
+
 	my $file = iMSCP::File->new('filename' => $monitorixCgi);
 
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
-	
+	if(! $fileContent) {
+		error('Unable to read $monitorixCgi.');
+		return 1;
+	}
+
 	my $db = iMSCP::Database->factory();
 
 	my $rdata = $db->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
 	);
-	
+
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
-	
+
 	require JSON;
 	JSON->import();
-	
+
 	my $monitorixConfig = decode_json($rdata->{'Monitorix'}->{'plugin_config'});
-	
-	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'}))
-	{
+
+	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
 		$fileContent =~ s/$monitorixConfigKey\t\t= (y|n)/$monitorixConfigKey\t\t= $monitorixConfigValue/gm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return 1 if $rs;
 
-	$rs = $file->save();
-	return 1 if $rs;
+	$file->save();
 }
 
 =item _modifyMonitorixCgiFile()
@@ -489,29 +493,33 @@ sub _modifyMonitorixCgiFile
 	my $action = shift;
 
 	my $monitorixCgi = '/usr/share/monitorix/cgi/monitorix.cgi';
-	return 1 if ! -f $monitorixCgi;
-	
+	if(! -f $monitorixCgi) {
+		error("File $monitorixCgi is missing.")
+		return 1;
+	}
+
 	my $file = iMSCP::File->new('filename' => $monitorixCgi);
 
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
+	if(! $fileContent) {
+		error('Unable to read $monitorixCgi.');
+		return 1;
+	}
 	
 	my $monitorixCgiConfig = "open(IN, \"< /usr/share/monitorix/cgi/monitorix.conf.path\");";
 	
 	my $monitorixCgiOldConfig = "open(IN, \"< monitorix.conf.path\");";
-	
+
 	if($action eq 'add') {
 		$fileContent =~ s/^open\(IN.*/$monitorixCgiConfig/gm;
-	}
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$fileContent =~ s/^open\(IN.*/$monitorixCgiOldConfig/gm;
 	}
-	
-	my $rs = $file->set($fileContent);
-	return 1 if $rs;
 
-	$rs = $file->save();
-	return 1 if $rs;
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$file->save();
 }
 
 =item _modifyDefaultMonitorixApacheConfig()
@@ -526,19 +534,19 @@ sub _modifyDefaultMonitorixApacheConfig
 {
 	my $self = shift;
 	my $action = shift;
-	
+
 	my $rs = 0;
-	
+
 	my $monitorixBaseDirConfigFile = '/etc/apache2/conf.d/monitorix.conf';
 	my $monitorixBackupFile = '/etc/apache2/conf.d/monitorix.old';
-	
+
 	if($action eq 'add') {
 		$rs = iMSCP::File->new('filename' => $monitorixBackupFile)->moveFile("$monitorixBaseDirConfigFile");
 	} elsif($action eq 'remove') {
 		$rs = iMSCP::File->new('filename' => $monitorixBaseDirConfigFile)->moveFile("$monitorixBackupFile");
 	}
-	
-	return 1 if $rs;
+
+	$rs;
 }
 
 =item _restartDaemonMonitorix()
@@ -552,14 +560,14 @@ sub _modifyDefaultMonitorixApacheConfig
 sub _restartDaemonMonitorix
 {
 	my $self = shift;
-	
+
 	my ($stdout, $stderr);
-	
-	my $rs = execute('service monitorix restart', \$stdout, \$stderr);
+
+	my $rs = execute('/usr/sbin/service monitorix restart', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	
-	return 1 if $rs;
+
+	$rs;
 }
 
 =item _restartDaemonApache()
@@ -573,13 +581,13 @@ sub _restartDaemonMonitorix
 sub _restartDaemonApache
 {
 	my $self = shift;
-	
+
 	require Servers::httpd;
-	
-	my $httpd = Servers::httpd->factory($main::imscpConfig{'HTTPD_SERVER'});
+
+	my $httpd = Servers::httpd->factory();
 
 	$httpd->{'restart'} = 'yes';
-	
+
 	0;
 }
 
@@ -618,7 +626,10 @@ sub _registerCronjob
 		my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
 
 		my $cronjobFileContent = $cronjobFile->get();
-		return 1 if ! $cronjobFileContent;
+		if(! $cronjobFileContent) {
+			error("Unable to read $cronjobFileContent");
+			return 1;
+		}
 
 		require iMSCP::Templator;
 		iMSCP::Templator->import();
@@ -679,25 +690,25 @@ sub _unregisterCronjob
 
 sub _checkRequirements
 {
-	my $self = shift;	
+	my $self = shift;
+
 	my $rs = 0;
 
 	if(-f '/etc/apache2/conf.d/monitorix.conf') {
 		$rs = $self->_modifyDefaultMonitorixApacheConfig('remove');
-		return 1 if $rs;
+		return $rs if $rs;
 		
 		$rs = $self->_restartDaemonApache();
-		return 1 if $rs;
+		return $rs if $rs;
 	}
 	
 	$rs = $self->_modifyMonitorixSystemConfig('add');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
-	return 1 if $rs;
+	return $rs if $rs;
 	
-	$rs = $self->_modifyMonitorixCgiFile('add');
-	return 1 if $rs;
+	$self->_modifyMonitorixCgiFile('add');
 }
 
 =back
