@@ -31,7 +31,7 @@
  */
 
 /**
- * Add or update an email list
+ * Add or update a mailing list
  *
  * @return boolean TRUE on success, FALSE otherwise
  */
@@ -49,7 +49,7 @@ function mailman_manageList()
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
 		if (!preg_match('/[-_a-z0-9+]/i', $listName)) {
-			set_page_message(tr("Wrong list name"), 'error');
+			set_page_message(tr("Wrong mailing list name"), 'error');
 			$error = true;
 		}
 
@@ -70,38 +70,8 @@ function mailman_manageList()
 			$cfg = iMSCP_Registry::get('config');
 
 			if($listId === '-1') { // New email list
-
-				/** @var iMSCP_Database $db */
-				$db = iMSCP_Database::getInstance();
-
 				try {
-					$db->beginTransaction();
-
 					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
-					$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
-
-					# Add dns record for new email list
-					$query = '
-						INSERT INTO `domain_dns` (
-							`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
-							`owned_by`
-						) VALUES(
-							?, ?, ?, ?, ?, ?, ?
-						)
-					';
-					exec_query(
-						$query,
-						array(
-							$mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP,
-							'plugin_mailman'
-						)
-					);
-
-					# Update customer main domain status to schedule change
-					exec_query(
-						'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
-						array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
-					);
 
 					# Add email list data into the mailman table
 					$query = '
@@ -119,13 +89,11 @@ function mailman_manageList()
 							$cfg->ITEM_TOADD_STATUS
 						)
 					);
-
-					$db->commit();
 				} catch(iMSCP_Exception_Database $e) {
-					$db->rollBack();
-
 					if($e->getCode() == 23000) { // Duplicate entries
-						set_page_message(tr("The $listName list already exists. Please choose other name."), 'error');
+						set_page_message(
+							tr("Mailing list $listName already exists. Please choose other name."), 'error'
+						);
 						return false;
 					}
 				}
@@ -169,62 +137,28 @@ function mailman_manageList()
 }
 
 /**
- * Delete list
+ * Delete the given mailing list
  *
  * @throws iMSCP_Exception_Database
+ * @param int $listId Mailing list unique identifier
  * @return void
  */
-function mailman_deleteList()
+function mailman_deleteList($listId)
 {
-	if (isset($_REQUEST['list_id'])) {
-		$listId = clean_input($_REQUEST['list_id']);
+	/** @var iMSCP_Config_Handler_File $cfg */
+	$cfg = iMSCP_Registry::get('config');
 
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
+	$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
-		$db = iMSCP_Database::getInstance();
+	$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
+	$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
 
-		try {
-			$db->beginTransaction();
-
-			$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
-			$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
-
-			$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
-			$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
-
-			if(!$stmt->rowCount()) {
-				showBadRequestErrorPage();
-			}
-
-			$stmt = exec_query(
-				"SELECT COUNT('mailman_id') AS `cnt` FROM `mailman` WHERE mailman_admin_id = ?",
-				$mainDmnProps['domain_id']
-			);
-
-			# Remove DNS record only if not more than two list exists
-			if($stmt->fields['cnt'] < 2) {
-				$query = 'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `domain_dns` = ? AND `owned_by` = ?';
-				exec_query('IN',$query, array($mainDmnProps['domain_id'], $listDmnName, 'plugin_mailman'));
-
-				# Schedule domain update (needed to update DNS entries
-				exec_query(
-					'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
-					array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
-				);
-			}
-
-			$db->commit();
-		} catch(iMSCP_Exception_Database $e) {
-			$db->rollBack();
-			throw new iMSCP_Exception_Database($e->getMessage(), $e->getQuery(), $e->getCode(), $e);
-		}
-
-		// Send request to i-MSCP daemon
-		send_request();
-	} else {
+	if(!$stmt->rowCount()) {
 		showBadRequestErrorPage();
 	}
+
+	// Send request to i-MSCP daemon
+	send_request();
 }
 
 /**
@@ -293,7 +227,7 @@ function mailman_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You do not have created any email list.'), 'info');
+		set_page_message(tr('You do not have created any mailing list.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
@@ -349,17 +283,17 @@ if (isset($_REQUEST['action'])) {
 
 	if ($action === 'add') {
 		if (mailman_manageList()) {
-			set_page_message(tr('EMail list successfully scheduled for addition'), 'success');
+			set_page_message(tr('Mailing list successfully scheduled for addition'), 'success');
 			redirectTo('mailman.php');
 		}
 	} elseif($action === 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
-			set_page_message(tr('EMail list successfully scheduled for update'), 'success');
+			set_page_message(tr('Mailing list successfully scheduled for update'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif ($action === 'delete') {
-		mailman_deleteList();
-		set_page_message(tr('EMail list successfully scheduled for deletion'), 'success');
+	} elseif ($action === 'delete' && isset($_REQUEST['list_id'])) {
+		mailman_deleteList(clean_input($_REQUEST['list_id']));
+		set_page_message(tr('Mailing list successfully scheduled for deletion'), 'success');
 		redirectTo('mailman.php');
 	} else {
 		showBadRequestErrorPage();
@@ -382,17 +316,17 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Admin / Settings / Mailman'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'TR_MAIL_LISTS' => tojs(tr('E-Mail Lists', false)),
+		'TR_MAIL_LISTS' => tojs(tr('Mailing List', false)),
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
-		'TR_ADD_LIST' => tr('Add list'),
-		'TR_MAIL_LIST' => tr('EMail List'),
+		'TR_ADD_LIST' => tr('Add mailing list'),
+		'TR_MAIL_LIST' => tr('Mailing List'),
 		'TR_LIST_NAME' => tr('List name'),
 		'TR_ADMIN_EMAIL' => tr('Admin email'),
 		'TR_ADMIN_PASSWORD' => tr('Password'),
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
 		'TR_URL' => tr('Url'),
-		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s email list.', false, '%s'),
+		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s mailing list.', false, '%s'),
 		'TR_APPLY' => tojs(tr('Apply', false)),
 		'TR_CANCEL' => tojs(tr('Cancel', false))
 	)

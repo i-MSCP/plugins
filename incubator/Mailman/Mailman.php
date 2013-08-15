@@ -148,7 +148,10 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 
 		try {
-			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TODISABLE_STATUS);
+			exec_query(
+				'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_status` = ?',
+				array($cfg->ITEM_TODISABLE_STATUS, $cfg->ITEM_OK_STATUS)
+			);
 		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
