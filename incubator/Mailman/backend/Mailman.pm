@@ -86,12 +86,6 @@ sub install
 
 		$rs = $file->save();
 		return $rs if $rs;
-
-		$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-		return $rs if $rs;
-
-		$rs = $file->mode(0644);
-		return $rs if $rs;
 	} else {
 		error('File /etc/mailman/mm_cfg.py not found');
 		return 1;
@@ -107,13 +101,18 @@ sub install
 	return $rs if $rs;
 
 	# Add Postfix configuration
+
+	my $mta = Servers::mta->factory();
+
 	my ($stdout, $stderr);
-	$rs = execute('/usr/sbin/postconf -e mailman_destination_recipient_limit=1', \$stdout, \$stderr);
+	$rs = execute("$mta->{'config'}->{'CMD_POSTCONF'} -e mailman_destination_recipient_limit=1", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	my $mta = Servers::mta->factory();
+	$file = iMSCP::File->new($mta->{'config'}->{'POSTFIX_CONF_FILE'});
+	$rs = $file->copyFile("$mta->{'wrkDir'}/main.cf");
+	return $rs if $rs;
 
 	# Schedule MTA restart
 	$mta->{'restart'} = 'yes';
@@ -139,7 +138,7 @@ sub change
 	my $database = iMSCP::Database->factory();
 
 	my $rdata = $database->doQuery(
-		'dummy', "UPDATE `mailman` SET `mailman_status` = 'tochange' WHERE `mailman_status` NOT IN('toadd', 'todelete')"
+		'dummy', "UPDATE `mailman` SET `mailman_status` = 'tochange' WHERE `mailman_status` = 'ok'"
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -160,6 +159,8 @@ sub change
 sub update
 {
 	my $self = shift;
+
+	# TODO on change, every DNS record should be updated to ensure that the IP still valid (in case of ip update)
 
 	$self->change();
 }
@@ -376,8 +377,7 @@ sub _addList($$)
 	my $domainName = $data->{'domain_name'};
 	my $listName = $data->{'mailman_list_name'};
 
-	my ($stdout, $stderr);
-	my $rs = 0;
+	my ($rs, $stdout, $stderr);
 
 	if(!$self->_listExists($listName)) {
 		my @cmdArgs = (
@@ -427,12 +427,6 @@ sub _addList($$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return $rs if $rs;
-
 	# Install transport table in production directory
 	$rs = $file->copyFile($mta->{'config'}->{'MTA_TRANSPORT_HASH'});
 	return $rs if $rs;
@@ -466,12 +460,6 @@ sub _addList($$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return $rs if $rs;
-
 	# Install mailboxes table in production directory
 	$rs = $file->copyFile($mta->{'config'}->{'MTA_VIRTUAL_MAILBOX_HASH'} );
 	return $rs if $rs;
@@ -487,10 +475,7 @@ sub _addList($$)
 	# MTA entries - Ending
 
 	# Add lists vhost
-	$rs = $self->_addlListsVhost($data);
-	return $rs if $rs;
-
-	0;
+	$self->_addlListsVhost($data);
 }
 
 =item _updateList(\$data)
@@ -537,9 +522,8 @@ sub _updateList($$)
 	$rs = execute("/var/lib/mailman/bin/change_pw @cmdArgs", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
 
-	0;
+	$rs;
 }
 
 =item _enableListList(\$data)
@@ -649,12 +633,6 @@ sub _deleteList($$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return $rs if $rs;
-
 	# Install transport table in production directory
 	$rs = $file->copyFile($mta->{'config'}->{'MTA_TRANSPORT_HASH'});
 	return $rs if $rs;
@@ -686,12 +664,6 @@ sub _deleteList($$)
 	return $rs if $rs;
 
 	$rs = $file->save();
-	return $rs if $rs;
-
-	$rs = $file->mode(0644);
-	return $rs if $rs;
-
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
 	return $rs if $rs;
 
 	# Install mailboxes table in production directory
@@ -768,16 +740,10 @@ sub _addlListsVhost($$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return$rs if $rs;
-
 	$rs = $file->mode(0644);
 	return $rs if $rs;
 
-	$rs = $httpd->enableSite("lists.$domainName.conf");
-	return $rs if $rs;
-
-	0;
+	$httpd->enableSite("lists.$domainName.conf");
 }
 
 =item _deleteListsVhost(\$data)
@@ -834,9 +800,7 @@ sub _deleteListsDnsRecord
 	}
 
 	$rs = $database->doQuery(
-		'dummy',
-		'UPDATE `domain` SET domain_status = ? WHERE `domain_admin_id` = ?',
-		$rdata->{$_}->{'mailman_admin_id'}
+		'dummy', 'UPDATE `domain` SET domain_status = ? WHERE `domain_admin_id` = ?', $rdata->{$_}->{'mailman_admin_id'}
 	);
 	unless(ref $rs eq 'HASH') {
 		error($rs);
@@ -934,7 +898,7 @@ sub _checkRequirements
 	} elsif($main::imscpConfig{'MTA_SERVER'} ne 'postfix') {
 		error('Mailman plugin require i-MSCP Postfix server implementation');
 		return 1;
-	} elsif($main::imscpConfig{'HTTPD_SERVER'} !~ /^apache_/) {
+	} elsif(index($main::imscpConfig{'HTTPD_SERVER'}, 'apache_') == -1) {
 		error('Mailman plugin require i-MSCP Apache server implementation');
 		return 1;
 	} elsif($main::imscpConfig{'NAMED_SERVER'} ne 'bind') {

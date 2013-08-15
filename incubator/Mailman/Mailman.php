@@ -51,6 +51,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			$this->checkForRequirements();
 			$this->createDbTable();
 		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -62,13 +63,37 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @param string $fromVersion Version from which update is initiated
+	 * @param string $toVersion Version to which plugin is updated
 	 * @return void
 	 */
-	public function update(iMSCP_Plugin_Manager $pluginManager) {
-		try {
-			// TODO
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	{
+		if($fromVersion != $toVersion) {
+			try {
+				$this->checkForRequirements();
+				if($fromVersion == '0.0.1') {
+					exec_query(
+						'
+							UPDATE
+								`domain_dns`
+							SET
+								`owned_by` = ?
+							WHERE
+								`domain_dns` LIKE ?
+							AND
+								`domain_class` = ?
+							AND
+								`domain_type` = ?
+							AND
+								`owned_by` = ?
+						',
+						array('plugin_mailman', 'lists.%', 'IN', 'A', 'yes')
+					);
+				}
+			} catch(iMSCP_Exception_Database $e) {
+				throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+			}
 		}
 	}
 
@@ -217,6 +242,25 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					)
 				);
 			}
+		}
+	}
+
+	/**
+	 * Check for requirements
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 */
+	protected function checkForRequirements()
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		if(! $cfg->exists('MTA_SERVER') || $cfg->MTA_SERVER != 'postfix') {
+			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP Postfix server implementation');
+		} elseif(! $cfg->exists('HTTPD_SERVER') || strpos($cfg->HTTPD_SERVER, 'apache_') !== 0) {
+			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP Apache server implementation');
+		} elseif(! $cfg->exists('NAMED_SERVER') || $cfg->NAMED_SERVER != 'bind') {
+			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP bind9 server implementation');
 		}
 	}
 

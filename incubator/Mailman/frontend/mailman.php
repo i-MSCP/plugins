@@ -31,7 +31,7 @@
  */
 
 /**
- * Add or update list
+ * Add or update an email list
  *
  * @return boolean TRUE on success, FALSE otherwise
  */
@@ -69,7 +69,7 @@ function mailman_manageList()
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($listId === '-1') { // New list
+			if($listId === '-1') { // New email list
 
 				/** @var iMSCP_Database $db */
 				$db = iMSCP_Database::getInstance();
@@ -80,46 +80,30 @@ function mailman_manageList()
 					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 					$listDmnName = 'lists.' . $mainDmnProps['domain_name'] . '.';
 
+					# Add dns record for new email list
 					$query = '
-						SELECT
-							`domain_id`
-						FROM
-							`domain_dns`
-						WHERE
-							`domain_id` = ?
-						AND
-							`domain_dns` = ?
-						AND
-							`domain_class` = ?
-						AND
-							`domain_type` = ?
-						AND
-							`domain_text` = ?
+						INSERT INTO `domain_dns` (
+							`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
+							`owned_by`
+						) VALUES(
+							?, ?, ?, ?, ?, ?, ?
+						)
 					';
-					$stmt = exec_query(
-						$query, array($mainDmnProps['domain_id'], $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP)
+					exec_query(
+						$query,
+						array(
+							$mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP,
+							'plugin_mailman'
+						)
 					);
 
-					if(!$stmt->rowCount()) {
-						$query = '
-							INSERT INTO `domain_dns` (
-								`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
-								`owned_by`
-							) VALUES(
-								?, ?, ?, ?, ?, ?, ?
-							)
-						';
-						exec_query(
-							$query,
-							array($mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP, 'plugin_mailman')
-						);
+					# Update customer main domain status to schedule change
+					exec_query(
+						'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
+						array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
+					);
 
-						exec_query(
-							'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
-							array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
-						);
-					}
-
+					# Add email list data into the mailman table
 					$query = '
 						INSERT INTO `mailman` (
 							`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
@@ -141,9 +125,7 @@ function mailman_manageList()
 					$db->rollBack();
 
 					if($e->getCode() == 23000) { // Duplicate entries
-						set_page_message(
-							tr("The $listName list already exists. Please choose other name."), 'error'
-						);
+						set_page_message(tr("The $listName list already exists. Please choose other name."), 'error');
 						return false;
 					}
 				}
@@ -220,27 +202,12 @@ function mailman_deleteList()
 				$mainDmnProps['domain_id']
 			);
 
+			# Remove DNS record only if not more than two list exists
 			if($stmt->fields['cnt'] < 2) {
-				$query = '
-					DELETE FROM
-						`domain_dns`
-					WHERE
-						`domain_id` = ?
-					AND
-						`alias_id` = ?
-					AND
-						`domain_dns` = ?
-					AND
-						`domain_class` = ?
-					AND
-						`domain_type` = ?
-					AND
-						`domain_text` = ?
-				';
-				exec_query(
-					$query, array($mainDmnProps['domain_id'], '0', $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP)
-				);
+				$query = 'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `domain_dns` = ? AND `owned_by` = ?';
+				exec_query('IN',$query, array($mainDmnProps['domain_id'], $listDmnName, 'plugin_mailman'));
 
+				# Schedule domain update (needed to update DNS entries
 				exec_query(
 					'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?',
 					array($cfg->ITEM_TOCHANGE_STATUS, $mainDmnProps['domain_id'])
