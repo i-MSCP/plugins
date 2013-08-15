@@ -181,10 +181,10 @@ sub uninstall
 {
 	my $self = shift;
 
-	my $database = iMSCP::Database->factory();
+	my $db = iMSCP::Database->factory();
 
-	# Get mailing data
-	my $rdata = $database->doQuery(
+	# Get mailing list data
+	my $rdata = $db->doQuery(
 		'mailman_id',
 		'
 			SELECT
@@ -216,7 +216,7 @@ sub uninstall
 				@sql = ('DELETE FROM `mailman` WHERE `mailman_id` = ?', $rdata->{$_}->{'mailman_id'});
 			}
 
-			$rs = $database->doQuery('dummy', @sql);
+			$rs = $db->doQuery('dummy', @sql);
 			unless(ref $rs eq 'HASH') {
 				error($rs);
 				return 1;
@@ -227,7 +227,7 @@ sub uninstall
 	}
 
 	# Drop mailman table
-	$database->doQuery('dummy', 'DROP TABLE IF EXISTS `mailman`');
+	$db->doQuery('dummy', 'DROP TABLE IF EXISTS `mailman`');
 
 	0;
 }
@@ -274,11 +274,11 @@ sub run
 {
 	my $self = shift;
 
-	my $database = iMSCP::Database->factory();
+	my $db = iMSCP::Database->factory();
 	my $rs = 0;
 
 	# Get all mailing list data
-	my $rdata = $database->doQuery(
+	my $rdata = $db->doQuery(
 		'mailman_id',
 		"
 			SELECT
@@ -341,7 +341,7 @@ sub run
 				}
 			}
 
-			$rdata = $database->doQuery('dummy', @sql);
+			$rdata = $db->doQuery('dummy', @sql);
 			unless(ref $rdata eq 'HASH') {
 				error($rdata);
 				return 1;
@@ -466,7 +466,9 @@ sub _addList($$)
 
 	# MTA entries - Ending
 
-	my $rdata = $database->doQuery(
+	my $db = iMSCP::Database->factory();
+
+	my $rdata = $db->doQuery(
 		'mailman_id',
 		'SELECT `mailman_id` FROM `mailman` WHERE `mailman_admin_id` = ? LIMIT 2',
 		$data->{'mailman_admin_id'}
