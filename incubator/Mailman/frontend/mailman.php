@@ -49,17 +49,17 @@ function mailman_manageList()
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
 		if (!preg_match('/[-_a-z0-9+]/i', $listName)) {
-			set_page_message(tr("Wrong list name syntax"), 'error');
+			set_page_message(tr("Wrong list name"), 'error');
 			$error = true;
 		}
 
 		if (!chk_email($adminEmail)) {
-			set_page_message(tr("Wrong email syntax"), 'error');
+			set_page_message(tr("Wrong email"), 'error');
 			$error = true;
 		}
 
 		if ($adminPassword != $adminPasswordConfirm) {
-			set_page_message(tr("Passwords do not matches"), 'error');
+			set_page_message(tr("Passwords do not match"), 'error');
 			$error = true;
 		} elseif (!checkPasswordSyntax($adminPassword)) {
 			$error = true;
@@ -71,6 +71,7 @@ function mailman_manageList()
 
 			if($listId === '-1') { // New list
 
+				/** @var iMSCP_Database $db */
 				$db = iMSCP_Database::getInstance();
 
 				try {
@@ -103,14 +104,14 @@ function mailman_manageList()
 						$query = '
 							INSERT INTO `domain_dns` (
 								`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`,
-								`protected`
+								`owned_by`
 							) VALUES(
 								?, ?, ?, ?, ?, ?, ?
 							)
 						';
 						exec_query(
 							$query,
-							array($mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP, 'yes')
+							array($mainDmnProps['domain_id'], 0, $listDmnName, 'IN', 'A', $cfg->BASE_SERVER_IP, 'plugin_mailman')
 						);
 
 						exec_query(
@@ -141,7 +142,7 @@ function mailman_manageList()
 
 					if($e->getCode() == 23000) { // Duplicate entries
 						set_page_message(
-							tr("The $listName e-mail list already exists. Please, choose other name."), 'error'
+							tr("The $listName list already exists. Please choose other name."), 'error'
 						);
 						return false;
 					}
@@ -325,7 +326,7 @@ function mailman_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You do not have created any email lists.'), 'info');
+		set_page_message(tr('You do not have created any email list.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {

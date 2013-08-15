@@ -58,6 +58,21 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Plugin update
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager) {
+		try {
+			// TODO
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
 	 * Process plugin uninstallation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -96,8 +111,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Schedule deactivation of all mailman lists
-	 *
+	 * Schedule deactivation of all email lists
 	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager
@@ -133,7 +147,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onBeforePluginsRoute event
+	 * onBeforePluginsRoute event listener
 	 *
 	 * @return void
 	 */
@@ -145,7 +159,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onClientScriptStart event
+	 * onClientScriptStart event listener
 	 *
 	 * @return void
 	 */
@@ -155,7 +169,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onAfterDeleteCustomer event
+	 * onAfterDeleteCustomer event listener
 	 *
 	 * This event is called when a customer account is being deleted.
 	 * If triggered,  we remove any E-Mail lists for this customer
@@ -185,7 +199,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Inject Mailman links into the navigation object
+	 * Setup navigation
 	 */
 	protected function setupNavigation()
 	{
