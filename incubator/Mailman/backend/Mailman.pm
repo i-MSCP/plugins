@@ -203,7 +203,7 @@ sub uninstall
 	# Delete all mailing list
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
-			$rs = $self->_deleteList($rdata->{$_});
+			my $rs = $self->_deleteList($rdata->{$_});
 
 			my @sql;
 
@@ -302,7 +302,7 @@ sub run
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
 			my $data = $rdata->{$_};
-			my $status = $rdata->{$_}->{'mailman_status'};
+			my $status = $data->{'mailman_status'};
 
 			if($status eq 'toadd') {
 				$rs = $self->_addList($data);
@@ -316,7 +316,7 @@ sub run
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $rdata->{$_}->{'mailman_id'}
 				);
-			} elsif($status == 'toenable') {
+			} elsif($status eq 'toenable') {
 				$rs = $self->_enableList($data);
 				@sql = (
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
@@ -373,7 +373,7 @@ sub _addList($$)
 
 	my ($rs, $stdout, $stderr);
 
-	if(!$self->_listExists($data->{'mailman_list_name'})) {
+	if(!$self->_listExists($data)) {
 		my @cmdArgs = (
 			'-q',
 			'-u', escapeShell("lists.$data->{'domain_name'}"),
@@ -693,9 +693,9 @@ sub _deleteList($$)
 
 	# Delete lists vhost and DNS entry if needed
 
-	my $database = iMSCP::Database->factory();
+	my $db = iMSCP::Database->factory();
 
-	my $rdata = $database->doQuery(
+	my $rdata = $db->doQuery(
 		'mailman_id',
 		'SELECT `mailman_id` FROM `mailman` WHERE `mailman_admin_id` = ? LIMIT 2',
 		$data->{'mailman_admin_id'}
@@ -744,7 +744,7 @@ sub _addlListsVhost($$)
 	my $httpd = Servers::httpd->factory();
 
 	my $file = iMSCP::File->new(
-		'filename' => "$httpd->{'tplValues'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf"
+		'filename' => "$httpd->{'config'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf"
 	);
 
 	my $rs = $file->set($listsVhost);
@@ -756,7 +756,13 @@ sub _addlListsVhost($$)
 	$rs = $file->mode(0644);
 	return $rs if $rs;
 
-	$httpd->enableSite("lists.$data->{'domain_name'}.conf");
+	$rs = $httpd->enableSite("lists.$data->{'domain_name'}.conf");
+	return $rs if $rs;
+
+	# Schedule Apache restart
+	$httpd->{'restart'} = 'yes';
+
+	0;
 }
 
 =item _deleteListsVhost(\%data)
@@ -772,8 +778,6 @@ sub _deleteListsVhost($$)
 	my $self = shift;
 	my $data = shift;
 
-	my $database = iMSCP::Database->factory();
-
 	my $httpd = Servers::httpd->factory();
 	my $vhostFilePath = "$httpd->{'config'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf";
 
@@ -784,6 +788,9 @@ sub _deleteListsVhost($$)
 		my $file = iMSCP::File->new('filename' => $vhostFilePath);
 		$rs = $file->delFile();
 		return $rs if $rs;
+
+		# Schedule Apache reload
+		$httpd->{'restart'} = 'yes';
 	}
 
 	0;
@@ -797,15 +804,17 @@ sub _deleteListsVhost($$)
 
 =cut
 
-sub _addListDnsRecord($$)
+sub _addListsDnsRecord($$)
 {
 	my $self = shift;
 	my $data = shift;
 
-	my $db = iMSCP::Database->factory()->startTransaction();
+	my $db = iMSCP::Database->factory();
+
+	my $rawDb = $db->startTransaction();
 
 	eval{
-		$db->do(
+		$rawDb->do(
 			'
 				INSERT INTO `domain_dns` (
 					`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`, `owned_by`
@@ -817,18 +826,18 @@ sub _addListDnsRecord($$)
 			$main::imscpConfig{'BASE_SERVER_IP'}, 'plugin_mailman'
 		);
 
-		$db->do('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', undef, 'tochange', $data->{'domain_id'});
+		$rawDb->do('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', undef, 'tochange', $data->{'domain_id'});
 
-		$db->commit();
-	}
+		$rawDb->commit();
+	};
 
-	$db->endTransaction();
-
-	if($@) {
-		$db->rollback();
+	if($@) {
+		$rawDb->rollback();
 		error($@);
 		return 1;
 	}
+
+	$db->endTransaction();
 
 	0;
 }
@@ -846,25 +855,30 @@ sub _deleteListsDnsRecord($$)
 	my $self = shift;
 	my $data = shift;
 
-	my $db = iMSCP::Database->factory()->startTransaction();
+	my $db = iMSCP::Database->factory();
+
+	my $rawDb = $db->startTransaction();
 
 	eval {
-		$db->do(
+		$rawDb->do(
 			'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `owned_by` = ?',
 			undef, $data->{'domain_id'}, 'plugin_mailman'
 		);
-		$db->do('UPDATE `domain` SET domain_status = ? WHERE `domain_id` = ?', undef, $data->{'domain_id'});
 
-		$db->commit();
-	}
+		$rawDb->do(
+			'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', undef, 'tochange', $data->{'domain_id'}
+		);
 
-	$db->endTransaction();
+		$rawDb->commit();
+	};
 
-	if($@) {
-		$db->rollback();
+	if($@) {
+		$rawDb->rollback();
 		error($@);
 		return 1;
 	}
+
+	$db->endTransaction();
 
 	0;
 }

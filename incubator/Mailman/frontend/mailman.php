@@ -94,6 +94,7 @@ function mailman_manageList()
 						set_page_message(
 							tr("Mailing list $listName already exists. Please choose other name."), 'error'
 						);
+
 						return false;
 					}
 				}
