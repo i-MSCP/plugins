@@ -382,7 +382,7 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Admin / Settings / Mailman'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'TR_MAIL_LISTS' => tr('E-Mail Lists'),
+		'TR_MAIL_LISTS' => tojs(tr('E-Mail Lists', false)),
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_LIST' => tr('Add list'),
@@ -393,8 +393,8 @@ $tpl->assign(
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
 		'TR_URL' => tr('Url'),
 		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s email list.', false, '%s'),
-		'TR_APPLY' => tr('Apply'),
-		'TR_CANCEL' => tr('Cancel')
+		'TR_APPLY' => tojs(tr('Apply', false)),
+		'TR_CANCEL' => tojs(tr('Cancel', false))
 	)
 );
 

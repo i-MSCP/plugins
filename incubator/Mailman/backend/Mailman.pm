@@ -40,6 +40,8 @@ use iMSCP::Execute;
 use iMSCP::Templator;
 use Servers::httpd;
 use Servers::mta;
+use iMSCP::Dir;
+use iMSCP::File;
 use File::Temp;
 
 use parent 'Common::SingletonClass';
@@ -110,7 +112,7 @@ sub install
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	$file = iMSCP::File->new($mta->{'config'}->{'POSTFIX_CONF_FILE'});
+	my $file = iMSCP::File->new('filename' => $mta->{'config'}->{'POSTFIX_CONF_FILE'});
 	$rs = $file->copyFile("$mta->{'wrkDir'}/main.cf");
 	return $rs if $rs;
 
@@ -314,7 +316,7 @@ sub run
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $rdata->{$_}->{'mailman_id'}
 				);
 			} elsif($status eq 'tochange') {
-				$rs = $self->_updateList($rdata)
+				$rs = $self->_updateList($rdata);
 				@sql = (
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $rdata->{$_}->{'mailman_id'}
@@ -325,7 +327,7 @@ sub run
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $rdata->{$_}->{'mailman_id'}
 				);
-			} elsif($status eq 'todisable')
+			} elsif($status eq 'todisable') {
 				$rs = $self->_disableList($rdata);
 				@sql = (
 					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
@@ -383,7 +385,10 @@ sub _addList($$)
 		my @cmdArgs = (
 			'-q',
 			'-u', escapeShell("lists.$domainName"),
-			'-e', escapeShell($domainName), escapeShell($listName), escapeShell($adminEmail), escapeShell($adminPassword)
+			'-e', escapeShell($domainName),
+			escapeShell($listName),
+			escapeShell($data->{'mailman_admin_email'}),
+			escapeShell($data->{'mailman_admin_password'})
 		);
 
 		$rs = execute("/usr/lib/mailman/bin/newlist @cmdArgs", \$stdout, \$stderr);
@@ -682,6 +687,8 @@ sub _deleteList($$)
 
 	# Delete lists vhost and DNS entry if needed
 
+	my $database = iMSCP::Database->factory();
+
 	my $rdata = $database->doQuery(
 		'mailman_id',
 		'SELECT `mailman_id` FROM `mailman` WHERE `mailman_admin_id` = ? LIMIT 2',
@@ -791,21 +798,21 @@ sub _deleteListsDnsRecord
 	my $self = shift;
 	my $data = shift;
 
-	$rs = $database->doQuery(
-		'dummy','DELETE FROM `domain_dns` WHERE `domain_dns_id` = ?', $rdata->{$_}->{'mailman_dns_id'},
-	);
-	unless(ref $rs eq 'HASH') {
-		error($rs);
-		return 1;
-	}
+	#my $rs = $database->doQuery(
+	#	'dummy','DELETE FROM `domain_dns` WHERE `domain_dns_id` = ?', $rdata->{$_}->{'mailman_dns_id'},
+	#);
+	#unless(ref $rs eq 'HASH') {
+	#	error($rs);
+	#	return 1;
+	#}
 
-	$rs = $database->doQuery(
-		'dummy', 'UPDATE `domain` SET domain_status = ? WHERE `domain_admin_id` = ?', $rdata->{$_}->{'mailman_admin_id'}
-	);
-	unless(ref $rs eq 'HASH') {
-		error($rs);
-		return 1;
-	}
+	#$rs = $database->doQuery(
+	#	'dummy', 'UPDATE `domain` SET domain_status = ? WHERE `domain_admin_id` = ?', $rdata->{$_}->{'mailman_admin_id'}
+	#);
+	#unless(ref $rs eq 'HASH') {
+	#	error($rs);
+	#	return 1;
+	#}
 
 	0;
 }
@@ -872,7 +879,7 @@ sub _listExists($$)
 
 	if(defined $stdout) {
 		my @lists = split("\n", $stdout);
-		return ($listName ~~ @lists);
+		return ($data->{'mailman_list_name'} ~~ @lists);
 	}
 
 	0;

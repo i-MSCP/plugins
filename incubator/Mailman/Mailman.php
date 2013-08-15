@@ -235,7 +235,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
 				$page->addPage(
 					array(
-						'label' => tohtml(tr('E-Mail Lists')),
+						'label' => tohtml(tr('Mailing List management')),
 						'uri' => '/client/mailman.php',
 						'title_class' => 'email',
 						'order' => 3
@@ -279,7 +279,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 					`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`mailman_dns_id` int(11) unsigned NOT NULL,
 					`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					PRIMARY KEY (`mailman_id`),
 					UNIQUE KEY `mailman_list_name` (`mailman_list_name`),
