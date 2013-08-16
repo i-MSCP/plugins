@@ -173,7 +173,8 @@ sub run
 	$rs = $self->_buildMailgraphVirus();
 	return $rs if $rs;
 
-	$self->_buildMailgraphGreylist();
+	$rs = $self->_buildMailgraphGreylist();
+	return $rs if $rs;
 }
 
 =back
