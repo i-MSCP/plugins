@@ -50,6 +50,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	{
 		$controller->registerListener(
 			array(
+				iMSCP_Events::onBeforeActivatePlugin,
 				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onAdminScriptStart,
 			),
@@ -57,6 +58,27 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 		);
 	}
 
+	/**
+	 * onBeforeActivatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+		
+		if($event->getParam('action') == 'install') {
+			if($cfg->Version != 'Git Master' && $cfg->Version <= 20130723) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+				);
+				
+				$event->stopPropagation(true);
+			}
+		}
+	}
+	
 	/**
 	 * onBeforePluginsRoute listener
 	 *

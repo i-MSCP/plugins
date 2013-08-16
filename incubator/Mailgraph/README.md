@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
- - i-MSCP versions >= 1.1.0.rc3
+ - i-MSCP versions >= 1.1.0.rc4
  - mailgraph Debian package
 
 ### INSTALLATION AND UPDATE

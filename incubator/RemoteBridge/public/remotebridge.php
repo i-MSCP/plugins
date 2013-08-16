@@ -26,8 +26,6 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-define('iMSCP_Min_Vers', '1.1.0.rc3');
-
 $filter = iMSCP_Registry::set(
 	'bufferFilter',
 	new iMSCP_Filter_Compress_Gzip(iMSCP_Filter_Compress_Gzip::FILTER_BUFFER)
@@ -177,19 +175,19 @@ function getResellerUsername($brideKey, $ipaddress) {
 }
 
 function checkiMSCP_Version() {
+	/** @var iMSCP_Config_Handler_File $cfg */
 	$cfg = iMSCP_Registry::get('config');
-	if($cfg->Version != 'Git Master') {
-		if(version_compare($cfg->Version, iMSCP_Min_Vers, '<')){
-			echo(
-				createJsonMessage(
-					array(
-						'level'	=> 'Error',
-						'message'	=> 'iMSCP version '.$cfg->Version.' is not compatible with the remote bridge. Check www.i-mscp.net for newer versions'
-					)
+	
+	if($cfg->Version != 'Git Master' && $cfg->Version <= 20130723){
+		echo(
+			createJsonMessage(
+				array(
+					'level'	=> 'Error',
+					'message'	=> 'iMSCP version '.$cfg->Version.' is not compatible with the remote bridge. Check www.i-mscp.net for newer versions'
 				)
-			);
-			exit;
-		}
+			)
+		);
+		exit;
 	}
 }
 

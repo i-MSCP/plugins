@@ -1,4 +1,4 @@
-## i-MSCP RemoteBridge plugin v0.0.5
+## i-MSCP RemoteBridge plugin v0.0.1
 
 Plugin allows to manage i-MSCP accounts from a remote website.
 
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0.rc3 (Not yet released)
+Plugin compatible with i-MSCP versions >= 1.1.0.rc4 (Not yet released)
 
 ### INSTALLATION
 
