@@ -173,8 +173,7 @@ sub run
 	$rs = $self->_buildMailgraphVirus();
 	return $rs if $rs;
 
-	$rs = $self->_buildMailgraphGreylist();
-	return $rs if $rs;
+	$self->_buildMailgraphGreylist();
 }
 
 =back
@@ -287,7 +286,7 @@ sub _buildMailgraph
 	);
 	return $rs if $rs;
 
-	$rs = $self->_createMailgraphPicture(
+	$self->_createMailgraphPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -298,7 +297,6 @@ sub _buildMailgraph
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
 }
 
 =item _createMailgraphPicture()
@@ -384,8 +382,7 @@ sub _createMailgraphPicture
 	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
+	$file->mode(0644);
 }
 
 =item _buildMailgraphVirus()
@@ -478,7 +475,7 @@ sub _buildMailgraphVirus
 	);
 	return $rs if $rs;
 
-	$rs = $self->_createMailgraphVirusPicture(
+	$self->_createMailgraphVirusPicture(
 		$mailgraph_rrd,
 		$mailgraph_virus_rrd,
 		$xpoints,
@@ -490,7 +487,6 @@ sub _buildMailgraphVirus
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
 }
 
 =item _createMailgraphVirusPicture()
@@ -602,8 +598,7 @@ sub _createMailgraphVirusPicture
 	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
+	$file->mode(0644);
 }
 
 =item _buildMailgraphGreylist()
@@ -692,7 +687,7 @@ sub _buildMailgraphGreylist
 	);
 	return $rs if $rs;
 
-	$rs = $self->_createMailgraphGreylistPicture(
+	$self->_createMailgraphGreylistPicture(
 		$mailgraph_rrd,
 		$xpoints,
 		$ypoints,
@@ -703,7 +698,6 @@ sub _buildMailgraphGreylist
 		$year_outputfile,
 		$date
 	);
-	return $rs if $rs;
 }
 
 =item _createMailgraphGreylistPicture()
@@ -789,8 +783,7 @@ sub _createMailgraphGreylistPicture
 	my $rs = $file->owner($panelUname, $panelGName);
 	return $rs if $rs;
 
-	$rs = $file->mode(0644);
-	return $rs if $rs;
+	$file->mode(0644);
 }
 
 =item _registerCronjob()
