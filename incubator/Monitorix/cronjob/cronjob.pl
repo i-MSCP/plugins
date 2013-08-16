@@ -53,7 +53,7 @@ if($@) {
 	$rs = 1;
 } else {
 	my $pluginClass = "Plugin::Monitorix";
-	$rs = $pluginClass->getInstance()->run();
+	$rs = $pluginClass->getInstance()->_buildMonitorixGraphics();
 }
 
 exit $rs;

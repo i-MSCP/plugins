@@ -77,7 +77,8 @@ sub install
 	$rs = $self->_restartDaemonMonitorix();
 	return $rs if $rs;
 
-	$self->run();
+	$rs = $self->_buildMonitorixGraphics();
+	return $rs if $rs;
 }
 
 =item change()
@@ -95,7 +96,8 @@ sub change
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$self->run();
+	$rs = $self->_buildMonitorixGraphics();
+	return $rs if $rs;
 }
 
 =item update()
@@ -122,7 +124,8 @@ sub update
 	$rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$self->run();
+	$rs = $self->_buildMonitorixGraphics();
+	return $rs if $rs;
 }
 
 =item enable()
@@ -140,7 +143,8 @@ sub enable
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$self->run();
+	$rs = $self->_buildMonitorixGraphics();
+	return $rs if $rs;
 }
 
 =item disable()
@@ -205,7 +209,7 @@ sub run
 {
 	my $self = shift;
 
-	$self->_buildMonitorixGraphics();
+	0;
 }
 
 =back
