@@ -379,7 +379,7 @@ sub _modifyMonitorixSystemConfig
 
 	my $monitorixSystemConfig = '/etc/monitorix.conf';
 	if(! -f $monitorixSystemConfig) {
-		error("File $monitorixSystemConfig is missing.")
+		error("File $monitorixSystemConfig is missing.");
 		return 1;
 	}
 
@@ -439,17 +439,17 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 {
 	my $self = shift;
 
-	my $monitorixCgi = '/etc/monitorix.conf';
+	my $monitorixSystemConfig = '/etc/monitorix.conf';
 	if(! -f $monitorixSystemConfig) {
-		error("File $monitorixSystemConfig is missing.")
+		error("File $monitorixSystemConfig is missing.");
 		return 1;
 	}
 
-	my $file = iMSCP::File->new('filename' => $monitorixCgi);
+	my $file = iMSCP::File->new('filename' => $monitorixSystemConfig);
 
 	my $fileContent = $file->get();
 	if(! $fileContent) {
-		error('Unable to read $monitorixCgi.');
+		error('Unable to read $monitorixSystemConfig.');
 		return 1;
 	}
 
@@ -494,7 +494,7 @@ sub _modifyMonitorixCgiFile
 
 	my $monitorixCgi = '/usr/share/monitorix/cgi/monitorix.cgi';
 	if(! -f $monitorixCgi) {
-		error("File $monitorixCgi is missing.")
+		error("File $monitorixCgi is missing.");
 		return 1;
 	}
 
