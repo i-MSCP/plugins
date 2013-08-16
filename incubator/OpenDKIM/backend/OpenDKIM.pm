@@ -37,6 +37,7 @@ use iMSCP::Execute;
 use iMSCP::Database;
 
 use parent 'Common::SingletonClass';
+use parent 'Modules::Domain';
 
 =head1 DESCRIPTION
 
@@ -69,16 +70,16 @@ sub install
 	}
 	
 	my $rs = $self->_checkRequirements();
-	return 1 if $rs;
+	return $rs if $rs;
 	
-	$rs = $self->_registerOpenDKIMHook();
-	return 1 if $rs;
+	$rs = $self->_registerOpendkimHook();
+	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonOpenDKIM();
-	return 1 if $rs;
+	$rs = $self->_restartDaemonOpendkim();
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item change()
@@ -93,23 +94,23 @@ sub change
 {
 	my $self = shift;
 	
-	my $rs = $self->_registerOpenDKIMHook();
-	return 1 if $rs;
+	my $rs = $self->_registerOpendkimHook();
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMSystemConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimSystemConfig('add');
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMDefaultConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimDefaultConfig('add');
+	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonOpenDKIM();
-	return 1 if $rs;
+	$rs = $self->_restartDaemonOpendkim();
+	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMainConfig('add');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item update()
@@ -124,26 +125,29 @@ sub update
 {
 	my $self = shift;
 	
-	my $rs = $self->_unregisterOpenDKIMHook();
-	return 1 if $rs;
+	my $rs = $self->_unregisterOpendkimHook();
+	return $rs if $rs;
 	
-	$rs = $self->_registerOpenDKIMHook();
-	return 1 if $rs;
+	$rs = $self->_registerOpendkimHook();
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMSystemConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimSystemConfig('add');
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMDefaultConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimDefaultConfig('add');
+	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonOpenDKIM();
-	return 1 if $rs;
+	$rs = $self->_createOpendkimTrustedHostsFile();
+	return $rs if $rs;
+	
+	$rs = $self->_restartDaemonOpendkim();
+	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMainConfig('add');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item enable()
@@ -158,14 +162,17 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_registerOpenDKIMHook();
-	return 1 if $rs;
+	my $rs = $self->_registerOpendkimHook();
+	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMainConfig('add');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
+	
+	$rs = $self->_recoverOpendkimDnsEntries();
+	return $rs if $rs;
 }
 
 =item disable()
@@ -180,14 +187,14 @@ sub disable
 {
 	my $self = shift;
 
-	my $rs = $self->_unregisterOpenDKIMHook();
-	return 1 if $rs;
+	my $rs = $self->_unregisterOpendkimHook();
+	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMainConfig('remove');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item uninstall()
@@ -202,28 +209,28 @@ sub uninstall
 {
 	my $self = shift;
 	
-	my $rs = $self->_unregisterOpenDKIMHook();
-	return 1 if $rs;
+	my $rs = $self->_unregisterOpendkimHook();
+	return $rs if $rs;
 	
 	# OpenDKIM will be set to default parameters
-	$rs = $self->_modifyOpenDKIMSystemConfig('remove');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimSystemConfig('remove');
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMDefaultConfig('remove');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimDefaultConfig('remove');
+	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonOpenDKIM();
-	return 1 if $rs;
+	$rs = $self->_restartDaemonOpendkim();
+	return $rs if $rs;
 	
-	$rs = iMSCP::Dir->new('dirname' => '/etc/imscp/opendkim')->remove() if -d '/etc/imscp/opendkim';
-	return 1 if $rs;
+	$rs = iMSCP::Dir->new('dirname' => '/etc/opendkim/')->remove() if -d '/etc/opendkim/';
+	return $rs if $rs;
 	# OpenDKIM will be set to default parameters
 	
 	$rs = $self->_modifyPostfixMainConfig('remove');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item run()
@@ -238,11 +245,72 @@ sub run
 {
 	my $self = shift;
 	
-	my $rs = $self->{'hooksManager'}->register('afterMtaAddDmn', \&afterMtaAddDmnOpenDKIM);
-	return 1 if $rs;
+	my $rs = 0;
 	
-	my $rs = $self->{'hooksManager'}->register('afterMtaDelDmn', \&afterMtaDelDmnOpenDKIM);
-	return 1 if $rs;
+	my $db = iMSCP::Database->factory();
+	
+	my $rdata = $db->doQuery(
+		'opendkim_id', 
+		"
+			SELECT
+				`opendkim_id`, `domain_id`,
+				`alias_id`, `domain_name`,
+				`customer_dns_previous_status`, `opendkim_status`
+			FROM
+				`opendkim`
+			WHERE
+				`opendkim_status` IN('toadd', 'todelete')
+			ORDER BY
+				`domain_id` ASC
+		"
+	);
+	
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+	
+	my @sql;
+	
+	if(%{$rdata}) {
+		for(keys %{$rdata}) {
+			if($rdata->{$_}->{'opendkim_status'} eq 'toadd') {
+				$rs = $self->_addOpendkimDomainKey(
+					$rdata->{$_}->{'domain_id'}, $rdata->{$_}->{'alias_id'},
+					$rdata->{$_}->{'domain_name'}
+				);
+
+				@sql = (
+					'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `opendkim_id` = ?',
+					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'opendkim_id'}
+				);
+			} elsif($rdata->{$_}->{'opendkim_status'} eq 'todelete') {
+				$rs = $self->_deleteOpendkimDomainKey(
+					$rdata->{$_}->{'domain_id'}, $rdata->{$_}->{'alias_id'},
+					$rdata->{$_}->{'domain_name'}, ($rdata->{$_}->{'customer_dns_previous_status'}) ? $rdata->{$_}->{'customer_dns_previous_status'} : 'na'
+				);
+				if($rs) {
+					@sql = (
+						'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `opendkim_id` = ?',
+						scalar getMessageByType('error'), $rdata->{$_}->{'opendkim_id'}
+					);
+				} else {
+					@sql = ('DELETE FROM `opendkim` WHERE `opendkim_id` = ?', $rdata->{$_}->{'opendkim_id'});
+				}
+			}
+
+			my $rdata2 = $db->doQuery('dummy', @sql);
+			
+			unless(ref $rdata2 eq 'HASH') {
+				error($rdata2);
+				return 1;
+			}
+		}
+		
+		# OpenDKIM daemon must be restartet
+		$rs = $self->_restartDaemonOpendkim();
+		return $rs if $rs;
+	}
 	
 	0;
 }
@@ -253,45 +321,117 @@ sub run
 
 =over 4
 
-=item afterMtaAddDmnOpenDKIM
+=item _addOpendkimDomainKey
  
-Adds the new domain for OpenDKIM support
+Adds the new domain key for OpenDKIM support
  
 Return int 0
  
 =cut
  
-sub afterMtaAddDmnOpenDKIM
+sub _addOpendkimDomainKey
 {
-	my $domainData = shift;
+	my $self = shift;
+	
+	my $domainId = shift;
+	my $aliasId = shift;
+	my $domain = shift;
 	
 	my $rs = 0;
 	
 	my $rdata;
 	
-	my $domain = $domainData->{DOMAIN_NAME};
-	our $domainId;
-	our $aliasId;
+	my $pluginClass;
 	
 	my ($stdout, $stderr);
 	
 	my $db = iMSCP::Database->factory();
-
-	$rdata = $db->doQuery(
-		'domain_id', 'SELECT `domain_id` FROM `domain` WHERE `domain_name` = ?', $domain
-	);
-		
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-		
-	foreach (keys %$rdata) { $domainId = $rdata->{$_}->{domain_id}; }
-		
 	
-	if(! $domainId) {
+	if(! -d '/etc/opendkim/' . $domain) {
+		$rs = iMSCP::Dir->new('dirname' => '/etc/opendkim/' . $domain)->make(
+			{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
+		);
+		return $rs if $rs;
+		
+		
+		$rs = execute('opendkim-genkey -D /etc/opendkim/' . $domain . ' -r -h rsa-sha256 -s mail -d ' . $domain, \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		
+		my $file = iMSCP::File->new('filename' => '/etc/opendkim/' . $domain . '/mail.private');
+		
+		$rs = $file->owner('opendkim', 'opendkim');
+		return $rs if $rs;
+		
+		$file = iMSCP::File->new('filename' => '/etc/opendkim/' . $domain . '/mail.txt');
+		
+		my $fileContent = $file->get();
+		return $fileContent if ! $fileContent;
+		
+		(my $txtRecord) = ($fileContent =~ /(\".*\")/);
+		
+		# Why should i delete this file? I think there is no security risk, and we need this file when the plugin will be re enabled
+		#$rs = $file->delFile();
+		#return $rs if $rs;
+		
+		$rs = $file->owner('opendkim', 'opendkim');
+		return $rs if $rs;
+		
+		# Now add the private key to the KeyTable file
+		$file = iMSCP::File->new('filename' => '/etc/opendkim/KeyTable');
+		
+		$fileContent = $file->get();
+		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
+		
+		my $privateKeyEntry = "mail._domainkey." . $domain . " " . $domain . ":default:/etc/opendkim/" . $domain . "/mail.private\n";
+		
+		$fileContent .= $privateKeyEntry;
+		
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+		
+		$rs = $file->save();
+		return $rs if $rs;
+		
+		# Now add the domain to the SigningTable file
+		$file = iMSCP::File->new('filename' => '/etc/opendkim/SigningTable');
+		
+		$fileContent = $file->get();
+		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
+		
+		my $domainEntry = "*@" . $domain . " mail._domainkey." . $domain . "\n";
+		
+		$fileContent .= $domainEntry;
+		
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+		
+		$rs = $file->save();
+		return $rs if $rs;
+		
+		# Save TXT to database
 		$rdata = $db->doQuery(
-			'domain_id', 'SELECT `alias_id`, `domain_id` FROM `domain_aliasses` WHERE `alias_name` = ?', $domain
+			'domain_id', 
+			"
+				INSERT INTO `domain_dns` (
+					`domain_id`,
+					`alias_id`,
+					`domain_dns`,
+					`domain_class`,
+					`domain_type`,
+					`domain_text`,
+					`owned_by`
+				) VALUES (
+					?
+					, ?
+					, ?
+					, 'IN'
+					, 'TXT'
+					, ?
+					, 'opendkim_feature'
+				)
+			"
+			, $domainId, $aliasId, 'mail._domainkey.' . $domain, $txtRecord
 		);
 		
 		unless(ref $rdata eq 'HASH') {
@@ -299,214 +439,305 @@ sub afterMtaAddDmnOpenDKIM
 			return 1;
 		}
 		
-		foreach (keys %$rdata) {
-			$domainId = $rdata->{$_}->{domain_id};
-			$aliasId = $rdata->{$_}->{alias_id};
-		}
-	}
-	
-	if($domainId) { # As long domain dns not working with subdomain or subdomainalias, domain keys will only created for domains or aliases
-		if(! -d '/etc/imscp/opendkim/' . $domain) {
-			$rs = iMSCP::Dir->new('dirname' => '/etc/imscp/opendkim/' . $domain)->make(
-				{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
-			);
-			return 1 if $rs;
-			
-			
-			$rs = execute('opendkim-genkey -D /etc/imscp/opendkim/' . $domain . ' -r -h rsa-sha256 -s mail -d ' . $domain, \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			
-			my $file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/' . $domain . '/mail.private');
-			
-			$rs = $file->owner('opendkim', 'opendkim');
-			return 1 if $rs;
-			
-			$file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/' . $domain . '/mail.txt');
-			
-			my $fileContent = $file->get();
-			return 1 if ! $fileContent;
-			
-			(my $txtRecord) = ($fileContent =~ /(\".*\")/);
-			
-			# Why should i delete this file? I think there is no security risk
-			#$rs = $file->delFile();
-			#return 1 if $rs;
-			
-			$rs = $file->owner('opendkim', 'opendkim');
-			return 1 if $rs;
-			
-			# Now add the private key to the KeyTable file
-			$file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/KeyTable');
-			
-			$fileContent = $file->get();
-			#return 1 if ! $fileContent; #Must be deactivated because an empty file rise up an error
-			
-			my $privateKeyEntry = "mail._domainkey." . $domain . " " . $domain . ":default:/etc/imscp/opendkim/" . $domain . "/mail.private\n";
-			
-			$fileContent .= $privateKeyEntry;
-			
-			$rs = $file->set($fileContent);
-			return 1 if $rs;
-
-			$rs = $file->save();
-			return 1 if $rs;
-			
-			# Now add the domain to the SigningTable file
-			$file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/SigningTable');
-			
-			$fileContent = $file->get();
-			#return 1 if ! $fileContent; #Must be deactivated because an empty file rise up an error
-			
-			my $domainEntry = "*@" . $domain . " mail._domainkey." . $domain . "\n";
-			
-			$fileContent .= $domainEntry;
-			
-			$rs = $file->set($fileContent);
-			return 1 if $rs;
-
-			$rs = $file->save();
-			return 1 if $rs;
-			
-			# Save TXT to database
+		if($aliasId eq '0') {
 			$rdata = $db->doQuery(
-				'domain_id', 
+				'dummy',
 				"
-					INSERT INTO `domain_dns` (
-						`domain_id`,
-						`alias_id`,
-						`domain_dns`,
-						`domain_class`,
-						`domain_type`,
-						`domain_text`,
-						`protected`
-					) VALUES (
-						?
-						, ?
-						, ?
-						, 'IN'
-						, 'TXT'
-						, ?
-						, 'yes'
-					)
+					UPDATE
+						`domain`
+					SET
+						`domain_status` = 'tochange',
+						`domain_dns` = 'yes'
+					WHERE
+						`domain_id` = ?
 				"
-				, $domainId, ($aliasId ? $aliasId : 0), 'mail._domainkey.' . $domain, $txtRecord
+				, $domainId
 			);
-			
-			unless(ref $rdata eq 'HASH') {
-				error($rdata);
-				return 1;
-			}
-			
-			# OpenDKIM daemon must be restartet
-			my $pluginClass = "Plugin::OpenDKIM";
-			$rs = $pluginClass->_restartDaemonOpenDKIM();
-			return 1 if $rs;
-			
-			if(! $aliasId) {
-				$rdata = $db->doQuery(
-					'dummy',
-					"
-						UPDATE
-							`domain`
-						SET
-							`domain_status` = 'tochange',
-							`domain_dns` = 'yes'
-						WHERE
-							`domain_id` = ?
-					"
-					, $domainId
-				);
-			} else {
-				$rdata = $db->doQuery(
-					'dummy',
-					"
-						UPDATE
-							`domain_aliasses`
-						SET
-							`alias_status` = 'tochange'
-						WHERE
-							`alias_id` = ?
-					"
-					, $aliasId
-				);
-			}
-			
-			unless(ref $rdata eq 'HASH') {
-				error($rdata);
-				return 1;
-			}
-			
-			if(! $aliasId) {
-				$pluginClass = "Modules::Domain";
-				$rs = $pluginClass->new()->process($domainId);
-			} else {
-				$pluginClass = "Modules::Alias";
-				$rs = $pluginClass->new()->process($aliasId);
-			}
-			return 1 if $rs;
+		} else {
+			$rdata = $db->doQuery(
+				'dummy',
+				"
+					UPDATE
+						`domain_aliasses`
+					SET
+						`alias_status` = 'tochange'
+					WHERE
+						`alias_id` = ?
+				"
+				, $aliasId
+			);
 		}
+		
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
+		
+		if($aliasId eq '0') {	
+			$pluginClass = "Modules::Domain";
+			$rs = $pluginClass->new()->process($domainId);
+		} else {
+			require Modules::Alias;
+			$pluginClass = "Modules::Alias";
+			$rs = $pluginClass->new()->process($aliasId);
+		}
+		return $rs if $rs;
 	}
 
 	0;
 }
 
-=item afterMtaDelDmnOpenDKIM
+=item _recoverOpendkimDnsEntries
  
-Adds the new domain for OpenDKIM support
+Recover dns entries after disabling the OpenDKIM plugin
  
 Return int 0
  
 =cut
  
-sub afterMtaDelDmnOpenDKIM
+sub _recoverOpendkimDnsEntries
 {
-	my $domainData = shift;
+	my $self = shift;
 	
 	my $rs = 0;
 	
-	my $domain = $domainData->{DOMAIN_NAME};
+	my $rdata;
+	my $rdata2;
 	
-	my $rs = iMSCP::Dir->new('dirname' => '/etc/imscp/opendkim/' . $domain)->remove() if -d '/etc/imscp/opendkim/' . $domain;
-	return 1 if $rs;
+	my $pluginClass;
+	
+	my ($stdout, $stderr);
+	
+	my $db = iMSCP::Database->factory();
+	
+	$rdata = $db->doQuery(
+		'opendkim_id', 
+		"
+			SELECT
+				`opendkim_id`, `domain_id`,
+				`alias_id`, `domain_name`
+			FROM
+				`opendkim`
+			WHERE
+				`opendkim_status` = 'ok'
+			ORDER BY
+				`domain_id` ASC, `alias_id` ASC
+		"
+	);
+	
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+	
+	if(%{$rdata}) {
+		for(keys %{$rdata}) {
+		
+			my $domain = $rdata->{$_}->{'domain_name'};
+			my $domainId = $rdata->{$_}->{'domain_id'};
+			my $aliasId = $rdata->{$_}->{'alias_id'};
+			
+			if(-d '/etc/opendkim/' . $domain) {
+			
+				my $file = iMSCP::File->new('filename' => '/etc/opendkim/' . $domain . '/mail.txt');
+				
+				my $fileContent = $file->get();
+				return $fileContent if ! $fileContent;
+				
+				(my $txtRecord) = ($fileContent =~ /(\".*\")/);
+				
+				# Save TXT to database
+				$rdata2 = $db->doQuery(
+					'domain_id', 
+					"
+						INSERT INTO `domain_dns` (
+							`domain_id`,
+							`alias_id`,
+							`domain_dns`,
+							`domain_class`,
+							`domain_type`,
+							`domain_text`,
+							`owned_by`
+						) VALUES (
+							?
+							, ?
+							, ?
+							, 'IN'
+							, 'TXT'
+							, ?
+							, 'opendkim_feature'
+						)
+					"
+					, $domainId, $aliasId, 'mail._domainkey.' . $domain, $txtRecord
+				);
+				
+				unless(ref $rdata2 eq 'HASH') {
+					error($rdata2);
+					return 1;
+				}
+				
+				if($aliasId eq '0') {
+					$rdata2 = $db->doQuery(
+						'dummy',
+						"
+							UPDATE
+								`domain`
+							SET
+								`domain_status` = 'tochange',
+								`domain_dns` = 'yes'
+							WHERE
+								`domain_id` = ?
+						"
+						, $domainId
+					);
+				} else {
+					$rdata2 = $db->doQuery(
+						'dummy',
+						"
+							UPDATE
+								`domain_aliasses`
+							SET
+								`alias_status` = 'tochange'
+							WHERE
+								`alias_id` = ?
+						"
+						, $aliasId
+					);
+				}
+				
+				unless(ref $rdata2 eq 'HASH') {
+					error($rdata2);
+					return 1;
+				}
+				
+				if($aliasId eq '0') {	
+					$pluginClass = "Modules::Domain";
+					$rs = $pluginClass->new()->process($domainId);
+				} else {
+					require Modules::Alias;
+					$pluginClass = "Modules::Alias";
+					$rs = $pluginClass->new()->process($aliasId);
+				}
+				return $rs if $rs;
+			} else {
+				error('The OpenDKIM folder for the domain ' . $rdata->{$_}->{'domain_name'} . ' does not exist!');
+			}
+		}
+	}
+
+	0;
+}
+
+=item _deleteOpendkimDomainKey
+ 
+Deletes domain key from OpenDKIM support
+ 
+Return int 0
+ 
+=cut
+ 
+sub _deleteOpendkimDomainKey
+{
+	my $self = shift;
+	
+	my $domainId = shift;
+	my $aliasId = shift;
+	my $domain = shift;
+	my $customerDnsPreviousStatus = shift;
+	
+	my $rs = 0;
+	
+	my $rdata;
+	my $rdata2;
+	
+	my $pluginClass;
+	
+	my $db = iMSCP::Database->factory();
+	
+	$rs = iMSCP::Dir->new('dirname' => '/etc/opendkim/' . $domain)->remove() if -d '/etc/opendkim/' . $domain;
+	return $rs if $rs;
 	
 	# Remove domain from KeyTable file
-	my $file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/KeyTable');
+	my $file = iMSCP::File->new('filename' => '/etc/opendkim/KeyTable');
 	
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
+	#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 	
 	$fileContent =~ s/.*$domain.*\n//g;
 	
 	$rs = $file->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->save();
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	# Remove domain from SigningTable file
-	$file = iMSCP::File->new('filename' => '/etc/imscp/opendkim/SigningTable');
+	$file = iMSCP::File->new('filename' => '/etc/opendkim/SigningTable');
 	
 	$fileContent = $file->get();
-	return 1 if ! $fileContent;
+	#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 	
 	$fileContent =~ s/.*$domain.*\n//g;
 	
 	$rs = $file->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->save();
-	return 1 if $rs;
+	return $rs if $rs;
 	
-	# OpenDKIM daemon must be restartet
-	my $pluginClass = "Plugin::OpenDKIM";
-	$rs = $pluginClass->_restartDaemonOpenDKIM();
-	return 1 if $rs;
+	$rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `domain_dns` = ?', 'mail._domainkey.' . $domain);
+	
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+	
+	if($aliasId eq '0') {
+		$rdata = $db->doQuery('domain_dns_id', "SELECT * FROM `domain_dns` WHERE `domain_id` = ?", $domainId);
+		
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
+		
+		if(%{$rdata}) {
+			$rdata2 = $db->doQuery('dummy', "UPDATE `domain` SET `domain_status` = 'tochange' WHERE `domain_id` = ?", $domainId);
+			
+			unless(ref $rdata2 eq 'HASH') {
+				error($rdata2);
+				return 1;
+			}
+		} else {
+			$rdata2 = $db->doQuery('dummy', "UPDATE `domain` SET `domain_status` = 'tochange', `domain_dns` = ? WHERE `domain_id` = ?", $customerDnsPreviousStatus, $domainId);
+			
+			unless(ref $rdata2 eq 'HASH') {
+				error($rdata2);
+				return 1;
+			}
+		}
+	} else {
+		$rdata = $db->doQuery('dummy', "UPDATE `domain_aliasses` SET `alias_status` = 'tochange' WHERE `alias_id` = ?", $aliasId);
+		
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
+	}
+
+	if($aliasId eq '0') {	
+		$pluginClass = "Modules::Domain";
+		$rs = $pluginClass->new()->process($domainId);
+	} else {
+		require Modules::Alias;
+		$pluginClass = "Modules::Alias";
+		$rs = $pluginClass->new()->process($aliasId);
+	}
+	return $rs if $rs;
 	
 	0;
 }
 
-=item _modifyOpenDKIMSystemConfig()
+=item _modifyOpendkimSystemConfig()
 
  Modify OpenDKIM system config file
 
@@ -514,7 +745,7 @@ sub afterMtaDelDmnOpenDKIM
 
 =cut
 
-sub _modifyOpenDKIMSystemConfig
+sub _modifyOpendkimSystemConfig
 {
 	my $self = shift;
 	my $action = shift;
@@ -525,13 +756,13 @@ sub _modifyOpenDKIMSystemConfig
 	my $file = iMSCP::File->new('filename' => $opendkimSystemconf);
 
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
+	return $fileContent if ! $fileContent;
 	
 	my $opendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
-	$opendkimConfig .= "KeyTable\t\trefile:/etc/imscp/opendkim/KeyTable\n";
-	$opendkimConfig .= "SigningTable\t\trefile:/etc/imscp/opendkim/SigningTable\n";
-	$opendkimConfig .= "ExternalIgnoreList\t/etc/imscp/opendkim/TrustedHosts\n";
-	$opendkimConfig .= "InternalHosts\t\t/etc/imscp/opendkim/TrustedHosts\n";
+	$opendkimConfig .= "KeyTable\t\trefile:/etc/opendkim/KeyTable\n";
+	$opendkimConfig .= "SigningTable\t\trefile:/etc/opendkim/SigningTable\n";
+	$opendkimConfig .= "ExternalIgnoreList\t/etc/opendkim/TrustedHosts\n";
+	$opendkimConfig .= "InternalHosts\t\t/etc/opendkim/TrustedHosts\n";
 	$opendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	
 	if($action eq 'add') {
@@ -546,13 +777,13 @@ sub _modifyOpenDKIMSystemConfig
 	}
 	
 	my $rs = $file->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->save();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _modifyOpenDKIMDefaultConfig()
+=item _modifyOpendkimDefaultConfig()
 
  Modify OpenDKIM default config file
 
@@ -560,7 +791,7 @@ sub _modifyOpenDKIMSystemConfig
 
 =cut
 
-sub _modifyOpenDKIMDefaultConfig
+sub _modifyOpendkimDefaultConfig
 {
 	my $self = shift;
 	my $action = shift;
@@ -599,7 +830,7 @@ sub _modifyOpenDKIMDefaultConfig
 	my $file = iMSCP::File->new('filename' => $opendkimDefaultConfig);
 	
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
+	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
@@ -612,10 +843,10 @@ sub _modifyOpenDKIMDefaultConfig
 	}
 	
 	my $rs = $file->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->save();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item _modifyPostfixMainConfig()
@@ -667,7 +898,7 @@ sub _modifyPostfixMainConfig
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
 	
 	my $fileContent = $file->get();
-	return 1 if ! $fileContent;
+	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
@@ -680,13 +911,13 @@ sub _modifyPostfixMainConfig
 	}
 	
 	my $rs = $file->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->save();
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _createOpenDKIMTableFileDir()
+=item _createOpendkimFileDir()
 
  Creates directory for KeyTable and SigningTable files
 
@@ -694,26 +925,26 @@ sub _modifyPostfixMainConfig
 
 =cut
 
-sub _createOpenDKIMTableFileDir
+sub _createOpendkimFileDir
 {
 	my $self = shift;
 	
-	my $rs = iMSCP::Dir->new('dirname' => '/etc/imscp/opendkim')->make(
+	my $rs = iMSCP::Dir->new('dirname' => '/etc/opendkim/')->make(
 		{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
 	);
-	return 1 if $rs;
+	return $rs if $rs;
 	
-	$rs = $self->_createOpenDKIMKeyTableFile();
-	return 1 if $rs;
+	$rs = $self->_createOpendkimKeyTableFile();
+	return $rs if $rs;
 	
-	$rs = $self->_createOpenDKIMSigningTableFile();
-	return 1 if $rs;
+	$rs = $self->_createOpendkimSigningTableFile();
+	return $rs if $rs;
 	
-	$rs = $self->_createOpenDKIMTrustedHostsFile();
-	return 1 if $rs;
+	$rs = $self->_createOpendkimTrustedHostsFile();
+	return $rs if $rs;
 }
 
-=item _createOpenDKIMTableFiles()
+=item _createOpendkimTableFiles()
 
  Creates KeyTable and SigningTable file
 
@@ -721,23 +952,23 @@ sub _createOpenDKIMTableFileDir
 
 =cut
 
-sub _createOpenDKIMKeyTableFile
+sub _createOpendkimKeyTableFile
 {
 	my $self = shift;
 	
-	my $KeyTable = iMSCP::File->new('filename' => '/etc/imscp/opendkim/KeyTable');
+	my $KeyTable = iMSCP::File->new('filename' => '/etc/opendkim/KeyTable');
 	
 	my $rs = $KeyTable->save();
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $KeyTable->mode(0640);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $KeyTable->owner('opendkim', 'opendkim');
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _createOpenDKIMSigningTableFile()
+=item _createOpendkimSigningTableFile()
 
  Creates SigningTable file
 
@@ -745,23 +976,23 @@ sub _createOpenDKIMKeyTableFile
 
 =cut
 
-sub _createOpenDKIMSigningTableFile
+sub _createOpendkimSigningTableFile
 {
 	my $self = shift;
 	
-	my $SigningTable = iMSCP::File->new('filename' => '/etc/imscp/opendkim/SigningTable');
+	my $SigningTable = iMSCP::File->new('filename' => '/etc/opendkim/SigningTable');
 	
 	my $rs = $SigningTable->save();
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $SigningTable->mode(0640);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $SigningTable->owner('opendkim', 'opendkim');
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _createOpenDKIMTrustedHostsFile()
+=item _createOpendkimTrustedHostsFile()
 
  Creates TrustedHosts file
 
@@ -769,29 +1000,48 @@ sub _createOpenDKIMSigningTableFile
 
 =cut
 
-sub _createOpenDKIMTrustedHostsFile
+sub _createOpendkimTrustedHostsFile
 {
 	my $self = shift;
 	
-	my $TrustedHostsFile = iMSCP::File->new('filename' => '/etc/imscp/opendkim/TrustedHosts');
+	my $fileContent;
 	
-	my $fileContent = "127.0.0.1\n";
-	$fileContent .= "localhost\n";
+	my $TrustedHostsFile = iMSCP::File->new('filename' => '/etc/opendkim/TrustedHosts');
+	
+	my $db = iMSCP::Database->factory();
+
+	my $rdata = $db->doQuery(
+		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'OpenDKIM'
+	);
+
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+
+	require JSON;
+	JSON->import();
+	
+	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
+
+	while (my($opendkimConfigKey, $opendkimConfigValue) = each($opendkimConfig->{'opendkim_trusted_hosts'})) {
+		$fileContent .= $opendkimConfigValue . "\n";
+	}
 	
 	my $rs = $TrustedHostsFile->set($fileContent);
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$rs = $TrustedHostsFile->save();
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $TrustedHostsFile->mode(0640);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $TrustedHostsFile->owner('opendkim', 'opendkim');
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _registerOpenDKIMHook()
+=item _registerOpendkimHook()
 
  Register new hook to /etc/imscp/hooks.d
 
@@ -799,7 +1049,7 @@ sub _createOpenDKIMTrustedHostsFile
 
 =cut
 
-sub _registerOpenDKIMHook
+sub _registerOpendkimHook
 {
 	my $self = shift;
 
@@ -807,18 +1057,18 @@ sub _registerOpenDKIMHook
 	
 	my $file = iMSCP::File->new('filename' => $hookOpendkim);
 	my $rs = $file->copyFile($main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
-	return 1 if $rs;
+	return $rs if $rs;
 	
 	$file = iMSCP::File->new('filename' => $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
 	
 	$rs = $file->mode(0640);
-	return 1 if $rs;
+	return $rs if $rs;
 
 	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
-=item _unregisterOpenDKIMHook()
+=item _unregisterOpendkimHook()
 
  Unregister OpenDKIM hook from /etc/imscp/hooks.d
 
@@ -826,7 +1076,7 @@ sub _registerOpenDKIMHook
 
 =cut
 
-sub _unregisterOpenDKIMHook
+sub _unregisterOpendkimHook
 {
 	my $self = shift;
 
@@ -834,11 +1084,11 @@ sub _unregisterOpenDKIMHook
 	
 	if(-f $hookOpendkim) {
 		my $rs = iMSCP::File->new('filename' => $hookOpendkim)->delFile();
-		return 1 if $rs;
+		return $rs if $rs;
 	}
 }
 
-=item _restartDaemonOpenDKIM()
+=item _restartDaemonOpendkim()
 
  Restart the OpenDKIM daemon
 
@@ -846,7 +1096,7 @@ sub _unregisterOpenDKIMHook
 
 =cut
 
-sub _restartDaemonOpenDKIM
+sub _restartDaemonOpendkim
 {
 	my $self = shift;
 	
@@ -856,7 +1106,7 @@ sub _restartDaemonOpenDKIM
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =item _restartDaemonPostfix()
@@ -893,32 +1143,32 @@ sub _checkRequirements
 	my $self = shift;	
 	my $rs = 0;
 
-	if(! -d '/etc/imscp/opendkim') {
-		$rs = $self->_createOpenDKIMTableFileDir();
-		return 1 if $rs;
+	if(! -d '/etc/opendkim/') {
+		$rs = $self->_createOpendkimFileDir();
+		return $rs if $rs;
 	} else {
-		if(! -f '/etc/imscp/opendkim/KeyTable') {
-			$rs = $self->_createOpenDKIMKeyTableFile();
-			return 1 if $rs;
+		if(! -f '/etc/opendkim/KeyTable') {
+			$rs = $self->_createOpendkimKeyTableFile();
+			return $rs if $rs;
 		}
-		if(! -f '/etc/imscp/opendkim/SigningTable') {
-			$rs = $self->_createOpenDKIMSigningTableFile();
-			return 1 if $rs;
+		if(! -f '/etc/opendkim/SigningTable') {
+			$rs = $self->_createOpendkimSigningTableFile();
+			return $rs if $rs;
 		}
-		if(! -f '/etc/imscp/opendkim/SigningTable') {
-			$rs = $self->_createOpenDKIMTrustedHostsFile();
-			return 1 if $rs;
+		if(! -f '/etc/opendkim/SigningTable') {
+			$rs = $self->_createOpendkimTrustedHostsFile();
+			return $rs if $rs;
 		}
 	}
 	
-	$rs = $self->_modifyOpenDKIMSystemConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimSystemConfig('add');
+	return $rs if $rs;
 	
-	$rs = $self->_modifyOpenDKIMDefaultConfig('add');
-	return 1 if $rs;
+	$rs = $self->_modifyOpendkimDefaultConfig('add');
+	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMainConfig('add');
-	return 1 if $rs;
+	return $rs if $rs;
 }
 
 =back

@@ -72,7 +72,7 @@ sub onAfterMtaBuildOpenDKIM
 	my $rs = $db->connect();
 	if($rs) {
 		error("Unable to connect to the i-MSCP '$imscpDbName' SQL database: $rs");
-		return 1 if $rs;
+		return $rs if $rs;
 	}
 
 	my $rdata = $db->doQuery(

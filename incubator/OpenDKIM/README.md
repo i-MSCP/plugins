@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc3
+	Plugin compatible with i-MSCP versions >= 1.1.0.rc4
 	installation of opendkim (apt-get install opendkim)
 	installation of opendkim-tools (apt-get install opendkim-tools)
 	
@@ -50,6 +50,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 You can set the port in the file plugins/OpenDKIM/config.php
 Use min. 4 and not more as 5 digits and not greater 65535
 Default and fallback port is: 12345
+
+You can set trusted domains in the config.php. As default 127.0.0.1 and localhost are added
 
 ### AUTHORS AND CONTRIBUTORS
 
