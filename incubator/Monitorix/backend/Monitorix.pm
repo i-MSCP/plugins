@@ -77,8 +77,7 @@ sub install
 	$rs = $self->_restartDaemonMonitorix();
 	return $rs if $rs;
 
-	$rs = $self->_buildMonitorixGraphics();
-	return $rs if $rs;
+	$self->buildMonitorixGraphics();
 }
 
 =item change()
@@ -96,8 +95,7 @@ sub change
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$rs = $self->_buildMonitorixGraphics();
-	return $rs if $rs;
+	$self->buildMonitorixGraphics();
 }
 
 =item update()
@@ -124,8 +122,7 @@ sub update
 	$rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$rs = $self->_buildMonitorixGraphics();
-	return $rs if $rs;
+	$self->buildMonitorixGraphics();
 }
 
 =item enable()
@@ -143,8 +140,7 @@ sub enable
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
 
-	$rs = $self->_buildMonitorixGraphics();
-	return $rs if $rs;
+	$self->buildMonitorixGraphics();
 }
 
 =item disable()
@@ -212,31 +208,7 @@ sub run
 	0;
 }
 
-=back
-
-=head1 PRIVATE METHODS
-
-=over 4
-
-=item _init()
-
- Initialize plugin
-
- Return Plugin::Mailgraph
-
-=cut
-
-sub _init
-{
-	my $self = shift;
-
-	# Force return value from plugin module
-	$self->{'FORCE_RETVAL'} = 'yes';
-
-	$self;
-}
-
-=item _buildMonitorixGraphics()
+=item buildMonitorixGraphics()
 
  Build monitorix graphics
 
@@ -244,7 +216,7 @@ sub _init
 
 =cut
 
-sub _buildMonitorixGraphics
+sub buildMonitorixGraphics
 {
 	my $self = shift;
 
@@ -284,6 +256,30 @@ sub _buildMonitorixGraphics
 	}
 	
 	$self->_setMonitorixGraphicsPermission();
+}
+
+=back
+
+=head1 PRIVATE METHODS
+
+=over 4
+
+=item _init()
+
+ Initialize plugin
+
+ Return Plugin::Mailgraph
+
+=cut
+
+sub _init
+{
+	my $self = shift;
+
+	# Force return value from plugin module
+	$self->{'FORCE_RETVAL'} = 'yes';
+
+	$self;
 }
 
 =item _createMonitorixGraphics()
