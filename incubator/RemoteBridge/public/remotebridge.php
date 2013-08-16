@@ -621,7 +621,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			$query,
 			array(
 				$dmnUsername, $admin_pass, $resellerId, $fname, $lname, $firm, $zip, $city, $state,
-				$country, $userEmail, $phone, $fax, $street1, $street2, $customer_id, $gender, $cfg->ITEM_ADD_STATUS
+				$country, $userEmail, $phone, $fax, $street1, $street2, $customer_id, $gender, $cfg->ITEM_TOADD_STATUS
 			)
 		);
 
@@ -677,7 +677,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			$query,
 			array(
 				$dmnUsername, $recordId, $resellerId, time(), $dmnExpire, $domain_mailacc_limit, $domain_ftpacc_limit, $domain_traffic_limit, $domain_sqld_limit, $domain_sqlu_limit,
-				$cfg->ITEM_ADD_STATUS, $domain_subd_limit, $domain_alias_limit, $domain_ip_id, $domain_disk_limit, 0, $domain_php, $domain_cgi, $allowbackup, $domain_dns, $domain_software_allowed, $phpini_perm_system,
+				$cfg->ITEM_TOADD_STATUS, $domain_subd_limit, $domain_alias_limit, $domain_ip_id, $domain_disk_limit, 0, $domain_php, $domain_cgi, $allowbackup, $domain_dns, $domain_software_allowed, $phpini_perm_system,
 				$phpini_perm_allow_url_fopen, $phpini_perm_display_errors, $phpini_perm_disable_functions, $domain_external_mail, $webFolderProtection
 			)
 		);
@@ -698,12 +698,12 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		}
 
 		$query = 'INSERT INTO `htaccess_users` (`dmn_id`, `uname`, `upass`, `status`) VALUES (?, ?, ?, ?)';
-		exec_query($query, array($dmnId, $dmnUsername, cryptPasswordWithSalt($pure_user_pass), $cfg->ITEM_ADD_STATUS));
+		exec_query($query, array($dmnId, $dmnUsername, cryptPasswordWithSalt($pure_user_pass), $cfg->ITEM_TOADD_STATUS));
 
 		$user_id = $db->insertId();
 
 		$query = 'INSERT INTO `htaccess_groups` (`dmn_id`, `ugroup`, `members`, `status`) VALUES (?, ?, ?, ?)';
-		exec_query($query, array($dmnId, $cfg->WEBSTATS_GROUP_AUTH, $user_id, $cfg->ITEM_ADD_STATUS));
+		exec_query($query, array($dmnId, $cfg->WEBSTATS_GROUP_AUTH, $user_id, $cfg->ITEM_TOADD_STATUS));
 		
 		// Create default addresses if needed
 		if ($cfg->CREATE_DEFAULT_EMAIL_ADDRESSES) {
@@ -851,7 +851,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				)
 			";
 			exec_query(
-				$query, array($customerDmnId, $alias_domain, $mountPoint, $cfg->ITEM_ADD_STATUS, $domain_ip_id)
+				$query, array($customerDmnId, $alias_domain, $mountPoint, $cfg->ITEM_TOADD_STATUS, $domain_ip_id)
 			);
 			
 			$alsId = $db->insertId();
