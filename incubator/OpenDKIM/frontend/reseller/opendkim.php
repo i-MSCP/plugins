@@ -66,7 +66,7 @@ function opendkim_generateSelect($tpl, $resellerId)
 			$tpl->assign(
 				array(
 					'TR_OPENDKIM_SELECT_VALUE' => $data['domain_id'],
-					'TR_OPENDKIM_SELECT_NAME' => $data['domain_name'],
+					'TR_OPENDKIM_SELECT_NAME' => decode_idna($data['domain_name']),
 					)
 				);
 
@@ -181,7 +181,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 				while ($data2 = $stmt2->fetchRow()) {
 					$tpl->assign(
 						array(
-							'OPENDKIM_DOMAIN_NAME' => $data2['domain_name'],
+							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
 							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text']) ? $data2['domain_text'] : tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
 							'OPENDKIM_id' => $data2['opendkim_id'],
 							'OPENDKIM_KEY_STATUS' => $data2['opendkim_status']
@@ -200,9 +200,9 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 			
 			$tpl->assign(
 				array(
-					'TR_OPENDKIM_DOMAIN' => tr('OpenDKIM domain entries for customer: %s', $data['domain_name']),
-					'TR_OPENDKIM_DEACTIVATE_DOMAIN' => tr('Deativate OpenDKIM for customer: %s', $data['domain_name']),
-					'TR_DEACTIVATE_DOMAIN_TOOLTIP' => tr('This will deactivate OpenDKIM for the customer %s.', $data['domain_name']),
+					'TR_OPENDKIM_DOMAIN' => tr('OpenDKIM domain entries for customer: %s', decode_idna($data['domain_name'])),
+					'TR_OPENDKIM_DEACTIVATE_DOMAIN' => tr('Deativate OpenDKIM for customer: %s', decode_idna($data['domain_name'])),
+					'TR_DEACTIVATE_DOMAIN_TOOLTIP' => tr('This will deactivate OpenDKIM for the customer %s.', decode_idna($data['domain_name'])),
 					'OPENDKIM_DOMAIN_ID' => $data['domain_id']
 				)
 			);

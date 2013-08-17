@@ -78,8 +78,7 @@ sub install
 	$rs = $self->_restartDaemonOpendkim();
 	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
+	$self->_restartDaemonPostfix();
 }
 
 =item change()
@@ -109,8 +108,7 @@ sub change
 	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
+	$self->_restartDaemonPostfix();
 }
 
 =item update()
@@ -146,8 +144,7 @@ sub update
 	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
+	$self->_restartDaemonPostfix();
 }
 
 =item enable()
@@ -171,8 +168,7 @@ sub enable
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
 	
-	$rs = $self->_recoverOpendkimDnsEntries();
-	return $rs if $rs;
+	$self->_recoverOpendkimDnsEntries();
 }
 
 =item disable()
@@ -193,8 +189,7 @@ sub disable
 	$rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
+	$self->_restartDaemonPostfix();
 }
 
 =item uninstall()
@@ -229,8 +224,7 @@ sub uninstall
 	$rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
 	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
+	$self->_restartDaemonPostfix();
 }
 
 =item run()
@@ -779,8 +773,7 @@ sub _modifyOpendkimSystemConfig
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$rs = $file->save();
-	return $rs if $rs;
+	$file->save();
 }
 
 =item _modifyOpendkimDefaultConfig()
@@ -845,8 +838,7 @@ sub _modifyOpendkimDefaultConfig
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$rs = $file->save();
-	return $rs if $rs;
+	$file->save();
 }
 
 =item _modifyPostfixMainConfig()
@@ -913,8 +905,7 @@ sub _modifyPostfixMainConfig
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$rs = $file->save();
-	return $rs if $rs;
+	$file->save();
 }
 
 =item _createOpendkimFileDir()
@@ -940,8 +931,7 @@ sub _createOpendkimFileDir
 	$rs = $self->_createOpendkimSigningTableFile();
 	return $rs if $rs;
 	
-	$rs = $self->_createOpendkimTrustedHostsFile();
-	return $rs if $rs;
+	$self->_createOpendkimTrustedHostsFile();
 }
 
 =item _createOpendkimTableFiles()
@@ -964,8 +954,7 @@ sub _createOpendkimKeyTableFile
 	$rs = $KeyTable->mode(0640);
 	return $rs if $rs;
 
-	$rs = $KeyTable->owner('opendkim', 'opendkim');
-	return $rs if $rs;
+	$KeyTable->owner('opendkim', 'opendkim');
 }
 
 =item _createOpendkimSigningTableFile()
@@ -988,8 +977,7 @@ sub _createOpendkimSigningTableFile
 	$rs = $SigningTable->mode(0640);
 	return $rs if $rs;
 
-	$rs = $SigningTable->owner('opendkim', 'opendkim');
-	return $rs if $rs;
+	$SigningTable->owner('opendkim', 'opendkim');
 }
 
 =item _createOpendkimTrustedHostsFile()
@@ -1037,8 +1025,7 @@ sub _createOpendkimTrustedHostsFile
 	$rs = $TrustedHostsFile->mode(0640);
 	return $rs if $rs;
 
-	$rs = $TrustedHostsFile->owner('opendkim', 'opendkim');
-	return $rs if $rs;
+	$TrustedHostsFile->owner('opendkim', 'opendkim');
 }
 
 =item _registerOpendkimHook()
@@ -1064,8 +1051,7 @@ sub _registerOpendkimHook
 	$rs = $file->mode(0640);
 	return $rs if $rs;
 
-	$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-	return $rs if $rs;
+	$file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
 }
 
 =item _unregisterOpendkimHook()
@@ -1167,8 +1153,7 @@ sub _checkRequirements
 	$rs = $self->_modifyOpendkimDefaultConfig('add');
 	return $rs if $rs;
 	
-	$rs = $self->_modifyPostfixMainConfig('add');
-	return $rs if $rs;
+	$self->_modifyPostfixMainConfig('add');
 }
 
 =back

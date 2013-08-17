@@ -89,7 +89,7 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 				while ($data2 = $stmt2->fetchRow()) {
 					$tpl->assign(
 						array(
-							'OPENDKIM_DOMAIN_NAME' => $data2['domain_name'],
+							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
 							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text']) ? $data2['domain_text'] : tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
 							'OPENDKIM_id' => $data2['opendkim_id'],
 							'OPENDKIM_KEY_STATUS' => $data2['opendkim_status']
