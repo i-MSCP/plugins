@@ -124,6 +124,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 
 		$this->routes = array(
 			'/reseller/remotebridge.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/remotebridge.php',
+			'/reseller/remotebridge_downloads.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/remotebridge_downloads.php',
 			'/remotebridge.php' => PLUGINS_PATH . '/' . $pluginName . '/public/remotebridge.php'
 		);
 	}

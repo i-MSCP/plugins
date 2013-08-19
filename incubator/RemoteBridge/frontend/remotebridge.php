@@ -218,7 +218,6 @@ function deleteRemoteBridge($bridgeKey,$serverIpAddr)
 	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
 }
 
-
 /**
  * Generate page.
  *
@@ -317,6 +316,42 @@ function bridge_generatePage($tpl)
 	}
 }
 
+function bridge_generateDownloads($tpl, $pluginManager)
+{
+	/** @var $cfg iMSCP_Config_Handler_File */
+	$cfg = iMSCP_Registry::get('config');
+	
+	if (($plugin = $pluginManager->load('RemoteBridge', false, false)) !== null) {
+		$pluginConfig = $plugin->getConfig();
+
+		if($pluginConfig['downloads_enabled'] && count($pluginConfig['remote_bridge_downloads']) > 0) {
+			foreach ($pluginConfig['remote_bridge_downloads'] as $key => $value) {
+				$tpl->assign(
+					array(
+						'BRIDGE_DOWNLOAD_DESCRIPTION' => $pluginConfig['download_description'][$key],
+						'BRIDGE_DOWNLOAD_FILE' => $value,
+					)
+				);
+
+				$tpl->parse('BRIDGE_DOWNLOAD_ITEM', '.bridge_download_item');
+			}
+		} else {
+			$tpl->assign(
+				array(
+					'BRIDGE_DOWNLOADS' => ''
+				)
+			);
+		}
+	} else {
+		$tpl->assign(
+			array(
+				'BRIDGE_DOWNLOADS' => ''
+			)
+		);
+	}
+}
+
+
 /***********************************************************************************************************************
  * Main
  */
@@ -325,6 +360,13 @@ function bridge_generatePage($tpl)
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onResellerScriptStart);
 
 check_login('reseller');
+
+if(iMSCP_Registry::isRegistered('pluginManager')) {
+	/** @var iMSCP_Plugin_Manager $pluginManager */
+	$pluginManager = iMSCP_Registry::get('pluginManager');
+} else {
+	throw new iMSCP_Plugin_Exception('An unexpected error occured');
+}
 
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
@@ -357,7 +399,9 @@ $tpl->define_dynamic(
 		'page' => '../../plugins/RemoteBridge/frontend/remotebridge.tpl',
 		'page_message' => 'layout',
 		'bridge_lists' => 'page',
-		'bridge_list' => 'bridge_lists'
+		'bridge_list' => 'bridge_lists',
+		'bridge_downloads' => 'page',
+		'bridge_download_item' => 'page',
 	)
 );
 
@@ -370,6 +414,9 @@ $tpl->assign(
 		'TR_IP' => tr('IP'),
 		'TR_BRIDGE_KEY' => tr('Bridge key'),
 		'TR_GENERATE_BRIDGEKEY' => tr('Generate Bridge Key'),
+		'TR_BRIDGE_DOWNLOADS' => tr('Remote Bridge - Downloads'),
+		'TR_BRIDGE_DOWNLOAD_DESCRIPTION' => tr('Description'),
+		'TR_BRIDGE_DOWNLOAD_FILE' => tr('Downloadlink'),
 		'TR_STATUS' => tr('Status'),
 		'TR_ACTION' => tr('Action'),
 		'TR_EDIT' => tr('Edit'),
@@ -384,7 +431,10 @@ $tpl->assign(
 );
 
 generateNavigation($tpl);
+
 bridge_generatePage($tpl);
+bridge_generateDownloads($tpl, $pluginManager);
+
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

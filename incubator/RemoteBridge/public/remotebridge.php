@@ -48,12 +48,18 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 			$resellerHostingPlan = (isset($postData['hosting_plan'])) ? checkResellerHostingPlan($resellerId, $postData['hosting_plan']) : array();
 			$resellerIpaddress = checkResellerAssignedIP($resellerId);
 			(count($resellerHostingPlan) == 0) ? checkLimitsPostData($postData, $resellerId) : '';
+			
 			createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData);
+			
 			break;
+			
 		case 'addalias':
 			$resellerIpaddress = checkResellerAssignedIP($resellerId);
+			
 			addAliasDomain($resellerId, $resellerIpaddress, $postData);
+			
 			break;
+			
 		case 'terminate':
 			if (empty($postData['domain'])) {
 				logoutReseller();
@@ -66,8 +72,11 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 					)
 				);
 			}
+			
 			deleteUser($resellerId, $postData['domain']);
+			
 			break;
+			
 		case 'suspend':
 			if (empty($postData['domain'])) {
 				logoutReseller();
@@ -80,8 +89,11 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 					)
 				);
 			}
+			
 			disableUser($resellerId, $postData['domain']);
+			
 			break;
+			
 		case 'unsuspend':
 			if (empty($postData['domain'])) {
 				logoutReseller();
@@ -94,21 +106,42 @@ if(isset($_POST['key']) && isset($_POST['data'])) {
 					)
 				);
 			}
+			
 			enableUser($resellerId, $postData['domain']);
+			
 			break;
+		case 'collectusagedata':
+			if (empty($postData['domain'])) {
+				logoutReseller();
+				exit(
+					createJsonMessage(
+						array(
+							'level'	=> 'Error',
+							'message'	=> 'No domain in post data available!'
+						)
+					)
+				);
+			}
+			
+			collectUsageData($resellerId, $postData['domain']);
+			
+			break;
+			
 		default:
 		echo(
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'This action '.$action.' is not implemented'
+					'message'	=> sprintf('This action: %s is not implemented!', $action)
 				)
 			)
 		);
+		
 		exit;
 	}
 
 	logoutReseller();
+	
 	exit;
 }
 
@@ -183,7 +216,7 @@ function checkiMSCP_Version() {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'iMSCP version '.$cfg->Version.' is not compatible with the remote bridge. Check www.i-mscp.net for newer versions'
+					'message'	=> sprintf('iMSCP version %s is not compatible with the remote bridge. Check www.i-mscp.net for newer versions!', $cfg->Version)
 				)
 			)
 		);
@@ -210,7 +243,7 @@ function checkRemoteIpaddress($ipaddress) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Your ipaddress ('.$ipaddress.') does not have access to the remote bridge!'
+					'message'	=> sprintf('Your ipaddress %s does not have access to the remote bridge!', $ipaddress)
 				)
 			)
 		);
@@ -300,7 +333,7 @@ function checkResellerHostingPlan($resellerId, $hosting_plan) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'No such hosting plan named: '.$hosting_plan.'!'
+					'message'	=> sprintf('No such hosting plan named: %s!', $hosting_plan)
 				)
 			)
 		);
@@ -494,7 +527,7 @@ function sendPostDataError($PostVar, $ErrorMessage) {
 		createJsonMessage(
 			array(
 				'level'	=> 'Error',
-				'message'	=> 'Post var '.$PostVar.': '.$ErrorMessage.'!'
+				'message'	=> sprintf('Post var: %s : %s!', $PostVar, $ErrorMessage)
 			)
 		)
 	);
@@ -559,6 +592,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 
 	remoteBridgecheckPasswordSyntax($postData['admin_pass']);
 	
+	$domain = strtolower($postData['domain']);
 	$dmnUsername = encode_idna($postData['domain']);
 	
 	if (!validates_dname(decode_idna($dmnUsername))) {
@@ -567,7 +601,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'The domain '.$postData['domain'].' is not valid!'
+					'message'	=> sprintf('The domain %s is not valid!', $domain)
 				)
 			)
 		);
@@ -578,7 +612,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Domain '.$dmnUsername.' already exist on this server'
+					'message'	=> sprintf('Domain %s already exist on this server!', $domain)
 				)
 			)
 		);
@@ -695,7 +729,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			$phpini->saveCustomPHPiniIntoDb($dmnId);
 		}
 
-		$query = 'INSERT INTO `htaccess_users` (`dmn_id`, `uname`, `upass`, `status`) VALUES (?, ?, ?, ?)';
+		$query = "INSERT INTO `htaccess_users` (`dmn_id`, `uname`, `upass`, `status`) VALUES (?, ?, ?, ?)";
 		exec_query($query, array($dmnId, $dmnUsername, cryptPasswordWithSalt($pure_user_pass), $cfg->ITEM_TOADD_STATUS));
 
 		$user_id = $db->insertId();
@@ -708,7 +742,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			client_mail_add_default_accounts($dmnId, $userEmail, $dmnUsername);
 		}
 
-		$query = 'INSERT INTO `user_gui_props` (`user_id`, `lang`, `layout`) VALUES (?, ?, ?)';
+		$query = "INSERT INTO `user_gui_props` (`user_id`, `lang`, `layout`) VALUES (?, ?, ?)";
 		exec_query($query, array($recordId, $cfg->USER_INITIAL_LANG, $cfg->USER_INITIAL_THEME));
 		
 		update_reseller_c_props($resellerId);
@@ -728,8 +762,8 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		
 		send_request();
 		
-		write_log(sprintf("%s add user: ".$dmnUsername." (for domain ".$dmnUsername.") via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name)), E_USER_NOTICE);
-		write_log(sprintf("%s add user: add domain: ".$dmnUsername." via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name)), E_USER_NOTICE);
+		write_log(sprintf("%s add user: ".$domain." (for domain ".$domain.") via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name)), E_USER_NOTICE);
+		write_log(sprintf("%s add user: add domain: ".$domain." via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name)), E_USER_NOTICE);
 		
 	} catch (Exception $e) {
 		$db->rollBack();
@@ -737,7 +771,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Error while creating user: '.$e->getMessage().', '.$e->getQuery().', '.$e->getCode()
+					'message'	=> sprintf('Error while creating user: %s, $s, %s', $e->getMessage(), $e->getQuery(), $e->getCode())
 				)
 			)
 		);
@@ -751,7 +785,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		createJsonMessage(
 			array(
 				'level'	=> 'Success',
-				'message'	=> 'User '.$dmnUsername.' added successfull!'
+				'message'	=> sprintf('User %s added successfull!', $domain)
 			)
 		)
 	);
@@ -774,9 +808,19 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 		);
 	}
 	
+	$domain = strtolower($postData['domain']);
 	$dmnUsername = encode_idna($postData['domain']);
 	
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = "
+		SELECT
+			`domain_admin_id`,
+			`domain_created_id`,
+			`domain_status`
+		FROM
+			`domain`
+		WHERE
+			`domain_name` = ?
+	";
 	$stmt = exec_query($query, $dmnUsername);
 	
 	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
@@ -786,7 +830,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Success',
-					'message'	=> 'Domain aliases: '.implode(', ',$postData['alias_domains']).' succesfully added!'
+					'message'	=> sprintf('Domain aliases: %s succesfully added!', implode(', ',$postData['alias_domains']))
 				)
 			)
 		);
@@ -795,7 +839,7 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Unknown domain '.$dmnUsername.'!'
+					'message'	=> sprintf('Unknown domain %s!', $domain)
 				)
 			)
 		);
@@ -817,7 +861,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				createJsonMessage(
 					array(
 						'level'	=> 'Error',
-						'message'	=> 'The domain '.decode_idna($alias_domain).' is not valid!'
+						'message'	=> sprintf('The alias domain %s is not valid!', $aliasdomain)
 					)
 				)
 			);
@@ -828,7 +872,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				createJsonMessage(
 					array(
 						'level'	=> 'Error',
-						'message'	=> 'Alias domain '.$alias_domain.' already exist on this server'
+						'message'	=> sprintf('Alias domain %s already exist on this server!', $aliasdomain)
 					)
 				)
 			);
@@ -876,21 +920,21 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				$newCustomerAlsLimit = 1;
 
 				// We also update reseller current als count (number of assigned als) by incrementing the current value.
-				$query = '
+				$query = "
 					UPDATE
 						`reseller_props`
 					SET
 						`current_als_cnt` = (`current_als_cnt` + 1)
 					WHERE
 						`reseller_id` = ?
-				';
+				";
 				exec_query($query, $_SESSION['user_id']);
 			}
 
 			// We update the customer als limit according if needed
 			if ($newCustomerAlsLimit) {
 				exec_query(
-					'UPDATE `domain` SET `domain_alias_limit` = ? WHERE `domain_admin_id` = ?',
+					"UPDATE `domain` SET `domain_alias_limit` = ? WHERE `domain_admin_id` = ?",
 					array($newCustomerAlsLimit, $customerId)
 				);
 			}
@@ -912,7 +956,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 					createJsonMessage(
 						array(
 							'level'	=> 'Error',
-							'message'	=> 'Error while creating alias domain: '.$e->getMessage().', '.$e->getQuery().', '.$e->getCode()
+							'message'	=> sprintf('Error while creating alias domain: %s, %s, %s', $e->getMessage(), $e->getQuery(), $e->getCode())
 						)
 					)
 				);
@@ -920,7 +964,7 @@ function createAliasDomain($resellerId, $customerDmnId, $domain_ip_id, $postData
 				exit;
 			}
 		send_request();
-		write_log(sprintf("%s added domain alias: ".$aliasdomain." via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name)), E_USER_NOTICE);
+		write_log(sprintf('%s added domain alias: %s via remote bridge', idn_to_utf8($auth->getIdentity()->admin_name), $aliasdomain), E_USER_NOTICE);
 	}
 	
 }
@@ -933,7 +977,16 @@ function deleteUser($resellerId, $domain) {
 	
 	$dmnUsername = encode_idna($domain);
 	
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = "
+		SELECT
+			`domain_admin_id`,
+			`domain_created_id`,
+			`domain_status`
+		FROM
+			`domain`
+		WHERE
+			`domain_name` = ?
+	";
 	$stmt = exec_query($query, $dmnUsername);
 	
 	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
@@ -944,7 +997,7 @@ function deleteUser($resellerId, $domain) {
 					createJsonMessage(
 						array(
 							'level'	=> 'Error',
-							'message'	=> 'Customer account '.$dmnUsername.' not found!'
+							'message'	=> sprintf('Customer account %s not found!', $domain)
 						)
 					)
 				);
@@ -955,19 +1008,19 @@ function deleteUser($resellerId, $domain) {
 				createJsonMessage(
 					array(
 						'level'	=> 'Success',
-						'message'	=> 'Customer account:'.$dmnUsername.'  successfully scheduled for deletion!'
+						'message'	=> sprintf('Customer account: %s successfully scheduled for deletion!', $domain)
 					)
 				)
 			);
-			write_log(sprintf('%s scheduled deletion of the customer account: %s', idn_to_utf8($auth->getIdentity()->admin_name), $dmnUsername), E_USER_NOTICE);
+			write_log(sprintf('%s scheduled deletion of the customer account: %s', idn_to_utf8($auth->getIdentity()->admin_name), $domain), E_USER_NOTICE);
 			send_request();
 		} catch (iMSCP_Exception $e) {
-			write_log(sprintf("System was unable to schedule deletion of the customer account: %s. Message was: %s", $dmnUsername, $e->getMessage()), E_USER_ERROR);
+			write_log(sprintf('System was unable to schedule deletion of the customer account: %s. Message was: %s', $domain, $e->getMessage()), E_USER_ERROR);
 			echo(
 				createJsonMessage(
 					array(
 						'level'	=> 'Error',
-						'message'	=> 'System was unable to schedule deletion of the customer account:'.$dmnUsername.'!'
+						'message'	=> sprintf('System was unable to schedule deletion of the customer account: %s!', $domain)
 					)
 				)
 			);
@@ -979,7 +1032,7 @@ function deleteUser($resellerId, $domain) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Unknown domain '.$dmnUsername.'!'
+					'message'	=> sprintf('Unknown domain %s!', $domain)
 				)
 			)
 		);
@@ -994,7 +1047,16 @@ function disableUser($resellerId, $domain) {
 	
 	$dmnUsername = encode_idna($domain);
 	
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = "
+		SELECT
+			`domain_admin_id`,
+			`domain_created_id`,
+			`domain_status`
+		FROM
+			`domain`
+		WHERE
+			`domain_name` = ?
+	";
 	$stmt = exec_query($query, $dmnUsername);
 
 	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
@@ -1003,12 +1065,12 @@ function disableUser($resellerId, $domain) {
 		if ($stmt->fields['domain_status'] == $cfg->ITEM_OK_STATUS) {
 			change_domain_status($customerId, 'deactivate');
 			send_request();
-			write_log(sprintf("%s disabled the customer account: %s via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name), $dmnUsername), E_USER_NOTICE);
+			write_log(sprintf('%s disabled the customer account: %s via remote bridge', idn_to_utf8($auth->getIdentity()->admin_name), $domain), E_USER_NOTICE);
 			echo(
 				createJsonMessage(
 					array(
 						'level'	=> 'Success',
-						'message'	=> 'Domain '.$dmnUsername.' succesfully disabled!'
+						'message'	=> sprintf('Domain %s succesfully disabled!', $domain)
 					)
 				)
 			);
@@ -1017,7 +1079,7 @@ function disableUser($resellerId, $domain) {
 				createJsonMessage(
 					array(
 						'level'	=> 'Error',
-						'message'	=> 'Can not disable domain '.$dmnUsername.'. Current domain status is: '.$stmt->fields['domain_status']
+						'message'	=> sprintf('Can not disable domain %s. Current domain status is: %s!', $domain, $stmt->fields['domain_status'])
 					)
 				)
 			);
@@ -1027,7 +1089,7 @@ function disableUser($resellerId, $domain) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Unknown domain '.$dmnUsername.'!'
+					'message'	=> sprintf('Unknown domain %s!', $domain)
 				)
 			)
 		);
@@ -1036,13 +1098,22 @@ function disableUser($resellerId, $domain) {
 
 /* Enable User */
 function enableUser($resellerId, $domain) {
-	$db	= iMSCP_Registry::get('db');
-	$cfg	= iMSCP_Registry::get('config');
-	$auth	= iMSCP_Authentication::getInstance();
+	$db = iMSCP_Registry::get('db');
+	$cfg = iMSCP_Registry::get('config');
+	$auth = iMSCP_Authentication::getInstance();
 	
 	$dmnUsername = encode_idna($domain);
 	
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = "
+		SELECT
+			`domain_admin_id`,
+			`domain_created_id`,
+			`domain_status`
+		FROM
+			`domain`
+		WHERE
+			`domain_name` = ?
+	";
 	$stmt = exec_query($query, $dmnUsername);
 
 	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
@@ -1051,12 +1122,12 @@ function enableUser($resellerId, $domain) {
 		if ($stmt->fields['domain_status'] == $cfg->ITEM_DISABLED_STATUS) {
 			change_domain_status($customerId, 'activate');
 			send_request();
-			write_log(sprintf("%s activated the customer account: %s via remote bridge", idn_to_utf8($auth->getIdentity()->admin_name), $dmnUsername), E_USER_NOTICE);
+			write_log(sprintf('%s activated the customer account: %s via remote bridge', idn_to_utf8($auth->getIdentity()->admin_name), $domain), E_USER_NOTICE);
 			echo(
 				createJsonMessage(
 					array(
 						'level'	=> 'Success',
-						'message'	=> 'Domain '.$dmnUsername.' succesfully activated!'
+						'message'	=> sprintf('Domain %s succesfully activated!', $domain)
 					)
 				)
 			);
@@ -1065,7 +1136,7 @@ function enableUser($resellerId, $domain) {
 				createJsonMessage(
 					array(
 						'level'	=> 'Error',
-						'message'	=> 'Can not activate domain '.$dmnUsername.'. Current domain status is: '.$stmt->fields['domain_status']
+						'message'	=> sprintf('Can not activate domain %s. Current domain status is: %s!', $domain, $stmt->fields['domain_status'])
 					)
 				)
 			);
@@ -1075,7 +1146,90 @@ function enableUser($resellerId, $domain) {
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> 'Unknown domain '.$dmnUsername.'!'
+					'message'	=> sprintf('Unknown domain %s!', $domain)
+				)
+			)
+		);
+	}
+}
+
+/* Collect usage data */
+function collectUsageData($resellerId, $domain) {
+	$dmnUsername = encode_idna($domain);
+
+	$query = "
+		SELECT
+			`domain_id`
+		FROM 
+			`domain`
+		WHERE 
+			`domain_created_id` = ?
+		AND
+			domain_name= ?
+	";
+
+	$stmt = exec_query($query, array($resellerId, $dmnUsername));
+	
+	if (! $stmt->rowCount()) {
+		exit(
+			createJsonMessage(
+				array(
+					'level' => 'Error',
+					'message' => sprintf('Unknown domain %s!', $domain)
+				)
+			)
+		);
+	} else {
+            $usageData = array();
+		
+            foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $domainId) {
+			list(
+				$domainName, $domainId,,,,, $trafficUsageBytes, $diskspaceUsageBytes
+			) = generate_user_traffic($domainId);
+			
+			list(
+				$usub_current, $usub_max, $uals_current, $uals_max, $umail_current, $umail_max, $uftp_current, $uftp_max,
+                        $usql_db_current, $usql_db_max, $usql_user_current, $usql_user_max, $trafficLimit, $diskspaceLimit
+			) = generate_user_props($domainId);
+
+			if ($domainName != 'n/a') {
+				$usageData[$domainName] = array(
+					'domain' => $domainName,
+					'disk_used' => $diskspaceUsageBytes,
+					'disk_limit' => $diskspaceLimit * 1048576,
+					'bw_used' => $trafficUsageBytes,
+					'bw_limit' => $trafficLimit * 1048576,
+					'subdomain_used' => $usub_current,
+					'subdomain_limit' => $usub_max,
+					'alias_used' => $uals_current,
+					'alias_limit' => $uals_max,
+					'mail_used' => $umail_current,
+					'mail_limit' => $umail_max,
+					'ftp_used' => $uftp_current,
+					'ftp_limit' => $uftp_max,
+					'sqldb_used' => $usql_db_current,
+					'sqldb_limit' => $usql_db_max,
+					'sqluser_used' => $usql_user_current,
+					'sqluser_limit' => $usql_user_max,
+				);
+			} else {
+				exit(
+					createJsonMessage(
+						array(
+							'level' => 'Error',
+							'message' => sprintf('Error while collecting usage statistics for domain %s!', $domain)
+						)
+					)
+				);
+			}
+            }
+		
+            echo(
+			createJsonMessage(
+				array(
+					'level' => 'Success',
+					'message' => sprintf('Usage statistics for domain %s successfully generated!', $domain),
+					'data' => $usageData,
 				)
 			)
 		);
@@ -1109,7 +1263,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> sprintf("Password is shorter than %s characters!", $cfg->PASSWD_CHARS)
+					'message'	=> sprintf('Password is shorter than %s characters!', $cfg->PASSWD_CHARS)
 				)
 			)
 		);
@@ -1143,7 +1297,7 @@ function remoteBridgecheckPasswordSyntax($password, $unallowedChars = '', $noErr
 			createJsonMessage(
 				array(
 					'level'	=> 'Error',
-					'message'	=> sprintf("Password must be at least %s character long and contain letters and numbers to be valid!", $cfg->PASSWD_CHARS)
+					'message'	=> sprintf('Password must be at least %s character long and contain letters and numbers to be valid!', $cfg->PASSWD_CHARS)
 				)
 			)
 		);
