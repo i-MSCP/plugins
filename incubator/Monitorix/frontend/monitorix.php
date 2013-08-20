@@ -64,13 +64,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName='')
 			}
 		}
 
-		$tpl->assign(
-			array(
-				'TR_MONITORIXGRAPH' => ($graphName != '')
-					? tr("Monitorix - %s - %s", $hostname, $pluginConfig['graph_title'][$graphName])
-					: tr("Monitorix - %s", $hostname)
-			)
-		);
+		$tpl->assign('TR_MONITORIXGRAPH', ($graphName != '') ? tr("Monitorix - %s - %s", $hostname, $pluginConfig['graph_title'][$graphName]) : tr("Monitorix - %s", $hostname));
 	} else {
 		$tpl->assign(
 			array(
