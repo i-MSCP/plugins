@@ -99,33 +99,16 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 					$tpl->parse('OPENDKIM_DOMAINKEY_ITEM', '.opendkim_domainkey_item');
 				}
 			} else {
-				$tpl->assign(
-					array(
-						'OPENDKIM_DOMAINKEY_ITEM' => ''
-					)
-				);
+				$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 			}
-			
-			$tpl->assign(
-				array(
-					'TR_OPENDKIM_DOMAIN' => tr('OpenDKIM domain entries')
-				)
-			);
+			$tpl->assign('TR_OPENDKIM_DOMAIN', tr('OpenDKIM domain entries'));
 			
 			$tpl->parse('OPENDKIM_CUSTOMER_ITEM', '.opendkim_customer_item');
 			
-			$tpl->assign(
-					array(
-						'OPENDKIM_DOMAINKEY_ITEM' => ''
-					)
-				);
+			$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 		}
 		
-		$tpl->assign(
-			array(
-				'OPENDKIM_NO_CUSTOMER_ITEM' => ''
-			)
-		);
+		$tpl->assign('OPENDKIM_NO_CUSTOMER_ITEM', '');
 		
 		$tpl->parse('OPENDKIM_CUSTOMER_LIST', 'opendkim_customer_list');
 	} else {

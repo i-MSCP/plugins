@@ -73,11 +73,7 @@ function opendkim_generateSelect($tpl, $resellerId)
 			$tpl->parse('OPENDKIM_SELECT_ITEM', '.opendkim_select_item');
 		}
 	} else {
-		$tpl->assign(
-			array(
-				'OPENDKIM_SELECT_ITEM' => ''
-			)
-		);
+		$tpl->assign('OPENDKIM_SELECT_ITEM', '');
 	}
 }
 
@@ -191,11 +187,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 					$tpl->parse('OPENDKIM_DOMAINKEY_ITEM', '.opendkim_domainkey_item');
 				}
 			} else {
-				$tpl->assign(
-					array(
-						'OPENDKIM_DOMAINKEY_ITEM' => ''
-					)
-				);
+				$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 			}
 			
 			$tpl->assign(
@@ -209,18 +201,10 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 			
 			$tpl->parse('OPENDKIM_CUSTOMER_ITEM', '.opendkim_customer_item');
 			
-			$tpl->assign(
-					array(
-						'OPENDKIM_DOMAINKEY_ITEM' => ''
-					)
-				);
+			$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 		}
 		
-		$tpl->assign(
-			array(
-				'OPENDKIM_NO_CUSTOMER_ITEM' => ''
-			)
-		);
+		$tpl->assign('OPENDKIM_NO_CUSTOMER_ITEM', '');
 		
 		$tpl->parse('OPENDKIM_CUSTOMER_LIST', 'opendkim_customer_list');
 	} else {
