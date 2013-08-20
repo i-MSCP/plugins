@@ -336,18 +336,10 @@ function bridge_generateDownloads($tpl, $pluginManager)
 				$tpl->parse('BRIDGE_DOWNLOAD_ITEM', '.bridge_download_item');
 			}
 		} else {
-			$tpl->assign(
-				array(
-					'BRIDGE_DOWNLOADS' => ''
-				)
-			);
+			$tpl->assign('BRIDGE_DOWNLOADS', '');
 		}
 	} else {
-		$tpl->assign(
-			array(
-				'BRIDGE_DOWNLOADS' => ''
-			)
-		);
+		$tpl->assign('BRIDGE_DOWNLOADS', '');
 	}
 }
 
