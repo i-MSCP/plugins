@@ -1155,8 +1155,6 @@ function enableUser($resellerId, $domain) {
 
 /* Collect usage data */
 function collectUsageData($resellerId, $domain) {
-	$dmnUsername = encode_idna($domain);
-
 	$query = "
 		SELECT
 			`domain_id`
@@ -1164,18 +1162,23 @@ function collectUsageData($resellerId, $domain) {
 			`domain`
 		WHERE 
 			`domain_created_id` = ?
-		AND
-			domain_name= ?
 	";
-
-	$stmt = exec_query($query, array($resellerId, $dmnUsername));
+	
+	if ($domain === 'all') {
+		$stmt = exec_query($query, $resellerId);
+	} else {
+		$query .= " AND domain_name = ?";
+		
+		$dmnUsername = encode_idna($domain);
+		$stmt = exec_query($query, array($resellerId, $dmnUsername));
+	}
 	
 	if (! $stmt->rowCount()) {
 		exit(
 			createJsonMessage(
 				array(
 					'level' => 'Error',
-					'message' => sprintf('Unknown domain %s!', $domain)
+					'message' => ($domain === 'all') ? sprintf('No uasage data available!') : sprintf('Unknown domain %s!', $domain)
 				)
 			)
 		);
