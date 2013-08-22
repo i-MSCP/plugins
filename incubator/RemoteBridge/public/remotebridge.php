@@ -1178,7 +1178,7 @@ function collectUsageData($resellerId, $domain) {
 			createJsonMessage(
 				array(
 					'level' => 'Error',
-					'message' => ($domain === 'all') ? sprintf('No uasage data available!') : sprintf('Unknown domain %s!', $domain)
+					'message' => ($domain === 'all') ? sprintf('No usage data available!') : sprintf('Unknown domain %s!', $domain)
 				)
 			)
 		);
