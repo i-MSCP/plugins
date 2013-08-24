@@ -5,7 +5,14 @@ i-MSCP DebugBar plugin ChangeLog
 Version Git Master
 -------------------------------------------------------------------------------------
 
-	- Fixed set tabs, panels and toggler backgrounds according i-MSCP UI color
+-------------------------------------------------------------------------------------
+Version 0.0.10
+-------------------------------------------------------------------------------------
+
+2013-08-25: Laurent Declercq
+	- RELEASE i-MSCP DebugBar plugin 0.0.10
+
+	- Fixed: Set tabs, panels and toggler backgrounds according i-MSCP UI color
 
 -------------------------------------------------------------------------------------
 Version 0.0.9

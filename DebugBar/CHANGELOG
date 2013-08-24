@@ -2,13 +2,13 @@ i-MSCP DebugBar plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -------------------------------------------------------------------------------------
-Version 0.0.8
+Version 0.0.10
 -------------------------------------------------------------------------------------
 
-2013-06-28: Laurent Declercq
-	- RELEASE i-MSCP DebugBar plugin 0.0.8
+2013-08-25: Laurent Declercq
+	- RELEASE i-MSCP DebugBar plugin 0.0.10
 
-	- First version released as plugin
+	- Fixed: Set tabs, panels and toggler backgrounds according i-MSCP UI color
 
 -------------------------------------------------------------------------------------
 Version 0.0.9
@@ -18,3 +18,12 @@ Version 0.0.9
 	- RELEASE i-MSCP DebugBar plugin 0.0.9
 
 	- i-MSCP Plugin API compatibility fixes
+
+-------------------------------------------------------------------------------------
+Version 0.0.8
+-------------------------------------------------------------------------------------
+
+2013-06-28: Laurent Declercq
+	- RELEASE i-MSCP DebugBar plugin 0.0.8
+
+	- First version released as plugin

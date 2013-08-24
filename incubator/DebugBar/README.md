@@ -1,4 +1,4 @@
-## i-MSCP DebugBar plugin v0.0.8
+## i-MSCP DebugBar plugin v0.0.10
 
 Plugin providing many debug information for i-MSCP.
 
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0.rc3 (Not yet released)
+Plugin compatible with i-MSCP versions >= 1.1.0.rc3
 
 ### INSTALLATION
 

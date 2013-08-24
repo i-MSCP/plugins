@@ -1,7 +1,7 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * i-MSCP DebugBar Plugin
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.9',
-	'date' => '2013-07-08',
+	'version' => '0.0.10',
+	'date' => '2013-08-25',
 	'name' => 'DebugBar',
 	'desc' => 'Plugin providing many debug information for i-MSCP.',
 	'url' => 'http://i-mscp.net'

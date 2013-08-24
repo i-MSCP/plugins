@@ -1,7 +1,7 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * i-MSCP DebugBar Plugin
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,6 +62,8 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	protected $event;
 
+	protected $knownComponents = array('Database', 'Files', 'Memory', 'Timer', 'Variables', 'Version');
+
 	/**
 	 * @var iMSCP_Plugin_DebugBar_Component_Interface[]
 	 */
@@ -87,26 +89,42 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$priority = 998;
+		if(!is_xhr()) {
+			$components = $this->getConfigParam('components');
 
-		foreach ($this->getConfigParam('components') as $component) {
-			require_once 'Component/' . $component . '.php';
-			$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
-			$component = new $componentClass();
+			if($components) {
+				if(is_array($components)) {
+					$priority = 998;
 
-			if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
-				throw new iMSCP_Plugin_Exception(
-					'All components for the DebugBar plugin must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
-				);
-			} elseif ($component instanceof iMSCP_Events_Listeners_Interface) {
-				$controller->registerListener($component->getListenedEvents(), $component, $priority);
-				$priority--;
+					foreach ($components as $component) {
+						if(in_array($component, $this->knownComponents)) {
+							require_once 'Component/' . $component . '.php';
+							$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
+							$component = new $componentClass();
+
+							if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
+								throw new iMSCP_Plugin_Exception(
+									'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
+								);
+							} elseif ($component instanceof iMSCP_Events_Listeners_Interface) {
+								$controller->registerListener($component->getListenedEvents(), $component, $priority);
+								$priority--;
+							}
+
+							$this->components[] = $component;
+						} else {
+							throw new iMSCP_Plugin_Exception("DebugBar plugin: Unknown component: $component");
+						}
+					}
+
+					$controller->registerListener($this->getListenedEvents(), $this, 999);
+				} else {
+					throw new iMSCP_Plugin_Exception(
+						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
+					);
+				}
 			}
-
-			$this->components[] = $component;
 		}
-
-		$controller->registerListener($this->getListenedEvents(), $this, 999);
 	}
 
 	/**
@@ -143,11 +161,6 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	protected function buildDebugBar()
 	{
-		// Doesn't act on AJAX request.
-		if (is_xhr()) {
-			return;
-		}
-
 		$xhtml = '<div>';
 
 		/** @var $component iMSCP_Plugin_DebugBar_Component_Interface */
@@ -183,10 +196,21 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	{
 		$collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
 
+		$backgroundColor = array(
+			'black' => '#181818',
+			'red' => '#691c1c',
+			'blue' => '#303882',
+			'green' => '#1c6923',
+			'yellow' => '#918142'
+		);
+
+		$color = isset($_SESSION['user_id'])
+			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : 'black';
+
 		return ('
             <style type="text/css" media="screen">
-            	#iMSCPdebug_debug h4 {margin:0.5em;font-weight:bold;}
-            	#iMSCPdebug_debug strong {font-weight:bold;}
+                #iMSCPdebug_debug h4 {margin:0.5em;font-weight:bold;}
+                #iMSCPdebug_debug strong {font-weight:bold;}
                 #iMSCPdebug_debug { font: 1em Geneva, Arial, Helvetica, sans-serif; position:fixed; bottom:5px; left:0px; color:#fff; z-index: 255;}
                 #iMSCPdebug_debug a {color:red;}
                 #iMSCPdebug_debug span {color:#fff;}
@@ -194,10 +218,10 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
                 #iMSCPdebug_debug ol {margin:10px 0px; padding:0 25px}
                 #iMSCPdebug_debug li {margin:0 0 10px 0;}
                 #iMSCPdebug_debug .clickable { cursor:pointer }
-                #iMSCPdebug_toggler { font-weight:bold; background:#000; }
-                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0px; background:#000; padding: 6px 5px; }
+                #iMSCPdebug_toggler { font-weight:bold; background:' . $color . '; }
+                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0px; background:' . $color .'; padding: 6px 5px; }
                 .iMSCPdebug_last { border: 1px solid #ccc; }
-                .iMSCPdebug_panel { text-align:left; position:absolute;bottom:21px;width:600px; max-height:400px; overflow:auto; display:none; background:#000; padding:0.5em; border: 1px solid #ccc; }
+                .iMSCPdebug_panel { text-align:left; position:absolute;bottom:21px;width:600px; max-height:400px; overflow:auto; display:none; background:' . $color . '; padding:0.5em; border: 1px solid #ccc; }
                 .iMSCPdebug_panel .pre {font: 1em Geneva, Arial, Helvetica, sans-serif; margin:0 0 0 22px}
                 #iMSCPdebug_exception { border:1px solid #000;display: block; }
             </style>
