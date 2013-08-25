@@ -25,7 +25,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<td colspan="2">{TR_MONITORIXGRAPH}</td>
+		<th colspan="2">{TR_MONITORIXGRAPH}</th>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">

@@ -24,6 +24,11 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	Plugin compatible with i-MSCP versions >= 1.1.0.rc4
 	installation of monitorix:
+	* Download package from: http://www.monitorix.org/downloads.html
+	* wget http://www.monitorix.org/monitorix_(version)-izzy1_all.deb
+	* apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libhttp-server-simple-perl libconfig-general-perl
+	* dpkg -i monitorix_(version)-izzy1_all.deb
+	
 	* vi /etc/apt/sources.list
 	* add deb http://apt.izzysoft.de/ubuntu generic universe
 	* add the GPG key to your system: curl http://apt.izzysoft.de/izzysoft.asc 2>/dev/null | apt-key add -
