@@ -50,11 +50,11 @@
 		<tr>
 			<th colspan="2">{TR_BRIDGE_DOWNLOADS}</th>
 		</tr>
-	</tfoot>
 	<tbody class="ui-widget-content">
+	</tfoot>
 	<tr>
-		<td><strong>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</strong></td>
-		<td><strong>{TR_BRIDGE_DOWNLOAD_FILE}</strong></td>
+		<th><strong>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</strong></th>
+		<th><strong>{TR_BRIDGE_DOWNLOAD_FILE}</strong></th>
 	</tr>
 	<!-- BDP: bridge_download_item -->
 	<tr>
