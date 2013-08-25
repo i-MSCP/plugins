@@ -22,9 +22,9 @@
 	</tr>
 	</thead>
 	<tfoot class="ui-widget-header">
-	<tr>
-		<td colspan="3">{TR_OPENDKIM_DOMAIN}</td>
-	</tr>
+		<tr>
+			<th colspan="3">{TR_OPENDKIM_DOMAIN}</th>
+		</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
 	<!-- BDP: opendkim_domainkey_item -->
@@ -74,9 +74,9 @@
 	</tr>
 	</thead>
 	<tfoot class="ui-widget-header">
-	<tr>
-		<td colspan="3">{TR_OPENDKIM_NO_DOMAIN}</td>
-	</tr>
+		<tr>
+			<th colspan="3">{TR_OPENDKIM_NO_DOMAIN}</th>
+		</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
 	<tr>
