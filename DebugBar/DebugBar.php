@@ -167,7 +167,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 		foreach ($this->components as $component) {
 			if (($tab = $component->getTab()) != '') {
 				$xhtml .= '<span class="iMSCPdebug_span clickable" onclick="iMSCPdebugPanel(\'iMSCPdebug_' . $component->getIdentifier() . '\');">';
-				$xhtml .= '<img src="' . $component->getIcon() . '" style="vertical-align:middle" alt="' . $component->getIdentifier() . '" title="' . $component->getIdentifier() . '" /> ';
+				$xhtml .= '<img src="' . $component->getIconPath() . '" width="16" height="16" style="vertical-align:middle" alt="' . $component->getIdentifier() . '" title="' . $component->getIdentifier() . '" /> ';
 				$xhtml .= $tab . '</span>';
 			}
 

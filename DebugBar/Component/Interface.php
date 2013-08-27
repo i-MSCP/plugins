@@ -61,10 +61,10 @@ interface iMSCP_Plugin_DebugBar_Component_Interface
 	public function getPanel();
 
 	/**
-	 * Returns component icon
+	 * Returns component icon path
 	 *
 	 * @abstract
 	 * @return string
 	 */
-	public function getIcon();
+	public function getIconPath();
 }
