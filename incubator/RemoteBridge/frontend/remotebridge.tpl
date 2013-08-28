@@ -1,6 +1,6 @@
 <!-- BDP: bridge_lists -->
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th>{TR_BRIDGE_KEY}</th>
 		<th>{TR_IP}</th>
@@ -8,7 +8,7 @@
 		<th>{TR_ACTION}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
 		<td colspan="4">{TR_REMOTE_BRIDGES}</td>
 	</tr>
@@ -38,13 +38,13 @@
 <!-- BDP: bridge_downloads -->
 <br />
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</th>
 		<th>{TR_BRIDGE_DOWNLOAD_FILE}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
 		<td colspan="2">{TR_BRIDGE_DOWNLOADS}</td>
 	</tr>
