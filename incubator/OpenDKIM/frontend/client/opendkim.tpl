@@ -10,7 +10,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<th colspan="3">{TR_OPENDKIM_DOMAIN}</th>
+		<td colspan="3">{TR_OPENDKIM_DOMAIN}</td>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
@@ -38,7 +38,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<th colspan="3">{TR_OPENDKIM_NO_DOMAIN}</th>
+		<td colspan="3">{TR_OPENDKIM_NO_DOMAIN}</td>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
