@@ -1,16 +1,20 @@
 <form action="monitorix.php" method="post" name="shown_graph" id="shown_graph">
-	<select name="graph_name">
-		<option value="-1">{TR_MONITORIX_SELECT_NAME_NONE}</option>
-		<!-- BDP: monitorix_item -->
-		<option value="{TR_MONITORIX_SELECT_VALUE}" {MONITORIX_NAME_SELECTED}>{TR_MONITORIX_SELECT_NAME}</option>
-		<!-- EDP: monitorix_item -->
-	</select>
-	<select name="show_when">
-		<option value="day" {M_DAY_SELECTED}>{M_DAY}</option>
-		<option value="week" {M_WEEK_SELECTED}>{M_WEEK}</option>
-		<option value="month" {M_MONTH_SELECTED}>{M_MONTH}</option>
-		<option value="year" {M_YEAR_SELECTED}>{M_YEAR}</option>
-	</select>
+	<label>
+		<select name="graph_name">
+			<option value="-1">{TR_MONITORIX_SELECT_NAME_NONE}</option>
+			<!-- BDP: monitorix_item -->
+			<option value="{TR_MONITORIX_SELECT_VALUE}" {MONITORIX_NAME_SELECTED}>{TR_MONITORIX_SELECT_NAME}</option>
+			<!-- EDP: monitorix_item -->
+		</select>
+	</label>
+	<label>
+		<select name="show_when">
+			<option value="day" {M_DAY_SELECTED}>{M_DAY}</option>
+			<option value="week" {M_WEEK_SELECTED}>{M_WEEK}</option>
+			<option value="month" {M_MONTH_SELECTED}>{M_MONTH}</option>
+			<option value="year" {M_YEAR_SELECTED}>{M_YEAR}</option>
+		</select>
+	</label>
 	<input type="hidden" name="action" value="go_show"/>
 	
 	<div class="buttons" style="display:inline">
@@ -18,17 +22,17 @@
 	</div>
 </form>
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th colspan="2">{TR_MONITORIXGRAPH}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="2">{TR_MONITORIXGRAPH}</th>
+		<td colspan="2">{TR_MONITORIXGRAPH}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<!-- BDP: monitorixgraph_not_selected -->
 	<tr>
 		<td><div class="message info">{MONITORIXGRAPHIC_NOT_SELECTED}</div></td>
@@ -70,8 +74,8 @@
 		width: 100%;
 		height: 100%;
 		background-color: rgba(0, 0, 0, 0.8);
-		top: 0px;
-		right: 0px;
+		top: 0;
+		right: 0;
 		z-index: 1000;
 	}
 	
@@ -115,7 +119,6 @@
 
 <script>
 /*<![CDATA[*/
-
 	$(function() {
 		$( ".syncgraphs" ).button();
 		
@@ -139,7 +142,7 @@
 
 		$('.monitorix-content').bind('click', function(event){
 			event.stopPropagation();
-		})
+		});
 	}
 /*]]>*/
 </script>

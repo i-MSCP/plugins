@@ -1,22 +1,22 @@
 <!-- BDP: opendkim_customer_list -->
 <!-- BDP: opendkim_customer_item -->
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th>{TR_OPENDKIM_DOMAIN_NAME}</th>
 		<th>{TR_OPENDKIM_DOMAIN_KEY}</th>
 		<th>{TR_OPENDKIM_KEY_STATUS}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="3">{TR_OPENDKIM_DOMAIN}</th>
+		<td colspan="3">{TR_OPENDKIM_DOMAIN}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<!-- BDP: opendkim_domainkey_item -->
 	<tr>
-		<td>{OPENDKIM_DOMAIN_NAME}</td>
+		<td><label for="keyid_{OPENDKIM_id}">{OPENDKIM_DOMAIN_NAME}</label></td>
 		<td><textarea id="keyid_{OPENDKIM_id}" name="opendkim_key" style="width: 95%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea></td>
 		<td>{OPENDKIM_KEY_STATUS}</td>
 	</tr>
@@ -29,19 +29,19 @@
 
 <!-- BDP: opendkim_no_customer_item -->
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th>{TR_OPENDKIM_DOMAIN_NAME}</th>
 		<th>{TR_OPENDKIM_DOMAIN_KEY}</th>
 		<th>{TR_OPENDKIM_KEY_STATUS}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="3">{TR_OPENDKIM_NO_DOMAIN}</th>
+		<td colspan="3">{TR_OPENDKIM_NO_DOMAIN}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<tr>
 		<td colspan="3"><div class="message info">{OPENDKIM_NO_DOMAIN}</div></td>
 	</tr>

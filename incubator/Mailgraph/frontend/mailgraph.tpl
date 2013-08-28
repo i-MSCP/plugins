@@ -1,15 +1,15 @@
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th colspan="2">{TR_MAILGRAPH}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH}</th>
+		<td colspan="2">{TR_MAILGRAPH}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<tr>
 		<td style="width:50%;text-align:center">
 			<!-- BDP: mailgraph_day_exist -->
@@ -55,17 +55,17 @@
 </div>
 
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th colspan="2">{TR_MAILGRAPH_VIRUS}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH_VIRUS}</th>
+		<td colspan="2">{TR_MAILGRAPH_VIRUS}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<tr>
 		<td style="width:50%;text-align:center">
 			<!-- BDP: mailgraph_virus_day_exist -->
@@ -112,17 +112,17 @@
 </div>
 
 <table>
-	<thead class="ui-widget-header">
+	<thead>
 	<tr>
 		<th colspan="2">{TR_MAILGRAPH_GREYLIST}</th>
 	</tr>
 	</thead>
-	<tfoot class="ui-widget-header">
+	<tfoot>
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH_GREYLIST}</th>
+		<td colspan="2">{TR_MAILGRAPH_GREYLIST}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<tr>
 		<td style="width:50%;text-align:center">
 			<!-- BDP: mailgraph_greylist_day_exist -->
