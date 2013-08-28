@@ -13,7 +13,7 @@
 		<td colspan="4">{TR_REMOTE_BRIDGES}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<!-- BDP: bridge_list -->
 	<tr>
 		<td>{BRIDGE_KEY}</td>
@@ -49,7 +49,7 @@
 		<td colspan="2">{TR_BRIDGE_DOWNLOADS}</td>
 	</tr>
 	</tfoot>
-	<tbody class="ui-widget-content">
+	<tbody>
 	<!-- BDP: bridge_download_item -->
 	<tr>
 		<td>{BRIDGE_DOWNLOAD_DESCRIPTION}</td>
