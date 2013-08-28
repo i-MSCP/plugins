@@ -1,22 +1,19 @@
 <!-- BDP: bridge_lists -->
 <table>
 	<thead class="ui-widget-header">
-		<tr>
-			<th colspan="4">{TR_REMOTE_BRIDGES}</th>
-		</tr>
+	<tr>
+		<th>{TR_BRIDGE_KEY}</th>
+		<th>{TR_IP}</th>
+		<th>{TR_STATUS}</th>
+		<th>{TR_ACTION}</th>
+	</tr>
 	</thead>
 	<tfoot class="ui-widget-header">
-		<tr>
-			<th colspan="4">{TR_REMOTE_BRIDGES}</th>
-		</tr>
+	<tr>
+		<td colspan="4">{TR_REMOTE_BRIDGES}</td>
+	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
-		<tr>
-			<td><strong>{TR_BRIDGE_KEY}</strong></td>
-			<td><strong>{TR_IP}</strong></td>
-			<td><strong>{TR_STATUS}</strong></td>
-			<td><strong>{TR_ACTION}</strong></td>
-		</tr>
 	<!-- BDP: bridge_list -->
 	<tr>
 		<td>{BRIDGE_KEY}</td>
@@ -42,20 +39,17 @@
 <br />
 <table>
 	<thead class="ui-widget-header">
-		<tr>
-			<th colspan="2">{TR_BRIDGE_DOWNLOADS}</th>
-		</tr>
+	<tr>
+		<th>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</th>
+		<th>{TR_BRIDGE_DOWNLOAD_FILE}</th>
+	</tr>
 	</thead>
 	<tfoot class="ui-widget-header">
-		<tr>
-			<th colspan="2">{TR_BRIDGE_DOWNLOADS}</th>
-		</tr>
-	<tbody class="ui-widget-content">
-	</tfoot>
 	<tr>
-		<th><strong>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</strong></th>
-		<th><strong>{TR_BRIDGE_DOWNLOAD_FILE}</strong></th>
+		<td colspan="2">{TR_BRIDGE_DOWNLOADS}</td>
 	</tr>
+	</tfoot>
+	<tbody class="ui-widget-content">
 	<!-- BDP: bridge_download_item -->
 	<tr>
 		<td>{BRIDGE_DOWNLOAD_DESCRIPTION}</td>
