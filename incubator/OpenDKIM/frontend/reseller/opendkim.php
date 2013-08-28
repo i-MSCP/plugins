@@ -164,7 +164,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 						AND
 							`t1`.`alias_id` = `t2`.`alias_id`
 						AND 
-							`t2`.`domain_dns` = CONCAT('mail._domainkey.', `t1`.`domain_name`)
+							`t2`.`domain_dns` = CONCAT('mail._domainkey.', `t1`.`domain_name`, '.')
 						)
 				WHERE
 					`t1`.`domain_id` = ?

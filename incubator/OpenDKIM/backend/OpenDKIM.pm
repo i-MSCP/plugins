@@ -425,7 +425,7 @@ sub _addOpendkimDomainKey
 					, 'opendkim_feature'
 				)
 			"
-			, $domainId, $aliasId, 'mail._domainkey.' . $domain, $txtRecord
+			, $domainId, $aliasId, 'mail._domainkey.' . $domain . '.', $txtRecord
 		);
 		
 		unless(ref $rdata eq 'HASH') {
@@ -562,7 +562,7 @@ sub _recoverOpendkimDnsEntries
 							, 'opendkim_feature'
 						)
 					"
-					, $domainId, $aliasId, 'mail._domainkey.' . $domain, $txtRecord
+					, $domainId, $aliasId, 'mail._domainkey.' . $domain . '.', $txtRecord
 				);
 				
 				unless(ref $rdata2 eq 'HASH') {
@@ -679,7 +679,7 @@ sub _deleteOpendkimDomainKey
 	$rs = $file->save();
 	return $rs if $rs;
 	
-	$rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `domain_dns` = ?', 'mail._domainkey.' . $domain);
+	$rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `domain_dns` = ?', 'mail._domainkey.' . $domain . '.');
 	
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
