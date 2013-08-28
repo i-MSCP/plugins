@@ -6,7 +6,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH}</th>
+		<td colspan="2">{TR_MAILGRAPH}</td>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
@@ -62,7 +62,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH_VIRUS}</th>
+		<td colspan="2">{TR_MAILGRAPH_VIRUS}</td>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
@@ -119,7 +119,7 @@
 	</thead>
 	<tfoot class="ui-widget-header">
 	<tr>
-		<th colspan="2">{TR_MAILGRAPH_GREYLIST}</th>
+		<td colspan="2">{TR_MAILGRAPH_GREYLIST}</td>
 	</tr>
 	</tfoot>
 	<tbody class="ui-widget-content">
