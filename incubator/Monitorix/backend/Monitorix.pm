@@ -470,7 +470,7 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 	my $monitorixConfig = decode_json($rdata->{'Monitorix'}->{'plugin_config'});
 
 	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
-		$fileContent =~ s/$monitorixConfigKey\t\t= (y|n)/$monitorixConfigKey\t\t= $monitorixConfigValue/gm;
+		$fileContent =~ s/$monitorixConfigKey(\t\t|\t)= (y|n)/$monitorixConfigKey$1= $monitorixConfigValue/gm;
 	}
 
 	my $rs = $file->set($fileContent);
