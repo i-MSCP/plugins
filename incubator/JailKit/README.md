@@ -1,6 +1,6 @@
 ## i-MSCP JailKit plugin v0.0.1
 
-Plugin allows to create i-MSCP accounts chroot ssh logins.
+Plugin allows i-MSCP accounts to create chroot ssh logins.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -45,6 +45,11 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### CONFIGURATION OF THE JAILKIT
 
+You can set the jail path in the file plugins/JailKit/config.php
+The complete path "must" owned by root:root!
+Default is "/var/imsp/ssh_jail"
+
+You can set the min. of ssh logins which the user can create (0 = unlimited)
 
 ### AUTHORS AND CONTRIBUTORS
 
