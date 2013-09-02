@@ -233,6 +233,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				`ssh_login_pass` varchar(200) collate utf8_unicode_ci default NULL,
 				`ssh_login_sys_uid` int(10) unsigned NOT NULL default '0',
 				`ssh_login_sys_gid` int(10) unsigned NOT NULL default '0',
+				`ssh_login_locked` tinyint(1) default '0',
 				`jailkit_login_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 				PRIMARY KEY (`jailkit_login_id`),
 				KEY `jailkit_login_id` (`jailkit_login_id`)

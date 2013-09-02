@@ -28,6 +28,15 @@
 
 return array(
 	'jailfolder' => '/var/imsp/ssh_jail', # Jail folder for all ssh jails. The complete path "must" owned by root:root!
+	'default_shell' => '/bin/bash', # If you change this, i hope you know what you are doing
+	'default_jail_apps' => array(
+		'basicshell',
+		'editors',
+		'sftp'
+	),
+	'jail_sockettd_base' => '512',
+	'jail_sockettd_peak' => '2048',
+	'jail_sockettd_interval' => '10',
 	
-	'max_allowed_ssh-user' => '3'
+	'max_allowed_ssh-user' => '1'
 );
