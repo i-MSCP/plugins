@@ -31,8 +31,8 @@
 	<tbody>
 	<!-- BDP: opendkim_domainkey_item -->
 	<tr>
-		<td><label for="keyid_{OPENDKIM_id}">{OPENDKIM_DOMAIN_NAME}</label></td>
-		<td><textarea id="keyid_{OPENDKIM_id}" name="opendkim_key" style="width: 95%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea></td>
+		<td><label for="keyid_{OPENDKIM_ID}">{OPENDKIM_DOMAIN_NAME}</label></td>
+		<td><textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key" style="width: 95%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea></td>
 		<td>{OPENDKIM_KEY_STATUS}</td>
 	</tr>
 	<!-- EDP: opendkim_domainkey_item -->
