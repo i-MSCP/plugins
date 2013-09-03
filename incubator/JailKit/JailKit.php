@@ -242,15 +242,4 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 
 		execute_query($query);
 	}
-	
-	/**
-	 * Drop jailkit and jailkit_login database table
-	 *
-	 * @return void
-	 */
-	protected function dropDbTable()
-	{
-		execute_query('DROP TABLE IF EXISTS `jailkit`');
-		execute_query('DROP TABLE IF EXISTS `jailkit_login`');
-	}
 }

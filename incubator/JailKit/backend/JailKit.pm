@@ -172,6 +172,8 @@ sub uninstall
 {
 	my $self = shift;
 	
+	my ($stdout, $stderr);
+	
 	my $db = iMSCP::Database->factory();
 
 	my $rdata = $db->doQuery(
@@ -190,6 +192,58 @@ sub uninstall
 	
 	my $rs = iMSCP::Dir->new('dirname' => $jailkitConfig->{'jailfolder'})->remove() if -d $jailkitConfig->{'jailfolder'};
 	return $rs if $rs;
+	
+	# Remove all usernames from /etc/passwd
+	$rdata = $db->doQuery(
+		'jailkit_login_id', 
+		'
+			SELECT
+				`jailkit_login_id`, `ssh_login_name`
+			FROM
+				`jailkit_login`
+		'
+	);
+	
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+	
+	if(%{$rdata}) {
+		for(keys %{$rdata}) {
+			$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			
+			return $rs if $rs;
+		}
+	}
+	
+	# Removing all mount bind entries from /etc/fstab
+	my $fstabMountBindConfig;
+	
+	my $fstabConf = '/etc/fstab';
+	return 1 if ! -f $fstabConf;
+	
+	my $file = iMSCP::File->new('filename' => $fstabConf);
+	
+	my $fileContent = $file->get();
+	return $fileContent if ! $fileContent;
+	
+	if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins.*End\n/$fstabMountBindConfig/sgm;
+	}
+	
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$file->save();
+	
+	# Drop jailkit and jailkit_login table
+	$db->doQuery('dummy', 'DROP TABLE IF EXISTS `jailkit`');
+	$db->doQuery('dummy', 'DROP TABLE IF EXISTS `jailkit_login`');
+	
+	0;
 }
 
 =item run()
@@ -268,6 +322,10 @@ sub run
 				} else {
 					@sql = ('DELETE FROM `jailkit` WHERE `jailkit_id` = ?', $rdata->{$_}->{'jailkit_id'});
 				}
+				
+				# Renew all mount binds to fstab after deleting
+				$rs = $self->_addWebfolderMountToFstab($jailkitConfig->{'jailfolder'});
+				return $rs if $rs;
 			}
 
 			my $rdata2 = $db->doQuery('dummy', @sql);
@@ -278,13 +336,20 @@ sub run
 			}
 		}
 		
+		# Add jail to /etc/jailkit/jk_socketd.ini
+		$rs = $self->_addJailsToJkSockettd(
+			$jailkitConfig->{'jailfolder'}, $jailkitConfig->{'jail_sockettd_base'}, $jailkitConfig->{'jail_sockettd_peak'},
+			$jailkitConfig->{'jail_sockettd_interval'}
+		);
+		return $rs if $rs;
+		
 		# JailKit daemon must be restartet
 		$rs = $self->_restartDaemonJailKit();
 		return $rs if $rs;
 	}
 	
 	# Add, change or remove a ssh login of a domain jail
-	my $rdata = $db->doQuery(
+	$rdata = $db->doQuery(
 		'jailkit_login_id', 
 		"
 			SELECT
@@ -362,17 +427,6 @@ sub run
 		# Adding all mount binds to fstab
 		$rs = $self->_addWebfolderMountToFstab($jailkitConfig->{'jailfolder'});
 		return $rs if $rs;
-		
-		# Add jail to /etc/jailkit/jk_socketd.ini
-		$rs = $self->_addJailsToJkSockettd(
-			$jailkitConfig->{'jailfolder'}, $jailkitConfig->{'jail_sockettd_base'}, $jailkitConfig->{'jail_sockettd_peak'},
-			$jailkitConfig->{'jail_sockettd_interval'}
-		);
-		return $rs if $rs;
-		
-		# JailKit daemon must be restartet
-		$rs = $self->_restartDaemonJailKit();
-		return $rs if $rs;
 	}
 	
 	0;
@@ -414,6 +468,8 @@ sub _addDomainSshJail
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
+	return $rs if $rs;
+	
 	if(! -d $jailFolder . '/' . $domainName . '/tmp') {
 		my $rs = iMSCP::Dir->new('dirname' => $jailFolder . '/' . $domainName . '/tmp')->make(
 			{ 'user' => 'root', 'group' => 'root', 'mode' => 0777 }
@@ -433,6 +489,8 @@ sub _addDomainSshJail
 		$rs = execute("$main::imscpConfig{'CMD_LN'} -s /var/run/mysqld/mysqld.sock " . $jailFolder . "/" . $domainName . "/var/run/mysqld/mysqld.sock", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
+		
+		return $rs if $rs;
 	}
 }
 
@@ -457,16 +515,11 @@ sub _deleteDomainSshJail
 	
 	my $db = iMSCP::Database->factory();
 	
-	# Remove domain jail folder
-	my $jailFolderDomain = $jailFolder . '/' . $domainName;
-	$rs = iMSCP::Dir->new('dirname' => $jailFolderDomain)->remove() if -d $jailFolderDomain;
-	return $rs if $rs;
-	
 	my $rdata = $db->doQuery(
 		'jailkit_login_id', 
 		'
 			SELECT
-				`jailkit_login_id`, `domain_id`, `ssh_login_name`,
+				`jailkit_login_id`, `domain_id`, `ssh_login_name`
 			FROM
 				`jailkit_login`
 			WHERE
@@ -481,11 +534,32 @@ sub _deleteDomainSshJail
 	
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
+			# Umount (bind) virtual web dir from jail user home webfolder (Must be first, otherwise the hole virtual folder will be deleted)
+			$rs = execute("/bin/umount " . $jailFolder . "/" . $domainName . "/home/" . $rdata->{$_}->{'ssh_login_name'} . "/webfolder", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			
+			return $rs if $rs;
+		
 			$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
+			
+			return $rs if $rs;
+
+			my $rdata2 = $db->doQuery('dummy', 'DELETE FROM `jailkit_login` WHERE `jailkit_login_id` = ?', $rdata->{$_}->{'jailkit_login_id'});
+			
+			unless(ref $rdata2 eq 'HASH') {
+				error($rdata2);
+				return 1;
+			}
 		}
-	}	
+	}
+	
+	# Remove domain jail folder
+	my $jailFolderDomain = $jailFolder . '/' . $domainName;
+	$rs = iMSCP::Dir->new('dirname' => $jailFolderDomain)->remove() if -d $jailFolderDomain;
+	return $rs if $rs;
 }
 
 =item _addSshLoginToDomainJail()
@@ -515,15 +589,21 @@ sub _addSshLoginToDomainJail
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
+	return $rs if $rs;
+	
 	# Set new Password
 	$rs = execute("$main::imscpConfig{'CMD_ECHO'} -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
+	return $rs if $rs;
+	
 	# Add the user to the jail
 	$rs = execute('/usr/sbin/jk_jailuser -m -n -s ' . $jailDefaultShell . ' -j ' . $jailFolder . '/' . $domainName . ' ' . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	
+	return $rs if $rs;
 	
 	# Add webfolder dir in home folder of the new user
 	if(! -d $jailFolder . '/' . $domainName . '/home/' . $sshLoginName . '/webfolder') {
@@ -537,6 +617,8 @@ sub _addSshLoginToDomainJail
 	$rs = execute("/bin/mount $main::imscpConfig{'USER_WEB_DIR'}/" . $domainName . " " . $jailFolder . "/" . $domainName . "/home/" . $sshLoginName . "/webfolder -o bind", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	
+	return $rs if $rs;
 }
 
 =item _changeJailKitSshLogin()
@@ -562,6 +644,8 @@ sub _changeJailKitSshLogin
 	$rs = execute("$main::imscpConfig{'CMD_ECHO'} -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	
+	return $rs if $rs;
 	
 	if($action eq 'lock') {
 		$rs = execute('/usr/bin/passwd ' . $sshLoginName . ' -l', \$stdout, \$stderr); # Using passwd because usermod gives no output
@@ -601,6 +685,15 @@ sub _removeSshLoginFromDomainJail
 	$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	
+	return $rs if $rs;
+	
+	# Umount (bind) virtual web dir from jail user home webfolder (Must be first, otherwise the hole virtual folder will be deleted)
+	$rs = execute("/bin/umount " . $jailFolder . "/" . $domainName . "/home/" . $sshLoginName . "/webfolder", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	
+	return $rs if $rs;
 	
 	# Remove home folder from jail
 	my $homeFolder = $jailFolder . '/' . $domainName . '/home/' . $sshLoginName;
@@ -701,8 +794,6 @@ sub _addWebfolderMountToFstab
 	my $self = shift;
 	my $jailFolder = shift;
 	
-	my $fstabMountBindConfig;
-	
 	my $db = iMSCP::Database->factory();
 	
 	my $rdata = $db->doQuery(
@@ -726,8 +817,8 @@ sub _addWebfolderMountToFstab
 		return 1;
 	}
 	
+	my $fstabMountBindConfig = '';
 	
-
 	if(%{$rdata}) {
 		$fstabMountBindConfig = "# Start Added by Plugins::JailKit\n";
 		for(keys %{$rdata}) {
@@ -736,9 +827,10 @@ sub _addWebfolderMountToFstab
 		$fstabMountBindConfig .= "# Added by Plugins::JailKit End\n";
 	}
 	
+	my $fstabConf = '/etc/fstab';
+	return 1 if ! -f $fstabConf;
 	
-	
-	my $file = iMSCP::File->new('filename' => '/etc/fstab');
+	my $file = iMSCP::File->new('filename' => $fstabConf);
 	
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
@@ -771,8 +863,6 @@ sub _addJailsToJkSockettd
 	my $jailSockettdPeak = shift;
 	my $jailSockettdInterval = shift;
 	
-	my $jkSockettdEntries;
-	
 	my $db = iMSCP::Database->factory();
 	
 	my $rdata = $db->doQuery(
@@ -795,21 +885,23 @@ sub _addJailsToJkSockettd
 		return 1;
 	}
 	
+	my $jkSockettdEntries = '';
 	
-
 	if(%{$rdata}) {
 		$jkSockettdEntries = "# Start Added by Plugins::JailKit\n";
 		for(keys %{$rdata}) {
-			$jkSockettdEntries .= '[' . $jailFolder . '/' . $rdata->{$_}->{'domain_name'} . '/dev/log]';
-			$jkSockettdEntries .= 'base=' . $jailSockettdBase;
-			$jkSockettdEntries .= 'peak=' . $jailSockettdPeak;
-			$jkSockettdEntries .= 'interval=' . $jailSockettdInterval;
-			$jkSockettdEntries .= '';
+			$jkSockettdEntries .= "[" . $jailFolder . "/" . $rdata->{$_}->{'domain_name'} . "/dev/log]\n";
+			$jkSockettdEntries .= "base=" . $jailSockettdBase . "\n";
+			$jkSockettdEntries .= "peak=" . $jailSockettdPeak . "\n";
+			$jkSockettdEntries .= "interval=" . $jailSockettdInterval . "\n";
 		}
 		$jkSockettdEntries .= "# Added by Plugins::JailKit End\n";
 	}
 	
-	my $file = iMSCP::File->new('filename' => '/etc/jailkit/jk_socketd.ini');
+	my $jkSocketdConf = '/etc/jailkit/jk_socketd.ini';
+	return 1 if ! -f $jkSocketdConf;
+	
+	my $file = iMSCP::File->new('filename' => $jkSocketdConf);
 	
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
@@ -838,12 +930,8 @@ sub _restartDaemonJailKit
 {
 	my $self = shift;
 	
-	my ($stdout, $stderr);
-	
-	my $rs = execute('service jailkit restart', \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	
+	# Don't use here $stdout or $stderr. The requestmanager will hang up and only end if the daemon will restartet manually
+	my $rs = execute('service jailkit restart');
 	return $rs if $rs;
 }
 
@@ -900,6 +988,7 @@ sub _copyJailKitConfigFiles
 	my $rs = execute("$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/installation/jailkit-config/* /etc/jailkit/", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	
 	return $rs if $rs;
 }
 
@@ -925,14 +1014,20 @@ sub _installJailKitPackage
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
+	return $rs if $rs;
+	
 	if($stdout =~ /^i\d+/) {
 		$rs = execute('/usr/bin/dpkg -i ' . $jailKitI386, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
+		
+		return $rs if $rs;
 	} else {
 		$rs = execute('/usr/bin/dpkg -i ' . $jailKitAmd64, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
+		
+		return $rs if $rs;
 	}
 }
 
