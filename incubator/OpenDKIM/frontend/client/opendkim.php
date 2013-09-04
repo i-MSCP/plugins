@@ -87,12 +87,35 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 			
 			if ($stmt2->rowCount()) {
 				while ($data2 = $stmt2->fetchRow()) {
+					if($data2['opendkim_status'] == $cfg->ITEM_OK_STATUS) $statusIcon = 'ok';
+					elseif ($data2['opendkim_status'] == $cfg->ITEM_DISABLED_STATUS) $statusIcon = 'disabled';
+					elseif (
+						(
+							$data2['opendkim_status'] == $cfg->ITEM_TOADD_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TODELETE_STATUS
+						) ||
+						(
+							$data2['opendkim_status'] == $cfg->ITEM_TOADD_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TORESTORE_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TOENABLE_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TODISABLE_STATUS ||
+							$data2['opendkim_status'] == $cfg->ITEM_TODELETE_STATUS
+						)
+					) {
+						$statusIcon = 'reload';
+					} else {
+						$statusIcon = 'error';
+					}
+					
 					$tpl->assign(
 						array(
 							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
 							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text']) ? $data2['domain_text'] : tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
 							'OPENDKIM_id' => $data2['opendkim_id'],
-							'OPENDKIM_KEY_STATUS' => $data2['opendkim_status']
+							'OPENDKIM_KEY_STATUS' => translate_dmn_status($data2['opendkim_status']),
+							'STATUS_ICON' => $statusIcon
 						)
 					);
 
