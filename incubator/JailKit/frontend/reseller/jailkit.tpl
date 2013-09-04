@@ -1,7 +1,7 @@
 <!-- BDP: jailkit_list -->
-<form action="jailkit.php" method="post" name="activate_domain" id="activate_domain">
+<form action="jailkit.php" method="post" name="activate_customer" id="activate_customer">
 	<label>
-		<select name="domain_id">
+		<select name="admin_id">
 			<option value="-1">{TR_JAILKIT_SELECT_NAME_NONE}</option>
 			<!-- BDP: jailkit_select_item -->
 			<option value="{TR_JAILKIT_SELECT_VALUE}">{TR_JAILKIT_SELECT_NAME}</option>
@@ -19,7 +19,7 @@
 	<thead>
 	<tr>
 		<th>{TR_JAILKIT_STATUS}</th>
-		<th>{TR_JAILKIT_DOMAIN_NAME}</th>
+		<th>{TR_JAILKIT_CUSTOMER_NAME}</th>
 		<th>{TR_JAILKIT_LOGIN_LIMIT}</th>
 		<th>{TR_JAILKIT_ACTIONS}</th>
 	</tr>
@@ -29,14 +29,14 @@
 	<!-- BDP: jailkit_customer_item -->
 	<tr>
 		<td>
-			<a href="#" onclick="action_status('{JAILKIT_DOMAIN_ID}', '{JAILKIT_DOMAIN_NAME}'); return false;"
+			<a href="#" onclick="action_status('{JAILKIT_ADMIN_ID}', '{JAILKIT_CUSTOMER_NAME}'); return false;"
 				class="icon i_{STATUS_ICON}">{JAILKIT_STATUS}</a>
 		</td>
-		<td>{JAILKIT_DOMAIN_NAME}</td>
+		<td>{JAILKIT_CUSTOMER_NAME}</td>
 		<td>{JAILKIT_LOGIN_LIMIT}</td>
 		<td>
-			<a class="icon i_edit" href="jailkit.php?action=edit&amp;domain_id={JAILKIT_DOMAIN_ID}">{TR_EDIT_JAIL}</a>
-			<a class="icon i_delete deactivate_jailkit" href="jailkit.php?action=deactivate&amp;domain_id={JAILKIT_DOMAIN_ID}">{TR_DELETE_JAIL}</a>
+			<a class="icon i_edit" href="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}">{TR_EDIT_JAIL}</a>
+			<a class="icon i_delete deactivate_jailkit" href="jailkit.php?action=delete&amp;admin_id={JAILKIT_ADMIN_ID}">{TR_DELETE_JAIL}</a>
 		</td>
 	</tr>
 	<!-- EDP: jailkit_customer_item -->
@@ -58,6 +58,24 @@
 	<a class="icon i_next" href="jailkit.php?psi={NEXT_PSI}" title="{TR_NEXT}">{TR_NEXT}</a>
 	<!-- EDP: scroll_next -->
 </div>
+
+<script>
+/*<![CDATA[*/
+	$(document).ready(function(){
+		$(".deactivate_jailkit").click(function(){
+			return confirm("{DEACTIVATE_CUSTOMER_ALERT}");
+		});
+	});
+	
+	function action_status(dom_id, dmn_name) {
+		if (!confirm(sprintf("{DISABLE_CUSTOMER_ALERT}", dmn_name))) {
+			return false;
+		}
+
+		location = ("jailkit.php?action=change&admin_id=" + dom_id);
+	}
+/*]]>*/
+</script>
 <!-- EDP: jailkit_customer_list -->
 
 <!-- BDP: jailkit_no_customer_item -->
@@ -65,44 +83,25 @@
 	<thead>
 	<tr>
 		<th>{TR_JAILKIT_STATUS}</th>
-		<th>{TR_JAILKIT_DOMAIN_NAME}</th>
+		<th>{TR_JAILKIT_CUSTOMER_NAME}</th>
 		<th>{TR_JAILKIT_ACTIONS}</th>
 	</tr>
 	</thead>
 	<tfoot>
 	<tr>
-		<td colspan="3">{TR_JAILKIT_NO_DOMAIN}</td>
+		<td colspan="3">{TR_JAILKIT_NO_CUSTOMER}</td>
 	</tr>
 	</tfoot>
 	<tbody>
 	<tr>
-		<td colspan="3"><div class="message info">{JAILKIT_NO_DOMAIN}</div></td>
+		<td colspan="3"><div class="message info">{JAILKIT_NO_CUSTOMER}</div></td>
 	</tr>
 	</tbody>
 </table>
 <!-- EDP: jailkit_no_customer_item -->
-
-<script>
-/*<![CDATA[*/
-	$(document).ready(function(){
-		$(".deactivate_jailkit").click(function(){
-			return confirm("{DEACTIVATE_DOMAIN_ALERT}");
-		});
-	});
-	
-	function action_status(dom_id, dmn_name) {
-		if (!confirm(sprintf("{DISABLE_DOMAIN_ALERT}", dmn_name))) {
-			return false;
-		}
-
-		location = ("jailkit.php?action=change&domain_id=" + dom_id);
-	}
-/*]]>*/
-</script>
 <!-- EDP: jailkit_list -->
-
 <!-- BDP: jailkit_edit -->
-<form action="jailkit.php?action=edit&amp;domain_id={JAILKIT_DOMAIN_ID}" method="post" name="edit_jail" id="edit_jail">
+<form action="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}" method="post" name="edit_jail" id="edit_jail">
 	<table class="firstColFixed">
 		<thead>
 		<tr>

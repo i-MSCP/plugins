@@ -36,7 +36,7 @@
  * @param $tpl iMSCP_pTemplate
  * @param iMSCP_Plugin_Manager $pluginManager
  * @param int $resellerId
- * @param int $domainId
+ * @param int $customerAdminId
  * @return void
  */
 function jailkit_generateSelect($tpl, $resellerId)
@@ -46,17 +46,17 @@ function jailkit_generateSelect($tpl, $resellerId)
 	
 	$query = "
 		SELECT
-			`domain_id`, `domain_name`
+			`admin_id`, `admin_name`
 		FROM
-			`domain`
+			`admin`
 		WHERE
-			`domain_created_id` = ?
+			`created_by` = ?
 		AND
-			`domain_status` = ?
+			`admin_status` = ?
 		AND
-			`domain_id` NOT IN (SELECT `domain_id` FROM `jailkit`)
+			`admin_id` NOT IN (SELECT `admin_id` FROM `jailkit`)
 		ORDER BY
-			`domain_name` ASC
+			`admin_name` ASC
 	";
 	
 	$stmt = exec_query($query, array($resellerId, $cfg->ITEM_OK_STATUS));
@@ -65,8 +65,8 @@ function jailkit_generateSelect($tpl, $resellerId)
 		while ($data = $stmt->fetchRow()) {
 			$tpl->assign(
 				array(
-					'TR_JAILKIT_SELECT_VALUE' => $data['domain_id'],
-					'TR_JAILKIT_SELECT_NAME' => decode_idna($data['domain_name']),
+					'TR_JAILKIT_SELECT_VALUE' => $data['admin_id'],
+					'TR_JAILKIT_SELECT_NAME' => decode_idna($data['admin_name']),
 					)
 				);
 
@@ -77,7 +77,7 @@ function jailkit_generateSelect($tpl, $resellerId)
 	}
 }
 
-function jailkit_generateActivatedDomains($tpl, $resellerId)
+function jailkit_generateActivatedCustomers($tpl, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
@@ -91,33 +91,33 @@ function jailkit_generateActivatedDomains($tpl, $resellerId)
 	$startIndex = isset($_GET['psi']) ? (int)$_GET['psi'] : 0;
 	
 	$countQuery = "
-		SELECT COUNT(`t1`.`domain_id`) AS `cnt` 
+		SELECT COUNT(`t1`.`admin_id`) AS `cnt` 
 		FROM 
-			`domain` AS `t1`
+			`admin` AS `t1`
 		LEFT JOIN
-			`jailkit` AS `t2` ON(`t1`.`domain_id` = `t2`.`domain_id`)
+			`jailkit` AS `t2` ON(`t2`.`admin_id` = `t1`.`admin_id`)
 		WHERE
-			`t1`.`domain_created_id` = '$resellerId'
+			`t1`.`created_by` = ?
 		AND
-			`t1`.`domain_id` IN (SELECT `domain_id` FROM `jailkit`)
+			`t1`.`admin_id` IN (SELECT `admin_id` FROM `jailkit`)
 	";
 		
-	$stmt = execute_query($countQuery);
+	$stmt = exec_query($countQuery, $resellerId);
 	$recordsCount = $stmt->fields['cnt'];
 
 	$query = "
 		SELECT
 			`t2`.*
 		FROM
-			`domain` AS `t1`
+			`admin` AS `t1`
 		LEFT JOIN
-			`jailkit` AS `t2` ON(`t1`.`domain_id` = `t2`.`domain_id`)
+			`jailkit` AS `t2` ON(`t2`.`admin_id` = `t1`.`admin_id`)
 		WHERE
-			`t1`.`domain_created_id` = ?
+			`t1`.`created_by` = ?
 		AND
-			`t1`.`domain_id` IN (SELECT `domain_id` FROM `jailkit`)
+			`t1`.`admin_id` IN (SELECT `admin_id` FROM `jailkit`)
 		ORDER BY
-			`t2`.`domain_name` ASC
+			`t2`.`admin_name` ASC
 		LIMIT
 			$startIndex, $rowsPerPage
 	";
@@ -176,10 +176,10 @@ function jailkit_generateActivatedDomains($tpl, $resellerId)
 			
 			$tpl->assign(
 				array(
-					'JAILKIT_DOMAIN_NAME' => decode_idna($data['domain_name']),
+					'JAILKIT_CUSTOMER_NAME' => decode_idna($data['admin_name']),
 					'JAILKIT_STATUS' => translate_dmn_status($data['jailkit_status']),
-					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($data['domain_id']),
-					'JAILKIT_DOMAIN_ID' => $data['domain_id'],
+					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($data['admin_id']),
+					'JAILKIT_ADMIN_ID' => $data['admin_id'],
 					'STATUS_ICON' => $statusIcon
 				)
 			);
@@ -203,44 +203,44 @@ function jailkit_generateActivatedDomains($tpl, $resellerId)
 	$tpl->assign('JAILKIT_EDIT', '');
 }
 
-function get_jailkitLoginLimit($domainId)
+function get_jailkitLoginLimit($customerAdminId)
 {
 	$countQuery = "
 		SELECT COUNT(`jailkit_login_id`) AS `cnt` 
 		FROM 
 			`jailkit_login`
 		WHERE
-			`domain_id` = ?
+			`admin_id` = ?
 	";
 		
-	$stmt = exec_query($countQuery, $domainId);
+	$stmt = exec_query($countQuery, $customerAdminId);
 	$recordsCount = $stmt->fields['cnt'];
 	
-	$query = "SELECT `max_logins` FROM `jailkit` WHERE `domain_id` = ?";	
-	$stmt = exec_query($query, $domainId);
+	$query = "SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?";	
+	$stmt = exec_query($query, $customerAdminId);
 	
 	return $recordsCount . ' of ' . (($stmt->fields['max_logins'] == 0) ? '<b>unlimited</b>' : $stmt->fields['max_logins']);
 }
 
-function jailkit_activateDomain($tpl, $pluginManager, $domainId, $resellerId)
+function jailkit_activateCustomer($tpl, $pluginManager, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 	
 	$query = "
 		SELECT
-			`domain_id`, `domain_name`, `domain_name`, `domain_dns`
+			`admin_id`, `admin_name`
 		FROM
-			`domain`
+			`admin`
 		WHERE
-			`domain_id` = ?
+			`admin_id` = ?
 		AND
-			`domain_created_id` = ?
+			`created_by` = ?
 		AND
-			`domain_status` = ?
+			`admin_status` = ?
 	";
 	
-	$stmt = exec_query($query, array($domainId, $resellerId, $cfg->ITEM_OK_STATUS));
+	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
 	
 	if (($plugin = $pluginManager->load('JailKit', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
@@ -256,7 +256,7 @@ function jailkit_activateDomain($tpl, $pluginManager, $domainId, $resellerId)
 			$query = "
 				INSERT INTO
 				    `jailkit` (
-						`domain_id`, `domain_name`, `max_logins`, `jailkit_status`
+						`admin_id`, `admin_name`, `max_logins`, `jailkit_status`
 					) VALUES (
 						?, ?, ?, ?
 					)
@@ -264,7 +264,7 @@ function jailkit_activateDomain($tpl, $pluginManager, $domainId, $resellerId)
 			exec_query(
 				$query,
 				array(
-					$data['domain_id'], $data['domain_name'], $pluginConfig['max_allowed_ssh-user'], $cfg->ITEM_TOADD_STATUS
+					$data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh-user'], $cfg->ITEM_TOADD_STATUS
 				)
 			);
 		}
@@ -272,46 +272,46 @@ function jailkit_activateDomain($tpl, $pluginManager, $domainId, $resellerId)
 		send_request();
 		
 		set_page_message(
-			tr('Domain activated for JailKit support. This can take few seconds.'), 'success'
+			tr('Customer activated for JailKit support. This can take few seconds.'), 'success'
 		);
 	} else {
 		set_page_message(
-			tr("The domain you are trying to activate JailKit doesn't exist."), 'error'
+			tr("The customer you are trying to activate JailKit doesn't exist."), 'error'
 		);
 	}
 	
 	redirectTo('jailkit.php');
 }
 
-function jailkit_changeDomainJail($tpl, $domainId, $resellerId)
+function jailkit_changeCustomerJail($tpl, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 	
 	$query = "
 		SELECT
-			`domain_id`, `domain_name`, `domain_name`, `domain_dns`
+			`admin_id`, `admin_name`
 		FROM
-			`domain`
+			`admin`
 		WHERE
-			`domain_id` = ?
+			`admin_id` = ?
 		AND
-			`domain_created_id` = ?
+			`created_by` = ?
 		AND
-			`domain_status` = ?
+			`admin_status` = ?
 	";
 	
-	$stmt = exec_query($query, array($domainId, $resellerId, $cfg->ITEM_OK_STATUS));
+	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
 	
 	if ($stmt->rowCount()) {
-		$query = "SELECT `max_logins` FROM `jailkit` WHERE `domain_id` = ?";	
-		$stmt2 = exec_query($query, $domainId);
+		$query = "SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?";	
+		$stmt2 = exec_query($query, $customerAdminId);
 		
 		if(isset($_POST['max_logins']) && $_POST['max_logins'] != '') {
 			$maxLogins = clean_input($_POST['max_logins']);
 			if($maxLogins >= 0) {
 				if($maxLogins != $stmt2->fields['max_logins']) {
-					exec_query('UPDATE `jailkit` SET `max_logins` = ? WHERE `domain_id` = ?', array($maxLogins, $domainId));
+					exec_query('UPDATE `jailkit` SET `max_logins` = ? WHERE `admin_id` = ?', array($maxLogins, $customerAdminId));
 					
 					set_page_message(
 						tr('Max logins succesfully changed.'), 'success'
@@ -328,10 +328,10 @@ function jailkit_changeDomainJail($tpl, $domainId, $resellerId)
 		
 		$tpl->assign(
 			array(
-				'TR_PAGE_TITLE' => tr('Customers / Edit JailKit - SSH for customer: %s', decode_idna($stmt->fields['domain_name'])),
-				'TR_JAIL_LIMITS' => tr('Jail - SSH limits for customer: %s', decode_idna($stmt->fields['domain_name'])),
+				'TR_PAGE_TITLE' => tr('Customers / Edit JailKit - SSH for customer: %s', decode_idna($stmt->fields['admin_name'])),
+				'TR_JAIL_LIMITS' => tr('Jail - SSH limits for customer: %s', decode_idna($stmt->fields['admin_name'])),
 				'MAX_LOGINS' => $stmt2->fields['max_logins'],
-				'JAILKIT_DOMAIN_ID' => $domainId
+				'JAILKIT_ADMIN_ID' => $customerAdminId
 			)
 		);
 	} else {
@@ -341,88 +341,88 @@ function jailkit_changeDomainJail($tpl, $domainId, $resellerId)
 	$tpl->assign('JAILKIT_LIST', '');
 }
 
-function jailkit_deactivateDomain($tpl, $domainId, $resellerId)
+function jailkit_deactivateCustomer($tpl, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 	
 	$query = "
 		SELECT
-			`domain_id`, `domain_name`, `domain_name`, `domain_dns`
+			`admin_id`, `admin_name`
 		FROM
-			`domain`
+			`admin`
 		WHERE
-			`domain_id` = ?
+			`admin_id` = ?
 		AND
-			`domain_created_id` = ?
+			`created_by` = ?
 		AND
-			`domain_status` = ?
+			`admin_status` = ?
 	";
 	
-	$stmt = exec_query($query, array($domainId, $resellerId, $cfg->ITEM_OK_STATUS));
+	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
 	
 	if ($stmt->rowCount()) {
-		exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_TODELETE_STATUS, $domainId));
+		exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_TODELETE_STATUS, $customerAdminId));
 		
 		send_request();
 		
 		set_page_message(
-			tr('Domain deactivated for JailKit support. This can take few seconds.'), 'success'
+			tr('Customer deactivated for JailKit support. This can take few seconds.'), 'success'
 		);
 	} else {
-		set_page_message(tr("The domain you are trying to deactivate JailKit doesn't exist."), 'error');
+		set_page_message(tr("The customer you are trying to deactivate JailKit doesn't exist."), 'error');
 	}
 	
 	redirectTo('jailkit.php');
 }
 
-function jailkit_changeDomainPermission($tpl, $domainId, $resellerId)
+function jailkit_changeCustomerPermission($tpl, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 	
 	$query = "
 		SELECT
-			`domain_id`, `domain_name`, `domain_name`, `domain_dns`
+			`admin_id`, `admin_name`
 		FROM
-			`domain`
+			`admin`
 		WHERE
-			`domain_id` = ?
+			`admin_id` = ?
 		AND
-			`domain_created_id` = ?
+			`created_by` = ?
 		AND
-			`domain_status` = ?
+			`admin_status` = ?
 	";
 	
-	$stmt = exec_query($query, array($domainId, $resellerId, $cfg->ITEM_OK_STATUS));
+	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
 	
 	if ($stmt->rowCount()) {
-		$query = "SELECT `domain_id`, `domain_name`, `jailkit_status` FROM `jailkit` WHERE `domain_id` = ?";
-		$stmt = exec_query($query, $domainId);
+		$query = "SELECT `admin_id`, `admin_name`, `jailkit_status` FROM `jailkit` WHERE `admin_id` = ?";
+		$stmt = exec_query($query, $customerAdminId);
 		
 		if ($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) {
-			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_OK_STATUS, $domainId));
+			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_OK_STATUS, $customerAdminId));
 		
-			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `domain_id` = ?', array('0', $cfg->ITEM_TOCHANGE_STATUS, $domainId));
+			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('0', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId));
 			
 			send_request();
 			
 			set_page_message(
-				tr('Domain enabled for JailKit support. This can take few seconds.'), 'success'
+				tr('Customer enabled for JailKit support. This can take few seconds.'), 'success'
 			);
 		} elseif($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
-			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_DISABLED_STATUS, $domainId));
+			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_DISABLED_STATUS, $customerAdminId));
 			
-			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `domain_id` = ?', array('1', $cfg->ITEM_TOCHANGE_STATUS, $domainId));
+			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('1', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId));
 			
 			send_request();
 			
 			set_page_message(
-				tr('Domain disabled for JailKit support. This can take few seconds.'), 'success'
+				tr('Customer disabled for JailKit support. This can take few seconds.'), 'success'
 			);
 		}
 	} else {
-		set_page_message(tr("The domain you are trying to change the permission of JailKit doesn't exist."), 'error');
+		set_page_message(tr("The customer you are trying to change the permission of JailKit doesn't exist."), 'error');
 	}
 	
 	redirectTo('jailkit.php');
@@ -457,7 +457,6 @@ $tpl->define_dynamic(
 		'jailkit_select_item' => 'page',
 		'jailkit_customer_list' => 'page',
 		'jailkit_customer_item' => 'page',
-		'jailkit_domain_item' => 'page',
 		'jailkit_no_customer_item' => 'page',
 		'scroll_prev_gray' => 'jailkit_customer_list',
 		'scroll_prev' => 'jailkit_customer_list',
@@ -466,29 +465,33 @@ $tpl->define_dynamic(
 	)
 );
 
-if(isset($_POST['action']) && $_POST['action'] === 'activate') {
-	$domainId = (isset($_POST['domain_id']) && $_POST['domain_id'] !== '-1') ? clean_input($_POST['domain_id']) : '';
+if (isset($_REQUEST['action'])) {
+	$action = clean_input($_REQUEST['action']);
 	
-	if($domainId != '') {
-		jailkit_activateDomain($tpl, $pluginManager, $domainId, $_SESSION['user_id']);
-	}
-} elseif(isset($_GET['action']) && $_GET['action'] === 'change') {
-	$domainId = (isset($_GET['domain_id'])) ? clean_input($_GET['domain_id']) : '';
-	
-	if($domainId != '') {
-		jailkit_changeDomainPermission($tpl, $domainId, $_SESSION['user_id']);
-	}
-} elseif(isset($_GET['action']) && $_GET['action'] === 'edit') {
-	$domainId = ($_GET['domain_id'] !== '') ? (int) clean_input($_GET['domain_id']) : '';
-	
-	if($domainId != '') {
-		jailkit_changeDomainJail($tpl, $domainId, $_SESSION['user_id']);
-	}
-} elseif(isset($_GET['action']) && $_GET['action'] === 'deactivate') {
-	$domainId = (isset($_GET['domain_id'])) ? clean_input($_GET['domain_id']) : '';
-	
-	if($domainId != '') {
-		jailkit_deactivateDomain($tpl, $domainId, $_SESSION['user_id']);
+	if($action === 'activate') {
+		$customerAdminId = (isset($_POST['admin_id']) && $_POST['admin_id'] !== '-1') ? clean_input($_POST['admin_id']) : '';
+		
+		if($customerAdminId != '') {
+			jailkit_activateCustomer($tpl, $pluginManager, $customerAdminId, $_SESSION['user_id']);
+		}
+	} elseif($action === 'change') {
+		$customerAdminId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
+		
+		if($customerAdminId != '') {
+			jailkit_changeCustomerPermission($tpl, $customerAdminId, $_SESSION['user_id']);
+		}
+	} elseif($action === 'edit') {
+		$customerAdminId = ($_GET['admin_id'] !== '') ? (int) clean_input($_GET['admin_id']) : '';
+		
+		if($customerAdminId != '') {
+			jailkit_changeCustomerJail($tpl, $customerAdminId, $_SESSION['user_id']);
+		}
+	} elseif($action === 'delete') {
+		$customerAdminId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
+		
+		if($customerAdminId != '') {
+			jailkit_deactivateCustomer($tpl, $customerAdminId, $_SESSION['user_id']);
+		}
 	}
 }
 
@@ -497,18 +500,18 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Customers / JailKit - SSH'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'DOMAIN_NOT_SELECTED' => tr("No domain selected."),
+		'CUSTOMER_NOT_SELECTED' => tr("No customer selected."),
 		'TR_JAILKIT_SELECT_NAME_NONE' => tr('Select a customer'),
 		'TR_SHOW' => tr('Activate JailKit - SSH for this customer'),
 		'TR_UPDATE' => tr('Update'),
 		'TR_CANCEL' => tr('Cancel'),
-		'TR_JAILKIT_DOMAIN_NAME' => tr('Domain'),
-		'TR_JAILKIT_NO_DOMAIN' => tr('JailKit domain entries'),
-		'JAILKIT_NO_DOMAIN' => tr('No domain for JailKit support activated'),
+		'TR_JAILKIT_CUSTOMER_NAME' => tr('Customer'),
+		'TR_JAILKIT_NO_CUSTOMER' => tr('JailKit customer entries'),
+		'JAILKIT_NO_CUSTOMER' => tr('No customer for JailKit support activated'),
 		'TR_JAILKIT_STATUS' => tr('Status'),
 		'TR_JAILKIT_LOGIN_LIMIT' => tr('Login limit'),
-		'DEACTIVATE_DOMAIN_ALERT' => tr('Are you sure? You want to deactivate JailKit for this customer?'),
-		'DISABLE_DOMAIN_ALERT' => tr('Are you sure? You want to disable all JailKit ssh logins for this customer?'),
+		'DEACTIVATE_CUSTOMER_ALERT' => tr('Are you sure? You want to deactivate JailKit for this customer?'),
+		'DISABLE_CUSTOMER_ALERT' => tr('Are you sure? You want to disable all JailKit ssh logins for this customer?'),
 		'TR_PREVIOUS' => tr('Previous'),
 		'TR_JAILKIT_ACTIONS' => tr('Actions'),
 		'TR_EDIT_JAIL' => tr('Edit Customer Jail'),
@@ -523,7 +526,7 @@ generateNavigation($tpl);
 
 if(!isset($_GET['action'])) {
 	jailkit_generateSelect($tpl, $_SESSION['user_id']);
-	jailkit_generateActivatedDomains($tpl, $_SESSION['user_id']);
+	jailkit_generateActivatedCustomers($tpl, $_SESSION['user_id']);
 }
 
 generatePageMessage($tpl);

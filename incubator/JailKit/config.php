@@ -27,7 +27,7 @@
  */
 
 return array(
-	'jailfolder' => '/var/imsp/ssh_jail', # Jail folder for all ssh jails. The complete path "must" owned by root:root!
+	'jailfolder' => '/imscp-jails', # Jail folder for all ssh jails. The complete path "must" owned by root:root! Never change this folder while updating the plugin to a new version!
 	'default_shell' => '/bin/bash', # If you change this, i hope you know what you are doing
 	'default_jail_apps' => array(
 		'basicshell',

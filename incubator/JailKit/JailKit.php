@@ -127,7 +127,27 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		$this->setupNavigation();
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		$query = "
+			SELECT
+				`admin_id`
+			FROM
+				`admin`
+			WHERE
+				`admin_id` = ?
+			AND
+				`admin_status` = ?
+			AND
+				`admin_id` IN (SELECT `admin_id` FROM `jailkit`)
+		";
+
+		$stmt = exec_query($query, array($_SESSION['user_id'], $cfg->ITEM_OK_STATUS));
+		
+		if ($stmt->rowCount()) {
+			$this->setupNavigation();
+		}
 	}
 	
 	/**
@@ -143,28 +163,12 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 		
-		$query = "
-			SELECT
-				`domain_id`
-			FROM
-				`admin`
-			INNER JOIN
-				`domain` ON(`domain_admin_id` = `admin_id`)
-			WHERE
-				`admin_id` = ?
-		";
-		$stmt = exec_query($query, $event->getParam('customerId'));
-		
-		if ($stmt->rowCount()) {
-			$mainDomainId = $stmt->fields['domain_id'];
+		exec_query(
+			'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?',
+				array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
+		);
 			
-			exec_query(
-				'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `domain_id` = ?',
-				array($cfg->ITEM_TODELETE_STATUS, $mainDomainId)
-			);
-			
-			send_request();
-		}
+		send_request();
 	}
 
 	/**
@@ -218,8 +222,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$query = "
 			CREATE TABLE IF NOT EXISTS `jailkit` (
 				`jailkit_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				`domain_id` int(11) unsigned NOT NULL,
-				`domain_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+				`admin_id` int(11) unsigned NOT NULL,
+				`admin_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 				`max_logins` int(11) default NULL,
 				`jailkit_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 				PRIMARY KEY (`jailkit_id`),
@@ -228,7 +232,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			
 			CREATE TABLE IF NOT EXISTS `jailkit_login` (
 				`jailkit_login_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				`domain_id` int(11) unsigned NOT NULL,
+				`admin_id` int(11) unsigned NOT NULL,
 				`ssh_login_name` varchar(200) collate utf8_unicode_ci default NULL,
 				`ssh_login_pass` varchar(200) collate utf8_unicode_ci default NULL,
 				`ssh_login_sys_uid` int(10) unsigned NOT NULL default '0',
@@ -236,6 +240,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				`ssh_login_locked` tinyint(1) default '0',
 				`jailkit_login_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 				PRIMARY KEY (`jailkit_login_id`),
+				UNIQUE KEY `ssh_login_name` (`ssh_login_name`),
 				KEY `jailkit_login_id` (`jailkit_login_id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 		";

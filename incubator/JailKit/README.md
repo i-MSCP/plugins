@@ -48,7 +48,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 You can set the jail path in the file plugins/JailKit/config.php
 The complete path "must" owned by root:root!
-Default is "/var/imsp/ssh_jail"
+Default is "/imscp-jails"
+Never change folder after the first installation. The plugin does not provide a folder change while updating the plugin!
 
 You can set the min. of ssh logins which the user can create (0 = unlimited)
 
