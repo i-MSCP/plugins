@@ -348,7 +348,7 @@ sub _addOpendkimDomainKey
 		return $rs if $rs;
 		
 		
-		$rs = execute('opendkim-genkey -D /etc/opendkim/' . $domain . ' -r -h rsa-sha256 -s mail -d ' . $domain, \$stdout, \$stderr);
+		$rs = execute('opendkim-genkey -D /etc/opendkim/' . $domain . ' -r -s mail -d ' . $domain, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		
@@ -377,7 +377,7 @@ sub _addOpendkimDomainKey
 		$fileContent = $file->get();
 		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 		
-		my $privateKeyEntry = "mail._domainkey." . $domain . " " . $domain . ":default:/etc/opendkim/" . $domain . "/mail.private\n";
+		my $privateKeyEntry = "mail._domainkey " . $domain . ":mail:/etc/opendkim/" . $domain . "/mail.private\n";
 		
 		$fileContent .= $privateKeyEntry;
 		
@@ -393,7 +393,7 @@ sub _addOpendkimDomainKey
 		$fileContent = $file->get();
 		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 		
-		my $domainEntry = "*@" . $domain . " mail._domainkey." . $domain . "\n";
+		my $domainEntry = "*@" . $domain . " mail._domainkey\n";
 		
 		$fileContent .= $domainEntry;
 		
@@ -425,7 +425,7 @@ sub _addOpendkimDomainKey
 					, 'opendkim_feature'
 				)
 			"
-			, $domainId, $aliasId, 'mail._domainkey.' . $domain . '.', $txtRecord
+			, $domainId, $aliasId, 'mail._domainkey', $txtRecord
 		);
 		
 		unless(ref $rdata eq 'HASH') {
@@ -562,7 +562,7 @@ sub _recoverOpendkimDnsEntries
 							, 'opendkim_feature'
 						)
 					"
-					, $domainId, $aliasId, 'mail._domainkey.' . $domain . '.', $txtRecord
+					, $domainId, $aliasId, 'mail._domainkey', $txtRecord
 				);
 				
 				unless(ref $rdata2 eq 'HASH') {
@@ -679,7 +679,7 @@ sub _deleteOpendkimDomainKey
 	$rs = $file->save();
 	return $rs if $rs;
 	
-	$rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `domain_dns` = ?', 'mail._domainkey.' . $domain . '.');
+	$rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `alias_id` = ? AND `domain_dns` = ?', $domainId, $aliasId, 'mail._domainkey');
 	
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);

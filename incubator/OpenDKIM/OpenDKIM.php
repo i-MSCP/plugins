@@ -167,15 +167,15 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 
 		$query = "
 			SELECT
-				`domain_id`
+				`admin_id`
 			FROM
-				`domain`
+				`admin`
 			WHERE
-				`domain_admin_id` = ?
+				`admin_id` = ?
 			AND
-				`domain_status` = ?
+				`admin_status` = ?
 			AND
-				`domain_id` IN (SELECT `domain_id` FROM `opendkim`)
+				`admin_id` IN (SELECT `admin_id` FROM `opendkim`)
 		";
 
 		$stmt = exec_query($query, array($_SESSION['user_id'], $cfg->ITEM_OK_STATUS));
@@ -198,28 +198,12 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 		
-		$query = "
-			SELECT
-				`domain_id`
-			FROM
-				`admin`
-			INNER JOIN
-				`domain` ON(`domain_admin_id` = `admin_id`)
-			WHERE
-				`admin_id` = ?
-		";
-		$stmt = exec_query($query, $event->getParam('customerId'));
-		
-		if ($stmt->rowCount()) {
-			$mainDomainId = $stmt->fields['domain_id'];
+		exec_query(
+			'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `admin_id` = ?',
+				array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
+		);
 			
-			exec_query(
-				'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `domain_id` = ?',
-				array($cfg->ITEM_TODELETE_STATUS, $mainDomainId)
-			);
-			
-			send_request();
-		}
+		send_request();
 	}
 
 	/**
@@ -243,8 +227,13 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 			$stmt = exec_query($query, array($event->getParam('domainId'), $cfg->ITEM_OK_STATUS));
 			
 			if ($stmt->rowCount()) {
-				$query = 'INSERT INTO `opendkim` (`domain_id`, `alias_id`, `domain_name`, `opendkim_status`) VALUES (?, ?, ?, ?)';
-				exec_query($query, array($event->getParam('domainId'), $event->getParam('domainAliasId'), $event->getParam('domainAliasName'), $cfg->ITEM_TOADD_STATUS));
+				$query = 'INSERT INTO `opendkim` (`admin_id`, `domain_id`, `alias_id`, `domain_name`, `opendkim_status`) VALUES (?, ?, ?, ?, ?)';
+				exec_query($query,
+					array(
+						$stmt->fields['admin_id'], $event->getParam('domainId'), $event->getParam('domainAliasId'),
+						$event->getParam('domainAliasName'), $cfg->ITEM_TOADD_STATUS
+					)
+				);
 				
 				send_request();
 			}
@@ -349,6 +338,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		$query = "
 			CREATE TABLE IF NOT EXISTS `opendkim` (
 				`opendkim_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`admin_id` int(11) unsigned NOT NULL,
 				`domain_id` int(11) unsigned NOT NULL,
 				`alias_id` int(11) unsigned NOT NULL,
 				`domain_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,

@@ -47,11 +47,11 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 		SELECT
 			`t2`.*
 		FROM
-			`domain` AS `t1`
+			`admin` AS `t1`
 		LEFT JOIN
-			`opendkim` AS `t2` ON(`t1`.`domain_id` = `t2`.`domain_id`)
+			`opendkim` AS `t2` ON(`t1`.`admin_id` = `t2`.`admin_id`)
 		WHERE
-			`t1`.`domain_admin_id` = ?
+			`t1`.`admin_id` = ?
 		AND
 			`t2`.`alias_id` = '0'
 		ORDER BY
@@ -76,7 +76,7 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 						AND
 							`t1`.`alias_id` = `t2`.`alias_id`
 						AND 
-							`t2`.`domain_dns` = CONCAT('mail._domainkey.', `t1`.`domain_name`, '.')
+							`t2`.`domain_dns` = 'mail._domainkey'
 						)
 				WHERE
 					`t1`.`domain_id` = ?
@@ -113,7 +113,8 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 						array(
 							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
 							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text']) ? $data2['domain_text'] : tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
-							'OPENDKIM_id' => $data2['opendkim_id'],
+							'OPENDKIM_ID' => $data2['opendkim_id'],
+							'OPENDKIM_DNS_NAME' => decode_idna($data2['domain_dns']),
 							'OPENDKIM_KEY_STATUS' => translate_dmn_status($data2['opendkim_status']),
 							'STATUS_ICON' => $statusIcon
 						)
@@ -180,6 +181,7 @@ $tpl->assign(
 		'TR_OPENDKIM_NO_DOMAIN' => tr('OpenDKIM domain entries'),
 		'OPENDKIM_NO_DOMAIN' => tr('No domain for OpenDKIM support activated'),
 		'TR_OPENDKIM_DOMAIN_KEY' => tr('OpenDKIM domain key'),
+		'TR_OPENDKIM_DNS_NAME' => tr('Name'),
 		'TR_OPENDKIM_KEY_STATUS' => tr('Status'),
 		'TR_PREVIOUS' => tr('Previous'),
 		'TR_NEXT' => tr('Next')
