@@ -68,7 +68,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterDeleteCustomer
+				iMSCP_Events::onAfterDeleteCustomer,
+				iMSCP_Events::onAfterChangeDomainStatus
 			),
 			$this
 		);
@@ -153,7 +154,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	/**
 	 * Implements the onAfterDeleteCustomer event
 	 *
-	 * This event is called when a customer account wiil be deleted.
+	 * This event is called when a customer account will be deleted.
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -168,6 +169,32 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
 		);
 			
+		send_request();
+	}
+	
+	/**
+	 * Implements the onAfterChangeDomainStatus event
+	 *
+	 * This event is called when a customer account status will be changed.
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onAfterChangeDomainStatus($event)
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+		
+		if($event->getParam('action') === 'activate') {
+			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_OK_STATUS, $event->getParam('customerId')));
+		
+			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('0', $cfg->ITEM_TOCHANGE_STATUS, $event->getParam('customerId')));
+		} else {
+			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_DISABLED_STATUS, $event->getParam('customerId')));
+			
+			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('1', $cfg->ITEM_TOCHANGE_STATUS, $event->getParam('customerId')));
+		}
+		
 		send_request();
 	}
 
