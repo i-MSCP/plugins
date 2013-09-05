@@ -219,7 +219,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 			$tpl->assign(
 				array(
 					'TR_OPENDKIM_CUSTOMER' => tr('OpenDKIM domain entries for customer: %s', decode_idna($data['admin_name'])),
-					'TR_OPENDKIM_DEACTIVATE_CUSTOMER' => tr('Deativate OpenDKIM for customer: %s', decode_idna($data['admin_name'])),
+					'TR_OPENDKIM_DEACTIVATE_CUSTOMER' => tr('Deactivate OpenDKIM for customer: %s', decode_idna($data['admin_name'])),
 					'TR_DEACTIVATE_CUSTOMER_TOOLTIP' => tr('This will deactivate OpenDKIM for the customer %s.', decode_idna($data['admin_name'])),
 					'OPENDKIM_CUSTOMER_ID' => $data['admin_id']
 				)
