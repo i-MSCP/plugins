@@ -62,21 +62,6 @@ sub install
 	return $rs if $rs;
 }
 
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	my $self = shift;
-
-	0;
-}
-
 =item update()
 
  Perform update tasks
@@ -90,66 +75,6 @@ sub update
 	my $self = shift;
 
 	$self->_buildAdminerSQLFiles();
-}
-
-=item enable()
-
- Perform enable tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub enable
-{
-	my $self = shift;
-
-	0;
-}
-
-=item disable()
-
- Perform disable tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub disable
-{
-	my $self = shift;
-
-	0;
-}
-
-=item uninstall()
-
- Perform uninstall tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub uninstall
-{
-	my $self = shift;
-
-	0;
-}
-
-=item run()
-
- Create statistical graphics using the last available statistics data
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub run
-{
-	my $self = shift;
-
-	0;
 }
 
 =back
