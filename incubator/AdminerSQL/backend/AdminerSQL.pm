@@ -58,8 +58,7 @@ sub install
 {
 	my $self = shift;
 
-	my $rs = $self->_buildAdminerSQLFiles();
-	return $rs if $rs;
+	$self->_buildAdminerSQLFiles();
 }
 
 =item update()
@@ -161,6 +160,8 @@ sub _buildAdminerSQLFiles
 		$adminerSqlConfig->{'adminer_version'}, $adminerSqlConfig->{'driver'}, $adminerSqlConfig->{'language'}
 	);
 	return $rs if $rs;
+	
+	0;
 }
 
 =item _copyStyleAdminerSQL()
@@ -189,6 +190,8 @@ sub _copyStyleAdminerSQL
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
+	
+	0;
 }
 
 =item _modifyCompiledAdminerSQLFiles()
@@ -232,7 +235,8 @@ sub _modifyCompiledAdminerSQLFiles
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$file->save();
+	my $rs = $file->save();
+	return $rs if $rs;
 	
 	# Modify the complied editor.php
 	my $compiledEditorFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/AdminerSQL/adminer-sources/' . $compiledEditorFileName . '.php';
@@ -248,7 +252,10 @@ sub _modifyCompiledAdminerSQLFiles
 	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$file->save();
+	$rs = $file->save();
+	return $rs if $rs;
+	
+	0;
 }
 
 =item _moveCompiledAdminerSQLFilesToPublicFolder()
@@ -310,6 +317,8 @@ sub _moveCompiledAdminerSQLFilesToPublicFolder
 		{ 'user' => $panelUName, 'group' => $panelGName, 'filemode' => '0644' }
 	);
 	return $rs if $rs;
+	
+	0;
 }
 
 =back
