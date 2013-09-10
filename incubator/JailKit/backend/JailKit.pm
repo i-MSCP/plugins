@@ -74,21 +74,6 @@ sub install
 	$self->_restartDaemonJailKit();
 }
 
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	my $self = shift;
-	
-	0;
-}
-
 =item update()
 
  Perform update tasks
@@ -222,7 +207,14 @@ sub uninstall
 			
 			return $rs if $rs;
 			
-			$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
+			# Force logout the ssh login
+			$rs = execute("/usr/bin/pkill -KILL -f -u " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			
+			return $rs if $rs;
+			
+			$rs = execute($main::imscpConfig{'CMD_USERDEL'} . " -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			
@@ -501,7 +493,7 @@ sub _addCustomerSshJail
 	}
 	
 	if(-e '/var/run/mysqld/mysqld.sock') {
-		$rs = execute("$main::imscpConfig{'CMD_LN'} -s /var/run/mysqld/mysqld.sock " . $jailFolder . "/" . $customerName . "/var/run/mysqld/mysqld.sock", \$stdout, \$stderr);
+		$rs = execute($main::imscpConfig{'CMD_LN'} . " -s /var/run/mysqld/mysqld.sock " . $jailFolder . "/" . $customerName . "/var/run/mysqld/mysqld.sock", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		
@@ -556,7 +548,7 @@ sub _deleteCustomerSshJail
 			
 			return $rs if $rs;
 		
-			$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
+			$rs = execute($main::imscpConfig{'CMD_USERDEL'} . " -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			
@@ -600,21 +592,21 @@ sub _addSshLoginToCustomerJail
 	my $rs = 0;
 	my ($stdout, $stderr);
 	
-	$rs = execute("$main::imscpConfig{'CMD_USERADD'} -c 'JailKit SSH login " . $sshLoginName . "' -u " . $sshLoginSysUid . " -g " . $sshLoginSysGid . " -o -m " . $sshLoginName, \$stdout, \$stderr);
+	$rs = execute($main::imscpConfig{'CMD_USERADD'} . " -c 'JailKit SSH login " . $sshLoginName . "' -u " . $sshLoginSysUid . " -g " . $sshLoginSysGid . " -o -m " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
 	
 	# Set new Password
-	$rs = execute("$main::imscpConfig{'CMD_ECHO'} -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
+	$rs = execute($main::imscpConfig{'CMD_ECHO'} . " -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
 	
 	# Add the user to the jail
-	$rs = execute('umask 022; /usr/sbin/jk_jailuser -m -n -s ' . $jailDefaultShell . ' -j ' . $jailFolder . '/' . $customerName . ' ' . $sshLoginName, \$stdout, \$stderr);
+	$rs = execute("umask 022; /usr/sbin/jk_jailuser -m -n -s " . $jailDefaultShell . " -j " . $jailFolder . "/" . $customerName . " " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
@@ -629,7 +621,7 @@ sub _addSshLoginToCustomerJail
 	}
 	
 	# Mount (bind) virtual web dir to jail user home webfolder
-	$rs = execute("/bin/mount $main::imscpConfig{'USER_WEB_DIR'}/" . $customerName . " " . $jailFolder . "/" . $customerName . "/home/" . $sshLoginName . "/webfolder -o bind", \$stdout, \$stderr);
+	$rs = execute("/bin/mount " . $main::imscpConfig{'USER_WEB_DIR'} . "/" . $customerName . " " . $jailFolder . "/" . $customerName . "/home/" . $sshLoginName . "/webfolder -o bind", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
@@ -656,21 +648,28 @@ sub _changeJailKitSshLogin
 	my ($stdout, $stderr);
 	
 	# New Password
-	$rs = execute("$main::imscpConfig{'CMD_ECHO'} -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
+	$rs = execute($main::imscpConfig{'CMD_ECHO'} . " -e \"" . $sshLoginPass . "\n" . $sshLoginPass ."\" | /usr/bin/passwd " .$sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
 	
 	if($action eq 'lock') {
-		$rs = execute('/usr/bin/passwd ' . $sshLoginName . ' -l', \$stdout, \$stderr); # Using passwd because usermod gives no output
+		# Force logout the ssh login
+		$rs = execute("/usr/bin/pkill -KILL -f -u " . $sshLoginName, \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+			
+		return $rs if $rs;
+			
+		$rs = execute("/usr/bin/passwd " . $sshLoginName . " -l", \$stdout, \$stderr); # Using passwd because usermod gives no output
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 				
 		return $rs if $rs;
 	}
 	elsif($action eq 'unlock') {
-		$rs = execute('/usr/bin/passwd ' . $sshLoginName . ' -u', \$stdout, \$stderr);
+		$rs = execute("/usr/bin/passwd " . $sshLoginName . " -u", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 				
@@ -697,7 +696,14 @@ sub _removeSshLoginFromCustomerJail
 	my $rs = 0;
 	my ($stdout, $stderr);
 	
-	$rs = execute("$main::imscpConfig{'CMD_USERDEL'} -f " . $sshLoginName, \$stdout, \$stderr);
+	# Force logout the ssh login
+	$rs = execute("/usr/bin/pkill -KILL -f -u " . $sshLoginName, \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+			
+	return $rs if $rs;
+	
+	$rs = execute($main::imscpConfig{'CMD_USERDEL'} . " -f " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
@@ -780,14 +786,21 @@ sub _changeAllJailKitSshLogins
 			my $jailKitLoginId = $rdata->{$_}->{'jailkit_login_id'};
 			
 			if($action eq 'lock') {
-				$rs = execute('/usr/bin/passwd ' . $sshLoginName . ' -l', \$stdout, \$stderr);
+				# Force logout the ssh login
+				$rs = execute("/usr/bin/pkill -KILL -f -u " . $sshLoginName, \$stdout, \$stderr);
+				debug($stdout) if $stdout;
+				error($stderr) if $stderr && $rs;
+					
+				return $rs if $rs;
+		
+				$rs = execute("/usr/bin/passwd " . $sshLoginName . " -l", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				
 				return $rs if $rs;
 			}
 			elsif($action eq 'unlock' && $sshLoginLocked == 0) {
-				$rs = execute('/usr/bin/passwd ' . $sshLoginName . ' -u', \$stdout, \$stderr);
+				$rs = execute("/usr/bin/passwd " . $sshLoginName . " -u", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				
@@ -962,7 +975,7 @@ sub _restartDaemonJailKit
 	my $self = shift;
 	
 	# Don't use here $stdout or $stderr. The requestmanager will hang up and only end if the daemon will restartet manually
-	my $rs = execute('service jailkit restart');
+	my $rs = execute("service jailkit restart");
 	return $rs if $rs;
 }
 
@@ -1017,16 +1030,16 @@ sub _copyJailKitConfigFiles
 	my $rs = 0;
 	my ($stdout, $stderr);
 	
-	$rs = execute('/bin/uname -m', \$stdout, \$stderr);
+	$rs = execute("/bin/uname -m", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
 	
 	if($stdout =~ /^i\d+/) {
-		$rs = execute("$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/installation/jailkit-config/32bit/* /etc/jailkit/", \$stdout, \$stderr);
+		$rs = execute($main::imscpConfig{'CMD_CP'} . " -f " . $main::imscpConfig{'GUI_ROOT_DIR'} . "/plugins/JailKit/installation/jailkit-config/32bit/* /etc/jailkit/", \$stdout, \$stderr);
 	} else {
-		$rs = execute("$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/installation/jailkit-config/64bit/* /etc/jailkit/", \$stdout, \$stderr);
+		$rs = execute($main::imscpConfig{'CMD_CP'} . " -f " . $main::imscpConfig{'GUI_ROOT_DIR'} . "/plugins/JailKit/installation/jailkit-config/64bit/* /etc/jailkit/", \$stdout, \$stderr);
 	}
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
@@ -1052,20 +1065,20 @@ sub _installJailKitPackage
 	my $jailKitAmd64 = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/JailKit/installation/jailkit_2.16-1_amd64.deb';
 	my $jailKitI386 = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/JailKit/installation/jailkit_2.16-1_i386.deb';
 	
-	$rs = execute('/bin/uname -m', \$stdout, \$stderr);
+	$rs = execute("/bin/uname -m", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
 	return $rs if $rs;
 	
 	if($stdout =~ /^i\d+/) {
-		$rs = execute('/usr/bin/dpkg -i ' . $jailKitI386, \$stdout, \$stderr);
+		$rs = execute("/usr/bin/dpkg -i " . $jailKitI386, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		
 		return $rs if $rs;
 	} else {
-		$rs = execute('/usr/bin/dpkg -i ' . $jailKitAmd64, \$stdout, \$stderr);
+		$rs = execute("/usr/bin/dpkg -i " . $jailKitAmd64, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		
