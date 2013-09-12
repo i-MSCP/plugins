@@ -102,8 +102,7 @@
 	
 	<div class="buttons">
 		<input name="submit" type="submit" value="{TR_UPDATE}"/>
-		<input name="cancel" type="button"
-			   onclick="MM_goToURL('parent','/client/jailkit.php');return document.MM_returnValue" value="{TR_CANCEL}"/>
+		<a class ="link_as_button" href="jailkit.php">{TR_CANCEL}</a>
 	</div>
 </form>
 <!-- EDP: jailkit_edit_login -->
