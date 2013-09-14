@@ -212,7 +212,8 @@ sub uninstall
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			
-			return $rs if $rs;
+			#This will return 1 if the user is not logged in
+			#return $rs if $rs;
 			
 			$rs = execute($main::imscpConfig{'CMD_USERDEL'} . " -f " . $rdata->{$_}->{'ssh_login_name'}, \$stdout, \$stderr);
 			debug($stdout) if $stdout;
@@ -660,7 +661,8 @@ sub _changeJailKitSshLogin
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 			
-		return $rs if $rs;
+		#This will return 1 if the user is not logged in
+		#return $rs if $rs;
 			
 		$rs = execute("/usr/bin/passwd " . $sshLoginName . " -l", \$stdout, \$stderr); # Using passwd because usermod gives no output
 		debug($stdout) if $stdout;
@@ -700,8 +702,9 @@ sub _removeSshLoginFromCustomerJail
 	$rs = execute("/usr/bin/pkill -KILL -f -u " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-			
-	return $rs if $rs;
+	
+	#This will return 1 if the user is not logged in	
+	#return $rs if $rs;
 	
 	$rs = execute($main::imscpConfig{'CMD_USERDEL'} . " -f " . $sshLoginName, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -789,9 +792,10 @@ sub _changeAllJailKitSshLogins
 				# Force logout the ssh login
 				$rs = execute("/usr/bin/pkill -KILL -f -u " . $sshLoginName, \$stdout, \$stderr);
 				debug($stdout) if $stdout;
-				error($stderr) if $stderr && $rs;
+				error($stderr) if $stderr;
 					
-				return $rs if $rs;
+				#This will return 1 if the user is not logged in
+				#return $rs if $rs;
 		
 				$rs = execute("/usr/bin/passwd " . $sshLoginName . " -l", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
