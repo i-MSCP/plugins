@@ -35,37 +35,6 @@
 </div>
 <!-- EDP: add_bridgekey -->
 
-<!-- BDP: bridge_downloads -->
-<br />
-<table>
-	<thead>
-	<tr>
-		<th>{TR_BRIDGE_DOWNLOAD_DESCRIPTION}</th>
-		<th>{TR_BRIDGE_DOWNLOAD_FILE}</th>
-	</tr>
-	</thead>
-	<tfoot>
-	<tr>
-		<td colspan="2">{TR_BRIDGE_DOWNLOADS}</td>
-	</tr>
-	</tfoot>
-	<tbody>
-	<!-- BDP: bridge_download_item -->
-	<tr>
-		<td>{BRIDGE_DOWNLOAD_DESCRIPTION}</td>
-		<td>
-			<div class="buttons" style="text-align:left">
-				<a style="color:#fff" class="download" href="remotebridge_downloads.php?getfile={BRIDGE_DOWNLOAD_FILE}">
-					{BRIDGE_DOWNLOAD_FILE}
-				</a>
-			</div>
-		</td>
-	</tr>
-	<!-- EDP: bridge_download_item -->
-	</tbody>
-</table>
-<!-- EDP: bridge_downloads -->
-
 <div id="remotebridge_dialog">
 	<form name="remotebridge_frm" id="remotebridge_frm" action="remotebridge.php" method="post" autocomplete="off">
 		<table>
@@ -130,7 +99,5 @@
 	function confirm_deletion(remotebridge_name) {
 		return confirm(sprintf('{TR_CONFIRM_DELETION}', remotebridge_name));
 	}
-	
-	$(function() { $( ".download" ).button();});
 	/*]]>*/
 </script>
