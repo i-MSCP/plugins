@@ -92,14 +92,12 @@ sub onAfterMtaBuildOpenDKIM
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
 		$postfixOpendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
-		$postfixOpendkimConfig .= "milter_protocol = 2\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixOpendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
 		$postfixOpendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
-		$postfixOpendkimConfig .= "milter_protocol = 2\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
 		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
 	}

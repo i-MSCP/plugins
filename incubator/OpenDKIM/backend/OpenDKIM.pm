@@ -875,14 +875,12 @@ sub _modifyPostfixMainConfig
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
 		$postfixopendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
-		$postfixopendkimConfig .= "milter_protocol = 2\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
 		$postfixopendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
-		$postfixopendkimConfig .= "milter_protocol = 2\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
 	}
