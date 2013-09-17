@@ -50,6 +50,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->createDbTable();
+			$this->addOpenDkimServicePort($pluginManager);
 		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -63,8 +64,9 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	 * @return void
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{
+	{		
 		try {
+			$this->removeOpenDkimServicePort();
 			$this->dropDbTable();
 		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -328,6 +330,31 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		}
 	}
 
+	/**
+	 * Add opendkim service port
+	 *
+	 * @return void
+	 */
+	protected function addOpenDkimServicePort($pluginManager)
+	{
+		$plugin = $pluginManager->load('OpenDKIM', false, false);
+		$pluginConfig = $plugin->getConfig();
+		
+		$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
+		$query = 'INSERT INTO `config` (`name`, `value`) VALUES (?, ?)';
+		exec_query($query,array('PORT_OPENDKIM', $opendkimConfigValue));
+	}
+	
+	/**
+	 * Remove opendkim service port
+	 *
+	 * @return void
+	 */
+	protected function removeOpenDkimServicePort()
+	{
+		exec_query('DELETE FROM `config` WHERE `name` = ?', 'PORT_OPENDKIM');
+	}
+	
 	/**
 	 * Create opendkim database table
 	 *
