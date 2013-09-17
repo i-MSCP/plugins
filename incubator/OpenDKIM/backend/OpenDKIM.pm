@@ -377,7 +377,7 @@ sub _addOpendkimDomainKey
 		$fileContent = $file->get();
 		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 		
-		my $privateKeyEntry = "mail._domainkey " . $domain . ":mail:/etc/opendkim/" . $domain . "/mail.private\n";
+		my $privateKeyEntry = "mail._domainkey." . $domain . " " . $domain . ":mail:/etc/opendkim/" . $domain . "/mail.private\n";
 		
 		$fileContent .= $privateKeyEntry;
 		
@@ -393,7 +393,7 @@ sub _addOpendkimDomainKey
 		$fileContent = $file->get();
 		#return $fileContent if ! $fileContent; #Must be deactivated because an empty file rise up an error
 		
-		my $domainEntry = "*@" . $domain . " mail._domainkey\n";
+		my $domainEntry = "*@" . $domain . " mail._domainkey." . $domain . "\n";
 		
 		$fileContent .= $domainEntry;
 		
