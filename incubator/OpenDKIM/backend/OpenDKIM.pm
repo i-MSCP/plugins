@@ -105,9 +105,6 @@ sub change
 	$rs = $self->_restartDaemonOpendkim();
 	return $rs if $rs;
 	
-	$rs = $self->_modifyPostfixMainConfig('add');
-	return $rs if $rs;
-	
 	$self->_restartDaemonPostfix();
 }
 
