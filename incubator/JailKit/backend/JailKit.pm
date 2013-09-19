@@ -868,7 +868,7 @@ sub _addWebfolderMountToFstab
 	my $fstabMountBindConfig = '';
 	
 	if(%{$rdata}) {
-		$fstabMountBindConfig = "# Start Added by Plugins::JailKit::JailKit\n";
+		$fstabMountBindConfig = "# Start Added by Plugins::JailKit\n";
 		for(keys %{$rdata}) {
 			$fstabMountBindConfig .= $main::imscpConfig{'USER_WEB_DIR'} . "/" . $rdata->{$_}->{'admin_name'} . " " . $jailFolder . "/" . $rdata->{$_}->{'admin_name'} . "/home/" . $rdata->{$_}->{'ssh_login_name'} . "/webfolder none bind 0 0\n";
 		}
@@ -936,7 +936,7 @@ sub _addJailsToJkSockettd
 	my $jkSockettdEntries = '';
 	
 	if(%{$rdata}) {
-		$jkSockettdEntries = "# Start Added by Plugins::JailKit::JailKit\n";
+		$jkSockettdEntries = "# Start Added by Plugins::JailKit\n";
 		for(keys %{$rdata}) {
 			$jkSockettdEntries .= "[" . $jailFolder . "/" . $rdata->{$_}->{'admin_name'} . "/dev/log]\n";
 			$jkSockettdEntries .= "base=" . $jailSockettdBase . "\n";
