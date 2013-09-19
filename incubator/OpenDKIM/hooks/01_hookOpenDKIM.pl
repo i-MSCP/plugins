@@ -102,8 +102,8 @@ sub onAfterMtaBuildOpenDKIM
 		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
 	}
 	
-	if ($$fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-		$$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$postfixOpendkimConfig/sgm;
+	if ($$fileContent =~ /^# Start Added by Plugins.*OpenDKIM End\n/sgm) {
+		$$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n/$postfixOpendkimConfig/sgm;
 	} else {
 		$$fileContent .= "$postfixOpendkimConfig";
 	}

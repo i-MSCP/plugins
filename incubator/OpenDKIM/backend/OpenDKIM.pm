@@ -760,14 +760,14 @@ sub _modifyOpendkimSystemConfig
 	$opendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$opendkimConfig/sgm;
+		if ($fileContent =~ /^# Start Added by Plugins.*OpenDKIM End\n/sgm) {
+			$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n/$opendkimConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimConfig";
 		}
 	}
 	elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -826,13 +826,13 @@ sub _modifyOpendkimDefaultConfig
 	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$opendkimSocketConfig/sgm;
+		if ($fileContent =~ /^# Start Added by Plugins.*OpenDKIM End\n/sgm) {
+			$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n/$opendkimSocketConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimSocketConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -891,13 +891,13 @@ sub _modifyPostfixMainConfig
 	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$postfixopendkimConfig/sgm;
+		if ($fileContent =~ /^# Start Added by Plugins.*OpenDKIM End\n/sgm) {
+			$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n/$postfixopendkimConfig/sgm;
 		} else {
 			$fileContent .= "$postfixopendkimConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
