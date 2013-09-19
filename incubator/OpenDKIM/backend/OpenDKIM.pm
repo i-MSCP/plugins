@@ -752,7 +752,7 @@ sub _modifyOpendkimSystemConfig
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	my $opendkimConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
+	my $opendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 	$opendkimConfig .= "KeyTable\t\trefile:/etc/opendkim/KeyTable\n";
 	$opendkimConfig .= "SigningTable\t\trefile:/etc/opendkim/SigningTable\n";
 	$opendkimConfig .= "ExternalIgnoreList\t/etc/opendkim/TrustedHosts\n";
@@ -811,11 +811,11 @@ sub _modifyOpendkimDefaultConfig
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:" .$opendkimConfig->{'opendkim_port'}. "\@localhost\"\n";
 		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:12345\@localhost\"\n";
 		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
 	}
@@ -873,13 +873,13 @@ sub _modifyPostfixMainConfig
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
+		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
+		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
