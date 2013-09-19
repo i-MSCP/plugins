@@ -90,20 +90,20 @@ sub onAfterMtaBuildOpenDKIM
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
+		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixOpendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
+		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
 		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
 	}
 	
-	if ($$fileContent =~ /^# Start Added by Plugins.*OpenDKIM End\n/sgm) {
-		$$fileContent =~ s/^\n# Start Added by Plugins.*OpenDKIM End\n/$postfixOpendkimConfig/sgm;
+	if ($$fileContent =~ /^# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/sgm) {
+		$$fileContent =~ s/^\n# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/$postfixOpendkimConfig/sgm;
 	} else {
 		$$fileContent .= "$postfixOpendkimConfig";
 	}
