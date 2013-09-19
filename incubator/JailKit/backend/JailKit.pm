@@ -234,8 +234,8 @@ sub uninstall
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n/$fstabMountBindConfig/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$fstabMountBindConfig/sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -883,8 +883,8 @@ sub _addWebfolderMountToFstab
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n/$fstabMountBindConfig/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$fstabMountBindConfig/sgm;
 	} else {
 		$fileContent .= "$fstabMountBindConfig";
 	}
@@ -954,8 +954,8 @@ sub _addJailsToJkSockettd
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n/$jkSockettdEntries/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$jkSockettdEntries/sgm;
 	} else {
 		$fileContent .= "$jkSockettdEntries";
 	}
