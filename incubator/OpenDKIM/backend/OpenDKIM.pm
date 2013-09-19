@@ -752,7 +752,7 @@ sub _modifyOpendkimSystemConfig
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	my $opendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
+	my $opendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 	$opendkimConfig .= "KeyTable\t\trefile:/etc/opendkim/KeyTable\n";
 	$opendkimConfig .= "SigningTable\t\trefile:/etc/opendkim/SigningTable\n";
 	$opendkimConfig .= "ExternalIgnoreList\t/etc/opendkim/TrustedHosts\n";
@@ -761,13 +761,13 @@ sub _modifyOpendkimSystemConfig
 	
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^# Start Added by Plugins.*End\n/$opendkimConfig/sgm;
+			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$opendkimConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimConfig";
 		}
 	}
 	elsif($action eq 'remove') {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -811,11 +811,11 @@ sub _modifyOpendkimDefaultConfig
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$opendkimSocketConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:" .$opendkimConfig->{'opendkim_port'}. "\@localhost\"\n";
 		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$opendkimSocketConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:12345\@localhost\"\n";
 		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
 	}
@@ -827,12 +827,12 @@ sub _modifyOpendkimDefaultConfig
 	
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^# Start Added by Plugins.*End\n/$opendkimSocketConfig/sgm;
+			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$opendkimSocketConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimSocketConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -873,13 +873,13 @@ sub _modifyPostfixMainConfig
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$postfixopendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
 		$postfixopendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
-		$postfixopendkimConfig = "# Start Added by Plugins::OpenDKIM\n";
+		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
 		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
@@ -892,12 +892,12 @@ sub _modifyPostfixMainConfig
 	
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Start Added by Plugins.*End\n/sgm) {
-			$fileContent =~ s/^# Start Added by Plugins.*End\n/$postfixopendkimConfig/sgm;
+			$fileContent =~ s/^\n# Start Added by Plugins.*End\n/$postfixopendkimConfig/sgm;
 		} else {
 			$fileContent .= "$postfixopendkimConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^# Start Added by Plugins.*End\n//sgm;
+		$fileContent =~ s/^\n# Start Added by Plugins.*End\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
