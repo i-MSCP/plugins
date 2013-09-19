@@ -234,8 +234,8 @@ sub uninstall
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$fstabMountBindConfig/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins::JailKit.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins::JailKit.*JailKit End\n/$fstabMountBindConfig/sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -868,7 +868,7 @@ sub _addWebfolderMountToFstab
 	my $fstabMountBindConfig = '';
 	
 	if(%{$rdata}) {
-		$fstabMountBindConfig = "# Start Added by Plugins::JailKit\n";
+		$fstabMountBindConfig = "# Start Added by Plugins::JailKit::JailKit\n";
 		for(keys %{$rdata}) {
 			$fstabMountBindConfig .= $main::imscpConfig{'USER_WEB_DIR'} . "/" . $rdata->{$_}->{'admin_name'} . " " . $jailFolder . "/" . $rdata->{$_}->{'admin_name'} . "/home/" . $rdata->{$_}->{'ssh_login_name'} . "/webfolder none bind 0 0\n";
 		}
@@ -883,8 +883,8 @@ sub _addWebfolderMountToFstab
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$fstabMountBindConfig/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins::JailKit.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins::JailKit.*JailKit End\n/$fstabMountBindConfig/sgm;
 	} else {
 		$fileContent .= "$fstabMountBindConfig";
 	}
@@ -936,7 +936,7 @@ sub _addJailsToJkSockettd
 	my $jkSockettdEntries = '';
 	
 	if(%{$rdata}) {
-		$jkSockettdEntries = "# Start Added by Plugins::JailKit\n";
+		$jkSockettdEntries = "# Start Added by Plugins::JailKit::JailKit\n";
 		for(keys %{$rdata}) {
 			$jkSockettdEntries .= "[" . $jailFolder . "/" . $rdata->{$_}->{'admin_name'} . "/dev/log]\n";
 			$jkSockettdEntries .= "base=" . $jailSockettdBase . "\n";
@@ -954,8 +954,8 @@ sub _addJailsToJkSockettd
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	if ($fileContent =~ /^# Start Added by Plugins.*JailKit End\n/sgm) {
-		$fileContent =~ s/^# Start Added by Plugins.*JailKit End\n/$jkSockettdEntries/sgm;
+	if ($fileContent =~ /^# Start Added by Plugins::JailKit.*JailKit End\n/sgm) {
+		$fileContent =~ s/^# Start Added by Plugins::JailKit.*JailKit End\n/$jkSockettdEntries/sgm;
 	} else {
 		$fileContent .= "$jkSockettdEntries";
 	}
