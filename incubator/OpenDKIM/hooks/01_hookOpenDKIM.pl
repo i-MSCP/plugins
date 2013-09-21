@@ -89,22 +89,28 @@ sub onAfterMtaBuildOpenDKIM
 	
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
-	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
-		$postfixOpendkimConfig .= "milter_default_action = accept\n";
-		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-		$postfixOpendkimConfig .= "# Added by Plugins::i-MSCP End\n";
-	} else {
-		$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
-		$postfixOpendkimConfig .= "milter_default_action = accept\n";
-		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
-		$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-	}
-	
-	if ($$fileContent =~ /^# Start Added by Plugins::i-MSCP.*i-MSCP End\n/sgm) {
-		$$fileContent =~ s/^\n# Start Added by Plugins::i-MSCP.*i-MSCP End\n/$postfixOpendkimConfig/sgm;
-	} else {
+	if($$fileContent =~ /^smtpd_milters.*/gm) {
+		if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
+			$postfixOpendkimConfig = " inet:localhost:" . $opendkimConfig->{'opendkim_port'};
+		} else {
+			$postfixOpendkimConfig = " inet:localhost:12345";
+		}
+			
+		$$fileContent =~ s/^(smtpd_milters.*)/$1$postfixOpendkimConfig/gm;
+	} else {	
+		if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
+			$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+			$postfixOpendkimConfig .= "milter_default_action = accept\n";
+			$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
+			$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
+			$postfixOpendkimConfig .= "# Added by Plugins::i-MSCP End\n";
+		} else {
+			$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+			$postfixOpendkimConfig .= "milter_default_action = accept\n";
+			$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
+			$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
+		}
+		
 		$$fileContent .= "$postfixOpendkimConfig";
 	}
 	

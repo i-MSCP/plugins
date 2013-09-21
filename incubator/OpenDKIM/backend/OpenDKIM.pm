@@ -851,7 +851,7 @@ sub _modifyPostfixMainConfig
 	my $self = shift;
 	my $action = shift;
 	
-	my $postfixopendkimConfig;
+	my $postfixOpendkimConfig;
 	
 	my $db = iMSCP::Database->factory();
 
@@ -869,32 +869,51 @@ sub _modifyPostfixMainConfig
 	
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
-	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$postfixopendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
-		$postfixopendkimConfig .= "milter_default_action = accept\n";
-		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$postfixopendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-		$postfixopendkimConfig .= "# Added by Plugins::i-MSCP End\n";
-	} else {
-		$postfixopendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
-		$postfixopendkimConfig .= "milter_default_action = accept\n";
-		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
-		$postfixopendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-	}
-	
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
 	
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins::i-MSCP.*i-MSCP End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins::i-MSCP.*i-MSCP End\n/$postfixopendkimConfig/sgm;
+		if($fileContent =~ /^smtpd_milters.*/gm) {
+			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
+				$postfixOpendkimConfig = " inet:localhost:" . $opendkimConfig->{'opendkim_port'};
+			} else {
+				$postfixOpendkimConfig = " inet:localhost:12345";
+			}
+			
+			$fileContent =~ s/^(smtpd_milters.*)/$1$postfixOpendkimConfig/gm;
 		} else {
-			$fileContent .= "$postfixopendkimConfig";
+			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
+				$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+				$postfixOpendkimConfig .= "milter_default_action = accept\n";
+				$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" . $opendkimConfig->{'opendkim_port'} ."\n";
+				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
+				$postfixOpendkimConfig .= "# Added by Plugins::i-MSCP End\n";
+			} else {
+				$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+				$postfixOpendkimConfig .= "milter_default_action = accept\n";
+				$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
+				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
+			}
+			
+			$fileContent .= "$postfixOpendkimConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins::i-MSCP.*i-MSCP End\n//sgm;
+		$fileContent =~ /^smtpd_milters\s?=\s?(.*)/gm;
+		my @miltersValues = split(' ', $1);
+		
+		if(scalar @miltersValues > 1) {
+			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
+				$postfixOpendkimConfig = " inet:localhost:" . $opendkimConfig->{'opendkim_port'};
+			} else {
+				$postfixOpendkimConfig = " inet:localhost:12345";
+			}
+			
+			$fileContent =~ s/$postfixOpendkimConfig//g;
+		} else {
+			$fileContent =~ s/^\n# Start Added by Plugins::i-MSCP.*i-MSCP End\n//sgm;
+		}
 	}
 	
 	my $rs = $file->set($fileContent);
