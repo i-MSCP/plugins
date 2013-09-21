@@ -873,13 +873,13 @@ sub _modifyPostfixMainConfig
 		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
+		$postfixopendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 		$postfixopendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
 		$postfixopendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixopendkimConfig .= "milter_default_action = accept\n";
 		$postfixopendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
-		$postfixopendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
+		$postfixopendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 	}
 	
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');

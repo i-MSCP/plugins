@@ -93,13 +93,13 @@ sub onAfterMtaBuildOpenDKIM
 		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
-		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:" .$opendkimConfig->{'opendkim_port'} ."\n";
+		$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 		$postfixOpendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
 	} else {
 		$postfixOpendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
 		$postfixOpendkimConfig .= "milter_default_action = accept\n";
 		$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
-		$postfixOpendkimConfig .= "non_smtpd_milters = inet:localhost:12345\n";
+		$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 	}
 	
 	if ($$fileContent =~ /^# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/sgm) {
