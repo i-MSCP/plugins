@@ -1,6 +1,6 @@
 ## i-MSCP OpenDKIM plugin v0.0.1
 
-Plugin allows to manage i-MSCP accounts from a remote website.
+Plugin allows to manage OpenDKIM with i-MSCP.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
