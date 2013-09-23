@@ -56,6 +56,6 @@ You can set trusted domains in the config.php. As default 127.0.0.1 and localhos
 ### AUTHORS AND CONTRIBUTORS
 
  - Sascha Bay <info@space2place.de> (Author)
- - Rene Schuster <schuster.rene@web.de> (Contributor)
+ - Rene Schuster <mail@reneschuster.de> (Contributor)
 
 **Thank you for using this plugin.**
