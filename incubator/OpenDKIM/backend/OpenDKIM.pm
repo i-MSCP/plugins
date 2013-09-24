@@ -218,9 +218,6 @@ sub uninstall
 	return $rs if $rs;
 	# OpenDKIM will be set to default parameters
 	
-	$rs = $self->_modifyPostfixMainConfig('remove');
-	return $rs if $rs;
-	
 	$self->_restartDaemonPostfix();
 }
 
