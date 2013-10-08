@@ -122,7 +122,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 		
 		if($event->getParam('action') == 'install') {
-			if($cfg->Version != 'Git Master' && $cfg->Version <= 20130723) {
+			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
 				);
@@ -337,12 +337,20 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	 */
 	protected function addOpenDkimServicePort($pluginManager)
 	{
+		$dbConfig = iMSCP_Registry::get('dbConfig');
+		
 		$plugin = $pluginManager->load('OpenDKIM', false, false);
 		$pluginConfig = $plugin->getConfig();
-		
-		$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
-		$query = 'INSERT INTO `config` (`name`, `value`) VALUES (?, ?)';
-		exec_query($query,array('PORT_OPENDKIM', $opendkimConfigValue));
+
+		if(!isset($dbConfig['PORT_OPENDKIM'])) {
+			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
+			$dbConfig['PORT_OPENDKIM'] = $opendkimConfigValue;
+		} else {
+			$this->removeOpenDkimServicePort();
+			
+			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
+			$dbConfig['PORT_OPENDKIM'] = $opendkimConfigValue;
+		}
 	}
 	
 	/**

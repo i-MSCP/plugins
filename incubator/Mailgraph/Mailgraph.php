@@ -69,7 +69,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 		
 		if($event->getParam('action') == 'install') {
-			if($cfg->Version != 'Git Master' && $cfg->Version <= 20130723) {
+			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
 				);
