@@ -300,13 +300,17 @@ function checkResellerHostingPlan($resellerId, $hosting_plan) {
 	if($cfg->HOSTING_PLANS_LEVEL === 'admin') {
 		$query = "
 			SELECT 
-				* 
+				`t1`.* 
 			FROM 
-				`hosting_plans` 
-			WHERE 
-				`name` = ?
+				`hosting_plans` AS `t1`
+			LEFT JOIN
+				`admin` AS `t2` ON(`t1`.`reseller_id` = `t2`.`admin_id`)
+			WHERE
+				`t2`.`admin_type` = 'admin'
+			AND
+				`t1`.`name` = ?
 			AND 
-				`status` = '1'
+				`t1`.`status` = '1'
 		";
 		$param = array($hosting_plan);
 	} else {
@@ -347,9 +351,9 @@ function checkResellerHostingPlan($resellerId, $hosting_plan) {
 			'phpini_system', 'phpini_perm_allow_url_fopen', 'phpini_perm_display_errors',
 			'phpini_perm_disable_functions', 'phpini_post_max_size', 'phpini_upload_max_filesize',
 			'phpini_max_execution_time', 'phpini_max_input_time', 'phpini_memory_limit',
-			'external_mail', 'web_folder_protection'
+			'external_mail', 'web_folder_protection', 'mailQuota'
 		),
-		array_pad(explode(';', $props), 24, 'no')
+		array_pad(explode(';', $props), 25, 'no')
 	);
 
 	return $result;
@@ -366,6 +370,18 @@ function checkLimitsPostData($postData, $resellerId) {
 			sendPostDataError('hp_mail', 'Incorrect mail accounts limit');
 		}
 	} else {sendPostDataError('hp_mail', 'Variable not available in your post data');}
+	
+	if(isset($postData['mail_quota'])) {
+		$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] / 1048576 : '0';
+
+		if(!imscp_limit_check($mailQuota, null)) {
+			sendPostDataError('mail_quota', 'Incorrect Email quota');
+		} elseif($postData['hp_disk'] != '0' && $mailQuota > $postData['hp_disk']) {
+			sendPostDataError('mail_quota', 'Email quota cannot be bigger than disk space limit.');
+		} elseif($postData['hp_disk'] != '0' && $mailQuota == '0') {
+			sendPostDataError('mail_quota', 'Email quota cannot be unlimited. Max value is ' . $postData['hp_disk'] . ' MiB.');
+		}
+	} else {sendPostDataError('mail_quota', 'Variable not available in your post data');}
 	
 	if(isset($postData['external_mail'])) {
 		if ($postData['external_mail'] != 'yes' && $postData['external_mail'] != 'no') {
@@ -669,8 +685,15 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			)
 		);
 		
+		if(count($resellerHostingPlan) == 0) {
+			$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] / 1048576 : '0';
+		} else {
+			$mailQuota = ($resellerHostingPlan['mail_quota'] != '0') ? $resellerHostingPlan['mail_quota'] / 1048576 : '0';
+		}
+		
 		$dmnExpire					= 0;
 		$domain_mailacc_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_mail'] : $resellerHostingPlan['hp_mail'];
+		$domain_mail_quota			= $mailQuota;
 		$domain_ftpacc_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_ftp'] : $resellerHostingPlan['hp_ftp'];
 		$domain_traffic_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_traff'] : $resellerHostingPlan['hp_traff'];
 		$domain_sqld_limit			= (count($resellerHostingPlan) == 0) ? $postData['hp_sql_db'] : $resellerHostingPlan['hp_sql_db'];
@@ -699,9 +722,9 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 				`domain_disk_limit`, `domain_disk_usage`, `domain_php`, `domain_cgi`, `allowbackup`, `domain_dns`,
 				`domain_software_allowed`, `phpini_perm_system`, `phpini_perm_allow_url_fopen`,
 				`phpini_perm_display_errors`, `phpini_perm_disable_functions`, `domain_external_mail`,
-				`web_folder_protection`
+				`web_folder_protection`, `mail_quota`
 			) VALUES (
-				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 			)
 		";
 
@@ -710,7 +733,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 			array(
 				$dmnUsername, $recordId, $resellerId, time(), $dmnExpire, $domain_mailacc_limit, $domain_ftpacc_limit, $domain_traffic_limit, $domain_sqld_limit, $domain_sqlu_limit,
 				$cfg->ITEM_TOADD_STATUS, $domain_subd_limit, $domain_alias_limit, $domain_ip_id, $domain_disk_limit, 0, $domain_php, $domain_cgi, $allowbackup, $domain_dns, $domain_software_allowed, $phpini_perm_system,
-				$phpini_perm_allow_url_fopen, $phpini_perm_display_errors, $phpini_perm_disable_functions, $domain_external_mail, $webFolderProtection
+				$phpini_perm_allow_url_fopen, $phpini_perm_display_errors, $phpini_perm_disable_functions, $domain_external_mail, $webFolderProtection, $domain_mail_quota
 			)
 		);
 
