@@ -64,15 +64,12 @@ sub install
 		return 1;
 	}
 	
-	if(! -x '/usr/bin/opendkim-genkey') {
-		error('Unable to find opendkim-genkey. Please, install the opendkim-tools package first.');
+	if(! -x '/usr/sbin/opendkim-genkey' && ! -x '/usr/bin/opendkim-genkey') {
+		error('Unable to find opendkim-genkey. Please, install the opendkim (Wheezy: opendkim-tools) package first.');
 		return 1;
 	}
 	
 	my $rs = $self->_checkRequirements();
-	return $rs if $rs;
-	
-	$rs = $self->_registerOpendkimHook();
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonOpendkim();
@@ -93,16 +90,16 @@ sub change
 {
 	my $self = shift;
 	
-	my $rs = $self->_registerOpendkimHook();
-	return $rs if $rs;
-	
-	$rs = $self->_modifyOpendkimSystemConfig('add');
+	my $rs = $self->_modifyOpendkimSystemConfig('add');
 	return $rs if $rs;
 	
 	$rs = $self->_modifyOpendkimDefaultConfig('add');
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonOpendkim();
+	return $rs if $rs;
+	
+	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
 	$self->_restartDaemonPostfix();
@@ -120,13 +117,7 @@ sub update
 {
 	my $self = shift;
 	
-	my $rs = $self->_unregisterOpendkimHook();
-	return $rs if $rs;
-	
-	$rs = $self->_registerOpendkimHook();
-	return $rs if $rs;
-	
-	$rs = $self->_modifyOpendkimSystemConfig('add');
+	my $rs = $self->_modifyOpendkimSystemConfig('add');
 	return $rs if $rs;
 	
 	$rs = $self->_modifyOpendkimDefaultConfig('add');
@@ -156,10 +147,7 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_registerOpendkimHook();
-	return $rs if $rs;
-	
-	$rs = $self->_modifyPostfixMainConfig('add');
+	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
@@ -179,11 +167,8 @@ sub enable
 sub disable
 {
 	my $self = shift;
-
-	my $rs = $self->_unregisterOpendkimHook();
-	return $rs if $rs;
 	
-	$rs = $self->_modifyPostfixMainConfig('remove');
+	my $rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
 	
 	$self->_restartDaemonPostfix();
@@ -201,11 +186,8 @@ sub uninstall
 {
 	my $self = shift;
 	
-	my $rs = $self->_unregisterOpendkimHook();
-	return $rs if $rs;
-	
 	# OpenDKIM will be set to default parameters
-	$rs = $self->_modifyOpendkimSystemConfig('remove');
+	my $rs = $self->_modifyOpendkimSystemConfig('remove');
 	return $rs if $rs;
 	
 	$rs = $self->_modifyOpendkimDefaultConfig('remove');
@@ -494,8 +476,6 @@ sub _recoverOpendkimDnsEntries
 	
 	my $pluginClass;
 	
-	my ($stdout, $stderr);
-	
 	my $db = iMSCP::Database->factory();
 	
 	$rdata = $db->doQuery(
@@ -746,22 +726,22 @@ sub _modifyOpendkimSystemConfig
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
-	my $opendkimConfig = "\n# Start Added by Plugins::OpenDKIM\n";
+	my $opendkimConfig = "\n# Begin Plugin::OpenDKIM\n";
 	$opendkimConfig .= "KeyTable\t\trefile:/etc/opendkim/KeyTable\n";
 	$opendkimConfig .= "SigningTable\t\trefile:/etc/opendkim/SigningTable\n";
 	$opendkimConfig .= "ExternalIgnoreList\t/etc/opendkim/TrustedHosts\n";
 	$opendkimConfig .= "InternalHosts\t\t/etc/opendkim/TrustedHosts\n";
-	$opendkimConfig .= "# Added by Plugins::OpenDKIM End\n";
+	$opendkimConfig .= "# Ending Plugin::OpenDKIM\n";
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/$opendkimConfig/sgm;
+		if ($fileContent =~ /^# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/sgm) {
+			$fileContent =~ s/^\n# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/$opendkimConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimConfig";
 		}
 	}
 	elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n//sgm;
+		$fileContent =~ s/^\n# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -805,13 +785,13 @@ sub _modifyOpendkimDefaultConfig
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 	
 	if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Begin Plugin::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:" .$opendkimConfig->{'opendkim_port'}. "\@localhost\"\n";
-		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
+		$opendkimSocketConfig .= "# Ending Plugin::OpenDKIM\n";
 	} else {
-		$opendkimSocketConfig = "\n# Start Added by Plugins::OpenDKIM\n";
+		$opendkimSocketConfig = "\n# Begin Plugin::OpenDKIM\n";
 		$opendkimSocketConfig .= "SOCKET=\"inet:12345\@localhost\"\n";
-		$opendkimSocketConfig .= "# Added by Plugins::OpenDKIM End\n";
+		$opendkimSocketConfig .= "# Ending Plugin::OpenDKIM\n";
 	}
 	
 	my $file = iMSCP::File->new('filename' => $opendkimDefaultConfig);
@@ -820,13 +800,13 @@ sub _modifyOpendkimDefaultConfig
 	return $fileContent if ! $fileContent;
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/sgm) {
-			$fileContent =~ s/^\n# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n/$opendkimSocketConfig/sgm;
+		if ($fileContent =~ /^# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/sgm) {
+			$fileContent =~ s/^\n# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/$opendkimSocketConfig/sgm;
 		} else {
 			$fileContent .= "$opendkimSocketConfig";
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Start Added by Plugins::OpenDKIM.*OpenDKIM End\n//sgm;
+		$fileContent =~ s/^\n# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -849,6 +829,10 @@ sub _modifyPostfixMainConfig
 	my $action = shift;
 	
 	my $postfixOpendkimConfig;
+	my @miltersValues;
+	
+	my $rs = 0;
+	my ($stdout, $stderr);
 	
 	my $db = iMSCP::Database->factory();
 
@@ -871,49 +855,65 @@ sub _modifyPostfixMainConfig
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
 	
+	$rs = execute('postconf smtpd_milters', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	
 	if($action eq 'add') {
-		if($fileContent =~ /^smtpd_milters.*/gm) {
+		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
+		@miltersValues = split(' ', $1);
+		
+		if(scalar @miltersValues >= 1) {
+			$fileContent =~ s/^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
+			
 			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-				$postfixOpendkimConfig = " inet:localhost:" . $opendkimConfig->{'opendkim_port'};
+				$postfixOpendkimConfig = "\t# Begin Plugin::OpenDKIM\n";
+				$postfixOpendkimConfig .= "\tinet:localhost:" . $opendkimConfig->{'opendkim_port'} ."\n";
+				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
 			} else {
-				$postfixOpendkimConfig = " inet:localhost:12345";
+				$postfixOpendkimConfig = "\t# Begin Plugin::OpenDKIM\n";
+				$postfixOpendkimConfig .= "\tinet:localhost:12345\n";
+				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
 			}
 			
-			$fileContent =~ s/^(smtpd_milters.*)/$1$postfixOpendkimConfig/gm;
+			$fileContent =~ s/^(non_smtpd_milters.*)/$postfixOpendkimConfig$1/gm;
 		} else {
+			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
+			
 			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-				$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+				$postfixOpendkimConfig = "\n# Begin Plugins::i-MSCP\n";
 				$postfixOpendkimConfig .= "milter_default_action = accept\n";
-				$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:" . $opendkimConfig->{'opendkim_port'} ."\n";
+				$postfixOpendkimConfig .= "smtpd_milters = \n";
+				$postfixOpendkimConfig .= "\t# Begin Plugin::OpenDKIM\n";
+				$postfixOpendkimConfig .= "\tinet:localhost:" . $opendkimConfig->{'opendkim_port'} ."\n";
+				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
 				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-				$postfixOpendkimConfig .= "# Added by Plugins::i-MSCP End\n";
+				$postfixOpendkimConfig .= "# Ending Plugins::i-MSCP\n";
 			} else {
-				$postfixOpendkimConfig = "\n# Start Added by Plugins::i-MSCP\n";
+				$postfixOpendkimConfig = "\n# Begin Plugins::i-MSCP\n";
 				$postfixOpendkimConfig .= "milter_default_action = accept\n";
-				$postfixOpendkimConfig .= "smtpd_milters = inet:localhost:12345\n";
+				$postfixOpendkimConfig .= "smtpd_milters = \n";
+				$postfixOpendkimConfig .= "\t# Begin Plugin::OpenDKIM\n";
+				$postfixOpendkimConfig .= "\tinet:localhost:12345\n";
+				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
 				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
+				$postfixOpendkimConfig .= "# Ending Plugins::i-MSCP\n";
 			}
 			
 			$fileContent .= "$postfixOpendkimConfig";
 		}
-	} elsif($action eq 'remove') {
-		$fileContent =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		my @miltersValues = split(' ', $1);
+	} elsif($action eq 'remove') {		
+		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
+		@miltersValues = split(' ', $1);
 		
 		if(scalar @miltersValues > 1) {
-			if($opendkimConfig->{'opendkim_port'} =~ /\d{4,5}/ && $opendkimConfig->{'opendkim_port'} <= 65535) { #check the port is numeric and has min. 4 and max. 5 digits
-				$postfixOpendkimConfig = " inet:localhost:" . $opendkimConfig->{'opendkim_port'};
-			} else {
-				$postfixOpendkimConfig = " inet:localhost:12345";
-			}
-			
-			$fileContent =~ s/$postfixOpendkimConfig//g;
+			$fileContent =~ s/^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
 		} else {
-			$fileContent =~ s/^\n# Start Added by Plugins::i-MSCP.*i-MSCP End\n//sgm;
+			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
 	
-	my $rs = $file->set($fileContent);
+	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$file->save();
@@ -1023,9 +1023,15 @@ sub _createOpendkimTrustedHostsFile
 	
 	my $opendkimConfig = decode_json($rdata->{'OpenDKIM'}->{'plugin_config'});
 
-	while (my($opendkimConfigKey, $opendkimConfigValue) = each($opendkimConfig->{'opendkim_trusted_hosts'})) {
-		$fileContent .= $opendkimConfigValue . "\n";
-	}
+# This did not work with perl 5.1.0
+#	while (my($opendkimConfigKey, $opendkimConfigValue) = each($opendkimConfig->{'opendkim_trusted_hosts'})) {
+#		$fileContent .= $opendkimConfigValue . "\n";
+#	}
+# Thanks to Nuxwin for the solution above
+
+	for(@{$opendkimConfig->{'opendkim_trusted_hosts'}}) {
+		$fileContent .= "$_\n";
+	} 
 	
 	my $rs = $TrustedHostsFile->set($fileContent);
 	return $rs if $rs;
@@ -1037,52 +1043,6 @@ sub _createOpendkimTrustedHostsFile
 	return $rs if $rs;
 
 	$TrustedHostsFile->owner('opendkim', 'opendkim');
-}
-
-=item _registerOpendkimHook()
-
- Register new hook to /etc/imscp/hooks.d
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _registerOpendkimHook
-{
-	my $self = shift;
-
-	my $hookOpendkim = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/OpenDKIM/hooks/01_hookOpenDKIM.pl';
-	
-	my $file = iMSCP::File->new('filename' => $hookOpendkim);
-	my $rs = $file->copyFile($main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
-	return $rs if $rs;
-	
-	$file = iMSCP::File->new('filename' => $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl');
-	
-	$rs = $file->mode(0640);
-	return $rs if $rs;
-
-	$file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-}
-
-=item _unregisterOpendkimHook()
-
- Unregister OpenDKIM hook from /etc/imscp/hooks.d
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _unregisterOpendkimHook
-{
-	my $self = shift;
-
-	my $hookOpendkim = $main::imscpConfig{'CONF_DIR'} . '/hooks.d/01_hookOpenDKIM.pl';
-	
-	if(-f $hookOpendkim) {
-		my $rs = iMSCP::File->new('filename' => $hookOpendkim)->delFile();
-		return $rs if $rs;
-	}
 }
 
 =item _restartDaemonOpendkim()

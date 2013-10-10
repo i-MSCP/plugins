@@ -26,6 +26,10 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	installation of opendkim (apt-get install opendkim)
 	installation of opendkim-tools (apt-get install opendkim-tools)
 	
+### Existing milter configurations
+	This plugin will not check an existing milter configuration in the postfix main.cf.
+	If you need to add an extra milter, ask in out forum!
+	
 ### INSTALLATION AND UPDATE
 
 **1.** Backup your current plugins/OpenDKIM/config.php
