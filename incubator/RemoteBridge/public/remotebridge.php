@@ -372,10 +372,10 @@ function checkLimitsPostData($postData, $resellerId) {
 	} else {sendPostDataError('hp_mail', 'Variable not available in your post data');}
 	
 	if(isset($postData['mail_quota'])) {
-		$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] / 1048576 : '0';
+		$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] * 1048576 : '0';
 
 		if(!imscp_limit_check($mailQuota, null)) {
-			sendPostDataError('mail_quota', 'Incorrect Email quota');
+			sendPostDataError('mail_quota', 'Incorrect Email '.$postData['mail_quota'].' quota');
 		} elseif($postData['hp_disk'] != '0' && $mailQuota > $postData['hp_disk']) {
 			sendPostDataError('mail_quota', 'Email quota cannot be bigger than disk space limit.');
 		} elseif($postData['hp_disk'] != '0' && $mailQuota == '0') {
@@ -686,9 +686,9 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 		);
 		
 		if(count($resellerHostingPlan) == 0) {
-			$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] / 1048576 : '0';
+			$mailQuota = ($postData['mail_quota'] != '0') ? $postData['mail_quota'] * 1048576 : '0';
 		} else {
-			$mailQuota = ($resellerHostingPlan['mail_quota'] != '0') ? $resellerHostingPlan['mail_quota'] / 1048576 : '0';
+			$mailQuota = ($resellerHostingPlan['mail_quota'] != '0') ? $resellerHostingPlan['mail_quota'] * 1048576 : '0';
 		}
 		
 		$dmnExpire					= 0;
