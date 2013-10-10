@@ -129,6 +129,9 @@ sub update
 	$rs = $self->_restartDaemonOpendkim();
 	return $rs if $rs;
 	
+	$rs = $self->_modifyPostfixMainConfig('remove');
+	return $rs if $rs;
+	
 	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
