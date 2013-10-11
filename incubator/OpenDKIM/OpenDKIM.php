@@ -74,6 +74,22 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 	
 	/**
+	 * Process plugin update
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	{
+		try {
+			$this->addOpenDkimServicePort($pluginManager);
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+	
+	/**
 	 * Process plugin disable
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -360,7 +376,9 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	 */
 	protected function removeOpenDkimServicePort()
 	{
-		exec_query('DELETE FROM `config` WHERE `name` = ?', 'PORT_OPENDKIM');
+		$dbConfig = iMSCP_Registry::get('dbConfig');
+		
+		unset($dbConfig['PORT_OPENDKIM']);
 	}
 	
 	/**
