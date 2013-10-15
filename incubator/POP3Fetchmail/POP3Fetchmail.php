@@ -115,7 +115,7 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME . '_roundcube');
 		$query = "
-			CREATE TABLE `pop3fetcher_accounts` (
+			CREATE TABLE IF NOT EXISTS `pop3fetcher_accounts` (
 				`pop3fetcher_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 				`pop3fetcher_email` varchar(128) NOT NULL,
 				`pop3fetcher_username` varchar(128) NOT NULL,

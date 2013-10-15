@@ -21,7 +21,7 @@
 # @package     iMSCP_Plugin
 # @subpackage  POP3Fetchmail
 # @copyright   2010-2013 by i-MSCP | http://i-mscp.net
-# @author      Laurent Declercq <l.declercq@nuxwin.com>
+# @author      Sascha Bay <info@space2place.de>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
