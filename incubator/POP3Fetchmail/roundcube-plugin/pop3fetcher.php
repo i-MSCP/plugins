@@ -100,7 +100,7 @@ function init(){
 							//write_log("pop3fetcher.txt", "INTERCEPT: task mail, MSG UIDL: ".$msglist["$j"]);
 							//write_log("pop3fetcher.txt", "INTERCEPT: task mail, LAST UIDL: ".$last_uidl);
 						   if ($msglist["$j"] == $last_uidl) {
-								$i = $j+1;
+								$i = $j;
 								break;
 						   }
 						}
@@ -112,7 +112,7 @@ function init(){
 							//echo "Login OK: Inbox EMPTY<br />";
 							POP35::disconnect($c);
 						} else {
-							$newmsgcount = $Count - $i + 1;
+							$newmsgcount = $Count - $i;
 							//echo "Login OK: Inbox contains [" . $newmsgcount . "] messages<br />";
 						}
 						// These two calls create errors in Roundcube 0.7.2, maybe they are useless also in later versions.... testing...

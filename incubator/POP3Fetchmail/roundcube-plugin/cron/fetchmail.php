@@ -117,13 +117,14 @@ class fetchmail_cronjob
 				`t1`.*, `t2`.`username`, `t2`.`mail_host`,
 				`t3`.`mail_pass`
 			FROM
-				" . get_table_name('pop3fetcher_accounts') . " AS `t1`
+				`" . get_table_name('pop3fetcher_accounts') . "` AS `t1`
 			LEFT JOIN
 				`" . get_table_name('users') . "` AS `t2` ON(`t2`.`user_id` = `t1`.`user_id`)
 			LEFT JOIN
 				`###IMSCP-DATABASE###`.`mail_users` AS `t3` ON(`t3`.`mail_addr` = `t2`.`username`)
 			WHERE
-				`t3`.`mail_type` LIKE '%normal_mail%'
+				(`t3`.`mail_type` LIKE '%normal_mail%' OR `t3`.`mail_type` LIKE '%alias_mail%' OR `t3`.`mail_type` LIKE '%subdom_mail%')
+				
 			ORDER BY
 				`t1`.`user_id` ASC
 		";
@@ -163,7 +164,7 @@ class fetchmail_cronjob
 							if($this->debug) write_log("pop3fetcher_cron.txt", "INTERCEPT: task mail, MSG UIDL: " . $msglist["$j"]);
 							if($this->debug) write_log("pop3fetcher_cron.txt", "INTERCEPT: task mail, LAST UIDL: " . $last_uidl);
 							if ($msglist["$j"] == $last_uidl) {
-								$i = $j+1;
+								$i = $j;
 								break;
 							}
 						}
@@ -174,7 +175,7 @@ class fetchmail_cronjob
 						if ($Count == 0) {
 							POP35::disconnect($c);
 						} else {
-							$newmsgcount = $Count - $i + 1;
+							$newmsgcount = $Count - $i;
 							if($this->debug && $this->debug_console) echo "Login OK: Inbox contains [" . $newmsgcount . "] messages\n";
 						}
 						
