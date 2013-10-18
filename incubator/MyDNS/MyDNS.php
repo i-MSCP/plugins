@@ -64,6 +64,131 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Register a callback for the given event(s).
+	 *
+	 * @param iMSCP_Events_Manager_Interface $controller
+	 */
+	public function register(iMSCP_Events_Manager_Interface $controller)
+	{
+		$controller->registerListener(
+			array(
+				iMSCP_Events::onAdminScriptStart,
+				iMSCP_Events::onClientScriptStart
+
+			),
+			$this
+		);
+	}
+	/**
+	 * onClientScriptStart listener
+	 *
+	 * @return void
+	 */
+	public function onAdminScriptStart()
+	{
+		$this->setupNavigation('admin');
+	}
+
+	/**
+	 * onClientScriptStart listener
+	 *
+	 * @return void
+	 */
+	public function onClientScriptStart()
+	{
+		$this->setupNavigation('client');
+	}
+
+	/**
+	 * Get routes
+	 *
+	 * @return array
+	 */
+	public function getRoutes()
+	{
+		$pluginRootDir = PLUGINS_PATH . '/' . $this->getName();
+
+		return array(
+			'/admin/mydns/overview' => $pluginRootDir . '/frontend/admin/overview.php',
+			'/admin/mydns/nameservers' => $pluginRootDir . '/frontend/admin/nameservers.php',
+			'/admin/mydns/zones' => $pluginRootDir . '/frontend/admin/zones.php',
+			'/client/mydns/overview' => $pluginRootDir . '/frontend/client/overview.php',
+			'/client/mydns/zones' => $pluginRootDir . '/frontend/client/nameservers.php',
+			'/client/mydns/nameservers' => $pluginRootDir . '/frontend/client/zones.php'
+		);
+	}
+
+	/**
+	 * Internal router
+	 *
+	 * @param string &$actionScript Action script path
+	 * @return bool
+	 */
+	/*
+	public function route(&$actionScript)
+	{
+		$parts = explode('/', trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'));
+
+		if (sizeof($parts) >= 2) {
+			if ($parts[0] === 'mydns_api') {
+				$actionScript = PLUGINS_PATH . '/' . $this->getName() . '/api.php';
+				$_REQUEST['mydns_api_rqst'] = implode('/', array_slice($parts, 1));
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	*/
+
+	/**
+	 * Setup plugin navigation
+	 *
+	 * @param string $uiLevel Current UI level
+	 * @return void
+	 */
+	protected function setupNavigation($uiLevel)
+	{
+		if (iMSCP_Registry::isRegistered('navigation')) {
+			/** @var Zend_Navigation $navigation */
+			$navigation = iMSCP_Registry::get('navigation');
+
+			if ($uiLevel == 'admin' || $uiLevel == 'client') {
+				$navigation->addPage(
+					array(
+						'label' => 'MyDNS',
+						'uri' => "/$uiLevel/mydns",
+						'fragment' => 'overview',
+						'class' => 'custom_link',
+						'order' => 2,
+						'pages' => array(
+							array(
+								'label' => tohtml(tr('Overview')),
+								'uri' => '/$uiLevel/mydns',
+								'title_class' => 'custom_link',
+								'fragment' => 'overview'
+							),
+							array(
+								'label' => tohtml(tr('Name Servers')),
+								'uri' => "/$uiLevel/mydns",
+								'title_class' => 'custom_link',
+								'fragment' => 'nameservers'
+							),
+							array(
+								'label' => tohtml(tr('Zones')),
+								'uri' => "/$uiLevel/mydns",
+								'fragment' => 'zones',
+								'title_class' => 'custom_link'
+							)
+						)
+					)
+				);
+			}
+		}
+	}
+
+	/**
 	 * Create tables
 	 *
 	 * @throw iMSCP_Exception_Database
@@ -200,130 +325,4 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 			exec_query('DROP TABLE IF EXISTS ?', $table);
 		}
 	}
-
-	/**
-	 * Register a callback for the given event(s).
-	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
-	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
-	{
-		$controller->registerListener(
-			array(
-				iMSCP_Events::onAdminScriptStart,
-				iMSCP_Events::onClientScriptStart
-
-			),
-			$this
-		);
-	}
-	/**
-	 * onClientScriptStart listener
-	 *
-	 * @return void
-	 */
-	public function onAdminScriptStart()
-	{
-		$this->setupNavigation('admin');
-	}
-
-	/**
-	 * onClientScriptStart listener
-	 *
-	 * @return void
-	 */
-	public function onClientScriptStart()
-	{
-		$this->setupNavigation('client');
-	}
-
-	/**
-	 * Setup plugin navigation
-	 *
-	 * @param string $uiLevel Current UI level
-	 * @return void
-	 */
-	protected function setupNavigation($uiLevel)
-	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
-			/** @var Zend_Navigation $navigation */
-			$navigation = iMSCP_Registry::get('navigation');
-
-			if ($uiLevel == 'admin' || $uiLevel == 'client') {
-				$navigation->addPage(
-					array(
-						'label' => 'MyDNS',
-						'uri' => "/$uiLevel/mydns",
-						'fragment' => 'overview',
-						'class' => 'custom_link',
-						'order' => 1,
-						'pages' => array(
-							array(
-								'label' => tohtml(tr('Overview')),
-								'uri' => '/$uiLevel/mydns',
-								'title_class' => 'custom_link',
-								'fragment' => 'overview'
-							),
-							array(
-								'label' => tohtml(tr('Name Servers')),
-								'uri' => "/$uiLevel/mydns",
-								'title_class' => 'custom_link',
-								'fragment' => 'nameservers'
-							),
-							array(
-								'label' => tohtml(tr('Zones')),
-								'uri' => "/$uiLevel/mydns",
-								'fragment' => 'zones',
-								'title_class' => 'custom_link'
-							)
-						)
-					)
-				);
-			}
-		}
-	}
-
-	/**
-	 * Get routes
-	 *
-	 * @return array
-	 */
-	public function getRoutes()
-	{
-		$pluginRootDir = PLUGINS_PATH . '/' . $this->getName();
-
-		return array(
-			'/admin/mydns/overview' => $pluginRootDir . '/frontend/client/overview.php',
-			'/admin/mydns/nameservers' => $pluginRootDir . '/frontend/client/nameservers.php',
-			'/admin/mydns/zones' => $pluginRootDir . '/frontend/client/zones.php',
-			'/client/mydns/overview' => $pluginRootDir . '/frontend/client/overview.php',
-			'/client/mydns/zones' => $pluginRootDir . '/frontend/client/nameservers.php',
-			'/client/mydns/nameservers' => $pluginRootDir . '/frontend/client/zones.php'
-		);
-
-	}
-
-	/**
-	 * Internal router
-	 *
-	 * @param string &$actionScript Action script path
-	 * @return bool
-	 */
-	/*
-	public function route(&$actionScript)
-	{
-		$parts = explode('/', trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'));
-
-		if (sizeof($parts) >= 2) {
-			if ($parts[0] === 'mydns_api') {
-				$actionScript = PLUGINS_PATH . '/' . $this->getName() . '/api.php';
-				$_REQUEST['mydns_api_rqst'] = implode('/', array_slice($parts, 1));
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-	*/
 }

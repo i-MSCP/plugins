@@ -47,7 +47,7 @@ $tpl->define_dynamic(
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => tr('Client / MyDNS / Nameservers'),
+		'TR_PAGE_TITLE' => tr('Client / MyDNS / Zones'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo()
 	)
