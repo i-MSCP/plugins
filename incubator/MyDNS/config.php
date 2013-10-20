@@ -25,6 +25,7 @@
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
+
 return array(
 
 	// Default configuration and data directories
