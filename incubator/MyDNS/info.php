@@ -32,7 +32,7 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2013-10-16',
 	'name' => 'MyDNS',
-	'desc' => "MyDNS plugin for i-MSCP is designed as a full DNS management system. It's a drop-in replacement for the built-in i-MSCP DNS server implementation.",
+	'desc' => "This plugin is designed as a full DNS management system. It's a drop-in replacement for the built-in i-MSCP DNS server implementation.",
 	'url' => 'http://i-mscp.net',
 	'require' => array(
 		'imscp' => '20131010',

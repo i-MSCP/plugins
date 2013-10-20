@@ -25,27 +25,28 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-require.config({
-    paths: {
-        jquery: "/themes/default/assets/js/jquery",
-        underscore: 'libs/underscore',
-        backbone: 'libs/backbone',
-        text: 'libs/text',
-        templates: '../templates'
-    },
-    shim: {
-        underscore: {
-            exports: '_'
+$(function () {
+    require.config({
+        paths: {
+            underscore: 'libs/underscore',
+            backbone: 'libs/backbone',
+            text: 'libs/text',
+            templates: '../templates'
         },
-        backbone: {
-            deps: ["underscore"],
-            exports: "Backbone"
+        shim: {
+            underscore: {
+                exports: '_'
+            },
+            backbone: {
+                deps: ["underscore"],
+                exports: "Backbone"
+            }
         }
-    }
-});
+    });
 
-require([
-    'MyDNS'
-], function (MyDNS) {
-    MyDNS.initialize();
+    require([
+        'MyDNS'
+    ], function (MyDNS) {
+        MyDNS.initialize();
+    });
 });

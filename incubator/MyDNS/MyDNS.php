@@ -79,6 +79,7 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 			$this
 		);
 	}
+
 	/**
 	 * onClientScriptStart listener
 	 *
@@ -112,6 +113,8 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 			'/admin/mydns/overview' => $pluginRootDir . '/frontend/admin/overview.php',
 			'/admin/mydns/nameservers' => $pluginRootDir . '/frontend/admin/nameservers.php',
 			'/admin/mydns/zones' => $pluginRootDir . '/frontend/admin/zones.php',
+			'/reseller/mydns/nameservers' => $pluginRootDir . '/frontend/reseller/nameservers.php',
+			'/reseller/mydns/zones' => $pluginRootDir . '/frontend/reseller/zones.php',
 			'/client/mydns/overview' => $pluginRootDir . '/frontend/client/overview.php',
 			'/client/mydns/zones' => $pluginRootDir . '/frontend/client/nameservers.php',
 			'/client/mydns/nameservers' => $pluginRootDir . '/frontend/client/zones.php'
@@ -121,26 +124,18 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	/**
 	 * Internal router
 	 *
+	 * @param array $urlComponents Associative array containing components of the URL that are present
 	 * @param string &$actionScript Action script path
 	 * @return bool
 	 */
-	/*
-	public function route(&$actionScript)
+	public function route($urlComponents, &$actionScript)
 	{
-		$parts = explode('/', trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'));
-
-		if (sizeof($parts) >= 2) {
-			if ($parts[0] === 'mydns_api') {
-				$actionScript = PLUGINS_PATH . '/' . $this->getName() . '/api.php';
-				$_REQUEST['mydns_api_rqst'] = implode('/', array_slice($parts, 1));
-
-				return true;
-			}
+		if (strpos($urlComponents['path'], '/mydns/api/') === 0) {
+			$actionScript = PLUGINS_PATH . '/' . $this->getName() . '/api.php';
 		}
 
 		return false;
 	}
-	*/
 
 	/**
 	 * Setup plugin navigation
@@ -158,27 +153,23 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 				$navigation->addPage(
 					array(
 						'label' => 'MyDNS',
-						'uri' => "/$uiLevel/mydns",
-						'fragment' => 'overview',
+						'uri' => "/$uiLevel/mydns/overview",
 						'class' => 'custom_link',
 						'order' => 2,
 						'pages' => array(
 							array(
 								'label' => tohtml(tr('Overview')),
-								'uri' => '/$uiLevel/mydns',
-								'title_class' => 'custom_link',
-								'fragment' => 'overview'
+								'uri' => "/$uiLevel/mydns/overview",
+								'title_class' => 'custom_link'
 							),
 							array(
 								'label' => tohtml(tr('Name Servers')),
-								'uri' => "/$uiLevel/mydns",
-								'title_class' => 'custom_link',
-								'fragment' => 'nameservers'
+								'uri' => "/$uiLevel/mydns/nameservers",
+								'title_class' => 'custom_link'
 							),
 							array(
 								'label' => tohtml(tr('Zones')),
-								'uri' => "/$uiLevel/mydns",
-								'fragment' => 'zones',
+								'uri' => "/$uiLevel/mydns/zones",
 								'title_class' => 'custom_link'
 							)
 						)
@@ -205,6 +196,8 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 					`name` VARCHAR(127) NOT NULL,
 					`ttl` INT UNSIGNED,
 					`address` VARCHAR(127) NOT NULL,
+					`confdir` VARCHAR (255),
+					`datadir` VARCHAR (255),
 					KEY `mydns_admin_id` (`mydns_admin_id`),
 					KEY `name` (`name`),
 					CONSTRAINT `mydns_admin_id` FOREIGN KEY (`mydns_admin_id`)
@@ -230,7 +223,9 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 					`ttl` INT UNSIGNED,
 					`location` VARCHAR(2) DEFAULT NULL,
 					`last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-					`status` VARCHAR(255) NOT NULL
+					`active` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
+					`template` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
+					`status` VARCHAR(255) NOT NULL,
 					KEY `mydns_nameserver_id`(`mydns_nameserver_id`),
 					KEY `mydns_admin_id`(`mydns_admin_id`),
 					KEY `zone` (`zone`),
@@ -322,7 +317,7 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	protected function dropTables()
 	{
 		foreach (array('mydns_zone_record', 'mydns_resource_record_type', 'mydns_zone', 'mydns_nameserver') as $table) {
-			exec_query('DROP TABLE IF EXISTS ?', $table);
+			exec_query("DROP TABLE IF EXISTS $table");
 		}
 	}
 }

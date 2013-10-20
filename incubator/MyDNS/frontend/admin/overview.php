@@ -34,7 +34,7 @@ use iMSCP_pTemplate;
 
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
 
-check_login('user');
+check_login('admin');
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(

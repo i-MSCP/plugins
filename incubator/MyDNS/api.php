@@ -26,92 +26,84 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-$pluginDir = iMSCP_Registry::get('pluginManager')->getPluginDirectory();
+namespace MyDNS;
 
-/** @var iMSCP\Loader\UniversalLoader $loader */
-$loader = iMSCP\Loader\AutoloaderFactory::getAutoloader('iMSCP\Loader\UniversalLoader');
+use iMSCP_Registry as Registry;
+use iMSCP\Loader\AutoloaderFactory as LoaderFactory;
+use iMSCP\Loader\UniversalLoader as Loader;
+
+$pluginDir = Registry::get('pluginManager')->getPluginDirectory();
+
+/** @var Loader $loader */
+$loader = LoaderFactory::getAutoloader('iMSCP\Loader\UniversalLoader');
+
+// // We add our classMap into the universal loader (more faster than using autoloader)
 $loader->addClassMap(
 	array(
 		'AltoRouter' => $pluginDir . '/MyDNS/library/vendor/AltoRouter.php',
-		'MyDNS_Api' => $pluginDir . '/MyDNS/library/MyDNS/Api.php',
-		'MyDNS_Nameserver' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver.php',
-		'MyDNS_Nameserver_Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver/Sanity.php',
-		'MyDNS_Zone' => $pluginDir . '/MyDNS/library/MyDNS/Zone.php',
-		'MyDNS_Zone_Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Sanity.php',
-		'MyDNS_Zone_Record' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Record.php',
-		'MyDNS_Zone_Record_Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Record/Sanity.php',
+		'MyDNS\Api' => $pluginDir . '/MyDNS/library/MyDNS/Api.php',
+		'MyDNS\Nameserver' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver.php',
+		'MyDNS\Nameserver\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver/Sanity.php',
+		'MyDNS\Zone' => $pluginDir . '/MyDNS/library/MyDNS/Zone.php',
+		'MyDNS\Zone\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Sanity.php',
+		'MyDNS\Zone\Record' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Record.php',
+		'MyDNS\Zone\Record\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Record/Sanity.php'
 	)
 );
 
-$api = new MyDNS_Api();
+$api = new Api();
 
 // Set Web service endpoint
 $api->setEndpoint('/mydns/api');
 
-# Add routes according HTTP method
+# We add available REST resource URIs according HTTP method
+# All resource below belongs to the authenticated users
 switch ($api->getHttpMethod()) {
 	case 'POST':
-		$api->addRoute(
-			'POST', '/nameservers', array('class' => 'MyDNS_Nameserver', 'function' => 'createNameserver')
-		);
-
-		$api->addRoute(
-			'POST', '/zones', array('class' => 'MyDNS_Zone', 'function' => 'createZone')
-		);
-
-		$api->addRoute(
-			'POST', '/zones/[i:id]/records', array('class' => 'MyDNS_Zone_Record', 'function' => 'createRecord')
-		);
+		$api->addRoute('POST', '/nameservers', array('class' => 'Nameserver', 'function' => 'create'));
+		$api->addRoute('POST', '/zones', array('class' => 'Zone', 'function' => 'create'));
+		$api->addRoute('POST', '/zones/[i:mydns_zone_id]/records', array('class' => 'Record', 'function' => 'create'));
 		break;
 	case 'PUT':
 		$api->addRoute(
-			'PUT', '/nameservers/[i:id]', array('class' => 'MyDNS_Nameserver', 'function' => 'updateNameserver')
+			'PUT',
+			'/nameservers/[i:mydns_nameserver_id]',
+			array('class' => 'Nameserver', 'function' => 'update')
 		);
-
+		$api->addRoute('PUT', '/zone/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'update'));
 		$api->addRoute(
-			'PUT', '/zone/[i:id]', array('class' => 'MyDNS_Zone', 'function' => 'updateZone')
-		);
-
-		$api->addRoute(
-			'PUT', '/zones/[i:id]/records/[i:id]', array('class' => 'MyDNS_Zone_Record', 'function' => 'updateRecord')
+			'PUT',
+			'/zones/[i:mydns_zone_record_id]/records/[i:mydns_zone_record_id]',
+			array('class' => 'Record', 'function' => 'update')
 		);
 		break;
 	case 'DELETE':
 		$api->addRoute(
-			'DELETE', '/nameservers/[i:id]', array('class' => 'MyDNS_Nameserver', 'function' => 'deleteNameserver')
+			'DELETE', '/nameservers/[i:mydns_nameserver_id]', array('class' => 'Nameserver', 'function' => 'delete')
 		);
-
 		$api->addRoute(
-			'DELETE', '/zone/[i:id]', array('class' => 'MyDNS_Zone', 'function' => 'deleteZone')
+			'DELETE', '/zone/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'delete')
 		);
-
 		$api->addRoute(
-			'DELETE', '/zones/[i:id]/records/[i:id]', array('class' => 'MyDNS_Zone_Record', 'function' => 'deleteRecord')
+			'DELETE',
+			'/zones/[i:mydns_zone_record_id]/records/[i:mydns_zone_record_id]',
+			array('class' => 'Record', 'function' => 'delete')
 		);
 		break;
 	default:
+		$api->addRoute('GET', '/nameservers', array('class' => 'Nameserver', 'function' => 'collection'));
 		$api->addRoute(
-			'GET', '/nameservers', array('class' => 'MyDNS_Nameserver', 'function' => 'getNameServers')
+			'GET', '/nameservers/[i:mydns_nameserver_id]', array('class' => 'Nameserver', 'function' => 'read')
 		);
-
+		$api->addRoute('GET', '/zones', array('class' => 'Zone', 'function' => 'collection'));
+		$api->addRoute('GET', '/zones/[i:mydns_zone_id]', array('class' => 'Zone', 'function' => 'read'));
 		$api->addRoute(
-			'GET', '/nameservers/[i:id]', array('class' => 'MyDNS_Nameserver', 'function' => 'getNameserver')
+			'GET', '/zones/[i:mydns_zone_id]/records',
+			array('class' => 'Record', 'function' => 'collection')
 		);
-
 		$api->addRoute(
-			'GET', '/zones', array('class' => 'MyDNS_Zone', 'function' => 'getZones')
-		);
-
-		$api->addRoute(
-			'GET', '/zones/[i:id]', array('class' => 'MyDNS_Zone', 'function' => 'getZone')
-		);
-
-		$api->addRoute(
-			'GET', '/zones/[i:id]/records', array('class' => 'MyDNS_Zone_Record', 'function' => 'getRecords')
-		);
-
-		$api->addRoute(
-			'GET', '/zones/[i:id]/records/[i:id]', array('class' => 'MyDNS_Zone_Record', 'function' => 'getRecord')
+			'GET', '/zones/[i:mydns_zone_id]/records/[i:mydns_zone_record_id]',
+			array('class' => 'Record', 'function' => 'read')
 		);
 }
 

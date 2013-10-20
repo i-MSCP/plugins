@@ -26,16 +26,17 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 return array(
-	// default value for nameservers, zones and DNS resource records
+
+	// Default configuration and data directories
+	'confdir' => '/etc/bind',
+	'datadir' => '/var/cache/bind',
+
+	// Default value for nameservers, zones and DNS resource records
 	'default_nameserver_ttl'  => '86400',
 	'default_zone_ttl' => '86400',
 	'default_zone_mailaddr' => 'hostmaster.{ZONE}.',
 	'default_zone_retry'  => '900',      // RFC 1912 range (180-900 sec)
 	'default_zone_expire' => '1048576',  // RFC 1912 range (14 - 28 days)
 	'default_zone_minimum' => '2560',    // RFC 2308 range (1 - 3 hours)
-	'default_zone_record_ttl' => '86400',
-
-	// MyDNS REST service URL endpoint
-	'service_url' => 'http://{BASE_SERVER_VHOST}/mydns',
-	'service_port' => '80' // 443 (SSL recommended)
+	'default_zone_record_ttl' => '86400'
 );
