@@ -40,7 +40,7 @@ $loader = LoaderFactory::getAutoloader('iMSCP\Loader\UniversalLoader');
 // // We add our classMap into the universal loader (more faster than using autoloader)
 $loader->addClassMap(
 	array(
-		'AltoRouter' => $pluginDir . '/MyDNS/library/vendor/AltoRouter.php',
+		'AltoRouter' => $pluginDir . '/MyDNS/library/vendor/AltoRouter/AltoRouter.php',
 		'MyDNS\Api' => $pluginDir . '/MyDNS/library/MyDNS/Api.php',
 		'MyDNS\Nameserver' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver.php',
 		'MyDNS\Nameserver\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver/Sanity.php',
@@ -70,7 +70,7 @@ switch ($api->getHttpMethod()) {
 			'/nameservers/[i:mydns_nameserver_id]',
 			array('class' => 'Nameserver', 'function' => 'update')
 		);
-		$api->addRoute('PUT', '/zone/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'update'));
+		$api->addRoute('PUT', '/zones/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'update'));
 		$api->addRoute(
 			'PUT',
 			'/zones/[i:mydns_zone_record_id]/records/[i:mydns_zone_record_id]',
@@ -82,7 +82,7 @@ switch ($api->getHttpMethod()) {
 			'DELETE', '/nameservers/[i:mydns_nameserver_id]', array('class' => 'Nameserver', 'function' => 'delete')
 		);
 		$api->addRoute(
-			'DELETE', '/zone/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'delete')
+			'DELETE', '/zones/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'delete')
 		);
 		$api->addRoute(
 			'DELETE',
