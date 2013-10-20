@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.11',
-	'date' => '2013-08-27',
+	'version' => '0.0.12',
+	'date' => '2013-10-20',
 	'name' => 'DebugBar',
 	'desc' => 'Plugin providing many debug information for i-MSCP.',
 	'url' => 'http://i-mscp.net'

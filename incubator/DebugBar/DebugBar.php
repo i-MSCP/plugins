@@ -136,12 +136,10 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function __call($listenerMethod, $arguments)
 	{
-		if (!in_array($listenerMethod, $this->listenedEvents)) {
-			throw new iMSCP_Plugin_Exception('Unknown listener method.');
+		if (in_array($listenerMethod, $this->getListenedEvents())) {
+			$this->event = $arguments[0];
+			$this->buildDebugBar();
 		}
-
-		$this->event = $arguments[0];
-		$this->buildDebugBar();
 	}
 
 	/**
@@ -197,15 +195,15 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 		$collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
 
 		$backgroundColor = array(
-			'black' => '#181818',
-			'red' => '#691c1c',
-			'blue' => '#303882',
-			'green' => '#1c6923',
-			'yellow' => '#918142'
+			'black' => '#000000',
+			'red' => '#5a0505',
+			'blue' => '#151e72',
+			'green' => '#055a0d',
+			'yellow' => '#85742f'
 		);
 
 		$color = isset($_SESSION['user_id'])
-			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : 'black';
+			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : '#000000';
 
 		return ('
             <style type="text/css" media="screen">
@@ -228,7 +226,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
             <script type="text/javascript">
                 if (typeof jQuery == "undefined") {
                     var scriptObj = document.createElement("script");
-                    scriptObj.src = "../themes/default/js/jquery.js";
+                    scriptObj.src = "/themes/default/js/jquery.js";
                     scriptObj.type = "text/javascript";
                     var head=document.getElementsByTagName("head")[0];
                     head.insertBefore(scriptObj,head.firstChild);
