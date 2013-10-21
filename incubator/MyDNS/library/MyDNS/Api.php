@@ -35,6 +35,8 @@ use iMSCP_Plugin_Exception;
 
 class Api
 {
+	const API_VERSION = '1.0.0';
+
 	/**
 	 * @var AltoRouter
 	 */
@@ -109,11 +111,12 @@ class Api
 			$apiClass = __NAMESPACE__ . "\\{$match['target']['class']}";
 			$apiFunction = $match['target']['function'];
 
-			$apiObject = new $apiClass($this->request);
+			$data = array_merge($match['params'], $this->request);
+
+			$apiObject = new $apiClass($data);
 
 			if (is_callable(array($apiObject, $apiFunction))) {
-				$match['params']['mydns_admin_id'] = $_SESSION['user_id'];
-				$responseData = array_merge($responseData, $apiObject->$apiFunction($match['params']));
+				$responseData = array_merge($responseData, $apiObject->$apiFunction($data));
 			} else {
 				$responseData = array('code' => 500);
 			}

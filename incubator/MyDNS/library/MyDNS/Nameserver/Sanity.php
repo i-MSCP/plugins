@@ -41,20 +41,20 @@ class Sanity extends Nameserver
 	/**
 	 * Create nameserver
 	 *
-	 * @param array $params
+	 * @param array $data
 	 * @return array
 	 */
-	public function create($params)
+	public function create(array $data)
 	{
 		// Check for TTL
-		if (!isset($this->request['ttl'])) {
-			$this->request['ttl'] = '86400'; // TODO get default value from config file
+		if (!isset($data['ttl'])) {
+			$data['ttl'] = '86400'; // TODO get default value from config file
 		}
 
-		$this->validateTTL($this->request['ttl']);
+		$this->validateTTL($data['ttl']);
 
 		// Check for name characters
-		if (preg_match('/([^a-zA-Z0-9\-\.])/', $this->request['name'], $m)) {
+		if (preg_match('/([^a-zA-Z0-9\-\.])/', $data['name'], $m)) {
 			$this->errors['name'] = 1;
 			$this->errorMessages[] = tr(
 				"Nameserver name contains an invalid character - '%s'. Only A-Z, 0-9, . and - are allowed.", $m[1]
@@ -62,7 +62,7 @@ class Sanity extends Nameserver
 		}
 
 		// Check that name is absolute
-		if (!preg_match('/\.$/', $this->request['name'])) {
+		if (!preg_match('/\.$/', $data['name'])) {
 			$this->setError(
 				'name',
 				tr('Nameserver name must be a fully-qualified domain name with a dot at the end, such as ns1.example.com.')
@@ -70,7 +70,7 @@ class Sanity extends Nameserver
 		}
 
 		// Check that parts of the name are valid
-		$parts = preg_split('/\./', $this->request['name']);
+		$parts = preg_split('/\./', $data['name']);
 
 		foreach ($parts as $part) {
 			if (!preg_match('/[a-zA-Z0-9\-]+/', $part)) {
@@ -81,40 +81,40 @@ class Sanity extends Nameserver
 		}
 
 		# Check that export_format is valid (Only bind export format is currently provided)
-		if ($this->request['export_format'] !== 'bind') {
+		if ($data['export_format'] !== 'bind') {
 			$this->setError('export_format', tr('Invalid export format.'));
 		}
 
 		// Check for IP address
-		if (!filter_var($this->request['address'], FILTER_VALIDATE_IP)) {
-			$this->setError('address', tr('Invalid IP address - %s', $this->request['address']));
+		if (!filter_var($data['address'], FILTER_VALIDATE_IP)) {
+			$this->setError('address', tr('Invalid IP address - %s', $data['address']));
 		}
 
-		return (!empty($this->errors)) ? $this->throwSanityError() : parent::update($params);
+		return (!empty($this->errors)) ? $this->throwSanityError() : parent::create($data);
 	}
 
 	/**
 	 * Update nameserver
 	 *
-	 * @param array $params
+	 * @param array $data
 	 * @return array
 	 */
-	public function update($params)
+	public function update(array $data)
 	{
-		$nameserver = $this->read($params);
+		$nameserver = $this->read($data);
 
 		if ($this->isErrorResponse($nameserver)) {
 			return $nameserver;
 		}
 
 		// Check for TTL
-		if (!isset($this->request['ttl'])) {
-			$this->request['ttl'] = '86400'; // TODO get default value from config file
+		if (!isset($data['ttl'])) {
+			$data['ttl'] = '86400'; // TODO get default value from config file
 		}
 
-		if (isset($this->request['name'])) {
+		if (isset($data['name'])) {
 			// Check for name characters
-			if (preg_match('/([^a-zA-Z0-9\-\.])/', $this->request['name'], $m)) {
+			if (preg_match('/([^a-zA-Z0-9\-\.])/', $data['name'], $m)) {
 				$this->errors['name'] = 1;
 				$this->errorMessages[] = tr(
 					"Nameserver name contains an invalid character - '%s'. Only A-Z, 0-9, . and - are allowed.", $m[1]
@@ -122,7 +122,7 @@ class Sanity extends Nameserver
 			}
 
 			// Check that name is absolute
-			if (!preg_match('/\.$/', $this->request['name'])) {
+			if (!preg_match('/\.$/', $data['name'])) {
 				$this->setError(
 					'name',
 					tr('Nameserver name must be a fully-qualified domain name with a dot at the end, such as ns1.example.com.')
@@ -130,7 +130,7 @@ class Sanity extends Nameserver
 			}
 
 			// Check that parts of the name are valid
-			$parts = preg_split('/\./', $this->request['name']);
+			$parts = preg_split('/\./', $data['name']);
 
 			foreach ($parts as $part) {
 				if (!preg_match('/[a-zA-Z0-9\-]+/', $part)) {
@@ -142,17 +142,17 @@ class Sanity extends Nameserver
 		}
 
 		# check that export_format is valid (Only bind export format is currently provided)
-		if (isset($this->request['export_format']) && $this->request['export_format'] !== 'bind') {
+		if (isset($data['export_format']) && $data['export_format'] !== 'bind') {
 			$this->setError('export_format', tr('Invalid export format.'));
 		}
 
-		if (isset($this->request['address'])) {
+		if (isset($data['address'])) {
 			// Check for IP address
-			if (!filter_var($this->request['address'], FILTER_VALIDATE_IP)) {
-				$this->setError('address', tr('Invalid IP address - %s', $this->request['address']));
+			if (!filter_var($data['address'], FILTER_VALIDATE_IP)) {
+				$this->setError('address', tr('Invalid IP address - %s', $data['address']));
 			}
 		}
 
-		return (!empty($this->errors)) ? $this->throwSanityError() : parent::update($params);
+		return (!empty($this->errors)) ? $this->throwSanityError() : parent::update($data);
 	}
 }

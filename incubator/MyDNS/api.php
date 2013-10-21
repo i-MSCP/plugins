@@ -42,8 +42,11 @@ $loader->addClassMap(
 	array(
 		'AltoRouter' => $pluginDir . '/MyDNS/library/vendor/AltoRouter/AltoRouter.php',
 		'MyDNS\Api' => $pluginDir . '/MyDNS/library/MyDNS/Api.php',
+		'MyDNS\Server' => $pluginDir . '/MyDNS/library/MyDNS/Server.php',
 		'MyDNS\Nameserver' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver.php',
 		'MyDNS\Nameserver\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Nameserver/Sanity.php',
+		'MyDNS\Permission' => $pluginDir . '/MyDNS/library/MyDNS/Permission.php',
+		'MyDNS\User' => $pluginDir . '/MyDNS/library/MyDNS/User.php',
 		'MyDNS\Zone' => $pluginDir . '/MyDNS/library/MyDNS/Zone.php',
 		'MyDNS\Zone\Sanity' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Sanity.php',
 		'MyDNS\Zone\Record' => $pluginDir . '/MyDNS/library/MyDNS/Zone/Record.php',
@@ -60,49 +63,95 @@ $api->setEndpoint('/mydns/api');
 # All resource below belongs to the authenticated users
 switch ($api->getHttpMethod()) {
 	case 'POST':
-		$api->addRoute('POST', '/nameservers', array('class' => 'Nameserver', 'function' => 'create'));
-		$api->addRoute('POST', '/zones', array('class' => 'Zone', 'function' => 'create'));
-		$api->addRoute('POST', '/zones/[i:mydns_zone_id]/records', array('class' => 'Record', 'function' => 'create'));
+		$api->addRoute(
+			'POST',
+			'/nameservers',
+			array('class' => 'Nameserver\Sanity', 'function' => 'create')
+		);
+
+		$api->addRoute(
+			'POST',
+			'/zones',
+			array('class' => 'Zone\Sanity', 'function' => 'create')
+		);
+
+		$api->addRoute(
+			'POST',
+			'/zones/[i:mydns_zone_id]/records',
+			array('class' => 'Record\Satiny', 'function' => 'create')
+		);
 		break;
 	case 'PUT':
 		$api->addRoute(
 			'PUT',
 			'/nameservers/[i:mydns_nameserver_id]',
-			array('class' => 'Nameserver', 'function' => 'update')
+			array('class' => 'Nameserver\Sanity', 'function' => 'update')
 		);
-		$api->addRoute('PUT', '/zones/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'update'));
+
+		$api->addRoute(
+			'PUT',
+			'/zones/[i:mydns_zone_record_id]',
+			array('class' => 'Zone\Sanity', 'function' => 'update')
+		);
+
 		$api->addRoute(
 			'PUT',
 			'/zones/[i:mydns_zone_record_id]/records/[i:mydns_zone_record_id]',
-			array('class' => 'Record', 'function' => 'update')
+			array('class' => 'Record\Sanity', 'function' => 'update')
 		);
+
 		break;
 	case 'DELETE':
 		$api->addRoute(
-			'DELETE', '/nameservers/[i:mydns_nameserver_id]', array('class' => 'Nameserver', 'function' => 'delete')
+			'DELETE',
+			'/nameservers/[i:mydns_nameserver_id]',
+			array('class' => 'Nameserver', 'function' => 'delete')
 		);
+
 		$api->addRoute(
-			'DELETE', '/zones/[i:mydns_zone_record_id]', array('class' => 'Zone', 'function' => 'delete')
+			'DELETE',
+			'/zones/[i:mydns_zone_record_id]',
+			array('class' => 'Zone', 'function' => 'delete')
 		);
+
 		$api->addRoute(
 			'DELETE',
 			'/zones/[i:mydns_zone_record_id]/records/[i:mydns_zone_record_id]',
 			array('class' => 'Record', 'function' => 'delete')
 		);
+
 		break;
 	default:
-		$api->addRoute('GET', '/nameservers', array('class' => 'Nameserver', 'function' => 'collection'));
 		$api->addRoute(
-			'GET', '/nameservers/[i:mydns_nameserver_id]', array('class' => 'Nameserver', 'function' => 'read')
+			'GET',
+			'/nameservers',
+			array('class' => 'Nameserver', 'function' => 'collection')
 		);
-		$api->addRoute('GET', '/zones', array('class' => 'Zone', 'function' => 'collection'));
-		$api->addRoute('GET', '/zones/[i:mydns_zone_id]', array('class' => 'Zone', 'function' => 'read'));
+
 		$api->addRoute(
-			'GET', '/zones/[i:mydns_zone_id]/records',
+			'GET',
+			'/nameservers/[i:mydns_nameserver_id]',
+			array('class' => 'Nameserver', 'function' => 'read')
+		);
+
+		$api->addRoute(
+			'GET',
+			'/zones',
+			array('class' => 'Zone', 'function' => 'collection')
+		);
+
+		$api->addRoute(
+			'GET', '/zones/[i:mydns_zone_id]', array('class' => 'Zone', 'function' => 'read'));
+
+		$api->addRoute(
+			'GET',
+			'/zones/[i:mydns_zone_id]/records',
 			array('class' => 'Record', 'function' => 'collection')
 		);
+
 		$api->addRoute(
-			'GET', '/zones/[i:mydns_zone_id]/records/[i:mydns_zone_record_id]',
+			'GET',
+			'/zones/[i:mydns_zone_id]/records/[i:mydns_zone_record_id]',
 			array('class' => 'Record', 'function' => 'read')
 		);
 }

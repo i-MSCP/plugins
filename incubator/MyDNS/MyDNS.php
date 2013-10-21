@@ -73,7 +73,8 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		$controller->registerListener(
 			array(
 				iMSCP_Events::onAdminScriptStart,
-				iMSCP_Events::onClientScriptStart
+				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onResellerScriptStart,
 
 			),
 			$this
@@ -88,6 +89,16 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	public function onAdminScriptStart()
 	{
 		$this->setupNavigation('admin');
+	}
+
+	/**
+	 * onResellerScriptStart listener
+	 *
+	 * @return void
+	 */
+	public function onResellerScriptStart()
+	{
+		$this->setupNavigation('reseller');
 	}
 
 	/**
@@ -113,6 +124,7 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 			'/admin/mydns/overview' => $pluginRootDir . '/frontend/admin/overview.php',
 			'/admin/mydns/nameservers' => $pluginRootDir . '/frontend/admin/nameservers.php',
 			'/admin/mydns/zones' => $pluginRootDir . '/frontend/admin/zones.php',
+			'/reseller/mydns/overview' => $pluginRootDir . '/frontend/reseller/overview.php',
 			'/reseller/mydns/nameservers' => $pluginRootDir . '/frontend/reseller/nameservers.php',
 			'/reseller/mydns/zones' => $pluginRootDir . '/frontend/reseller/zones.php',
 			'/client/mydns/overview' => $pluginRootDir . '/frontend/client/overview.php',
@@ -132,6 +144,8 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	{
 		if (strpos($urlComponents['path'], '/mydns/api/') === 0) {
 			$actionScript = PLUGINS_PATH . '/' . $this->getName() . '/api.php';
+
+			return true;
 		}
 
 		return false;
@@ -148,34 +162,31 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
-
-			if ($uiLevel == 'admin' || $uiLevel == 'client') {
-				$navigation->addPage(
-					array(
-						'label' => 'MyDNS',
-						'uri' => "/$uiLevel/mydns/overview",
-						'class' => 'custom_link',
-						'order' => 2,
-						'pages' => array(
-							array(
-								'label' => tohtml(tr('Overview')),
-								'uri' => "/$uiLevel/mydns/overview",
-								'title_class' => 'custom_link'
-							),
-							array(
-								'label' => tohtml(tr('Name Servers')),
-								'uri' => "/$uiLevel/mydns/nameservers",
-								'title_class' => 'custom_link'
-							),
-							array(
-								'label' => tohtml(tr('Zones')),
-								'uri' => "/$uiLevel/mydns/zones",
-								'title_class' => 'custom_link'
-							)
+			$navigation->addPage(
+				array(
+					'label' => 'MyDNS',
+					'uri' => "/$uiLevel/mydns/overview",
+					'class' => 'custom_link',
+					'order' => 2,
+					'pages' => array(
+						array(
+							'label' => tohtml(tr('Overview')),
+							'uri' => "/$uiLevel/mydns/overview",
+							'title_class' => 'custom_link'
+						),
+						array(
+							'label' => tohtml(tr('Name Servers')),
+							'uri' => "/$uiLevel/mydns/nameservers",
+							'title_class' => 'custom_link'
+						),
+						array(
+							'label' => tohtml(tr('Zones')),
+							'uri' => "/$uiLevel/mydns/zones",
+							'title_class' => 'custom_link'
 						)
 					)
-				);
-			}
+				)
+			);
 		}
 	}
 
@@ -187,21 +198,35 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	 */
 	protected function createTables()
 	{
+		// Create mydns_user
+		exec_query(
+			'
+				CREATE TABLE IF NOT EXISTS `mydns_user`(
+					`mydns_user_id` INT(10) UNSIGNED NOT NULL,
+					`public_key` VARCHAR(255) NOT NULL,
+					`private_key` VARCHAR(255) NOT NULL,
+					UNIQUE `mydns_user_id` (`mydns_user_id`),
+					CONSTRAINT `user_admin` FOREIGN KEY (`mydns_user_id`)
+					 REFERENCES `admin` (`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+			'
+		);
+
 		// Create mydns_nameserver table
 		execute_query(
 			'
 				CREATE TABLE IF NOT EXISTS `mydns_nameserver`(
 					`mydns_nameserver_id` SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
-					`mydns_admin_id` INT UNSIGNED NOT NULL,
+					`mydns_user_id` INT(10) UNSIGNED NOT NULL,
 					`name` VARCHAR(127) NOT NULL,
-					`ttl` INT UNSIGNED,
+					`ttl` INT(10) UNSIGNED,
 					`address` VARCHAR(127) NOT NULL,
 					`confdir` VARCHAR (255),
 					`datadir` VARCHAR (255),
-					KEY `mydns_admin_id` (`mydns_admin_id`),
+					KEY `mydns_user_id` (`mydns_user_id`),
 					KEY `name` (`name`),
-					CONSTRAINT `mydns_admin_id` FOREIGN KEY (`mydns_admin_id`)
-					 REFERENCES `admin` (`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE
+					CONSTRAINT `nameserver_user` FOREIGN KEY (`mydns_user_id`)
+					 REFERENCES `mydns_user` (`mydns_user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 			'
 		);
@@ -210,26 +235,39 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		execute_query(
 			'
 				CREATE TABLE IF NOT EXISTS `mydns_zone`(
-					`mydns_zone_id` INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
-					`mydns_nameserver_id` SMALLINT UNSIGNED NOT NULL,
-					`mydns_admin_id` INT UNSIGNED NOT NULL,
+					`mydns_zone_id` INT(10) UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+					`mydns_user_id` INT(10) UNSIGNED NOT NULL,
 					`zone` VARCHAR(255) NOT NULL,
 					`mailaddr` VARCHAR(127),
-					`serial` INT UNSIGNED NOT NULL DEFAULT 1,
-					`refresh` INT UNSIGNED,
-					`retry` INT UNSIGNED,
-					`expire` INT UNSIGNED,
-					`minimum` INT UNSIGNED,
-					`ttl` INT UNSIGNED,
+					`serial` INT(10) UNSIGNED NOT NULL DEFAULT 1,
+					`refresh` INT(10) UNSIGNED,
+					`retry` INT(10) UNSIGNED,
+					`expire` INT(10) UNSIGNED,
+					`minimum` INT(10) UNSIGNED,
+					`ttl` INT(10) UNSIGNED,
 					`location` VARCHAR(2) DEFAULT NULL,
 					`last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-					`active` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
-					`template` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
+					`active` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`template` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
 					`status` VARCHAR(255) NOT NULL,
-					KEY `mydns_nameserver_id`(`mydns_nameserver_id`),
-					KEY `mydns_admin_id`(`mydns_admin_id`),
+					KEY `mydns_user_id` (`mydns_user_id`),
 					KEY `zone` (`zone`),
-					CONSTRAINT `mydns_nameserver_id` FOREIGN KEY (`mydns_nameserver_id`)
+					CONSTRAINT `zone_user` FOREIGN KEY (`mydns_user_id`)
+					 REFERENCES `mydns_user` (`mydns_user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+			'
+		);
+
+		// Create mydns_zone_nameserver table
+		execute_query(
+			'
+				CREATE TABLE IF NOT EXISTS `mydns_zone_nameserver` (
+					`mydns_zone_id` INT(10) UNSIGNED NOT NULL,
+					`mydns_nameserver_id` SMALLINT(5) UNSIGNED NOT NULL,
+					UNIQUE KEY `mydns_zone_nameserver_mydns_nameserver_id` (`mydns_zone_id`, `mydns_nameserver_id`),
+					CONSTRAINT `zone_nameserver_zone` FOREIGN KEY (`mydns_zone_id`)
+					 REFERENCES `mydns_zone` (`mydns_zone_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+					CONSTRAINT `zone_nameserver_nameserver` FOREIGN KEY (`mydns_nameserver_id`)
 					 REFERENCES `mydns_nameserver` (`mydns_nameserver_id`) ON DELETE CASCADE ON UPDATE CASCADE
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 			'
@@ -239,11 +277,11 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		execute_query(
 			'
 				CREATE TABLE IF NOT EXISTS `mydns_resource_record_type`(
-					`id` smallint(2) unsigned NOT NULL PRIMARY KEY,
-					`name` varchar(10) NOT NULL,
-					`description` varchar(55) NULL DEFAULT NULL,
-					`reverse` tinyint(1) UNSIGNED NOT NULL DEFAULT 1,
-					`forward` tinyint(1) UNSIGNED NOT NULL DEFAULT 1,
+					`mydns_resource_record_type_id` SMALLINT(2) UNSIGNED NOT NULL PRIMARY KEY,
+					`name` VARCHAR(10) NOT NULL,
+					`description` VARCHAR(55) NULL DEFAULT NULL,
+					`reverse` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
+					`forward` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
 					UNIQUE `name` (`name`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 			'
@@ -252,7 +290,10 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		// Populate mydns_resource_record_type table
 		execute_query(
 			"
-				INSERT IGNORE INTO `mydns_resource_record_type` (`id`, `name`, `description`, `reverse`, `forward`)
+				INSERT IGNORE INTO
+					`mydns_resource_record_type` (
+						`mydns_resource_record_type_id`, `name`, `description`, `reverse`, `forward`
+					)
 				VALUES
 					(1, 'A', 'Address', 0, 1),
 					(2, 'NS', 'Name Server', 1, 1),
@@ -285,27 +326,75 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 		execute_query(
 			'
 				CREATE TABLE IF NOT EXISTS `mydns_zone_record`(
-					`mydns_zone_record_id` INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
-					`mydns_zone_id` INT UNSIGNED NOT NULL,
+					`mydns_zone_record_id` INT(10) UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+					`mydns_zone_id` INT(10) UNSIGNED NOT NULL,
 					`name` VARCHAR(255) NOT NULL,
-					`ttl` INT UNSIGNED NOT NULL DEFAULT 0,
+					`ttl` INT(10) UNSIGNED NOT NULL DEFAULT 0,
 					`type_id` SMALLINT(2) UNSIGNED NOT NULL,
 					`address` VARCHAR(512) NOT NULL,
 					`weight` SMALLINT UNSIGNED,
 					`priority` SMALLINT UNSIGNED,
 					`other` VARCHAR(255),
 					`location` VARCHAR(2) DEFAULT NULL,
-					`timestamp` timestamp NULL DEFAULT NULL,
+					`timestamp` TIMESTAMP NULL DEFAULT NULL,
 					KEY `mydns_zone_id` (`mydns_zone_id`),
 					KEY `name` (`name`),
 					KEY `address` (`address`),
-					CONSTRAINT `mydns_zone_id` FOREIGN KEY (`mydns_zone_id`)
+					CONSTRAINT `zone_record_zone` FOREIGN KEY (`mydns_zone_id`)
 					 REFERENCES `mydns_zone` (`mydns_zone_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-					CONSTRAINT `type_id`  FOREIGN KEY (`type_id`)
-					  REFERENCES `mydns_resource_record_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+					CONSTRAINT `zone_record_resource_record_type` FOREIGN KEY (`type_id`)
+					 REFERENCES `mydns_resource_record_type` (`mydns_resource_record_type_id`)
+					 ON DELETE CASCADE ON UPDATE CASCADE
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 			'
 		);
+
+		// Create mydns_permission table
+		execute_query(
+			'
+				CREATE TABLE IF NOT EXISTS `mydns_permission`(
+					`mydns_permission_id` INT(10) UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+					`mydns_user_id` INT(10) UNSIGNED DEFAULT NULL,
+					`permission_name` VARCHAR(50),
+					`zone_write` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`zone_create` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`zone_delete` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`zone_record_write` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`zone_record_create` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`zone_record_delete` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`nameserver_write` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`nameserver_create` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`nameserver_delete` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`self_write` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
+					`usable_ns` VARCHAR(50),
+					KEY `mydns_user_id` (`mydns_user_id`),
+					CONSTRAINT `permission_user` FOREIGN KEY (`mydns_user_id`)
+					 REFERENCES `mydns_user` (`mydns_user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+			'
+		);
+
+		/*
+		// Give all permissions to system administrators
+
+		$stmt = execute_query("SELECT `admin_id` FROM `admin` WHERE `admin_type` = 'admin'");
+
+		$pk = 1;
+		while($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+			exec_query(
+				'
+					INSERT IGNORE INTO
+						`mydns_permission`
+					VALUE (
+						?, ?, NULL, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2
+					)
+				',
+				array($pk, $data['admin_id'])
+			);
+
+			$pk++;
+		}
+		*/
 	}
 
 	/**
@@ -316,7 +405,12 @@ class iMSCP_Plugin_MyDNS extends iMSCP_Plugin_Action
 	 */
 	protected function dropTables()
 	{
-		foreach (array('mydns_zone_record', 'mydns_resource_record_type', 'mydns_zone', 'mydns_nameserver') as $table) {
+		foreach (
+			array(
+				'mydns_permission', 'mydns_zone_record', 'mydns_resource_record_type', 'mydns_zone_nameserver',
+				'mydns_zone', 'mydns_nameserver', 'mydns_user'
+			) as $table
+		) {
 			exec_query("DROP TABLE IF EXISTS $table");
 		}
 	}
