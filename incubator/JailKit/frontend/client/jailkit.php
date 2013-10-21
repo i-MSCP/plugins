@@ -450,7 +450,7 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart)
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
-check_login('user', $cfg->PREVENT_EXTERNAL_LOGIN_CLIENT);
+check_login('user');
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(
