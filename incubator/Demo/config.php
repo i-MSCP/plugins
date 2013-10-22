@@ -39,12 +39,6 @@ return array(
 			'protected' => true
 		),
 		array(
-			'label' => 'Administrator 1',
-			'username' => 'admin1',
-			'password' => 'admin1',
-			'protected' => true
-		),
-		array(
 			'label' => 'Administrator 2',
 			'username' => 'admin2',
 			'password' => 'admin2',
