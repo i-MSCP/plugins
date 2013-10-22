@@ -76,6 +76,8 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 
 			$controller->registerListener($this->getListenedEvents(), $this, 1000);
 			$this->_controller = $controller;
+		} else {
+			$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
 		}
 	}
 
@@ -118,6 +120,28 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	}
 
 	/**
+	 * Implements the onBeforeActivatePlugin listener method
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		if($event->getParam('pluginName') == $this->getName()) {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
+			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation(true);
+			}
+		}
+	}
+
+	/**
 	 * Implements the onBeforeDeactivatePlugin listener method
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -125,7 +149,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	 */
 	public function onBeforeDeactivatePlugin($event)
 	{
-		if($event->getParam('pluginName') !== $this->getName()) {
+		if($event->getParam('pluginName') != $this->getName()) {
 			$this->__call(iMSCP_Events::onBeforeActivatePlugin, array($event));
 		}
 	}
