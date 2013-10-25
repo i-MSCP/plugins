@@ -42,6 +42,41 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	protected $routes = array();
 
 	/**
+	 * Register a callback for the given event(s).
+	 *
+	 * @param iMSCP_Events_Manager_Interface $controller
+	 */
+	public function register(iMSCP_Events_Manager_Interface $controller)
+	{
+		$controller->registerListener(
+			array(
+				iMSCP_Events::onBeforeActivatePlugin,
+				iMSCP_Events::onBeforeUpdatePlugin,
+				iMSCP_Events::onClientScriptStart,
+				iMSCP_Events::onAfterDeleteCustomer,
+			),
+			$this
+		);
+
+		$controller->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -999);
+	}
+
+	/**
+	 * onBeforeActivatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		if ($event->getParam('action') == 'install') {
+			if (!$this->checkRequirements()) {
+				$event->stopPropagation(true);
+			}
+		}
+	}
+
+	/**
 	 * Process plugin installation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -51,10 +86,22 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->checkForRequirements();
 			$this->createDbTable();
-		} catch(iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * onBeforeUpdatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		if (!$this->checkRequirements()) {
+			$event->stopPropagation(true);
 		}
 	}
 
@@ -69,119 +116,39 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
-		if($fromVersion != $toVersion) {
+		if ($fromVersion != $toVersion && $fromVersion == '0.0.1') {
 			try {
-				$this->checkForRequirements();
-				if($fromVersion == '0.0.1') {
-					exec_query(
-						'
-							UPDATE
-								`domain_dns`
-							SET
-								`owned_by` = ?
-							WHERE
-								`domain_dns` LIKE ?
-							AND
-								`domain_class` = ?
-							AND
-								`domain_type` = ?
-							AND
-								`owned_by` = ?
-						',
-						array('plugin_mailman', 'lists.%', 'IN', 'A', 'yes')
-					);
-				}
-			} catch(iMSCP_Exception_Database $e) {
+				exec_query(
+					'
+						UPDATE
+							`domain_dns`
+						SET
+							`owned_by` = ?
+						WHERE
+							`domain_dns` LIKE ?
+						AND
+							`domain_class` = ?
+						AND
+							`domain_type` = ?
+						AND
+							`owned_by` = ?
+					',
+					array('plugin_mailman', 'lists.%', 'IN', 'A', 'yes')
+				);
+			} catch (iMSCP_Exception_Database $e) {
 				throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 			}
 		}
 	}
 
 	/**
-	 * Process plugin uninstallation
+	 * Get routes
 	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager
-	 * @return void
+	 * @return array
 	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	public function getRoutes()
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
-		try {
-			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TODELETE_STATUS);
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Schedule reactivation of all mailman lists
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager
-	 * @return void
-	 */
-	public function enable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
-		try {
-			exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TOENABLE_STATUS);
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Schedule deactivation of all email lists
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager
-	 * @return void
-	 */
-	public function disable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
-		try {
-			exec_query(
-				'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_status` = ?',
-				array($cfg->ITEM_TODISABLE_STATUS, $cfg->ITEM_OK_STATUS)
-			);
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Register a callback for the given event(s).
-	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
-	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
-	{
-		$controller->registerListener(
-			array(
-				iMSCP_Events::onBeforePluginsRoute,
-				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterDeleteCustomer
-			),
-			$this
-		);
-	}
-
-	/**
-	 * onBeforePluginsRoute event listener
-	 *
-	 * @return void
-	 */
-	public function onBeforePluginsRoute()
-	{
-		$this->routes = array(
+		return array(
 			'/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/frontend/mailman.php'
 		);
 	}
@@ -197,10 +164,22 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onAfterDeleteCustomer event listener
+	 * onBeforeAddSubdomain event listener
 	 *
-	 * This event is called when a customer account is being deleted.
-	 * If triggered,  we remove any E-Mail lists for this customer
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeAddSubdomain($event)
+	{
+		if ($event->getParam('subdomainName') == 'lists' && $event->getParam('subdomainType') == 'dmn') {
+			set_page_message(tr('This subdomain is reserved for mailing list usage.'), 'error');
+		}
+
+		redirectTo('subdomain_add.php');
+	}
+
+	/**
+	 * onAfterDeleteCustomer event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -217,13 +196,77 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Get routes
+	 * Get status of item with errors
 	 *
 	 * @return array
 	 */
-	public function getRoutes()
+	public function getItemWithErrorStatus()
 	{
-		return $this->routes;
+		$cfg = iMSCP_Registry::get('config');
+
+		$stmt = exec_query(
+			"
+				SELECT
+					`mailman_id` AS `item_id`, `mailman_status` AS `status`, `mailman_list_name` AS `item_name`,
+					'mailman' AS `table`, 'mailman_status' AS `field`
+				FROM
+					`mailman`
+				WHERE
+					`mailman_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+			",
+			array(
+				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		if ($stmt->rowCount()) {
+			return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+
+		return array();
+	}
+
+	/**
+	 * Set status of the given plugin item to 'tochange'
+	 *
+	 * @param string $table Table name
+	 * @param string $field Status field name
+	 * @param int $itemId Mailman item unique identifier
+	 * @return void
+	 */
+	public function changeItemStatus($table, $field, $itemId)
+	{
+		$cfg = iMSCP_Registry::get('config');
+		if ($table == 'mailman' && $field == 'mailman_status') {
+			exec_query(
+				"UPDATE `mailman` SET `mailman_status` = ?  WHERE `mailman_id` = ?",
+				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+			);
+		}
+	}
+
+	/**
+	 * Return count of request in progress
+	 *
+	 * @return int
+	 */
+	public function getCountRequests()
+	{
+		/** @var $cfg iMSCP_Config_Handler_File */
+		$cfg = iMSCP_Registry::get('config');
+
+		$query = 'SELECT COUNT(`mailman_id`) AS `count` FROM `mailman` WHERE `mailman_status` IN (?, ?, ?, ?, ?, ?)';
+		$stmt = exec_query(
+			$query,
+			array(
+				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
+				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		return $stmt->fields['count'];
 	}
 
 	/**
@@ -249,25 +292,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Check for requirements
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 */
-	protected function checkForRequirements()
-	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
-		if(! $cfg->exists('MTA_SERVER') || $cfg->MTA_SERVER != 'postfix') {
-			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP Postfix server implementation');
-		} elseif(! $cfg->exists('HTTPD_SERVER') || strpos($cfg->HTTPD_SERVER, 'apache_') !== 0) {
-			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP Apache server implementation');
-		} elseif(! $cfg->exists('NAMED_SERVER') || $cfg->NAMED_SERVER != 'bind') {
-			throw new iMSCP_Plugin_Exception('Mailman plugin require i-MSCP bind9 server implementation');
-		}
-	}
-
-	/**
 	 * Create mailman database table
 	 *
 	 * @return void
@@ -289,5 +313,33 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			'
 		);
+	}
+
+	/**
+	 * Check plugin requirements
+	 * @return bool TRUE if all requirements are meets, FALSE otherwise
+	 */
+	protected function checkRequirements()
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+
+		if ($cfg['Version'] != 'Git Master' && $cfg['Version'] <= 20130723) {
+			set_page_message(
+				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+			);
+			return false;
+		} elseif (!isset($cfg['MTA_SERVER']) || $cfg['MTA_SERVER'] != 'postfix') {
+			set_page_message(tr('Mailman plugin require i-MSCP Postfix server implementation'), 'error');
+			return false;
+		} elseif (!isset($cfg['HTTPD_SERVER']) || strpos($cfg['HTTPD_SERVER'], 'apache_') !== 0) {
+			set_page_message(tr('Mailman plugin require i-MSCP Apache server implementation'), 'error');
+			return false;
+		} elseif (!isset($cfg['NAMED_SERVER']) || $cfg['NAMED_SERVER'] != 'bind') {
+			set_page_message(tr('Mailman plugin require i-MSCP bind9 server implementation'), 'error');
+			return false;
+		}
+
+		return true;
 	}
 }

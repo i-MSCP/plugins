@@ -1,6 +1,8 @@
 <script type="text/javascript">
 	/*<![CDATA[*/
 	$(document).ready(function () {
+		$('.datatable').dataTable({ "oLanguage": {DATATABLE_TRANSLATIONS}, "iDisplayLength": 5 });
+
 		$('#list_dialog').dialog({
 			bgiframe: true,
 			title: '{TR_MAIL_LIST}',
@@ -23,6 +25,14 @@
 			}
 		});
 
+		$(window).scroll(function () {
+			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
+		});
+
+		$(window).resize(function () {
+			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
+		});
+
 		// PHP Editor settings button
 		$('#add_list').button({ icons: { primary: 'ui-icon-gear'}}).click(function (e) {
 			$('#list_dialog').dialog('open');
@@ -37,19 +47,16 @@
 </script>
 
 <!-- BDP: email_lists -->
-<table>
+<table class="datatable">
 	<thead>
 	<tr>
-		<th colspan="4">{TR_MAIL_LISTS}</th>
+		<th><strong>{TR_LIST_NAME}</strong></th>
+		<th><strong>{TR_LIST_URL}</strong></th>
+		<th><strong>{TR_STATUS}</strong></th>
+		<th><strong>{TR_ACTIONS}</strong></th>
 	</tr>
 	</thead>
 	<tbody>
-	<tr>
-		<td><strong>Name</strong></td>
-		<td><strong>URL</strong></td>
-		<td><strong>Status</strong></td>
-		<td><strong>Actions</strong></td>
-	</tr>
 	<!-- BDP: email_list -->
 	<tr>
 		<td>{LIST_NAME}</td>
@@ -57,16 +64,12 @@
 		<td>{STATUS}</td>
 		<td>
 			<a href="{EDIT_LINK}" class="icon {EDIT_ICON}">{TR_EDIT}</a>
-			<a href="{DELETE_LINK}" class="icon {DELETE_ICON}" onclick="return confirm_deletion('{LIST_NAME}')">{TR_DELETE}</a>
+			<a href="{DELETE_LINK}" class="icon {DELETE_ICON}"
+			   onclick="return confirm_deletion('{LIST_NAME}')">{TR_DELETE}</a>
 		</td>
 	</tr>
 	<!-- EDP: email_list -->
 	</tbody>
-	<tfoot>
-	<tr>
-		<th colspan="4">{TR_MAIL_LISTS}</th>
-	</tr>
-	</tfoot>
 </table>
 <!-- EDP: email_lists -->
 
@@ -95,8 +98,7 @@
 			</tr>
 			<tr>
 				<td><label for="admin_password_confirm">{TR_ADMIN_PASSWORD_CONFIRM}</label></td>
-				<td><input type="password" id="admin_password_confirm" name="admin_password_confirm" value=""/>
-				</td>
+				<td><input type="password" id="admin_password_confirm" name="admin_password_confirm" value=""/></td>
 			</tr>
 		</table>
 		<input type="hidden" name="list_id" value="{LIST_ID}"/>

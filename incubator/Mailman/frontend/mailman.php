@@ -49,12 +49,12 @@ function mailman_manageList()
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
 		if (!preg_match('/[-_a-z0-9+]/i', $listName)) {
-			set_page_message(tr("Wrong mailing list name"), 'error');
+			set_page_message(tr("List name is not valid"), 'error');
 			$error = true;
 		}
 
 		if (!chk_email($adminEmail)) {
-			set_page_message(tr("Wrong email"), 'error');
+			set_page_message(tr("Email is not valid"), 'error');
 			$error = true;
 		}
 
@@ -86,13 +86,13 @@ function mailman_manageList()
 						$query,
 						array(
 							$mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName,
-							$cfg->ITEM_TOADD_STATUS
+							$cfg['ITEM_TOADD_STATUS']
 						)
 					);
 				} catch(iMSCP_Exception_Database $e) {
 					if($e->getCode() == 23000) { // Duplicate entries
 						set_page_message(
-							tr("Mailing list $listName already exists. Please choose other name."), 'error'
+							tr("List %s already exists. Please choose other name.", $listName), 'warning'
 						);
 
 						return false;
@@ -115,7 +115,7 @@ function mailman_manageList()
 					$query,
 					array(
 						$adminEmail, $adminPassword, $cfg->ITEM_TOCHANGE_STATUS, $listId, $_SESSION['user_id'],
-						$cfg->ITEM_OK_STATUS
+						$cfg['ITEM_OK_STATUS']
 					)
 				);
 
@@ -152,7 +152,7 @@ function mailman_deleteList($listId)
 	$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
 	$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
-	$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $listId, $mainDmnProps['domain_admin_id']));
+	$stmt = exec_query($query, array($cfg['ITEM_TODELETE_STATUS'], $listId, $mainDmnProps['domain_admin_id']));
 
 	if(!$stmt->rowCount()) {
 		showBadRequestErrorPage();
@@ -200,7 +200,7 @@ function mailman_generatePage($tpl)
 				)
 			);
 
-			if ($listData['mailman_status'] == $cfg->ITEM_OK_STATUS) {
+			if ($listData['mailman_status'] == $cfg['ITEM_OK_STATUS']) {
 				$tpl->assign(
 					array(
 						'EDIT_LINK' => "mailman.php?action=edit&list_id=$listId",
@@ -241,7 +241,7 @@ function mailman_generatePage($tpl)
 				array(
 					'LIST_DIALOG_OPEN' => 1,
 					'LIST_NAME' => tohtml($listData['mailman_list_name']),
-					'LIST_NAME_READONLY' => $cfg->HTML_READONLY,
+					'LIST_NAME_READONLY' => $cfg['HTML_READONLY'],
 					'ADMIN_EMAIL' => tohtml($listData['mailman_admin_email']),
 					'ADMIN_PASSWORD' => '',
 					'ADMIN_PASSWORD_CONFIRM' => '',
@@ -276,23 +276,20 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart)
 
 check_login('user');
 
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
-
 if (isset($_REQUEST['action'])) {
 	$action = clean_input($_REQUEST['action']);
 
-	if ($action === 'add') {
+	if ($action == 'add') {
 		if (mailman_manageList()) {
 			set_page_message(tr('Mailing list successfully scheduled for addition'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif($action === 'edit') {
+	} elseif($action == 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
 			set_page_message(tr('Mailing list successfully scheduled for update'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif ($action === 'delete' && isset($_REQUEST['list_id'])) {
+	} elseif ($action == 'delete' && isset($_REQUEST['list_id'])) {
 		mailman_deleteList(clean_input($_REQUEST['list_id']));
 		set_page_message(tr('Mailing list successfully scheduled for deletion'), 'success');
 		redirectTo('mailman.php');
@@ -317,12 +314,16 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => tr('Admin / Settings / Mailman'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
+		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'TR_MAIL_LISTS' => tojs(tr('Mailing List', false)),
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_LIST' => tr('Add mailing list'),
 		'TR_MAIL_LIST' => tr('Mailing List'),
 		'TR_LIST_NAME' => tr('List name'),
+		'TR_LIST_URL' => tr('List URL'),
+		'TR_STATUS' => tr('Status'),
+		'TR_ACTIONS' => tr('Actions'),
 		'TR_ADMIN_EMAIL' => tr('Admin email'),
 		'TR_ADMIN_PASSWORD' => tr('Password'),
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
