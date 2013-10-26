@@ -222,4 +222,75 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	{
 		execute_query('DROP TABLE IF EXISTS `remote_bridge`');
 	}
+	
+	/**
+	 * Get status of item with errors
+	 *
+	 * @return array
+	*/
+	public function getItemWithErrorStatus()
+	{
+		$cfg= iMSCP_Registry::get('config');
+		$stmt = exec_query(
+			"
+				SELECT
+					`bridge_id` AS `item_id`, `bridge_status` AS `status`, `bridge_ipaddress` AS `item_name`,
+					'remote_bridge' AS `table`, 'bridge_status' AS `field`
+				FROM
+					`remote_bridge`
+				WHERE
+					`bridge_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+			",
+			array(
+				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		if($stmt->rowCount()) {
+			return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+
+		return array();
+	}
+	
+	/**
+	 * Set status of the given plugin item to 'tochange'
+	 *
+	 * @param string $table Table name
+	 * @param string $field Status field name
+	 * @param int $itemId RemoteBridge item unique identifier
+	 * @return void
+	*/
+	public function changeItemStatus($table, $field, $itemId)
+	{
+		$cfg= iMSCP_Registry::get('config');
+		if($table == 'remote_bridge' && $field == 'bridge_status') {
+			exec_query(
+				"UPDATE `$table` SET `$field` = ?  WHERE `bridge_id` = ?", array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+			);
+		}
+	}
+	
+	/**
+	 * Return count of request in progress
+	 *
+	 * @return int
+	*/
+	public function getCountRequests()
+	{
+		/** @var $cfg iMSCP_Config_Handler_File */
+		$cfg = iMSCP_Registry::get('config');
+		$query = 'SELECT COUNT(`bridge_id`) AS `count` FROM `remote_bridge` WHERE `bridge_status` IN (?, ?, ?, ?, ?, ?)';
+		$stmt = exec_query(
+			$query,
+			array(
+				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
+				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		return $stmt->fields['count'];
+	}
 }
