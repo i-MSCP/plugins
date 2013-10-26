@@ -448,4 +448,75 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		execute_query('DROP TABLE IF EXISTS `opendkim`');
 	}
+	
+	/**
+	 * Get status of item with errors
+	 *
+	 * @return array
+	*/
+	public function getItemWithErrorStatus()
+	{
+		$cfg= iMSCP_Registry::get('config');
+		$stmt = exec_query(
+			"
+				SELECT
+					`opendkim_id` AS `item_id`, `opendkim_status` AS `status`, `domain_name` AS `item_name`,
+					'opendkim' AS `table`, 'opendkim_status' AS `field`
+				FROM
+					`opendkim`
+				WHERE
+					`opendkim_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+			",
+			array(
+				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		if($stmt->rowCount()) {
+			return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+
+		return array();
+	}
+	
+	/**
+	 * Set status of the given plugin item to 'tochange'
+	 *
+	 * @param string $table Table name
+	 * @param string $field Status field name
+	 * @param int $itemId OpenDKIM item unique identifier
+	 * @return void
+	*/
+	public function changeItemStatus($table, $field, $itemId)
+	{
+		$cfg= iMSCP_Registry::get('config');
+		if($table == 'opendkim' && $field == 'opendkim_status') {
+			exec_query(
+				"UPDATE `$table` SET `$field` = ?  WHERE `opendkim_id` = ?", array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+			);
+		}
+	}
+	
+	/**
+	 * Return count of request in progress
+	 *
+	 * @return int
+	*/
+	public function getCountRequests()
+	{
+		/** @var $cfg iMSCP_Config_Handler_File */
+		$cfg = iMSCP_Registry::get('config');
+		$query = 'SELECT COUNT(`opendkim_id`) AS `count` FROM `opendkim` WHERE `opendkim_status` IN (?, ?, ?, ?, ?, ?)';
+		$stmt = exec_query(
+			$query,
+			array(
+				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
+				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		return $stmt->fields['count'];
+	}
 }
