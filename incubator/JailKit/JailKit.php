@@ -274,4 +274,117 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 
 		execute_query($query);
 	}
+	
+	/**
+	 * Get status of item with errors
+	 *
+	 * @return array
+	*/
+	public function getItemWithErrorStatus()
+	{
+		$cfg= iMSCP_Registry::get('config');
+		$stmt = exec_query(
+			"
+				(
+					SELECT
+						`jailkit_id` AS `item_id`, `jailkit_status` AS `status`, `admin_name` AS `item_name`,
+						'jailkit' AS `table`, 'jailkit_status' AS `field`
+					FROM
+						`jailkit`
+					WHERE
+						`jailkit_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+				)
+				UNION
+				(
+					SELECT
+						`jailkit_login_id` AS `item_id`, `jailkit_login_status` AS `status`, `ssh_login_name` AS `item_name`,
+						'jailkit_login' AS `table`, 'jailkit_login_status' AS `field`
+					FROM
+						`jailkit_login`
+					WHERE
+						`jailkit_login_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+				)
+			",
+			array(
+				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS'], $cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'],
+				$cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'],
+				$cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		if($stmt->rowCount()) {
+			return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+
+		return array();
+	}
+	
+	/**
+	 * Set status of the given plugin item to 'tochange'
+	 *
+	 * @param string $table Table name
+	 * @param string $field Status field name
+	 * @param int $itemId JailKit item unique identifier
+	 * @return void
+	*/
+	public function changeItemStatus($table, $field, $itemId)
+	{
+		$cfg= iMSCP_Registry::get('config');
+		if($table == 'jailkit' && $field == 'jailkit_status') {
+			exec_query(
+				"UPDATE `$table` SET `$field` = ?  WHERE `jailkit_id` = ?", array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+			);
+		}
+		if($table == 'jailkit_login' && $field == 'jailkit_login_status') {
+			exec_query(
+				"UPDATE `$table` SET `$field` = ?  WHERE `jailkit_login_id` = ?", array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+			);
+		}
+	}
+	
+	/**
+	 * Return count of request in progress
+	 *
+	 * @return int
+	*/
+	public function getCountRequests()
+	{
+		/** @var $cfg iMSCP_Config_Handler_File */
+		$cfg = iMSCP_Registry::get('config');
+		$query = '
+			SELECT
+			(
+				(
+					SELECT
+						COUNT(`jailkit_id`)
+					FROM
+						`jailkit`
+					WHERE
+						`jailkit_status` IN (?, ?, ?, ?, ?, ?)
+				)
+				+
+				(
+					SELECT
+						COUNT(`jailkit_login_id`)
+					FROM
+						`jailkit_login`
+					WHERE
+						`jailkit_login_status` IN (?, ?, ?, ?, ?, ?)
+				)
+			) AS `count`
+		';
+		$stmt = exec_query(
+			$query,
+			array(
+				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
+				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'],
+				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
+				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+			)
+		);
+
+		return $stmt->fields['count'];
+	}
 }
