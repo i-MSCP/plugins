@@ -648,7 +648,7 @@ sub _registerCronjob
 		# TODO Check syntax for config values
 
 		require Servers::cron;
-		Servers::cron->getInstance()->addTask(
+		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'PLUGINS:Monitorix',
 				'MINUTE' => $cronjobConfig->{'cronjob_config'}->{'minute'},
@@ -677,7 +677,7 @@ sub _unregisterCronjob
 	my $self = shift;
 
 	require Servers::cron;
-	Servers::cron->getInstance()->deleteTask({ 'TASKID' => 'PLUGINS:Monitorix' });
+	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Monitorix' });
 }
 
 =item _checkRequirements
