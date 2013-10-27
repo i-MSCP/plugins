@@ -840,7 +840,7 @@ sub _registerCronjob
 		# TODO Check syntax for config values
 
 		require Servers::cron;
-		Servers::cron->getInstance()->addTask(
+		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'PLUGINS:Mailgraph',
 				'MINUTE' => $cronjobConfig->{'cronjob_config'}->{'minute'},
@@ -869,7 +869,7 @@ sub _unregisterCronjob
 	my $self = shift;
 
 	require Servers::cron;
-	Servers::cron->getInstance()->deleteTask({ 'TASKID' => 'PLUGINS:Mailgraph' });
+	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Mailgraph' });
 }
 
 =back
