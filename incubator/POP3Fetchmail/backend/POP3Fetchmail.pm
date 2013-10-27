@@ -428,7 +428,7 @@ sub _registerCronjob
 		# TODO Check syntax for config values
 
 		require Servers::cron;
-		Servers::cron->getInstance()->addTask(
+		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'PLUGINS:POP3Fetchmail',
 				'MINUTE' => $cronjobConfig->{'cronjob_config'}->{'minute'},
@@ -457,7 +457,7 @@ sub _unregisterCronjob
 	my $self = shift;
 
 	require Servers::cron;
-	Servers::cron->getInstance()->deleteTask({ 'TASKID' => 'PLUGINS:POP3Fetchmail' });
+	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:POP3Fetchmail' });
 	
 	0;
 }
