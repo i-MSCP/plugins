@@ -359,12 +359,12 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		$pluginConfig = $plugin->getConfig();
 
 		if(!isset($dbConfig['PORT_OPENDKIM'])) {
-			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
+			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;127.0.0.1';
 			$dbConfig['PORT_OPENDKIM'] = $opendkimConfigValue;
 		} else {
 			$this->removeOpenDkimServicePort();
 			
-			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;0;127.0.0.1';
+			$opendkimConfigValue = $pluginConfig['opendkim_port'] . ';tcp;OPENDKIM;1;127.0.0.1';
 			$dbConfig['PORT_OPENDKIM'] = $opendkimConfigValue;
 		}
 	}
