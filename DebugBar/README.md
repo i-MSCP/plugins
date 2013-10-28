@@ -1,4 +1,4 @@
-## i-MSCP DebugBar plugin v0.0.11
+## i-MSCP DebugBar plugin v0.0.12
 
 Plugin providing many debug information for i-MSCP.
 

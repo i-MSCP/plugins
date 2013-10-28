@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -39,8 +39,7 @@ require_once 'Interface.php';
  * @subpackage  DebugBar_Component
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Component_Interface,
-	iMSCP_Events_Listeners_Interface
+class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Component_Interface
 {
 	/**
 	 * @var string Component unique identifier

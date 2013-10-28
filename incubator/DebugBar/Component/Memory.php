@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -28,9 +28,6 @@
 
 /** @see iMSCP_Plugin_DebugBar_Component_Interface */
 require_once 'Interface.php';
-
-/** @see iMSCP_Events_Listeners_Interface */
-require_once 'iMSCP/Events/Listeners/Interface.php';
 
 /**
  * Memory component for the i-MSCP DebugBar Plugin
@@ -42,8 +39,7 @@ require_once 'iMSCP/Events/Listeners/Interface.php';
  * @subpackage  DebugBar_Component
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Component_Interface,
-	iMSCP_Events_Listeners_Interface
+class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Component_Interface
 {
 	/**
 	 * @var string Component unique identifier
@@ -83,9 +79,7 @@ class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Co
 	 */
 	public function __call($listenerMethod, $arguments)
 	{
-		if (!in_array($listenerMethod, $this->_listenedEvents)) {
-			throw new iMSCP_Plugin_Exception('Unknown listener method.');
-		} else {
+		if (in_array($listenerMethod, $this->_listenedEvents)) {
 			switch ($listenerMethod) {
 				case iMSCP_Events::onLoginScriptStart:
 				case iMSCP_Events::onLostPasswordScriptStart:

@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,25 +29,20 @@
 /**
  * DebugBar Plugin.
  *
- * This plugin is a development helper for i-MSCP, which provides many debug information. The
- * plugin comes with a bunch of component, each providing a particular set of debug information.
- * A component can be or not an event listener that listens on one or more events throw in the
- * application work flow.
+ * This plugin is a development helper for i-MSCP, which provides many debug information. The plugin comes with a set of
+ * components, each providing a particular set of debug information.
+ *
+ * A component can be or not an event listener that listens on one or more events throw in the application work flow.
  *
  * For now, the DebugBar plugin come with the followings components:
  *
  *  - Version : i-MSCP version, list of all PHP extensions available.
- *
  *  - Variables : Contents of $_GET, $_POST, $_COOKIE, $_FILES and $_SESSION and $_ENV variables.
- *
  *  - Timer : Timing information of current request, time spent in level script ;
  *    support custom timers. Also average, min and max time for requests.
- *
  *  - Files : Number and size of files included with complete list.
- *
  *  - Memory : Peak memory usage, memory usage of Level scripts and the whole application ; support for custom memory
  *             markers.
- *
  *  - Database : Full listing of SQL queries and the time for each.
  *
  * @category    iMSCP
@@ -62,7 +57,10 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	protected $event;
 
-	protected $knownComponents = array('Database', 'Files', 'Memory', 'Timer', 'Variables', 'Version');
+	/**
+	 * @var array Known components
+	 */
+	#protected $knownComponents = array('Database', 'Files', 'Memory', 'Timer', 'Variables', 'Version');
 
 	/**
 	 * @var iMSCP_Plugin_DebugBar_Component_Interface[]
@@ -89,7 +87,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		if(!is_xhr()) {
+		if(!is_xhr()) { // Do not act on AJAX request
 			$components = $this->getConfigParam('components');
 
 			if($components) {
@@ -97,7 +95,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 					$priority = 998;
 
 					foreach ($components as $component) {
-						if(in_array($component, $this->knownComponents)) {
+						#if(in_array($component, $this->knownComponents)) {
 							require_once 'Component/' . $component . '.php';
 							$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
 							$component = new $componentClass();
@@ -106,15 +104,19 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 								throw new iMSCP_Plugin_Exception(
 									'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
 								);
-							} elseif ($component instanceof iMSCP_Events_Listeners_Interface) {
-								$controller->registerListener($component->getListenedEvents(), $component, $priority);
-								$priority--;
+							} else {
+								$events = $component->getListenedEvents();
+
+								if(!empty($events)) {
+									$controller->registerListener($events, $component, $priority);
+									$priority--;
+								}
 							}
 
 							$this->components[] = $component;
-						} else {
-							throw new iMSCP_Plugin_Exception("DebugBar plugin: Unknown component: $component");
-						}
+						#} else {
+						#	throw new iMSCP_Plugin_Exception("DebugBar plugin: Unknown component: $component");
+						#}
 					}
 
 					$controller->registerListener($this->getListenedEvents(), $this, 999);
@@ -136,12 +138,10 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function __call($listenerMethod, $arguments)
 	{
-		if (!in_array($listenerMethod, $this->listenedEvents)) {
-			throw new iMSCP_Plugin_Exception('Unknown listener method.');
+		if (in_array($listenerMethod, $this->getListenedEvents())) {
+			$this->event = $arguments[0];
+			$this->buildDebugBar();
 		}
-
-		$this->event = $arguments[0];
-		$this->buildDebugBar();
 	}
 
 	/**
@@ -197,15 +197,15 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 		$collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
 
 		$backgroundColor = array(
-			'black' => '#181818',
-			'red' => '#691c1c',
-			'blue' => '#303882',
-			'green' => '#1c6923',
-			'yellow' => '#918142'
+			'black' => '#000000',
+			'red' => '#5a0505',
+			'blue' => '#151e72',
+			'green' => '#055a0d',
+			'yellow' => '#85742f'
 		);
 
 		$color = isset($_SESSION['user_id'])
-			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : 'black';
+			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : '#000000';
 
 		return ('
             <style type="text/css" media="screen">
@@ -228,7 +228,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
             <script type="text/javascript">
                 if (typeof jQuery == "undefined") {
                     var scriptObj = document.createElement("script");
-                    scriptObj.src = "../themes/default/js/jquery.js";
+                    scriptObj.src = "/themes/default/js/jquery.js";
                     scriptObj.type = "text/javascript";
                     var head=document.getElementsByTagName("head")[0];
                     head.insertBefore(scriptObj,head.firstChild);
