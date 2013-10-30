@@ -21,17 +21,20 @@
  * @package     iMSCP_Plugin
  * @subpackage  Mailgraph
  * @copyright   2010-2013 by i-MSCP Team
- * @author      Sascha Bay <info@space2place.de>
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '0.0.1',
-	'date' => '2013-10-30',
-	'name' => 'Mailgraph',
-	'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail).',
-	'url' => 'http://i-mscp.net'
+	'cronjob_enabled' => true, // TRUE to enable Mailgraph plugin cronjob (default), FALSE to disable it
+
+	// See man CRONTAB(5) for allowed values
+	'cronjob_config' => array(
+		'minute' => '*/5',
+		'hour' => '*',
+		'day' => '*',
+		'month' => '*',
+		'dweek' => '*'
+	)
 );
