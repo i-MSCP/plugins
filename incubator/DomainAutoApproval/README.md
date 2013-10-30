@@ -1,4 +1,4 @@
-## DomainAutoApproval v0.0.5 plugin for i-MSCP
+## DomainAutoApproval v0.0.6 plugin for i-MSCP
 
 Plugin allowing auto-approval of new domain aliases.
 
@@ -33,8 +33,7 @@ Plugin compatible with i-MSCP version >= 1.0.3.0
 	# cd /usr/local/src
 	# git clone git://github.com/i-MSCP/plugins.git
 
-**3.** Copy the plugin directory into the gui/plugins directory of your
-   i-MSCP installation.
+**3.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
 
 	# cp -fR plugins/DomainAutoApproval /var/www/imscp/gui/plugins
 

@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.5',
-	'date' => '2013-07-20',
+	'version' => '0.0.6',
+	'date' => '2013-10-30',
 	'name' => 'DomainAutoApproval',
 	'desc' => 'Plugin allowing auto-approval of new domain aliases',
 	'url' => 'https://github.com/i-MSCP/plugins/tree/master/DomainAutoApproval'

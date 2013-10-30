@@ -52,6 +52,27 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeActivatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
+			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+				);
+
+				$event->stopPropagation(true);
+			}
+		}
+	}
+
+	/**
 	 * Implements the onBeforeAddDomainAlias listener
 	 *
 	 * @throws iMSCP_Plugin_Exception in case the domains config setting is wrong
