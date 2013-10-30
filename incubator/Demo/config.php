@@ -91,7 +91,6 @@ return array(
 	// List of actions that must be totally disabled. Each action must be prefixed by 'onBefore'
 	//
 	// Important consideration:
-	//
 	// Even if you add the 'onBeforeDeactivatePlugin' in the list below, you'll still able to deactivate this plugin.
 	// The only way to protect this plugin against deactivation is to protect it using the plugin protection feature.
 	'disabled_actions' => array(

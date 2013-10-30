@@ -1,8 +1,7 @@
-
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010 - 2012 by i-MSCP Team
+ * Copyright (C) 2010 - 2013 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,14 +17,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * @category	iMSCP
- * @package		iMSCP_Plugins
- * @subpackage	Demo
- * @copyright	2010 - 2012 by i-MSCP Team
- * @author		Laurent Declercq <l.declercq@nuxwin.com>
- * @version		0.0.7
- * @link		http://www.i-mscp.net i-MSCP Home Site
- * @license		http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * @category    iMSCP
+ * @package     iMSCP_Plugins
+ * @subpackage  Demo
+ * @copyright   2010 - 2013 by i-MSCP Team
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * @link        http://www.i-mscp.net i-MSCP Home Site
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 // Configuration file sample for the demo plugin
@@ -91,7 +89,16 @@ return array(
 	),
 
 	// List of actions that must be totally disabled. Each action must be prefixed by 'onBefore'
+	//
+	// Important consideration:
+	// Even if you add the 'onBeforeDeactivatePlugin' in the list below, you'll still able to deactivate this plugin.
+	// The only way to protect this plugin against deactivation is to protect it using the plugin protection feature.
 	'disabled_actions' => array(
+		'onBeforeEditAdminGeneralSettings',
+		'onBeforeAddUser',
+		'onBeforeEditUser',
+		'onBeforeDeleteUser',
+		'onBeforeDeleteCustomer',
 		'onBeforeAddFtp',
 		'onBeforeEditFtp',
 		'onBeforeDeleteFtp',
@@ -99,6 +106,25 @@ return array(
 		'onBeforeEditSqlUser',
 		'onBeforeDeleteSqlUser',
 		'onBeforeAddSqlDb',
-		'onBeforeDeleteSqlDb'
+		'onBeforeDeleteSqlDb',
+		'onBeforeUpdatePluginList',
+		'onBeforeActivatePlugin',
+		'onBeforeDeactivatePlugin',
+		'onBeforeUpdatePlugin',
+		'onBeforeDeletePlugin',
+		'onBeforeProtectPlugin',
+		'onBeforeAddDomain',
+		'onBeforeEditDomain',
+		'onBeforeAddSubdomain',
+		'onBeforeEditSubdomain',
+		'onBeforeDeleteSubdomain',
+		'onBeforeAddDomainAlias',
+		'onBeforeEditDomainAlias',
+		'onBeforeDeleteDomainAlias',
+		'onBeforeAddMail',
+		'onBeforeEditMail',
+		'onBeforeDeleteMail',
+		'onBeforeAddExternalMailServer',
+		'onBeforeChangeDomainStatus'
 	)
 );

@@ -36,98 +36,91 @@
  * @subpackage  Demo
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
-class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_Listeners_Interface
+class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 {
 	/**
-	 * Listened events
-	 *
-	 * @var array
+	 * @var array Events
 	 */
-	protected $_listenedEvents = array();
+	protected $events = array();
 
 	/**
 	 * Disabled actions
 	 *
 	 * @var array
 	 */
-	protected $_disabledActions = array();
+	protected $disabledActions = array();
 
 	/**
-	 * Register a callback for the given event(s)
+	 * Register listeners on the event manager
 	 *
+	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @return void
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
-		$pluginStatus = $pluginManager->getStatus($this->getName());
 
-		if ($pluginStatus == 'enabled') {
-			if ($this->getConfigParam('user_accounts')) {
-				$this->_listenedEvents[] = iMSCP_Events::onLoginScriptEnd;
-			}
+		if ($pluginManager->getStatus($this->getName()) == 'enabled') {
+			$events = $this->getConfigParam('disabled_actions', array());
 
-			if (($disabledActions = $this->getConfigParam('disabled_actions'))) {
-				$this->setDisabledActions($disabledActions);
+			if(is_array($events)) {
+				$this->disabledActions = $events;
+
+				if (($userAccounts = $this->getConfigParam('user_accounts', array()))) {
+					if(is_array($userAccounts)) {
+						if(!empty($userAccounts)) {
+							$events[] = iMSCP_Events::onLoginScriptEnd;
+							$events[] = iMSCP_Events::onBeforeEditUser;
+							$events[] = iMSCP_Events::onBeforeDeleteUser;
+							$events[] = iMSCP_Events::onBeforeDeleteCustomer;
+						}
+					} else {
+						throw new iMSCP_Plugin_Exception('User accounts should be provided as array.');
+					}
+				}
+
+				$this->events = array_unique($events);
+
+				if(!empty($this->events)) {
+					$controller->registerListener($this->events, $this, 999);
+				}
 			} else {
-				$this->setDisabledActions();
+				throw new iMSCP_Plugin_Exception('Disabled actions should be provided as array.');
 			}
-
-			$controller->registerListener($this->getListenedEvents(), $this, 1000);
-			$this->_controller = $controller;
 		} else {
 			$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
 		}
 	}
 
 	/**
-	 * Returns list of listened events
+	 * Provide default listener implementation
 	 *
-	 * @return array
-	 */
-	public function getListenedEvents()
-	{
-		return $this->_listenedEvents;
-	}
-
-	/**
-	 * Implements listener methods which are not explicitely implemented
-	 *
-	 * @param string $listenerMethod Litener method name
-	 * @param array $arguments Enumerated array containing listener method arguments (always an iMSCP_Events_Description object)
+	 * @param string $listener Litener
+	 * @param array $arguments Enumerated array containing listener arguments (always an iMSCP_Events_Description object)
 	 * @return void
 	 */
-	public function __call($listenerMethod, $arguments)
+	public function __call($listener, $arguments)
 	{
-		if (in_array($listenerMethod, $this->getListenedEvents())) {
-			if (!Zend_Session::namespaceIsset('pageMessages')) {
-				set_page_message(
-					tr(
-						'The %s action is not permitted in demo version.',
-						str_replace('onBefore', '', "<strong>$listenerMethod</strong>")
-					),
-					'info'
-				);
-			}
+		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
 
-			if (isset($_SERVER['HTTP_REFERER'])) {
-				redirectTo($_SERVER['HTTP_REFERER']);
-			} else {
-				redirectTo('index.php');
-			}
+		if (isset($_SERVER['HTTP_REFERER'])) {
+			redirectTo($_SERVER['HTTP_REFERER']);
+		} else {
+			redirectTo('index.php');
 		}
 	}
 
 	/**
-	 * Implements the onBeforeActivatePlugin listener method
+	 * onBeforeActivatePlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeActivatePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
+		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
@@ -138,11 +131,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 
 				$event->stopPropagation(true);
 			}
+		} else {
+			$this->__call($event->getName(), array($event));
 		}
 	}
 
 	/**
-	 * Implements the onBeforeDeactivatePlugin listener method
+	 * onBeforeDeactivatePlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -150,12 +145,12 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	public function onBeforeDeactivatePlugin($event)
 	{
 		if($event->getParam('pluginName') != $this->getName()) {
-			$this->__call(iMSCP_Events::onBeforeActivatePlugin, array($event));
+			$this->__call($event->getName(), array($event));
 		}
 	}
 
 	/**
-	 * Implements the onBeforeEditUser listener method
+	 * onBeforeEditUser listener method
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -163,68 +158,62 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	public function onBeforeProtectPlugin($event)
 	{
 		if($event->getParam('pluginName') !== $this->getName()) {
-			$this->__call(iMSCP_Events::onBeforeProtectPlugin, array($event));
+			$this->__call($event->getName(), array($event));
 		}
 	}
 
 	/**
-	 * Implements the onBeforeEditUser listener method
+	 * onBeforeEditUser listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeEditUser($event)
 	{
-		if ($this->isDisabledAction(iMSCP_Events::onBeforeEditUser)) {
-			$this->__call(iMSCP_Events::onBeforeEditUser, array($event));
+		$eventName = $event->getName();
+
+		if ($this->isDisabledAction($eventName)) {
+			$this->__call($eventName, array($event));
 		} else {
-			$event->setParam('fromAction', iMSCP_Events::onBeforeEditUser);
 			$this->protectDemoUser($event);
 		}
 	}
 
 	/**
-	 * Implements the onBeforeDeleteUser listener method
+	 * onBeforeDeleteUser listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeDeleteUser($event)
 	{
-		if ($this->isDisabledAction(iMSCP_Events::onBeforeDeleteUser)) {
-			$this->__call(iMSCP_Events::onBeforeDeleteUser, array($event));
+		$eventName = $event->getName();
+
+		if ($this->isDisabledAction($eventName)) {
+			$this->__call($eventName, array($event));
 		} else {
-			$event->setParam('fromAction', iMSCP_Events::onBeforeDeleteUser);
 			$this->protectDemoUser($event);
 		}
 	}
 
 	/**
-	 * Implements the onBeforeDeleteCustomer listener method
+	 * onBeforeDeleteCustomer listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeDeleteCustomer($event)
 	{
-		if ($this->isDisabledAction(iMSCP_Events::onBeforeDeleteCustomer)) {
-			$this->__call(iMSCP_Events::onBeforeDeleteCustomer, array($event));
+		$eventName = $event->getName();
+
+		if ($this->isDisabledAction($eventName)) {
+			$this->__call($eventName, array($event));
 		} else {
 			$query = 'SELECT `admin_id` FROM `admin` WHERE `admin_id` = ?';
-			$stmt = exec_query($query, (int)$event->getParam('customerId'));
+			$stmt = exec_query($query, $event->getParam('customerId'));
 
 			if ($stmt->rowCount()) {
-				// Avoid interfering with other events
-				$events = $this->getController();
-
-				foreach ($this->getListenedEvents() as $eventName) {
-					$events->unregisterListener($eventName, $this);
-				}
-
-				$event
-					->setParam('userId', $event->getParam('customerId'))
-					->setParam('fromAction', iMSCP_Events::onBeforeDeleteCustomer);
-
+				$event->setParam('userId', $event->getParam('customerId'));
 				$this->protectDemoUser($event);
 			}
 		}
@@ -238,32 +227,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	 */
 	public function isDisabledAction($actionName)
 	{
-		return in_array($actionName, $this->_disabledActions);
-	}
-
-	/**
-	 * Sets disabled actions
-	 *
-	 * @param array $actionNames List of actions to disable
-	 * @return void
-	 */
-	protected function setDisabledActions(array $actionNames = array())
-	{
-		$this->_disabledActions = $actionNames;
-
-		// Accounts explicitely protected against deletion and password modification
-		if (isset($this->_config['user_accounts'])) {
-			foreach ($this->_config['user_accounts'] as $account) {
-				if (isset($account['protected']) && $account['protected']) {
-					$actionNames[] = iMSCP_Events::onBeforeEditUser;
-					$actionNames[] = iMSCP_Events::onBeforeDeleteUser;
-					$actionNames[] = iMSCP_Events::onBeforeDeleteCustomer;
-					break;
-				}
-			}
-		}
-
-		$this->_listenedEvents = array_unique(array_merge($this->getListenedEvents(), $actionNames));
+		return in_array($actionName, $this->disabledActions);
 	}
 
 	/**
@@ -274,8 +238,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 	 */
 	protected function protectDemoUser($event)
 	{
-		$query = 'SELECT `admin_name` FROM `admin` WHERE `admin_id` = ?';
-		$stmt = exec_query($query, (int)$event->getParam('userId'));
+		$stmt = exec_query('SELECT `admin_name` FROM `admin` WHERE `admin_id` = ?', $event->getParam('userId'));
 
 		if ($stmt->rowCount()) {
 			$username = idn_to_utf8($stmt->fields['admin_name']);
@@ -288,41 +251,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 			}
 
 			if ($foundUser) {
-				switch ($event->getParam('fromAction')) {
-					case iMSCP_Events::onBeforeEditUser:
-						// Only password change is not allowed
-						if (
-							// admin/password_change.php
-							// reseller/password_change.php
-							// client/password_change.php
-							// admin/admin_edit.php
-							!empty($_POST['pass']) ||
-							// admin/reseller_edit.php
-							!empty($_POST['password']) ||
-							// reseller/user_edit.php
-							!empty($_POST['userpassword'])
-						) {
-							set_page_message(
-								tr("You are not allowed to change the demo's users passwords."),
-								'info'
-							);
-						} else {
-							return;
-						}
-						break;
-					case iMSCP_Events::onBeforeDeleteUser:
-					case iMSCP_Events::onBeforeDeleteCustomer:
-						set_page_message(tr("The demo's user accounts can't be removed."), 'info');
-						break;
-				}
-
-				$this->__call($event->getParam('fromAction'), array($event));
+				$this->__call($event->getName(), array($event));
 			}
 		}
 	}
 
 	/**
-	 * Implements the onLoginScriptEnd listener method
+	 * onLoginScriptEnd listener
 	 *
 	 * Create a modal dialog to allow users to choose user account they want use to login. Available users are those
 	 * defined in plugin configuration. If an user account doesn't exists in database, it is not showed.
@@ -335,7 +270,9 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 		if ($this->getConfigParam('user_accounts') && ($jsCode = $this->_getCredentialsDialog()) != '') {
 			/** @var $tpl iMSCP_pTemplate */
 			$tpl = $event->getParam('templateEngine');
-			$tpl->replaceLastParseResult(str_replace('</head>', $jsCode . PHP_EOL . '</head>', $tpl->getLastParseResult()));
+			$tpl->replaceLastParseResult(
+				str_replace('</head>', $jsCode . PHP_EOL . '</head>', $tpl->getLastParseResult())
+			);
 		}
 	}
 
@@ -390,11 +327,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action implements iMSCP_Events_List
 
 		foreach ($this->getConfigParam('user_accounts') as $account) {
 			if (isset($account['label']) && isset($account['username']) && isset($account['password'])) {
-				$query = 'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?';
-				$stmt = exec_query($query, idn_to_ascii($account['username']));
+				$stmt = exec_query(
+					'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?', idn_to_ascii($account['username'])
+				);
 
 				if ($stmt->rowCount()) {
 					$dbPassword = $stmt->fields['admin_pass'];
+
 					if (
 						crypt($account['password'], $dbPassword) == $dbPassword ||
 						$dbPassword == md5($account['password'])
