@@ -46,9 +46,7 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
-		$controller->registerListener(
-			array(iMSCP_Events::onLoginScriptStart, iMSCP_Events::onLoginScriptEnd), $this, 50
-		);
+		$controller->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
 	}
 
 	/**
@@ -60,19 +58,5 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	{
 		// Say Hello World on the login page
 		set_page_message('i-MSCP HelloWorld plugin says: Hello World', 'info');
-
-		// Stop the propagation of this event to prevent execution of any other plugin that also listen on it.
-		$event->stopPropagation();
-	}
-
-	/**
-	 * Implements the onLoginScriptEnd listener method.
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onLoginScriptEnd($event)
-	{
-		// Stop the propagation of this event to prevent execution of any other plugin that also listen on it.
-		$event->stopPropagation();
 	}
 }
