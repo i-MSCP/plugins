@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DomainAutoApproval
- * @copyright   Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright   Copyright (C) 2010 - 2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -62,7 +62,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+			if($cfg->Version != 'Git Master' && $cfg->BuildDate < 20120323) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
 				);

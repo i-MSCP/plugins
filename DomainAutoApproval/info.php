@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package	    iMSCP_Plugin
  * @subpackage  DomainAutoApproval
- * @copyright   Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright   Copyright (C) 2010 - 2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.6',
-	'date' => '2013-10-30',
+	'version' => '0.0.7',
+	'date' => '2013-11-03',
 	'name' => 'DomainAutoApproval',
 	'desc' => 'Plugin allowing auto-approval of new domain aliases',
 	'url' => 'https://github.com/i-MSCP/plugins/tree/master/DomainAutoApproval'

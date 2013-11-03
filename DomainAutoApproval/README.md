@@ -1,13 +1,10 @@
-## DomainAutoApproval v0.0.6 plugin for i-MSCP
+## DomainAutoApproval v0.0.7 plugin for i-MSCP
 
 Plugin allowing auto-approval of new domain aliases.
 
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
-
 ### LICENSE
 
-Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2010 - 2013 by Laurent Declercq <l.declercq@nuxwin.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,34 +21,25 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 Plugin compatible with i-MSCP version >= 1.0.3.0
 
-### INSTALLATION AND UPDATE
+### INSTALLATION
 
-**1.** Backup your current plugins/DomainAutoApproval/config.php file if any
+	# Upload the plugin archive through the plugin interface
+	# Edit the configuration file
+	# Update the plugin list through the plugin interface
+	# Activate the plugin through the plugin interface
 
-**2.** Get the plugin
+### UPDATE
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+	# Backup your plugin configuration file file
+	# Upload the plugin archive through the plugin interface
+	# Restore your plugin configuration file (Compare it with the new)
+	# Update the plugin list through the plugin interface
+	# Activate the plugin through the plugin interface
 
-**3.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
-
-	# cp -fR plugins/DomainAutoApproval /var/www/imscp/gui/plugins
-
-**4.** Edit the config.php file to add domain names for which you want
-   enable/disable auto-approval of domain aliases according the
-   value of the 'approval_rule' parameter (See comments in file).
-
-**5.** Set permissions by running:
-
-	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
-
-**6.** Go to the panel plugins interface, update the plugin list and activate
-   the plugin.
-
-See the [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
 
 ### AUTHORS AND CONTRIBUTORS
 
 Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
-**Thanks you for using this plugin.**
+**Thank you for using this plugin.**
