@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -50,6 +50,11 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
 	 * @var string Listened event
 	 */
 	protected $_listenedEvents = iMSCP_Events::onBeforeLoadTemplateFile;
+
+	/**
+	 * @var int Priority
+	 */
+	protected $priority = -99;
 
 	/**
 	 * Implements onLoadTemplateFile listener method
@@ -94,6 +99,16 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
 	public function getListenedEvents()
 	{
 		return $this->_listenedEvents;
+	}
+
+	/**
+	 * Get component priority
+	 *
+	 * @return int
+	 */
+	public function getPriority()
+	{
+		return $this->priority;
 	}
 
 	/**

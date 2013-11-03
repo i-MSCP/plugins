@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -58,11 +58,6 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	protected $event;
 
 	/**
-	 * @var array Known components
-	 */
-	#protected $knownComponents = array('Database', 'Files', 'Memory', 'Timer', 'Variables', 'Version');
-
-	/**
 	 * @var iMSCP_Plugin_DebugBar_Component_Interface[]
 	 */
 	protected $components = array();
@@ -87,44 +82,60 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
+		$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
+
 		if(!is_xhr()) { // Do not act on AJAX request
 			$components = $this->getConfigParam('components');
 
 			if($components) {
 				if(is_array($components)) {
-					$priority = 998;
-
 					foreach ($components as $component) {
-						#if(in_array($component, $this->knownComponents)) {
-							require_once 'Component/' . $component . '.php';
-							$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
-							$component = new $componentClass();
+						require_once 'Component/' . $component . '.php';
+						$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
+						$component = new $componentClass();
 
-							if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
-								throw new iMSCP_Plugin_Exception(
-									'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
-								);
-							} else {
-								$events = $component->getListenedEvents();
+						if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
+							throw new iMSCP_Plugin_Exception(
+								'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
+							);
+						} else {
+							$events = $component->getListenedEvents();
 
-								if(!empty($events)) {
-									$controller->registerListener($events, $component, $priority);
-									$priority--;
-								}
+							if(!empty($events)) {
+								$controller->registerListener($events, $component, $component->getPriority());
 							}
+						}
 
-							$this->components[] = $component;
-						#} else {
-						#	throw new iMSCP_Plugin_Exception("DebugBar plugin: Unknown component: $component");
-						#}
+						$this->components[] = $component;
 					}
 
-					$controller->registerListener($this->getListenedEvents(), $this, 999);
+					$controller->registerListener($this->getListenedEvents(), $this, -100);
 				} else {
 					throw new iMSCP_Plugin_Exception(
 						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
 					);
 				}
+			}
+		}
+	}
+
+	/**
+	 * onBeforeActivatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
+			if($cfg->Version != 'Git Master') {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation(true);
 			}
 		}
 	}

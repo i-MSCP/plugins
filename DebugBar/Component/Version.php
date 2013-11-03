@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -47,6 +47,11 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
 	const IDENTIFIER = 'Version';
 
 	/**
+	 * @var int Priority
+	 */
+	protected $priority = -98;
+
+	/**
 	 * Returns component unique identifier
 	 *
 	 * @return string Component unique identifier.
@@ -54,6 +59,16 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
 	public function getIdentifier()
 	{
 		return self::IDENTIFIER;
+	}
+
+	/**
+	 * Get component priority
+	 *
+	 * @return int
+	 */
+	public function getPriority()
+	{
+		return $this->priority;
 	}
 
 	/**

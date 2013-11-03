@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,9 +29,9 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.12',
-	'date' => '2013-10-28',
+	'version' => '0.0.13',
+	'date' => '2013-11-03',
 	'name' => 'DebugBar',
-	'desc' => 'Plugin providing debug information for i-MSCP frontEnd.',
+	'desc' => 'Plugin providing many debug information for i-MSCP.',
 	'url' => 'http://i-mscp.net'
 );

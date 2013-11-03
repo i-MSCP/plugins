@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -48,11 +48,14 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
 	const IDENTIFIER = 'Database';
 
 	/**
+	 * @var int Priority
+	 */
+	protected $priority = 100;
+
+	/**
 	 * @var array Listened events
 	 */
 	protected $_listenedEvents = array(
-		iMSCP_Events::onBeforeDatabaseConnection,
-		iMSCP_Events::onAfterDatabaseConnection,
 		iMSCP_Events::onBeforeQueryExecute,
 		iMSCP_Events::onAfterQueryExecute
 	);
@@ -71,32 +74,6 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
 	 * @var int Query index
 	 */
 	protected $_queryIndex = 0;
-
-	/**
-	 * Start to compute time for database connection
-	 *
-	 * @param  iMSCP_Database_Events_Database $event
-	 * @return void
-	 */
-	public function onBeforeDatabaseConnection($event)
-	{
-		$this->_queries[$this->_queryIndex]['time'] = microtime(true);
-		$this->_queries[$this->_queryIndex]['queryString'] = 'connection';
-	}
-
-	/**
-	 * Stop to compute time for database connection
-	 *
-	 * @param  iMSCP_Database_Events_Database $event
-	 * @return void
-	 */
-	public function onAfterDatabaseConnection($event)
-	{
-		$time = microtime(true) - $this->_queries[$this->_queryIndex]['time'];
-		$this->_queries[$this->_queryIndex]['time'] = $time;
-		$this->_totalTimeElapsed += $time;
-		$this->_queryIndex++;
-	}
 
 	/**
 	 * Implements the onBeforeQueryExecute listener
@@ -141,6 +118,16 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
 	public function getListenedEvents()
 	{
 		return $this->_listenedEvents;
+	}
+
+	/**
+	 * Get component priority
+	 *
+	 * @return int
+	 */
+	public function getPriority()
+	{
+		return $this->priority;
 	}
 
 	/**

@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -63,6 +63,11 @@ class iMSCP_Plugin_DebugBar_Component_Timer implements iMSCP_Plugin_DebugBar_Com
 		iMSCP_Events::onExceptionToBrowserStart,
 		iMSCP_Events::onExceptionToBrowserEnd
 	);
+
+	/**
+	 * @var int Priority
+	 */
+	protected $_priority = -97;
 
 	/**
 	 * @var float Times
@@ -113,6 +118,16 @@ class iMSCP_Plugin_DebugBar_Component_Timer implements iMSCP_Plugin_DebugBar_Com
 	public function getListenedEvents()
 	{
 		return $this->_listenedEvents;
+	}
+
+	/**
+	 * Get component priority
+	 *
+	 * @return int
+	 */
+	public function getPriority()
+	{
+		return $this->_priority;
 	}
 
 	/**
