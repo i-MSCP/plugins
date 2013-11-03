@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  HelloWorld
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -46,7 +46,29 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $controller)
 	{
+		$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
 		$controller->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
+	}
+
+	/**
+	 * onBeforeActivatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeActivatePlugin($event)
+	{
+		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
+			if($cfg->Version != 'Git Master') {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation(true);
+			}
+		}
 	}
 
 	/**
