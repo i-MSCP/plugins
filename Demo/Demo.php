@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010 - 2013 by i-MSCP Team
+ * Copyright (C) 2010 - 2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Demo
- * @copyright   2010 - 2013 by i-MSCP Team
+ * @copyright   Copyright (C) 2010 - 2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -124,7 +124,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+			if($cfg->Version != 'Git Master') {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -247,6 +247,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 			foreach ($this->getConfigParam('user_accounts') as $account) {
 				if ($account['username'] == $username && (isset($account['protected']) && $account['protected'])) {
 					$foundUser = true;
+					break;
 				}
 			}
 
@@ -328,7 +329,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		foreach ($this->getConfigParam('user_accounts') as $account) {
 			if (isset($account['label']) && isset($account['username']) && isset($account['password'])) {
 				$stmt = exec_query(
-					'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?', idn_to_ascii($account['username'])
+					'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?', encode_idna($account['username'])
 				);
 
 				if ($stmt->rowCount()) {
