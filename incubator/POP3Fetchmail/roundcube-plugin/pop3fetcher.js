@@ -51,6 +51,7 @@ function pop3fetcher_add_do(){
 					'_pop3fetcher_ssl': $("#pop3fetcher_ssl").val(),
 					'_pop3fetcher_leaveacopy': $("#pop3fetcher_leaveacopy").is(":checked"),
 					'_pop3fetcher_testconnection': $("#pop3fetcher_testconnection").is(":checked"),
+					'_pop3fetcher_import_old_messages': $("#pop3fetcher_import_old_messages").is(":checked"),
 					'_pop3fetcher_defaultfolder': $("#pop3fetcher_defaultfolder").val()
 	};
 	rcmail.http_post('plugin.pop3fetcher', params);

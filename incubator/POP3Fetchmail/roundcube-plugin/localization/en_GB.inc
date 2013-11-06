@@ -32,6 +32,7 @@ $labels['pop3fetcher_current_version'] = 'CURRENT VERSION: ';
 $labels['pop3fetcher_latest_version'] = 'Latest version is: ';
 $labels['pop3fetcher_updated'] = 'Pop3fetcher is updated to the latest version';
 $labels['pop3fetcher_outdated'] = "There's an update available for Pop3fetcher.<br />Download it from ";
+$labels['account_import_old_messages'] = 'Import old messages';
 
 /* FROM NOW ON: CHECK */
 $labels['remoteaccounts'] = 'Remote IMAP Accounts';

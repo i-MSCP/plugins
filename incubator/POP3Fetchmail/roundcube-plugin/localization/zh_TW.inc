@@ -32,6 +32,7 @@ $labels['pop3fetcher_current_version'] = '目前版本： ';
 $labels['pop3fetcher_latest_version'] = '最新的版本是： ';
 $labels['pop3fetcher_updated'] = 'Pop3fetcher已經更新到最新的版本';
 $labels['pop3fetcher_outdated'] = "Pop3fetcher有更新的版本，<br />可以從以下網址下載 ";
+$labels['account_import_old_messages'] = 'Import old messages';
 
 
 /* FROM NOW ON: CHECK */

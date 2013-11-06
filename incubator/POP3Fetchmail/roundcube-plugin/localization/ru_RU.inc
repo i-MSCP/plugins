@@ -32,6 +32,7 @@ $labels['pop3fetcher_current_version'] = 'Текущая версия: ';
 $labels['pop3fetcher_latest_version'] = 'Последняя версия: ';
 $labels['pop3fetcher_updated'] = 'Pop3fetcher обновлён до последней версии';
 $labels['pop3fetcher_outdated'] = "Есть обновление для Pop3fetcher.<br />Скачайте с ";
+$labels['account_import_old_messages'] = 'Import old messages';
 
 
 /* FROM NOW ON: CHECK */

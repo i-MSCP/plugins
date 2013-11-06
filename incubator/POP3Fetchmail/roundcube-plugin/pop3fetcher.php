@@ -100,7 +100,7 @@ function init(){
 							//write_log("pop3fetcher.txt", "INTERCEPT: task mail, MSG UIDL: ".$msglist["$j"]);
 							//write_log("pop3fetcher.txt", "INTERCEPT: task mail, LAST UIDL: ".$last_uidl);
 						   if ($msglist["$j"] == $last_uidl) {
-								$i = $j;
+								$i = $j+1;
 								break;
 						   }
 						}
@@ -112,7 +112,7 @@ function init(){
 							//echo "Login OK: Inbox EMPTY<br />";
 							POP35::disconnect($c);
 						} else {
-							$newmsgcount = $Count - $i;
+							$newmsgcount = $Count - $i + 1;
 							//echo "Login OK: Inbox contains [" . $newmsgcount . "] messages<br />";
 						}
 						// These two calls create errors in Roundcube 0.7.2, maybe they are useless also in later versions.... testing...
@@ -334,7 +334,7 @@ function accounts_edit($args){
 	);
 
 	$out  = "<form method='post' action='./?_task=settings&_action=plugin.pop3fetcher&_edit_do=1&_framed=1'>\n";
-	$out .= $this->accounts_form_content($arr['pop3fetcher_email'], $arr['pop3fetcher_username'], $arr['pop3fetcher_password'], $arr['pop3fetcher_serveraddress'], $arr['pop3fetcher_serverport'], $arr['pop3fetcher_ssl'], $arr['pop3fetcher_leaveacopyonserver'], $arr['pop3fetcher_provider'], $arr['default_folder']);
+	$out .= $this->accounts_form_content($arr['pop3fetcher_email'], $arr['pop3fetcher_username'], $arr['pop3fetcher_password'], $arr['pop3fetcher_serveraddress'], $arr['pop3fetcher_serverport'], $arr['pop3fetcher_ssl'], $arr['pop3fetcher_leaveacopyonserver'], $arr['pop3fetcher_provider'], $arr['default_folder'], false);
 	$out .= "<input type='hidden' name='_pop3fetcher_id' id='pop3fetcher_id' value='$pop3fetcher_id' />\n";
 	$out .= "<input class='button mainaction pop3fetcher' id='edit_do' type='button' value ='" . $this->gettext('submit') . "' />";
 	$out .= "<img id='btn_edit_do_loader' src=\"./plugins/pop3fetcher/skins/$this->skin/images/loader.gif\" style=\"display:none;margin-top:4px;\" />";
@@ -362,7 +362,7 @@ function get($pop3fetcher_id=0){
 	return $sql;
 }
 
-function accounts_form_content($email="",$username="",$password="",$server="", $port="", $useSSL='none', $leave_a_copy=true, $provider="", $default_folder=""){ 
+function accounts_form_content($email="",$username="",$password="",$server="", $port="", $useSSL='none', $leave_a_copy=true, $provider="", $default_folder="", $show_import_old_messages_option=true){ 
 	$rcmail = rcmail::get_instance();
 	
     $this->include_script('pop3fetcher_providers.js');
@@ -473,7 +473,17 @@ function accounts_form_content($email="",$username="",$password="",$server="", $
 				$field_id,
 				rep_specialchars_output($this->gettext('test_connection_on_save')),
 				$input_pop3fetcher_testconnection->show(false)); // QUESTA COSA E' STRANA MA FUNZIONA...	
+	
+	if($show_import_old_messages_option){
+		$field_id = 'pop3fetcher_import_old_messages';
+		$input_pop3fetcher_import_old_messages = new html_checkbox(array('name' => '_pop3fetcher_import_old_messages', 'id' => $field_id));
+		$out .= sprintf("<tr><td valign=\"middle\" colspan=\"3\" class=\"title\"><label for=\"%s\">%s</label>:</td><td>%s</td></tr>\n",
+					$field_id,
+					rep_specialchars_output($this->gettext('account_import_old_messages')),
+					$input_pop3fetcher_import_old_messages->show(true)); // QUESTA COSA E' STRANA MA FUNZIONA...
 		
+	}
+	
 	$out .= "\n</table>";
 	$out .= '<br />' . "\n";
 	$out .= "</fieldset>\n";
@@ -512,7 +522,8 @@ function accounts_add($args){
 	$out  = "<form method='post' action='./?_task=settings&_action=plugin.pop3fetcher&_add_do=1&_framed=1'>\n";
 
 	$out .= $this->accounts_form_content();
-
+	
+				
 	$out .= "<input type='hidden' name='_add' id='add' value=1 />\n";               
 	$out .= "<input class='button mainaction pop3fetcher' id='add_do' type='button' value ='" . $this->gettext('submit') . "' />";
 	$out .= "<span>&nbsp;</span><input type='button' class='button pop3fetcher' value='" . $this->gettext('back') . "' onclick='document.location.href=\"./?_task=settings&_action=edit-prefs&_section=pop3fetcher&_framed=1\"' />\n";
@@ -542,7 +553,8 @@ function add_do(){
 	$pop3fetcher_provider = get_input_value('_pop3fetcher_provider', RCUBE_INPUT_POST);
 	$pop3fetcher_testconnection = get_input_value('_pop3fetcher_testconnection', RCUBE_INPUT_POST);
 	$pop3fetcher_defaultfolder = get_input_value('_pop3fetcher_defaultfolder', RCUBE_INPUT_POST);
-	
+	$pop3fetcher_import_old_messages = get_input_value('_pop3fetcher_import_old_messages', RCUBE_INPUT_POST);
+		
 	//MUST CREATE THE TARGET FOLDER IF IT DOESN'T EXIST
 	$rcmail->imap_connect();
 	$delimiter = $rcmail->imap->get_hierarchy_delimiter();
@@ -565,6 +577,12 @@ function add_do(){
 		$pop3fetcher_leaveacopy=false;
 	}
 
+	if($pop3fetcher_import_old_messages=="true"){
+		$pop3fetcher_import_old_messages=true;
+	} else {
+		$pop3fetcher_import_old_messages=false;
+	}
+
 	$user_id = $rcmail->user->data['user_id'];
 
 	/* QUA VERIFICO LA CONNESSIONE */
@@ -576,14 +594,16 @@ function add_do(){
         $this->rcmail->output->send('plugin');
 	} else {
 		require_once './plugins/pop3fetcher/XPM4/POP35.php';
-      		require_once './plugins/pop3fetcher/XPM4/FUNC5.php';
+      	require_once './plugins/pop3fetcher/XPM4/FUNC5.php';
 		// SALVO L'UID DELL'ULTIMO MESSAGGIO, IN MODO DA SCARICARE SOLO I NUOVI
-		$c = POP35::connect($pop3fetcher_serveraddress, $pop3fetcher_username, $pop3fetcher_password, intval($pop3fetcher_serverport), $pop3fetcher_ssl, 100);
 		$last_uidl=0;
-		if($c){
-			$msglist = POP35::puidl($c);
-			$last_uidl = $msglist[count($msglist)-1];
-			if($this->config["debug"]) write_log("pop3fetcher.txt", "INTERCEPT: TASK ADDACCOUNT, fetching last UID $last_uidl");
+		if(!$pop3fetcher_import_old_messages){
+			$c = POP35::connect($pop3fetcher_serveraddress, $pop3fetcher_username, $pop3fetcher_password, intval($pop3fetcher_serverport), $pop3fetcher_ssl, 100);
+			if($c){
+				$msglist = POP35::puidl($c);
+				$last_uidl = $msglist[count($msglist)-1];
+				if($this->config["debug"]) write_log("pop3fetcher.txt", "INTERCEPT: TASK ADDACCOUNT, fetching last UID $last_uidl");
+			}
 		}
 		$query = "SELECT * FROM " . get_table_name('pop3fetcher_accounts') . " WHERE user_id=? AND pop3fetcher_email=?";
 		$ret = $rcmail->db->query($query, $user_id, $pop3fetcher_email);
