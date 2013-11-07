@@ -99,15 +99,15 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeActivatePlugin($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
-		if($event->getParam('action') == 'install') {
+		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'install') {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
 			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
 				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
-				
+
 				$event->stopPropagation(true);
 			}
 		}
