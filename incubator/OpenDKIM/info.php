@@ -32,6 +32,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2013-08-05',
 	'name' => 'OpenDKIM',
-	'desc' => 'Plugin allows to manage OpenDKIM with i-MSCP',
+	'desc' => 'Plugin providing an OpenDKIM implementation for i-MSCP',
 	'url' => 'http://i-mscp.net'
 );

@@ -39,13 +39,13 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
+		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeActivatePlugin,
+				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onAdminScriptStart
 			),
 			$this
@@ -53,17 +53,17 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'install') {
+		if ($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+			if ($cfg->Version != 'Git Master') {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -71,6 +71,32 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 				$event->stopPropagation(true);
 			}
 		}
+	}
+
+	/**
+	 * Plugin installation
+	 *
+	 * This method is automatically called by the plugin manager when the plugin is being installed.
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function install(iMSCP_Plugin_Manager $pluginManager)
+	{
+		// Only there to tell the plugin manager that this plugin is installable
+	}
+
+	/**
+	 * Plugin uninstallation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	{
+		// Only there to tell the plugin manager that this plugin can be uninstalled
 	}
 
 	/**
@@ -100,8 +126,10 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 
 	/**
 	 * Inject Mailgraph links into the navigation object
+	 *
+	 * @return void
 	 */
-	public function setupNavigation()
+	protected function setupNavigation()
 	{
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
@@ -110,7 +138,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 			if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
 				$page->addPage(
 					array(
-						'label' => tohtml(tr('Mailgraph')),
+						'label' => tr('Mailgraph'),
 						'uri' => '/admin/mailgraph.php',
 						'title_class' => 'stats'
 					)

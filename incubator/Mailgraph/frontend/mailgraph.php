@@ -38,73 +38,73 @@
  */
 function mailgraph_generatePage($tpl)
 {
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
 		$tpl->assign('MAILGRAPH_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_DAY_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_week.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_week.png')) {
 		$tpl->assign('MAILGRAPH_WEEK_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_WEEK_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_month.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_month.png')) {
 		$tpl->assign('MAILGRAPH_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_MONTH_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_year.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_year.png')) {
 		$tpl->assign('MAILGRAPH_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_YEAR_EXIST', '');
-	}	
-	
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
+	}
+
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_DAY_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_WEEK_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_WEEK_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_MONTH_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
 		$tpl->assign('MAILGRAPH_VIRUS_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_VIRUS_YEAR_EXIST', '');
 	}
-	
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
+
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_DAY_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_DAY_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
-		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_NOT_EXIST','');
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
+		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_NOT_EXIST', '');
 	} else {
-		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_EXIST','');
+		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_EXIST', '');
 	}
 
-	if(file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
+	if (file_exists(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
 		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_NOT_EXIST', '');
 	} else {
 		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_EXIST', '');
@@ -122,7 +122,7 @@ check_login('admin');
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
-$hostname = $cfg->SERVER_HOSTNAME ;
+$hostname = $cfg->SERVER_HOSTNAME;
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(

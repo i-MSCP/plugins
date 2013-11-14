@@ -34,7 +34,6 @@
  */
 class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 {
-	
 	/**
 	 * Process plugin installation
 	 *
@@ -46,11 +45,11 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->createDbTable();
-		} catch(iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Process plugin uninstallation
 	 *
@@ -62,7 +61,7 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->dropDbTable();
-		} catch(iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -70,30 +69,25 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
-			array(
-				iMSCP_Events::onBeforeActivatePlugin
-			),
-			$this
-		);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'install') {
+		if ($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+			if ($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -112,8 +106,9 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 	{
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
-		
+
 		execute_query('use ' . $cfg->DATABASE_NAME . '_roundcube');
+
 		$query = "
 			CREATE TABLE IF NOT EXISTS `pop3fetcher_accounts` (
 				`pop3fetcher_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -136,10 +131,9 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 		";
 
 		execute_query($query);
-		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Drop pop3fetcher roundcube database table
 	 *
@@ -149,11 +143,9 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 	{
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
-		
+
 		execute_query('use ' . $cfg->DATABASE_NAME . '_roundcube');
-		
 		execute_query('DROP TABLE IF EXISTS `pop3fetcher_accounts`');
-		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
 }

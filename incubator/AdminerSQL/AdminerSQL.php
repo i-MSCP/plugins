@@ -35,21 +35,15 @@
 class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 {
 	/**
-	 * @var array Routes
-	 */
-	protected $routes = array();
-
-	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
+		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeActivatePlugin,
-				iMSCP_Events::onBeforePluginsRoute,
+				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart
@@ -59,41 +53,38 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
-		if($event->getParam('action') == 'install') {
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			/** @var iMSCP_Config_Handler_File $cfg */
+			$cfg = iMSCP_Registry::get('config');
+
+			if ($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
 				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
-				
+
 				$event->stopPropagation(true);
 			}
 		}
 	}
-	
+
 	/**
-	 * Implements the onBeforePluginsRoute event
+	 * Plugin installation
 	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
-	public function onBeforePluginsRoute()
+	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
-		$pluginName = $this->getName();
-
-		$this->routes = array(
-			'/adminer/adminer.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/adminer.php',
-			'/adminer/editor.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/editor.php'
-		);
+		// Only there to tell the plugin manager that this plugin is installable
 	}
-	
+
 	/**
 	 * Implements the onAdminScriptStart event
 	 *
@@ -101,7 +92,7 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	public function onAdminScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('admin');
 	}
 
 	/**
@@ -111,9 +102,9 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	public function onResellerScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('reseller');
 	}
-	
+
 	/**
 	 * Implements the onClientScriptStart event
 	 *
@@ -121,7 +112,7 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('client');
 	}
 
 	/**
@@ -131,60 +122,82 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		return $this->routes;
+		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
+
+		return array(
+			'/adminer/adminer.php' => $pluginDir . '/frontend/adminer.php',
+			'/adminer/editor.php' => $pluginDir . '/frontend/editor.php'
+		);
 	}
 
 	/**
 	 * Inject AdminerSQL links into the navigation object
+	 *
+	 * @param string $level UI level
 	 */
-	protected function setupNavigation()
+	protected function setupNavigation($level)
 	{
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
-			
-			if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('AdminerSQL')),
-						'uri' => '/adminer/adminer.php',
-						'target' => '_blank'
-					)
-				);
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('EditorSQL')),
-						'uri' => '/adminer/editor.php',
-						'target' => '_blank'
-					)
-				);
-			}
-			
-			if (($page = $navigation->findOneBy('uri', '/reseller/index.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('AdminerSQL')),
-						'uri' => '/adminer/adminer.php',
-						'target' => '_blank'
-					)
-				);
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('EditorSQL')),
-						'uri' => '/adminer/editor.php',
-						'target' => '_blank'
-					)
-				);
-			}
-			
-			if (($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('AdminerSQL')),
-						'uri' => '/adminer/editor.php',
-						'target' => '_blank'
-					)
-				);
+			switch ($level) {
+				case 'admin':
+					if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
+						$page->addPages(
+							array(
+								array(
+									'label' => tr('AdminerSQL'),
+									'uri' => '/adminer/adminer.php',
+									'target' => '_blank'
+								),
+								array(
+									'label' => tr('EditorSQL'),
+									'uri' => '/adminer/editor.php',
+									'target' => '_blank'
+								)
+							)
+						);
+					}
+
+					break;
+				case 'reseller':
+					if (($page = $navigation->findOneBy('uri', '/reseller/index.php'))) {
+						$page->addPages(
+							array(
+								array(
+									'label' => tr('AdminerSQL'),
+									'uri' => '/adminer/adminer.php',
+									'target' => '_blank'
+								),
+								array(
+									'label' => tr('EditorSQL'),
+									'uri' => '/adminer/editor.php',
+									'target' => '_blank'
+								)
+							)
+						);
+					}
+					break;
+				case 'client':
+					if (($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
+						$page->addPage(
+							array(
+								'label' => tr('AdminerSQL'),
+								'uri' => '/adminer/editor.php',
+								'target' => '_blank'
+							)
+						);
+					}
+
+					if (($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
+						$page->addPage(
+							array(
+								'label' => tr('AdminerSQL'),
+								'uri' => '/adminer/editor.php',
+								'target' => '_blank'
+							)
+						);
+					}
 			}
 		}
 	}

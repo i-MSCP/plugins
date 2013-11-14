@@ -34,7 +34,6 @@
  * Generate page
  *
  * @param $tpl iMSCP_pTemplate
- * @param iMSCP_Plugin_Manager $pluginManager
  * @param int $userId
  * @return void
  */
@@ -57,39 +56,37 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 		ORDER BY
 			`domain_name` ASC
 	";
-	
-	
 	$stmt = exec_query($query, $userId);
-	
+
 	if ($stmt->rowCount()) {
-		
-		while ($data = $stmt->fetchRow()) {
+		while ($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
 			$query = "
 				SELECT
 					`t1`.*, `t2`.*
 				FROM
 					`opendkim` AS `t1`
 				LEFT JOIN
-					`domain_dns` AS `t2` 
-						ON(
-							`t1`.`domain_id` = `t2`.`domain_id` 
-						AND
-							`t1`.`alias_id` = `t2`.`alias_id`
-						AND 
-							`t2`.`domain_dns` = 'mail._domainkey'
-						)
+					`domain_dns` AS `t2` ON(
+						`t1`.`domain_id` = `t2`.`domain_id`
+					AND
+						`t1`.`alias_id` = `t2`.`alias_id`
+					AND
+						`t2`.`domain_dns` = 'mail._domainkey'
+				)
 				WHERE
 					`t1`.`domain_id` = ?
 				ORDER BY
 					`t1`.`domain_id` ASC, `t1`.`alias_id` ASC
 			";
 			$stmt2 = exec_query($query, $data['domain_id']);
-			
+
 			if ($stmt2->rowCount()) {
-				while ($data2 = $stmt2->fetchRow()) {
-					if($data2['opendkim_status'] == $cfg->ITEM_OK_STATUS) $statusIcon = 'ok';
-					elseif ($data2['opendkim_status'] == $cfg->ITEM_DISABLED_STATUS) $statusIcon = 'disabled';
-					elseif (
+				while ($data2 = $stmt2->fetchRow(PDO::FETCH_ASSOC)) {
+					if ($data2['opendkim_status'] == $cfg->ITEM_OK_STATUS) {
+						$statusIcon = 'ok';
+					} elseif ($data2['opendkim_status'] == $cfg->ITEM_DISABLED_STATUS) {
+						$statusIcon = 'disabled';
+					} elseif (
 						(
 							$data2['opendkim_status'] == $cfg->ITEM_TOADD_STATUS ||
 							$data2['opendkim_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
@@ -108,11 +105,13 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 					} else {
 						$statusIcon = 'error';
 					}
-					
+
 					$tpl->assign(
 						array(
 							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
-							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text']) ? $data2['domain_text'] : tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
+							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text'])
+								? $data2['domain_text']
+								: tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
 							'OPENDKIM_ID' => $data2['opendkim_id'],
 							'OPENDKIM_DNS_NAME' => decode_idna($data2['domain_dns']),
 							'OPENDKIM_KEY_STATUS' => translate_dmn_status($data2['opendkim_status']),
@@ -125,15 +124,13 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 			} else {
 				$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 			}
+
 			$tpl->assign('TR_OPENDKIM_DOMAIN', tr('OpenDKIM domain entries'));
-			
 			$tpl->parse('OPENDKIM_CUSTOMER_ITEM', '.opendkim_customer_item');
-			
 			$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
 		}
-		
+
 		$tpl->assign('OPENDKIM_NO_CUSTOMER_ITEM', '');
-		
 		$tpl->parse('OPENDKIM_CUSTOMER_LIST', 'opendkim_customer_list');
 	} else {
 		$tpl->assign(
@@ -142,7 +139,7 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 				'SCROLL_PREV' => '',
 				'SCROLL_PREV_GRAY' => '',
 				'SCROLL_NEXT' => '',
-				'SCROLL_NEXT_GRAY' => '',
+				'SCROLL_NEXT_GRAY' => ''
 			)
 		);
 	}
@@ -189,9 +186,7 @@ $tpl->assign(
 );
 
 generateNavigation($tpl);
-
 opendkim_generateActivatedDomains($tpl, $_SESSION['user_id']);
-
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

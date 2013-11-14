@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Mailman
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -44,13 +44,13 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
+		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeActivatePlugin,
+				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onAfterDeleteCustomer,
@@ -58,18 +58,18 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			$this
 		);
 
-		$controller->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -999);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -999);
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('action') == 'install') {
+		if ($event->getParam('pluginName') == $this->getName()) {
 			if (!$this->checkRequirements()) {
 				$event->stopPropagation(true);
 			}
@@ -77,7 +77,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Process plugin installation
+	 * Plugin installation
 	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager
@@ -93,6 +93,18 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Plugin uninstallation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	{
+		// Only there to tell the plugin manager that this plugin can be uninstalled
+	}
+
+	/**
 	 * onBeforeUpdatePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -100,8 +112,10 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		if (!$this->checkRequirements()) {
-			$event->stopPropagation(true);
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (!$this->checkRequirements()) {
+				$event->stopPropagation(true);
+			}
 		}
 	}
 

@@ -57,7 +57,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Process plugin uninstallation
 	 *
@@ -77,13 +77,13 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
+		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeActivatePlugin,
+				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onAfterDeleteUser
@@ -93,13 +93,13 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'install') {
+		if($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
@@ -112,7 +112,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 			}
 		}
 	}
-	
+
 	/**
 	 * Implements the onBeforePluginsRoute event
 	 *
@@ -212,7 +212,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 
 		execute_query($query);
 	}
-	
+
 	/**
 	 * Drop remote_bridge database table
 	 *
@@ -222,7 +222,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 	{
 		execute_query('DROP TABLE IF EXISTS `remote_bridge`');
 	}
-	
+
 	/**
 	 * Get status of item with errors
 	 *
@@ -254,7 +254,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 
 		return array();
 	}
-	
+
 	/**
 	 * Set status of the given plugin item to 'tochange'
 	 *
@@ -272,7 +272,7 @@ class iMSCP_Plugin_RemoteBridge extends iMSCP_Plugin_Action
 			);
 		}
 	}
-	
+
 	/**
 	 * Return count of request in progress
 	 *

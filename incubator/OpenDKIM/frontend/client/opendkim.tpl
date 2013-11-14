@@ -1,3 +1,4 @@
+
 <!-- BDP: opendkim_customer_list -->
 <!-- BDP: opendkim_customer_item -->
 <table>
@@ -27,7 +28,6 @@
 	<!-- EDP: opendkim_domainkey_item -->
 	</tbody>
 </table>
-<br />
 <!-- EDP: opendkim_customer_item -->
 <!-- EDP: opendkim_customer_list -->
 

@@ -27,11 +27,11 @@
  */
 
 return array(
-	'author'	=> 'Sascha Bay',
-	'email'	=> 'info@space2place.de',
-	'version'	=> '0.0.1',
-	'date'	=> '2013-09-05',
-	'name'	=> 'AdminerSQL',
-	'desc'	=> 'Plugin allows to manage i-MSCP databases with Adminer',
-	'url'		=> 'http://i-mscp.net'
+	'author' => 'Sascha Bay',
+	'email' => 'info@space2place.de',
+	'version' => '0.0.1',
+	'date' => '2013-10-30',
+	'name' => 'AdminerSQL',
+	'desc' => 'Plugin allowing to manage i-MSCP databases with Adminer',
+	'url' => 'http://i-mscp.net'
 );

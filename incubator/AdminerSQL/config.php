@@ -28,10 +28,14 @@
 
 return array(
 	'adminer_version' => '3.7.1',
-		
-	'language' => 'all', # available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, pl, pt, ro, ru, sk, sl, sr, ta, tr, uk, xx, zh, zh-tw
+	// Available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, pl, pt, ro, ru, sk, sl,
+	// sr, ta, tr, uk, xx, zh, zh-tw
+	'language' => 'all',
 
-	'driver' => 'mysql', # available drivers: all, mysql, mssql, oracle, pgsql, sqlite
-	
-	'style' => 'bueltge' # default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pilot, pokorny, price
+	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite
+	'driver' => 'mysql',
+
+	// Default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq,
+	// pilot, pokorny, price
+	'style' => 'bueltge'
 );

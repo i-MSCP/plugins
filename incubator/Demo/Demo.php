@@ -54,10 +54,10 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * Register listeners on the event manager
 	 *
 	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 * @return void
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
@@ -84,13 +84,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				$this->events = array_unique($events);
 
 				if(!empty($this->events)) {
-					$controller->registerListener($this->events, $this, 999);
+					$eventsManager->registerListener($this->events, $this, 999);
 				}
 			} else {
 				throw new iMSCP_Plugin_Exception('Disabled actions should be provided as array.');
 			}
 		} else {
-			$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
+			$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 		}
 	}
 
@@ -113,14 +113,14 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin listener
+	 * onBeforeInstallPlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+		if($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 

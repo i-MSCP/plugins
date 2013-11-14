@@ -34,16 +34,14 @@
  * Generate page
  *
  * @param $tpl iMSCP_pTemplate
- * @param iMSCP_Plugin_Manager $pluginManager
  * @param int $resellerId
- * @param int $customerAdminId
  * @return void
  */
 function jailkit_generateSelect($tpl, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
+
 	$query = "
 		SELECT
 			`admin_id`, `admin_name`
@@ -58,17 +56,16 @@ function jailkit_generateSelect($tpl, $resellerId)
 		ORDER BY
 			`admin_name` ASC
 	";
-	
 	$stmt = exec_query($query, array($resellerId, $cfg->ITEM_OK_STATUS));
-	
+
 	if ($stmt->rowCount()) {
 		while ($data = $stmt->fetchRow()) {
 			$tpl->assign(
 				array(
 					'TR_JAILKIT_SELECT_VALUE' => $data['admin_id'],
 					'TR_JAILKIT_SELECT_NAME' => decode_idna($data['admin_name']),
-					)
-				);
+				)
+			);
 
 			$tpl->parse('JAILKIT_SELECT_ITEM', '.jailkit_select_item');
 		}
@@ -77,21 +74,28 @@ function jailkit_generateSelect($tpl, $resellerId)
 	}
 }
 
+/**
+ * Generate activated customer list
+ *
+ * @param iMSCP_pTemplate $tpl
+ * @param int $resellerId Reseller unique identifier
+ */
 function jailkit_generateActivatedCustomers($tpl, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
+
 	$rowsPerPage = $cfg->DOMAIN_ROWS_PER_PAGE;
-	
+
 	if (isset($_GET['psi']) && $_GET['psi'] == 'last') {
 		unset($_GET['psi']);
 	}
-	
+
 	$startIndex = isset($_GET['psi']) ? (int)$_GET['psi'] : 0;
-	
+
 	$countQuery = "
-		SELECT COUNT(`t1`.`admin_id`) AS `cnt` 
+		SELECT
+			COUNT(`t1`.`admin_id`) AS `cnt`
 		FROM 
 			`admin` AS `t1`
 		LEFT JOIN
@@ -101,8 +105,8 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 		AND
 			`t1`.`admin_id` IN (SELECT `admin_id` FROM `jailkit`)
 	";
-		
 	$stmt = exec_query($countQuery, $resellerId);
+
 	$recordsCount = $stmt->fields['cnt'];
 
 	$query = "
@@ -121,9 +125,8 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 		LIMIT
 			$startIndex, $rowsPerPage
 	";
-	
 	$stmt = exec_query($query, $resellerId);
-	
+
 	if ($recordsCount > 0) {
 		$prevSi = $startIndex - $rowsPerPage;
 
@@ -150,11 +153,13 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 				)
 			);
 		}
-		
+
 		while ($data = $stmt->fetchRow()) {
-			if($data['jailkit_status'] == $cfg->ITEM_OK_STATUS) $statusIcon = 'ok';
-			elseif ($data['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) $statusIcon = 'disabled';
-			elseif (
+			if ($data['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
+				$statusIcon = 'ok';
+			} elseif ($data['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) {
+				$statusIcon = 'disabled';
+			} elseif (
 				(
 					$data['jailkit_status'] == $cfg->ITEM_TOADD_STATUS ||
 					$data['jailkit_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
@@ -173,7 +178,7 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 			} else {
 				$statusIcon = 'error';
 			}
-			
+
 			$tpl->assign(
 				array(
 					'JAILKIT_CUSTOMER_NAME' => decode_idna($data['admin_name']),
@@ -183,10 +188,10 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 					'STATUS_ICON' => $statusIcon
 				)
 			);
-			
+
 			$tpl->parse('JAILKIT_CUSTOMER_ITEM', '.jailkit_customer_item');
 		}
-		
+
 		$tpl->assign('JAILKIT_NO_CUSTOMER_ITEM', '');
 	} else {
 		$tpl->assign(
@@ -199,133 +204,130 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 			)
 		);
 	}
-	
+
 	$tpl->assign('JAILKIT_EDIT', '');
 }
 
+/**
+ * Login limit
+ *
+ * @param int $customerAdminId
+ * @return string
+ */
 function get_jailkitLoginLimit($customerAdminId)
 {
 	$countQuery = "
-		SELECT COUNT(`jailkit_login_id`) AS `cnt` 
+		SELECT
+			COUNT(`jailkit_login_id`) AS `cnt`
 		FROM 
 			`jailkit_login`
 		WHERE
 			`admin_id` = ?
 	";
-		
 	$stmt = exec_query($countQuery, $customerAdminId);
 	$recordsCount = $stmt->fields['cnt'];
-	
-	$query = "SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?";	
+
+	$query = "SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?";
 	$stmt = exec_query($query, $customerAdminId);
-	
+
 	return $recordsCount . ' of ' . (($stmt->fields['max_logins'] == 0) ? '<b>unlimited</b>' : $stmt->fields['max_logins']);
 }
 
-function jailkit_activateCustomer($tpl, $pluginManager, $customerAdminId, $resellerId)
+/**
+ * Activate customer
+ *
+ * @param $pluginManager iMSCP_Plugin_Manager
+ * @param $customerAdminId
+ * @param $resellerId
+ */
+function jailkit_activateCustomer($pluginManager, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
-	$query = "
-		SELECT
-			`admin_id`, `admin_name`
-		FROM
-			`admin`
-		WHERE
-			`admin_id` = ?
-		AND
-			`created_by` = ?
-		AND
-			`admin_status` = ?
-	";
-	
+
+	$query = '
+		SELECT `admin_id`, `admin_name` FROM `admin` WHERE `admin_id` = ? AND `created_by` = ? AND `admin_status` = ?
+	';
 	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
-	
-	if (($plugin = $pluginManager->load('JailKit', false, false)) !== null) {
+
+	if (($plugin = $pluginManager->loadPlugin('JailKit', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
 	} else {
 		set_page_message(
 			tr("Can't load plugin configuration!"), 'error'
 		);
 		redirectTo('jailkit.php');
+		exit;
 	}
-	
+
 	if ($stmt->rowCount()) {
 		while ($data = $stmt->fetchRow()) {
-			$query = "
-				INSERT INTO
-				    `jailkit` (
-						`admin_id`, `admin_name`, `max_logins`, `jailkit_status`
-					) VALUES (
-						?, ?, ?, ?
-					)
-			";
+			$query = '
+				INSERT INTO `jailkit` (
+					`admin_id`, `admin_name`, `max_logins`, `jailkit_status`
+				) VALUES (
+					?, ?, ?, ?
+				)
+			';
 			exec_query(
 				$query,
 				array(
-					$data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh-user'], $cfg->ITEM_TOADD_STATUS
+					$data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh-user'],
+					$cfg->ITEM_TOADD_STATUS
 				)
 			);
 		}
-		
+
 		send_request();
-		
-		set_page_message(
-			tr('Customer activated for JailKit support. This can take few seconds.'), 'success'
-		);
+
+		set_page_message(tr('Customer activated for JailKit support. This can take few seconds.'), 'success');
 	} else {
-		set_page_message(
-			tr("The customer you are trying to activate JailKit doesn't exist."), 'error'
-		);
+		set_page_message(tr("The customer you are trying to activate JailKit doesn't exist."), 'error');
 	}
-	
+
 	redirectTo('jailkit.php');
 }
 
+/**
+ * Change customer jail
+ *
+ * @param iMSCP_pTemplate $tpl
+ * @param int $customerAdminId
+ * @param int $resellerId
+ */
 function jailkit_changeCustomerJail($tpl, $customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
-	$query = "
-		SELECT
-			`admin_id`, `admin_name`
-		FROM
-			`admin`
-		WHERE
-			`admin_id` = ?
-		AND
-			`created_by` = ?
-		AND
-			`admin_status` = ?
-	";
-	
+
+	$query = '
+		SELECT `admin_id`, `admin_name` FROM `admin` WHERE `admin_id` = ? AND `created_by` = ? AND `admin_status` = ?
+	';
 	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
-	
+
 	if ($stmt->rowCount()) {
-		$query = "SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?";	
+		$query = 'SELECT `max_logins` FROM `jailkit` WHERE `admin_id` = ?';
 		$stmt2 = exec_query($query, $customerAdminId);
-		
-		if(isset($_POST['max_logins']) && $_POST['max_logins'] != '') {
+
+		if (isset($_POST['max_logins']) && $_POST['max_logins'] != '') {
 			$maxLogins = clean_input($_POST['max_logins']);
-			if($maxLogins >= 0) {
-				if($maxLogins != $stmt2->fields['max_logins']) {
-					exec_query('UPDATE `jailkit` SET `max_logins` = ? WHERE `admin_id` = ?', array($maxLogins, $customerAdminId));
-					
-					set_page_message(
-						tr('Max logins succesfully changed.'), 'success'
+
+			if ($maxLogins >= 0) {
+				if ($maxLogins != $stmt2->fields['max_logins']) {
+					exec_query(
+						'UPDATE `jailkit` SET `max_logins` = ? WHERE `admin_id` = ?',
+						array($maxLogins, $customerAdminId)
 					);
+
+					set_page_message(tr('Max logins succesfully changed.'), 'success');
 				}
-				
+
 				redirectTo('jailkit.php');
 			} else {
-				set_page_message(
-					tr("Invalid input for max logins."), 'error'
-				);
+				set_page_message(tr("Invalid input for max logins."), 'error');
 			}
 		}
-		
+
 		$tpl->assign(
 			array(
 				'TR_PAGE_TITLE' => tr('Customers / Edit JailKit - SSH for customer: %s', decode_idna($stmt->fields['admin_name'])),
@@ -337,94 +339,95 @@ function jailkit_changeCustomerJail($tpl, $customerAdminId, $resellerId)
 	} else {
 		redirectTo('jailkit.php');
 	}
-	
+
 	$tpl->assign('JAILKIT_LIST', '');
 }
 
-function jailkit_deactivateCustomer($tpl, $customerAdminId, $resellerId)
+/**
+ * Deactivate customer
+ *
+ * @param int $customerAdminId
+ * @param int $resellerId
+ */
+function jailkit_deactivateCustomer($customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
-	$query = "
-		SELECT
-			`admin_id`, `admin_name`
-		FROM
-			`admin`
-		WHERE
-			`admin_id` = ?
-		AND
-			`created_by` = ?
-		AND
-			`admin_status` = ?
-	";
-	
+
+	$query = '
+		SELECT `admin_id`, `admin_name` FROM `admin` WHERE `admin_id` = ? AND `created_by` = ? AND `admin_status` = ?
+	';
 	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
-	
+
 	if ($stmt->rowCount()) {
-		exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_TODELETE_STATUS, $customerAdminId));
-		
-		send_request();
-		
-		set_page_message(
-			tr('Customer deactivated for JailKit support. This can take few seconds.'), 'success'
+		exec_query(
+			'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?',
+			array($cfg->ITEM_TODELETE_STATUS, $customerAdminId)
 		);
+
+		send_request();
+
+		set_page_message(tr('Customer deactivated for JailKit support. This can take few seconds.'), 'success');
 	} else {
 		set_page_message(tr("The customer you are trying to deactivate JailKit doesn't exist."), 'error');
 	}
-	
+
 	redirectTo('jailkit.php');
 }
 
-function jailkit_changeCustomerPermission($tpl, $customerAdminId, $resellerId)
+/**
+ * Change permissions
+ *
+ * @param int $customerAdminId
+ * @param int $resellerId
+ */
+function jailkit_changeCustomerPermission($customerAdminId, $resellerId)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
-	
-	$query = "
-		SELECT
-			`admin_id`, `admin_name`
-		FROM
-			`admin`
-		WHERE
-			`admin_id` = ?
-		AND
-			`created_by` = ?
-		AND
-			`admin_status` = ?
-	";
-	
+
+	$query = '
+		SELECT `admin_id`, `admin_name` FROM `admin` WHERE `admin_id` = ? AND `created_by` = ? AND `admin_status` = ?
+	';
 	$stmt = exec_query($query, array($customerAdminId, $resellerId, $cfg->ITEM_OK_STATUS));
-	
+
 	if ($stmt->rowCount()) {
 		$query = "SELECT `admin_id`, `admin_name`, `jailkit_status` FROM `jailkit` WHERE `admin_id` = ?";
 		$stmt = exec_query($query, $customerAdminId);
-		
+
 		if ($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) {
-			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_OK_STATUS, $customerAdminId));
-		
-			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('0', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId));
-			
-			send_request();
-			
-			set_page_message(
-				tr('Customer enabled for JailKit support. This can take few seconds.'), 'success'
+			exec_query(
+				'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?',
+				array($cfg->ITEM_OK_STATUS, $customerAdminId)
 			);
-		} elseif($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
-			exec_query('UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?', array($cfg->ITEM_DISABLED_STATUS, $customerAdminId));
-			
-			exec_query('UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?', array('1', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId));
-			
-			send_request();
-			
-			set_page_message(
-				tr('Customer disabled for JailKit support. This can take few seconds.'), 'success'
+
+			exec_query(
+				'UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?',
+				array('0', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId)
 			);
+
+			send_request();
+
+			set_page_message(tr('Customer enabled for JailKit support. This can take few seconds.'), 'success');
+		} elseif ($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
+			exec_query(
+				'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?',
+				array($cfg->ITEM_DISABLED_STATUS, $customerAdminId)
+			);
+
+			exec_query(
+				'UPDATE `jailkit_login` SET `ssh_login_locked` = ?, `jailkit_login_status` = ? WHERE `admin_id` = ?',
+				array('1', $cfg->ITEM_TOCHANGE_STATUS, $customerAdminId)
+			);
+
+			send_request();
+
+			set_page_message(tr('Customer disabled for JailKit support. This can take few seconds.'), 'success');
 		}
 	} else {
 		set_page_message(tr("The customer you are trying to change the permission of JailKit doesn't exist."), 'error');
 	}
-	
+
 	redirectTo('jailkit.php');
 }
 
@@ -436,7 +439,7 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onResellerScriptStar
 
 check_login('reseller');
 
-if(iMSCP_Registry::isRegistered('pluginManager')) {
+if (iMSCP_Registry::isRegistered('pluginManager')) {
 	/** @var iMSCP_Plugin_Manager $pluginManager */
 	$pluginManager = iMSCP_Registry::get('pluginManager');
 } else {
@@ -461,36 +464,36 @@ $tpl->define_dynamic(
 		'scroll_prev_gray' => 'jailkit_customer_list',
 		'scroll_prev' => 'jailkit_customer_list',
 		'scroll_next_gray', 'jailkit_customer_list',
-		'scroll_next' => 'jailkit_customer_list',
+		'scroll_next' => 'jailkit_customer_list'
 	)
 );
 
 if (isset($_REQUEST['action'])) {
 	$action = clean_input($_REQUEST['action']);
-	
-	if($action === 'activate') {
+
+	if ($action == 'activate') {
 		$customerAdminId = (isset($_POST['admin_id']) && $_POST['admin_id'] !== '-1') ? clean_input($_POST['admin_id']) : '';
-		
-		if($customerAdminId != '') {
-			jailkit_activateCustomer($tpl, $pluginManager, $customerAdminId, $_SESSION['user_id']);
+
+		if ($customerAdminId != '') {
+			jailkit_activateCustomer($pluginManager, $customerAdminId, $_SESSION['user_id']);
 		}
-	} elseif($action === 'change') {
+	} elseif ($action == 'change') {
 		$customerAdminId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
-		
-		if($customerAdminId != '') {
-			jailkit_changeCustomerPermission($tpl, $customerAdminId, $_SESSION['user_id']);
+
+		if ($customerAdminId != '') {
+			jailkit_changeCustomerPermission($customerAdminId, $_SESSION['user_id']);
 		}
-	} elseif($action === 'edit') {
-		$customerAdminId = ($_GET['admin_id'] !== '') ? (int) clean_input($_GET['admin_id']) : '';
-		
-		if($customerAdminId != '') {
+	} elseif ($action == 'edit') {
+		$customerAdminId = ($_GET['admin_id'] !== '') ? (int)clean_input($_GET['admin_id']) : '';
+
+		if ($customerAdminId != '') {
 			jailkit_changeCustomerJail($tpl, $customerAdminId, $_SESSION['user_id']);
 		}
-	} elseif($action === 'delete') {
+	} elseif ($action == 'delete') {
 		$customerAdminId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
-		
-		if($customerAdminId != '') {
-			jailkit_deactivateCustomer($tpl, $customerAdminId, $_SESSION['user_id']);
+
+		if ($customerAdminId != '') {
+			jailkit_deactivateCustomer($customerAdminId, $_SESSION['user_id']);
 		}
 	}
 }
@@ -524,7 +527,7 @@ $tpl->assign(
 
 generateNavigation($tpl);
 
-if(!isset($_GET['action'])) {
+if (!isset($_GET['action'])) {
 	jailkit_generateSelect($tpl, $_SESSION['user_id']);
 	jailkit_generateActivatedCustomers($tpl, $_SESSION['user_id']);
 }

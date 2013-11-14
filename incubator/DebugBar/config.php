@@ -29,10 +29,10 @@
 return array(
 	'components' => array(
 		'Version',
-		'Variables',
-		'Timer',
-		'Memory',
-		'Files',
-		'Database'
+		//'Variables',
+		//'Timer',
+		//'Memory',
+		//'Files',
+		//'Database'
 	)
 );

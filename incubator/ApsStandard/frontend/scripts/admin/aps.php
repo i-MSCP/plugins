@@ -26,9 +26,64 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+namespace ApsStandard;
+
+use iMSCP_Events;
+use iMSCP_Events_Manager;
+use iMSCP_pTemplate;
+
+/***********************************************************************************************************************
+ * functions
+ */
+
+/**
+ * Boot
+ *
+ * @return Dispatcher
+ */
+function boot()
+{
+	require_once PLUGINS_PATH . DIRECTORY_SEPARATOR . 'ApsStandard/library/ApsStandard/Dispatcher.php';
+
+	$dispatcher = new Dispatcher();
+
+	// Set error handlers
+	$dispatcher->error(400, 'showBadRequestErrorPage');
+	$dispatcher->error(403, 'showForbiddenErrorPage');
+	$dispatcher->error(404, 'showNotFoundErrorPage');
+
+	// Set action handler
+	$dispatcher->get('admin/aps', function() { echo 'Welcome dude'; });
+	$dispatcher->get('admin/aps/:action', 'ApsStandard\dispatch');
+
+	return $dispatcher;
+}
+
+function dispatch($action)
+{
+
+	require_once PLUGINS_PATH . DIRECTORY_SEPARATOR . 'ApsStandard/library/ApsStandard/Controller.php';
+
+	//$controller = new Controller(array());
+	//$controller->mainHandler($action);
+	echo " Action is $action";
+}
+
+
+/***********************************************************************************************************************
+ * Main
+ */
+
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
 
 check_login('admin');
+
+
+// Define action according routes
+ob_start();
+$dispatcher = boot();
+$dispatcher->dispatch();
+$pageContent = ob_get_clean();
 
 $tpl = new iMSCP_pTemplate();
 
@@ -50,7 +105,7 @@ $tpl->assign(
 generateNavigation($tpl);
 generatePageMessage($tpl);
 
-$tpl->assign('LAYOUT_CONTENT', 'APS page content goes here'); // TODO Replace by partial content from APS controller
+$tpl->assign('LAYOUT_CONTENT', $pageContent); // TODO Replace by partial content from APS controller
 
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 

@@ -112,56 +112,53 @@ sub _buildAdminerSQLFiles
 {
 	my $self = shift;
 
-	my $rs = 0;
-	my ($stdout, $stderr);
-	
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'AdminerSQL'
 	);
-	
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
-	
+
 	require JSON;
 	JSON->import();
 
 	my $adminerSqlConfig = decode_json($rdata->{'AdminerSQL'}->{'plugin_config'});
-	
 	my $adminerSqlDriver = ($adminerSqlConfig->{'driver'} eq 'all' ? '' : ' ' . $adminerSqlConfig->{'driver'});
 	my $adminerSqlLanguage = ($adminerSqlConfig->{'language'} eq 'all' ? '' : ' ' . $adminerSqlConfig->{'language'});
-	
-	$rs = $self->_copyStyleAdminerSQL($adminerSqlConfig->{'style'});
+
+	my $rs = $self->_copyStyleAdminerSQL($adminerSqlConfig->{'style'});
 	return $rs if $rs;
-	
+
 	# Compiling adminer.php
-	$rs = execute("$main::imscpConfig{'CMD_PHP'} $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/compile.php " . $adminerSqlDriver.$adminerSqlLanguage, \$stdout, \$stderr);
+	my ($stdout, $stderr);
+	$rs = execute(
+		"$main::imscpConfig{'CMD_PHP'} $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/compile.php " . $adminerSqlDriver.$adminerSqlLanguage,
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-			
 	return $rs if $rs;
 	
 	# Compiling editor.php
-	$rs = execute("$main::imscpConfig{'CMD_PHP'} $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/compile.php editor " . $adminerSqlDriver.$adminerSqlLanguage, \$stdout, \$stderr);
+	$rs = execute(
+		"$main::imscpConfig{'CMD_PHP'} $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/compile.php editor " . $adminerSqlDriver.$adminerSqlLanguage,
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-			
 	return $rs if $rs;
 	
 	$rs = $self->_modifyCompiledAdminerSQLFiles(
 		$adminerSqlConfig->{'adminer_version'}, $adminerSqlConfig->{'driver'}, $adminerSqlConfig->{'language'}
 	);
 	return $rs if $rs;
-	
-	$rs = $self->_moveCompiledAdminerSQLFilesToPublicFolder(
+
+	$self->_moveCompiledAdminerSQLFilesToPublicFolder(
 		$adminerSqlConfig->{'adminer_version'}, $adminerSqlConfig->{'driver'}, $adminerSqlConfig->{'language'}
 	);
-	return $rs if $rs;
-	
-	0;
 }
 
 =item _copyStyleAdminerSQL()
@@ -176,22 +173,28 @@ sub _copyStyleAdminerSQL
 {
 	my $self = shift;
 	my $adminerStyle = shift;
-	
+
 	my $rs = 0;
-	my ($stdout, $stderr);
 
 	# Copy the adminer.css
+	my ($stdout, $stderr);
 	if($adminerStyle ne 'default') {
-		$rs = execute("$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/designs/" . $adminerStyle . "/adminer.css $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default.css", \$stdout, \$stderr);
+		$rs = execute(
+			"$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/designs/" . $adminerStyle . "/adminer.css $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default.css",
+			\$stdout,
+			\$stderr
+		);
 	} else {
-		$rs = execute("$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default_sik.css $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default.css", \$stdout, \$stderr);
+		$rs = execute(
+			"$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default_sik.css $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/adminer/static/default.css",
+			\$stdout,
+			\$stderr
+		);
 	}
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	
-	return $rs if $rs;
-	
-	0;
+
+	$rs
 }
 
 =item _modifyCompiledAdminerSQLFiles()
@@ -208,54 +211,52 @@ sub _modifyCompiledAdminerSQLFiles
 	my $adminerVersion = shift;
 	my $adminerSqlDriver = shift;
 	my $adminerSqlLanguage = shift;
-	
+
 	my $compiledAdminerFileName = 'adminer-' . $adminerVersion;
 	my $compiledEditorFileName = 'editor-' . $adminerVersion;
-	
+
 	if($adminerSqlDriver ne 'all') {
 		$compiledAdminerFileName .= '-' . $adminerSqlDriver;
 		$compiledEditorFileName .= '-' . $adminerSqlDriver;
 	}
+
 	if($adminerSqlLanguage ne 'all') {
 		$compiledAdminerFileName .= '-' . $adminerSqlLanguage;
 		$compiledEditorFileName .= '-' . $adminerSqlLanguage;
 	}
-	
+
 	# Modify the complied adminer.php
 	my $compiledAdminerFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/AdminerSQL/adminer-sources/' . $compiledAdminerFileName . '.php';
 	my $file = iMSCP::File->new('filename' => $compiledAdminerFile);
-	
+
 	my $fileContent = $file->get();
 	return $fileContent if ! $fileContent;
-	
-	if ($fileContent =~ /get_session/sgm) {
-		$fileContent =~ s/get_session/get_session_adminer/g;
-	}
-	
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
 
-	my $rs = $file->save();
-	return $rs if $rs;
-	
-	# Modify the complied editor.php
-	my $compiledEditorFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/AdminerSQL/adminer-sources/' . $compiledEditorFileName . '.php';
-	$file = iMSCP::File->new('filename' => $compiledEditorFile);
-	
-	$fileContent = $file->get();
-	return $fileContent if ! $fileContent;
-	
 	if ($fileContent =~ /get_session/sgm) {
 		$fileContent =~ s/get_session/get_session_adminer/g;
 	}
-	
-	$rs = $file->set($fileContent);
+
+	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$rs = $file->save();
 	return $rs if $rs;
-	
-	0;
+
+	# Modify the complied editor.php
+	my $compiledEditorFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/AdminerSQL/adminer-sources/' . $compiledEditorFileName . '.php';
+	$file = iMSCP::File->new('filename' => $compiledEditorFile);
+
+	$fileContent = $file->get();
+	return $fileContent if ! $fileContent;
+
+	if ($fileContent =~ /get_session/sgm) {
+		$fileContent =~ s/get_session/get_session_adminer/g;
+	}
+
+	$rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$file->save();
 }
 
 =item _moveCompiledAdminerSQLFilesToPublicFolder()
@@ -272,10 +273,7 @@ sub _moveCompiledAdminerSQLFilesToPublicFolder
 	my $adminerVersion = shift;
 	my $adminerSqlDriver = shift;
 	my $adminerSqlLanguage = shift;
-	
-	my $rs = 0;
-	my ($stdout, $stderr);
-	
+
 	my $compiledAdminerFileName = 'adminer-' . $adminerVersion;
 	my $compiledEditorFileName = 'editor-' . $adminerVersion;
 	
@@ -283,42 +281,47 @@ sub _moveCompiledAdminerSQLFilesToPublicFolder
 		$compiledAdminerFileName .= '-' . $adminerSqlDriver;
 		$compiledEditorFileName .= '-' . $adminerSqlDriver;
 	}
+
 	if($adminerSqlLanguage ne 'all') {
 		$compiledAdminerFileName .= '-' . $adminerSqlLanguage;
 		$compiledEditorFileName .= '-' . $adminerSqlLanguage;
 	}
 
-	$rs = execute("$main::imscpConfig{'CMD_MV'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/" . $compiledAdminerFileName . ".php $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/frontend/adminer.php", \$stdout, \$stderr);
+	my ($stdout, $stderr);
+	my $rs = execute(
+		"$main::imscpConfig{'CMD_MV'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/" . $compiledAdminerFileName . ".php $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/frontend/adminer.php",
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	
 	return $rs if $rs;
-	
-	$rs = execute("$main::imscpConfig{'CMD_MV'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/" . $compiledEditorFileName . ".php $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/frontend/editor.php", \$stdout, \$stderr);
+
+	$rs = execute(
+		"$main::imscpConfig{'CMD_MV'} -f $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources/" . $compiledEditorFileName . ".php $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/frontend/editor.php",
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	
 	return $rs if $rs;
-	
+
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
 	require iMSCP::Rights;
 	iMSCP::Rights->import();
-	
+
 	$rs = setRights(
 		$main::imscpConfig{'GUI_ROOT_DIR'} . "/plugins/AdminerSQL/frontend/adminer.php",
-		{ 'user' => $panelUName, 'group' => $panelGName, 'filemode' => '0644' }
+		{ 'user' => $panelUName, 'group' => $panelGName, 'filemode' => '0640' }
 	);
 	return $rs if $rs;
 
-	$rs = setRights(
+	setRights(
 		$main::imscpConfig{'GUI_ROOT_DIR'} . "/plugins/AdminerSQL/frontend/editor.php",
-		{ 'user' => $panelUName, 'group' => $panelGName, 'filemode' => '0644' }
+		{ 'user' => $panelUName, 'group' => $panelGName, 'filemode' => '0640' }
 	);
-	return $rs if $rs;
-	
-	0;
 }
 
 =back

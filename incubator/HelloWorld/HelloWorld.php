@@ -42,22 +42,22 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
-		$controller->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+		$eventsManager->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeInstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+		if($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 

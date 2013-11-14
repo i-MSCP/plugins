@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  HelloWorld
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -69,7 +69,7 @@ function mailman_manageList()
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($listId === '-1') { // New email list
+			if ($listId === '-1') { // New email list
 				try {
 					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
@@ -89,8 +89,8 @@ function mailman_manageList()
 							$cfg['ITEM_TOADD_STATUS']
 						)
 					);
-				} catch(iMSCP_Exception_Database $e) {
-					if($e->getCode() == 23000) { // Duplicate entries
+				} catch (iMSCP_Exception_Database $e) {
+					if ($e->getCode() == 23000) { // Duplicate entries
 						set_page_message(
 							tr("List %s already exists. Please choose other name.", $listName), 'warning'
 						);
@@ -119,7 +119,7 @@ function mailman_manageList()
 					)
 				);
 
-				if(!$stmt->rowCount()) {
+				if (!$stmt->rowCount()) {
 					showBadRequestErrorPage();
 				}
 			}
@@ -154,7 +154,7 @@ function mailman_deleteList($listId)
 	$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
 	$stmt = exec_query($query, array($cfg['ITEM_TODELETE_STATUS'], $listId, $mainDmnProps['domain_admin_id']));
 
-	if(!$stmt->rowCount()) {
+	if (!$stmt->rowCount()) {
 		showBadRequestErrorPage();
 	}
 
@@ -186,10 +186,10 @@ function mailman_generatePage($tpl)
 			`t1`.`mailman_list_name`
 	';
 	$stmt = exec_query($query, $_SESSION['user_id']);
-	$lists = $stmt->fetchAll(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC|PDO::FETCH_GROUP);
+	$lists = $stmt->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
 
-	if($stmt->rowCount()) {
-		foreach($lists as $listId => $listData) {
+	if ($stmt->rowCount()) {
+		foreach ($lists as $listId => $listData) {
 			$tpl->assign(
 				array(
 					'LIST_URL' => "http://lists.{$listData['domain_name']}/admin/{$listData['mailman_list_name']}",
@@ -284,7 +284,7 @@ if (isset($_REQUEST['action'])) {
 			set_page_message(tr('Mailing list successfully scheduled for addition'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif($action == 'edit') {
+	} elseif ($action == 'edit') {
 		if (!empty($_POST) && mailman_manageList()) {
 			set_page_message(tr('Mailing list successfully scheduled for update'), 'success');
 			redirectTo('mailman.php');

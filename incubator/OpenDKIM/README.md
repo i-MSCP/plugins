@@ -1,6 +1,6 @@
 ## i-MSCP OpenDKIM plugin v0.0.1
 
-Plugin allows to manage OpenDKIM with i-MSCP.
+Plugin providing OpenDKIM an implementation for i-MSCP.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -52,10 +52,10 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 ### CONFIGURATION OF THE OPENDKIM DAEMON
 
 You can set the port in the file plugins/OpenDKIM/config.php
-Use min. 4 and not more as 5 digits and not greater 65535
+Use min. 4 and not more as 5 digits and not greater than 65535
 Default and fallback port is: 12345
 
-You can set trusted domains in the config.php. As default 127.0.0.1 and localhost are added
+You can set trusted domains in the config.php. As default 127.0.0.1 and localhost are added.
 
 ### AUTHORS AND CONTRIBUTORS
 

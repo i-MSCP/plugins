@@ -90,7 +90,7 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
 	public function getPanel()
 	{
 		$version = iMSCP_Registry::get('config')->Version;
-		$pluginInfo = iMSCP_Registry::get('pluginManager')->load('DebugBar')->getInfo();
+		$pluginInfo = iMSCP_Registry::get('pluginManager')->getPluginInfo('DebugBar');
 
 		$panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
 			'<p>©2010-2013 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .

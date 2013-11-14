@@ -78,11 +78,11 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 * Register a callback for the given event(s)
 	 *
 	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
 
 		if(!is_xhr()) { // Do not act on AJAX request
 			$components = $this->getConfigParam('components');
@@ -102,14 +102,14 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 							$events = $component->getListenedEvents();
 
 							if(!empty($events)) {
-								$controller->registerListener($events, $component, $component->getPriority());
+								$eventsManager->registerListener($events, $component, $component->getPriority());
 							}
 						}
 
 						$this->components[] = $component;
 					}
 
-					$controller->registerListener($this->getListenedEvents(), $this, -100);
+					$eventsManager->registerListener($this->getListenedEvents(), $this, -100);
 				} else {
 					throw new iMSCP_Plugin_Exception(
 						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
@@ -120,13 +120,13 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
+		if($event->getParam('pluginName') == $this->getName()) {
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
@@ -135,7 +135,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}

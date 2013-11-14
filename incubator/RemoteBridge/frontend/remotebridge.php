@@ -30,7 +30,7 @@
  * Functions
  */
 
- /**
+/**
  * Add or update Remote Bridge
  *
  * @return boolean TRUE on success, FALSE otherwise
@@ -47,7 +47,7 @@ function bridge_manageKEY()
 			set_page_message(tr("Wrong IP address"), 'error');
 			$error = true;
 		}
-		
+
 		if (strlen($bridgeKey) !== 30) {
 			set_page_message(tr("Wrong Remote Bridge key"), 'error');
 			$error = true;
@@ -57,7 +57,7 @@ function bridge_manageKEY()
 			/** @var iMSCP_Config_Handler_File $cfg */
 			$cfg = iMSCP_Registry::get('config');
 
-			if($bridgeID === '-1') { // New Remote Bridge
+			if ($bridgeID === '-1') { // New Remote Bridge
 				$query = '
 					INSERT INTO remote_bridge (
 						`bridge_admin_id`, `bridge_ipaddress`, `bridge_key`, `bridge_status`
@@ -70,8 +70,8 @@ function bridge_manageKEY()
 					exec_query(
 						$query, array($_SESSION['user_id'], $serverIpaddress, $bridgeKey, $cfg->ITEM_TOADD_STATUS)
 					);
-				} catch(iMSCP_Exception_Database $e) {
-					if($e->getCode() == 23000) { // Duplicate entries
+				} catch (iMSCP_Exception_Database $e) {
+					if ($e->getCode() == 23000) { // Duplicate entries
 						set_page_message(tr("The Remote Bridge key $bridgeKey already exist."), 'error');
 						return false;
 					}
@@ -92,13 +92,13 @@ function bridge_manageKEY()
 					array($serverIpaddress, $bridgeKey, $cfg->ITEM_TOCHANGE_STATUS, $bridgeID, $_SESSION['user_id'])
 				);
 
-				if(!$stmt->rowCount()) {
+				if (!$stmt->rowCount()) {
 					showBadRequestErrorPage();
 				}
 			}
 
 			runBridgeRequest();
-			
+
 			return true;
 		} else {
 			return false;
@@ -122,33 +122,24 @@ function bridge_deleteKEY()
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
-		$query = '
-			UPDATE 
-				`remote_bridge` 
-			SET 
-				`bridge_status` = ? 
-			WHERE 
-				`bridge_id` = ? 
-			AND 
-				`bridge_admin_id` = ?
-		';
+		$query = 'UPDATE  `remote_bridge`  SET  `bridge_status` = ?  WHERE  `bridge_id` = ?  AND  `bridge_admin_id` = ?';
 		$stmt = exec_query($query, array($cfg->ITEM_TODELETE_STATUS, $bridgeID, $_SESSION['user_id']));
 
-		if(!$stmt->rowCount()) {
+		if (!$stmt->rowCount()) {
 			showBadRequestErrorPage();
 		}
-		
+
 		runBridgeRequest();
 	} else {
 		showBadRequestErrorPage();
 	}
 }
 
+/**
+ *
+ */
 function runBridgeRequest()
 {
-	/** @var iMSCP_Config_Handler_File $cfg */
-	$cfg = iMSCP_Registry::get('config');
-
 	$query = "
 		SELECT
 			*
@@ -160,62 +151,49 @@ function runBridgeRequest()
 			`bridge_status`  IN ('toadd', 'tochange', 'todelete')
 	";
 	$stmt = exec_query($query, $_SESSION['user_id']);
-	$bridgelists = $stmt->fetchAll(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC|PDO::FETCH_GROUP);
-	
-	if($stmt->rowCount()) {
-		foreach($bridgelists as $bridgeID => $bridgeData) {
-			if($bridgeData['bridge_status'] == 'toadd') {
-				addRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
-			} elseif($bridgeData['bridge_status'] == 'tochange') {
-				updateRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
-			} elseif($bridgeData['bridge_status'] == 'todelete') {
-				deleteRemoteBridge($bridgeData['bridge_key'],$bridgeData['bridge_ipaddress']);
+	$bridgelists = $stmt->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
+
+	if ($stmt->rowCount()) {
+		foreach ($bridgelists as $bridgeID => $bridgeData) {
+			if ($bridgeData['bridge_status'] == 'toadd') {
+				addRemoteBridge($bridgeData['bridge_key'], $bridgeData['bridge_ipaddress']);
+			} elseif ($bridgeData['bridge_status'] == 'tochange') {
+				updateRemoteBridge($bridgeData['bridge_key'], $bridgeData['bridge_ipaddress']);
+			} elseif ($bridgeData['bridge_status'] == 'todelete') {
+				deleteRemoteBridge($bridgeData['bridge_key'], $bridgeData['bridge_ipaddress']);
 			}
 		}
 	}
 }
 
-function addRemoteBridge($bridgeKey,$serverIpAddr)
+/**
+ * @param $bridgeKey
+ * @param $serverIpAddr
+ */
+function addRemoteBridge($bridgeKey, $serverIpAddr)
 {
-	$query = "
-		UPDATE 
-			`remote_bridge` 
-		SET 
-			`bridge_status` = 'ok' 
-		WHERE 
-			`bridge_key` = ? 
-		AND 
-			`bridge_ipaddress` = ?
-	";
-	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+	$query = "UPDATE `remote_bridge` SET  `bridge_status` = 'ok' WHERE `bridge_key` = ? AND `bridge_ipaddress` = ?";
+	exec_query($query, array($bridgeKey, $serverIpAddr));
 }
 
-function updateRemoteBridge($bridgeKey,$serverIpAddr)
+/**
+ * @param $bridgeKey
+ * @param $serverIpAddr
+ */
+function updateRemoteBridge($bridgeKey, $serverIpAddr)
 {
-	$query = "
-		UPDATE 
-			`remote_bridge` 
-		SET 
-			`bridge_status` = 'ok' 
-		WHERE 
-			`bridge_key` = ? 
-		AND 
-			`bridge_ipaddress` = ?
-	";
-	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+	$query = "UPDATE  `remote_bridge`  SET  `bridge_status` = 'ok'  WHERE  `bridge_key` = ? AND  `bridge_ipaddress` = ?";
+	exec_query($query, array($bridgeKey, $serverIpAddr));
 }
 
-function deleteRemoteBridge($bridgeKey,$serverIpAddr)
+/**
+ * @param $bridgeKey
+ * @param $serverIpAddr
+ */
+function deleteRemoteBridge($bridgeKey, $serverIpAddr)
 {
-	$query = "
-		DELETE FROM
-			`remote_bridge` 
-		WHERE 
-			`bridge_key` = ? 
-		AND 
-			`bridge_ipaddress` = ?
-	";
-	$stmt = exec_query($query, array($bridgeKey, $serverIpAddr));
+	$query = "DELETE FROM `remote_bridge`  WHERE  `bridge_key` = ?  AND `bridge_ipaddress` = ?";
+	exec_query($query, array($bridgeKey, $serverIpAddr));
 }
 
 /**
@@ -229,19 +207,13 @@ function bridge_generatePage($tpl)
 	/** @var iMSCP_Config_Handler_File $cfg */
 	$cfg = iMSCP_Registry::get('config');
 
-	$query = '
-		SELECT
-			*
-		FROM
-			`remote_bridge`
-		WHERE
-			`bridge_admin_id` = ?
-	';
+	$query = 'SELECT * FROM `remote_bridge` WHERE `bridge_admin_id` = ?';
 	$stmt = exec_query($query, $_SESSION['user_id']);
-	$bridgelists = $stmt->fetchAll(PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC|PDO::FETCH_GROUP);
 
-	if($stmt->rowCount()) {
-		foreach($bridgelists as $bridgeID => $bridgeData) {
+	$bridgelists = $stmt->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
+
+	if ($stmt->rowCount()) {
+		foreach ($bridgelists as $bridgeID => $bridgeData) {
 			$tpl->assign(
 				array(
 					'BRIDGE_IPADDRESS' => tohtml($bridgeData['bridge_ipaddress']),
@@ -325,30 +297,27 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onResellerScriptStar
 
 check_login('reseller');
 
-if(iMSCP_Registry::isRegistered('pluginManager')) {
+if (iMSCP_Registry::isRegistered('pluginManager')) {
 	/** @var iMSCP_Plugin_Manager $pluginManager */
 	$pluginManager = iMSCP_Registry::get('pluginManager');
 } else {
 	throw new iMSCP_Plugin_Exception('An unexpected error occured');
 }
 
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
-
 if (isset($_REQUEST['action'])) {
 	$action = clean_input($_REQUEST['action']);
 
-	if ($action === 'add') {
+	if ($action == 'add') {
 		if (bridge_manageKEY()) {
 			set_page_message(tr('Remote Bridge successfully scheduled for addition'), 'success');
 			redirectTo('remotebridge.php');
 		}
-	} elseif($action === 'edit') {
+	} elseif ($action == 'edit') {
 		if (!empty($_POST) && bridge_manageKEY()) {
 			set_page_message(tr('Remote Bridge successfully scheduled for update'), 'success');
 			redirectTo('remotebridge.php');
 		}
-	} elseif ($action === 'delete') {
+	} elseif ($action == 'delete') {
 		bridge_deleteKEY();
 		set_page_message(tr('Remote Bridge successfully scheduled for deletion'), 'success');
 	} else {
@@ -390,9 +359,7 @@ $tpl->assign(
 );
 
 generateNavigation($tpl);
-
 bridge_generatePage($tpl);
-
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

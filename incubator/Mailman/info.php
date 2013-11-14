@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2013 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  HelloWorld
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -32,6 +32,6 @@ return array(
 	'version' => '0.0.2',
 	'date' => '2013-11-25',
 	'name' => 'Mailman',
-	'desc' => 'Plugin allowing to manage mailing-lists (using Mailman)',
+	'desc' => 'Plugin allowing to manage mailing-lists (using Mailman).',
 	'url' => 'http://i-mscp.net'
 );

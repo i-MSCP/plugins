@@ -27,9 +27,11 @@
  */
 
 return array(
-	'opendkim_port' => '12345', # Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535)
-	
-	'opendkim_trusted_hosts' => array( # add the domains which should be use as trusted hosts
+	// Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535)
+	'opendkim_port' => '12345',
+
+	// Add domains which should be considered as trusted hosts by OpenDKIM
+	'opendkim_trusted_hosts' => array(
 		'127.0.0.1',
 		'localhost'
 	)
