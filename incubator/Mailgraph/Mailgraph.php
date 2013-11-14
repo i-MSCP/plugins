@@ -88,18 +88,6 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Plugin uninstallation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only there to tell the plugin manager that this plugin can be uninstalled
-	}
-
-	/**
 	 * onAdminScriptStart listener
 	 *
 	 * @return void
