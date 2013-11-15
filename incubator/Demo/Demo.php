@@ -62,7 +62,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
 
-		if ($pluginManager->getStatus($this->getName()) == 'enabled') {
+		if ($pluginManager->getPluginStatus($this->getName()) == 'enabled') {
 			$events = $this->getConfigParam('disabled_actions', array());
 
 			if(is_array($events)) {
@@ -90,7 +90,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				throw new iMSCP_Plugin_Exception('Disabled actions should be provided as array.');
 			}
 		} else {
-			$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+			$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
 		}
 	}
 
@@ -113,23 +113,20 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master') {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		} else {
 			$this->__call($event->getName(), array($event));

@@ -48,7 +48,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onBeforeAddDomainAlias,
 				iMSCP_Events::onAfterAddDomainAlias
 			),
@@ -57,22 +57,19 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate < 20120323) {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}

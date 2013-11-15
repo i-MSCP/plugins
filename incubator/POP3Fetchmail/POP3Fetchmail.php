@@ -35,6 +35,34 @@
 class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 {
 	/**
+	 * Register a callback for the given event(s).
+	 *
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
+	 */
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
+	{
+		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+	}
+
+	/**
+	 * onBeforeInstallPlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeInstallPlugin($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			}
+		}
+	}
+
+	/**
 	 * Process plugin installation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -63,37 +91,6 @@ class iMSCP_Plugin_POP3Fetchmail extends iMSCP_Plugin_Action
 			$this->dropDbTable();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Register a callback for the given event(s).
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
-	}
-
-	/**
-	 * onBeforeInstallPlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeInstallPlugin($event)
-	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if ($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20130723) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation(true);
-			}
 		}
 	}
 

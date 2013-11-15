@@ -58,31 +58,7 @@ sub install
 {
 	my $self = shift;
 
-	my $rs = $self->_copyPop3fetcherRoundcubePlugin();
-	return $rs if $rs;
-	
-	$rs = $self->_setPop3FetcherCronjobDatabaseImscp();
-	return $rs if $rs;
-	
-	$rs = $self->_registerPop3fetcherRoundcubePlugin();
-	return $rs if $rs;
-	
-	$self->_registerCronjob();
-}
-
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	my $self = shift;
-
-	my $rs = $self->_copyPop3fetcherRoundcubePlugin();
+	my $rs = $self->_installPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
 	
 	$rs = $self->_setPop3FetcherCronjobDatabaseImscp();
@@ -106,19 +82,40 @@ sub update
 {
 	my $self = shift;
 
-	my $rs = $self->_copyPop3fetcherRoundcubePlugin();
+	my $rs = $self->_installPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
 
 	my $rs = $self->_setPop3FetcherCronjobDatabaseImscp();
-	return $rs if $rs;
-
-	$rs = $self->_unregisterPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
 
 	$rs = $self->_registerPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
 
 	$rs = $self->_unregisterCronjob();
+	return $rs if $rs;
+
+	$self->_registerCronjob();
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->_installPop3fetcherRoundcubePlugin();
+	return $rs if $rs;
+
+	$rs = $self->_setPop3FetcherCronjobDatabaseImscp();
+	return $rs if $rs;
+
+	$rs = $self->_registerPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
 
 	$self->_registerCronjob();
@@ -172,7 +169,8 @@ sub uninstall
 {
 	my $self = shift;
 
-	my $pop3FetcherFolder = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher';
+	my $pop3FetcherFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher';
 
 	my $rs = $self->_unregisterCronjob();
 	return $rs if $rs;
@@ -193,22 +191,15 @@ sub uninstall
 
 sub fetchmails
 {
-	my $self = shift;
+	my $pop3FetcherCronFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher/cron';
 
 	my ($stdout, $stderr);
-
-	my $pop3FetcherCronFolder = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher/cron';
-
-	my $rs = execute(
-		$main::imscpConfig{'CMD_PHP'} . " " . $pop3FetcherCronFolder . '/fetchmail.php',
-		\$stdout,
-		\$stderr
-	);
+	my $rs = execute("$main::imscpConfig{'CMD_PHP'} $pop3FetcherCronFolder/fetchmail.php", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
 
-	0;
+	$rs;
 }
 
 =back
@@ -225,17 +216,15 @@ sub fetchmails
 
 =cut
 
-sub _copyPop3fetcherRoundcubePlugin
+sub _installPop3fetcherRoundcubePlugin
 {
-	my $self = shift;
-
 	my $rs = 0;
-	my ($stdout, $stderr);
 
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-	my $pop3FetcherFolder = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher';
+	my $pop3FetcherFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher';
 
 	if(! -d $pop3FetcherFolder) {
 		$rs = iMSCP::Dir->new('dirname' => $pop3FetcherFolder)->make(
@@ -244,8 +233,9 @@ sub _copyPop3fetcherRoundcubePlugin
 		return $rs if $rs;
 	}
 
+	my ($stdout, $stderr);
 	$rs = execute(
-		$main::imscpConfig{'CMD_CP'} . " -fR " . $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/POP3Fetchmail/roundcube-plugin/* ' . $pop3FetcherFolder,
+		"$main::imscpConfig{'CMD_CP'} -fR $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/POP3Fetchmail/roundcube-plugin/* $pop3FetcherFolder",
 		\$stdout,
 		\$stderr
 	);
@@ -273,14 +263,17 @@ sub _copyPop3fetcherRoundcubePlugin
 
 sub _setPop3FetcherCronjobDatabaseImscp
 {
-	my $self = shift;
-
 	# Modify the roundcube pop3fetcher/cron/fetchmail.php
-	my $pop3fetcherFetchmailFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher/cron/fetchmail.php';
+	my $pop3fetcherFetchmailFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'plugins/pop3fetcher/cron/fetchmail.php';
+
 	my $file = iMSCP::File->new('filename' => $pop3fetcherFetchmailFile);
 
 	my $fileContent = $file->get();
-	return $fileContent if ! $fileContent;
+	unless (defined $fileContent) {
+		error("Unable to read $pop3fetcherFetchmailFile");
+		return 1;
+	}
 
 	if ($fileContent =~ /###IMSCP-DATABASE###/sgm) {
 		$fileContent =~ s/###IMSCP-DATABASE###/$main::imscpConfig{'DATABASE_NAME'}/g;
@@ -302,14 +295,17 @@ sub _setPop3FetcherCronjobDatabaseImscp
 
 sub _registerPop3fetcherRoundcubePlugin
 {
-	my $self = shift;
-
 	# Modify the roundcube main.inc.php
-	my $roundcubeMainIncFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'config/main.inc.php';
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'config/main.inc.php';
+
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 
 	my $fileContent = $file->get();
-	return $fileContent if ! $fileContent;
+	unless (defined $fileContent) {
+		error("Unable to read $roundcubeMainIncFile");
+		return 1;
+	}
 
 	if ($fileContent =~ /imscp_pw_changer/sgm) {
 		$fileContent =~ s/imscp_pw_changer/imscp_pw_changer', 'pop3fetcher/g;
@@ -331,14 +327,17 @@ sub _registerPop3fetcherRoundcubePlugin
 
 sub _unregisterPop3fetcherRoundcubePlugin
 {
-	my $self = shift;
-
 	# Modify the roundcube main.inc.php
-	my $roundcubeMainIncFile = $main::imscpConfig{'GUI_ROOT_DIR'} . '/public/tools' . $main::imscpConfig{'WEBMAIL_PATH'} . 'config/main.inc.php';
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" .
+		$main::imscpConfig{'WEBMAIL_PATH'} . 'config/main.inc.php';
+
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 
 	my $fileContent = $file->get();
-	return $fileContent if ! $fileContent;
+	unless (defined $fileContent) {
+		error("Unable to read $roundcubeMainIncFile");
+		return 1;
+    }
 
 	if ($fileContent =~ /pop3fetcher/sgm) {
 		$fileContent =~ s/,\s+\'pop3fetcher\'//g;
@@ -360,13 +359,9 @@ sub _unregisterPop3fetcherRoundcubePlugin
 
 sub _registerCronjob
 {
-	my $self = shift;
-
 	require iMSCP::Database;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'POP3Fetchmail'
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -385,7 +380,10 @@ sub _registerCronjob
 		my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
 
 		my $cronjobFileContent = $cronjobFile->get();
-		return 1 if ! $cronjobFileContent;
+		unless (defined $cronjobFileContent) {
+			error("Unable to read $cronjobFilePath");
+			return 1;
+		}
 
 		require iMSCP::Templator;
 		iMSCP::Templator->import();
@@ -400,8 +398,6 @@ sub _registerCronjob
 
 		$rs = $cronjobFile->save();
 		return $rs if $rs;
-
-		# TODO Check syntax for config values
 
 		require Servers::cron;
 		Servers::cron->factory()->addTask(
@@ -430,12 +426,8 @@ sub _registerCronjob
 
 sub _unregisterCronjob
 {
-	my $self = shift;
-
 	require Servers::cron;
 	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:POP3Fetchmail' });
-
-	0;
 }
 
 =back

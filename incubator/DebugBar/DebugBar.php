@@ -126,11 +126,8 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master') {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
