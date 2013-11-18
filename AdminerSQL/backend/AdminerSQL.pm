@@ -137,7 +137,7 @@ sub enable()
 	$rs = $file->mode(0440);
 	return $rs if $rs;
 
-	$rs = $file->moveFile("$productionDir/editor.php");
+	$file->moveFile("$productionDir/editor.php");
 }
 
 =item disable()
