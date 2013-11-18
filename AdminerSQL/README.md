@@ -41,7 +41,7 @@ You can set the SQL driver, language and theme in the plugins/AdminerSQL/config.
 
 ### AUTHORS AND CONTRIBUTORS
 
-Sascha Bay <info@space2place.de> (Author)
-Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
+ * Sascha Bay <info@space2place.de> (Author)
+ * Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
 
 **Thank you for using this plugin.**
