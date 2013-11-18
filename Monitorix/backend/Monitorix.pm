@@ -48,7 +48,7 @@ use parent 'Common::SingletonClass';
 
 =item install()
 
- Perform install tasks
+ Process install tasks
 
  Return int 0 on success, other on failure
 
@@ -70,64 +70,11 @@ sub install
 
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
-
-	$rs = $self->_registerCronjob();
-	return $rs if $rs;
-
-	$rs = $self->_restartDaemonMonitorix();
-	return $rs if $rs;
-
-	$self->buildMonitorixGraphics();
-}
-
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	my $self = shift;
-
-	my $rs = $self->_registerCronjob();
-	return $rs if $rs;
-
-	$self->buildMonitorixGraphics();
-}
-
-=item update()
-
- Perform update tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	my $self = shift;
-
-	my $rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
-	return $rs if $rs;
-
-	$rs = $self->_restartDaemonMonitorix();
-	return $rs if $rs;
-
-	$rs = $self->_unregisterCronjob();
-	return $rs if $rs;
-
-	$rs = $self->_registerCronjob();
-	return $rs if $rs;
-
-	$self->buildMonitorixGraphics();
 }
 
 =item enable()
 
- Perform enable tasks
+ Process enable tasks
 
  Return int 0 on success, other on failure
 
@@ -137,7 +84,13 @@ sub enable
 {
 	my $self = shift;
 
-	my $rs = $self->_registerCronjob();
+	my $rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
+	return $rs if $rs;
+
+	$rs = $self->_restartDaemonMonitorix();
+	return $rs if $rs;
+
+	$rs = $self->_registerCronjob();
 	return $rs if $rs;
 
 	$self->buildMonitorixGraphics();
@@ -145,7 +98,7 @@ sub enable
 
 =item disable()
 
- Perform disable tasks
+ Process disable tasks
 
  Return int 0 on success, other on failure
 
@@ -160,7 +113,7 @@ sub disable
 
 =item uninstall()
 
- Perform uninstall tasks
+ Process uninstall tasks
 
  Return int 0 on success, other on failure
 
@@ -170,10 +123,7 @@ sub uninstall
 {
 	my $self = shift;
 
-	my $rs = $self->_unregisterCronjob();
-	return $rs if $rs;
-
-	$rs = $self->_modifyMonitorixCgiFile('remove');
+	my $rs = $self->_modifyMonitorixCgiFile('remove');
 	return $rs if $rs;
 
 	$rs = $self->_modifyMonitorixSystemConfig('remove');
@@ -207,9 +157,7 @@ sub buildMonitorixGraphics
 
 	my $monitorixGraphColor;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
 	);
 
@@ -255,13 +203,9 @@ sub buildMonitorixGraphics
 
 sub _createMonitorixGraphics
 {
-	my $self = shift;
-
-	my $graph = shift;
-	my $graphColor = shift;
+	my ($self, $graph, $graphColor) = @_;
 
 	my ($stdout, $stderr);
-
 	my $rs = execute(
 		'/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
@@ -306,8 +250,6 @@ sub _createMonitorixGraphics
 
 sub _setMonitorixGraphicsPermission
 {
-	my $self = shift;
-
 	my $rs = 0;
 
 	my $panelUname =
@@ -331,7 +273,7 @@ sub _setMonitorixGraphicsPermission
 				$rs = $file->owner($panelUname, $panelGName);
 				return $rs if $rs;
 
-				$rs = $file->mode(0644);
+				$rs = $file->mode(0640);
 				return $rs if $rs;
 			}
 		}
@@ -353,10 +295,10 @@ sub _setMonitorixGraphicsPermission
 
 sub _modifyMonitorixSystemConfig
 {
-	my $self = shift;
-	my $action = shift;
+	my ($self, $action) = @_;
 
 	my $monitorixSystemConfig = '/etc/monitorix.conf';
+
 	if(! -f $monitorixSystemConfig) {
 		error("File $monitorixSystemConfig is missing.");
 		return 1;
@@ -365,7 +307,7 @@ sub _modifyMonitorixSystemConfig
 	my $file = iMSCP::File->new('filename' => $monitorixSystemConfig);
 
 	my $fileContent = $file->get();
-	if(! $fileContent) {
+	unless(defined $fileContent) {
 		error('Unable to read $monitorixSystemConfig.');
 		return 1;
 	}
@@ -416,9 +358,8 @@ sub _modifyMonitorixSystemConfig
 
 sub _modifyMonitorixSystemConfigEnabledGraphics
 {
-	my $self = shift;
-
 	my $monitorixSystemConfig = '/etc/monitorix.conf';
+
 	if(! -f $monitorixSystemConfig) {
 		error("File $monitorixSystemConfig is missing.");
 		return 1;
@@ -432,9 +373,7 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 		return 1;
 	}
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
 	);
 
@@ -468,10 +407,10 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 
 sub _modifyMonitorixCgiFile
 {
-	my $self = shift;
-	my $action = shift;
+	my ($self, $action) = @_;
 
 	my $monitorixCgi = '/usr/share/monitorix/cgi/monitorix.cgi';
+
 	if(! -f $monitorixCgi) {
 		error("File $monitorixCgi is missing.");
 		return 1;
@@ -486,7 +425,6 @@ sub _modifyMonitorixCgiFile
 	}
 	
 	my $monitorixCgiConfig = "open(IN, \"< /usr/share/monitorix/cgi/monitorix.conf.path\");";
-	
 	my $monitorixCgiOldConfig = "open(IN, \"< monitorix.conf.path\");";
 
 	if($action eq 'add') {
@@ -538,8 +476,6 @@ sub _modifyDefaultMonitorixApacheConfig
 
 sub _restartDaemonMonitorix
 {
-	my $self = shift;
-
 	my ($stdout, $stderr);
 	my $rs = execute('/usr/sbin/service monitorix restart', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -558,8 +494,6 @@ sub _restartDaemonMonitorix
 
 sub _restartDaemonApache
 {
-	my $self = shift;
-
 	require Servers::httpd;
 
 	my $httpd = Servers::httpd->factory();
@@ -579,13 +513,9 @@ sub _restartDaemonApache
 
 sub _registerCronjob
 {
-	my $self = shift;
-
 	require iMSCP::Database;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -623,8 +553,6 @@ sub _registerCronjob
 		$rs = $cronjobFile->save();
 		return $rs if $rs;
 
-		# TODO Check syntax for config values
-
 		require Servers::cron;
 		Servers::cron->factory()->addTask(
 			{
@@ -652,8 +580,6 @@ sub _registerCronjob
 
 sub _unregisterCronjob
 {
-	my $self = shift;
-
 	require Servers::cron;
 	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Monitorix' });
 }
@@ -691,7 +617,7 @@ sub _checkRequirements
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHOR
 
  Sascha Bay <info@space2place.de>
 

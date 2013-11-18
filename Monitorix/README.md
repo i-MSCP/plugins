@@ -1,4 +1,4 @@
-## i-MSCP Monitorix plugin v0.0.1
+## i-MSCP Monitorix plugin v0.0.2
 
 Plugin provides lightweight system monitoring tool for Linux/UNIX servers.
 
@@ -22,48 +22,44 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4
-	installation of monitorix:
-	* Download package from: http://www.monitorix.org/downloads.html
-	* wget http://www.monitorix.org/monitorix_(version)-izzy1_all.deb
-	* apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libhttp-server-simple-perl libconfig-general-perl
-	* dpkg -i monitorix_(version)-izzy1_all.deb
-	
-	* vi /etc/apt/sources.list
-	* add deb http://apt.izzysoft.de/ubuntu generic universe
-	* add the GPG key to your system: curl http://apt.izzysoft.de/izzysoft.asc 2>/dev/null | apt-key add -
-	* apt-get update
-	* apt-get install monitorix
-	* disable the buildin webserver of montitorix (<httpd_builtin>)
-	* check the logfile paths in the /etc/monitorix.conf
-	
-### INSTALLATION AND UPDATE
+	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
 
-**1.** Backup your current plugins/Monitorix/config.php
+### INSTALLATION
 
-**2.** Get the plugin
+	Installation of monitorix:
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+	Debian:
+	- Download package from: http://www.monitorix.org/downloads.html
+	- wget http://www.monitorix.org/monitorix_(version)-izzy1_all.deb
+	- apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libhttp-server-simple-perl libconfig-general-perl
+	- dpkg -i monitorix_(version)-izzy1_all.deb
 
-**3.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
+	Ubuntu:
+	- vi /etc/apt/sources.list
+	- add deb http://apt.izzysoft.de/ubuntu generic universe
+	- add the GPG key to your system: curl http://apt.izzysoft.de/izzysoft.asc 2>/dev/null | apt-key add -
+	- apt-get update && apt-get install monitorix
+	- disable the buildin webserver of montitorix (<httpd_builtin>)
+	- check the logfile paths in the /etc/monitorix.conf
 
-	# cp -fR plugins/Monitorix /var/www/imscp/gui/plugins
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the Monitorix plugin archive
+	- Activate the plugin
 
-**4.** Set permissions by running:
+### UPDATE
 
-	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
-
-**5.** Go to the panel plugins interface, update the plugin list and activate the plugin.
+	- Backup your current plugins/Monitorix/config.php file
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the Monitorix plugin archive
+	- Restore your plugins/Monitorix/config.php file (check for any change)
+	- Update the plugin list through the plugin interface
 
 ### CONFIGURATION OF THE OPENDKIM DAEMON
 
-You can set the port in the file plugins/Monitorix/config.php
-Set the colors of the graphs
-Activate the graphic you want to see
+ See the plugins/Monitorix/config.php file.
 
 ### AUTHORS AND CONTRIBUTORS
 
-Sascha Bay <info@space2place.de> (Author)
+ * Sascha Bay <info@space2place.de> (Author)
 
 **Thank you for using this plugin.**

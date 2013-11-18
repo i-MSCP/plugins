@@ -38,18 +38,18 @@
  * @param string $graphName
  * @return void
  */
-function monitorix_generateSelect($tpl, $pluginManager, $graphName='')
+function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 
-	$hostname = $cfg->SERVER_HOSTNAME ;
+	$hostname = $cfg->SERVER_HOSTNAME;
 
-	if (($plugin = $pluginManager->load('Monitorix', false, false)) !== null) {
+	if (($plugin = $pluginManager->loadPlugin('Monitorix', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
 
 		foreach ($pluginConfig['graph_enabled'] as $key => $value) {
-			if($value == 'y') {
+			if ($value == 'y') {
 				$tpl->assign(
 					array(
 						'TR_MONITORIX_SELECT_VALUE' => '_' . $key,
@@ -95,17 +95,17 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 
 	$graphDirectory = $pluginManager->getPluginDirectory() . '/Monitorix/tmp_graph';
 	$monitorixGraphics = array();
-	
-	if($dirHandle = @opendir($graphDirectory)) {
-		while(($file = @readdir($dirHandle)) !== FALSE) {
-			if(!is_dir($file) && preg_match("/^$graphName\d+[a-y]?[z]\.\d$showWhen\.png/", $file)) {
+
+	if ($dirHandle = @opendir($graphDirectory)) {
+		while (($file = @readdir($dirHandle)) !== FALSE) {
+			if (!is_dir($file) && preg_match("/^$graphName\d+[a-y]?[z]\.\d$showWhen\.png/", $file)) {
 				array_push($monitorixGraphics, $file);
 			}
 		}
 
 		closedir($dirHandle);
 
-		if(count($monitorixGraphics) > 0) {
+		if (count($monitorixGraphics) > 0) {
 			sort($monitorixGraphics);
 
 			foreach ($monitorixGraphics as $graphValue) {
@@ -150,7 +150,7 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
 
 check_login('admin');
 
-if(iMSCP_Registry::isRegistered('pluginManager')) {
+if (iMSCP_Registry::isRegistered('pluginManager')) {
 	/** @var iMSCP_Plugin_Manager $pluginManager */
 	$pluginManager = iMSCP_Registry::get('pluginManager');
 } else {
@@ -173,8 +173,8 @@ $tpl->define_dynamic(
 
 $graphName = (isset($_POST['graph_name']) && $_POST['graph_name'] !== '-1') ? clean_input($_POST['graph_name']) : '';
 
-if(isset($_POST['action']) && $_POST['action'] === 'go_show') {
-	if($graphName == '') {
+if (isset($_POST['action']) && $_POST['action'] === 'go_show') {
+	if ($graphName == '') {
 		$tpl->assign(
 			array(
 				'M_DAY_SELECTED' => $cfg->HTML_SELECTED,

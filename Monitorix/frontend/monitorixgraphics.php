@@ -34,14 +34,14 @@ check_login('admin');
 
 $whichGraph = (isset($_GET['graph']) && $_GET['graph'] != '') ? clean_input($_GET['graph']) : '';
 
-if($whichGraph != '') {
-	if(file_exists(PLUGINS_PATH . '/Monitorix/tmp_graph/' . $whichGraph . '.png')) {
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Monitorix/tmp_graph/' . $whichGraph . '.png');
+if ($whichGraph != '') {
+	if (file_exists(PLUGINS_PATH . '/Monitorix/tmp_graph/' . $whichGraph . '.png')) {
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Monitorix/tmp_graph/' . $whichGraph . '.png');
 	} else {
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Monitorix/frontend/noimage.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Monitorix/frontend/noimage.png');
 	}
 } else {
-	$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Monitorix/frontend/noimage.png');
+	$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Monitorix/frontend/noimage.png');
 }
 
 /* Output image to browser */

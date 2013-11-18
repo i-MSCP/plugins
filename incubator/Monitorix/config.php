@@ -27,7 +27,7 @@
  */
 
 return array(
-	'graph_color' => 'black', // choose between black or white
+	'graph_color' => 'white', // choose between black or white
 
 	'graph_width' => '450', // set the width for the graphic how they appears in adminpanel (proportional to 895 in px)
 	'graph_height' => '185', // set the height for the graphic how they appears in adminpanel (proportional to 367 in px)

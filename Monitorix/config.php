@@ -27,11 +27,11 @@
  */
 
 return array(
-	'graph_color' => 'black', // choose between black or white
-	
+	'graph_color' => 'white', // choose between black or white
+
 	'graph_width' => '450', // set the width for the graphic how they appears in adminpanel (proportional to 895 in px)
 	'graph_height' => '185', // set the height for the graphic how they appears in adminpanel (proportional to 367 in px)
-	
+
 	'graph_enabled' => array( // set which graph should be generated. This will modify the /etc/monitorix.conf
 		'system' => 'y',
 		'kern' => 'y',
@@ -61,7 +61,7 @@ return array(
 		'raspberrypi' => 'n',
 		'int' => 'y',
 	),
-	
+
 	'graph_title' => array( // set the graphic titles here
 		'system' => 'System load average and usage',
 		'kern' => 'Global kernel usage',
@@ -91,7 +91,7 @@ return array(
 		'raspberrypi' => 'Raspberry Pi sensor statistics',
 		'int' => 'Devices interrupt activity',
 	),
-	
+
 	'cronjob_enabled' => true, // TRUE to enable Monitorix plugin cronjob (default), FALSE to disable it
 
 	// See man CRONTAB(5) for allowed values
