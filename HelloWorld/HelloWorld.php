@@ -42,31 +42,28 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
-		$controller->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
+		$eventsManager->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master') {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}

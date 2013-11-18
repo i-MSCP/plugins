@@ -1,4 +1,4 @@
-## i-MSCP HelloWorld plugin v0.0.3
+## i-MSCP HelloWorld plugin v0.0.4
 
 Plugin sample for i-MSCP that simply says 'Hello World' when login page is loaded.
 
@@ -19,25 +19,22 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions = Git Master
+Plugin compatible with i-MSCP versions >= 1.1.0-rc4.7
 
 ### INSTALLATION
 
-	# Upload the plugin archive through the plugin interface
-	# Edit the configuration file
-	# Update the plugin list throught the plugin interface
-	# Activate the plugin throught the plugin interface
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the HelloWorld plugin archive
+	- Activate the plugin
 
 ### UPDATE
 
-	# Upload the plugin archive via the plugin interface
-	# Update the plugin list through the plugin interface
-	# Activate the plugin through the plugin interface
-
-See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the HelloWorld plugin archive
+	- Update the plugin list through the plugin interface
 
 ### AUTHORS AND CONTRIBUTORS
 
-Laurent Declercq <l.declercq@nuxwin.com> (Author)
+ * Laurent Declercq <l.declercq@nuxwin.com> (Author)
 
 **Thank you for using this plugin.**

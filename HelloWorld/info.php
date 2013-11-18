@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.3',
-	'date' => '2013-11-03',
+	'version' => '0.0.4',
+	'date' => '2013-11-18',
 	'name' => 'HelloWorld',
 	'desc' => 'A plugin sample that say Hello World when the i-MSCP login page is loaded',
 	'url' => 'http://i-mscp.net'
