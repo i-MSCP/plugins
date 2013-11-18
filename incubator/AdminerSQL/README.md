@@ -1,6 +1,6 @@
 ## i-MSCP AdminerSQL plugin v0.0.1
 
-Plugin allows to manage i-MSCP databases with Adminer.
+Plugin allowing to manage i-MSCP databases through Adminer.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0.rc4
+Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
 
 ### INSTALLATION
 
@@ -68,5 +68,6 @@ You can set the language, driver, style in the file plugins/AdminerSQL/config.ph
 ### AUTHORS AND CONTRIBUTORS
 
 Sascha Bay <info@space2place.de> (Author)
+Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
 
 **Thank you for using this plugin.**

@@ -43,9 +43,8 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAdminScriptStart,
-				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart
 			),
 			$this
@@ -53,11 +52,11 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
@@ -71,18 +70,6 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Plugin installation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function install(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only there to tell the plugin manager that this plugin is installable
-	}
-
-	/**
 	 * Implements the onAdminScriptStart event
 	 *
 	 * @return void
@@ -90,16 +77,6 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	public function onAdminScriptStart()
 	{
 		$this->setupNavigation('admin');
-	}
-
-	/**
-	 * Implements the onResellerScriptStart event
-	 *
-	 * @return void
-	 */
-	public function onResellerScriptStart()
-	{
-		$this->setupNavigation('reseller');
 	}
 
 	/**
@@ -113,21 +90,6 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Get routes
-	 *
-	 * @return array
-	 */
-	public function getRoutes()
-	{
-		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
-
-		return array(
-			'/adminer/adminer.php' => $pluginDir . '/frontend/adminer.php',
-			'/adminer/editor.php' => $pluginDir . '/frontend/editor.php'
-		);
-	}
-
-	/**
 	 * Inject AdminerSQL links into the navigation object
 	 *
 	 * @param string $level UI level
@@ -137,6 +99,7 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
+
 			switch ($level) {
 				case 'admin':
 					if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
@@ -156,24 +119,6 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 						);
 					}
 
-					break;
-				case 'reseller':
-					if (($page = $navigation->findOneBy('uri', '/reseller/index.php'))) {
-						$page->addPages(
-							array(
-								array(
-									'label' => tr('AdminerSQL'),
-									'uri' => '/adminer/adminer.php',
-									'target' => '_blank'
-								),
-								array(
-									'label' => tr('EditorSQL'),
-									'uri' => '/adminer/editor.php',
-									'target' => '_blank'
-								)
-							)
-						);
-					}
 					break;
 				case 'client':
 					if (($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {

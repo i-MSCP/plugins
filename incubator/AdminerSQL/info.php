@@ -30,8 +30,8 @@ return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
 	'version' => '0.0.1',
-	'date' => '2013-10-30',
+	'date' => '2013-11-18',
 	'name' => 'AdminerSQL',
-	'desc' => 'Plugin allowing to manage i-MSCP databases with Adminer',
+	'desc' => 'Plugin allowing to manage i-MSCP databases through Adminer.',
 	'url' => 'http://i-mscp.net'
 );
