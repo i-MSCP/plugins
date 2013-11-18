@@ -84,16 +84,16 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	{
 		$approvalRule = $this->getConfigParam('approval_rule');
 
-		if(null === $approvalRule) {
+		if (null === $approvalRule) {
 			$approvalRule = true; // Keep compatibility with old config file
 		}
 
 		$domains = $this->getConfigParam('domains'); # List of domain names from config file
 
-		if(is_array($domains)) {
+		if (is_array($domains)) {
 			$domainName = decode_idna($_SESSION['user_logged']);
 
-			if($approvalRule) {
+			if ($approvalRule) {
 				if (!in_array($domainName, $domains)) {
 					$domainName = false;
 				}
@@ -125,7 +125,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	 */
 	public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
 	{
-		if($this->initialOrderedStatusValue) {
+		if ($this->initialOrderedStatusValue) {
 			/** @var $cfg iMSCP_Config_Handler_File */
 			$cfg = iMSCP_Registry::get('config');
 			$cfg->ITEM_ORDERED_STATUS = $this->initialOrderedStatusValue;

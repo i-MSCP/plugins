@@ -41,33 +41,35 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 * @return void
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$controller->registerListener(
-			array(iMSCP_Events::onBeforeAddDomainAlias, iMSCP_Events::onAfterAddDomainAlias), $this
+		$eventsManager->registerListener(
+			array(
+				iMSCP_Events::onBeforeEnablePlugin,
+				iMSCP_Events::onBeforeAddDomainAlias,
+				iMSCP_Events::onAfterAddDomainAlias
+			),
+			$this
 		);
 	}
 
 	/**
-	 * onBeforeActivatePlugin event listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master' && $cfg->BuildDate < 20120323) {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}
@@ -82,16 +84,16 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	{
 		$approvalRule = $this->getConfigParam('approval_rule');
 
-		if(null === $approvalRule) {
+		if (null === $approvalRule) {
 			$approvalRule = true; // Keep compatibility with old config file
 		}
 
 		$domains = $this->getConfigParam('domains'); # List of domain names from config file
 
-		if(is_array($domains)) {
+		if (is_array($domains)) {
 			$domainName = decode_idna($_SESSION['user_logged']);
 
-			if($approvalRule) {
+			if ($approvalRule) {
 				if (!in_array($domainName, $domains)) {
 					$domainName = false;
 				}
@@ -123,7 +125,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	 */
 	public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
 	{
-		if($this->initialOrderedStatusValue) {
+		if ($this->initialOrderedStatusValue) {
 			/** @var $cfg iMSCP_Config_Handler_File */
 			$cfg = iMSCP_Registry::get('config');
 			$cfg->ITEM_ORDERED_STATUS = $this->initialOrderedStatusValue;
