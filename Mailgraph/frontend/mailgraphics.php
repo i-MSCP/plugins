@@ -57,23 +57,23 @@ switch ($whichGraph) {
 		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_month.png');
 		break;
 	case 'mailgraph_virus_year':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/tmp_graph/mailgraph_virus_year.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_year.png');
 		break;
 	case 'mailgraph_greylist_day':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/tmp_graph/mailgraph_greylist_day.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png');
 		break;
 	case 'mailgraph_greylist_week':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/tmp_graph/mailgraph_greylist_week.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png');
 		break;
 	case 'mailgraph_greylist_month':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/tmp_graph/mailgraph_greylist_month.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png');
 		break;
 	case 'mailgraph_greylist_year':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/tmp_graph/mailgraph_greylist_year.png');
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png');
 		break;
 	default:
-		$imgPng = imagecreatefrompng(PLUGINS_PATH .'/Mailgraph/frontend/noimage.png');
-	}
+		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/frontend/noimage.png');
+}
 
 /* Output image to browser */
 header("Content-type: image/png");
