@@ -54,15 +54,15 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * Register listeners on the event manager
 	 *
 	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Events_Manager_Interface $controller
+	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 * @return void
 	 */
-	public function register(iMSCP_Events_Manager_Interface $controller)
+	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
 
-		if ($pluginManager->getStatus($this->getName()) == 'enabled') {
+		if ($pluginManager->getPluginStatus($this->getName()) == 'enabled') {
 			$events = $this->getConfigParam('disabled_actions', array());
 
 			if(is_array($events)) {
@@ -84,13 +84,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				$this->events = array_unique($events);
 
 				if(!empty($this->events)) {
-					$controller->registerListener($this->events, $this, 999);
+					$eventsManager->registerListener($this->events, $this, 999);
 				}
 			} else {
 				throw new iMSCP_Plugin_Exception('Disabled actions should be provided as array.');
 			}
 		} else {
-			$controller->registerListener(iMSCP_Events::onBeforeActivatePlugin, $this);
+			$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
 		}
 	}
 
@@ -113,23 +113,20 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeActivatePlugin listener
+	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeActivatePlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName() && $event->getParam('action') == 'enable') {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			if($cfg->Version != 'Git Master') {
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		} else {
 			$this->__call($event->getName(), array($event));
@@ -209,7 +206,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		if ($this->isDisabledAction($eventName)) {
 			$this->__call($eventName, array($event));
 		} else {
-			$query = 'SELECT `admin_id` FROM `admin` WHERE `admin_id` = ?';
+			$query = 'SELECT admin_id FROM admin WHERE admin_id = ?';
 			$stmt = exec_query($query, $event->getParam('customerId'));
 
 			if ($stmt->rowCount()) {
@@ -238,7 +235,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	protected function protectDemoUser($event)
 	{
-		$stmt = exec_query('SELECT `admin_name` FROM `admin` WHERE `admin_id` = ?', $event->getParam('userId'));
+		$stmt = exec_query('SELECT admin_name FROM admin WHERE admin_id = ?', $event->getParam('userId'));
 
 		if ($stmt->rowCount()) {
 			$username = idn_to_utf8($stmt->fields['admin_name']);
@@ -329,7 +326,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		foreach ($this->getConfigParam('user_accounts') as $account) {
 			if (isset($account['label']) && isset($account['username']) && isset($account['password'])) {
 				$stmt = exec_query(
-					'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?', encode_idna($account['username'])
+					'SELECT admin_pass FROM admin WHERE admin_name = ?', encode_idna($account['username'])
 				);
 
 				if ($stmt->rowCount()) {

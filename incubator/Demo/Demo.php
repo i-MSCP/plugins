@@ -206,7 +206,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		if ($this->isDisabledAction($eventName)) {
 			$this->__call($eventName, array($event));
 		} else {
-			$query = 'SELECT `admin_id` FROM `admin` WHERE `admin_id` = ?';
+			$query = 'SELECT admin_id FROM admin WHERE admin_id = ?';
 			$stmt = exec_query($query, $event->getParam('customerId'));
 
 			if ($stmt->rowCount()) {
@@ -235,7 +235,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	protected function protectDemoUser($event)
 	{
-		$stmt = exec_query('SELECT `admin_name` FROM `admin` WHERE `admin_id` = ?', $event->getParam('userId'));
+		$stmt = exec_query('SELECT admin_name FROM admin WHERE admin_id = ?', $event->getParam('userId'));
 
 		if ($stmt->rowCount()) {
 			$username = idn_to_utf8($stmt->fields['admin_name']);
@@ -326,7 +326,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		foreach ($this->getConfigParam('user_accounts') as $account) {
 			if (isset($account['label']) && isset($account['username']) && isset($account['password'])) {
 				$stmt = exec_query(
-					'SELECT `admin_pass` FROM `admin` WHERE `admin_name` = ?', encode_idna($account['username'])
+					'SELECT admin_pass FROM admin WHERE admin_name = ?', encode_idna($account['username'])
 				);
 
 				if ($stmt->rowCount()) {
