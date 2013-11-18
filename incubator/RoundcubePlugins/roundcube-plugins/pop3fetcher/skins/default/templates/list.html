@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title><roundcube:object name="pagetitle" /></title>
+<roundcube:include file="/includes/links.html" />
+<link rel="stylesheet" type="text/css" href="/settings.css" />
+<script type="text/javascript" src="/functions.js"></script>
+</head>
+<body class="iframe">
+<div id="prefs-title" class="boxtitle"><roundcube:label name="userpreferences" /></div>
+	<div id="prefs-details">
+	<table summary="" border="0" id="sections-table" class="records-table" cellspacing="0">
+	<tr><td><b><roundcube:label name="accounts.account_dn" /></b></td><td><b><roundcube:label name="accounts.account_id" /></b></td><td colspan="2">&nbsp;</td></tr> 
+	<roundcube:object name="accounts_list" />
+	</table>
+	<p>
+	<input type='button' class='button mainaction' onclick='document.location.href="./?_task=settings&_action=plugin.accounts&_add=1&_framed=1"' value='<roundcube:label name=accounts.add />'
+	<span>&nbsp;</span><input type='button' class='button' value='<roundcube:label name=accounts.back />' onclick='document.location.href="./?_task=settings&_action=edit-prefs&_section=accountlink&_framed=1"' />
+	</p><roundcube:container name="userprefs" id="userprefscontainer" />
+	</div>
+</body>
+</html>

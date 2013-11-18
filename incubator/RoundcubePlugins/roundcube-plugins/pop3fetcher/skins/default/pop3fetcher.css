@@ -1,0 +1,5 @@
+#messagetoolbar a#settings{background-image:URL(./images/settings_button.png) !important;background-repeat:no-repeat;background-position:0 -6px !important;}
+/*
+#rcmrowgeneral{display:none;}
+*/
+#mailboxlist li.mailbox.pop3fetcher > a {background-position: 6px -1555px;}

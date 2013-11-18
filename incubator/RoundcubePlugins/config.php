@@ -1,0 +1,76 @@
+<?php
+/**
+ * i-MSCP - internet Multi Server Control Panel
+ * Copyright (C) 2010-2013 by i-MSCP Team
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @category    iMSCP
+ * @package     iMSCP_Plugin
+ * @subpackage  RoundcubePlugins
+ * @copyright   2010-2013 by i-MSCP Team
+ * @author      Rene Schuster <mail@reneschuster.de>
+ * @link        http://www.i-mscp.net i-MSCP Home Site
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ */
+
+return array(
+	// Archive plugin adds a new button to the Roundcube toolbar
+	// to move messages to a (user selectable) archive folder.
+	'archive_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	// Adds context menus to the message list, folder list and address book. 
+	// Possibility to mark mails as read/unread, delete, reply and forward mails.
+	'contextmenu_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	// Emoticons inserts nice smileys and other emoticons when the appropriate 
+	// text representations e.g. :-) are discovered in the mail text.
+	'emoticons_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	// Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
+	// For this plugin you need Dovecot 2 on your system (please check README).
+	'managesieve_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	// The name of the script which will be used when there's no user script
+	'managesieve_script_name' => 'managesieve', // default: managesieve
+	
+	// Can notify on new mails by focusing browser window and changing favicon, 
+	// playing a sound and displaying desktop notification (using webkitNotifications feature).
+	'newmail_notifier_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	'newmail_notifier_config' => array(
+		// Enables basic notification
+		'newmail_notifier_basic' => 'true', // TRUE to enable (default), FALSE to disable
+		//  Enables sound notification
+		'newmail_notifier_sound' => 'false', // TRUE to enable, FALSE to disable (default)
+		// Enables desktop notification
+		'newmail_notifier_desktop' => 'false' // TRUE to enable, FALSE to disable (default)
+	),
+	
+	// Pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
+	'pop3fetcher_plugin' => 'yes', // YES to enable (default), NO to disable
+
+	// Define how often the pop3 accounts should be checked.
+	'pop3fetcher_cronjob' => array( // See man CRONTAB(5) for allowed values
+		'minute' => '*/15',
+		'hour' => '*',
+		'day' => '*',
+		'month' => '*',
+		'dweek' => '*'
+	),
+	
+	// Adds an option to download all attachments of a message in one zip file.
+	'zipdownload_plugin' => 'yes' // YES to enable (default), NO to disable
+);
