@@ -24,7 +24,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### ATTENTION
 	
-	Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_README.html "Postfix Postscreen Howto") before installing this plugin.
+Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_README.html "Postfix Postscreen Howto") before installing this plugin.
 	
 	If you use this Plugin your MUA clients should not submit 
 	mail via SMTP service on TCP port 25 because that is used 
