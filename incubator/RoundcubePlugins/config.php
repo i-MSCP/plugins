@@ -28,7 +28,7 @@
 
 return array(
 	// Archive plugin adds a new button to the Roundcube toolbar
-	// to move messages to a (user selectable) archive folder.
+	// to move messages to an (user selectable) archive folder.
 	'archive_plugin' => 'yes', // YES to enable (default), NO to disable
 	
 	// Adds context menus to the message list, folder list and address book. 
@@ -40,7 +40,7 @@ return array(
 	'emoticons_plugin' => 'yes', // YES to enable (default), NO to disable
 	
 	// Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
-	// For this plugin you need Dovecot 2 on your system (please check README).
+	// For this plugin you need Dovecot 2 on your system (please check INSTALLATION section in the README file).
 	'managesieve_plugin' => 'yes', // YES to enable (default), NO to disable
 	
 	// The name of the script which will be used when there's no user script
@@ -59,7 +59,7 @@ return array(
 		'newmail_notifier_desktop' => 'false' // TRUE to enable, FALSE to disable (default)
 	),
 	
-	// Pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
+	// Plugin pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
 	'pop3fetcher_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// Define how often the pop3 accounts should be checked.

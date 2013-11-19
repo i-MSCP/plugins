@@ -2,18 +2,44 @@
 
 Plugin allows to use Roundcube Plugins with i-MSCP
 
-**Included Roundcube Plugins**
-
-	- archive
-	- contextmenu
-	- emoticons
-	- managesieve
-	- newmail_notifier
-	- pop3fetcher
-	- zipdownload
-
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
+
+### INCLUDED ROUNDCUBE PLUGINS
+
+**archive**
+
+	Archive plugin adds a new button to the Roundcube toolbar
+	to move messages to an (user selectable) archive folder.
+
+**contextmenu**
+
+	Adds context menus to the message list, folder list and address book. 
+	Possibility to mark mails as read/unread, delete, reply and forward mails.
+
+**emoticons**
+
+	Emoticons inserts nice smileys and other emoticons when the appropriate 
+	text representations e.g. :-) are discovered in the mail text.
+
+**managesieve**
+
+	Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
+	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
+
+**newmail_notifier**
+
+	Can notify on new mails by focusing browser window and changing favicon, 
+	playing a sound and displaying desktop notification (using webkitNotifications feature).
+
+**pop3fetcher**
+
+	Plugin pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
+
+**zipdownload**
+
+	Adds an option to download all attachments of a message in one zip file.
+	
 
 ### LICENSE
 
