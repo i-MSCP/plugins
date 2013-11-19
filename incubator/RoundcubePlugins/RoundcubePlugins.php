@@ -46,12 +46,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(
-			array(
-				iMSCP_Events::onBeforeInstallPlugin
-			),
-			$this
-		);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 	}
 		
 	/**
