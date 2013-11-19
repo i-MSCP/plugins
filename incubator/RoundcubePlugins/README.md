@@ -9,23 +9,28 @@ gui/plugins/ - if the folder is called different it will not work!
 
 **archive**
 
-	Archive plugin adds a new button to the Roundcube toolbar to move messages to an (user selectable) archive folder.
+	Archive plugin adds a new button to the Roundcube toolbar
+	to move messages to an (user selectable) archive folder.
 
 **contextmenu**
 
-	Adds context menus to the message list, folder list and address book. Possibility to mark mails as read/unread, delete, reply and forward mails.
+	Adds context menus to the message list, folder list and address book. 
+	Possibility to mark mails as read/unread, delete, reply and forward mails.
 
 **emoticons**
 
-	Emoticons inserts nice smileys and other emoticons when the appropriate text representations e.g. :-) are discovered in the mail text.
+	Emoticons inserts nice smileys and other emoticons when the appropriate 
+	text representations e.g. :-) are discovered in the mail text.
 
 **managesieve**
 
-	Allows the user to manage his sieve mail rules. Uses the Managesieve protocol. For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
+	Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
+	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 
 **newmail_notifier**
 
-	Can notify on new mails by focusing browser window and changing favicon, playing a sound and displaying desktop notification (using webkitNotifications feature).
+	Can notify on new mails by focusing browser window and changing favicon, 
+	playing a sound and displaying desktop notification (using webkitNotifications feature).
 
 **pop3fetcher**
 
