@@ -87,17 +87,21 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	- Upload the ClamAV plugin archive
 	- Force plugin re-installation
 
+### CONFIGURATION
+
+For the different configuration options please check the plugin config file.
+
+	# plugins/ClamAV/config.php
+	
 ### TESTING
 
 **Eicar-Test-Signature**
 
-	Send yourself a mail from another account (e.g. gmail or any other freemailer) 
-	with the following content in the message.
+Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message.
 	
 	X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 	
-	Note that this should be reproduced in one line, without whitespace or line breaks.
-	
+Note that this should be reproduced in one line, without whitespace or line breaks.
 	
 ### AUTHORS AND CONTRIBUTORS
 
