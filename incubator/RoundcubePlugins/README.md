@@ -9,8 +9,8 @@ gui/plugins/ - if the folder is called different it will not work!
 
 **archive**
 
-	Archive plugin adds a new button to the Roundcube toolbar
-	to move messages to an (user selectable) archive folder.
+	Archive plugin adds a new button to the Roundcube toolbar to move messages to an (user selectable) archive folder.
+	The button will only appear after the user configured the Archive folder on the Roundcube setting 'Special Folders'.
 
 **contextmenu**
 

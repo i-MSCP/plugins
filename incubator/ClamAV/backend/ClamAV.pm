@@ -36,6 +36,7 @@ use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
+use JSON;
 
 use parent 'Common::SingletonClass';
 
@@ -173,6 +174,17 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
+    # Loading plugin configuration
+    my $rdata = iMSCP::Database->factory()->doQuery(
+        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
+    );
+    unless(ref $rdata eq 'HASH') {
+        error($rdata);
+        return 1;
+    }
+
+    $self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
+	
 	$self;
 }
 
@@ -231,20 +243,6 @@ sub _modifyClamavMilterSystemConfig($$)
 {
 	my ($self, $action) = @_;
 	
-	my $rdata = iMSCP::Database->factory->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'ClamAV'
-	);
-	
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-	
-	require JSON;
-	JSON->import();
-	
-	my $clamavMilterConfig = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
-	
 	my $file = iMSCP::File->new('filename' => '/etc/clamav/clamav-milter.conf');
 	
 	my $fileContent = $file->get();
@@ -254,32 +252,32 @@ sub _modifyClamavMilterSystemConfig($$)
 	}
 	
 	my $clamavMilterSystemConfig = "\n# Begin Plugin::ClamAV\n";
-	$clamavMilterSystemConfig .= "MilterSocket " . $clamavMilterConfig->{'MilterSocket'} ."\n";
-	$clamavMilterSystemConfig .= "FixStaleSocket " . $clamavMilterConfig->{'FixStaleSocket'} ."\n";
-	$clamavMilterSystemConfig .= "User " . $clamavMilterConfig->{'User'} ."\n";
-	$clamavMilterSystemConfig .= "AllowSupplementaryGroups " . $clamavMilterConfig->{'AllowSupplementaryGroups'} ."\n";
-	$clamavMilterSystemConfig .= "ReadTimeout " . $clamavMilterConfig->{'ReadTimeout'} ."\n";
-	$clamavMilterSystemConfig .= "Foreground " . $clamavMilterConfig->{'Foreground'} ."\n";
-	$clamavMilterSystemConfig .= "PidFile " . $clamavMilterConfig->{'PidFile'} ."\n";
-	$clamavMilterSystemConfig .= "ClamdSocket " . $clamavMilterConfig->{'ClamdSocket'} ."\n";
-	$clamavMilterSystemConfig .= "OnClean " . $clamavMilterConfig->{'OnClean'} ."\n";
-	$clamavMilterSystemConfig .= "OnInfected " . $clamavMilterConfig->{'OnInfected'} ."\n";
-	$clamavMilterSystemConfig .= "OnFail " . $clamavMilterConfig->{'OnFail'} ."\n";
-	$clamavMilterSystemConfig .= "AddHeader " . $clamavMilterConfig->{'AddHeader'} ."\n";
-	$clamavMilterSystemConfig .= "LogSyslog " . $clamavMilterConfig->{'LogSyslog'} ."\n";
-	$clamavMilterSystemConfig .= "LogFacility " . $clamavMilterConfig->{'LogFacility'} ."\n";
-	$clamavMilterSystemConfig .= "LogVerbose " . $clamavMilterConfig->{'LogVerbose'} ."\n";
-	$clamavMilterSystemConfig .= "LogInfected " . $clamavMilterConfig->{'LogInfected'} ."\n";
-	$clamavMilterSystemConfig .= "LogClean " . $clamavMilterConfig->{'LogClean'} ."\n";
-	$clamavMilterSystemConfig .= "MaxFileSize " . $clamavMilterConfig->{'MaxFileSize'} ."\n";
-	$clamavMilterSystemConfig .= "TemporaryDirectory " . $clamavMilterConfig->{'TemporaryDirectory'} ."\n";
-	$clamavMilterSystemConfig .= "LogFile " . $clamavMilterConfig->{'LogFile'} ."\n";
-	$clamavMilterSystemConfig .= "LogTime " . $clamavMilterConfig->{'LogTime'} ."\n";
-	$clamavMilterSystemConfig .= "LogFileUnlock " . $clamavMilterConfig->{'LogFileUnlock'} ."\n";
-	$clamavMilterSystemConfig .= "LogFileMaxSize " . $clamavMilterConfig->{'LogFileMaxSize'} ."\n";
-	$clamavMilterSystemConfig .= "MilterSocketGroup " . $clamavMilterConfig->{'MilterSocketGroup'} ."\n";
-	$clamavMilterSystemConfig .= "MilterSocketMode " . $clamavMilterConfig->{'MilterSocketMode'} ."\n";
-	$clamavMilterSystemConfig .= "RejectMsg " . $clamavMilterConfig->{'RejectMsg'} ."\n";
+	$clamavMilterSystemConfig .= "MilterSocket " . $self->{'config'}->{'MilterSocket'} ."\n";
+	$clamavMilterSystemConfig .= "FixStaleSocket " . $self->{'config'}->{'FixStaleSocket'} ."\n";
+	$clamavMilterSystemConfig .= "User " . $self->{'config'}->{'User'} ."\n";
+	$clamavMilterSystemConfig .= "AllowSupplementaryGroups " . $self->{'config'}->{'AllowSupplementaryGroups'} ."\n";
+	$clamavMilterSystemConfig .= "ReadTimeout " . $self->{'config'}->{'ReadTimeout'} ."\n";
+	$clamavMilterSystemConfig .= "Foreground " . $self->{'config'}->{'Foreground'} ."\n";
+	$clamavMilterSystemConfig .= "PidFile " . $self->{'config'}->{'PidFile'} ."\n";
+	$clamavMilterSystemConfig .= "ClamdSocket " . $self->{'config'}->{'ClamdSocket'} ."\n";
+	$clamavMilterSystemConfig .= "OnClean " . $self->{'config'}->{'OnClean'} ."\n";
+	$clamavMilterSystemConfig .= "OnInfected " . $self->{'config'}->{'OnInfected'} ."\n";
+	$clamavMilterSystemConfig .= "OnFail " . $self->{'config'}->{'OnFail'} ."\n";
+	$clamavMilterSystemConfig .= "AddHeader " . $self->{'config'}->{'AddHeader'} ."\n";
+	$clamavMilterSystemConfig .= "LogSyslog " . $self->{'config'}->{'LogSyslog'} ."\n";
+	$clamavMilterSystemConfig .= "LogFacility " . $self->{'config'}->{'LogFacility'} ."\n";
+	$clamavMilterSystemConfig .= "LogVerbose " . $self->{'config'}->{'LogVerbose'} ."\n";
+	$clamavMilterSystemConfig .= "LogInfected " . $self->{'config'}->{'LogInfected'} ."\n";
+	$clamavMilterSystemConfig .= "LogClean " . $self->{'config'}->{'LogClean'} ."\n";
+	$clamavMilterSystemConfig .= "MaxFileSize " . $self->{'config'}->{'MaxFileSize'} ."\n";
+	$clamavMilterSystemConfig .= "TemporaryDirectory " . $self->{'config'}->{'TemporaryDirectory'} ."\n";
+	$clamavMilterSystemConfig .= "LogFile " . $self->{'config'}->{'LogFile'} ."\n";
+	$clamavMilterSystemConfig .= "LogTime " . $self->{'config'}->{'LogTime'} ."\n";
+	$clamavMilterSystemConfig .= "LogFileUnlock " . $self->{'config'}->{'LogFileUnlock'} ."\n";
+	$clamavMilterSystemConfig .= "LogFileMaxSize " . $self->{'config'}->{'LogFileMaxSize'} ."\n";
+	$clamavMilterSystemConfig .= "MilterSocketGroup " . $self->{'config'}->{'MilterSocketGroup'} ."\n";
+	$clamavMilterSystemConfig .= "MilterSocketMode " . $self->{'config'}->{'MilterSocketMode'} ."\n";
+	$clamavMilterSystemConfig .= "RejectMsg " . $self->{'config'}->{'RejectMsg'} ."\n";
 	$clamavMilterSystemConfig .= "# Ending Plugin::ClamAV\n";
 	
 	if($action eq 'add') {
