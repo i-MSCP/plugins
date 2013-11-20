@@ -482,16 +482,12 @@ sub _setPluginConfig($$$)
 	}
 	
 	if ($plugin eq 'managesieve') {
-		my $managesieve_script_name = $self->{'config'}->{'managesieve_script_name'};
-		$fileContent =~ s/\{managesieve_script_name\}/$managesieve_script_name/g;
+		$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
 	}
 	elsif ($plugin eq 'newmail_notifier') {
-		my $newmail_notifier_basic = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'};
-		my $newmail_notifier_sound = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'};
-		my $newmail_notifier_desktop = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'};
-		$fileContent =~ s/\{newmail_notifier_basic\}/$newmail_notifier_basic/g;
-		$fileContent =~ s/\{newmail_notifier_sound\}/$newmail_notifier_sound/g;
-		$fileContent =~ s/\{newmail_notifier_desktop\}/$newmail_notifier_desktop/g;
+		$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
+		$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
+		$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
 	}
 	elsif ($plugin eq 'pop3fetcher') {
 		if ($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
