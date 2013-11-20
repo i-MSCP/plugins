@@ -157,15 +157,17 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
-    # Loading plugin configuration
-    my $rdata = iMSCP::Database->factory()->doQuery(
-        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
-    );
-    unless(ref $rdata eq 'HASH') {
-        error($rdata);
-        return 1;
-    }
-
+    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
+		# Loading plugin configuration
+		my $rdata = iMSCP::Database->factory()->doQuery(
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
+	}
+	
     $self->{'config'} = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
 	
 	$self;
