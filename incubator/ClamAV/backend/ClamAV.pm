@@ -169,23 +169,25 @@ sub uninstall
 
 sub _init
 {
-	my $self = shift;
+    my $self = shift;
 	
-	# Force return value from plugin module
-	$self->{'FORCE_RETVAL'} = 'yes';
+    # Force return value from plugin module
+    $self->{'FORCE_RETVAL'} = 'yes';
 	
-    # Loading plugin configuration
-    my $rdata = iMSCP::Database->factory()->doQuery(
-        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
-    );
-    unless(ref $rdata eq 'HASH') {
-        error($rdata);
-        return 1;
+    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
+        # Loading plugin configuration
+        my $rdata = iMSCP::Database->factory()->doQuery(
+            'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
+        );
+        unless(ref $rdata eq 'HASH') {
+            error($rdata);
+            return 1;
+        }
+		
+        $self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
     }
-
-    $self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
 	
-	$self;
+    $self;
 }
 
 =item _modifyClamavMilterDefaultConfig($action)
@@ -251,35 +253,6 @@ sub _modifyClamavMilterSystemConfig($$)
 		return 1;
 	}
 	
-	my $clamavMilterSystemConfig = "\n# Begin Plugin::ClamAV\n";
-	$clamavMilterSystemConfig .= "MilterSocket " . $self->{'config'}->{'MilterSocket'} ."\n";
-	$clamavMilterSystemConfig .= "FixStaleSocket " . $self->{'config'}->{'FixStaleSocket'} ."\n";
-	$clamavMilterSystemConfig .= "User " . $self->{'config'}->{'User'} ."\n";
-	$clamavMilterSystemConfig .= "AllowSupplementaryGroups " . $self->{'config'}->{'AllowSupplementaryGroups'} ."\n";
-	$clamavMilterSystemConfig .= "ReadTimeout " . $self->{'config'}->{'ReadTimeout'} ."\n";
-	$clamavMilterSystemConfig .= "Foreground " . $self->{'config'}->{'Foreground'} ."\n";
-	$clamavMilterSystemConfig .= "PidFile " . $self->{'config'}->{'PidFile'} ."\n";
-	$clamavMilterSystemConfig .= "ClamdSocket " . $self->{'config'}->{'ClamdSocket'} ."\n";
-	$clamavMilterSystemConfig .= "OnClean " . $self->{'config'}->{'OnClean'} ."\n";
-	$clamavMilterSystemConfig .= "OnInfected " . $self->{'config'}->{'OnInfected'} ."\n";
-	$clamavMilterSystemConfig .= "OnFail " . $self->{'config'}->{'OnFail'} ."\n";
-	$clamavMilterSystemConfig .= "AddHeader " . $self->{'config'}->{'AddHeader'} ."\n";
-	$clamavMilterSystemConfig .= "LogSyslog " . $self->{'config'}->{'LogSyslog'} ."\n";
-	$clamavMilterSystemConfig .= "LogFacility " . $self->{'config'}->{'LogFacility'} ."\n";
-	$clamavMilterSystemConfig .= "LogVerbose " . $self->{'config'}->{'LogVerbose'} ."\n";
-	$clamavMilterSystemConfig .= "LogInfected " . $self->{'config'}->{'LogInfected'} ."\n";
-	$clamavMilterSystemConfig .= "LogClean " . $self->{'config'}->{'LogClean'} ."\n";
-	$clamavMilterSystemConfig .= "MaxFileSize " . $self->{'config'}->{'MaxFileSize'} ."\n";
-	$clamavMilterSystemConfig .= "TemporaryDirectory " . $self->{'config'}->{'TemporaryDirectory'} ."\n";
-	$clamavMilterSystemConfig .= "LogFile " . $self->{'config'}->{'LogFile'} ."\n";
-	$clamavMilterSystemConfig .= "LogTime " . $self->{'config'}->{'LogTime'} ."\n";
-	$clamavMilterSystemConfig .= "LogFileUnlock " . $self->{'config'}->{'LogFileUnlock'} ."\n";
-	$clamavMilterSystemConfig .= "LogFileMaxSize " . $self->{'config'}->{'LogFileMaxSize'} ."\n";
-	$clamavMilterSystemConfig .= "MilterSocketGroup " . $self->{'config'}->{'MilterSocketGroup'} ."\n";
-	$clamavMilterSystemConfig .= "MilterSocketMode " . $self->{'config'}->{'MilterSocketMode'} ."\n";
-	$clamavMilterSystemConfig .= "RejectMsg " . $self->{'config'}->{'RejectMsg'} ."\n";
-	$clamavMilterSystemConfig .= "# Ending Plugin::ClamAV\n";
-	
 	if($action eq 'add') {
 		$fileContent =~ s/^(MilterSocket.*)/#$1/gm;
 		$fileContent =~ s/^(FixStaleSocket.*)/#$1/gm;
@@ -306,6 +279,35 @@ sub _modifyClamavMilterSystemConfig($$)
 		$fileContent =~ s/^(LogFileMaxSize.*)/#$1/gm;
 		$fileContent =~ s/^(MilterSocketGroup.*)/#$1/gm;
 		$fileContent =~ s/^(MilterSocketMode.*)/#$1/gm;
+		
+		my $clamavMilterSystemConfig = "\n# Begin Plugin::ClamAV\n";
+		$clamavMilterSystemConfig .= "MilterSocket " . $self->{'config'}->{'MilterSocket'} ."\n";
+		$clamavMilterSystemConfig .= "FixStaleSocket " . $self->{'config'}->{'FixStaleSocket'} ."\n";
+		$clamavMilterSystemConfig .= "User " . $self->{'config'}->{'User'} ."\n";
+		$clamavMilterSystemConfig .= "AllowSupplementaryGroups " . $self->{'config'}->{'AllowSupplementaryGroups'} ."\n";
+		$clamavMilterSystemConfig .= "ReadTimeout " . $self->{'config'}->{'ReadTimeout'} ."\n";
+		$clamavMilterSystemConfig .= "Foreground " . $self->{'config'}->{'Foreground'} ."\n";
+		$clamavMilterSystemConfig .= "PidFile " . $self->{'config'}->{'PidFile'} ."\n";
+		$clamavMilterSystemConfig .= "ClamdSocket " . $self->{'config'}->{'ClamdSocket'} ."\n";
+		$clamavMilterSystemConfig .= "OnClean " . $self->{'config'}->{'OnClean'} ."\n";
+		$clamavMilterSystemConfig .= "OnInfected " . $self->{'config'}->{'OnInfected'} ."\n";
+		$clamavMilterSystemConfig .= "OnFail " . $self->{'config'}->{'OnFail'} ."\n";
+		$clamavMilterSystemConfig .= "AddHeader " . $self->{'config'}->{'AddHeader'} ."\n";
+		$clamavMilterSystemConfig .= "LogSyslog " . $self->{'config'}->{'LogSyslog'} ."\n";
+		$clamavMilterSystemConfig .= "LogFacility " . $self->{'config'}->{'LogFacility'} ."\n";
+		$clamavMilterSystemConfig .= "LogVerbose " . $self->{'config'}->{'LogVerbose'} ."\n";
+		$clamavMilterSystemConfig .= "LogInfected " . $self->{'config'}->{'LogInfected'} ."\n";
+		$clamavMilterSystemConfig .= "LogClean " . $self->{'config'}->{'LogClean'} ."\n";
+		$clamavMilterSystemConfig .= "MaxFileSize " . $self->{'config'}->{'MaxFileSize'} ."\n";
+		$clamavMilterSystemConfig .= "TemporaryDirectory " . $self->{'config'}->{'TemporaryDirectory'} ."\n";
+		$clamavMilterSystemConfig .= "LogFile " . $self->{'config'}->{'LogFile'} ."\n";
+		$clamavMilterSystemConfig .= "LogTime " . $self->{'config'}->{'LogTime'} ."\n";
+		$clamavMilterSystemConfig .= "LogFileUnlock " . $self->{'config'}->{'LogFileUnlock'} ."\n";
+		$clamavMilterSystemConfig .= "LogFileMaxSize " . $self->{'config'}->{'LogFileMaxSize'} ."\n";
+		$clamavMilterSystemConfig .= "MilterSocketGroup " . $self->{'config'}->{'MilterSocketGroup'} ."\n";
+		$clamavMilterSystemConfig .= "MilterSocketMode " . $self->{'config'}->{'MilterSocketMode'} ."\n";
+		$clamavMilterSystemConfig .= "RejectMsg " . $self->{'config'}->{'RejectMsg'} ."\n";
+		$clamavMilterSystemConfig .= "# Ending Plugin::ClamAV\n";
 		
 		if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$clamavMilterSystemConfig/sgm;
