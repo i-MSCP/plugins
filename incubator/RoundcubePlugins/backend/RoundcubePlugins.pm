@@ -37,6 +37,7 @@ use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use Servers::cron;
+use JSON;
 
 use parent 'Common::SingletonClass';
 
@@ -233,6 +234,17 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
+    # Loading plugin configuration
+    my $rdata = iMSCP::Database->factory()->doQuery(
+        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RoundcubePlugins'
+    );
+    unless(ref $rdata eq 'HASH') {
+        error($rdata);
+        return 1;
+    }
+
+    $self->{'config'} = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
+	
 	$self;
 }
 
@@ -389,21 +401,7 @@ sub _checkRoundcubePlugins
 	
 	my $rs = 0;
 	
-	my $rdata = iMSCP::Database->factory->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'RoundcubePlugins'
-	);
-	
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-	
-	require JSON;
-	JSON->import();
-	
-	my $roundcubePluginsConfig = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
-	
-	if($roundcubePluginsConfig->{'archive_plugin'} eq 'yes') {	
+	if($self->{'config'}->{'archive_plugin'} eq 'yes') {	
 		$rs = $self->_setRoundcubePlugin('archive', 'add');
 		return $rs if $rs;
 		
@@ -417,7 +415,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'contextmenu_plugin'} eq 'yes') {
+	if($self->{'config'}->{'contextmenu_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('contextmenu', 'add');
 		return $rs if $rs;
 	} else {
@@ -425,7 +423,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'emoticons_plugin'} eq 'yes') {
+	if($self->{'config'}->{'emoticons_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('emoticons', 'add');
 		return $rs if $rs;
 	} else {
@@ -433,7 +431,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'managesieve_plugin'} eq 'yes') {
+	if($self->{'config'}->{'managesieve_plugin'} eq 'yes') {
 		$rs = $self->_checkManagesieveRequirements();
 		return $rs if $rs;
 		
@@ -450,7 +448,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'newmail_notifier_plugin'} eq 'yes') {
+	if($self->{'config'}->{'newmail_notifier_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('newmail_notifier', 'add');
 		return $rs if $rs;
 	} else {
@@ -458,7 +456,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'pop3fetcher_plugin'} eq 'yes') {
+	if($self->{'config'}->{'pop3fetcher_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('pop3fetcher', 'add');
 		return $rs if $rs;
 		
@@ -472,7 +470,7 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
-	if($roundcubePluginsConfig->{'zipdownload_plugin'} eq 'yes') {
+	if($self->{'config'}->{'zipdownload_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('zipdownload', 'add');
 		return $rs if $rs;
 	} else {
@@ -507,20 +505,6 @@ sub _setPluginConfig($$$)
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 	
-	my $rdata = iMSCP::Database->factory->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'RoundcubePlugins'
-	);
-	
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-	
-	require JSON;
-	JSON->import();
-	
-	my $pluginConfig = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
-	
 	my $configFile = "$pluginFolder/$plugin/$fileName";
 	my $file = iMSCP::File->new('filename' => $configFile);
 	
@@ -531,13 +515,13 @@ sub _setPluginConfig($$$)
 	}
 	
 	if ($plugin eq 'managesieve') {
-		my $managesieve_script_name = $pluginConfig->{'managesieve_script_name'};
+		my $managesieve_script_name = $self->{'config'}->{'managesieve_script_name'};
 		$fileContent =~ s/\{managesieve_script_name\}/$managesieve_script_name/g;
 	}
 	elsif ($plugin eq 'newmail_notifier') {
-		my $newmail_notifier_basic = $pluginConfig->{'newmail_notifier_config'}->{'newmail_notifier_basic'};
-		my $newmail_notifier_sound = $pluginConfig->{'newmail_notifier_config'}->{'newmail_notifier_sound'};
-		my $newmail_notifier_desktop = $pluginConfig->{'newmail_notifier_config'}->{'newmail_notifier_desktop'};
+		my $newmail_notifier_basic = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'};
+		my $newmail_notifier_sound = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'};
+		my $newmail_notifier_desktop = $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'};
 		$fileContent =~ s/\{newmail_notifier_basic\}/$newmail_notifier_basic/g;
 		$fileContent =~ s/\{newmail_notifier_sound\}/$newmail_notifier_sound/g;
 		$fileContent =~ s/\{newmail_notifier_desktop\}/$newmail_notifier_desktop/g;
@@ -681,19 +665,6 @@ sub _registerCronjobPop3fetcher
 {
 	my $self = shift;
 	
-	my $rdata = iMSCP::Database->factory->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'RoundcubePlugins'
-	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-	
-	require JSON;
-	JSON->import();
-	
-	my $cronjobConfig = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
-	
 	my $cronjobFilePath = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/cronjob/cronjob_pop3fetcher.pl";
 	
 	my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
@@ -721,11 +692,11 @@ sub _registerCronjobPop3fetcher
 	Servers::cron->factory()->addTask(
 		{
 			'TASKID' => 'Plugin::RoundcubePlugins::pop3fetcher',
-			'MINUTE' => $cronjobConfig->{'pop3fetcher_cronjob'}->{'minute'},
-			'HOUR' => $cronjobConfig->{'pop3fetcher_cronjob'}->{'hour'},
-			'DAY' => $cronjobConfig->{'pop3fetcher_cronjob'}->{'day'},
-			'MONTH' => $cronjobConfig->{'pop3fetcher_cronjob'}->{'month'},
-			'DWEEK' => $cronjobConfig->{'pop3fetcher_cronjob'}->{'dweek'},
+			'MINUTE' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'minute'},
+			'HOUR' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'hour'},
+			'DAY' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'day'},
+			'MONTH' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'month'},
+			'DWEEK' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'dweek'},
 			'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
 		}
 	);
