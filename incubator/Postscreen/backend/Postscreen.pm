@@ -35,6 +35,7 @@ use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
+use JSON;
 
 use parent 'Common::SingletonClass';
 
@@ -156,6 +157,17 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
+    # Loading plugin configuration
+    my $rdata = iMSCP::Database->factory()->doQuery(
+        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
+    );
+    unless(ref $rdata eq 'HASH') {
+        error($rdata);
+        return 1;
+    }
+
+    $self->{'config'} = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
+	
 	$self;
 }
 
@@ -176,19 +188,7 @@ sub _modifyPostfixMainConfig($$)
 	my $postscreenDnsblSites;
 	my $postscreenAccessList;
 	
-	my $rdata = iMSCP::Database->factory()->doQuery('plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Postscreen');
-	
-	unless(ref $rdata eq 'HASH') {
-			error($rdata);
-			return 1;
-	}
-	
-	require JSON;
-	JSON->import();
-	
-	my $postscreenConfig = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
-	
-	for(@{$postscreenConfig->{'postscreen_dnsbl_sites'}}) {
+	for(@{$self->{'config'}->{'postscreen_dnsbl_sites'}}) {
 		if(! $postscreenDnsblSites) {
 			$postscreenDnsblSites = $_;
 		} else {
@@ -196,7 +196,7 @@ sub _modifyPostfixMainConfig($$)
 		}
 	}
 	
-	for(@{$postscreenConfig->{'postscreen_access_list'}}) {
+	for(@{$self->{'config'}->{'postscreen_access_list'}}) {
 		if(! $postscreenAccessList) {
 			$postscreenAccessList = $_;
 		} else {
@@ -220,7 +220,7 @@ sub _modifyPostfixMainConfig($$)
 	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:12525,\n//gm;
 	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:10023,\n//gm;
 	
-	if($postscreenConfig->{'disable_policyd-weight'} eq 'no') {
+	if($self->{'config'}->{'disable_policyd-weight'} eq 'no') {
 		$policyService .= "                               check_policy_service inet:127.0.0.1:12525,\n";
 		$rs = $self->_servicePorts('show', 'PORT_POLICYD-WEIGHT');
 		return $rs if $rs;
@@ -229,7 +229,7 @@ sub _modifyPostfixMainConfig($$)
 		return $rs if $rs;
 	}
 	
-	if($postscreenConfig->{'disable_postgrey'} eq 'no') {
+	if($self->{'config'}->{'disable_postgrey'} eq 'no') {
 		$policyService .= "                               check_policy_service inet:127.0.0.1:10023,\n";
 		$rs = $self->_servicePorts('show', 'PORT_POSTGREY');
 		return $rs if $rs;
@@ -239,12 +239,12 @@ sub _modifyPostfixMainConfig($$)
 	}
 	
 	my $postfixPostscreenConfig = "\n# Begin Plugin::Postscreen\n";
-	$postfixPostscreenConfig .= "postscreen_greet_action = ". $postscreenConfig->{'postscreen_greet_action'} ."\n";
+	$postfixPostscreenConfig .= "postscreen_greet_action = ". $self->{'config'}->{'postscreen_greet_action'} ."\n";
 	$postfixPostscreenConfig .= "postscreen_dnsbl_sites = ". $postscreenDnsblSites ."\n";
-	$postfixPostscreenConfig .= "postscreen_dnsbl_threshold = ". $postscreenConfig->{'postscreen_dnsbl_threshold'} ."\n";
-	$postfixPostscreenConfig .= "postscreen_dnsbl_action = ". $postscreenConfig->{'postscreen_dnsbl_action'} ."\n";
+	$postfixPostscreenConfig .= "postscreen_dnsbl_threshold = ". $self->{'config'}->{'postscreen_dnsbl_threshold'} ."\n";
+	$postfixPostscreenConfig .= "postscreen_dnsbl_action = ". $self->{'config'}->{'postscreen_dnsbl_action'} ."\n";
 	$postfixPostscreenConfig .= "postscreen_access_list = ". $postscreenAccessList ."\n";
-	$postfixPostscreenConfig .= "postscreen_blacklist_action = ". $postscreenConfig->{'postscreen_blacklist_action'} ."\n";
+	$postfixPostscreenConfig .= "postscreen_blacklist_action = ". $self->{'config'}->{'postscreen_blacklist_action'} ."\n";
 	$postfixPostscreenConfig .= "# Ending Plugin::Postscreen\n";
 	
 	if($action eq 'add') {
@@ -333,20 +333,8 @@ sub _patchMailgraph($$)
 	my ($rs, $stdout, $stderr) = (0, undef, undef);
 	
 	if(-x '/usr/sbin/mailgraph') {
-		my $rdata = iMSCP::Database->factory()->doQuery('plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Postscreen');
-		
-		unless(ref $rdata eq 'HASH') {
-				error($rdata);
-				return 1;
-		}
-		
-		require JSON;
-		JSON->import();
-		
-		my $patchMailgraph = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
-		
 		if($action eq 'check') {
-			if($patchMailgraph->{'patch_mailgraph'} eq 'yes' && ! -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
+			if($self->{'config'}->{'patch_mailgraph'} eq 'yes' && ! -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
 				$rs = execute("$main::imscpConfig{'CMD_CP'} /usr/sbin/mailgraph /usr/sbin/mailgraph_POSTSCREEN-PLUGIN", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
@@ -356,7 +344,7 @@ sub _patchMailgraph($$)
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
-			} elsif($patchMailgraph->{'patch_mailgraph'} eq 'no' && -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
+			} elsif($self->{'config'}->{'patch_mailgraph'} eq 'no' && -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
 				$rs = execute("$main::imscpConfig{'CMD_MV'} /usr/sbin/mailgraph_POSTSCREEN-PLUGIN /usr/sbin/mailgraph", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
