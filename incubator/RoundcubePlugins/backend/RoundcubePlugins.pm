@@ -201,16 +201,18 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
-    # Loading plugin configuration
-    my $rdata = iMSCP::Database->factory()->doQuery(
-        'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RoundcubePlugins'
-    );
-    unless(ref $rdata eq 'HASH') {
-        error($rdata);
-        return 1;
-    }
+    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
+		# Loading plugin configuration
+		my $rdata = iMSCP::Database->factory()->doQuery(
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RoundcubePlugins'
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
 
-    $self->{'config'} = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
+		$self->{'config'} = decode_json($rdata->{'RoundcubePlugins'}->{'plugin_config'});
+	}
 	
 	$self;
 }
@@ -261,7 +263,7 @@ sub _removePlugin($$)
 {
 	my ($self, $plugin) = @_;
 	
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools$main::imscpConfig{'WEBMAIL_PATH'}/plugins/$plugin";
+	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/$plugin";
 	
 	my $rs = iMSCP::Dir->new('dirname' => $pluginFolder)->remove() if -d $pluginFolder;
 	return $rs if $rs;
