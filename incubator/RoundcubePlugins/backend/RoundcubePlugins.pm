@@ -49,45 +49,6 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item install()
-
- Perform install tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-	my $self = shift;
-	
-	my $rs = $self->_installPlugin('contextmenu');
-	return $rs if $rs;
-	
-	$rs = $self->_installPlugin('pop3fetcher');
-	return $rs if $rs;
-	
-	0;
-}
-
-=item update()
-
- Perform update tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	my $self = shift;
-	
-	my $rs = $self->install();
-	return $rs if $rs;
-	
-	0;
-}
-
 =item enable()
 
  Perform enable tasks
@@ -100,7 +61,13 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
+	my $rs = $self->_installPlugin('contextmenu');
+	return $rs if $rs;
+	
+	$rs = $self->_installPlugin('pop3fetcher');
+	return $rs if $rs;
+	
+	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
 	return $rs if $rs;
 	
 	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
@@ -202,7 +169,7 @@ sub fetchmail
 {
 	my $self = shift;
 	
-	my $fetchmail = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools/$main::imscpConfig{'WEBMAIL_PATH'}/plugins/pop3fetcher/imscp/fetchmail.php";
+	my $fetchmail = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/pop3fetcher/imscp/fetchmail.php";
 	
 	my ($stdout, $stderr);	
 	my $rs = execute("$main::imscpConfig{'CMD_PHP'} $fetchmail", \$stdout, \$stderr);
@@ -260,7 +227,7 @@ sub _installPlugin($$)
 	my ($self, $plugin) = @_;
 	
 	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/roundcube-plugins/$plugin";
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools/$main::imscpConfig{'WEBMAIL_PATH'}/plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin $pluginFolder", \$stdout, \$stderr);
@@ -314,7 +281,7 @@ sub _removePluginFile($$$)
 {
 	my ($self, $plugin, $fileName) = @_;
 	
-	my $removeFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools/$main::imscpConfig{'WEBMAIL_PATH'}/plugins/$plugin/$fileName";
+	my $removeFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/$plugin/$fileName";
 	
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_RM'} -f $removeFile", \$stdout, \$stderr);
@@ -337,7 +304,7 @@ sub _setRoundcubePlugin($$$)
 {
 	my ($self, $plugin, $action) = @_;
 	
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools/$main::imscpConfig{'WEBMAIL_PATH'}/config/main.inc.php";
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 	
 	my $fileContent = $file->get();
@@ -497,7 +464,7 @@ sub _setPluginConfig($$$)
 	my ($self, $plugin, $fileName) = @_;
 	
 	my $configPlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/config-templates/$plugin";
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools/$main::imscpConfig{'WEBMAIL_PATH'}/plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $configPlugin/* $pluginFolder/$plugin/", \$stdout, \$stderr);
