@@ -35,12 +35,12 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 **Debian Wheezy**
 
-1.1 Installation of spamassasin packages
+**1.1** Installation of spamassasin packages
 
 	# aptitude update
 	# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
 	
-1.2 Optional install pyzor and razor
+**1.2** Optional install pyzor and razor
  
 	# aptitude install pyzor razor
 	
@@ -49,20 +49,20 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	Add the backports of Debian Squezze to your /etc/apt/sources.list: 
 	deb http://backports.debian.org/debian-backports squeeze-backports main contrib non-free
 	
-1.1 Installation of spamassasin packages
+**1.1** Installation of spamassasin packages
 
 	# aptitude update
 	# aptitude -t squeeze-backports install spamassassin
 	# aptitude install spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
 	
-1.2 Configuration of spamassasin
+**1.2** Configuration of spamassasin
 
 	# groupadd -g 5001 debian-spamd
 	# useradd -u 5001 -g debian-spamd -s /bin/sh -d /var/lib/spamassassin debian-spamd
 	# mkdir /var/lib/spamassassin
 	# chown spamd:spamd /var/lib/spamassassin
 
-1.3 Optional install pyzor and razor
+**1.3** Optional install pyzor and razor
 
 	# aptitude install pyzor razor
 	
@@ -110,33 +110,46 @@ For the different configuration options please check the plugin config file.
 
 	# plugins/SpamAssassin/config.php
 
+
 #### 3rd party SpamAssasin Plugins
 
 **DecodeShortURLs**
 
-The [DecodeShortURLs](https://github.com/smfreegard/DecodeShortURLs "DecodeShortURLs") plugin looks for URLs shortened by a list of URL shortening services and upon finding a matching URL will connect using to the shortening service and do an HTTP HEAD lookup and retrieve the location header which points to the actual shortened URL, it then adds this URL to the list of URIs extracted by SpamAssassin which can then be accessed by other plugins, such as URIDNSBL.
+The [DecodeShortURLs](https://github.com/smfreegard/DecodeShortURLs "DecodeShortURLs") plugin looks 
+for URLs shortened by a list of URL shortening services and upon finding a matching URL will connect 
+using to the shortening service and do an HTTP HEAD lookup and retrieve the location header which 
+points to the actual shortened URL, it then adds this URL to the list of URIs extracted by SpamAssassin 
+which can then be accessed by other plugins, such as URIDNSBL.
 
 **iXhash2**
 
-[iXhash2](http://mailfud.org/iXhash2/ "iXhash2") is an unofficial improved version of [iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance and removing unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.	
+[iXhash2](http://mailfud.org/iXhash2/ "iXhash2") is an unofficial improved version of 
+[iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance 
+and removing unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.	
+
 
 #### Included Roundcube Plugins
 
 **markasjunk2**
 
-If enabled in the config.php file, the Roundcube plugin markasjunk2 adds a new button to the mailbox toolbar to mark the selected messages as 'Junk'/'Not Junk' and will also learn the bayesian database. 
-It will also detach original messages from spam reports if the message is not junk.
+If enabled in the config.php file, the Roundcube plugin markasjunk2 adds a new button to the mailbox toolbar 
+to mark the selected messages as 'Junk'/'Not Junk' and will also learn the bayesian database. It will also 
+detach original messages from spam reports if the message is not junk.
 
 **sauserprefs**
 
-If enabled in the config.php file, the Roundcube plugin sauserprefs adds a 'Spam' tab to the 'Settings' to allow the users to change their SpamAssassin preferences which are stored in the imscp_spamassassin database.
+If enabled in the config.php file, the Roundcube plugin sauserprefs adds a 'Spam' tab to the 'Settings' to 
+allow the users to change their SpamAssassin preferences which are stored in the imscp_spamassassin database.
 The SpamAssassin preferences shown in Roundcube will vary depending the changes you make in the config.php file.
 
 Roundcube user config: Settings -> Spam
 
+
 #### Move Spam into Junk folder
 
-If you want to move Spam massages into the users Junk folder, you will need the Roundcube Plugin managesieve, which is included in the I-MSCP Plugin RoundcubePlugins.
+If you want to move Spam massages into the users Junk folder, you will need the Roundcube Plugin managesieve, 
+which is included in the I-MSCP Plugin RoundcubePlugins.
+
 
 #### SpamAssassin user preferences
 
@@ -231,15 +244,12 @@ These are the $GLOBAL default values which will be imported during plugin instal
 
 
 The $GLOBAL values will be used as long as the user has no specific entries in the table.
-If you want to change some $GLOBAL options, please +
-+do that directly in the database.
+If you want to change some $GLOBAL options, please do that directly in the database.
 
 ##### Per-Domain SpamAssassin preferences
 
 You could also specify domain specific entries, which will be used as default only for that domain,
-until the user has no individual entry in the userpref table.
-
-Here are some examples for the domain **example.com**:
+until the user has no individual entry in the userpref table. Here are some examples for the domain **example.com**:
 
 <table>
 	<tr>
@@ -267,8 +277,8 @@ Here are some examples for the domain **example.com**:
 
 ##### Per-User SpamAssassin preferences
 
-If you enabled the Roundcube Plugin **sauserprefs** in the plugins/SpamAssassin/config.php file,
-then the user can change his SpamAssassin preferences under Roundcube -> Settings -> Spam.
+If you enabled the Roundcube Plugin **sauserprefs** in the config.php file, then the user can change his 
+SpamAssassin preferences under Roundcube -> Settings -> Spam.
 
 The user preferences will also be stored in the **userpref** table with the mail address as username.
 
@@ -295,11 +305,12 @@ The user preferences will also be stored in the **userpref** table with the mail
 
 **GTUBE (Generic Test for Unsolicited Bulk Email)**
 
-Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message.
+Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message:
 	
 	XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
 	
 Note that this should be reproduced in one line, without whitespace or line breaks.
+
 	
 ### AUTHORS AND CONTRIBUTORS
 
