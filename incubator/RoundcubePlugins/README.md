@@ -101,7 +101,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 **Debian Wheezy**
 
- - Only necessary if you want to use the Roundcube Plugin managesieve.
+Only necessary if you want to use the Roundcube Plugin managesieve.
+ 
 	# aptitude update
 	# aptitude install dovecot-sieve dovecot-managesieved
 	
