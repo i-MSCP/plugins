@@ -29,7 +29,7 @@ $rcmail_config['managesieve_auth_pw'] = null;
 $rcmail_config['managesieve_usetls'] = false;
 
 // default contents of filters script (eg. default spam filter)
-$rcmail_config['managesieve_default'] = '/etc/dovecot/sieve/global';
+$rcmail_config['managesieve_default'] = '{managesieve_default}';
 
 // The name of the script which will be used when there's no user script
 $rcmail_config['managesieve_script_name'] = '{managesieve_script_name}';

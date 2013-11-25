@@ -64,25 +64,13 @@ sub enable
 	my $rs = $self->_installPlugins();
 	return $rs if $rs;
 	
-	$rs = $self->_setPluginConfig('calendar', 'config.inc.php');
-	return $rs if $rs;
-	
-	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
-	return $rs if $rs;
-	
-	$rs = $self->_setPluginConfig('logon_page', 'logon_page.html');
-	return $rs if $rs;
-	
 	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
 	return $rs if $rs;
 	
 	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
 	return $rs if $rs;
 	
-	$rs = $self->_setPluginConfig('pop3fetcher', 'imscp/fetchmail.php');
-	return $rs if $rs;
-
-	$rs = $self->_setPluginConfig('tasklist', 'config.inc.php');
+	$rs = $self->_setPluginConfig('pop3fetcher', 'imscp_fetchmail.php');
 	return $rs if $rs;
 	
 	$rs = $self->_checkRoundcubePlugins();
@@ -172,6 +160,9 @@ sub uninstall
 	my $rs = $self->_removePluginFile('managesieve', 'config.inc.php');
 	return $rs if $rs;
 	
+	$rs = $self->_removePluginFile('managesieve', 'imscp_default.sieve');
+	return $rs if $rs;
+	
 	$rs = $self->_removePluginFile('newmail_notifier', 'config.inc.php');
 	return $rs if $rs;
 	
@@ -193,7 +184,7 @@ sub fetchmail
 {
 	my $self = shift;
 	
-	my $fetchmail = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/pop3fetcher/imscp/fetchmail.php";
+	my $fetchmail = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/pop3fetcher/imscp_fetchmail.php";
 	
 	my ($stdout, $stderr);	
 	my $rs = execute("$main::imscpConfig{'CMD_PHP'} $fetchmail", \$stdout, \$stderr);
@@ -254,10 +245,16 @@ sub _installPlugins()
 	my $self = shift;
 	
 	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/roundcube-plugins";
+	my $configPlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/config-templates";
 	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin/* $pluginFolder/", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+	
+	$rs = execute("$main::imscpConfig{'CMD_CP'} -fR $configPlugin/* $pluginFolder/", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -373,7 +370,8 @@ sub _setRoundcubePlugin($$$)
 				$fileContent =~ s/,\s+'$plugin'//g;
 			}
 		}
-	} else {
+	} 
+	else {
 		if($action eq 'add') {
 			if($fileContent =~ /imscp_pw_changer/sgm) {
 				$fileContent =~ s/,\s+'$plugin'//g;
@@ -547,56 +545,36 @@ sub _setPluginConfig($$$)
 {
 	my ($self, $plugin, $fileName) = @_;
 	
-	my $configPlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/config-templates/$plugin";
 	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $configPlugin/* $pluginFolder/$plugin/", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+	my $configFile = "$pluginFolder/$plugin/$fileName";
+	my $file = iMSCP::File->new('filename' => $configFile);
 	
-	if($plugin ~~ ['managesieve', 'newmail_notifier', 'pop3fetcher']) {
-		my $configFile = "$pluginFolder/$plugin/$fileName";
-		my $file = iMSCP::File->new('filename' => $configFile);
-		
-		my $fileContent = $file->get();
-		unless (defined $fileContent) {
-			error("Unable to read $configFile");
-			return 1;
-		}
-		
-		if($plugin eq 'managesieve') {
-			$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
-		}
-		elsif($plugin eq 'newmail_notifier') {
-			$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
-			$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
-			$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
-		}
-		elsif($plugin eq 'pop3fetcher') {
-			if($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
-				$fileContent =~ s/\{IMSCP-DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
-			}
-		}
-		
-		$rs = $file->set($fileContent);
-		return $rs if $rs;
-		
-		$rs = $file->save();
-		return $rs if $rs;
+	my $fileContent = $file->get();
+	unless (defined $fileContent) {
+		error("Unable to read $configFile");
+		return 1;
 	}
 	
-	my $panelUName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-	my $panelGName = $panelUName;
+	if($plugin eq 'managesieve') {
+		$fileContent =~ s%\{managesieve_default\}%$pluginFolder/$plugin/imscp_default.sieve%g;
+		$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
+	}
+	elsif($plugin eq 'newmail_notifier') {
+		$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
+		$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
+		$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
+	}
+	elsif($plugin eq 'pop3fetcher') {
+		if($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
+			$fileContent =~ s/\{IMSCP-DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
+		}
+	}
 	
-	# Set the correct permissions
-	require iMSCP::Rights;
-	iMSCP::Rights->import();
-	$rs = setRights(
-		"$pluginFolder/$plugin",
-		{ 'user' => $panelUName, 'group' => $panelGName, 'dirmode' => '0550', 'filemode' => '0440', 'recursive' => 1 }
-	);
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+	
+	$rs = $file->save();
 	return $rs if $rs;
 	
 	0;
