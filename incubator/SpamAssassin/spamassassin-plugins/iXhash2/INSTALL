@@ -1,0 +1,6 @@
+
+Copy iXhash2.cf and iXhash2.pm to your Spamassassin config directory,
+usually /etc/mail/spamassassin.  Normal plugin install procedures apply: run
+spamassassin --lint, reload your SpamAssassin, look for hits, adjust scores
+if needed..
+

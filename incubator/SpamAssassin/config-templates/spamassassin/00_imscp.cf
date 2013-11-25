@@ -1,0 +1,47 @@
+# i-MSCP - internet Multi Server Control Panel
+# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# @category    i-MSCP
+# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @author      Sascha Bay <info@space2place.de>
+# @contributor Rene Schuster <mail@reneschuster.de>
+# @link        http://i-mscp.net i-MSCP Home Site
+# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+
+
+# Userpref configuration
+user_scores_dsn				DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
+user_scores_sql_username		{SA_DATABASE_USER}
+user_scores_sql_password		{SA_DATABASE_PASSWORD}
+user_scores_sql_custom_query		SELECT preference, value FROM _TABLE_ WHERE username = _USERNAME_ OR username = '$GLOBAL' OR username = CONCAT('%',_DOMAIN_) ORDER BY username ASC
+
+
+# Bayes configuration
+bayes_store_module			Mail::SpamAssassin::BayesStore::MySQL
+bayes_sql_dsn				DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
+bayes_sql_username			{SA_DATABASE_USER}
+bayes_sql_password			{SA_DATABASE_PASSWORD}
+bayes_sql_override_username		$GLOBAL
+bayes_auto_expire			0
+
+
+# Auto-Whitelist configuration
+auto_whitelist_factory			Mail::SpamAssassin::SQLBasedAddrList
+user_awl_dsn				DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
+user_awl_sql_username			{SA_DATABASE_USER}
+user_awl_sql_password			{SA_DATABASE_PASSWORD}
+auto_whitelist_distinguish_signed	1

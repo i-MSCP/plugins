@@ -1,0 +1,16 @@
+
+iXhash2.pm is a plugin for SpamAssassin 3.2.0 and up. It takes the body of a
+mail, strips parts from it and then computes a hash value from the rest. 
+These values will then be looked up via DNS to see if the hashes have
+already been categorized as spam by others.
+
+This plugin is based on parts of the procmail-based project 'NiX Spam',
+developed by Bert Ungerer.(un@ix.de) For more information see
+http://www.heise.de/ix/nixspam/.  The procmail code producing the hashes
+only can be found here: ftp://ftp.ix.de/pub/ix/ix_listings/2004/05/checksums
+
+iXhash2 is an unofficial version based on iXhash version 1.5.5
+(http://www.ixhash.net), adding async DNS lookups for performance and
+removing unneeded features.  It's fully compatible with the existing
+implementation.
+

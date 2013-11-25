@@ -1,0 +1,20 @@
+
+# Note: loadplugin should really go into local.pre or so
+loadplugin Mail::SpamAssassin::Plugin::iXhash2 iXhash2.pm
+
+ifplugin Mail::SpamAssassin::Plugin::iXhash2
+
+ixhashdnsbl	GENERIC_IXHASH  generic.ixhash.net.
+body		GENERIC_IXHASH  eval:check_ixhash('GENERIC_IXHASH')
+tflags		GENERIC_IXHASH  net
+
+ixhashdnsbl	NIXSPAM_IXHASH  ix.dnsbl.manitu.net.
+body		NIXSPAM_IXHASH  eval:check_ixhash('NIXSPAM_IXHASH')
+tflags		NIXSPAM_IXHASH  net
+
+ixhashdnsbl	SEM_IXHASH  ixhash.spameatingmonkey.net.
+body		SEM_IXHASH  eval:check_ixhash('SEM_IXHASH')
+tflags		SEM_IXHASH  net
+
+endif
+
