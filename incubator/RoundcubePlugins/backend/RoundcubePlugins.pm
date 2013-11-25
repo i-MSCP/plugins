@@ -243,11 +243,12 @@ sub _init
 
 =item _installPlugins()
 
- Copy the plugin to the Roundcube Plugin folder.
+ Copy the plugins to the Roundcube Plugin folder.
 
  Return int 0 on success, other on failure
 
 =cut
+
 sub _installPlugins()
 {
 	my $self = shift;
@@ -275,7 +276,7 @@ sub _installPlugins()
 	0;
 }
 
-=item _removePlugin($plugin)
+=item _removePlugin()
 
  Remove the Plugin from the Roundcube Plugin folder.
 
