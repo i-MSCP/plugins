@@ -179,11 +179,6 @@ These are the $GLOBAL default values which will be imported during plugin instal
 	</tr>
 	<tr>
 		<td>$GLOBAL</td>
-		<td> </td>
-		<td> </td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
 		<td>bayes_auto_learn</td>
 		<td>1</td>
 	</tr>
@@ -209,11 +204,6 @@ These are the $GLOBAL default values which will be imported during plugin instal
 	</tr>
 	<tr>
 		<td>$GLOBAL</td>
-		<td> </td>
-		<td> </td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
 		<td>use_razor2</td>
 		<td>0</td>
 	</tr>
@@ -221,11 +211,6 @@ These are the $GLOBAL default values which will be imported during plugin instal
 		<td>$GLOBAL</td>
 		<td>use_pyzor</td>
 		<td>0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td> </td>
-		<td> </td>
 	</tr>
 	<tr>
 		<td>$GLOBAL</td>
