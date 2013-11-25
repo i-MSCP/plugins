@@ -1,0 +1,9 @@
+
+I personnally prefer small icons (13*13pixels), 
+but if you like them bigger,
+you can use the ones in the tar file,
+they are 30*30pixels and expend a little bit the
+height of the 'From' line of roundcube.
+
+Just move the small icons somewhere else and untar
+the archive in this folder.

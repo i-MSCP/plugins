@@ -1,0 +1,2 @@
+untar the folder dkimstatus/ in your roundcubemail/plugins/ directory and add 'dkimstatus' to the list of plugins in roundcubemail/config/main.inc.php
+

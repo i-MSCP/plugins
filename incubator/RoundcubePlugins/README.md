@@ -10,32 +10,64 @@ gui/plugins/ - if the folder is called different it will not work!
 **archive**
 
 	Archive plugin adds a new button to the Roundcube toolbar to move messages to an (user selectable) archive folder.
-	The button will only appear after the user configured the Archive folder on the Roundcube setting 'Special Folders'.
+	The button will only appear after the user configured the Archive folder.
+	
+	Roundcube user config: Settings -> Preferences -> Special Folders -> Archive
 
+**calendar**
+
+	Calendar plugin is a full calendar for Roundcube.
+	
+	Roundcube user config: Settings -> Preferences -> Calendar
+	
 **contextmenu**
 
 	Adds context menus to the message list, folder list and address book. 
 	Possibility to mark mails as read/unread, delete, reply and forward mails.
+
+**dkimstatus**
+
+	Displays the DKIM Signature status of each mail in Roundcube.
 
 **emoticons**
 
 	Emoticons inserts nice smileys and other emoticons when the appropriate 
 	text representations e.g. :-) are discovered in the mail text.
 
+**logon_page**
+
+	Allows to display additional information (HTML code block) at logon page.
+	Configuration: Put your content into the file config-templates/logon_page/logon_page.html
+	It will be parsed by Roundcube templates engine, so you can use all template features (tags).
+	
 **managesieve**
 
 	Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
 	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
+	
+	Roundcube user config: Settings -> Filters
 
 **newmail_notifier**
 
 	Can notify on new mails by focusing browser window and changing favicon, 
 	playing a sound and displaying desktop notification (using webkitNotifications feature).
-
+	
+	Roundcube user config: Settings -> Preferences -> Mailbox View
+	
+**pdfviewer**
+	
+	Roundcube inline pdf viewer.
+	
 **pop3fetcher**
 
 	Plugin pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
+	
+	Roundcube user config: Settings -> Preferences -> Other Accounts
 
+**tasklist**
+	
+	Task management plugin for Roundcube.
+	
 **zipdownload**
 
 	Adds an option to download all attachments of a message in one zip file.

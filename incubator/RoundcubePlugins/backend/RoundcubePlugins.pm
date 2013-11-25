@@ -61,10 +61,16 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_installPlugin('contextmenu');
+	my $rs = $self->_installPlugins();
 	return $rs if $rs;
 	
-	$rs = $self->_installPlugin('pop3fetcher');
+	$rs = $self->_setPluginConfig('calendar', 'config.inc.php');
+	return $rs if $rs;
+	
+	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
+	return $rs if $rs;
+	
+	$rs = $self->_setPluginConfig('logon_page', 'logon_page.html');
 	return $rs if $rs;
 	
 	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
@@ -74,6 +80,9 @@ sub enable
 	return $rs if $rs;
 	
 	$rs = $self->_setPluginConfig('pop3fetcher', 'imscp/fetchmail.php');
+	return $rs if $rs;
+
+	$rs = $self->_setPluginConfig('tasklist', 'config.inc.php');
 	return $rs if $rs;
 	
 	$rs = $self->_checkRoundcubePlugins();
@@ -97,31 +106,49 @@ sub disable
 	my $rs = $self->_setRoundcubePlugin('archive', 'remove');
 	return $rs if $rs;
 	
-	$rs = $self->_modifyDovecotConfig('archive', 'remove');
+	$rs = $self->_setRoundcubePlugin('calendar', 'remove');
+	return $rs if $rs;
+	
+	$rs = $self->_setRoundcubePlugin('libcalendaring', 'remove');
 	return $rs if $rs;
 	
 	$rs = $self->_setRoundcubePlugin('contextmenu', 'remove');
 	return $rs if $rs;
 	
+	$rs = $self->_setRoundcubePlugin('dkimstatus', 'remove');
+	return $rs if $rs;
+	
 	$rs = $self->_setRoundcubePlugin('emoticons', 'remove');
+	return $rs if $rs;
+	
+	$rs = $self->_setRoundcubePlugin('logon_page', 'remove');
 	return $rs if $rs;
 	
 	$rs = $self->_setRoundcubePlugin('managesieve', 'remove');
 	return $rs if $rs;
 	
-	$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
-	return $rs if $rs;
-			
 	$rs = $self->_setRoundcubePlugin('newmail_notifier', 'remove');
+	return $rs if $rs;
+	
+	$rs = $self->_setRoundcubePlugin('pdfviewer', 'remove');
 	return $rs if $rs;
 	
 	$rs = $self->_setRoundcubePlugin('pop3fetcher', 'remove');
 	return $rs if $rs;
 	
-	$rs = $self->_unregisterCronjobPop3fetcher();
+	$rs = $self->_setRoundcubePlugin('tasklist', 'remove');
 	return $rs if $rs;
 	
 	$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
+	return $rs if $rs;	
+	
+	$rs = $self->_unregisterCronjobPop3fetcher();
+	return $rs if $rs;
+	
+	$rs = $self->_modifyDovecotConfig('archive', 'remove');
+	return $rs if $rs;
+	
+	$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonDovecot();
@@ -148,10 +175,7 @@ sub uninstall
 	$rs = $self->_removePluginFile('newmail_notifier', 'config.inc.php');
 	return $rs if $rs;
 	
-	$rs = $self->_removePlugin('contextmenu');
-	return $rs if $rs;
-	
-	$rs = $self->_removePlugin('pop3fetcher');
+	$rs = $self->_removePlugins();
 	return $rs if $rs;
 	
 	0;
@@ -217,22 +241,22 @@ sub _init
 	$self;
 }
 
-=item _installPlugin($plugin)
+=item _installPlugins()
 
  Copy the plugin to the Roundcube Plugin folder.
 
  Return int 0 on success, other on failure
 
 =cut
-sub _installPlugin($$)
+sub _installPlugins()
 {
-	my ($self, $plugin) = @_;
+	my $self = shift;
 	
-	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/roundcube-plugins/$plugin";
+	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/roundcube-plugins";
 	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin $pluginFolder", \$stdout, \$stderr);
+	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin/* $pluginFolder/", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -243,7 +267,7 @@ sub _installPlugin($$)
 	require iMSCP::Rights;
 	iMSCP::Rights->import();
 	$rs = setRights(
-		"$pluginFolder/$plugin",
+		"$pluginFolder/",
 		{ 'user' => $panelUName, 'group' => $panelGName, 'dirmode' => '0550', 'filemode' => '0440', 'recursive' => 1 }
 	);
 	return $rs if $rs;
@@ -259,14 +283,18 @@ sub _installPlugin($$)
 
 =cut
 
-sub _removePlugin($$)
+sub _removePlugins()
 {
-	my ($self, $plugin) = @_;
+	my $self = shift;
 	
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins/$plugin";
+	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/roundcube-plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
 	
-	my $rs = iMSCP::Dir->new('dirname' => $pluginFolder)->remove() if -d $pluginFolder;
-	return $rs if $rs;
+	foreach my $plugin (glob($roundcubePlugin . "/*")) {
+		$plugin =~ s%$roundcubePlugin/(.*)%$pluginFolder/$1%gm;
+		my $rs = iMSCP::Dir->new('dirname' => $plugin)->remove() if -d $plugin;
+		return $rs if $rs;
+	}
 	
 	0;
 }
@@ -315,33 +343,44 @@ sub _setRoundcubePlugin($$$)
 		return 1;
 	}
 	
-	if ($plugin eq 'contextmenu') {
+	if($plugin eq 'contextmenu') {
 		if($action eq 'add') {
-			if ($fileContent =~ /contextmenu/sgm) {
-				$fileContent =~ s/'contextmenu',\s+//g;
-			}
-			if ($fileContent =~ /imscp_pw_changer/sgm) {
-				$fileContent =~ s/'contextmenu',\s+//g;
-				$fileContent =~ s/'imscp_pw_changer'/'contextmenu', 'imscp_pw_changer'/g;
+			if($fileContent =~ /imscp_pw_changer/sgm) {
+				$fileContent =~ s/'$plugin',\s+//g;
+				$fileContent =~ s/'imscp_pw_changer'/'$plugin', 'imscp_pw_changer'/g;
 			}
 		} 
 		elsif($action eq 'remove') {
-			if ($fileContent =~ /contextmenu/sgm) {
-				$fileContent =~ s/'contextmenu',\s+//g;
+			if($fileContent =~ /$plugin/sgm) {
+				$fileContent =~ s/'$plugin',\s+//g;
 			}
-		}	
-	} else {
+		}
+	}
+	elsif($plugin eq 'tasklist') {
 		if($action eq 'add') {
-			if ($fileContent =~ /$plugin/sgm) {
+			if($fileContent =~ /calendar/sgm) {
+				$fileContent =~ s/,\s+'$plugin'//g;
+				$fileContent =~ s/'calendar'/'calendar', '$plugin'/g;
+			}
+			elsif($fileContent =~ /imscp_pw_changer/sgm) {
+				$fileContent =~ s/'$plugin',\s+//g;
+				$fileContent =~ s/imscp_pw_changer/imscp_pw_changer', '$plugin/g;
+			}
+		} 
+		elsif($action eq 'remove') {
+			if($fileContent =~ /$plugin/sgm) {
 				$fileContent =~ s/,\s+'$plugin'//g;
 			}
-			if ($fileContent =~ /imscp_pw_changer/sgm) {
+		}
+	} else {
+		if($action eq 'add') {
+			if($fileContent =~ /imscp_pw_changer/sgm) {
 				$fileContent =~ s/,\s+'$plugin'//g;
 				$fileContent =~ s/imscp_pw_changer/imscp_pw_changer', '$plugin/g;
 			}
 		} 
 		elsif($action eq 'remove') {
-			if ($fileContent =~ /$plugin/sgm) {
+			if($fileContent =~ /$plugin/sgm) {
 				$fileContent =~ s/,\s+'$plugin'//g;
 			}
 		}
@@ -384,6 +423,16 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
+	if($self->{'config'}->{'calendar_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('libcalendaring', 'add');
+		$rs = $self->_setRoundcubePlugin('calendar', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('libcalendaring', 'remove');
+		$rs = $self->_setRoundcubePlugin('calendar', 'remove');
+		return $rs if $rs;
+	}
+	
 	if($self->{'config'}->{'contextmenu_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('contextmenu', 'add');
 		return $rs if $rs;
@@ -392,11 +441,27 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
+	if($self->{'config'}->{'dkimstatus_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('dkimstatus', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('dkimstatus', 'remove');
+		return $rs if $rs;
+	}
+	
 	if($self->{'config'}->{'emoticons_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('emoticons', 'add');
 		return $rs if $rs;
 	} else {
 		$rs = $self->_setRoundcubePlugin('emoticons', 'remove');
+		return $rs if $rs;
+	}
+	
+	if($self->{'config'}->{'logon_page_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('logon_page', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('logon_page', 'remove');
 		return $rs if $rs;
 	}
 	
@@ -425,6 +490,14 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	}
 	
+	if($self->{'config'}->{'pdfviewer_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('pdfviewer', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('pdfviewer', 'remove');
+		return $rs if $rs;
+	}
+	
 	if($self->{'config'}->{'pop3fetcher_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('pop3fetcher', 'add');
 		return $rs if $rs;
@@ -436,6 +509,14 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 		
 		$rs = $self->_unregisterCronjobPop3fetcher();
+		return $rs if $rs;
+	}
+	
+	if($self->{'config'}->{'tasklist_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('tasklist', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('tasklist', 'remove');
 		return $rs if $rs;
 	}
 	
@@ -474,34 +555,36 @@ sub _setPluginConfig($$$)
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 	
-	my $configFile = "$pluginFolder/$plugin/$fileName";
-	my $file = iMSCP::File->new('filename' => $configFile);
-	
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $configFile");
-		return 1;
-	}
-	
-	if ($plugin eq 'managesieve') {
-		$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
-	}
-	elsif ($plugin eq 'newmail_notifier') {
-		$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
-		$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
-		$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
-	}
-	elsif ($plugin eq 'pop3fetcher') {
-		if ($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
-			$fileContent =~ s/\{IMSCP-DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
+	if($plugin ~~ ['managesieve', 'newmail_notifier', 'pop3fetcher']) {
+		my $configFile = "$pluginFolder/$plugin/$fileName";
+		my $file = iMSCP::File->new('filename' => $configFile);
+		
+		my $fileContent = $file->get();
+		unless (defined $fileContent) {
+			error("Unable to read $configFile");
+			return 1;
 		}
+		
+		if($plugin eq 'managesieve') {
+			$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
+		}
+		elsif($plugin eq 'newmail_notifier') {
+			$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
+			$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
+			$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
+		}
+		elsif($plugin eq 'pop3fetcher') {
+			if($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
+				$fileContent =~ s/\{IMSCP-DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
+			}
+		}
+		
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+		
+		$rs = $file->save();
+		return $rs if $rs;
 	}
-	
-	$rs = $file->set($fileContent);
-	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
 	
 	my $panelUName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 	my $panelGName = $panelUName;

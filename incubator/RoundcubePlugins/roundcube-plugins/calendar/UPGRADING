@@ -1,0 +1,11 @@
+UPGRADING instructions
+======================
+
+From version 0.7 and 0.8
+------------------------
+
+The schemas of the backend databases have changed. Depending on the driver
+you're using, please execute all statements from divers/<driver>/sql/<db>.upgrade-0.7.sql
+on your local database.
+
+
