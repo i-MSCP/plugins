@@ -278,7 +278,7 @@ sub _installPlugins()
 
 =item _removePlugins()
 
- Remove the Plugin from the Roundcube Plugin folder.
+ Remove the Plugins from the Roundcube Plugin folder.
 
  Return int 0 on success, other on failure
 
