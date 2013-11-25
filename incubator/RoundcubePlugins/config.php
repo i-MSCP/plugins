@@ -51,7 +51,7 @@ return array(
 	'logon_page_plugin' => 'yes', // YES to enable (default), NO to disable
 	
 	// Uses the managesieve protocol and allows the user to manage his sieve mail rules.
-	// A default Spam filter rule will be created after the user opened the Filters configuration in Roundcube.
+	// A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 	// For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 	'managesieve_plugin' => 'yes', // YES to enable (default), NO to disable
 	

@@ -43,7 +43,7 @@ gui/plugins/ - if the folder is called different it will not work!
 **managesieve**
 
 	Uses the managesieve protocol and allows the user to manage his sieve mail rules.
-	A default Spam filter rule will be created after the user opened the Filters configuration in Roundcube.
+	A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 	
 	Roundcube user config: Settings -> Filters
@@ -137,6 +137,7 @@ Only necessary if you want to use the Roundcube Plugin managesieve.
 **3.** Backup your current plugin config
 
 	- plugins/RoundcubePlugins/config.php
+	- plugins/RoundcubePlugins/config-templates/logon_page/logon_page.html
 	
 **4.** Plugin upload and update
 
