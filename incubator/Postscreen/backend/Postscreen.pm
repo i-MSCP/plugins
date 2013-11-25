@@ -166,9 +166,10 @@ sub _init
 			error($rdata);
 			return 1;
 		}
-	}
 	
-    $self->{'config'} = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
+		$self->{'config'} = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
+	
+	}
 	
 	$self;
 }
