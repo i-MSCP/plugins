@@ -276,7 +276,7 @@ sub _installPlugins()
 	0;
 }
 
-=item _removePlugin()
+=item _removePlugins()
 
  Remove the Plugin from the Roundcube Plugin folder.
 
