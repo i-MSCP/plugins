@@ -354,7 +354,7 @@ sub _setRoundcubePlugin($$$)
 			}
 		}
 	}
-	elsif($plugin eq 'tasklist') {
+	elsif($plugin ~~ ['tasklist', 'pop3fetcher']) {
 		if($action eq 'add') {
 			if($fileContent =~ /calendar/sgm) {
 				$fileContent =~ s/,\s+'$plugin'//g;
