@@ -145,27 +145,109 @@ The default SpamAssassin user preferences are stored in the table **userpref** o
 ##### Global SpamAssassin preferences
 
 These are the $GLOBAL default values which will be imported during plugin installation.
-	
-| username         | preference                         | value                  |
-+ ---------------- |:----------------------------------:| ----------------------:|
-| $GLOBAL          | required_score                     | 5                      |
-| $GLOBAL          | rewrite_header Subject             | *****SPAM*****         |
-| $GLOBAL          | report_safe                        | 1                      |
-| $GLOBAL          | use_bayes                          | 1                      |
-| $GLOBAL          | use_bayes_rules                    | 1                      |
-| $GLOBAL          | bayes_auto_learn                   | 1                      |
-| $GLOBAL          | bayes_auto_learn_threshold_nonspam | 0.1                    |
-| $GLOBAL          | bayes_auto_learn_threshold_spam    | 12.0                   |
-| $GLOBAL          | use_auto_whitelist                 | 0                      |
-| $GLOBAL          | skip_rbl_checks                    | 1                      |
-| $GLOBAL          | use_razor2                         | 0                      |
-| $GLOBAL          | use_pyzor                          | 0                      |
-| $GLOBAL          | use_dcc                            | 0                      |
-| $GLOBAL          | score USER_IN_BLACKLIST            | 10                     |
-| $GLOBAL          | score USER_IN_WHITELIST            | -6                     |
+
+<table>
+	<tr>
+		<th>username</th>
+		<th>preference</th>
+		<th>value</th>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>required_score</td>
+		<td>5</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>rewrite_header Subject</td>
+		<td>*****SPAM*****</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>report_safe</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_bayes</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_bayes_rules</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td> </td>
+		<td> </td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>bayes_auto_learn</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>bayes_auto_learn_threshold_nonspam</td>
+		<td>0.1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>bayes_auto_learn_threshold_spam</td>
+		<td>12.0</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_auto_whitelist</td>
+		<td>0</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>skip_rbl_checks</td>
+		<td>1</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td> </td>
+		<td> </td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_razor2</td>
+		<td>0</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_pyzor</td>
+		<td>0</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td> </td>
+		<td> </td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>use_dcc</td>
+		<td>0</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>score USER_IN_BLACKLIST</td>
+		<td>10</td>
+	</tr>
+	<tr>
+		<td>$GLOBAL</td>
+		<td>score USER_IN_WHITELIST</td>
+		<td>-6</td>
+	</tr>
+</table>
+
 
 The $GLOBAL values will be used as long as the user has no specific entries in the table.
-If you want to change some $GLOBAL options, please do that directly in the database.
+If you want to change some $GLOBAL options, please +
++do that directly in the database.
 
 ##### Per-Domain SpamAssassin preferences
 
@@ -174,12 +256,29 @@ until the user has no individual entry in the userpref table.
 
 Here are some examples for the domain **example.com**:
 
-| username         | preference                         | value                  |
-+ ---------------- |:----------------------------------:| ----------------------:|
-| %example.com     | required_score                     | 8                      |
-| %example.com     | rewrite_header Subject             | [ SPAM ]               |
-| %example.com     | report_safe                        | 0                      |
-	
+<table>
+	<tr>
+		<th>username</th>
+		<th>preference</th>
+		<th>value</th>
+	</tr>
+	<tr>
+		<td>%example.com</td>
+		<td>required_score</td>
+		<td>8</td>
+	</tr>
+	<tr>
+		<td>%example.com</td>
+		<td>rewrite_header Subject</td>
+		<td>[ SPAM ]</td>
+	</tr>
+	<tr>
+		<td>%example.com</td>
+		<td>report_safe</td>
+		<td>0</td>
+	</tr>
+</table>
+
 
 ##### Per-User SpamAssassin preferences
 
@@ -188,10 +287,23 @@ then the user can change his SpamAssassin preferences under Roundcube -> Setting
 
 The user preferences will also be stored in the **userpref** table with the mail address as username.
 
-| username         | preference                         | value                  |
-+ ---------------- |:----------------------------------:| ----------------------:|
-| user@example.com | required_score                     | 6                      |
-| user@example.com | rewrite_header Subject             | [SPAM-_HITS_]          |
+<table>
+	<tr>
+		<th>username</th>
+		<th>preference</th>
+		<th>value</th>
+	</tr>
+	<tr>
+		<td>user@example.com</td>
+		<td>required_score</td>
+		<td>6</td>
+	</tr>
+	<tr>
+		<td>user@example.com</td>
+		<td>rewrite_header Subject</td>
+		<td>[SPAM-_HITS_]</td>
+	</tr>
+</table>
 
 
 ### TESTING
