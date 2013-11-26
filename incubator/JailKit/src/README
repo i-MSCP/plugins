@@ -5,7 +5,7 @@ Upstream sources modifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Any change made to the upstream sources should be provided in the
-imscp_fixes.patch, which will be automatically applied during plugin
+imscp_fixes.patch patch, which will be automatically applied during plugin
 installation.
 
 This mean that you must never do any change on the upstream sources directly.
@@ -27,7 +27,7 @@ specific change.
 Upstream sources update
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If you must update the upstream sources to a new version your must ensure that
+If you must update the upstream sources to a new version, you must ensure that
 the imscp_fixes.patch patch still apply correctly. In case a fix provided by
 the imscp_fixes.patch patch has been integrated in the upstream sources, it
 must be removed from the patch.
