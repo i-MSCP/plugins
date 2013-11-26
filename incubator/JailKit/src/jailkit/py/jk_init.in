@@ -209,7 +209,7 @@ def main():
 		print 'Cannot create chroot jail without root privileges. Abort.'
 		sys.exit(5)
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "vhflc:kj:", ["help", "configfile=", "verbose", "force", 'list', 'hardlink', 'jail='])
+		opts, args = getopt.getopt(sys.argv[1:], 'vhflc:kj:', ['help', 'configfile=', 'verbose', 'force', 'list', 'hardlink', 'jail='])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)

@@ -1203,7 +1203,7 @@ sub _installJailKit
 
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
-	$rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/sources/* .");
+	$rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/* .");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1311,7 +1311,7 @@ sub _uninstallJailKit
 
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/sources/* .");
+	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/* .");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
