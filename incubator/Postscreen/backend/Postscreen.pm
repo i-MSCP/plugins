@@ -205,9 +205,10 @@ sub _modifyPostfixMainConfig($$)
 		} else {
 			$postscreenAccessList .= ",\n\t\t\t $_";
 		}
-		if($_ =~ /^cidr:/sgm) {
-				$_ =~ s/^(cidr:)(.*)/$2/gm;
-				$rs = $self->_createPostscreenAccessFile($_);
+		my $cidrFile = $_;
+		if($cidrFile =~ /^cidr:/sgm) {
+				$cidrFile =~ s/^(cidr:)(.*)/$2/gm;
+				$rs = $self->_createPostscreenAccessFile($cidrFile);
 				return $rs if $rs;
 		}
 	}

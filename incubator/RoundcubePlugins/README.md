@@ -1,6 +1,6 @@
 ## i-MSCP RoundcubePlugins plugin v0.0.1
 
-Plugin allows to use Roundcube Plugins with i-MSCP
+Plugin allows to use Roundcube Plugins with i-MSCP.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -42,7 +42,8 @@ gui/plugins/ - if the folder is called different it will not work!
 	
 **managesieve**
 
-	Allows the user to manage his sieve mail rules. Uses the Managesieve protocol.
+	Uses the managesieve protocol and allows the user to manage his sieve mail rules.
+	A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 	
 	Roundcube user config: Settings -> Filters
@@ -100,7 +101,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 **Debian Wheezy**
 
-	Only necessary if you want to use the Roundcube Plugin managesieve.
+Only necessary if you want to use the Roundcube Plugin managesieve.
+ 
 	# aptitude update
 	# aptitude install dovecot-sieve dovecot-managesieved
 	
@@ -135,6 +137,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 **3.** Backup your current plugin config
 
 	- plugins/RoundcubePlugins/config.php
+	- plugins/RoundcubePlugins/config-templates/logon_page/logon_page.html
 	
 **4.** Plugin upload and update
 

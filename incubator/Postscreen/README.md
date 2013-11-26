@@ -1,6 +1,6 @@
 ## i-MSCP Postscreen plugin v0.0.1
 
-Plugin allows to use Postscreen with Postfix on i-MSCP
+Plugin allows to use Postscreen with Postfix on i-MSCP.
 
 For more information please visit: http://www.postfix.org/POSTSCREEN_README.html
 
@@ -25,14 +25,12 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 ### ATTENTION
 	
 Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_README.html "Postfix Postscreen Howto") before installing this plugin.
+
+	If you use this Plugin your MUA clients should not submit mail via SMTP service on TCP port 25 because 
+	that is used for the Postscreen daemon with all the checks.
 	
-	If you use this Plugin your MUA clients should not submit 
-	mail via SMTP service on TCP port 25 because that is used 
-	for the Postscreen daemon with all the checks.
-	
-	Instead your MUA clients should submit mails via SUBMISSION 
-	service on TCP port 587 or via SMTPS service on TCP port 465 
-	which both require client authentication.
+	Instead your MUA clients should submit mails via SUBMISSION service on TCP port 587 or via SMTPS service on 
+	TCP port 465 which both require client authentication.
 
 ### REQUIREMENTS
 

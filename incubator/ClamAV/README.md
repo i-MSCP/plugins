@@ -1,6 +1,6 @@
 ## i-MSCP ClamAV plugin v0.0.1
 
-Plugin allows to use ClamAV with i-MSCP
+Plugin allows to use ClamAV with i-MSCP.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -33,20 +33,25 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 **1.** Install needed Debian/Ubuntu packages if not already done
 
-	First install the clamav packages
+**1.1** Install the clamav packages
+
 	# aptitude update
 	# aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
 	
-	Stop the clamav-freshclam daemon if it is running
+**1.2** Stop the clamav-freshclam daemon if it is running
+
 	# service clamav-freshclam stop
 	
-	Update the virus database
+**1.3** Update the virus database
+
 	# freshclam
 	
-	Start the clamav-freshclam daemon
+**1.4** Start the clamav-freshclam daemon
+
 	# service clamav-freshclam start
 	
-	Restart the clamav-daemon
+**1.5** Restart the clamav-daemon
+
 	# service clamav-daemon restart
 	
 **2.** Get the plugin from github
@@ -97,7 +102,7 @@ For the different configuration options please check the plugin config file.
 
 **Eicar-Test-Signature**
 
-Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message.
+Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message:
 	
 	X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 	
