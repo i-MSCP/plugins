@@ -4,9 +4,8 @@ DEVELOPERS NOTE
 Upstream sources modifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Any change made to the upstream sources should be provided in the
-imscp_fixes.patch patch, which will be automatically applied during plugin
-installation.
+Any change made to the upstream sources should be provided in the imscp.patch
+patch, which will be automatically applied during plugin installation.
 
 This mean that you must never do any change on the upstream sources directly.
 
@@ -16,8 +15,8 @@ which is the preferable way to provide fixes.
 Upstream bugs
 ~~~~~~~~~~~~~
 
-All upstream bugs, which are fixed by the imscp_fixes.patch patch should be
-reported to the upstream author:
+All upstream bugs, which are fixed by the imscp.patch patch should be reported
+to the upstream author:
 
  - https://savannah.nongnu.org/bugs/?group=jailkit
 
@@ -28,6 +27,6 @@ Upstream sources update
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 If you must update the upstream sources to a new version, you must ensure that
-the imscp_fixes.patch patch still apply correctly. In case a fix provided by
-the imscp_fixes.patch patch has been integrated in the upstream sources, it
-must be removed from the patch.
+the imscp.patch patch still apply correctly. In case a fix provided by the
+imscp.patch patch has been integrated in the upstream sources, it must be
+removed from the patch.

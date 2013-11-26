@@ -1210,8 +1210,8 @@ sub _installJailKit
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	# Applying imscp_fixes.patch on upstream sources
-	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp_fixes.patch");
+	# Applying imscp.patch on upstream sources
+	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1326,8 +1326,8 @@ sub _uninstallJailKit
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	# Applying imscp_fixes.patch on upstream sources
-	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp_fixes.patch");
+	# Applying imscp.patch on upstream sources
+	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
