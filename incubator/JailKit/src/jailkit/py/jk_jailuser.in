@@ -239,14 +239,13 @@ def user_exists(user):
 def usage():
 	print
 	print 'Usage: '+sys.argv[0]+' [OPTIONS] username [more usernames]'
-	print 'Put an existing user in a jail'
 	print
-	print '-j, --jail=JAILDIR   : jail directory'
-	print '-v, --verbose        : verbose output'
-	print '-n, --noninteractive : no user interaction'
-	print '-s, --shell= shell   : set shell inside jail ('+PREFIX+'/sbin/jk_lsh default)'
-	print '-m, --move           : move home if home outside jail'
-	print '-h, --help           : this message'
+	print ' -j | --jail= jaildir   : jail directory'
+	print ' -v | --verbose        : verbose output'
+	print ' -n | --noninteractive : no user interaction'
+	print ' -s | --shell= shell    : set shell inside jail ('+PREFIX+'/sbin/jk_lsh default)'
+	print ' -m | --move           : move home if home outside jail'
+	print ' -h | --help           : this message'
 	print
 
 def testjail(jail, shell):
@@ -349,3 +348,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+

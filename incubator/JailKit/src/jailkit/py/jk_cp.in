@@ -48,21 +48,16 @@ def startcopy(config, chroot, filestocopy, checklibs=1):
 	jk_lib.gen_library_cache(chroot)
 
 def usage():
-	print
-	print 'Usage: '+sys.argv[0]+' -j <jail> [OPTIONS] <files and directories>'
-	print 'Copy files including permissions and libraries into a jail'
-	print
-	print '-h --help          : this help screen'
-	print '-j, --jail=JAILDIR : the jail to copy to'
-	print '-v, --verbose      : show what is being copied'
-	print '-f, --force        : overwrite existing files'
-	print '-k, --hardlink     : use hardlinks if possible'
-	print '-o, --owner        : retain file ownership and group'
-	print '-s, --setuid       : retain file setuid/setgid bits'
-	print
-	print 'Note: For backwards compatibility, if no jail is specified, the'
-	print '      first argument after the options will be used as jail'
-	print
+	print "Usage: "+sys.argv[0]+" -j <jail> [OPTIONS] <files and directories>"
+	print ""
+	print "-h --help          : this help screen"
+	print "-j, --jail         : the jail to copy to"
+	print "-v, --verbose      : show what is being copied"
+	print "-f, --force        : overwrite existing files"
+	print "-k, --hardlink     : use hardlinks if possible"
+	print "-o, --owner        : retain file ownership and group"
+	print "-s, --setuid       : retain file setuid/setgid bits"
+	print "\nNote: if no jail is specified, the first argument is\nconsidered to be the jail\n"
 
 def testargs(jail, args):
 	if (len(args) == 0 or jail == None):
@@ -85,7 +80,7 @@ def main():
 		print 'cannot run without root privileges'
 		sys.exit(5)
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'fh?vkosj:', ['help', 'verbose', 'force', 'hardlink', 'owner', 'jail=', 'setuid'])
+		opts, args = getopt.getopt(sys.argv[1:], 'fh?vkojs:', ['help', 'verbose', 'force', 'hardlink', 'owner', 'jail', 'setuid'])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)

@@ -46,8 +46,7 @@ PYLIBDIR=${datadir}/${PACKAGE}
 .SUFFIXES: .in .py .pyc
 
 .in:
-	sed -e "s!PREFIX='/usr'!PREFIX='${PREFIX}'!" \
-	    -e "s!INIPREFIX='/etc/jailkit'!INIPREFIX='${INIPREFIX}'!" \
+	sed -e "s!INIPREFIX='/etc/jailkit'!INIPREFIX='${INIPREFIX}'!" \
 	    -e "s!LIBDIR='[a-z/]*'!LIBDIR='${PYLIBDIR}'!" \
 	    -e "s!EXEPREFIX='[a-z/]*'!EXEPREFIX='${PREFIX}'!" \
 	    -e "s:#!/usr/bin/python:#!$(PYTHONINTERPRETER):" < $< > $@

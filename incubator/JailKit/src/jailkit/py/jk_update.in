@@ -168,20 +168,18 @@ def updatejail(jail, dirs, skips, config):
 			jk_lib.gen_library_cache(jail)
 
 def usage():
-	print
-	print 'Usage: '+sys.argv[0]+' [OPTIONS] [DIRECTORIES]'
-	print 'Update and cleanup a jail according to changes on the real system'
-	print
-	print '-h|--help                  : this message'
-	print '-v|--verbose               : give verbose output'
-	print '-c|--configsection=SECTION : use options specified in section of config file'
-	print '-j|--jail=JAILDOR          : the jail to update'
-	print '-d|--dry-run               : show what will be done'
-	print '-s|--skip=FILE             : skip file, option can be used multiple times'
-	print '-k|--hardlink              : use hardlinks if possible'
-	print
-	print 'Note: If no directories are specified, jk_update will scan /bin /usr /lib and /opt'
-	print
+	print ''
+	print "Usage: "+sys.argv[0]+" [OPTIONS] [DIRECTORIES]"
+	print '-h|--help          : this message'
+	print '-v|--verbose       : give verbose output'
+	print '-c|--configsection=: use options specified in section of config file'
+	print '-j|--jail=         : the jail to update'
+	print '-d|--dry-run       : show what will be done'
+	print '-s|--skip=         : skip file, option can be used multiple times'
+	print '-k|--hardlink      : use hardlinks if possible'
+	print ''
+	print 'if no directories are specified, jk_update will scan /bin /usr /lib and /opt'
+	print ''
 
 def main():
 	try:

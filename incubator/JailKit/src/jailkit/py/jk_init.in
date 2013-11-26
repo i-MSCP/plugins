@@ -164,22 +164,20 @@ def activateConfig(config, jail, args):
 	jk_lib.gen_library_cache(jail)
 	
 def usage():
-	print
-	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
-	print 'Usage: '+sys.argv[0]+' [OPTIONS] -j jaildir sections...'
-	print 'Initialize a jail'
-	print
-	print '-h --help             : this help screen'
-	print '-c, --configfile=FILE : specify configfile location'
-	print '-l, --list            : list all available sections in the configfile'
-	print '-j, --jail=JAILDIR    : specify the jail to use.'
-	print '-v, --verbose         : show what is being done'
-	print '-f, --force           : force overwriting of existing files'
-	print '-k, --hardlink        : use hardlinks if possible'
-	print
-	print 'Note: For backwards compatibility, if no jail is specified, the'
-	print '      first argument after the options will be used as jail'
-	print
+	print ''
+	print "Usage: "+sys.argv[0]+" [OPTIONS]"
+	print "Usage: "+sys.argv[0]+" [OPTIONS] -j jaildir sections..."
+	print ''
+	print "-h --help              : this help screen"
+	print "-c, --configfile=FILE  : specify configfile location"
+	print '-l, --list             : list all available sections in the configfile'
+	print '-j, --jail=             : specify the jail to use.' 
+	print '     For backwards compatibility, if no jail is specified, the first'
+	print '     argument after the options will be used as jail'
+	print "-v, --verbose          : show what is being done"
+	print "-f, --force            : force overwriting of existing files"
+	print "-k, --hardlink         : use hardlinks if possible"
+	print ''
 
 def listsections(file):
 	cfg = ConfigParser.ConfigParser()
@@ -209,7 +207,7 @@ def main():
 		print 'Cannot create chroot jail without root privileges. Abort.'
 		sys.exit(5)
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'vhflc:kj:', ['help', 'configfile=', 'verbose', 'force', 'list', 'hardlink', 'jail='])
+		opts, args = getopt.getopt(sys.argv[1:], "vhflc:kj:", ["help", "configfile=", "verbose", "force", 'list', 'hardlink', 'jail'])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
@@ -234,11 +232,8 @@ def main():
 			config['force'] = 1
 		if o in ("-k", "--hardlink"):
 			config['hardlink'] = 1
-		if o in ("-j", "--jail"):
+		if o in ("-j", "--jail="):
 			jail = a
-	if (jail == None and len(args)>0 ):
-		jail = args[0]
-		args = args[1:]
 	if (list ==1):
 		listsections(config['file'])
 		sys.exit()

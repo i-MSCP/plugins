@@ -55,7 +55,8 @@ def usage():
 	print '       [-m [-k skeleton dir] | -M] [-n] [-o] '
 	print '       [-p passwd] -r [-s shell] [-u uid]'
 	print '       [-v] | [--verbose]'
-	print ''
+	print
+	
 
 def getjail_and_user(args):
 	if (len(args)==0):
@@ -251,3 +252,4 @@ def main():
  
 if __name__ == "__main__":
     main()
+    

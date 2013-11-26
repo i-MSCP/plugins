@@ -125,18 +125,14 @@ def runList(verbose,jail):
 	return results
 
 def printusage():
-	print
-	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
-	print 'Lists pocesses running inside a jail'
-	print
-	print '-h, --help		  : print this message'
-	print '-j, --jail=JAILDIR : list only processes in this jail'
-	print '-w, --wide         : print wide listing'
-	print
+	print "jk_list, lists pocesses running in a chroot jail"
+	print "-h --help		print this message"
+	print "-j --jail=/path  list only processes in this jail"
+	print "-w --wide   print wide listing"
 
 def main():
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hwj:', ['wide', 'help', 'jail='])
+		opts, args = getopt.getopt(sys.argv[1:], "hwj:", ['wide', "help", "jail"])
 	except getopt.GetoptError:
 		printusage()
 		sys.exit(1)

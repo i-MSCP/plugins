@@ -1,0 +1,445 @@
+diff -rupN jailkit_orig/extra/jailkit jailkit/extra/jailkit
+--- jailkit_orig/extra/jailkit	2011-08-20 09:30:14.000000000 +0200
++++ jailkit/extra/jailkit	2013-11-26 10:17:10.092158946 +0100
+@@ -10,8 +10,8 @@
+ ### END INIT INFO
+ #
+ # start/stop jailkit logging daemon.
+-#
+-# chkconfig: 2345 60 40
++#
++# chkconfig: 2345 60 40
+ # description: chroot() jail wrapping utilities
+ 
+ JK_SOCKETD=/usr/sbin/jk_socketd
+diff -rupN jailkit_orig/ini/jk_check.ini jailkit/ini/jk_check.ini
+--- jailkit_orig/ini/jk_check.ini	2003-12-22 17:27:11.000000000 +0100
++++ jailkit/ini/jk_check.ini	2013-11-26 10:17:10.124158947 +0100
+@@ -1,21 +1 @@
+-[/home/testchroot]
+-# jk_check does not run any tests in this directory (useful for proc filesystem)
+-# be careful!! there is I repeat NO SINGLE TEST in this directory
+-#ignorepatheverywhere = 
+-
+-# jk_check compares files if they are equal to their counterparts in the real system,
+-# using md5sum(). In the specified directories it will not test if files are equal
+-# it will still test for world writable directories and setuid files
+-ignorepathoncompare = /home/testchroot/home, /home/testchroot/etc
+-
+-# jk_check tests directory permissions, if you deliberately made some directories writable
+-# for group or others, or you don't care, specify them here
+-ignorewritableforgroup = /home/testchroot/home
+-ignorewritableforothers = /home/testchroot/home/tmp
+-
+-# jk_check tests for setuid root and setgid root files
+-# if you deliberately have such files specify them here
+-ignoresetuidexecuteforuser = /home/testchroot/usr/bin/smbmnt, /home/testchroot/usr/bin/smbumount
+-ignoresetuidexecuteforgroup = /home/testchroot/usr/bin/smbmnt, /home/testchroot/usr/bin/smbumount
+-ignoresetuidexecuteforothers = 
+-
++# See man jk_check
+diff -rupN jailkit_orig/ini/jk_chrootsh.ini jailkit/ini/jk_chrootsh.ini
+--- jailkit_orig/ini/jk_chrootsh.ini	2004-01-11 17:12:46.000000000 +0100
++++ jailkit/ini/jk_chrootsh.ini	2013-11-26 10:17:10.132158947 +0100
+@@ -1,8 +1,3 @@
+-## example for a user
+-#[test]
+-#env= DISPLAY, XAUTHORITY
+-#
+-##example for a group, there should be only 1 space inbetween the words!
+-#[group users]
+-#env = DISPLAY, XAUTHORITY
+-#
+\ Pas de fin de ligne à la fin du fichier
++# See man jk_chrootsh
++[DEFAULT]
++env= TERM, PATH
+diff -rupN jailkit_orig/ini/jk_init.ini jailkit/ini/jk_init.ini
+--- jailkit_orig/ini/jk_init.ini	2012-08-10 22:16:47.000000000 +0200
++++ jailkit/ini/jk_init.ini	2013-11-26 10:17:10.376158940 +0100
+@@ -1,23 +1,16 @@
++# See man jk_init
+ [uidbasics]
+-# this section probably needs adjustment on 64bit systems
+-# or non-Linux systems
+ comment = common files for all jails that need user/group information
+ paths = /lib/libnsl.so.1, /lib64/libnsl.so.1, /lib/libnss*.so.2, /lib64/libnss*.so.2, /lib/i386-linux-gnu/libnsl.so.1, /lib/i386-linux-gnu/libnss*.so.2, /lib/x86_64-linux-gnu/libnsl.so.1, /lib/x86_64-linux-gnu/libnss*.so.2, /etc/nsswitch.conf, /etc/ld.so.conf
+-# Solaris needs 
+-# paths = /etc/default/nss, /lib/libnsl.so.1, /usr/lib/nss_*.so.1, /etc/nsswitch.conf
+ 
+ [netbasics]
+ comment = common files for all jails that need any internet connectivity
+ paths = /lib/libnss_dns.so.2, /lib64/libnss_dns.so.2, /etc/resolv.conf, /etc/host.conf, /etc/hosts, /etc/protocols, /etc/services
+-# on Solaris devices /dev/udp and /dev/tcp might be needed too, not sure
+ 
+ [logbasics]
+ comment = timezone information and log sockets
+ paths = /etc/localtime
+ need_logsocket = 1
+-# Solaris does not need logsocket
+-# but needs 
+-# devices = /dev/log, /dev/conslog
+ 
+ [jk_lsh]
+ comment = Jailkit limited shell
+@@ -37,8 +30,8 @@ devices = /dev/null
+ 
+ [git]
+ comment = Fast Version Control System
+-paths = /usr/bin/git*, /usr/share/git-core
+-includesections = editors
++paths = /usr/bin/git*, /usr/share/git-core, /usr/bin/basename, /bin/uname
++includesections = editors, perl
+ 
+ [scp]
+ comment = ssh secure copy
+@@ -51,8 +44,6 @@ comment = ssh secure ftp
+ paths = /usr/lib/sftp-server, /usr/libexec/openssh/sftp-server, /usr/lib/misc/sftp-server, /usr/libexec/sftp-server, /usr/lib/openssh/sftp-server
+ includesections = netbasics, uidbasics
+ devices = /dev/urandom, /dev/null
+-# on solaris 
+-#paths = /usr/lib/ssh/sftp-server
+ 
+ [ssh]
+ comment = ssh secure shell
+@@ -88,7 +79,7 @@ includesections = basicshell, midnightco
+ 
+ [terminfo]
+ comment = terminfo databases, required for ncurses
+-paths = /etc/terminfo, /usr/share/terminfo
++paths = /etc/terminfo, /usr/share/terminfo, /lib/terminfo
+ 
+ [editors]
+ comment = vim, joe and nano
+@@ -151,3 +142,10 @@ paths_w_setuid = /bin/ping
+ #comment = xterm
+ #paths = /usr/bin/X11/xterm, /usr/share/terminfo, /etc/terminfo
+ #devices = /dev/pts/0, /dev/pts/1, /dev/pts/2, /dev/pts/3, /dev/pts/4, /dev/ptyb4, /dev/ptya4, /dev/tty, /dev/tty0, /dev/tty4
++
++[mysql-client]
++comment = MySQL client
++users = mysql
++groups = mysql
++paths = /usr/bin/mysql
++includesections = netbasics, uidbasics
+diff -rupN jailkit_orig/ini/jk_lsh.ini jailkit/ini/jk_lsh.ini
+--- jailkit_orig/ini/jk_lsh.ini	2006-04-01 22:57:10.000000000 +0200
++++ jailkit/ini/jk_lsh.ini	2013-11-26 10:17:10.136158947 +0100
+@@ -1,13 +1 @@
+-## example for a user
+-#[test]
+-#paths= /usr/lib/
+-#executables= /usr/lib/sftp-server
+-#allow_word_expansion = 0
+-#umask = 002
+-#
+-##example for a group, there should be only 1 space inbetween the words!
+-#[group users]
+-#paths = /usr/bin
+-#executables = /usr/bin/cvs
+-#allow_word_expansion = 0
+-#environment= HELIX_PATH=/opt/RealPlayer/, TMP=/tmp/
++# See man jk_lsh
+diff -rupN jailkit_orig/ini/jk_socketd.ini jailkit/ini/jk_socketd.ini
+--- jailkit_orig/ini/jk_socketd.ini	2007-01-10 00:10:39.000000000 +0100
++++ jailkit/ini/jk_socketd.ini	2013-11-26 10:17:10.144158947 +0100
+@@ -1,5 +1 @@
+-# example
+-#[/home/testchroot/dev/log]
+-#base = 1024
+-#peak = 10240
+-#interval = 2.0
++# See man jk_socketd
+diff -rupN jailkit_orig/ini/jk_uchroot.ini jailkit/ini/jk_uchroot.ini
+--- jailkit_orig/ini/jk_uchroot.ini	2009-10-19 17:37:53.000000000 +0200
++++ jailkit/ini/jk_uchroot.ini	2013-11-26 10:17:10.156158944 +0100
+@@ -1,7 +1 @@
+-#[john]
+-#allowed_jails = /srv/johnjail, /srv/commonjail
+-#skip_injail_passwd_check = 1
+-#
+-#[group users]
+-#allowed_jails = /srv/commonjail
+-#skip_injail_passwd_check = 1
++# man jk_uchroot
+diff -rupN jailkit_orig/ini/jk_update.ini jailkit/ini/jk_update.ini
+--- jailkit_orig/ini/jk_update.ini	2007-03-06 10:00:34.000000000 +0100
++++ jailkit/ini/jk_update.ini	2013-11-26 10:17:10.156158944 +0100
+@@ -1,5 +1,3 @@
+-[/home/testjail]
+-skips = /usr/bin/myscript
+-hardlinks = 0
+-directories = /usr
+-
++# See man jk_update
++[DEFAULT]
++hardlinks = 1
+diff -rupN jailkit_orig/INSTALL.txt jailkit/INSTALL.txt
+--- jailkit_orig/INSTALL.txt	2007-12-07 13:53:25.000000000 +0100
++++ jailkit/INSTALL.txt	2013-11-26 10:17:10.052158949 +0100
+@@ -16,6 +16,6 @@ chmod a+x /etc/init.d/jailkit
+ # you run
+ update-rc.d jailkit defaults
+ 
+-# and on Red Hat/Fedora systems you run
++# and on Red Hat/Fedora systems you run
+ chkconfig jailkit on
+ 
+diff -rupN jailkit_orig/py/jk_addjailuser.in jailkit/py/jk_addjailuser.in
+--- jailkit_orig/py/jk_addjailuser.in	2007-03-06 20:28:46.000000000 +0100
++++ jailkit/py/jk_addjailuser.in	2013-11-26 10:17:10.180158944 +0100
+@@ -55,8 +55,7 @@ def usage():
+ 	print '       [-m [-k skeleton dir] | -M] [-n] [-o] '
+ 	print '       [-p passwd] -r [-s shell] [-u uid]'
+ 	print '       [-v] | [--verbose]'
+-	print
+-	
++	print ''
+ 
+ def getjail_and_user(args):
+ 	if (len(args)==0):
+@@ -252,4 +251,3 @@ def main():
+  
+ if __name__ == "__main__":
+     main()
+-    
+diff -rupN jailkit_orig/py/jk_check.in jailkit/py/jk_check.in
+--- jailkit_orig/py/jk_check.in	2011-01-27 09:18:59.000000000 +0100
++++ jailkit/py/jk_check.in	2013-11-26 10:17:10.180158944 +0100
+@@ -260,16 +260,18 @@ def clean_exit(errno, message):
+ 	sys.exit(errno)
+ 
+ def usage():
+-	print "Usage: "+sys.argv[0]+" [OPTIONS]"
+-	print ""
+-	print "-h --help              : this help screen"
+-	print "-c, --configfile=FILE  : specify configfile location"
+-	print "-v, --verbose          : show what is being tested"
+-	print ""
++	print
++	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
++	print 'Check a jail for security problem'
++	print
++	print '-h --help             : this help screen'
++	print '-c, --configfile=FILE : specify configfile location'
++	print '-v, --verbose         : show what is being tested'
++	print
+ 
+ def main():
+ 	try:
+-		opts, args = getopt.getopt(sys.argv[1:], "vhc:", ["help", "configfile=", "verbose"])
++		opts, args = getopt.getopt(sys.argv[1:], 'vhc:', ['help', 'configfile=', 'verbose'])
+ 	except getopt.GetoptError:
+ 		usage()
+ 		sys.exit(1)
+diff -rupN jailkit_orig/py/jk_cp.in jailkit/py/jk_cp.in
+--- jailkit_orig/py/jk_cp.in	2012-08-02 22:55:27.000000000 +0200
++++ jailkit/py/jk_cp.in	2013-11-26 10:17:10.180158944 +0100
+@@ -48,16 +48,21 @@ def startcopy(config, chroot, filestocop
+ 	jk_lib.gen_library_cache(chroot)
+ 
+ def usage():
+-	print "Usage: "+sys.argv[0]+" -j <jail> [OPTIONS] <files and directories>"
+-	print ""
+-	print "-h --help          : this help screen"
+-	print "-j, --jail         : the jail to copy to"
+-	print "-v, --verbose      : show what is being copied"
+-	print "-f, --force        : overwrite existing files"
+-	print "-k, --hardlink     : use hardlinks if possible"
+-	print "-o, --owner        : retain file ownership and group"
+-	print "-s, --setuid       : retain file setuid/setgid bits"
+-	print "\nNote: if no jail is specified, the first argument is\nconsidered to be the jail\n"
++	print
++	print 'Usage: '+sys.argv[0]+' -j <jail> [OPTIONS] <files and directories>'
++	print 'Copy files including permissions and libraries into a jail'
++	print
++	print '-h --help          : this help screen'
++	print '-j, --jail=JAILDIR : the jail to copy to'
++	print '-v, --verbose      : show what is being copied'
++	print '-f, --force        : overwrite existing files'
++	print '-k, --hardlink     : use hardlinks if possible'
++	print '-o, --owner        : retain file ownership and group'
++	print '-s, --setuid       : retain file setuid/setgid bits'
++	print
++	print 'Note: For backwards compatibility, if no jail is specified, the'
++	print '      first argument after the options will be used as jail'
++	print
+ 
+ def testargs(jail, args):
+ 	if (len(args) == 0 or jail == None):
+@@ -80,7 +85,7 @@ def main():
+ 		print 'cannot run without root privileges'
+ 		sys.exit(5)
+ 	try:
+-		opts, args = getopt.getopt(sys.argv[1:], 'fh?vkojs:', ['help', 'verbose', 'force', 'hardlink', 'owner', 'jail', 'setuid'])
++		opts, args = getopt.getopt(sys.argv[1:], 'fh?vkosj:', ['help', 'verbose', 'force', 'hardlink', 'owner', 'jail=', 'setuid'])
+ 	except getopt.GetoptError:
+ 		usage()
+ 		sys.exit(1)
+diff -rupN jailkit_orig/py/jk_init.in jailkit/py/jk_init.in
+--- jailkit_orig/py/jk_init.in	2012-08-02 22:55:27.000000000 +0200
++++ jailkit/py/jk_init.in	2013-11-26 13:39:54.155891120 +0100
+@@ -164,20 +164,22 @@ def activateConfig(config, jail, args):
+ 	jk_lib.gen_library_cache(jail)
+ 	
+ def usage():
+-	print ''
+-	print "Usage: "+sys.argv[0]+" [OPTIONS]"
+-	print "Usage: "+sys.argv[0]+" [OPTIONS] -j jaildir sections..."
+-	print ''
+-	print "-h --help              : this help screen"
+-	print "-c, --configfile=FILE  : specify configfile location"
+-	print '-l, --list             : list all available sections in the configfile'
+-	print '-j, --jail=             : specify the jail to use.' 
+-	print '     For backwards compatibility, if no jail is specified, the first'
+-	print '     argument after the options will be used as jail'
+-	print "-v, --verbose          : show what is being done"
+-	print "-f, --force            : force overwriting of existing files"
+-	print "-k, --hardlink         : use hardlinks if possible"
+-	print ''
++	print
++	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
++	print 'Usage: '+sys.argv[0]+' [OPTIONS] -j jaildir sections...'
++	print 'Initialize a jail'
++	print
++	print '-h --help             : this help screen'
++	print '-c, --configfile=FILE : specify configfile location'
++	print '-l, --list            : list all available sections in the configfile'
++	print '-j, --jail=JAILDIR    : specify the jail to use.'
++	print '-v, --verbose         : show what is being done'
++	print '-f, --force           : force overwriting of existing files'
++	print '-k, --hardlink        : use hardlinks if possible'
++	print
++	print 'Note: For backwards compatibility, if no jail is specified, the'
++	print '      first argument after the options will be used as jail'
++	print
+ 
+ def listsections(file):
+ 	cfg = ConfigParser.ConfigParser()
+@@ -207,7 +209,7 @@ def main():
+ 		print 'Cannot create chroot jail without root privileges. Abort.'
+ 		sys.exit(5)
+ 	try:
+-		opts, args = getopt.getopt(sys.argv[1:], "vhflc:kj:", ["help", "configfile=", "verbose", "force", 'list', 'hardlink', 'jail'])
++		opts, args = getopt.getopt(sys.argv[1:], 'vhflc:kj:', ['help', 'configfile=', 'verbose', 'force', 'list', 'hardlink', 'jail='])
+ 	except getopt.GetoptError:
+ 		usage()
+ 		sys.exit(1)
+@@ -232,8 +234,11 @@ def main():
+ 			config['force'] = 1
+ 		if o in ("-k", "--hardlink"):
+ 			config['hardlink'] = 1
+-		if o in ("-j", "--jail="):
++		if o in ("-j", "--jail"):
+ 			jail = a
++	if (jail == None and len(args)>0 ):
++		jail = args[0]
++		args = args[1:]
+ 	if (list ==1):
+ 		listsections(config['file'])
+ 		sys.exit()
+diff -rupN jailkit_orig/py/jk_jailuser.in jailkit/py/jk_jailuser.in
+--- jailkit_orig/py/jk_jailuser.in	2011-04-27 17:32:43.000000000 +0200
++++ jailkit/py/jk_jailuser.in	2013-11-26 10:17:10.180158944 +0100
+@@ -239,13 +239,14 @@ def user_exists(user):
+ def usage():
+ 	print
+ 	print 'Usage: '+sys.argv[0]+' [OPTIONS] username [more usernames]'
++	print 'Put an existing user in a jail'
+ 	print
+-	print ' -j | --jail= jaildir   : jail directory'
+-	print ' -v | --verbose        : verbose output'
+-	print ' -n | --noninteractive : no user interaction'
+-	print ' -s | --shell= shell    : set shell inside jail ('+PREFIX+'/sbin/jk_lsh default)'
+-	print ' -m | --move           : move home if home outside jail'
+-	print ' -h | --help           : this message'
++	print '-j, --jail=JAILDIR   : jail directory'
++	print '-v, --verbose        : verbose output'
++	print '-n, --noninteractive : no user interaction'
++	print '-s, --shell= shell   : set shell inside jail ('+PREFIX+'/sbin/jk_lsh default)'
++	print '-m, --move           : move home if home outside jail'
++	print '-h, --help           : this message'
+ 	print
+ 
+ def testjail(jail, shell):
+@@ -348,4 +349,3 @@ def main():
+ 
+ if __name__ == "__main__":
+ 	main()
+-
+diff -rupN jailkit_orig/py/jk_list.in jailkit/py/jk_list.in
+--- jailkit_orig/py/jk_list.in	2006-10-29 12:56:50.000000000 +0100
++++ jailkit/py/jk_list.in	2013-11-26 10:17:10.180158944 +0100
+@@ -125,14 +125,18 @@ def runList(verbose,jail):
+ 	return results
+ 
+ def printusage():
+-	print "jk_list, lists pocesses running in a chroot jail"
+-	print "-h --help		print this message"
+-	print "-j --jail=/path  list only processes in this jail"
+-	print "-w --wide   print wide listing"
++	print
++	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
++	print 'Lists pocesses running inside a jail'
++	print
++	print '-h, --help		  : print this message'
++	print '-j, --jail=JAILDIR : list only processes in this jail'
++	print '-w, --wide         : print wide listing'
++	print
+ 
+ def main():
+ 	try:
+-		opts, args = getopt.getopt(sys.argv[1:], "hwj:", ['wide', "help", "jail"])
++		opts, args = getopt.getopt(sys.argv[1:], 'hwj:', ['wide', 'help', 'jail='])
+ 	except getopt.GetoptError:
+ 		printusage()
+ 		sys.exit(1)
+diff -rupN jailkit_orig/py/jk_update.in jailkit/py/jk_update.in
+--- jailkit_orig/py/jk_update.in	2007-03-22 21:20:49.000000000 +0100
++++ jailkit/py/jk_update.in	2013-11-26 10:17:10.180158944 +0100
+@@ -168,18 +168,20 @@ def updatejail(jail, dirs, skips, config
+ 			jk_lib.gen_library_cache(jail)
+ 
+ def usage():
+-	print ''
+-	print "Usage: "+sys.argv[0]+" [OPTIONS] [DIRECTORIES]"
+-	print '-h|--help          : this message'
+-	print '-v|--verbose       : give verbose output'
+-	print '-c|--configsection=: use options specified in section of config file'
+-	print '-j|--jail=         : the jail to update'
+-	print '-d|--dry-run       : show what will be done'
+-	print '-s|--skip=         : skip file, option can be used multiple times'
+-	print '-k|--hardlink      : use hardlinks if possible'
+-	print ''
+-	print 'if no directories are specified, jk_update will scan /bin /usr /lib and /opt'
+-	print ''
++	print
++	print 'Usage: '+sys.argv[0]+' [OPTIONS] [DIRECTORIES]'
++	print 'Update and cleanup a jail according to changes on the real system'
++	print
++	print '-h|--help                  : this message'
++	print '-v|--verbose               : give verbose output'
++	print '-c|--configsection=SECTION : use options specified in section of config file'
++	print '-j|--jail=JAILDOR          : the jail to update'
++	print '-d|--dry-run               : show what will be done'
++	print '-s|--skip=FILE             : skip file, option can be used multiple times'
++	print '-k|--hardlink              : use hardlinks if possible'
++	print
++	print 'Note: If no directories are specified, jk_update will scan /bin /usr /lib and /opt'
++	print
+ 
+ def main():
+ 	try:
+diff -rupN jailkit_orig/py/Makefile.in jailkit/py/Makefile.in
+--- jailkit_orig/py/Makefile.in	2010-10-06 11:43:17.000000000 +0200
++++ jailkit/py/Makefile.in	2013-11-26 10:17:10.180158944 +0100
+@@ -46,7 +46,8 @@ PYLIBDIR=${datadir}/${PACKAGE}
+ .SUFFIXES: .in .py .pyc
+ 
+ .in:
+-	sed -e "s!INIPREFIX='/etc/jailkit'!INIPREFIX='${INIPREFIX}'!" \
++	sed -e "s!PREFIX='/usr'!PREFIX='${PREFIX}'!" \
++	    -e "s!INIPREFIX='/etc/jailkit'!INIPREFIX='${INIPREFIX}'!" \
+ 	    -e "s!LIBDIR='[a-z/]*'!LIBDIR='${PYLIBDIR}'!" \
+ 	    -e "s!EXEPREFIX='[a-z/]*'!EXEPREFIX='${PREFIX}'!" \
+ 	    -e "s:#!/usr/bin/python:#!$(PYTHONINTERPRETER):" < $< > $@

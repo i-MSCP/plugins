@@ -260,18 +260,16 @@ def clean_exit(errno, message):
 	sys.exit(errno)
 
 def usage():
-	print
-	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
-	print 'Check a jail for security problem'
-	print
-	print '-h --help             : this help screen'
-	print '-c, --configfile=FILE : specify configfile location'
-	print '-v, --verbose         : show what is being tested'
-	print
+	print "Usage: "+sys.argv[0]+" [OPTIONS]"
+	print ""
+	print "-h --help              : this help screen"
+	print "-c, --configfile=FILE  : specify configfile location"
+	print "-v, --verbose          : show what is being tested"
+	print ""
 
 def main():
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'vhc:', ['help', 'configfile=', 'verbose'])
+		opts, args = getopt.getopt(sys.argv[1:], "vhc:", ["help", "configfile=", "verbose"])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)

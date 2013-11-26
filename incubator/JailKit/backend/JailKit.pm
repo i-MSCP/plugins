@@ -1203,7 +1203,15 @@ sub _installJailKit
 
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
-	$rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/* .");
+	$rs = execute(
+		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* ."
+	);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+
+	# Applying imscp_fixes.patch on upstream sources
+	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp_fixes.patch");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1311,7 +1319,15 @@ sub _uninstallJailKit
 
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/* .");
+	my $rs = execute(
+		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* ."
+	);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+
+	# Applying imscp_fixes.patch on upstream sources
+	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp_fixes.patch");
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
