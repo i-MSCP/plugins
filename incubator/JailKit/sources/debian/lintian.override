@@ -1,0 +1,2 @@
+jailkit: setuid-binary usr/sbin/jk_procmailwrapper 4755 root/root
+jailkit: setuid-binary usr/sbin/jk_chrootsh 4755 root/root

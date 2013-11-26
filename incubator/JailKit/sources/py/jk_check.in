@@ -1,0 +1,291 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2003, 2004, 2005, 2006 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import ConfigParser
+import sys
+import os
+import string
+from stat import *
+import hashlib
+import getopt
+import random
+import stat
+
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+EXEPREFIX='/usr'
+sys.path.append(LIBDIR)
+import jk_lib
+
+def testchrootdir(config, path):
+	if (config['verbose']):
+		print "testing basedir "+path
+	jk_lib.chroot_is_safe(path)
+	
+def md5Digest(filename, startAt):
+	"""Returns md5 digest of a 1024 bytes blobk in filename, at position startAt."""
+	t = 0
+	m = hashlib.md5()
+	f=open(filename, 'rb')
+	f.seek(startAt)
+	buf = f.read(1024)
+	f.close()
+	m.update(buf)
+	return m.digest()
+
+def file_in_list(thelist, file):
+	for tmp in thelist:
+		if (tmp == file):
+			return 1
+	return 0
+
+def filebasedir_in_list(thelist, file):
+	for ipath in thelist:
+#		print 'is '+ipath+'=='+file[:len(ipath)]
+		if (file[:len(ipath)] == ipath):
+			return 1
+	return 0
+
+
+def testfilepermissions(config,path):
+	try:
+		statbuf = os.lstat(path)
+	except OSError:
+		sys.stderr.write('ERROR: cannot lstat() '+path+'\n')
+		return 1
+	if (config['verbose']):
+		print "testing file permissions for "+path
+	if (statbuf[ST_UID] == 0 or statbuf[ST_GID] == 0):
+#		 we have a root:root file
+		if (statbuf[ST_MODE] & S_ISUID or statbuf[ST_MODE] & S_ISGID):
+#			it is setuid or setgid
+			if (statbuf[ST_MODE] & S_IXOTH):
+				if (file_in_list(config['ignoresetuidexecuteforothers'], path)==0):
+					print "WARNING: "+path+" is executable for others and setuid root!!"
+			if (statbuf[ST_MODE] & S_IXGRP):
+				if (file_in_list(config['ignoresetuidexecuteforgroup'], path)==0):
+					print "WARNING: "+path+" is executable for group and setuid root!!"
+			if (statbuf[ST_MODE] & S_IXUSR):
+				if (file_in_list(config['ignoresetuidexecuteforuser'], path)==0):
+					print "WARNING: "+path+" is executable for user and setuid root!!"
+
+def testdirpermissions(config,path):
+	try:
+		statbuf = os.lstat(path)
+	except OSError:
+		sys.stderr.write('ERROR: cannot lstat() '+path+'\n')
+		return 1
+	if (config['verbose']):
+		print "testing directory permissions for "+path
+	if (statbuf[ST_MODE] & S_IWOTH):
+		if (filebasedir_in_list(config['ignorewritableforothers'], path) == 0):
+			print "WARNING: "+path+" is writable for others!"
+	if (statbuf[ST_MODE] & S_IWGRP):
+		if (filebasedir_in_list(config['ignorewritableforgroup'], path) == 0):
+			print "WARNING: "+path+" is writable for group!"
+
+def comparefiles(config,first, second):
+	if (config['verbose']):
+		print "comparing  "+first+" and "+second
+	try:
+		sb1 = os.lstat(first)
+		sb2 = os.lstat(second)
+		if (sb1[stat.ST_SIZE] != sb2[stat.ST_SIZE]):
+			sys.stderr.write('ERROR: '+first+' and '+second+' have a different size!\n')
+			return
+		if (stat.S_ISLNK(sb1[stat.ST_MODE]) != stat.S_ISLNK(sb1[stat.ST_MODE])):
+			print 'ERROR: '+first+' and '+second+' are not both symlinks!'
+			return
+		if (stat.S_ISLNK(sb1[stat.ST_MODE])):
+			if (os.readlink(first) != os.readlink(second)):
+				print 'ERROR: symlinks '+first+' and '+second+' point to different files!'
+			return
+		else:
+			if (sb1[stat.ST_SIZE] > 1024):
+				startAt = random.randint(0,sb1[stat.ST_SIZE]-1024)
+			else:
+				startAt = 0
+			if (md5Digest(first, startAt) != md5Digest(second, startAt)):
+				print 'ERROR: '+first+' and '+second+' are not the same!'
+	except IOError:
+		print 'ERROR: cannot read '+first+' or '+second+' !'
+	except OSError:
+		print 'ERROR: cannot stat() '+first+' or '+second+' !'
+
+def testchrootfiles(config, chroothome, path=''):
+	try:
+		if (not os.path.exists(chroothome+path)):
+			print 'cannot check files in '+chroothome+path+', is does not exist'
+			return
+		testdirpermissions(config,chroothome+path)
+		for f in os.listdir(chroothome+path):
+			chrootpath = chroothome+path+f
+			if (filebasedir_in_list(config['ignorepatheverywhere'],chrootpath) == 0):
+				if os.path.isfile(chrootpath):
+					if (filebasedir_in_list(config['ignorepathoncompare'],chrootpath) == 0):
+						realpath = '/'+path+f
+						comparefiles(config,chrootpath, realpath)
+					testfilepermissions(config,chrootpath)
+				elif os.path.isdir(chrootpath) and not os.path.islink(chrootpath):
+					testchrootfiles(config, chroothome, path+f+'/')
+				else:
+					if (config['verbose']):
+						print "ignoring path "+chrootpath
+	except OSError:
+		print 'ERROR, failed to test any files in '+chroothome+path
+
+def testjailusers(config, chroothome):
+	if (os.path.exists(chroothome+'/etc/passwd')):
+		jailep = open(chroothome+'/etc/passwd','r')
+		realep = open('/etc/passwd','r')
+		jline = jailep.readline()
+		while (len(jline)>0):
+			jpw = string.split(jline,':')
+			if (jpw[0] == 'root'):
+				if (config['verbose']):
+					print 'ignoring entry for user root in jail/etc/passwd'
+			else:
+				if (config['verbose']):
+					print 'comparing jailed user '+jpw[0]+' with the real user'
+				# we test for the username, uid and primary gid
+				found = 0
+				realep.seek(0)
+				rline = realep.readline()
+				while (len(rline)>0 and found ==0):
+					rpw = string.split(rline,':')
+					if (rpw[0] == jpw[0]):
+						found = 1
+						if (rpw[2] != jpw[2] or rpw[3] != jpw[3]):
+							print 'ERROR: user '+rpw[0]+' is changed in jail '+chroothome
+						# now check if the jail is correct
+						if (rpw[5] != chroothome+'.'+jpw[5]):
+							print 'ERROR: the real homedir and jail homedir for user '+jpw[0]+' do not correspond in jail '+chroothome
+					## test for jk_lsh and test if the user/group is in the config file
+					rline = realep.readline()
+				if (found == 0):
+					print 'ERROR: user '+jpw[0]+' in jail '+chroothome+' does not exist on the real system'
+			jline = jailep.readline()
+
+def testrealpasswd():
+	"""reads the real /etc/passwd and looks for users that have a jail configured, returns a list of jails"""
+	rep = open('/etc/passwd')
+	rline = rep.readline()
+	retval = []
+	while (len(rline)>0):
+		rpw = string.split(rline, ':')
+		if (len(rpw)>=6):
+			# test if the entry has any jail characteristics
+			jaildot = string.find(rpw[5], '/./')
+			if (jaildot != -1):
+				chroot = rpw[5][:jaildot+1]
+				retval += [chroot]
+				# test if the user actually exists in the chroot
+				if (not jk_lib.test_user_exist(rpw[0], chroot+'/etc/passwd')):
+					print 'ERROR: user '+rpw[0]+' does not exist in '+chroot+'/etc/passwd'
+				chrootsh = os.path.join(EXEPREFIX, 'sbin/jk_chrootsh')
+				if (rpw[6].strip() != chrootsh):
+					print 'ERROR: user '+rpw[0]+' has a /./ but does not have the '+chrootsh+' shell'
+		rline = rep.readline()
+	return retval
+			
+def get_list_option(cfgparser, sectionname, optionname):
+	retval = []
+	if (cfgparser.has_option(sectionname,optionname)):
+		inputstr = cfgparser.get(sectionname,optionname)
+		for tmp in string.split(inputstr, ','):
+			retval += [string.strip(tmp)]
+	return retval
+
+def activateConfig(configfile, verbose):
+	cfg = ConfigParser.ConfigParser()
+	if (os.path.isfile(configfile)):
+		cfg.read([configfile])
+	else:
+		print 'WARNING: '+configfile+' does not exist, only checking jails found in /etc/passwd'
+
+	jails = testrealpasswd()
+	for jail in jails:
+		if ((jail not in cfg.sections()) and (jail[:-1] not in cfg.sections())):
+			cfg.add_section(jail)
+
+	for section in cfg.sections():
+		chrootdir = section
+		if (chrootdir[-1:] != '/'): chrootdir += '/'
+		config = {}
+		config['verbose'] = verbose
+		config['ignorepathoncompare'] = get_list_option(cfg,section, 'ignorepathoncompare')
+		config['ignoresetuidexecuteforuser'] = get_list_option(cfg,section, 'ignoresetuidexecuteforuser')
+		config['ignoresetuidexecuteforgroup'] = get_list_option(cfg,section, 'ignoresetuidexecuteforgroup')
+		config['ignoresetuidexecuteforothers'] = get_list_option(cfg,section, 'ignoresetuidexecuteforothers')
+		config['ignorewritableforothers'] = get_list_option(cfg,section, 'ignorewritableforothers')
+		config['ignorewritableforgroup'] = get_list_option(cfg,section, 'ignorewritableforgroup')
+		config['ignorepatheverywhere'] = get_list_option(cfg,section, 'ignorepatheverywhere')
+		testchrootdir(config, chrootdir)
+		testchrootfiles(config, chrootdir)
+		testjailusers(config, chrootdir)
+
+def clean_exit(errno, message):
+	print "** FAILURE **"
+	print message
+	print ""
+	sys.exit(errno)
+
+def usage():
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
+	print 'Check a jail for security problem'
+	print
+	print '-h --help             : this help screen'
+	print '-c, --configfile=FILE : specify configfile location'
+	print '-v, --verbose         : show what is being tested'
+	print
+
+def main():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'vhc:', ['help', 'configfile=', 'verbose'])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	configfile = INIPREFIX+'/jk_check.ini'
+	verbose = 0
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		if o in ("-c", "--configfile"):
+			configfile = a
+		if o in ("-v", "--verbose"):
+			verbose = 1
+	activateConfig(configfile, verbose)
+
+if __name__ == "__main__":
+    main()

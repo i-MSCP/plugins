@@ -1,0 +1,351 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import os.path
+import grp
+import pwd
+import sys
+import getopt
+import string
+import shutil
+
+PREFIX='/usr'
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+sys.path.append(LIBDIR)
+import jk_lib
+
+def striptrailingslash(dir):
+	if (dir[-1] == '/'):
+		return dir[:-1]
+	return dir
+
+def dirinjail(testdir, jail):
+	if (testdir[-1]!= '/'):
+			testdir = testdir+'/'
+	return (jail == testdir[:len(jail)])
+	
+
+def addgrouptojail(jail, group_id, user, config):
+	jail = striptrailingslash(jail)
+	gr = grp.getgrgid(group_id)
+	if (not jk_lib.test_group_exist(gr.gr_name, jail+'/etc/group')):
+		file = jail+'/etc/group'
+		if (config['verbose'] == 1):
+			print 'adding group '+gr[0]+' to '+file
+		try:
+			tmp = gr[0]+':x:'+str(gr[2])+':'
+			if (type(user)==str and len(user)>0):
+				tmp = tmp + user
+			tmp = tmp + '\n'
+			fd = open(file, 'a')
+			fd.write(tmp)
+			fd.close()
+		except IOError:
+			sys.stderr.write('ERROR: failed to write group '+gr[0]+' to '+file+'\n')
+			return 0
+	return 1
+
+def addusertogroupinjail(jail, group_id, user, config):
+	ret = addgrouptojail(jail, group_id, user, config)
+	if (ret == 0):
+		return 0
+	try:
+		file = jail+'/etc/group'
+		fd = open(file, 'r+')
+		line = fd.readline()
+		while (len(line)>0):
+			splitted = line.split(':')
+			if (len(splitted)==4 and int(splitted[2]) == group_id):
+				users = splitted[3][:-1].split(',')
+				if (user in users):
+					fd.close()
+					return 1
+				else :
+					if (config['verbose']):
+						print 'Adding user '+user+' to group '+splitted[0]
+					pos = fd.tell()
+					buf = fd.read()
+					fd.seek(pos-len(line))
+					if (len(users)==1 and users[0] == ''):
+						users = [user]
+					else:
+						users.append(user)
+					tmp = splitted[0]+':x:'+splitted[2]+':'
+					tmp2 = ','.join(users)
+					tmp += tmp2+'\n'+buf
+					fd.write(tmp)
+					fd.close()
+					return 1
+			line = fd.readline()
+	except IOError:
+		sys.stderr.write('ERROR: failed to add user '+user+' to group '+str(group_id)+' in '+file+'\n')
+		return 0
+	return 0
+	
+def addusertojail(jail, user, shell, config):
+	jail = striptrailingslash(jail)
+	if (jk_lib.test_user_exist(user, jail+'/etc/passwd')):
+		if (config['verbose']):
+			sys.stderr.write('user '+user+' already exists in '+jail+'/etc/passwd\n')
+		return 1
+	pw = pwd.getpwnam(user)
+	# the next check MUST include a trailing slash! (otherwise if a user
+	# has a homedir that starts with the same string as the jail directory
+	# the check has the wrong result)
+	if (dirinjail(pw[5], jail)):
+		if (pw[5][0:len(jail)+3] == jail+'/./'):
+			jailhome = pw[5][len(jail)+2:]
+		else:
+			jailhome = pw[5][len(jail):]
+	else:
+		jailhome = pw[5]
+	try:
+		if (sys.platform[4:7] == 'bsd'):
+			file = jail+'/etc/master.passwd'
+			if (config['verbose'] == 1):
+				print 'adding user '+user+' to '+file+' with shell '+shell
+			fd = open(file, 'a')
+			fd.write(user+':x:'+str(pw[2])+':'+str(pw[3])+'::0:0:'+pw[4]+':'+jailhome+':'+shell+'\n')
+			fd.close()
+			# adding -u user might speed up the next command, but if the password files do not exist
+			# yet (and jail/etc/spwd.db does not exist) this generates an error
+			postcommand = 'pwd_mkdb -p -d '+jail+'/etc '+jail+'/etc/master.passwd && rm '+jail+'/etc/spwd.db'
+		else:
+		#if (sys.platform[:5] == 'linux'):
+			file  = jail+'/etc/passwd'
+			if (config['verbose'] == 1):
+				print 'adding user '+user+' to '+file+' with shell '+shell
+			fd = open(file, 'a')
+			fd.write(user+':x:'+str(pw[2])+':'+str(pw[3])+':'+pw[4]+':'+jailhome+':'+shell+'\n')
+			fd.close()
+			postcommand = None
+	except IOError:
+		sys.stderr.write('failed to write to '+file+'\n')
+		return 0
+	if (postcommand != None):
+		ret = os.system(postcommand)
+		if (ret != 0):
+			sys.stderr.write('failed to execute '+postcommand+'\n')
+			return 0
+	return 1
+
+def moduser(user, home, shell=PREFIX+'/sbin/jk_chrootsh'):
+	if (sys.platform[:7] == 'freebsd'):
+		command = 'pw usermod '+user+' -d '+home+' -s '+shell
+	elif (sys.platform[:5] == 'linux') or (sys.platform[:7] == 'openbsd') or (sys.platform[:6] == 'sunos5'):
+		command = 'usermod -d '+home+' -s '+shell+' '+user
+	else:
+		sys.stderr.write('please report that user modding on platform '+sys.platform+' is not yet handled\n')
+		sys.stderr.write('to the jailkit developers, and suggest which command is needed to modify users\n')
+		return 0
+	if (os.system(command)!=0):
+		sys.stderr.write('failed to execute '+command+'\n')
+		return 0
+	return 1
+
+def jailuser(jail, user, movehome, config):
+	pw = pwd.getpwnam(user)
+	if (jail[-1] != '/'):
+		jail = jail + '/'
+	# add the user in the jail
+	if (not addusertojail(jail, user, config['shell'], config)):
+		sys.exit(2)
+	# lookup the primary group and make sure it also exists in the jail
+	if not addgrouptojail(jail, pw[3], None, config):
+		return 0
+	# look up all other groups
+	groups = grp.getgrall()
+	for gr in groups:
+		if (user in gr.gr_mem):
+			ret = addusertogroupinjail(jail, gr.gr_gid, user, config)
+			if not ret:
+				return 0
+	# change the shell and the homedir
+	if (dirinjail(pw[5], jail)):
+		# the home is within in the jail already, does it have the /./ sequence?
+		if (pw[5][:len(jail)+2] == jail+'./'):
+			newhome = pw[5]
+			#print 'no need to change home ',newhome
+		else:
+			newhome = jail+'.'+pw[5][len(jail)-1:]
+			#print 'add jail separator, newhome=',newhome
+	else:
+		newhome = jail+'.'+pw[5]
+		#print 'user not in jail, newhome=',newhome
+	newhome = striptrailingslash(newhome)
+	oldhome = striptrailingslash(pw[5])
+	if (oldhome != newhome or pw[6] != PREFIX+'/sbin/jk_chrootsh'):
+		if (config['verbose'] == 1):
+			print 'modify user '+user+'; dir '+newhome+' and shell '+PREFIX+'/sbin/jk_chrootsh'
+		if (not moduser(user,newhome,PREFIX+'/sbin/jk_chrootsh')):
+			sys.stderr.write('failed to modify user '+user+'\n')
+	else:
+		if (config['verbose'] == 1):
+			print 'user '+user+' has a correct home directory and shell already'
+	#move directory contents
+	if (movehome == 1):
+		if (oldhome == newhome):
+			print 'home directory '+oldhome+' is already inside the jail'
+		else:
+			if (not os.path.exists(oldhome)):
+				sys.stderr.write('home directory '+oldhome+' does not exist, nothing moved\n')
+			else:
+				# test if the base directory for newhome exists
+				tmp = os.path.dirname(oldhome)
+				#tmp = jk_lib.nextpathup(oldhome)
+				jk_lib.create_parent_path(jail,tmp, config['verbose'], copy_permissions=1, allow_suid=0, copy_ownership=0)
+				if (config['verbose'] == 1):
+					print 'Moving files from '+oldhome+' to '+newhome
+				jk_lib.move_dir_with_permissions_and_owner(oldhome,newhome,(config['verbose']==1))
+
+def user_exists(user):
+	try:
+		pw= pwd.getpwnam(user)
+		return 1
+	except:
+		return 0
+	return 0
+
+def usage():
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS] username [more usernames]'
+	print 'Put an existing user in a jail'
+	print
+	print '-j, --jail=JAILDIR   : jail directory'
+	print '-v, --verbose        : verbose output'
+	print '-n, --noninteractive : no user interaction'
+	print '-s, --shell= shell   : set shell inside jail ('+PREFIX+'/sbin/jk_lsh default)'
+	print '-m, --move           : move home if home outside jail'
+	print '-h, --help           : this message'
+	print
+
+def testjail(jail, shell):
+	if (type(jail) != str or len(jail)==0):
+		return 0
+	if (jail[-1:] == '/'):
+		jail = jail[:-1]
+	if (not os.path.exists(jail)):
+		sys.stderr.write(jail+' does not exist\n')
+		return 0
+	if (not os.path.exists(jail+'/etc/passwd')):
+		sys.stderr.write('invalid jail, '+jail+'/etc/passwd does not exist\n')
+		return 0
+	if (not os.path.exists(jail+shell)):
+		sys.stderr.write('invalid shell, '+jail+shell+' does not exist\n')
+		return 0
+	if (not os.access(jail+shell,os.X_OK)):
+		sys.stderr.write('invalid shell, '+jail+shell+' is not executable\n')
+		return 0
+	return 1
+
+def getjail(jail, config):
+	"""returns a jail that will have a slash appended"""
+	while (1):
+		if (type(jail) == str and len(jail)>0 and jail[0] != '/'):
+			tmp = os.getcwd()+'/'+jail
+			if (os.path.exists(tmp)):
+				jail = tmp
+		if (type(jail) == str and len(jail)>0 and jail[-1] != '/'):
+			jail=jail+'/'
+		test = testjail(jail, config['shell'])
+		if (test == 1):
+			return jail
+		else:
+			if (not test):
+				jail = None
+			if (jail == None):
+				if (config['interactive'] == 1):
+					jail = raw_input('enter jail directory: ')
+				else:
+					sys.exit(33)
+
+def getmovehome(jail,user,config):
+	pw = pwd.getpwnam(user)
+	if (pw[5][0:len(jail)] == jail): # pw[5] == pw.pw_dir
+		return 0
+	print 'home directory '+pw.pw_dir+' is not within '+jail+', move the directory contents?'
+	tmp = raw_input('[Y]/[n]')
+	if (tmp == 'Y' or tmp == 'y' or tmp == ''):
+		return 1
+	return 0
+
+def main():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:],"vs:j:nmh?",['help', 'verbose', 'shell=', 'nomove', 'move', 'jail='])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	config = {}
+	config['verbose'] = 0
+	config['interactive'] = 1
+	config['movehome'] = -1 # -1 = interactive
+	config['shell'] = PREFIX+'/sbin/jk_lsh' # default shell
+	jail = None
+	for o, a in opts:
+		if o in ("-h", "-?", "--help"):
+			usage()
+			sys.exit()
+		elif o in ("-v", "--verbose"):
+			config['verbose'] = 1
+		elif o in ('-s', '--shell'):
+			config['shell'] = a
+		elif o in ("-m", "--move"):
+			config['movehome'] = 1
+		elif o in ("-n", "--noninteractive"):
+			config['interactive'] = 0
+		elif o in ('-j', '--jail'):
+			jail = a
+	if (config['interactive'] == 0 and config['movehome'] == -1):
+		config['movehome'] = 0
+	if (len(args)==0):
+		print
+		print 'aborted, no username specified'
+		sys.exit(2)
+	try:
+		jail = getjail(jail,config)
+		for username in args:
+			if user_exists(username):
+				if (config['movehome'] == -1):
+					movehome = getmovehome(jail, username, config)
+				else:
+					movehome = config['movehome']
+				jailuser(jail, username, movehome, config)
+			else:
+				print 'user '+username+' does not exist'
+	except KeyboardInterrupt:
+		print
+		print 'aborted.. '
+		sys.exit(1)
+
+if __name__ == "__main__":
+	main()

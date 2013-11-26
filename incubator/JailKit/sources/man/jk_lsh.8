@@ -1,0 +1,107 @@
+.TH jk_lsh 8 07-02-2010 JAILKIT jk_lsh
+
+.SH NAME
+jk_lsh \- a shell that limits the binaries it will execute
+
+.SH SYNOPSIS
+
+.B jk_lsh -c command
+
+.SH DESCRIPTION
+
+The jailkit limited shell jk_lsh is not an interactive shell. jk_lsh will only execute commands that are passed during startup (e.g. /bin/sh -c command) and will deny to start all but explicitly allowed commands. All other commands, or regular shell access are denied. This can be used to restrict an account to a specific use. For example, jk_lsh can be used to make rsync-, cvs-, sftp- or scp-only accounts, or even an account that can start firefox or opera but nothing else.
+
+The allowed actions are read from 
+.I /etc/jailkit/jk_lsh.ini
+If you run jk_lsh inside a changed root jail, make sure jk_lsh.ini is present inside that chroot jail.
+
+.SH LIMITATIONS
+
+Some shells can process complex commandlines, such as command1 && command2, or kill `ps |grep foo`. The limited shell jk_lsh cannot do anything like that, another shell should be used if you want enable such features. It is not planned to include this in any future version.
+
+.SH OPTIONS
+
+jk_lsh can do word expansion such as *.txt expanding to each file that ends with .txt. This is very useful when running rsync or scp with jk_lsh. Option allow_word_expansion should be set to 1 in order to allow this.
+
+jk_lsh can also set environment variables. This is a comma separated list with key=value pairs.
+
+Options can be set for a specific user, for the primary group of a user, or for all users in section DEFAULT.
+
+.SH EXAMPLE
+
+An example config file for user test or group test is shown below
+.nf
+.sp
+[DEFAULT]
+executables = /usr/bin/scp, /usr/lib/sftp-server, /usr/bin/rsync
+paths = /usr/bin/, /usr/lib
+allow_word_expansion = 1
+
+[test]
+executables = /usr/bin/scp, /usr/lib/sftp-server
+paths = /usr/bin/, /usr/lib
+allow_word_expansion = 0
+umask = 002
+
+[group test]
+executables = /usr/bin/rsync
+paths = /usr/bin/
+allow_word_expansion = 1
+environment=TERM=linux,FOO=bar
+.fi
+
+If user test has primary group test, however, he can not execute rsync in the above example. First the user section is checked, and only if no user section is found the primary group section is looked for, and only if no group section is found, the DEFAULT section is looked for. If no section is found, jk_lsh aborts.
+
+The 
+.B executables
+entry specifies all executables that jk_lsh will execute. The 
+.B paths
+entry specifies in which directories jk_lsh will look for these executables if no path is specified. The PATH environment variable is ignored by jk_lsh. The 
+.B allow_word_expansion
+if set to 1, will make jk_lsh do word expansion (*, ?, ~, $) using
+.BR wordexp(3)
+which is very useful for remote commands like 
+.I rsync server:./* .
+or
+.I scp server:somedir/* /tmp/
+.B umask
+if you want a specific umask
+
+The common way to use jk_lsh is to use it as default shell for those restricted accounts. It is recomended to run these accounts inside a changed root using 
+.BR jk_chrootsh(8)
+
+.SH FILES
+.I /etc/jailkit/jk_lsh.ini
+.I /etc/passwd
+.I JAIL/etc/jailkit/jk_lsh.ini
+.I JAIL/etc/passwd
+
+.SH DIAGNOSTICS
+
+jk_lsh logs errors to syslog, so check your log files. If you run jk_lsh inside a changed root, you have to have a /dev/log in that changed root. See 
+.BR jk_socketd(8)
+for more information how to do this.
+
+.SH "SEE ALSO"
+
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

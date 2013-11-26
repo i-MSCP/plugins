@@ -1,0 +1,267 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2006, 2007, Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import ConfigParser
+import sys
+import os
+import string
+from stat import *
+import getopt
+import stat
+
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+sys.path.append(LIBDIR)
+import jk_lib
+
+def comparecontent(fileA, fileB):
+	try:
+		fA=open(fileA, 'rb')
+		fB=open(fileB, 'rb')
+		cont = 1
+		retval = 1
+		while (cont==1 and retval==1):
+			bufA = fA.read(4096)
+			bufB = fB.read(4096)
+			if (bufA != bufB):
+				retval = 0
+			if (len(bufA)==0):
+				cont = 0
+		fA.close()
+		fB.close()
+		return retval
+	except IOError:
+		return 0
+
+def comparemetadata(fileA, fileB, onlyifAisnewer=1, sbA=None, sbB=None):
+	if (sbA==None):
+		sbA = os.lstat(fileA)
+	if (sbB==None):
+		sbB = os.lstat(fileB)
+	if (sbA[stat.ST_MTIME] > sbB[stat.ST_MTIME]): 
+		if (sbA[stat.ST_SIZE] != sbB[stat.ST_SIZE]):
+			return 0
+		if (stat.S_ISLNK(sbA[stat.ST_MODE]) != stat.S_ISLNK(sbB[stat.ST_MODE])):
+			return 0
+		if (stat.S_ISLNK(sbA[stat.ST_MODE])):
+			if (os.readlink(fileA) != os.readlink(fileB)):
+				return 0
+	return 1
+
+def need_update(original, injail, origstatbuf=None):
+	try :
+		if (comparemetadata(original, injail,sbA=origstatbuf)==1):
+			if (comparecontent(original, injail)==1):
+				return 0
+		return 1
+	except OSError, (errno,strerror):
+		# files that do not have an original file obviously cannot be updated
+		# but they need cleaning
+		if (errno == 2):
+			return 2
+		return 0
+
+def find2update(jail, dir, skips, config, files2update=[],files2clean=[]):
+	if (config['verbose'] == 1):
+		print 'scanning '+jail+dir
+	for file in os.listdir(jail+dir):
+#		print 'test if '+dir+file+' or '+jail+dir+file+' exists in ',skips
+		if ((dir+file in skips) or (jail+dir+file in skips)):
+			print 'skip '+jail+dir+file
+		else:
+			try:
+				sbuf = os.lstat(dir+file)
+				if (stat.S_ISDIR(sbuf[stat.ST_MODE])):
+					files2update, files2clean = find2update(jail, dir+file+'/', skips, config, files2update, files2clean)
+				elif (stat.S_ISREG(sbuf[stat.ST_MODE])):
+					if (config['verbose'] == 1):
+						print 'checking '+jail+dir+file+''
+					ret = need_update(dir+file, jail+dir+file, origstatbuf=sbuf)
+					if (ret == 1):
+						files2update.append(dir+file)
+					elif (ret == 2):
+						files2clean.append(dir+file) 
+			except OSError, (errno,strerror):
+				if (errno == 2):
+					files2clean.append(dir+file)
+				else:
+					sys.stderr.write('ERROR: while checking if '+jail+dir+file+' needs to be updated: '+strerror+'\n')
+	return files2update,files2clean
+
+def updatejail(jail, dirs, skips, config):
+	jaillen = len(jail)
+	allfiles = []
+	allcleans = []
+	for dir in dirs:
+		if (dir[:jaillen] == jail):
+			dir = dir[jaillen:]
+		if (dir[-1:] != '/'):
+			dir += '/'
+		dirnoslash = dir[:-1]
+		#print 'test if '+dirnoslash+' or '+jail+dirnoslash+' exists in ',skips
+		if ((dirnoslash in skips) or (jail+dirnoslash in skips)):
+			print 'skip '+jail+dir
+		else:
+			files = []
+			cleans = []
+			try:
+				files,cleans = find2update(jail, dir, skips, config, [],[])
+			except OSError, (errno,strerror):
+				sys.stderr.write('ERROR:  while scannign dir '+jail+dir+': '+strerror+'\n')
+			for file in files:
+				if (config['dry-run'] == 1):
+					allfiles.append(file)
+				else:
+					print 'removing outdated file '+jail+file
+					try:
+						os.unlink(jail+file)
+						allfiles.append(file)
+					except:
+						sys.stderr.write('ERROR: failed to remove outdated file '+jail+file+'\n')
+			for file in cleans:
+				if (config['dry-run'] == 1):
+					allcleans.append(file)
+				else:
+					print 'removing deprecated file '+jail+file
+					try:
+						os.unlink(jail+file)
+						allcleans.append(file)
+					except:
+						sys.stderr.write('ERROR: failed to remove deprecated file '+jail+file+'\n')
+	if (config['dry-run'] == 1):
+		for file in allfiles:
+			print 'will update outdated file '+jail+file
+		for file in allcleans:
+			print 'will remove deprecated file '+jail+file
+	else:
+		handled = jk_lib.copy_binaries_and_libs(jail,allfiles, 0, config['verbose'], try_hardlink=config['hardlink'])
+		if (len(handled)>0):
+			jk_lib.gen_library_cache(jail)
+
+def usage():
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS] [DIRECTORIES]'
+	print 'Update and cleanup a jail according to changes on the real system'
+	print
+	print '-h|--help                  : this message'
+	print '-v|--verbose               : give verbose output'
+	print '-c|--configsection=SECTION : use options specified in section of config file'
+	print '-j|--jail=JAILDOR          : the jail to update'
+	print '-d|--dry-run               : show what will be done'
+	print '-s|--skip=FILE             : skip file, option can be used multiple times'
+	print '-k|--hardlink              : use hardlinks if possible'
+	print
+	print 'Note: If no directories are specified, jk_update will scan /bin /usr /lib and /opt'
+	print
+
+def main():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hvdj:s:kc:', ['help', 'verbose', 'dry-run', 'jail=', 'skip=', 'hardlink', 'configsection='])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	config = {}
+	config['verbose'] = 0
+	config['dry-run'] = 0
+	jail = None
+	configsection = None
+	dirs = []
+	skips = []
+	for o, a in opts:
+		if o in ("-c", "--configsection"):
+			configsection = a
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		elif o in ("-v", "--verbose"):
+			config['verbose'] = 1
+		elif o in ("-d", "--dry-run"):
+			config['dry-run'] = 1
+		elif o in ("-s", "--skip"):
+		# the name in skips will never have a slash, whether it is a file or a dir
+			if (os.path.isdir(a) and (a[-1:] == '/')):
+				tmp = a[:-1]
+			else:
+				tmp = a
+			skips.append(tmp)
+		elif o in ("-j", "--jail"):
+			jail = a
+		elif o in ("-k", "--hardlink"):
+			config['hardlink'] = 1
+	if (jail != None and configsection != None):
+		sys.stderr.write('ERROR: cannot specify both a jail and a configsection\n')
+		sys.exit(21)
+	if (jail == None and configsection == None):
+		sys.stderr.write('ERROR: must at least specify a jail or a configsection using\n -j or --jail or -c or --configsection\n\n')
+		sys.exit(1)
+	if (len(args)>0):
+		dirs = args
+	
+	if (configsection != None):
+		cfile = INIPREFIX+'/jk_update.ini'
+		jail = configsection
+		cfg = ConfigParser.ConfigParser()
+		cfg.read(cfile)
+		if (not cfg.has_section(configsection)):
+			sys.stderr.write('ERROR: configfile '+cfile+' does not have a section called '+configsection+'\n')
+			sys.exit(1)
+		tmp = jk_lib.config_get_option_as_list(cfg,configsection,'skips')
+		for entry in tmp:
+			skips.append(entry)
+		if (not config.has_key('hardlink') and cfg.has_option(configsection,'hardlink')):
+			try:
+				tmp = int(cfg.get(section,'hardlink'))
+				config['hardlink'] = tmp
+			except:
+				pass
+		tmp = jk_lib.config_get_option_as_list(cfg,configsection,'directories')
+		for entry in tmp:
+			dirs.append(entry)
+	if (not config.has_key('hardlink')):
+		config['hardlink'] = 0
+	if (jail[-1:]=='/'):
+		jail = jail[:-1]
+	if (dirs == None or len(dirs)==0):
+		dirs = ['/bin/', '/lib/', '/usr/', '/opt/']
+	# all directories in 'skips' should be without slash
+	newskips = []
+	for entry in skips:
+		if (entry[-1] == '/'):
+			newskips.append(entry[:-1])
+		else:
+			newskips.append(entry)
+	skips = newskips
+	
+	updatejail(jail, dirs, skips, config)
+
+if __name__ == "__main__":
+    main()

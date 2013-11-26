@@ -1,0 +1,119 @@
+#!/usr/bin/make -f
+# GNU copyright 1997 to 1999 by Joey Hess.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+
+CFLAGS = -Wall -g
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+config.status: configure
+	dh_testdir
+	# Here the commands to configure the package.
+	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+
+
+#Architecture 
+build: build-arch build-indep
+
+build-arch: build-arch-stamp
+build-arch-stamp:  config.status
+
+	# Here the commands to compile the arch part of the package.
+	$(MAKE) 
+	touch build-arch-stamp
+
+build-indep: build-indep-stamp
+build-indep-stamp:  config.status
+
+	# Here could be the commands to compile the indep part of the package, but there are none.
+	touch build-indep-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp build-indep-stamp #CONFIGURE-STAMP#
+
+	# Here the commands to clean up after the build process.
+	-$(MAKE) distclean
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	cp -f /usr/share/misc/config.guess config.guess
+endif
+
+
+	dh_clean 
+
+install: install-arch
+#install-indep:
+#	# there is no indep
+
+install-arch:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -s 
+	dh_installdirs -s
+
+	# Here the commands to install the arch part of the package into 
+	# $(CURDIR)/debian/
+	cd src && $(MAKE) install prefix=$(CURDIR)/debian/jailkit/usr
+	cd man && $(MAKE) install prefix=$(CURDIR)/debian/jailkit/usr
+	cd py  && $(MAKE) install prefix=$(CURDIR)/debian/jailkit/usr
+	install -m 644 ini/*.ini $(CURDIR)/debian/jailkit/etc/jailkit/
+	install -m 755 extra/jailkit $(CURDIR)/debian/jailkit/etc/init.d/
+	install -m 644 debian/lintian.override $(CURDIR)/debian/jailkit/usr/share/lintian/overrides/jailkit
+
+	dh_install -s
+# This is called by binary-arch/binary-indep
+# in another 'make' thread.
+binary-common:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_installinit
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress 
+	dh_fixperms --exclude jk_chrootsh --exclude jk_procmailwrapper
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+# There are no architecture independent sections
+#binary-indep: build-indep install-indep
+#	
+
+# Build architecture dependant packages using the common target.
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
+
+binary: binary-arch
+.PHONY: build clean binary-arch binary install install-arch 
+

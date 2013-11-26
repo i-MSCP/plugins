@@ -1,0 +1,87 @@
+#Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+INSTALL = @INSTALL@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+iniprefix = ${sysconfdir}/jailkit/
+PACKAGE = @PACKAGE@
+
+INIFILES = jk_check.ini jk_init.ini jk_lsh.ini jk_socketd.ini jk_chrootsh.ini jk_update.ini jk_uchroot.ini
+
+jailkit: all
+
+all:
+	@cd src/ && $(MAKE) all
+	@cd py/ && $(MAKE) all
+	@cd man/ && $(MAKE) all
+
+clean:
+	rm -f core *~ ini/*~
+	@cd src/ && $(MAKE) clean
+	@cd py/ && $(MAKE) clean
+	@cd man/ && $(MAKE) clean
+
+distclean: clean
+	rm -rf autom4te.cache/
+	rm -f Makefile config.log config.status config.cache
+	@cd src/ && $(MAKE) distclean
+	@cd py/ && $(MAKE) distclean
+	@cd man/ && $(MAKE) distclean
+
+install:
+	${INSTALL} -d -m 755 ${DESTDIR}${iniprefix}
+	for file in ${INIFILES} ; do \
+		if [ -f ${DESTDIR}${iniprefix}$${file} ]; then \
+			${INSTALL} -m 0644 ini/$${file} ${DESTDIR}${iniprefix}$${file}.dist ;\
+		else \
+			${INSTALL} -m 0644 ini/$${file} ${DESTDIR}${iniprefix} ;\
+		fi ;\
+	done
+	@cd src/ && $(MAKE) install
+	@cd py/ && $(MAKE) install
+	@cd man/ && $(MAKE) install
+	# test if the jk_chrootsh is already in /etc/shells
+	# this previously had @echo but that fails on FreeBSD
+	if test -w /etc/shells; then \
+		if ! grep ${prefix}/sbin/jk_chrootsh /etc/shells ; then \
+			echo "appending ${prefix}/sbin/jk_chroots to /etc/shells";\
+			echo ${prefix}/sbin/jk_chrootsh >> /etc/shells ;\
+		fi \
+	fi
+
+
+uninstall:
+	rm -f ${iniprefix}/*.ini
+	@cd py/ && $(MAKE) uninstall
+	@cd man/ && $(MAKE) uninstall
+	@cd src/ && $(MAKE) uninstall
+	-rmdir --ignore-fail-on-non-empty ${DESTDIR}${iniprefix}
+	@echo "You must manually remove jk_chrootsh from /etc/shells"
+# remove jk_chrootsh from /etc/shells

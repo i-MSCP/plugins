@@ -1,0 +1,202 @@
+jailkit (2.16-1) precise; urgency=low
+
+  * fix compiling if -pthread and -lcap are both needed
+  * fix bug in environment cleaning function
+  * improve jk_init.ini for some 64bit linux distributions
+  * improve error messages
+
+ -- Olivier <olivier@cort.fakenet>  Thu, 18 Apr 2013 21:57:34 +0200
+
+jailkit (2.15-1) lucid; urgency=low
+
+  * use -pthreads if available instead of -lpthread
+  * allow symlinks for /bin /lib and /sbin if they are moved into /usr/ (as fedora 17 has)
+
+ -- Olivier Sessink <olivier@cort.fakenet>  Thu, 07 Jun 2012 23:20:26 +0200
+
+jailkit (2.14-1) lucid; urgency=low
+
+  * move jk_check to hashlib
+  * fix for the prefix directory of jk_check
+  * enable jk_chrootsh to be called su
+
+ -- Olivier Sessink <olivier@cort.fakenet>  Thu, 28 Apr 2011 10:25:24 +0200
+
+jailkit (2.13-1) lucid; urgency=low
+
+  * fixes a regression in 2.12 - INIPREFIX was updated incorrectly in some cases 
+
+ -- Olivier Sessink <olivier@cort.fakenet>  Sun, 10 Oct 2010 22:35:24 +0200
+
+jailkit (2.12-1) lucid; urgency=low
+
+  * jk_init and jk_cp can now resolve binaries using PATH
+
+ -- Olivier Sessink <olivier@cort.fakenet>  Sun, 12 Sep 2010 21:30:23 +0200
+
+jailkit (2.11-1) hardy; urgency=low
+
+  * mostly documentation updates
+  * minor Solaris specific improvements
+  * fixed possible jk_lsh crash
+
+ -- Olivier <olivier@cort.fakenet>  Sun, 07 Feb 2010 17:23:16 +0100
+
+jailkit (2.10-1) hardy; urgency=low
+
+  * 2.9 fix was incompatible with jk_jailuser, fixed now
+  * compiler warning fixes
+
+ -- Olivier <olivier@cort.fakenet>  Thu, 22 Oct 2009 13:31:18 +0200
+
+jailkit (2.9-1) hardy; urgency=low
+
+  * fix symlink handling, if a symlink inside the jail points to the real system jk_init and jk_cp could write files into the real system
+
+ -- Olivier <olivier@cort.fakenet>  Wed, 14 Oct 2009 23:07:33 +0200
+
+jailkit (2.8-1) hardy; urgency=low
+
+  * support for capabilities to replace the setuid bit
+  * minor Solaris compatibility fixes
+
+ -- Olivier <olivier@cort.fakenet>  Thu, 20 Aug 2009 12:51:05 +0200
+
+jailkit (2.7-1) hardy; urgency=low
+
+  * fix a regression in jk_chrootsh and jk_uchroot for interactive sessions
+
+ -- Olivier <olivier@cort.fakenet>  Sun, 05 Apr 2009 20:20:38 +0200
+
+jailkit (2.6-1) hardy; urgency=low
+
+  * some minor code cleanups and improvements
+  * some fixes for Solaris compatibility
+
+ -- Olivier <olivier@cort.fakenet>  Wed, 01 Apr 2009 21:13:20 +0200
+
+jailkit (2.5-1) unstable; urgency=low
+
+  * fixed an issue in jk_cp and jk_init that symlinks to directories were sometimes copied as directories instead of symlinks
+  * improved some documentation
+  * added a -j option to all utilities to improve consistency
+
+ -- Olivier Sessink <olivier@aria.fakenet>  Fri, 07 Dec 2007 13:53:52 +0100
+
+jailkit (2.4-1) unstable; urgency=low
+
+  * added a new jk_uchroot utility
+  * fixed a rare crash in configuration file parsing 
+  * added new jk_init configuration file options
+  * added new options to jk_cp and jk_init to retain ownership when copying files into the jail
+  * improved the documentation
+  * improved several chroot security checks 
+  * fixed some build issues on OpenBSD
+  * improved error reporting
+
+ -- Olivier Sessink <olivier@cort.fakenet>  Tue, 17 Jul 2007 20:32:41 +0200
+
+jailkit (2.3-1) unstable; urgency=low
+
+  * various small fixes for the new jk_update utility
+  * added a -k option to jk_cp, jk_init and jk_update to use hardlinks instead of copying
+  * various fixes to install jailkit in a different location
+
+ -- Olivier Sessink <olivier@aria.fakenet>  Thu, 28 Dec 2006 13:51:00 +0100
+
+jailkit (2.2-1) unstable; urgency=low
+
+  * Jailkit 2.2 released with a new utility jk_update to keep jails up-to-date
+    and various improvements on *BSD operating systems
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Fri, 8 Dec 2006 00:00:00 +0200
+
+jailkit (2.1-2) unstable; urgency=low
+
+  * tarballs are uploaded again, there was a Makefile issue
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Fri, 8 Sep 2006 00:00:00
+
+jailkit (2.1-1) unstable; urgency=low
+
+  * improved logging
+  * allowed sub-second intervals for jk_socketd
+  * improved various checks in jk_jailuser
+  * improved handling of recursive directories in jk_cp
+  * new utility jk_list to list all jailed processes
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Thu, 7 Sep 2006 00:00:00
+
+jailkit (2.0-1) unstable; urgency=low
+
+  * fixes to allow jk_chrootsh to function on systems that use a name service
+    caching daemon, or ldap authentication and others
+  * some options for jk_chrootsh to relax some strict checks
+  * replaced jk_addjailuser with jk_jailuser, which should work on more
+    platforms
+  * added the DEFAULT section to jk_lsh.ini and jk_chrootsh.ini to allow
+    easier configuration
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Wed, 9 Aug 2006 00:00:00
+
+jailkit (1.3-1) unstable; urgency=low
+
+  * fixes some issues with Gentoo Linux
+  * fixes some FreeBSD issues
+  * fixes option --force for jk_init
+  * better defaults in jk_init.ini
+  * much more verbose error reporting by jk_lsh and jk_chrootsh
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Thu,  5 Aug 2004 19:22:41
+
+jailkit (1.2-1) unstable; urgency=low
+
+  * new upstream 1.2 release
+  * mainly *BSD and MacOSX build related fixes
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Thu, 26 Aug 2004 21:34:01 +0200
+
+jailkit (1.1-2) unstable; urgency=low
+
+  * adding lintian override file, package now is lintian clean
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Sun, 15 Aug 2004 11:47:44 +0200
+
+jailkit (1.1-1) unstable; urgency=low
+
+  * new upstream 1.1 release
+  * fixes some leftovers from /usr/bin/ to /usr/sbin/ transition
+  * fixes minor bug in jk_init
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Fri, 13 Aug 2004 21:23:43 +0200
+
+jailkit (1.0-1) unstable; urgency=low
+
+  * new upstream 1.0 release
+  * jk_adduser improvements
+  * documentation improvements
+  * moved all binaries to /usr/sbin/
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Thu,  5 Aug 2004 19:22:41 +0200
+
+jailkit (0.9-1) unstable; urgency=low
+
+  * new upstream 0.9 release
+  * jk_cp and jk_init speed improvements
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Sun, 23 May 2004 21:28:17 +0200
+
+jailkit (0.8-1) unstable; urgency=low
+
+  * new upstream 0.8 release
+  * adds wildcard expansion (*,?,~, etc.) to jk_lsh
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Tue, 18 May 2004 21:05:08 +0200
+
+jailkit (0.7-1) unstable; urgency=low
+
+  * Initial Release.
+  * First Debian package
+
+ -- Olivier Sessink <olivier@lx.student.wau.nl>  Sat,  1 May 2004 12:02:18 +0200
+

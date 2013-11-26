@@ -1,0 +1,126 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2003, 2004, 2005, 2006, 2007 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import shutil
+import sys
+import os.path
+import os
+import getopt
+import string
+
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+sys.path.append(LIBDIR)
+import jk_lib
+
+def startcopy(config, chroot, filestocopy, checklibs=1):
+	jk_lib.copy_binaries_and_libs(chroot,filestocopy,config['force'] , config['verbose'], try_hardlink=config['hardlink'], 
+        allow_suid=config['retainsetuid'], retain_owner=config['retainowner'])
+	jk_lib.gen_library_cache(chroot)
+
+def usage():
+	print
+	print 'Usage: '+sys.argv[0]+' -j <jail> [OPTIONS] <files and directories>'
+	print 'Copy files including permissions and libraries into a jail'
+	print
+	print '-h --help          : this help screen'
+	print '-j, --jail=JAILDIR : the jail to copy to'
+	print '-v, --verbose      : show what is being copied'
+	print '-f, --force        : overwrite existing files'
+	print '-k, --hardlink     : use hardlinks if possible'
+	print '-o, --owner        : retain file ownership and group'
+	print '-s, --setuid       : retain file setuid/setgid bits'
+	print
+	print 'Note: For backwards compatibility, if no jail is specified, the'
+	print '      first argument after the options will be used as jail'
+	print
+
+def testargs(jail, args):
+	if (len(args) == 0 or jail == None):
+		sys.stderr.write('ERROR: need at least a chroot directory and a file to copy\n\n')
+		usage()
+		sys.exit(2)
+	if (not os.path.isdir(jail)):
+		sys.stderr.write('ERROR: '+jail+' is not a directory\n')
+		print ""
+		usage()
+		sys.exit(3)
+	for file in args:
+		if (not os.path.exists(file)):
+			sys.stderr.write('ERROR: '+file+' does not exist\n\n')
+			usage()
+			sys.exit(4)
+
+def main():
+	if (os.getuid()!=0):
+		print 'cannot run without root privileges'
+		sys.exit(5)
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'fh?vkosj:', ['help', 'verbose', 'force', 'hardlink', 'owner', 'jail=', 'setuid'])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	config = {}
+	config['verbose'] = 0
+	config['force'] = 0
+	config['hardlink'] = 0
+	config['retainowner'] = 0
+	config['retainsetuid'] = 0
+	jail = None
+	for o, a in opts:
+		if o in ("-h",'?', "--help"):
+			usage()
+			sys.exit()
+		if o in ("-j", "--jail"):
+			jail = a
+		if o in ("-v", "--verbose"):
+			config['verbose'] = 1
+		if o in ("-f", "--force"):
+			config['force'] = 1
+		if o in ("-k", "--hardlink"):
+			config['hardlink'] = 1
+		if o in ("-o", "--owner"):
+			config['retainowner'] = 1
+		if o in ("-s", "--setuid"):
+			config['retainsetuid'] = 1
+	if (jail == None and len(args)>0 ):
+		jail = args[0]
+		args = args[1:]
+	args = jk_lib.find_files_in_path(args)
+	testargs(jail, args)
+	if (jail[-1] != '/'): jail = jail+'/'
+	if (jk_lib.chroot_is_safe(jail)!=1):
+		sys.exit(6)
+	startcopy(config, jail, args)
+
+if __name__ == "__main__":
+    main()

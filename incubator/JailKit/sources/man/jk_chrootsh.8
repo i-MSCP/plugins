@@ -1,0 +1,100 @@
+.TH jk_chrootsh 8 07-02-2010 JAILKIT jk_chrootsh
+
+.SH NAME
+jk_chrootsh \- a shell that will put the user inside a changed root
+
+.SH SYNOPSIS
+
+.B jk_chrootsh
+
+.SH DESCRIPTION
+
+jk_chrootsh can be used as a shell for a user (e.g. in /etc/passwd or your ldap store). That user will be put into a changed root. The directory where to put the user in is read from the users home directory, the last occurring /./ sequence is used to mark the location of the changed root. An example line in /etc/passwd would look like
+
+test:x:10000:10000::/home/testchroot/./home/test:/usr/sbin/jk_chrootsh
+
+In this example the user will be chroot-ed into /home/testchroot
+
+Inside the chroot-ed directory, it will look for /etc/passwd and it will execute the shell for the user from that file. For the above example the /etc/passwd file inside the jail should have an entry like
+
+test:x:10000:10000::/home/test:/usr/sbin/jk_lsh
+
+Notice that the home directory and the shell are local inside the chroot
+
+jk_chrootsh needs certain elevated privileges to make the 
+.BR chroot(2)
+system call. Therefore it is setuid root. It will drop its root priveleges immediately after making the chroot() system call. Since Jailkit 2.8 jk_chrootsh may also use the CAP_SYS_CHROOT capability on systems that support capabilities, and then the setuid bit can be removed.
+
+By default jk_chrootsh does not copy any environment variables. For some functionality, however, environment variables need to be copied (e.g. the TERM variable for a functional terminal emulation, or the DISPLAY variable for X forwarding). In 
+.I /etc/jailkit/jk_chrootsh.ini
+the required environment variables can be listed. An example config file is shown below. In the example, user bill will get the DISPLAY variable, and all users in group jail will get the TERM and PATH variables.
+
+By default jk_chrootsh requires a home directory that has the same group as the primary group from the user, and requires the home directory to be non-writable for group and others. You can relax these requirements in the configfile as shown below. 
+
+.nf
+.sp
+[DEFAULT]
+relax_home_group=1
+
+[bill]
+env= DISPLAY
+relax_home_group_permissions=1
+relax_home_other_permissions=1
+
+[group jail]
+env = TERM, PATH
+.fi
+
+If user bill is in group jail, however, he will not get the TERM variable in the above example. Neither will any user with primary group jail get relaxed requirements for the group of the home directory. First the user is checked, and only if no user section is found the primary group section is looked for, and if no group section is found, the DEFAULT section is used.
+
+jk_chrootsh can be configured not to read the final shell from the /etc/passwd file in the jail. An example configfile
+is shown below.
+
+.nf
+.sp
+[group jail2]
+skip_injail_passwd_check=1
+injail_shell=/bin/bash
+.fi
+
+.SH FILES
+
+.I /etc/passwd
+.I /etc/jailkit/jk_chrootsh.ini
+
+.SH DIAGNOSTICS
+
+jk_chrootsh logs everything to syslog, please check the log files. Logging is sent to the LOG_AUTH facility with levels LOG_ERR and LOG_CRIT for critical errors, LOG_NOTICE for non-critical errors,  and LOG_INFO for normal events.
+
+commonly made mistakes are:
+
+forgetting to add the user to JAIL/etc/passwd or the group to JAIL/etc/group
+
+forgetting to have the correct permissions on all files inside the jail, or forgetting files inside the jail (the shell itself, or any libraries used by the shell)
+
+referring to a file outside the chroot
+
+.SH "SEE ALSO"
+
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR syslogd(8)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

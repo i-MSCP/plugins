@@ -1,7 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) Sascha Bay <info@space2place.de>
+ * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,25 +21,25 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Sascha Bay <info@space2place.de>
+ * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
  * @author      Sascha Bay <info@space2place.de>
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
+ * Class iMSCP_Plugin_JailKit
+ *
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
  * @author      Sascha Bay <info@space2place.de>
+ * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  */
 class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 {
-	/**
-	 * @var array Routes
-	 */
-	protected $routes = array();
-
 	/**
 	 * Register a callback for the given event(s).
 	 *
@@ -49,7 +50,6 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$eventsManager->registerListener(
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforePluginsRoute,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onAfterDeleteCustomer,
@@ -78,7 +78,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Process plugin installation
+	 * Plugin installation
 	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
@@ -96,7 +96,6 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	/**
 	 * Plugin uninstallation
 	 *
-	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
@@ -106,32 +105,17 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onBeforePluginsRoute event
-	 *
-	 * @return void
-	 */
-	public function onBeforePluginsRoute()
-	{
-		$pluginName = $this->getName();
-
-		$this->routes = array(
-			'/reseller/jailkit.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/jailkit.php',
-			'/client/jailkit.php' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/jailkit.php'
-		);
-	}
-
-	/**
-	 * Implements the onResellerScriptStart event
+	 * onResellerScriptStart event listener
 	 *
 	 * @return void
 	 */
 	public function onResellerScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('reseller');
 	}
 
 	/**
-	 * Implements the onClientScriptStart event
+	 * onClientScriptStart event listener
 	 *
 	 * @return void
 	 */
@@ -140,30 +124,18 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
-		$query = "
-			SELECT
-				`admin_id`
-			FROM
-				`admin`
-			WHERE
-				`admin_id` = ?
-			AND
-				`admin_status` = ?
-			AND
-				`admin_id` IN (SELECT `admin_id` FROM `jailkit`)
-		";
-
-		$stmt = exec_query($query, array($_SESSION['user_id'], $cfg->ITEM_OK_STATUS));
+		$stmt = exec_query(
+			'SELECT admin_id FROM admin INNER JOIN jailkit USING(admin_id) WHERE admin_id = ? AND admin_status = ?',
+			array($_SESSION['user_id'], $cfg['ITEM_OK_STATUS'])
+		);
 
 		if ($stmt->rowCount()) {
-			$this->setupNavigation();
+			$this->setupNavigation('client');
 		}
 	}
 
 	/**
-	 * Implements the onAfterDeleteCustomer event
-	 *
-	 * This event is called when a customer account will be deleted.
+	 * onAfterDeleteCustomer event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -174,17 +146,13 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 
 		exec_query(
-			'UPDATE `jailkit` SET `jailkit_status` = ? WHERE `admin_id` = ?',
-			array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
+			'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?',
+			array($cfg['ITEM_TODELETE_STATUS'], $event->getParam('customerId'))
 		);
-
-		send_request();
 	}
 
 	/**
-	 * Implements the onAfterChangeDomainStatus event
-	 *
-	 * This event is called when a customer account status will be changed.
+	 * onAfterChangeDomainStatus event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -194,57 +162,28 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
+		$customerId = $event->getParam('customerId');
+
 		if ($event->getParam('action') == 'enable') {
 			exec_query(
-				'
-					UPDATE
-						`jailkit`
-					SET
-						`jailkit_status` = ?
-					WHERE
-						`admin_id` = ?
-				',
-				array($cfg->ITEM_OK_STATUS, $event->getParam('customerId'))
+				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array($cfg['ITEM_OK_STATUS'], $customerId)
 			);
 
 			exec_query(
-				'
-					UPDATE
-						`jailkit_login`
-					SET
-						`ssh_login_locked` = ?, `jailkit_login_status` = ?
-					WHERE
-						`admin_id` = ?
-				',
-				array('0', $cfg->ITEM_TOCHANGE_STATUS, $event->getParam('customerId'))
+				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
+				array('0', $cfg['ITEM_TOCHANGE_STATUS'], $customerId)
 			);
 		} else {
 			exec_query(
-				'
-					UPDATE
-						`jailkit`
-					SET
-						`jailkit_status` = ?
-					WHERE
-						`admin_id` = ?
-				',
-				array($cfg->ITEM_DISABLED_STATUS, $event->getParam('customerId'))
+				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?',
+				array($cfg['ITEM_DISABLED_STATUS'], $customerId)
 			);
 
 			exec_query(
-				'
-					UPDATE
-						`jailkit_login`
-					SET
-						`ssh_login_locked` = ?, `jailkit_login_status` = ?
-					WHERE
-						`admin_id` = ?
-				',
-				array('1', $cfg->ITEM_TOCHANGE_STATUS, $event->getParam('customerId'))
+				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
+				array('1', $cfg['ITEM_TOCHANGE_STATUS'], $customerId)
 			);
 		}
-
-		send_request();
 	}
 
 	/**
@@ -254,77 +193,11 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		return $this->routes;
-	}
+		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
 
-	/**
-	 * Inject JailKit links into the navigation object
-	 */
-	protected function setupNavigation()
-	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
-			/** @var Zend_Navigation $navigation */
-			$navigation = iMSCP_Registry::get('navigation');
-
-			if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('JailKit - SSH')),
-						'uri' => '/reseller/jailkit.php',
-						'title_class' => 'users'
-					)
-				);
-			}
-
-			if (($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('JailKit - SSH')),
-						'uri' => '/client/jailkit.php',
-						'title_class' => 'ftp'
-					)
-				);
-			}
-		}
-	}
-
-	/**
-	 * Create jailkit and jailkit_login database table
-	 *
-	 * @return void
-	 */
-	protected function createDbTable()
-	{
-		execute_query(
-			'
-				CREATE TABLE IF NOT EXISTS `jailkit` (
-					`jailkit_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`admin_id` int(11) unsigned NOT NULL,
-					`admin_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`max_logins` int(11) default NULL,
-					`jailkit_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					PRIMARY KEY (`jailkit_id`),
-					KEY `jailkit_id` (`jailkit_id`)
-				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			'
-		);
-
-		execute_query(
-			"
-				CREATE TABLE IF NOT EXISTS `jailkit_login` (
-					`jailkit_login_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`admin_id` int(11) unsigned NOT NULL,
-					`ssh_login_name` varchar(200) collate utf8_unicode_ci default NULL,
-					`ssh_login_pass` varchar(200) collate utf8_unicode_ci default NULL,
-					`ssh_login_sys_uid` int(10) unsigned NOT NULL default '0',
-					`ssh_login_sys_gid` int(10) unsigned NOT NULL default '0',
-					`ssh_login_locked` tinyint(1) default '0',
-					`jailkit_login_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					PRIMARY KEY (`jailkit_login_id`),
-					UNIQUE KEY `ssh_login_name` (`ssh_login_name`),
-					KEY `jailkit_login_id` (`jailkit_login_id`)
-				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			"
+		return array(
+			'/reseller/jailkit.php' => $pluginDir . '/frontend/reseller/jailkit.php',
+			'/client/jailkit.php' => $pluginDir . '/frontend/client/jailkit.php'
 		);
 	}
 
@@ -336,27 +209,24 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	public function getItemWithErrorStatus()
 	{
 		$cfg = iMSCP_Registry::get('config');
+
 		$stmt = exec_query(
 			"
-				(
-					SELECT
-						`jailkit_id` AS `item_id`, `jailkit_status` AS `status`, `admin_name` AS `item_name`,
-						'jailkit' AS `table`, 'jailkit_status' AS `field`
-					FROM
-						`jailkit`
-					WHERE
-						`jailkit_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
-				)
+				SELECT
+					jailkit_id AS item_id, jailkit_status AS status, admin_name AS item_name, 'jailkit' AS `table`,
+					'jailkit_status' AS field
+				FROM
+					jailkit
+				WHERE
+					jailkit_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 				UNION
-				(
-					SELECT
-						`jailkit_login_id` AS `item_id`, `jailkit_login_status` AS `status`, `ssh_login_name` AS `item_name`,
-						'jailkit_login' AS `table`, 'jailkit_login_status' AS `field`
-					FROM
-						`jailkit_login`
-					WHERE
-						`jailkit_login_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
-				)
+				SELECT
+					jailkit_login_id AS item_id, jailkit_login_status AS status, ssh_login_name AS item_name,
+					'jailkit_login' AS `table`, 'jailkit_login_status'AS field
+				FROM
+					jailkit_login
+				WHERE
+					jailkit_login_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 			",
 			array(
 				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
@@ -388,13 +258,12 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 
 		if ($table == 'jailkit' && $field == 'jailkit_status') {
 			exec_query(
-				"UPDATE `$table` SET `$field` = ?  WHERE `jailkit_id` = ?", array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+				'UPDATE jailkit SET jailkit_status = ? WHERE jailkit_id = ?',
+				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
 			);
-		}
-
-		if ($table == 'jailkit_login' && $field == 'jailkit_login_status') {
+		} elseif ($table == 'jailkit_login' && $field == 'jailkit_login_status') {
 			exec_query(
-				"UPDATE `$table` SET `$field` = ?  WHERE `jailkit_login_id` = ?",
+				'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
 				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
 			);
 		}
@@ -414,17 +283,10 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			'
 				SELECT
 				(
-					(SELECT COUNT(`jailkit_id`) FROM `jailkit` WHERE `jailkit_status` IN (?, ?, ?, ?, ?, ?))
+					(SELECT COUNT(jailkit_id) FROM jailkit WHERE jailkit_status IN (?, ?, ?, ?, ?, ?))
 					+
-					(
-						SELECT
-							COUNT(`jailkit_login_id`)
-						FROM
-							`jailkit_login`
-						WHERE
-							`jailkit_login_status` IN (?, ?, ?, ?, ?, ?)
-					)
-				) AS `count`
+					(SELECT COUNT(jailkit_login_id) FROM jailkit_login WHERE jailkit_login_status IN (?, ?, ?, ?, ?, ?))
+				) AS cnt
 			',
 			array(
 				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
@@ -434,6 +296,76 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			)
 		);
 
-		return $stmt->fields['count'];
+		return $stmt->fields['cnt'];
+	}
+
+	/**
+	 * Setup plugin navigation
+	 *
+	 * @param string $uiLevel Current UI level
+	 * @return void
+	 */
+	protected function setupNavigation($uiLevel)
+	{
+		if (iMSCP_Registry::isRegistered('navigation')) {
+			/** @var Zend_Navigation $navigation */
+			$navigation = iMSCP_Registry::get('navigation');
+
+			if ($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
+				$page->addPage(
+					array(
+						'label' => tr('SSH Accounts'),
+						'uri' => '/reseller/jailkit.php',
+						'title_class' => 'users'
+					)
+				);
+			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
+				$page->addPage(
+					array(
+						'label' => tr('SSH Accounts'),
+						'uri' => '/client/jailkit.php',
+						'title_class' => 'ftp'
+					)
+				);
+			}
+		}
+	}
+
+	/**
+	 * Create jailkit and jailkit_login database tables
+	 *
+	 * @return void
+	 */
+	protected function createDbTable()
+	{
+		execute_query(
+			'
+				CREATE TABLE IF NOT EXISTS jailkit (
+					jailkit_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+					admin_id int(11) unsigned NOT NULL,
+					admin_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					max_logins int(11) default NULL,
+					jailkit_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					PRIMARY KEY (jailkit_id),
+					KEY jailkit_id (jailkit_id)
+				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+			'
+		);
+
+		execute_query(
+			"
+				CREATE TABLE IF NOT EXISTS jailkit_login (
+					jailkit_login_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+					admin_id int(11) unsigned NOT NULL,
+					ssh_login_name varchar(200) collate utf8_unicode_ci default NULL,
+					ssh_login_pass varchar(200) collate utf8_unicode_ci default NULL,
+					ssh_login_locked tinyint(1) default '0',
+					jailkit_login_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					PRIMARY KEY (jailkit_login_id),
+					UNIQUE KEY ssh_login_name (ssh_login_name),
+					KEY jailkit_login_id (jailkit_login_id)
+				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+			"
+		);
 	}
 }

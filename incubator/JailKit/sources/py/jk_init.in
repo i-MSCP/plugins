@@ -1,0 +1,249 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import ConfigParser
+import sys
+import os
+import string
+import getopt
+import shutil
+import stat
+
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+sys.path.append(LIBDIR)
+import jk_lib
+
+class jk_init:
+	
+	def __init__(self):
+		self.didfiles = []
+		self.didsections = []
+		self.diddevices = []
+		self.didusers = []
+		self.didgroups = []
+
+	def logsocket(self,config,chroot):
+		if (not os.path.exists(chroot+'/dev')):
+			os.mkdir(chroot+'/dev')
+		fd = open(INIPREFIX+'/jk_socketd.ini', 'r')
+		line = fd.readline()
+		while (line):
+			if (line == '['+chroot+'/dev/log]'):
+				if (config['verbose']):
+					print 'we already have '+chroot+'/dev/log in '+INIPREFIX+'/jk_socketd.ini'
+				return
+			line = fd.readline()
+		fd = open(INIPREFIX+'/jk_socketd.ini', 'a')
+		fd.write('\n['+chroot+'/dev/log]\nbase=512\npeak=2048\ninterval=10\n')
+		fd.close()
+	
+	def proc_mount(self,config, chroot):
+		if (sys.platform[:5] == 'linux'):
+			if (config['verbose']):
+				print 'appending proc mount '+chroot+'proc to /etc/fstab'
+			fd = open('/etc/fstab', 'a')
+			fd.write("proc 	"+chroot+"proc 	proc 	defaults 	0 	0\n")
+			fd.close()
+			if (config['verbose']):
+				print 'executing mount '+chroot+'proc'
+			os.spawnlp(os.P_WAIT, 'mount','mount', chroot+'proc')
+		else:
+			print 'Not processing proc mount; proc mounts are Linux specific'
+	
+	def add_jk_socketd_entry(self,config, chroot):
+		print 'not yet implemented'
+	
+	def handle_cfg_section(self,config,chroot,cfg,section):
+		if(chroot[-1] == '/'):
+			chroot = chroot[:-1]
+		# first create the chroot jail itself if it does not yet exist
+		if (not os.path.exists(chroot)):
+			print 'Creating jail '+chroot
+			os.makedirs(chroot, mode=0755)
+			# if the parent is setuid or setgid that is not covered by the umask set above, so we remove that
+			os.chmod(chroot, 0755)
+		sections = jk_lib.config_get_option_as_list(cfg,section,'includesections')
+		for tmp in sections:
+			if (tmp not in self.didsections):
+				self.handle_cfg_section(config,chroot,cfg,tmp)
+				self.didsections.append(tmp)
+		#libraries, executables, regularfiles and directories are now all handled as 'paths'
+		paths = jk_lib.config_get_option_as_list(cfg,section,'paths')
+		paths = paths + jk_lib.config_get_option_as_list(cfg,section,'libraries')
+		paths = paths + jk_lib.config_get_option_as_list(cfg,section,'executables')
+		paths = paths + jk_lib.config_get_option_as_list(cfg,section,'regularfiles')
+		paths = paths + jk_lib.config_get_option_as_list(cfg,section,'directories')
+		paths2 = jk_lib.find_files_in_path(paths)
+		self.didfiles = jk_lib.copy_binaries_and_libs(chroot, paths2, config['force'], config['verbose'], 1, try_hardlink=config['hardlink'],try_glob_matching=1,handledfiles=self.didfiles)
+		
+		paths_w_owner = jk_lib.config_get_option_as_list(cfg,section,'paths_w_owner')
+		if (len(paths_w_owner)>0):
+			self.didfiles = jk_lib.copy_binaries_and_libs(chroot, paths_w_owner, config['force'], config['verbose'], check_libs=1, try_hardlink=config['hardlink'], retain_owner=1,try_glob_matching=1, handledfiles=self.didfiles)
+		
+		paths_w_setuid = jk_lib.config_get_option_as_list(cfg,section,'paths_w_setuid')
+		if (len(paths_w_setuid)>0):
+			self.didfiles = jk_lib.copy_binaries_and_libs(chroot, paths_w_setuid, config['force'], config['verbose'], check_libs=1, try_hardlink=config['hardlink'], allow_suid=1, retain_owner=1, try_glob_matching=3, handledfiles=self.didfiles)
+		
+		emptydirs = jk_lib.config_get_option_as_list(cfg,section,'emptydirs')
+		for edir in emptydirs:
+	#		print 'DEBUG emptydir='+edir
+			jk_lib.create_parent_path(chroot,edir, config['verbose'], copy_permissions=0, allow_suid=0, copy_ownership=0)
+		users = []
+		groups = []
+		tmplist = jk_lib.config_get_option_as_list(cfg,section,'users')
+		for tmp in tmplist:
+			if (tmp not in self.didusers):
+				users.append(tmp)
+		tmplist = jk_lib.config_get_option_as_list(cfg,section,'groups')
+		for tmp in tmplist:
+			if (tmp not in self.didusers):
+				groups.append(tmp)
+		jk_lib.init_passwd_and_group(chroot,users,groups,config['verbose'])
+		self.didusers = self.didusers + users
+		self.didgroups = self.didusers + groups
+		if (cfg.has_option(section,'need_proc')):
+			do_proc = cfg.get(section,'need_proc')
+			if (do_proc):
+				self.proc_mount(config,chroot)
+		if (cfg.has_option(section,'need_logsocket')):
+			do_logsocket = cfg.get(section,'need_logsocket')
+			if (do_logsocket):
+				self.logsocket(config,chroot)
+		devices = jk_lib.config_get_option_as_list(cfg,section,'devices')
+		for tmp in devices:
+			if (tmp not in self.diddevices):
+				jk_lib.create_parent_path(chroot,os.path.dirname(tmp), config['verbose'], copy_permissions=0, allow_suid=0, copy_ownership=0)
+				jk_lib.copy_device(chroot,tmp,config['verbose'])
+				self.diddevices.append(tmp)
+		
+
+def activateConfig(config, jail, args):
+	cfg = ConfigParser.ConfigParser()
+	cfg.read([config['file']])
+	start = 0
+	if (jail == None):
+		jail = args[0]
+		start = 1
+		
+	ji = jk_init()
+	for section in args[start:]:
+		if (cfg.has_section(section)):
+			ji.handle_cfg_section(config,jail,cfg,section)
+		else:
+			print 'WARNING: section '+section+' does not exist in '+config['file']
+	jk_lib.gen_library_cache(jail)
+	
+def usage():
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
+	print 'Usage: '+sys.argv[0]+' [OPTIONS] -j jaildir sections...'
+	print 'Initialize a jail'
+	print
+	print '-h --help             : this help screen'
+	print '-c, --configfile=FILE : specify configfile location'
+	print '-l, --list            : list all available sections in the configfile'
+	print '-j, --jail=JAILDIR    : specify the jail to use.'
+	print '-v, --verbose         : show what is being done'
+	print '-f, --force           : force overwriting of existing files'
+	print '-k, --hardlink        : use hardlinks if possible'
+	print
+	print 'Note: For backwards compatibility, if no jail is specified, the'
+	print '      first argument after the options will be used as jail'
+	print
+
+def listsections(file):
+	cfg = ConfigParser.ConfigParser()
+	cfg.read(file)
+	sections = cfg.sections()
+	sections.sort()
+	print '\n** Available sections in '+file+' **\n'
+	for sec in sections:
+		if cfg.has_option(sec, 'comment'):
+			print sec+' - '+cfg.get(sec, 'comment')
+		else:
+			print sec
+	print ''
+
+def testargs(config,jail,args):
+	if ((len(args)<2 and jail == None) or (jail != None and len(args)<1)):
+		jk_lib.clean_exit(2,'need at least a jail directory and a configfile-section',usage)
+	if (jail == None):
+		jail = args[0]
+	if (jk_lib.chroot_is_safe(jail) != 1):
+		jk_lib.clean_exit(3,'jail directory '+args[0]+' is not safe',usage)
+	if (not os.path.isfile(config['file'])):
+		jk_lib.clean_exit(3,'configfile '+config['file']+' does not exist',usage)
+
+def main():
+	if (os.getuid()!=0):
+		print 'Cannot create chroot jail without root privileges. Abort.'
+		sys.exit(5)
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "vhflc:kj:", ["help", "configfile=", "verbose", "force", 'list', 'hardlink', 'jail='])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	config = {}
+	config['file'] = INIPREFIX+'/jk_init.ini'
+	config['verbose'] = 0
+	config['force'] = 0
+	config['hardlink'] = 0
+	jail = None
+	list = 0
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		if o in ("-c", "--configfile"):
+			config['file'] = a
+		if  o in ("-l", "--list"):
+			list = 1
+		if o in ("-v", "--verbose"):
+			config['verbose'] = 1
+		if o in ("-f", "--force"):
+			config['force'] = 1
+		if o in ("-k", "--hardlink"):
+			config['hardlink'] = 1
+		if o in ("-j", "--jail"):
+			jail = a
+	if (jail == None and len(args)>0 ):
+		jail = args[0]
+		args = args[1:]
+	if (list ==1):
+		listsections(config['file'])
+		sys.exit()
+	testargs(config,jail,args)
+	activateConfig(config, jail, args)
+ 
+if __name__ == "__main__":
+    main()

@@ -1,3 +1,4 @@
+
 <!-- BDP: jailkit_list -->
 <form action="jailkit.php" method="post" name="activate_customer" id="activate_customer">
 	<label>
@@ -9,9 +10,9 @@
 		</select>
 	</label>
 	<input type="hidden" name="action" value="activate"/>
-	
+
 	<div class="buttons" style="display:inline">
-		<input name="Submit" type="submit" value="{TR_SHOW}"/>
+		<input name="Submit" type="submit" value="{TR_SELECT_ACTION}" title="{TR_SELECT_ACTION_TOOLTIP}"/>
 	</div>
 </form>
 <!-- BDP: jailkit_customer_list -->
@@ -30,19 +31,22 @@
 	<tr>
 		<td>
 			<a href="#" onclick="action_status('{JAILKIT_ADMIN_ID}', '{JAILKIT_CUSTOMER_NAME}'); return false;"
-				class="icon i_{STATUS_ICON}">{JAILKIT_STATUS}</a>
+			   class="icon i_{STATUS_ICON}" title="{TOOLTIP_STATUS_ACTION}">{JAILKIT_STATUS}</a>
 		</td>
 		<td>{JAILKIT_CUSTOMER_NAME}</td>
 		<td>{JAILKIT_LOGIN_LIMIT}</td>
 		<td>
-			<a class="icon i_edit" href="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}">{TR_EDIT_JAIL}</a>
-			<a class="icon i_delete deactivate_jailkit" href="jailkit.php?action=delete&amp;admin_id={JAILKIT_ADMIN_ID}">{TR_DELETE_JAIL}</a>
+			<a class="icon i_edit" href="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}"
+			   title="{TR_EDIT_TOOLTIP}">{TR_EDIT_JAIL}</a>
+			<a class="icon i_delete deactivate_jailkit"
+			   href="jailkit.php?action=delete&amp;admin_id={JAILKIT_ADMIN_ID}"
+			   title="{TR_DEACTIVATE_TOOLTIP}">{TR_DELETE_JAIL}</a>
 		</td>
 	</tr>
 	<!-- EDP: jailkit_customer_item -->
 	</tbody>
 </table>
-<br />
+<br/>
 
 <div class="paginator">
 	<!-- BDP: scroll_prev -->
@@ -60,13 +64,12 @@
 </div>
 
 <script>
-/*<![CDATA[*/
-	$(document).ready(function(){
-		$(".deactivate_jailkit").click(function(){
+	$(document).ready(function () {
+		$(".deactivate_jailkit").click(function () {
 			return confirm("{DEACTIVATE_CUSTOMER_ALERT}");
 		});
 	});
-	
+
 	function action_status(dom_id, dmn_name) {
 		if (!confirm(sprintf("{DISABLE_CUSTOMER_ALERT}", dmn_name))) {
 			return false;
@@ -74,10 +77,8 @@
 
 		location = ("jailkit.php?action=change&admin_id=" + dom_id);
 	}
-/*]]>*/
 </script>
 <!-- EDP: jailkit_customer_list -->
-
 <!-- BDP: jailkit_no_customer_item -->
 <table>
 	<thead>
@@ -94,32 +95,34 @@
 	</tfoot>
 	<tbody>
 	<tr>
-		<td colspan="3"><div class="message info">{JAILKIT_NO_CUSTOMER}</div></td>
+		<td colspan="3">
+			<div class="message info">{JAILKIT_NO_CUSTOMER}</div>
+		</td>
 	</tr>
 	</tbody>
 </table>
 <!-- EDP: jailkit_no_customer_item -->
 <!-- EDP: jailkit_list -->
+
 <!-- BDP: jailkit_edit -->
 <form action="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}" method="post" name="edit_jail" id="edit_jail">
 	<table class="firstColFixed">
 		<thead>
 		<tr>
-			<th>{TR_JAIL_LIMITS}</th>
-			<th>{TR_LIMIT_VALUE}</th>
+			<th colspan="2">{TR_CUSTOMER}</th>
 		</tr>
 		</thead>
 		<tbody>
 		<tr>
-			<td><label for="max_logins">{TR_MAX_LOGINS_LIMIT}</label></td>
+			<td><label for="max_logins">{TR_MAX_SSH_ACCOUNTS}</label></td>
 			<td><input type="text" name="max_logins" id="max_logins" value="{MAX_LOGINS}"/></td>
 		</tr>
 		</tbody>
 	</table>
-	
+
 	<div class="buttons">
 		<input name="submit" type="submit" value="{TR_UPDATE}"/>
-		<a class ="link_as_button" href="jailkit.php">{TR_CANCEL}</a>
+		<a class="link_as_button" href="jailkit.php">{TR_CANCEL}</a>
 	</div>
 </form>
 <!-- EDP: jailkit_edit -->

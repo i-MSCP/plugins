@@ -1,0 +1,102 @@
+.TH jk_addjailuser 8 07-02-2010 JAILKIT jk_addjailuser
+
+.SH NAME
+jk_addjailuser \- a utility to add a new user to the password database in /etc/ as well as in JAIL/etc/
+
+.SH DEPRECATED
+jk_addjailuser is deprecated and will be removed from jailkit. The functionality is replaced by jk_jailuser
+
+.SH SYNOPSIS
+
+.B jk_addjailuser [OPTIONS] chrootdir username
+
+.B jk_addjailuser [-c comment] [-d home_dir] [-e expire_date] [-f inactive_time] [-g initial_group] [-G group[,...]] [-m [-k skeleton_dir]] [-o] [-p passwd] [-s shell] [-u uid] username
+
+.SH DESCRIPTION
+
+The jk_addjailuser utility creates a new user that will have a jailed shell. It will add the user to 
+.I /etc/passwd
+(or equivalent on BSD like systems) using the
+.I useradd
+command with homedir /chrootdir/./home/username and shell 
+.I jk_chrootsh
+It will also add the user to
+.I /chrootdir/etc/passwd
+(or equivalent) with homedir /home/username
+
+Most of the options are passed to 
+.I useradd
+Check 
+.B useradd(8)
+for more info.
+
+.SH OPTIONS
+
+.TP
+.BR \-v
+Will give verbose output
+.TP
+.BR \-h
+The help screen
+.TP
+.BR \-c\ comment
+Comment
+.TP
+.BR \-d\ dir
+Home dir
+.TP
+.BR \-e\ date
+Expire_date
+.TP
+.BR \-f\ days
+Inactive time
+.TP
+.BR \-g\ group
+Initial group
+.TP
+.BR \-G\ group1,group1,...
+Additional groups
+.TP
+.BR \-m
+Create homedir
+.TP
+.BR \-k\ dir
+Skeleton dir
+.TP
+.BR \-o
+Allow duplicate uid
+.TP
+.BR \-p\ passwd
+Encrypted password
+.TP
+.BR \-s\ shell
+Shell
+.TP
+.BR \-u\ uid
+User id
+
+.SH "SEE ALSO"
+
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR useradd(8)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

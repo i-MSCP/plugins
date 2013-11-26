@@ -1,0 +1,63 @@
+.TH jk_jailuser 8 07-02-2010 JAILKIT jk_jailuser
+
+.SH NAME
+jk_jailuser \- a utility to put an existing user in a jail
+
+.SH SYNOPSIS
+
+.B jk_jailuser [OPTIONS] <username> [more usernames]
+
+.B jk_jailuser --jail=/path/to/jail <username>
+
+.SH DESCRIPTION
+
+The jk_jailuser utility will change the shell of an existing user <username> to jk_chrootsh and change the home directory to <jail>/./<previous-home-directory>, and it will add the user to <jail>/etc/passwd. On *BSD systems this is <jail>/etc/master.passwd and pwd_mkdb is used to generate the other password files.
+
+The jk_jailuser utility will abort if the <jail>/etc/passwd file is missing, or if the shell is missing in the jail.
+
+If <previous-home-directory> was already inside the jail, a /./ seperator is placed on the correct location in the path. If the previous home directory was not in the jail, it is changed. In interactive mode you are asked if you want to move the contents. In non-interactive mode the contents are only moved if the --move option is specified.
+
+.SH OPTIONS
+
+.TP
+.BR \-j\ \-\-jail= jail
+The jail directory to use. This jail should exist, and should have at least <jail>/etc/passwd
+.TP
+.BR \-v\ \-\-verbose
+Will give verbose output
+.TP
+.BR \-h\ \-\-help
+The help screen
+.TP
+.BR \-m\ \-\-move
+Move the contents of the home directory inside the jail. If in interactive mode, jk_jailuser will ask if the directory should be moved if that is necessary. In non-interactive mode this option is disabled by default.
+.TP
+.BR \-n\ \-\-noninteractive
+No user interaction.
+.TP
+.BR \-s\ \-\-shell= shell
+The shell to use inside the jail. Defaults to /usr/sbin/jk_lsh
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR usermod(8)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

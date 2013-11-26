@@ -1,0 +1,96 @@
+.TH jk_chrootlaunch 8 07-02-2010 JAILKIT jk_chrootlaunch
+
+.SH NAME
+jk_chrootlaunch \- a launcher that can start a deamon in a jail, with a specified uid and gid
+
+.SH SYNOPSIS
+
+.B jk_chrootlaunch [-h] [-p
+.I pidfile
+.B ] [-u user] [-g group] -j
+.I jaildir
+.B -x
+.I executable
+.B -- [executable options]
+
+.B jk_chrootlaunch [--help] [--pidfile=
+.I pidfile
+.B ] [--user user] [--group group] --jail
+.I jaildir
+.B --exec
+.I executable
+.B -- [executable options]
+
+.SH DESCRIPTION
+
+This launcher can be used to start some other process inside a jail. That process is typically a daemon that cannot do 
+.BR chroot(2)
+itself. The process can optionally be started with a certain user ID or group ID. Optionally this utility can write a pidfile to some location.
+
+This utility needs to make the 
+.BR chroot(2)
+call to jail the process, therefore it can only be started in a useful way by user root. Because you can break out of a jail with root privileges it is recommended to start the daemon as some other user and group using the --user and --group options. If this is not possible because that daemon needs root privileges as well (for example to open a port below 1024) the jail can perhaps delay a hacker, but it cannot prevent it.
+
+There are several daemons that should not be started by jk_chrootlaunch. All daemons that do a 
+.BR chroot(2)
+themselves (for example jk_socketd, postfix and openvpn) can do it themselves much better. Daemons that need access to files on the real system (for example the samba smbd daemon) can also not be jailed, unless you can move all those files into the jail and do not need them on the real system.
+
+.SH OPTIONS
+
+.TP
+.BR \-j\ \-\-jail
+the directory to jail the process in
+.TP
+.BR \-u\ \-\-user
+the name or uid of the user to start the process as
+.TP
+.BR \-g\ \-\-group
+the name or gid of the group to start the process as
+.TP
+.BR \-x\ \-\-exec
+the executable to start
+.TP
+.BR \-\-
+any options after the -- are passed to the executable
+
+.SH EXAMPLE
+
+Suppose you want to start Apache inside a jail. Apache needs root privileges because it needs to open TCP port 80. But after opening port 80 it will start subprocesses as a regular user (for example user www-data). Therefore the subprocesses cannot break out of the jail. Apache can also write it's own pidfile, so we also don't need that option.
+
+First we create the jail using 
+.BR jk_init(8).
+The apachectl program is a shell script, it also needs /bin/sh and /usr/bin/kill. We also have to copy these into the jail using 
+.BR jk_cp(8).
+Apache also needs its modules from /usr/lib/apache, copy those as well. Then we can start Apache:
+
+jk_chrootlaunch -j /home/webjail -x /home/webjail/usr/sbin/apachectl -- start
+
+There are some smarter ways to do this. You can remove the /bin/sh and /bin/kill executables from the jail if you edit the apachectl script, and add jk_chrootlaunch to the script itself.
+
+.SH DIAGNOSTICS
+
+jk_chrootlaunch logs errors to syslog, so check your log files
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

@@ -1,0 +1,114 @@
+.TH jk_update 8 07-02-2010 JAILKIT jk_update
+
+.SH NAME
+jk_update \- a utility to update and cleanup a jail according to changes on the real system 
+
+.SH SYNOPSIS
+
+.B jk_update -j <jail>
+
+.B jk_update -c <section of configfile>
+
+.B jk_update -v -d -k -j <jail> -s <file to skip> <dir to scan for updates>
+
+.B jk_update --verbose --dry-run --hardlink --jail=<jail> --skip=<file to skip> <dir to scan for updates>
+
+.SH DESCRIPTION
+
+jk_update will compare the files in a jail with the corresponding files on the real system. If the corresponding file on the real system is newer, and the file on the real system is different, the file from the real system will be copied to the jail including any required libraries just like jk_cp would do. Files that do not exist on the real system will be deleted in the jail.
+
+jk_update works well to pass security updates on the real system to a jail. jk_update does not work well with larger upgrades on the real system. In that case files are often replaced by other files in which case jk_update will delete the old file but not copy the new file.
+
+.SS "Avoid unwanted updates or cleanups"
+
+To avoid unwanted updates, or to avoid files being deleted, files or directories can be skipped by jk_update, either by specifying them on the commandline or by specifying them in the configfile.  
+
+.SS "Directories to include in the update"
+
+By default jk_update will scan /usr, /bin, /opt, and /lib for updates. If one or more arguments is passed as directories to update, these default directries are not scanned, unless they are part of the arguments. The default directories can also be set in the config file.
+
+.B jk_update -j <jail>
+will scan <jail>/usr, <jail>/bin, <jail>/opt, and <jail>/lib, while
+.B jk_update -j <jail> /bin
+will only scan <jail>/bin
+
+.SH EXAMPLE
+
+An example configfile could look like this:
+
+.nf
+.sp
+[/home/testchroot]
+skips = /usr/bin/myscript
+hardlinks = 1
+directories = /usr, /bin, /lib
+
+[/home/otherjail]
+skips = /usr/share/firefox, /usr/bin/firefox, /usr/lib/firefox
+.fi
+
+where the options have the following meaning:
+
+.B skips
+.RS
+the files and directories to skip
+.RE
+.B hardlinks
+.RS
+a boolean whether to use hardlinks (1) or copy the files (0)
+.RE
+.B directories
+.RS
+specifies the directories to include in the update.
+.RE
+
+.SH WARNING
+
+If you have changed files in the jail, it is recommended to do a "dry run" first and see what jk_update will do. jk_update does now know if a file is manually changed or not. If a file in the jail is older and different from the file on the real system it is updated. If a file in the jail does not have an equivalent on the real system it is deleted. Use the skip option to exclude any files that you changed or added manually.
+
+.SH OPTIONS
+
+.TP
+.BR \-v\ \-\-verbose
+Will give verbose output
+.TP
+.BR \-h\ \-\-help
+The help screen
+.TP
+.BR \-c\ <section\ in\ configfile>\ \-\-configsection=<section\ in\ configfile>
+The jail to update
+.TP
+.BR \-j\ <jail>\ \-\-jail=<jail>
+The jail to update
+.TP
+.BR \-d\ \-\-dry\-run
+Do a "dry run". Show what will be done but don't do anything.
+.TP
+.BR \-k\ \-\-hardlink
+Try to create hardlinks instead of copying the files when updating
+.TP
+.BR \-s\ <file\ to\ skip>\ \-\-skip\ <file\ to\ skip>
+Do not update this file. The argument can either be the path in the jail or the path on the real system. In order to skip multiple files, use this option multiple times. 
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR chroot(2)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

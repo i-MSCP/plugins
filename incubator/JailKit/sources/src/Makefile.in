@@ -1,0 +1,120 @@
+#Copyright (c) 2003, 2004, 2005, 2006, Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions
+#are met:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or
+#    promote products derived from this software without specific
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+iniprefix = ${sysconfdir}/jailkit
+INSTALL = @INSTALL@
+CC = @CC@
+CFLAGS = @CFLAGS@ -DINIPREFIX=\"$(iniprefix)\"
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+LDLIBS = @LIBS@
+
+
+BINARIES = jk_socketd jk_lsh jk_chrootsh jk_chrootlaunch jk_uchroot
+
+@HAVEPROCMAIL_TRUE@BINARIES += jk_procmailwrapper
+
+SRCS = \
+	jk_socketd.c \
+	iniparser.c \
+	jk_lsh.c \
+	jk_uchroot.c \
+	jk_chrootsh.c \
+	jk_lib.c \
+	jk_chrootlaunch.c \
+	jk_procmailwrapper.c \
+	utils.c \
+	wordexp.c \
+	passwdparser.c
+
+@HAVEPROCMAIL_TRUE@SRCS += jk_procmailwrapper.c
+HAVEPROCMAIL_TRUE=@HAVEPROCMAIL_TRUE@
+
+OBJS = $(SRCS:.c=.o)
+
+all: ${BINARIES}
+
+jk_chrootlaunch: jk_chrootlaunch.o jk_lib.o utils.o
+	$(CC) $(DEFS) -o $@ jk_chrootlaunch.o jk_lib.o utils.o $(LDFLAGS) $(LIBS)
+
+jk_socketd: jk_socketd.o jk_lib.o utils.o iniparser.o
+	$(CC) $(DEFS) -o $@ jk_socketd.o jk_lib.o utils.o iniparser.o $(LDFLAGS) $(LIBS)
+
+jk_lsh: jk_lsh.o iniparser.o jk_lib.o utils.o wordexp.o
+	$(CC) $(DEFS) -o $@ jk_lsh.o iniparser.o jk_lib.o utils.o wordexp.o $(LDFLAGS) $(LIBS)
+
+jk_chrootsh: jk_chrootsh.o iniparser.o jk_lib.o utils.o passwdparser.o
+	$(CC) $(DEFS) -o $@ jk_chrootsh.o iniparser.o jk_lib.o utils.o passwdparser.o $(LDFLAGS) $(LIBS)
+
+jk_uchroot: jk_uchroot.o iniparser.o jk_lib.o utils.o
+	$(CC) $(DEFS) -o $@ jk_uchroot.o iniparser.o jk_lib.o utils.o $(LDFLAGS) $(LIBS)
+
+jk_procmailwrapper: jk_procmailwrapper.o jk_lib.o utils.o
+	$(CC) $(DEFS) -o $@ jk_procmailwrapper.o jk_lib.o utils.o $(LDFLAGS) $(LIBS)
+
+clean:
+	rm -f ${BINARIES}
+	rm -f *.o
+	rm -f *~
+
+distclean: clean
+	rm -f Makefile config.h
+
+install: ${BINARIES}
+	${INSTALL} -d -m 755 ${DESTDIR}${prefix}
+	${INSTALL} -d -m 755 ${DESTDIR}${prefix}/bin
+	${INSTALL} -d -m 755 ${DESTDIR}${prefix}/sbin
+	${INSTALL} -m 0755 jk_socketd ${DESTDIR}${prefix}/sbin/
+	${INSTALL} -m 0755 jk_chrootlaunch ${DESTDIR}${prefix}/sbin/
+	${INSTALL} -m 0755 jk_lsh ${DESTDIR}${prefix}/sbin/
+	${INSTALL} -m 4755 jk_chrootsh ${DESTDIR}${prefix}/sbin/
+	${INSTALL} -m 4755 jk_uchroot ${DESTDIR}${prefix}/bin/
+	if [ -z "@HAVEPROCMAIL_TRUE@" ]; then \
+		${INSTALL} -m 4755 jk_procmailwrapper ${DESTDIR}${prefix}/sbin/ ;\
+	fi
+
+uninstall:
+	rm -f  ${prefix}/sbin/jk_socketd
+	rm -f  ${prefix}/sbin/jk_chrootlaunch
+	rm -f  ${prefix}/sbin/jk_lsh
+	rm -f  ${prefix}/sbin/jk_chrootsh
+	rm -f  ${prefix}/bin/jk_uchroot
+	rm -f  ${prefix}/sbin/jk_procmailwrapper
+
+iniparsertester: iniparser.o iniparsertester.o jk_lib.o
+	$(CC) $(DEFS) -o iniparsertester iniparsertester.o iniparser.o jk_lib.o $(LDFLAGS) $(LIBS)
+
+passwdparsertester: passwdparser.o passwdparsertester.o
+	$(CC) $(DEFS) -o passwdparsertester passwdparsertester.o passwdparser.o $(LDFLAGS) $(LIBS)

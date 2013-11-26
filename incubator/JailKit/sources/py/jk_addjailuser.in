@@ -1,0 +1,253 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2003, 2004, 2005, 2006, 2007 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+import os.path
+import grp
+import pwd
+import sys
+import getopt
+
+INIPREFIX='/etc/jailkit'
+LIBDIR='/usr/share/jailkit'
+sys.path.append(LIBDIR)
+import jk_lib
+
+def usage():
+	print
+	print '*** jk_addjailuser is deprecated ***'
+	print
+	print 'please add the user like any other user, and use jk_jailuser to jail the user'
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS] chrootdir username'
+	print
+	print '       [-c comment] [-d home dir] [-e expire_date]'
+	print '       [-f inactive time] [-g initial group]'
+	print '       [-G group[,...]] [-h] | [-?] | [--help]'
+	print '       [-m [-k skeleton dir] | -M] [-n] [-o] '
+	print '       [-p passwd] -r [-s shell] [-u uid]'
+	print '       [-v] | [--verbose]'
+	print ''
+
+def getjail_and_user(args):
+	if (len(args)==0):
+		return None,None
+	user=None
+	jail=None
+	if (len(args) > 2):
+		jk_lib.clean_exit(3,'could not understand all arguments',usage)
+	if (len(args) == 2):
+		if (os.path.exists(args[1])):
+			jail = args[1]
+			user = args[0]
+		elif (os.path.exists(args[0])):
+			jail = args[0]
+			user = args[1]
+		else:
+			return None,None
+	else:
+		if os.path.exists(args[0]):
+			jail = args[0]
+		else:
+			user = args[0]
+#	print 'returning',jail,user
+	return jail,user
+
+def askforjail():
+	jail = None
+	while (jail == None):
+		print 'please enter the jail directory:'
+		tmp = raw_input()
+		if os.path.isdir(tmp):
+			jail = tmp
+		else:
+			print 'directory '+tmp+' does not exist..'
+	return jail
+
+def checkuser(user, jail):
+	try:
+		pw= pwd.getpwnam(user)
+		return 0
+	except:
+		if (jk_lib.test_user_exist(user, jail+'/etc/passwd')):
+			return 0
+		return 1
+
+def groupexists(group):
+	try:
+		gr = grp.getgrnam(group)
+		return 1
+	except:
+		return 0
+
+def askforuser(jail):
+	user = None
+	while (user == None):
+		print 'please enter the username:'
+		tmp = raw_input()
+		if (checkuser(tmp, jail)):
+			user = tmp
+		else:
+			print 'user '+tmp+' exists already'
+	return user		
+
+def addusertojail(jail, user, group, home, shell, creategroup):
+	if (jail[-1] == '/'):
+		jail = jail[:-1]
+	pw = pwd.getpwnam(user)
+	if (sys.platform[4:7] == 'bsd'):
+		fd = open(jail+'/etc/master.passwd', 'a')
+		fd.write(user+':x:'+str(pw[2])+':'+str(pw[3])+'::0:0:'+pw[4]+':'+home+':'+shell+'\n')
+		fd.close()
+		os.system('pwd_mkdb -d '+jail+'/etc -u '+user+' /etc/master.passwd')
+	else:
+	#if (sys.platform[:5] == 'linux'):
+		fd = open(jail+'/etc/passwd', 'a')
+		fd.write(user+':x:'+str(pw[2])+':'+str(pw[3])+':'+pw[4]+':'+home+':'+shell+'\n')
+		fd.close()
+	if (not jk_lib.test_group_exist(group, jail+'/etc/group')):
+		gr = grp.getgrnam(group)
+		fd = open(jail+'/etc/group', 'a')
+		fd.write(group+':x:'+str(gr[2])+':\n')
+		fd.close()
+# should be done by the -m option
+#		jk_lib.create_full_path(jail+home, 0)
+#		os.chmod(jail+home, 0700)
+#		os.chown(jail+home, pw[2], pw[3])
+
+
+def configget(config, key):
+	try: return config[key]
+	except: return None
+
+
+def addtheuser(jail,user,config):
+
+	jailpath = jail
+	if (jail[-1] != '/'):
+		jailpath = jailpath + '/'
+
+	execstr='useradd'
+
+	# "c:d:e:f:g:G:mk:Mnop:rs:u:vh?"
+	c = configget(config, 'c')
+	d = configget(config, 'd')
+	e = configget(config, 'e')
+	f = configget(config, 'f')
+	g = configget(config, 'g')
+	G = configget(config, 'G')
+	m = configget(config, 'm')
+	k = configget(config, 'k')
+	M = configget(config, 'M')
+	n = configget(config, 'n')
+	o = configget(config, 'o')
+	p = configget(config, 'p')
+	r = configget(config, 'r')
+	s = configget(config, 's')
+	u = configget(config, 'u')
+
+	
+	if d: home = d
+	else: home = '/home/' + user
+	d = jailpath + '.' + home
+
+	if g: initialgroup = g
+	else: initialgroup = 'users'
+	g = initialgroup
+	if not groupexists(initialgroup):
+		print (
+			'the group '+
+			initialgroup+
+			' does not yet exist, creating it'
+		)
+		os.system('groupadd '+initialgroup)
+		creategroup = 1
+	else: creategroup = 0
+
+	if s: shell = s
+	else: shell = '/usr/sbin/jk_lsh'
+
+	if c: execstr = execstr + " -c \"" + c + "\""
+	execstr = execstr + " -d \"" + d + "\""
+	if e: execstr = execstr + " -e \"" + e + "\""
+	if f: execstr = execstr + " -f \"" + f + "\""
+	if g: execstr = execstr + " -g \"" + g + "\""
+	if G: execstr = execstr + " -G \"" + G + "\""
+	if m: execstr = execstr + " -m"
+	if k: execstr = execstr + " -k \"" + k + "\""
+	if M: execstr = execstr + " -M"
+	if n: execstr = execstr + " -n"
+	if o: execstr = execstr + " -o"
+	if p: execstr = execstr + " -p \"" + p + "\""
+	if r: execstr = execstr + " -r"
+	execstr = execstr + " -s /usr/sbin/jk_chrootsh"
+	if u: execstr = execstr + " -u \"" + u + "\""
+	execstr = execstr + " " + user
+
+	ret = os.system(execstr)
+
+	# This was cute, but I don't believe
+	# it is our responsibility to call it
+	#os.system('passwd '+user)
+	if (ret == 0):
+		addusertojail(jail,user,initialgroup,home,shell,creategroup)
+
+
+def main():
+	try:
+		opts, args = getopt.getopt(
+			sys.argv[1:],
+			"c:d:e:f:g:G:mk:Mnop:rs:u:vh?",
+			["help", "verbose"]
+		)
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	config = {}
+	config['verbose'] = 0
+	for o, a in opts:
+		if a=="" or not a: a = "true"
+		if o in ("-h", "-?", "--help"):
+			usage()
+			sys.exit()
+		elif o in ("-v", "--verbose"):
+			config['verbose'] = 1
+		else:
+			config[o[1:]] = a
+	jail,user = getjail_and_user(args)
+	if (jail == None):
+		jail = askforjail()
+	if ((user == None) or ( not checkuser(user, jail))):
+		user = askforuser(jail)
+	addtheuser(jail, user, config)
+ 
+if __name__ == "__main__":
+    main()

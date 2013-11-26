@@ -1,0 +1,108 @@
+.TH jk_socketd 8 02-08-2012 JAILKIT jk_socketd
+
+.SH NAME
+jk_socketd \- a daemon to create a rate-limited /dev/log socket inside a chroot
+
+.SH SYNOPSIS
+
+.B jk_socketd
+
+.B jk_socketd -p
+.I pidfile
+.B -n
+
+.B jk_socketd --pidfile=
+.I pidfile
+.B --nodetach
+
+.SH DESCRIPTION
+
+The jailkit socket daemon creates a rate-limited /dev/log socket inside a jail according to 
+.I /etc/jailkit/jk_socketd.ini
+and writes all data eventually to syslog using the real
+.I /dev/log
+Programs like jk_lsh and also many daemons need a /dev/log socket to do logging to syslog.
+
+jk_socketd is an alternative for syslog to create /dev/log inside the jail (see your syslog manual how to accomplish this). However, if you are worrying about an attacker disrupting normal system operation by filling your logs you should use jk_socketd. jk_socketd can limit the number of bytes written trough the socket. If the logging is limited by jk_socketd, processes that run inside the jail will be slowed down if they try to use the logging service. If you expect a high logging rate in a jail, it is recommended to use syslog to create the socket in the jail instead of jk_socketd. 
+
+On (Open)Solaris /dev/log is not a socket and therefore jk_socketd will not function. On (Open)Solaris you should create the devices
+.I /dev/log
+and
+.I /dev/conslog
+in the jail to enable logging inside the jail.
+
+The rate limiting is done based on three parameters, the base, the peak and the interval. The interval is the number of seconds that jk_socketd will use to count up to the number of bytes. The base and peak are both a number in bytes. 
+
+A socket is normally only allowed to have base bytes going trough per interval seconds. Only if in the previous interval the number of bytes has been lower than base, peak number of bytes is allowed. So a peak can only happen if the previous interval has been lower than base.
+
+The config file consists of several entries where each entry looks like this:
+
+.nf
+.sp
+[/home/testchroot/dev/log]
+base = 512
+peak = 2048
+interval = 5.0
+.fi
+
+The title of the section is the socket to be created. The directory to create the socket in should exist.
+
+.SS "Security"
+The jailkit socket daemon will change to user nobody and will chroot() into an empty dir once all sockets are opened. If the /dev/log socket is closed by the syslog daemon (for example during log rotation), jk_socketd needs a restart to open it again.
+
+.SH OPTIONS
+.TP
+.BR \-n\ \-\-nodetach
+do not detach from the terminal and print debugging output
+.TP
+.BR \-p\ pidfile\ \-\-pidfile=pidfile
+write PID to pidfile
+.TP
+.BR \-h\ \-\-help
+show help screen
+.TP
+.BR \-\-socket=/path/to/socket
+do not read ini file, create specific socket
+.TP
+.BR \-\-base=integer
+message rate limit (in bytes) per interval for socket specified by --socket
+.TP
+.BR \-\-peak=integer
+message rate limit peak (in bytes) for socket specified by --socket
+.TP
+.BR \-\-interval=float
+message rate limit interval in seconds for socket specified by --socket
+
+.SH FILES
+
+.I /etc/jailkit/jk_socketd.ini
+
+.SH DIAGNOSTICS
+
+jk_socketd logs errors to syslog, so check your log files
+
+otherwise run jk_socketd -n and it will not detach from the terminal, and it will print some debugging output. 
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR syslogd(8)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

@@ -1,0 +1,21 @@
+#QUICK INSTALL
+#
+# use --prefix for different install locations
+
+./configure
+make
+su root
+make install
+
+# to run the jk_socketd daemon, copy the startup script to 
+# your init directory, on Debian this is
+cp extra/jailkit /etc/init.d/jailkit
+chmod a+x /etc/init.d/jailkit
+
+# and create the correct symlinks, on Debian
+# you run
+update-rc.d jailkit defaults
+
+# and on Red Hat/Fedora systems you run
+chkconfig jailkit on
+

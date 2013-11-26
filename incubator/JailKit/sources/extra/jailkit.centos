@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# start/stop jailkit logging daemon.
+#
+# chkconfig: - 60 40
+# description: chroot() jail wrapping utilities
+
+. /etc/rc.d/init.d/functions
+
+JK_SOCKETD=/usr/sbin/jk_socketd
+lockfile=/var/lock/subsys/jailkit
+pidfile=/var/run/jailkit.pid
+
+
+start() {
+	echo -n "Starting JailKit: "
+	daemon ${JK_SOCKETD}
+	RETVAL=$?
+	touch ${pidfile}
+	pidof ${JK_SOCKETD} > ${pidfile}
+	echo
+	[ "$RETVAL" = 0 ] && touch ${lockfile}
+	return $RETVAL
+}
+
+stop() {
+        echo -n "Stopping JailKit: "
+        killproc ${JK_SOCKETD}
+	RETVAL=$?
+	echo
+	[ "$RETVAL" = 0 ] && rm -f ${lockfile} ${pidfile}
+	return $RETVAL
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart)
+	stop
+	start
+	;;
+    reload)
+	stop
+	start
+	;;
+    status)
+	status ${JK_SOCKETD}
+	RETVAL=$?
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|status|reload}"
+	exit 1
+	;;
+esac
+
+exit 0
+

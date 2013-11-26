@@ -1,0 +1,4 @@
+root:x:0:0:root:/root:/bin/bash
+test:x:1000:1000:Mijn user die heel veel data hier heeft:/home/test:/bin/bash
+test2:x:10007:10300:test2:/home/test2:/bin/bash
+jaja!:x:100:10200:gevonden! regel zonder newline:/home/jaja:/bin/bash

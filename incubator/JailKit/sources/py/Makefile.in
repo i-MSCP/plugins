@@ -1,0 +1,86 @@
+#Copyright (c) 2003, 2004, 2005, 2006, Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#    copyright notice, this list of conditions and the following 
+#    disclaimer in the documentation and/or other materials provided 
+#    with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#    promote products derived from this software without specific 
+#    prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+
+INSTALL = @INSTALL@
+PACKAGE = @PACKAGE@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+sbindir = @sbindir@
+datadir = @datadir@
+datarootdir  = @datarootdir@
+sysconfdir = @sysconfdir@
+INIPREFIX = ${sysconfdir}/jailkit
+PREFIX = ${prefix}
+PYTHONINTERPRETER = @PYTHONINTERPRETER@
+
+PYLIBDIR=${datadir}/${PACKAGE}
+
+.SUFFIXES:
+.SUFFIXES: .in .py .pyc
+
+.in:
+	sed -e "s!PREFIX='/usr'!PREFIX='${PREFIX}'!" \
+	    -e "s!INIPREFIX='/etc/jailkit'!INIPREFIX='${INIPREFIX}'!" \
+	    -e "s!LIBDIR='[a-z/]*'!LIBDIR='${PYLIBDIR}'!" \
+	    -e "s!EXEPREFIX='[a-z/]*'!EXEPREFIX='${PREFIX}'!" \
+	    -e "s:#!/usr/bin/python:#!$(PYTHONINTERPRETER):" < $< > $@
+
+.py.pyc:
+	$(PYTHONINTERPRETER) -c "import py_compile;py_compile.compile('$<')"
+
+PY_BINS = jk_cp jk_init jk_check jk_addjailuser jk_jailuser jk_list jk_update
+PY_LIBS = jk_lib.pyc
+
+jailkit: ${PY_BINS} ${PY_LIBS}
+
+all: jailkit
+
+install: all
+	${INSTALL} -d -m 755 ${DESTDIR}${sbindir}
+	for file in ${PY_BINS}; do \
+		${INSTALL} -m 0755 $${file} ${DESTDIR}${sbindir}/ ; \
+	done
+	${INSTALL} -d -m 755 ${DESTDIR}${PYLIBDIR}
+	${INSTALL} -m 0644 jk_lib.py ${DESTDIR}${PYLIBDIR}/
+	${INSTALL} -m 0644 jk_lib.pyc ${DESTDIR}${PYLIBDIR}/
+
+uninstall:
+	for file in ${PY_BINS}; do \
+		rm -f ${DESTDIR}${sbindir}/$${file} ; \
+	done
+	rm -f ${DESTDIR}${PYLIBDIR}/jk_lib.*
+	-rmdir --ignore-fail-on-non-empty ${DESTDIR}${PYLIBDIR}
+
+clean:
+	rm -f *~
+	rm -f ${PY_BINS} ${PY_LIBS}
+
+distclean: clean
+	rm -f Makefile

@@ -1,0 +1,39 @@
+.TH jk_procmailwrapper 8 07-02-2010 JAILKIT jk_procmailwrapper
+
+.SH NAME
+jk_procmailwrapper \- a wrapper to prevent procmail execution by jailed users
+
+.SH DESCRIPTION
+
+jk_procmailwrapper is a wrapper around the regular procmail utility. For regular users it will execute the normal procmail utility. For users that are in a chroot jail (the home directory contains a . character) it will change root into the jail, and execute the procmail utility inside the jail. This enables safe mail delivery for jailed users.
+
+Without this utility, users in a jail can execute commands outside the jail by placing them in their .procmailrc.
+
+It should be used as a replacement for procmail in your mail server's configuration.
+
+.SH WARNING
+If your mailserver allows users to have a .forward file, they can still run scripts outside the jail! Make sure users cannot use a .forward file to run scripts on the real system!!
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR procmail(1)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

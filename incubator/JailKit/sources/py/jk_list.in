@@ -1,0 +1,160 @@
+#!/usr/bin/python
+#
+#Copyright (c) 2006 Olivier Sessink
+#All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions 
+#are met:
+#  * Redistributions of source code must retain the above copyright 
+#	notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above 
+#	copyright notice, this list of conditions and the following 
+#	disclaimer in the documentation and/or other materials provided 
+#	with the distribution.
+#  * The names of its contributors may not be used to endorse or 
+#	promote products derived from this software without specific 
+#	prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+#"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+#LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+#FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+#COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+#INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+#BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+#LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+#ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+#POSSIBILITY OF SUCH DAMAGE.
+#
+import os
+import getopt
+import sys
+import pwd
+import string
+
+users = {}
+
+def getpwuid_cached(uid):
+	if uid in users:
+		return users[uid]
+	else:
+		user = pwd.getpwuid(uid)
+		users[uid] = user
+		return user
+
+class ListResult:
+	pid = None
+	jail = None
+	exe = None
+	uid = None
+	username = None
+	cmdline = None
+	
+	
+	def __init__(self, pid):
+		self.pid = pid
+		sb = os.stat('/proc/'+pid)
+		self.uid = sb.st_uid
+		pwdret = getpwuid_cached(sb.st_uid)
+		self.username = pwdret[0]
+		self.jail = os.readlink('/proc/'+pid+'/root')
+		self.exe = os.readlink('/proc/'+pid+'/exe')
+		fd = open('/proc/'+pid+'/cmdline')
+		buf = fd.read(4096)
+		self.cmdline = string.join(buf.split('\0')[1:],' ')
+		fd.close()
+	
+	def __cmp__(self, other):
+		ret = cmp(self.jail, other.jail)
+		if(ret ==0):
+			ret = cmp(self.uid, other.uid)
+			if(ret ==0):
+				ret = cmp(self.pid, other.pid)
+		return ret	 
+
+	def optistr(self,usernamelen,jaillen,cmdlen):
+		formatstring = '%%-06s %%-0%ds %%-0%ds %%-0%ds' % (usernamelen,jaillen,cmdlen)
+		return formatstring % (self.pid, self.username[:usernamelen], self.jail[:jaillen], (self.exe+' '+self.cmdline)[:cmdlen])
+
+	def __str__(self):
+		return '%-06s %-05s %-011s %-019s %-019s' % (self.pid, self.username, self.jail, self.exe,self.cmdline)
+
+def printResults(results,wide):
+	if (len(results)==0):
+		print 'No jailed processes found'
+		return
+	results.sort()
+	usernamelen=4 # User
+	jaillen=4 # Jail
+	cmdlen=7 #Command
+	for result in results:
+		usernamelen = max(usernamelen,len(result.username))
+		jaillen = max(jaillen,len(result.jail))
+		cmdlen = max(cmdlen,len(result.cmdline+' '+result.exe))
+
+	if (not wide):
+		cmdlen = min(cmdlen,80-5-usernamelen-jaillen-4)
+	
+	titleformat =  '%%-06s %%-0%ds %%-0%ds %%-0%ds' % (usernamelen,jaillen,min(cmdlen,80-5-usernamelen-jaillen-4))
+	print titleformat % ('Pid', 'User','Jail','Command')
+	for result in results:
+		if (wide):
+			mycmdlen = len(result.cmdline+' '+result.exe)
+		else:
+			mycmdlen = cmdlen
+		print result.optistr(usernamelen,jaillen,mycmdlen)
+
+
+def runList(verbose,jail):
+	# open /proc/
+	results = []
+	dirlist = os.listdir('/proc')
+	try:
+		for entry in dirlist:
+			if (entry.isdigit()):
+				# we have a process, now read the link root
+					ret = os.readlink('/proc/'+entry+'/root')
+					if (ret != '/'):
+						results.append(ListResult(entry))
+	except OSError, e:
+		if (e.errno == 13):
+			print 'Permission denied'
+	return results
+
+def printusage():
+	print
+	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
+	print 'Lists pocesses running inside a jail'
+	print
+	print '-h, --help		  : print this message'
+	print '-j, --jail=JAILDIR : list only processes in this jail'
+	print '-w, --wide         : print wide listing'
+	print
+
+def main():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hwj:', ['wide', 'help', 'jail='])
+	except getopt.GetoptError:
+		printusage()
+		sys.exit(1)
+	verbose = 0
+	jail = None
+	wide = 0
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		if o in ("-j", "--jail"):
+			jail = a
+		if o in ("-v", "--verbose"):
+			verbose = 1
+		if o in ("-w", "--wide"):
+			wide = 1
+	results = runList(verbose,jail)
+	printResults(results,wide)
+
+if __name__ == "__main__":
+	main()

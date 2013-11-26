@@ -1,0 +1,62 @@
+.TH jk_uchroot 8 07-02-2010 JAILKIT jk_uchroot
+
+.SH NAME
+jk_uchroot \- grant regular users the right to change root into certain directories
+
+.SH SYNOPSIS
+
+.B jk_uchroot -j <jail> -x <executable>
+
+.SH DESCRIPTION
+
+jk_uchroot can be used to give regular users access to the chroot() system call in a safe way. jk_uchroot will only grant chroot into a jail if the configuration file lists this user and jail combination. jk_uchroot will furthermore only grant access if the chroot jail is safe. Safe means that it is owned by uid 0 gid 0 and not writable for others, including the system directories such as  /bin, /lib, /dev/, /sbin, and /usr.
+
+jk_uchroot needs certain elevated privileges to make the 
+.BR chroot(2)
+system call. Therefore it is setuid root. It will drop its root priveleges immediately after making the chroot() system call. Since Jailkit 2.8 jk_uchroot may also use the CAP_SYS_CHROOT capability on systems that support capabilities, and then the setuid bit can be removed.
+
+.nf
+.sp
+[john]
+allowed_jails = /srv/johnjail, /srv/commonjail
+skip_injail_passwd_check = 1
+
+[group users]
+allowed_jails = /srv/commonjail
+skip_injail_passwd_check = 1
+
+.fi
+
+In the above example jk_uchroot is configured not to check if the user exists in the /etc/passwd file in the jails. 
+
+.SH FILES
+
+.I /etc/jailkit/jk_uchroot.ini
+
+.SH DIAGNOSTICS
+
+jk_uchroot logs everything to syslog, please check the log files. Logging is sent to the LOG_AUTH facility with levels LOG_ERR and LOG_CRIT for critical errors, LOG_NOTICE for non-critical errors,  and LOG_INFO for normal events.
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_check(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_update(8)
+.BR chroot(2)
+.BR syslogd(8)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

@@ -1,0 +1,17 @@
+#!/bin/sh
+#DEBHELPER#
+set -e
+if ! grep /usr/sbin/jk_chrootsh /etc/shells >/dev/null; then \
+	echo "/usr/sbin/jk_chrootsh" >> /etc/shells ;\
+fi
+
+if [ -x "/etc/init.d/jailkit" ]; then
+        update-rc.d jailkit defaults >/dev/null
+        if [ -x /usr/sbin/invoke-rc.d ]; then
+                invoke-rc.d jailkit start
+        else
+                /etc/init.d/jailkit start
+        fi
+fi
+
+exit 0

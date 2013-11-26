@@ -1,0 +1,122 @@
+.TH jk_check 8 07-02-2010 JAILKIT jk_check
+
+.SH NAME
+jk_check \- a utility that will check a jail for security problems
+
+.SH SYNOPSIS
+
+.B jk_check jail
+
+.B jk_check -v -c configfile jail
+
+.SH DESCRIPTION
+
+jk_check will run several tests on all files and directories in a jail. The tests are:
+
+-test for setuid (set user id) or setgid (set group id) files
+
+-test for file modifications, using an MD5 checksum on the file in the jail and the same file in the real root
+
+-test for group writable or world writable directories
+
+-test for matching user information in the jail and on the real system
+
+It will test directories based on the config file
+.I /etc/jailkit/jk_check.ini
+but also based on jail patterns (dir/./dir) found in the home directories in 
+.I /etc/passwd
+
+.SH EXAMPLE
+
+.SS "Minimal configfile"
+The most minimal configuration looks like:
+
+.nf
+.sp
+[/home/testchroot]
+.fi
+
+This will include all the files and directories in /home/testchroot for testing.
+
+.SS "More extended configfile"
+
+Often you want to ignore some tests on some directories, the following configfile shows some examples:
+
+.nf
+.sp
+[/home/testchroot]
+ignorepatheverywhere =
+ignorepathoncompare = /home/testchroot/home, /home/testchroot/etc
+ignorewritableforgroup = /home/testchroot/home
+ignorewritableforothers = /home/testchroot/home/tmp
+ignoresetuidexecuteforuser = /home/testchroot/usr/bin/smbmnt
+ignoresetuidexecuteforgroup = /home/testchroot/usr/bin/smbmnt
+ignoresetuidexecuteforothers =
+.fi
+
+.B ignorepatheverywhere
+.RS
+no single test is performed in these directories. You should not use this option unless you what you are doing.
+.RE
+.B ignorepathoncompare
+.RS
+files in listed directories are not compared with their non-jail counterparts. Useful for directories like /etc/ and /home/ where you know you'll have different files inside the jail and outside the jail
+.RE
+.B ignorewritableforgroup
+.RS
+listed directories that are writable for the group are not reported
+.RE
+.B ignorewritableforothers
+.RS
+listed directories that are writable for others are not reported
+.RE
+.B ignoresetuidexecuteforuser
+.RS
+ignore the setuid bit on a file that is executable for a user, a file with -rws------ permissions that is. Use with care! Remember that user root can break out of a jail, therefore any program running with root priviledges is theoretically capable of breaking out of the jail!
+.RE
+.B ignoresetuidexecuteforgroup
+.RS
+ignore the setuid bit for a file that is executable for the group, a file with -rws--x--- permissions that is.
+.RE
+.B ignoresetuidexecuteforothers
+.RS
+ignore the setuid bit for a file that is executable for others, a file with -rws--x--x permissions that is
+.RE
+
+.SH OPTIONS
+
+.TP
+.BR \-v
+Will give verbose output
+.TP
+.BR \-c\ configfile
+Use alternative configfile
+.TP
+.BR \-h
+The help screen
+
+.SH FILES
+.I /etc/jailkit/jk_check.ini
+
+.SH "SEE ALSO"
+.BR jailkit(8)
+.BR jk_chrootlaunch(8)
+.BR jk_chrootsh(8)
+.BR jk_cp(8)
+.BR jk_init(8)
+.BR jk_jailuser(8)
+.BR jk_list(8)
+.BR jk_lsh(8)
+.BR jk_procmailwrapper(8)
+.BR jk_socketd(8)
+.BR jk_uchroot(8)
+.BR jk_update(8)
+.BR chroot(2)
+
+.SH COPYRIGHT
+
+Copyright (C) 2003, 2004, 2005, 2006, 2007, Olivier Sessink
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
