@@ -151,7 +151,7 @@ For the different configuration options please check the plugin config file.
 
 	# plugins/RoundcubePlugins/config.php
 	
-After you made your config changes, don't forget to to update the plugin list.
+After you made your config changes, don't forget to update the plugin list.
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Update the plugin list
