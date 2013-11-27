@@ -58,12 +58,51 @@ use parent 'Common::SingletonClass';
 sub install
 {
 	my $self = shift;
-	
+
 	if(! -x '/usr/lib/postfix/postscreen') {
 		error('Postfix version too low. The Postscreen features are available in Postfix 2.8 and later.');
 		return 1;
 	}
-	
+
+	my $rs = $self->change();
+	return $rs if $rs;
+
+	0;
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->_patchMailgraph('add');
+	return $rs if $rs;
+
+	0;
+}
+
+=item update()
+
+ Perform update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my $self = shift;
+
+	my $rs = $self->change();
+	return $rs if $rs;
+
 	0;
 }
 
@@ -83,9 +122,6 @@ sub enable
 	return $rs if $rs;
 	
 	$rs = $self->_modifyPostfixMasterConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_patchMailgraph('check');
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
@@ -153,11 +189,11 @@ sub uninstall
 sub _init
 {
 	my $self = shift;
-	
+
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
-	
-    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
+
+	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
 		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
@@ -166,11 +202,10 @@ sub _init
 			error($rdata);
 			return 1;
 		}
-	
+
 		$self->{'config'} = decode_json($rdata->{'Postscreen'}->{'plugin_config'});
-	
 	}
-	
+
 	$self;
 }
 
@@ -337,7 +372,7 @@ sub _patchMailgraph($$)
 	my ($rs, $stdout, $stderr) = (0, undef, undef);
 	
 	if(-x '/usr/sbin/mailgraph') {
-		if($action eq 'check') {
+		if($action eq 'add') {
 			if($self->{'config'}->{'patch_mailgraph'} eq 'yes' && ! -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
 				$rs = execute("$main::imscpConfig{'CMD_CP'} /usr/sbin/mailgraph /usr/sbin/mailgraph_POSTSCREEN-PLUGIN", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
@@ -455,11 +490,8 @@ sub _restartDaemonPostfix
 {
 	my $self = shift;
 	
-	require Servers::mta;
-	
-	my $mta = Servers::mta->factory();
-	my $rs = $mta->restart();
-	return $rs if $rs;
+    require Servers::mta;
+    Servers::mta->factory()->{'restart'} = 'yes';
 	
 	0;
 }
