@@ -22,6 +22,7 @@
  * @subpackage  OpenDKIM
  * @copyright   2010-2013 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
+ * @contributor Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -65,7 +66,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -86,7 +87,6 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->createDbTable();
-			$this->addOpenDkimServicePort($pluginManager);
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -102,7 +102,6 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->removeOpenDkimServicePort();
 			$this->dropDbTable();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -135,7 +134,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	public function disable(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->removeOpendkimDnsEntries();
+			$this->removeOpenDkimServicePort();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -421,7 +420,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Add opendkim service port
+	 * Add OpenDKIM service port
 	 *
 	 * @return void
 	 */
@@ -441,7 +440,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Remove opendkim service port
+	 * Remove OpenDKIM service port
 	 *
 	 * @return void
 	 */
@@ -453,7 +452,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Create opendkim database table
+	 * Create OpenDKIM database table
 	 *
 	 * @return void
 	 */
@@ -477,70 +476,12 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Drop opendkim database table
+	 * Drop OpenDKIM database table
 	 *
 	 * @return void
 	 */
 	protected function dropDbTable()
 	{
 		execute_query('DROP TABLE IF EXISTS opendkim');
-	}
-
-	/**
-	 * Remove all OpenDKIM DNS entries
-	 *
-	 * @throws iMSCP_Exception_Database
-	 * @return void
-	 */
-	protected function removeOpendkimDnsEntries()
-	{
-		$stmt = exec_query('SELECT * FROM opendkim');
-
-		if ($stmt->rowCount()) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
-			/** @var iMSCP_Database $db */
-			$db = iMSCP_Database::getInstance();
-
-			try {
-				$db->beginTransaction();
-
-				exec_query('DELETE FROM domain_dns WHERE owned_by = ?', 'opendkim_feature');
-
-				while ($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-					if ($data['alias_id'] == '0') {
-						$stmt2 = exec_query(
-							'SELECT domain_dns_id FROM domain_dns WHERE domain_id = ? LIMIT 1', $data['domain_id']
-						);
-
-						if (!$stmt2->rowCount()) {
-							exec_query(
-								'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ?',
-								array(
-									$cfg->ITEM_TOCHANGE_STATUS, $data['customer_dns_previous_status'],
-									$data['domain_id']
-								)
-							);
-						} else {
-							exec_query(
-								'UPDATE domain SET domain_status = ? WHERE domain_id = ?',
-								array($cfg->ITEM_TOCHANGE_STATUS, $data['domain_id'])
-							);
-						}
-					} else {
-						exec_query(
-							'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
-							array($cfg->ITEM_TOCHANGE_STATUS, $data['alias_id'])
-						);
-					}
-				}
-
-				$db->commit();
-			} catch (iMSCP_Exception_Database $e) {
-				$db->rollBack();
-				throw $e;
-			}
-		}
 	}
 }
