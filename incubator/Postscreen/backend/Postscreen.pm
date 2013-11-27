@@ -117,16 +117,19 @@ sub update
 sub enable
 {
 	my $self = shift;
-	
+
 	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
-	
+
 	$rs = $self->_modifyPostfixMasterConfig('add');
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
-	
+
+	$rs = $self->_changeRoundcubeSmtpPort('add');
+	return $rs if $rs;
+
 	0;
 }
 
@@ -141,16 +144,19 @@ sub enable
 sub disable
 {
 	my $self = shift;
-	
+
 	my $rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_modifyPostfixMasterConfig('remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
-	
+
+	$rs = $self->_changeRoundcubeSmtpPort('remove');
+	return $rs if $rs;
+
 	0;
 }
 
@@ -474,6 +480,43 @@ sub _createPostscreenAccessFile($$)
 		$rs = $file->mode(0644);
 		return $rs if $rs;
 	}
+	
+	0;
+}
+
+=item _changeRoundcubeSmtpPort($action)
+
+ Change the SMTP port in Roundcube main.inc.php from 25 to 587
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _changeRoundcubeSmtpPort($$)
+{
+	my ($self, $action) = @_;
+
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
+	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
+	
+	my $fileContent = $file->get();
+	unless (defined $fileContent) {
+		error("Unable to read $roundcubeMainIncFile");
+		return 1;
+	}
+	
+	if($action eq 'add') {
+		$fileContent =~ s/=\s+25;/= 587;/sgm;
+	}
+	elsif($action eq 'remove') {
+		$fileContent =~ s/=\s+587;/= 25;/sgm;
+	}
+	
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+	
+	$rs = $file->save();
+	return $rs if $rs;
 	
 	0;
 }
