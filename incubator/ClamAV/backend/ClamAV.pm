@@ -59,22 +59,67 @@ use parent 'Common::SingletonClass';
 sub install
 {
 	my $self = shift;
-	
+
 	if(! -x '/usr/sbin/clamd') {
 		error('Unable to find clamav daemon. Please, install the clamav and clamav-daemon packages first.');
 		return 1;
 	}
-	
+
 	if(! -x '/usr/bin/freshclam') {
 		error('Unable to find freshclam daemon. Please, install the clamav-freshclam package first.');
 		return 1;
 	}
-	
+
 	if(! -x '/usr/sbin/clamav-milter') {
 		error('Unable to find clamav-milter daemon. Please, install the clamav-milter package first.');
 		return 1;
 	}
-	
+
+	my $rs = $self->change();
+	return $rs if $rs;
+
+	0;
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->_modifyClamavMilterDefaultConfig('add');
+	return $rs if $rs;
+
+	$rs = $self->_modifyClamavMilterSystemConfig('add');
+	return $rs if $rs;
+
+	$rs = $self->_restartDaemon('clamav-milter', 'restart');
+	return $rs if $rs;
+
+	0;
+}
+
+=item update()
+
+ Perform update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my $self = shift;
+
+	my $rs = $self->change();
+	return $rs if $rs;
+
 	0;
 }
 
@@ -90,16 +135,7 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_modifyClamavMilterDefaultConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_modifyClamavMilterSystemConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_restartDaemon('clamav-milter', 'restart');
-	return $rs if $rs;
-	
-	$rs = $self->_modifyPostfixMainConfig('add');
+	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
 	$rs = $self->_restartDaemonPostfix();
@@ -169,25 +205,25 @@ sub uninstall
 
 sub _init
 {
-    my $self = shift;
-	
-    # Force return value from plugin module
-    $self->{'FORCE_RETVAL'} = 'yes';
-	
-    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
-        # Loading plugin configuration
-        my $rdata = iMSCP::Database->factory()->doQuery(
-            'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
-        );
-        unless(ref $rdata eq 'HASH') {
-            error($rdata);
-            return 1;
-        }
+	my $self = shift;
+
+	# Force return value from plugin module
+	$self->{'FORCE_RETVAL'} = 'yes';
+
+	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
+		# Loading plugin configuration
+		my $rdata = iMSCP::Database->factory()->doQuery(
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		}
 		
-        $self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
-    }
-	
-    $self;
+		$self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
+	}
+
+	$self;
 }
 
 =item _modifyClamavMilterDefaultConfig($action)
@@ -366,9 +402,6 @@ sub _modifyPostfixMainConfig($$)
 {
 	my ($self, $action) = @_;
 	
-	my @miltersValues;
-	my $postfixClamavConfig;
-	
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
 	
 	my $fileContent = $file->get();
@@ -384,36 +417,40 @@ sub _modifyPostfixMainConfig($$)
 	return $rs if $rs;
 	
 	if($action eq 'add') {
+		my $milterSocket = $self->{'config'}->{'MilterSocket'};
+		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
+
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		@miltersValues = split(' ', $1);
+		my @miltersValues = split(' ', $1);
 		
 		if(scalar @miltersValues >= 1) {
 			$fileContent =~ s/^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
 		
-			$postfixClamavConfig = "\n\t# Begin Plugin::ClamAV\n";
-			$postfixClamavConfig .= "\tunix:/clamav/clamav-milter.ctl\n";
+			my $postfixClamavConfig = "\n\t# Begin Plugin::ClamAV\n";
+			$postfixClamavConfig .= "\tunix:" . $milterSocket . "\n";
 			$postfixClamavConfig .= "\t# Ending Plugin::ClamAV";
 			
 			$fileContent =~ s/^(smtpd_milters.*)/$1$postfixClamavConfig/gm;
 		} else {
-			$postfixClamavConfig = "\n# Begin Plugins::i-MSCP\n";
+			my $postfixClamavConfig = "\n# Begin Plugins::i-MSCP\n";
 			$postfixClamavConfig .= "milter_default_action = accept\n";
 			$postfixClamavConfig .= "smtpd_milters = \n";
 			$postfixClamavConfig .= "\t# Begin Plugin::ClamAV\n";
-			$postfixClamavConfig .= "\tunix:/clamav/clamav-milter.ctl\n";
+			$postfixClamavConfig .= "\tunix:" . $milterSocket . "\n";
 			$postfixClamavConfig .= "\t# Ending Plugin::ClamAV\n";
 			$postfixClamavConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 			$postfixClamavConfig .= "# Ending Plugins::i-MSCP\n";
 			
 			$fileContent .= "$postfixClamavConfig";
 		}
-	} elsif($action eq 'remove') {
+	} 
+	elsif($action eq 'remove') {
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		@miltersValues = split(/\s+/, $1);
+		my @miltersValues = split(/\s+/, $1);
 		
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
-		} elsif(! $fileContent =~ /^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
+		} else {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
@@ -460,11 +497,8 @@ sub _restartDaemonPostfix
 {
 	my $self = shift;
 	
-	require Servers::mta;
-	
-	my $mta = Servers::mta->factory();
-	my $rs = $mta->restart();
-	return $rs if $rs;
+    require Servers::mta;
+    Servers::mta->factory()->{'restart'} = 'yes';
 	
 	0;
 }
