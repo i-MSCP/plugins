@@ -22,6 +22,7 @@
  * @subpackage  OpenDKIM
  * @copyright   2010-2013 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
+ * @contributor Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -29,6 +30,14 @@
 return array(
 	// Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535)
 	'opendkim_port' => '12345',
+
+	/* Select the canonicalization method(s) to be used when signing messages. When verifying, 
+	 * the message's DKIM-Signature: header field specifies the canonicalization method. 
+	 * The recognized values are relaxed and simple as defined by the DKIM specification. 	
+	 * The value may include two different canonicalizations separated by a slash ("/") character, 
+	 * in which case the first will be applied to the header and the second to the body.
+	 * allowed values: simple (default), relaxed, simple/relaxed, relaxed/simple  */
+	'opendkim_canonicalization' => 'simple',
 
 	// Add domains which should be considered as trusted hosts by OpenDKIM
 	'opendkim_trusted_hosts' => array(
