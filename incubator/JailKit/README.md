@@ -4,8 +4,8 @@ Plugin providing jailed SSH accounts (using JailKit) for i-MSCP customers.
 
 ### LICENSE
 
-Copyright (C) Sascha Bay <info@space2place.de>
 Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
+	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.8
 
 ### INSTALLATION
 
@@ -40,13 +40,13 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
  See the plugins/JailKit/config.php file.
 
-### TODO
+### DEVELOPERS NOTE
 
-	- Full SSH accounts
+ See the src/README file
 
-### AUTHORS AND CONTRIBUTORS
+### AUTHORS
 
- * Sascha Bay <info@space2place.de>
  * Laurent Declercq <l.declercq@nuxwin.com>
+ * Sascha Bay <info@space2place.de>
 
 **Thank you for using this plugin.**

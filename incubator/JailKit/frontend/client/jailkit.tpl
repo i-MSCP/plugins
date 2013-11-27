@@ -122,14 +122,14 @@
 	<form name="jailkit_login_frm" id="jailkit_login_frm" action="jailkit.php" method="post" autocomplete="off">
 		<table>
 			<tr>
-				<td><label for="ssh_login_name">{TR_POPUP_JAILKIT_USERNAME}</label></td>
+				<td><label for="ssh_login_name">{TR_SSH_USERNAME}</label></td>
 				<td>
-					<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}"
-						   maxlength="10"/>
+					<strong>pk_</strong>
+					<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}" maxlength="13"/>
 				</td>
 			</tr>
 			<tr>
-				<td><label for="ssh_login_pass">{TR_POPUP_JAILKIT_PASSWORD}</label></td>
+				<td><label for="ssh_login_pass">{TR_SSH_PASSWORD}</label></td>
 				<td>
 					<input type="password" id="ssh_login_pass" name="ssh_login_pass" value="{JAILKIT_PASSWORD}"
 						   autocomplete="off"/>

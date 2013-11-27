@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) Sascha Bay <info@space2place.de>
  * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,10 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
- * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
- * @author      Sascha Bay <info@space2place.de>
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -52,20 +52,15 @@ return array(
 
 	// See man jk_cp
 	'jail_additional_apps' => array(
-		//'/usr/bin/groups',
-		//'/usr/bin/id',
-
-		'/usr/bin/dircolors',
-		'/usr/bin/tput',
-
+		'/bin/hostname',
 		'/usr/bin/basename',
+		'/usr/bin/dircolors',
 		'/usr/bin/dirname',
-		//'/usr/bin/wget',
-
-		'/usr/bin/which',
-
-		//'/usr/bin/env',
-		//'hostname'
+		'/usr/bin/env',
+		'/usr/bin/id',
+		'/usr/bin/groups',
+		'/usr/bin/tput',
+		'/usr/bin/which'
 	),
 
 	// See man jk_socketd

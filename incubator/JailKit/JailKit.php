@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) Sascha Bay <info@space2place.de>
  * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,10 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
- * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
- * @author      Sascha Bay <info@space2place.de>
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -67,7 +67,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -342,7 +342,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			'
 				CREATE TABLE IF NOT EXISTS jailkit (
 					jailkit_id int(11) unsigned NOT NULL AUTO_INCREMENT,
-					admin_id int(11) unsigned NOT NULL,
+					admin_id int(10) unsigned NOT NULL,
 					admin_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					max_logins int(11) default NULL,
 					jailkit_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -356,8 +356,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			"
 				CREATE TABLE IF NOT EXISTS jailkit_login (
 					jailkit_login_id int(11) unsigned NOT NULL AUTO_INCREMENT,
-					admin_id int(11) unsigned NOT NULL,
-					ssh_login_name varchar(200) collate utf8_unicode_ci default NULL,
+					admin_id int(10) unsigned NOT NULL,
+					ssh_login_name varchar(16) collate utf8_unicode_ci default NULL,
 					ssh_login_pass varchar(200) collate utf8_unicode_ci default NULL,
 					ssh_login_locked tinyint(1) default '0',
 					jailkit_login_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,

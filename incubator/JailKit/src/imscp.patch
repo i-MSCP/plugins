@@ -1,20 +1,6 @@
-diff -rupN jailkit/extra/jailkit jailkit_wrk/extra/jailkit
---- jailkit/extra/jailkit	2011-08-20 09:30:14.000000000 +0200
-+++ jailkit_wrk/extra/jailkit	2013-11-26 14:28:50.975826457 +0100
-@@ -10,8 +10,8 @@
- ### END INIT INFO
- #
- # start/stop jailkit logging daemon.
--#
--# chkconfig: 2345 60 40
-+#
-+# chkconfig: 2345 60 40
- # description: chroot() jail wrapping utilities
- 
- JK_SOCKETD=/usr/sbin/jk_socketd
 diff -rupN jailkit/ini/jk_check.ini jailkit_wrk/ini/jk_check.ini
 --- jailkit/ini/jk_check.ini	2003-12-22 17:27:11.000000000 +0100
-+++ jailkit_wrk/ini/jk_check.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
 @@ -1,21 +1 @@
 -[/home/testchroot]
 -# jk_check does not run any tests in this directory (useful for proc filesystem)
@@ -40,7 +26,7 @@ diff -rupN jailkit/ini/jk_check.ini jailkit_wrk/ini/jk_check.ini
 +# See man jk_check
 diff -rupN jailkit/ini/jk_chrootsh.ini jailkit_wrk/ini/jk_chrootsh.ini
 --- jailkit/ini/jk_chrootsh.ini	2004-01-11 17:12:46.000000000 +0100
-+++ jailkit_wrk/ini/jk_chrootsh.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_chrootsh.ini	2013-11-27 06:36:52.990547610 +0100
 @@ -1,8 +1,3 @@
 -## example for a user
 -#[test]
@@ -56,7 +42,7 @@ diff -rupN jailkit/ini/jk_chrootsh.ini jailkit_wrk/ini/jk_chrootsh.ini
 +env= TERM, PATH
 diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
 --- jailkit/ini/jk_init.ini	2012-08-10 22:16:47.000000000 +0200
-+++ jailkit_wrk/ini/jk_init.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_init.ini	2013-11-27 06:36:52.994547610 +0100
 @@ -1,23 +1,16 @@
 +# See man jk_init
  [uidbasics]
@@ -124,7 +110,7 @@ diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
 +includesections = netbasics, uidbasics
 diff -rupN jailkit/ini/jk_lsh.ini jailkit_wrk/ini/jk_lsh.ini
 --- jailkit/ini/jk_lsh.ini	2006-04-01 22:57:10.000000000 +0200
-+++ jailkit_wrk/ini/jk_lsh.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_lsh.ini	2013-11-27 06:36:52.994547610 +0100
 @@ -1,13 +1 @@
 -## example for a user
 -#[test]
@@ -142,7 +128,7 @@ diff -rupN jailkit/ini/jk_lsh.ini jailkit_wrk/ini/jk_lsh.ini
 +# See man jk_lsh
 diff -rupN jailkit/ini/jk_socketd.ini jailkit_wrk/ini/jk_socketd.ini
 --- jailkit/ini/jk_socketd.ini	2007-01-10 00:10:39.000000000 +0100
-+++ jailkit_wrk/ini/jk_socketd.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
 @@ -1,5 +1 @@
 -# example
 -#[/home/testchroot/dev/log]
@@ -152,7 +138,7 @@ diff -rupN jailkit/ini/jk_socketd.ini jailkit_wrk/ini/jk_socketd.ini
 +# See man jk_socketd
 diff -rupN jailkit/ini/jk_uchroot.ini jailkit_wrk/ini/jk_uchroot.ini
 --- jailkit/ini/jk_uchroot.ini	2009-10-19 17:37:53.000000000 +0200
-+++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-27 06:36:52.994547610 +0100
 @@ -1,7 +1 @@
 -#[john]
 -#allowed_jails = /srv/johnjail, /srv/commonjail
@@ -164,7 +150,7 @@ diff -rupN jailkit/ini/jk_uchroot.ini jailkit_wrk/ini/jk_uchroot.ini
 +# man jk_uchroot
 diff -rupN jailkit/ini/jk_update.ini jailkit_wrk/ini/jk_update.ini
 --- jailkit/ini/jk_update.ini	2007-03-06 10:00:34.000000000 +0100
-+++ jailkit_wrk/ini/jk_update.ini	2013-11-26 14:28:50.975826457 +0100
++++ jailkit_wrk/ini/jk_update.ini	2013-11-27 06:36:52.994547610 +0100
 @@ -1,5 +1,3 @@
 -[/home/testjail]
 -skips = /usr/bin/myscript
@@ -174,21 +160,46 @@ diff -rupN jailkit/ini/jk_update.ini jailkit_wrk/ini/jk_update.ini
 +# See man jk_update
 +[DEFAULT]
 +hardlinks = 1
-diff -rupN jailkit/INSTALL.txt jailkit_wrk/INSTALL.txt
---- jailkit/INSTALL.txt	2007-12-07 13:53:25.000000000 +0100
-+++ jailkit_wrk/INSTALL.txt	2013-11-26 14:28:50.975826457 +0100
-@@ -16,6 +16,6 @@ chmod a+x /etc/init.d/jailkit
- # you run
- update-rc.d jailkit defaults
+diff -rupN jailkit/Makefile.in jailkit_wrk/Makefile.in
+--- jailkit/Makefile.in	2010-09-11 15:45:26.000000000 +0200
++++ jailkit_wrk/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+@@ -76,7 +76,6 @@ install:
+ 		fi \
+ 	fi
  
--# and on Red Hat/Fedora systems you run
-+# and on Red Hat/Fedora systems you run
- chkconfig jailkit on
+-
+ uninstall:
+ 	rm -f ${iniprefix}/*.ini
+ 	@cd py/ && $(MAKE) uninstall
+@@ -84,4 +83,3 @@ uninstall:
+ 	@cd src/ && $(MAKE) uninstall
+ 	-rmdir --ignore-fail-on-non-empty ${DESTDIR}${iniprefix}
+ 	@echo "You must manually remove jk_chrootsh from /etc/shells"
+-# remove jk_chrootsh from /etc/shells
+diff -rupN jailkit/man/Makefile.in jailkit_wrk/man/Makefile.in
+--- jailkit/man/Makefile.in	2007-11-07 23:32:31.000000000 +0100
++++ jailkit_wrk/man/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+@@ -77,7 +77,7 @@ jk_update.8.gz: jk_update.8
+ jailkit: ${MANS}
  
+ all: jailkit
+-	
++
+ install: jailkit
+ 	${INSTALL} -d -m 755 ${DESTDIR}${mandir}/man8/
+ 	for file in ${MANS} ; do \
 diff -rupN jailkit/py/jk_addjailuser.in jailkit_wrk/py/jk_addjailuser.in
 --- jailkit/py/jk_addjailuser.in	2007-03-06 20:28:46.000000000 +0100
-+++ jailkit_wrk/py/jk_addjailuser.in	2013-11-26 14:40:31.807811027 +0100
-@@ -56,7 +56,6 @@ def usage():
++++ jailkit_wrk/py/jk_addjailuser.in	2013-11-27 06:42:14.762540525 +0100
+@@ -42,7 +42,6 @@ sys.path.append(LIBDIR)
+ import jk_lib
+ 
+ def usage():
+-	print
+ 	print '*** jk_addjailuser is deprecated ***'
+ 	print
+ 	print 'please add the user like any other user, and use jk_jailuser to jail the user'
+@@ -56,7 +55,6 @@ def usage():
  	print '       [-p passwd] -r [-s shell] [-u uid]'
  	print '       [-v] | [--verbose]'
  	print
@@ -196,15 +207,15 @@ diff -rupN jailkit/py/jk_addjailuser.in jailkit_wrk/py/jk_addjailuser.in
  
  def getjail_and_user(args):
  	if (len(args)==0):
-@@ -252,4 +251,3 @@ def main():
+@@ -252,4 +250,3 @@ def main():
   
  if __name__ == "__main__":
      main()
 -    
 diff -rupN jailkit/py/jk_check.in jailkit_wrk/py/jk_check.in
 --- jailkit/py/jk_check.in	2011-01-27 09:18:59.000000000 +0100
-+++ jailkit_wrk/py/jk_check.in	2013-11-26 14:28:50.979826457 +0100
-@@ -260,16 +260,18 @@ def clean_exit(errno, message):
++++ jailkit_wrk/py/jk_check.in	2013-11-27 06:42:14.754540523 +0100
+@@ -260,16 +260,17 @@ def clean_exit(errno, message):
  	sys.exit(errno)
  
  def usage():
@@ -214,7 +225,6 @@ diff -rupN jailkit/py/jk_check.in jailkit_wrk/py/jk_check.in
 -	print "-c, --configfile=FILE  : specify configfile location"
 -	print "-v, --verbose          : show what is being tested"
 -	print ""
-+	print
 +	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
 +	print 'Check a jail for security problem'
 +	print
@@ -232,8 +242,8 @@ diff -rupN jailkit/py/jk_check.in jailkit_wrk/py/jk_check.in
  		sys.exit(1)
 diff -rupN jailkit/py/jk_cp.in jailkit_wrk/py/jk_cp.in
 --- jailkit/py/jk_cp.in	2012-08-02 22:55:27.000000000 +0200
-+++ jailkit_wrk/py/jk_cp.in	2013-11-26 14:28:50.979826457 +0100
-@@ -48,16 +48,21 @@ def startcopy(config, chroot, filestocop
++++ jailkit_wrk/py/jk_cp.in	2013-11-27 06:42:14.766540525 +0100
+@@ -48,16 +48,20 @@ def startcopy(config, chroot, filestocop
  	jk_lib.gen_library_cache(chroot)
  
  def usage():
@@ -247,7 +257,6 @@ diff -rupN jailkit/py/jk_cp.in jailkit_wrk/py/jk_cp.in
 -	print "-o, --owner        : retain file ownership and group"
 -	print "-s, --setuid       : retain file setuid/setgid bits"
 -	print "\nNote: if no jail is specified, the first argument is\nconsidered to be the jail\n"
-+	print
 +	print 'Usage: '+sys.argv[0]+' -j <jail> [OPTIONS] <files and directories>'
 +	print 'Copy files including permissions and libraries into a jail'
 +	print
@@ -265,7 +274,7 @@ diff -rupN jailkit/py/jk_cp.in jailkit_wrk/py/jk_cp.in
  
  def testargs(jail, args):
  	if (len(args) == 0 or jail == None):
-@@ -80,7 +85,7 @@ def main():
+@@ -80,7 +84,7 @@ def main():
  		print 'cannot run without root privileges'
  		sys.exit(5)
  	try:
@@ -276,8 +285,8 @@ diff -rupN jailkit/py/jk_cp.in jailkit_wrk/py/jk_cp.in
  		sys.exit(1)
 diff -rupN jailkit/py/jk_init.in jailkit_wrk/py/jk_init.in
 --- jailkit/py/jk_init.in	2012-08-02 22:55:27.000000000 +0200
-+++ jailkit_wrk/py/jk_init.in	2013-11-26 14:28:50.979826457 +0100
-@@ -164,20 +164,22 @@ def activateConfig(config, jail, args):
++++ jailkit_wrk/py/jk_init.in	2013-11-27 06:42:14.762540525 +0100
+@@ -164,20 +164,21 @@ def activateConfig(config, jail, args):
  	jk_lib.gen_library_cache(jail)
  	
  def usage():
@@ -295,7 +304,6 @@ diff -rupN jailkit/py/jk_init.in jailkit_wrk/py/jk_init.in
 -	print "-f, --force            : force overwriting of existing files"
 -	print "-k, --hardlink         : use hardlinks if possible"
 -	print ''
-+	print
 +	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
 +	print 'Usage: '+sys.argv[0]+' [OPTIONS] -j jaildir sections...'
 +	print 'Initialize a jail'
@@ -314,7 +322,7 @@ diff -rupN jailkit/py/jk_init.in jailkit_wrk/py/jk_init.in
  
  def listsections(file):
  	cfg = ConfigParser.ConfigParser()
-@@ -207,7 +209,7 @@ def main():
+@@ -207,7 +208,7 @@ def main():
  		print 'Cannot create chroot jail without root privileges. Abort.'
  		sys.exit(5)
  	try:
@@ -323,7 +331,7 @@ diff -rupN jailkit/py/jk_init.in jailkit_wrk/py/jk_init.in
  	except getopt.GetoptError:
  		usage()
  		sys.exit(1)
-@@ -232,8 +234,11 @@ def main():
+@@ -232,8 +233,11 @@ def main():
  			config['force'] = 1
  		if o in ("-k", "--hardlink"):
  			config['hardlink'] = 1
@@ -338,10 +346,12 @@ diff -rupN jailkit/py/jk_init.in jailkit_wrk/py/jk_init.in
  		sys.exit()
 diff -rupN jailkit/py/jk_jailuser.in jailkit_wrk/py/jk_jailuser.in
 --- jailkit/py/jk_jailuser.in	2011-04-27 17:32:43.000000000 +0200
-+++ jailkit_wrk/py/jk_jailuser.in	2013-11-26 14:28:50.979826457 +0100
-@@ -239,13 +239,14 @@ def user_exists(user):
++++ jailkit_wrk/py/jk_jailuser.in	2013-11-27 06:42:14.766540525 +0100
+@@ -237,15 +237,15 @@ def user_exists(user):
+ 	return 0
+ 
  def usage():
- 	print
+-	print
  	print 'Usage: '+sys.argv[0]+' [OPTIONS] username [more usernames]'
 +	print 'Put an existing user in a jail'
  	print
@@ -360,15 +370,15 @@ diff -rupN jailkit/py/jk_jailuser.in jailkit_wrk/py/jk_jailuser.in
  	print
  
  def testjail(jail, shell):
-@@ -348,4 +349,3 @@ def main():
+@@ -348,4 +348,3 @@ def main():
  
  if __name__ == "__main__":
  	main()
 -
 diff -rupN jailkit/py/jk_list.in jailkit_wrk/py/jk_list.in
 --- jailkit/py/jk_list.in	2006-10-29 12:56:50.000000000 +0100
-+++ jailkit_wrk/py/jk_list.in	2013-11-26 14:28:50.979826457 +0100
-@@ -125,14 +125,18 @@ def runList(verbose,jail):
++++ jailkit_wrk/py/jk_list.in	2013-11-27 06:42:14.766540525 +0100
+@@ -125,14 +125,17 @@ def runList(verbose,jail):
  	return results
  
  def printusage():
@@ -376,7 +386,6 @@ diff -rupN jailkit/py/jk_list.in jailkit_wrk/py/jk_list.in
 -	print "-h --help		print this message"
 -	print "-j --jail=/path  list only processes in this jail"
 -	print "-w --wide   print wide listing"
-+	print
 +	print 'Usage: '+sys.argv[0]+' [OPTIONS]'
 +	print 'Lists pocesses running inside a jail'
 +	print
@@ -394,8 +403,8 @@ diff -rupN jailkit/py/jk_list.in jailkit_wrk/py/jk_list.in
  		sys.exit(1)
 diff -rupN jailkit/py/jk_update.in jailkit_wrk/py/jk_update.in
 --- jailkit/py/jk_update.in	2007-03-22 21:20:49.000000000 +0100
-+++ jailkit_wrk/py/jk_update.in	2013-11-26 14:28:50.979826457 +0100
-@@ -168,18 +168,20 @@ def updatejail(jail, dirs, skips, config
++++ jailkit_wrk/py/jk_update.in	2013-11-27 06:42:14.766540525 +0100
+@@ -168,18 +168,19 @@ def updatejail(jail, dirs, skips, config
  			jk_lib.gen_library_cache(jail)
  
  def usage():
@@ -411,7 +420,6 @@ diff -rupN jailkit/py/jk_update.in jailkit_wrk/py/jk_update.in
 -	print ''
 -	print 'if no directories are specified, jk_update will scan /bin /usr /lib and /opt'
 -	print ''
-+	print
 +	print 'Usage: '+sys.argv[0]+' [OPTIONS] [DIRECTORIES]'
 +	print 'Update and cleanup a jail according to changes on the real system'
 +	print
@@ -430,7 +438,7 @@ diff -rupN jailkit/py/jk_update.in jailkit_wrk/py/jk_update.in
  	try:
 diff -rupN jailkit/py/Makefile.in jailkit_wrk/py/Makefile.in
 --- jailkit/py/Makefile.in	2010-10-06 11:43:17.000000000 +0200
-+++ jailkit_wrk/py/Makefile.in	2013-11-26 14:28:50.979826457 +0100
++++ jailkit_wrk/py/Makefile.in	2013-11-27 06:36:52.994547610 +0100
 @@ -46,7 +46,8 @@ PYLIBDIR=${datadir}/${PACKAGE}
  .SUFFIXES: .in .py .pyc
  
@@ -441,3 +449,30 @@ diff -rupN jailkit/py/Makefile.in jailkit_wrk/py/Makefile.in
  	    -e "s!LIBDIR='[a-z/]*'!LIBDIR='${PYLIBDIR}'!" \
  	    -e "s!EXEPREFIX='[a-z/]*'!EXEPREFIX='${PREFIX}'!" \
  	    -e "s:#!/usr/bin/python:#!$(PYTHONINTERPRETER):" < $< > $@
+diff -rupN jailkit/src/jk_lsh.c jailkit_wrk/src/jk_lsh.c
+--- jailkit/src/jk_lsh.c	2013-04-18 10:12:03.000000000 +0200
++++ jailkit_wrk/src/jk_lsh.c	2013-11-27 06:36:52.994547610 +0100
+@@ -237,9 +237,10 @@ int main (int argc, char **argv) {
+ 	DEBUG_MSG("setting umask\n");
+ 	umaskval = iniparser_get_octalint_at_position(parser, section, "umask", section_pos);
+ 	if (umaskval != -1) {
+-		mode_t oldumask;
++		/*mode_t oldumask;
+ 		oldumask = umask(umaskval);
+-		/*syslog(LOG_DEBUG, "changing umask from 0%o to 0%o", oldumask, umaskval);*/
++		syslog(LOG_DEBUG, "changing umask from 0%o to 0%o", oldumask, umaskval);*/
++		umask(umaskval);
+ 	}
+ 	if (iniparser_get_string_at_position(parser, section, "environment", section_pos, buffer, 1024) > 0) {
+ 		char **envs, **tmp;
+diff -rupN jailkit/src/Makefile.in jailkit_wrk/src/Makefile.in
+--- jailkit/src/Makefile.in	2013-04-12 21:47:41.000000000 +0200
++++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+@@ -41,7 +41,6 @@ LDFLAGS = @LDFLAGS@
+ LIBS = @LIBS@
+ LDLIBS = @LIBS@
+ 
+-
+ BINARIES = jk_socketd jk_lsh jk_chrootsh jk_chrootlaunch jk_uchroot
+ 
+ @HAVEPROCMAIL_TRUE@BINARIES += jk_procmailwrapper

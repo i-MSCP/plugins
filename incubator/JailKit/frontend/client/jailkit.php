@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) Sascha Bay <info@space2place.de>
  * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,10 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
- * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
- * @author      Sascha Bay <info@space2place.de>
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -175,8 +175,7 @@ function jailkit_addLoginUser($tpl, $userId)
 	if (isset($_POST['ssh_login_name']) && isset($_POST['ssh_login_pass'])) {
 		$error = false;
 
-		$loginUsername = $cfg->SYSTEM_USER_PREFIX . ($cfg->SYSTEM_USER_MIN_UID + $_SESSION['user_id']) .
-			clean_input($_POST['ssh_login_name']);
+		$loginUsername = 'jk_' . clean_input($_POST['ssh_login_name']);
 
 		$loginPassword = clean_input($_POST['ssh_login_pass']);
 
@@ -196,10 +195,10 @@ function jailkit_addLoginUser($tpl, $userId)
 		} elseif (strlen(clean_input($_POST['ssh_login_name'])) === 0) {
 			set_page_message(tr("The username is empty"), 'error');
 			$error = true;
-		} elseif (strlen(clean_input($_POST['ssh_login_name'])) > 10) {
-			set_page_message(tr("The username is to long (max. 10 chars)"), 'error');
+		} elseif (strlen(clean_input($_POST['ssh_login_name'])) > 16) {
+			set_page_message(tr("The username is too long (max. 16 chars)"), 'error');
 			$error = true;
-		} elseif (!preg_match("/^[a-zA-Z0-9]+$/", clean_input($_POST['ssh_login_name']))) {
+		} elseif (!preg_match("/^[a-z_][a-z0-9_-]*[$]?/", clean_input($_POST['ssh_login_name']))) {
 			set_page_message(tr("The username does only accept alphanumeric chars"), 'error');
 			$error = true;
 		}
@@ -513,10 +512,8 @@ $tpl->assign(
 		'ISP_LOGO' => layout_getUserLogo(),
 		'JAILKIT_NO_LOGIN' => tr('No login for JailKit - SSH activated'),
 		'TR_JAILKIT_USERNAME' => tr('SSH username'),
-		'TR_POPUP_JAILKIT_PASSWORD' => tr('SSH password:'),
-		'TR_POPUP_JAILKIT_USERNAME' => tr(
-			'SSH username: (appends %s)', $cfg->SYSTEM_USER_PREFIX . ($cfg->SYSTEM_USER_MIN_UID + $_SESSION['user_id'])
-		),
+		'TR_SSH_USERNAME' => tr('Username'),
+		'TR_SSH_PASSWORD' => tr('Password'),
 		'TR_JAILKIT_LOGIN_STATUS' => tr('Status'),
 		'TR_JAILKIT_LOGIN_ACTIONS' => tr('Actions'),
 		'TR_ADD_JAILKIT_LOGIN' => tr('Add new JailKit ssh login'),

@@ -1,9 +1,8 @@
 #!/usr/bin/perl
 
-#
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) Sascha Bay <info@space2place.de>
 # Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,13 +21,12 @@
 # @category    iMSCP
 # @package     iMSCP_Plugin
 # @subpackage  JailKit
-# @copyright   Sascha Bay <info@space2place.de>
 # @copyright   Laurent Declercq <l.declercq@nuxwin.com>
-# @author      Sascha Bay <info@space2place.de>
+# @copyright   Sascha Bay <info@space2place.de>
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
+# @author      Sascha Bay <info@space2place.de>
 # @link        http://www.i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
-#
 
 package Plugin::JailKit;
 
@@ -42,6 +40,8 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Templator;
 use JSON;
+
+use feature 'state';
 
 use parent 'Common::SingletonClass';
 
@@ -110,36 +110,112 @@ sub change
 {
 	my $self = shift;
 
-	# TODO register delayed tasks, which will update the SSH users in case the name/group of parent user changed
-		# Because the uid/gid of parent user can change later in the process (i.e if the parameter SYSTEM_USER_MIN_UID
-		# has been changed, we register a listener which is responsible to update the uid/gid of the SSH user.
-		#my $rs = $self->{'hooksManager'}->register('onAfterAddImscpUnixUser', sub {
-		#	if($_[0] eq $customerSysName && ($_[7] ne $pwnam[2] || $_[8] ne  $pwnam[3]) {
-		#		my $cmd = (
-		#			"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u ", escapeShell($sshLoginName), ';'
-		#			'-u', escapeShell($_[7]), # user UID
-		#			'-g', escapeShell($_[8]), # group GID
-		#			'-o', # Allow to reuse UID of existent user
-		#			escapeShell($sshLoginName) # username
-		#		);
-		#		my $rs = execute("@cmd", \$stdout, \$stderr);
-		#		debug($stdout) if $stdout;
-		#		error($stderr) if $stderr && $rs;
-		#		#return $rs if $rs;
-		#		$rs;
-		#
-		#		require iMSCP::Rights;
-		#		$rs = setRights(
-		#			"$self->{'config'}->{'root_jail_path'}/$customerName/home/$sshLoginName",
-		#			{
-		#				'user' =>  $customerSysName, 'group' => $customerSysGroup, 'recursive' => 1'
-		#			}
-		#		);
-		#	} else {
-		#		0;
-		#	}
-		#});
-	0;
+	if (defined $main::execmode && $main::execmode eq 'setup') {
+		# Event listener which is responsible to update SSH users in case parent user UID/GID get modified by i-MSCP
+		$self->{'hooksManager'}->register('onAfterAddImscpUnixUser', sub {
+			my ($customerId, $parentUserGroup, $parentUserUid, $parentUserGid)= ($_[0], $_[3], $_[8], $_[9]);
+
+			state $rdata;
+
+			unless(defined $rdata) {
+				my $rdata = iMSCP::Database->factory()->doQuery(
+					'jailkit_login_id', "SELECT jailkit_login_id, admin_id, admin_name, ssh_login_name FROM jailkit_login"
+				);
+				unless(ref $rdata eq 'HASH') {
+					error($rdata);
+					return 1;
+				}
+			}
+
+			if(%{$rdata}) {
+				my $rootJailPath = $self->{'config'}->{'root_jail_path'};
+
+				for(keys %{$rdata}) {
+					if($rdata->{$_}->{'admin_id'} == $customerId) {
+						my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
+						my $customerName = $rdata->{$_}->{'admin_name'};
+
+						if(my @pwnam = getpwnam($sshLoginName)) {
+							if($parentUserUid != $pwnam[2] || $parentUserGid != $pwnam[3]) {
+								my @cmd = (
+									"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u " . escapeShell($sshLoginName) . ';',
+									$main::imscpConfig{'CMD_USERMOD'},
+									'-u', escapeShell($parentUserUid), # user UID
+									'-g', escapeShell($parentUserGid), # group GID
+									'-o', # Allow to reuse UID of existent user
+									escapeShell($sshLoginName) # username
+								);
+								my($stdout, $stderr);
+								my $rs = execute("@cmd", \$stdout, \$stderr);
+								debug($stdout) if $stdout;
+								error($stderr) if $stderr && $rs;
+
+								unless($rs) {
+									# Remove SSH user from the jail passwd file
+									my $file = iMSCP::File->new(
+										'filename' => "$rootJailPath/$customerName/etc/passwd"
+									);
+
+									my $fileContent = $file->get();
+
+									if(defined $fileContent) {
+										$fileContent =~ s/^$sshLoginName:.*\n//gm;
+
+										$rs = $file->set($fileContent);
+										return $rs if $rs;
+
+										$file->save();
+
+										# Re-add SSH user in the jail of the customer to which it belong to
+										my @cmd = (
+											'umask 022;',
+											"$self->{'config'}->{'install_path'}/sbin/jk_jailuser -n",
+											'-s', escapeShell($self->{'config'}->{'shell'}),
+											'-j', escapeShell("$rootJailPath/$customerName"),
+											escapeShell($sshLoginName)
+										);
+										$rs ||= execute("@cmd", \$stdout, \$stderr);
+										debug($stdout) if $stdout;
+										error($stderr) if $stderr && $rs;
+
+										require iMSCP::Rights;
+										iMSCP::Rights->import();
+
+										$rs ||= setRights(
+											"$self->{'config'}->{'root_jail_path'}/$customerName/home/$sshLoginName",
+											{ 'user' =>  $sshLoginName, 'group' => $parentUserGroup, 'recursive' => 1 }
+										);
+									} else {
+										error("Unable to read $file->{'filename'}");
+										$rs = 1;
+									}
+								}
+
+								if($rs) {
+									$rs = iMSCP::Database->factory()->doQuery(
+										'dummy',
+										'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
+										($rs ? scalar getMessageByType('error') : 'ok'),
+										$rdata->{$_}->{'jailkit_login_id'}
+									);
+									unless(ref $rs eq 'HASH') {
+										error($rs);
+										return 1;
+									}
+								}
+							}
+						} else {
+							warning("SSH user $sshLoginName doesn't exist");
+						}
+					}
+				}
+			}
+
+			0;
+		});
+	} else {
+		0;
+	}
 }
 
 =item enable()
@@ -479,17 +555,16 @@ sub _addJail($$)
 {
 	my ($self, $customerId, $customerName) = @_;
 
-	my $parentUser = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
-		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $customerId);
+	my $parentUser = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . ($main::imscpConfig{'SYSTEM_USER_MIN_UID'}+$customerId);
 
-	if((getpwnam($parentUser))) {
+	if(getpwnam($parentUser)) {
+		my $installPath = $self->{'config'}->{'install_path'};
 		my $rootJailPath = $self->{'config'}->{'root_jail_path'};
 
-		# Initialize customer jail using application sections
+		# Initialize jail using application sections
 		my ($stdout, $stderr);
 		my $rs = execute(
-			"umask 022; $self->{'config'}->{'install_path'}/sbin/jk_init -f -k " .
-			"-c $self->{'config'}->{'install_path'}/etc/jailkit/jk_init.ini " .
+			"umask 022; $installPath/sbin/jk_init -f -k -c $installPath/etc/jailkit/jk_init.ini " .
 			"-j $rootJailPath/$customerName @{$self->{'config'}->{'jail_app_sections'}}",
 			\$stdout,
 			\$stderr
@@ -500,9 +575,9 @@ sub _addJail($$)
 
 		# Installing additional apps inside the jail
 		if($self->{'config'}->{'jail_additional_apps'}) {
-			my $rs = execute(
-				"umask 022; $self->{'config'}->{'install_path'}/sbin/jk_cp -f -k " .
-				"-j $rootJailPath/$customerName @{$self->{'config'}->{'jail_additional_apps'}}",
+			$rs = execute(
+				"umask 022; $installPath/sbin/jk_cp -f -k -j $rootJailPath/$customerName " .
+				"@{$self->{'config'}->{'jail_additional_apps'}}",
 				\$stdout,
 				\$stderr
 			);
@@ -511,7 +586,15 @@ sub _addJail($$)
 			return $rs if $rs;
 		}
 
-		# Creating /opt directory inside the jail or set its permissions if it already exists.
+		# Copy the motd (message of the day) file inside the jail
+		$rs = iMSCP::File->new(
+			'filename' => "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/tpl/motd"
+		)->copyFile(
+			"$rootJailPath/$customerName/etc"
+		);
+		return $rs if $rs;
+
+		# Creating /opt directory inside the jail or set its permissions if it already exists
 		$rs = iMSCP::Dir->new(
 			'dirname' => "$rootJailPath/$customerName/opt"
 		)->make(
@@ -531,7 +614,7 @@ sub _addJail($$)
 		# if the mysql client is available in the jail
 		if(
 			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
-			'mysql-client' ~~ @{$self->{'config'}->{'jail_app_sections'}}
+			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
 		) {
 			# Try to umount first to avoid to have the same mount point mounted twice
 			$rs = $self->_umount("$rootJailPath/$customerName/var/run/mysqld");
@@ -551,6 +634,7 @@ sub _addJail($$)
 			);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
 		}
 	} else {
 		error("System user $parentUser doesn't exist."); # Should never occurs
@@ -647,8 +731,8 @@ sub _updateJails
 		for(keys %{$rdata}) {
 			my $customerName = $rdata->{$_}->{'admin_name'};
 
-			# Needed in case the admin changed apps sections or additional apps parameters. Will also create the jail if
-			# it doesn't exist for any reason
+			# Needed in case apps sections and/or additional apps parameters were changed. Will also create the jail if
+			# it doesn't exist
 			my $rs = $self->_addJail($rdata->{$_}->{'admin_id'}, $customerName);
             return $rs if $rs;
 
@@ -681,14 +765,14 @@ sub _addSshUser($$$$$)
 		$main::imscpConfig{'SYSTEM_USER_PREFIX'} . ($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $customerId);
 
 	if((my @pwnam = getpwnam($parentUserName))) {
-		unless(getpwnam($sshLoginName)) { # SSH user doesn't exist, we create it
+		unless(getpwnam($sshLoginName)) { # SSH user doesn't exist, we create it
 			my @cmd = (
 				$main::imscpConfig{'CMD_USERADD'},
 				'-c', escapeShell("i-MSCP JailKit SSH User"), # comment
 				'-u', escapeShell($pwnam[2]), # user UID
 				'-g', escapeShell($pwnam[3]), # group GID
 				'-m', # Create home directory
-				'-k', escapeShell("$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/tpl/skel") # Skel directory
+				'-k', escapeShell("$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/tpl/skel"), # Skel directory
 				'-o', # Allow to reuse UID of existent user
 				escapeShell($sshLoginName) # username
 			);
@@ -727,7 +811,7 @@ sub _addSshUser($$$$$)
 		my $rs = iMSCP::Dir->new(
 			'dirname' => "$rootJailPath/$customerName/home/$sshLoginName/web"
 		)->make(
-			{ 'user' => $sshLoginName, 'group' => $customerSysGroup, 'mode' => 0750 }
+			{ 'user' => $sshLoginName, 'group' => $parentUserGroup, 'mode' => 0750 }
 		);
 		return $rs if $rs;
 
@@ -739,7 +823,7 @@ sub _addSshUser($$$$$)
 		# FIXME (NXW): Should we rbind (i.e mount --rbind...) too in case the i-MSCP customer homedir contain submounts
 		$rs = execute(
 			"/bin/mount -v --bind $main::imscpConfig{'USER_WEB_DIR'}/$customerName " .
-				"$rootJailPath/$customerName/home/$sshLoginName/web",
+			"$rootJailPath/$customerName/home/$sshLoginName/web",
 			\$stdout,
 			\$stderr
 		);
@@ -747,7 +831,7 @@ sub _addSshUser($$$$$)
 		error($stderr) if $stderr && $rs;
 		$rs;
 	} else {
-		error("System user $parentUser doesn't exist."); # Should never occurs
+		error("System user $parentUserName doesn't exist."); # Should never occurs
 		return 1;
 	}
 }
@@ -775,10 +859,11 @@ sub _changeSshUser($$$$)
 	} else {
 		# SSH user doesn't exist so we add it
 		my $rs = $self->_addSshUser($customerId, $customerName, $sshLoginName, $sshLoginPass);
-		return $rs;
+		return $rs if $rs;
 	}
 
 	if($action eq 'lock') {
+		my ($stdout, $stderr);
 		my $rs = execute(
 			"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u $sshLoginName; /usr/bin/passwd $sshLoginName -l",
 			\$stdout,
@@ -788,6 +873,7 @@ sub _changeSshUser($$$$)
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'unlock') {
+		my ($stdout, $stderr);
 		my $rs = execute("/usr/bin/passwd $sshLoginName -u", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
@@ -822,20 +908,25 @@ sub _removeSshUser($$$)
 	return $rs if $rs;
 
 	# Remove SSH user from the jail passwd file
-	my $file = iMSCP::File->new('filename' => "$rootJailPath/$customerName/etc/passwd");
+	if(-f "$rootJailPath/$customerName/etc/passwd") {
+		my $file = iMSCP::File->new('filename' => "$rootJailPath/$customerName/etc/passwd");
 
-	my $fileContent = $file->get();
-	unless(defined $fileContent) {
-		error("Unable to read $file->{'filename'}");
-		return 1;
+		my $fileContent = $file->get();
+		unless(defined $fileContent) {
+			error("Unable to read $file->{'filename'}");
+			return 1;
+		}
+
+		$fileContent =~ s/^$sshLoginName:.*\n//gm;
+
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$file->save();
+		return $rs if $rs;
 	}
 
-	$fileContent =~ s/^$sshLoginName:.*\n//gm;
-
-	$rs = $file->set($fileContent);
-	return $rs if $rs;
-
-	$file->save();
+	0;
 }
 
 =item _changeSshUsers($action)
@@ -851,14 +942,16 @@ sub _changeSshUsers($$)
 	my ($self, $action) = @_;
 
 	my $db = iMSCP::Database->factory();
-	
+
 	my $rdata = $db->doQuery(
 		'jailkit_login_id', 
 		"
 			SELECT
-				jailkit_login_id, admin_id, admin_name,  ssh_login_name, ssh_login_pass, ssh_login_locked
+				jailkit_login_id, admin_id, admin_name, ssh_login_name, ssh_login_pass, ssh_login_locked
 			FROM
 				jailkit_login
+			INNER JOIN
+				admin USING(admin_id)
 			WHERE
 				jailkit_login_status IN ('ok', 'disabled')
 		"
@@ -869,19 +962,23 @@ sub _changeSshUsers($$)
 	}
 
 	if(%{$rdata}) {
+		my $needFstabUpdate = 0;
+
 		for(keys %{$rdata}) {
 			my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
 			my $sshLoginLocked = $rdata->{$_}->{'ssh_login_locked'};
 			my $jailKitLoginId = $rdata->{$_}->{'jailkit_login_id'};
 			my $rs = 0;
 
-			unless(getpwnam($sshLoginName) {
-				# SSH user doesn't exist so we add it
+			unless(getpwnam($sshLoginName)) {
+				# SSH user doesn't exist so we create it
 				$rs = $self->_addSshUser(
 					$rdata->{$_}->{'admin_id'}, $rdata->{$_}->{'admin_name'}, $sshLoginName,
 					$rdata->{$_}->{'ssh_login_pass'}
 				);
 				return $rs if $rs;
+
+				$needFstabUpdate = 1;
 			}
 
 			if($action eq 'lock') {
@@ -912,6 +1009,9 @@ sub _changeSshUsers($$)
 				return 1;
 			}
 		}
+
+		my $rs = $self->_processFstabEntries() if $needFstabUpdate;
+		return $rs if $rs;
 	}
 
 	0;
@@ -980,9 +1080,22 @@ sub _processFstabEntries($;$)
 		my $userWebDir = $main::imscpConfig{'USER_WEB_DIR'};
 		my $rootJailPath = $self->{'config'}->{'root_jail_path'};
 
+		my $needMysqldSock = (
+			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
+			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
+		) ? 1 : 0;
+
 		$fileContent .= $bTag;
-		$fileContent .= "$userWebDir/$rdata->{$_}->{'admin_name'} $rootJailPath/$rdata->{$_}->{'admin_name'}/home/" .
-			"$rdata->{$_}->{'ssh_login_name'}/web none bind\n" for keys %{$rdata};
+
+		for(keys %{$rdata}) {
+			$fileContent .= "$userWebDir/$rdata->{$_}->{'admin_name'} $rootJailPath/$rdata->{$_}->{'admin_name'}/home/" .
+				"$rdata->{$_}->{'ssh_login_name'}/web none bind\n";
+
+			if($needMysqldSock) {
+				$fileContent .= "/var/run/mysqld $rootJailPath/$rdata->{$_}->{'admin_name'}/var/run/mysql none bind\n";
+			}
+		}
+
 		$fileContent .= $eTag;
 	}
 
@@ -1170,14 +1283,14 @@ sub _installJailKit
 
 	# Backup current jailkit configuration file if any
 	if(-d "$installPath/etc/jailkit") {
-		my @files = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit")->getFiles();
+		my @files = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit", 'fileType' => '\\.ini')->getFiles();
 
 		if(@files) {
 			my $file = iMSCP::File->new();
 
 			for(@files) {
 				$file->{'filename'} = "$installPath/etc/jailkit/$_";
-				$rs = $file->moveFile("$installPath/etc/jailkit/$_.bak");
+				$rs = $file->moveFile("$installPath/etc/jailkit/$_.old");
 				return $rs if $rs;
 			}
 		}
@@ -1204,14 +1317,20 @@ sub _installJailKit
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
 	$rs = execute(
-		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* ."
+		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* .",
+		\$stdout,
+		\$stderr
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Applying imscp.patch on upstream sources
-	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch");
+	$rs = execute(
+		"/usr/bin/patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch",
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1320,14 +1439,20 @@ sub _uninstallJailKit
 	# Unfortunately, VPATH build is not possible so we copy the sources into the build directory
 	my ($stdout, $stderr);
 	my $rs = execute(
-		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* ."
+		"$main::imscpConfig{'CMD_CP'} -fr $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/jailkit/* .",
+		\$stdout,
+		\$stderr
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Applying imscp.patch on upstream sources
-	$rs = execute("patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch");
+	$rs = execute(
+		"/usr/bin/patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch",
+		\$stdout,
+		\$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1400,8 +1525,11 @@ sub _umount($$)
 
 	if(-d $mountpoint) {
 		my($stdout, $stderr);
+
 		while(! execute("/bin/mount 2>/dev/null | grep 'on $mountpoint type '", \$stdout)) {
-			my $rs = execute("bin/umount -v -l $mountpoint", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+
+			my $rs = execute("/bin/umount -v -l $mountpoint", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			return $rs if $rs;

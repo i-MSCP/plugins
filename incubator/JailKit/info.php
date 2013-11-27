@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) Sascha Bay <info@space2place.de>
  * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,19 +21,19 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
- * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
- * @author      Sascha Bay <info@space2place.de>
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
+	'author' => 'i-MSCP Team',
+	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
-	'date' => '2013-11-18',
+	'date' => '2013-11-26',
 	'name' => 'JailKit',
 	'desc' => 'Plugin providing jailed SSH accounts (using JailKit) for i-MSCP customers.',
 	'url' => 'http://i-mscp.net'
