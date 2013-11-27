@@ -124,7 +124,7 @@
 			<tr>
 				<td><label for="ssh_login_name">{TR_SSH_USERNAME}</label></td>
 				<td>
-					<strong>pk_</strong>
+					<strong>jk_</strong>
 					<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}" maxlength="13"/>
 				</td>
 			</tr>

@@ -48,17 +48,17 @@ function jailkit_generateSelect($tpl, $resellerId)
 	$stmt = exec_query(
 		'
 			SELECT
-				t1.admin_id, t1.admin_name
+				admin_id, admin_name
 			FROM
-				admin as t1
-			INNER JOIN
-				jailkit as t2 ON(t1.admin_id <> t2.admin_id)
+				admin
 			WHERE
-				t1.created_by = ?
+				created_by = ?
 			AND
-				t1.admin_status = ?
+				admin_status = ?
+			AND
+				admin_id NOT IN(SELECT admin_id FROM jailkit)
 			ORDER BY
-				t1.admin_name ASC
+				admin_name ASC
 		',
 		array($resellerId, $cfg->ITEM_OK_STATUS)
 	);

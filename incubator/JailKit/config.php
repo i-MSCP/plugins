@@ -35,19 +35,21 @@ return array(
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
 	'install_path' => '/usr/local',
 
-	// Path to the root jail directory which holds all customer jails.
+	// Path to the root jail directory which holds all jails. Be sure that the partition in which this directory is
+	// living has enough space to host the jails.
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
 	'root_jail_path' => '/home/imscp-jails',
 
 	// See man shells
+	// Don't change this value if you do not know what you are doing
 	'shell' => '/bin/bash',
 
 	// See man jk_init
 	'jail_app_sections' => array(
 		'basicshell',
 		'editors',
-		'sftp',
-		'mysql-client'
+		'mysql-client',
+		'sftp'
 	),
 
 	// See man jk_cp

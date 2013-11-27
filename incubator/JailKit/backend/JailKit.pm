@@ -113,13 +113,22 @@ sub change
 	if (defined $main::execmode && $main::execmode eq 'setup') {
 		# Event listener which is responsible to update SSH users in case parent user UID/GID get modified by i-MSCP
 		$self->{'hooksManager'}->register('onAfterAddImscpUnixUser', sub {
-			my ($customerId, $parentUserGroup, $parentUserUid, $parentUserGid)= ($_[0], $_[3], $_[8], $_[9]);
+			my ($customerId, $parentUserGroup, $parentUserUid, $parentUserGid) = ($_[0], $_[3], $_[8], $_[9]);
 
 			state $rdata;
 
 			unless(defined $rdata) {
 				my $rdata = iMSCP::Database->factory()->doQuery(
-					'jailkit_login_id', "SELECT jailkit_login_id, admin_id, admin_name, ssh_login_name FROM jailkit_login"
+					'jailkit_login_id',
+					'
+						SELECT
+							jailkit_login_id, admin_id, ssh_login_name, admin_name
+						FROM
+							jailkit_login
+						INNER JOIN
+							admin USING(admin_id)
+					'
+
 				);
 				unless(ref $rdata eq 'HASH') {
 					error($rdata);
@@ -291,7 +300,6 @@ sub run
 
 	my $rootJailPath = $self->{'config'}->{'root_jail_path'};
 	my $defaultJailApps = $self->{'config'}->{'jail_app_sections'};
-	my $needFstabUpdate = 0;
 	my $rs = 0;
 
 	if(%{$rdata}) {
@@ -316,17 +324,8 @@ sub run
 						scalar getMessageByType('error'), $rdata->{$_}->{'jailkit_id'}
 					);
 				} else {
-					$needFstabUpdate = 1;
 					@sql = ('DELETE FROM jailkit WHERE jailkit_id = ?', $rdata->{$_}->{'jailkit_id'});
 				}
-			} elsif($status eq 'toupdate') {
-				# TODO (nxw) trigger no yet implemented in frontend part
-				$rs = $self->_updateJails();
-
-				@sql = (
-					'UPDATE jailkit SET jailkit_status = ? WHERE jailkit_id = ?',
-					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'jailkit_id'}
-				);
 			}
 
 			$rs = $db->doQuery('dummy', @sql);
@@ -380,7 +379,6 @@ sub run
 					$rdata->{$_}->{'ssh_login_pass'}
 				);
 
-				$needFstabUpdate = 1 unless $rs;
 				@sql = (
 					'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
 					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'jailkit_login_id'}
@@ -409,7 +407,6 @@ sub run
 						scalar getMessageByType('error'), $rdata->{$_}->{'jailkit_login_id'}
 					);
 				} else {
-					$needFstabUpdate = 1;
 					@sql = (
 						'DELETE FROM jailkit_login WHERE jailkit_login_id = ?', $rdata->{$_}->{'jailkit_login_id'}
 					);
@@ -425,10 +422,8 @@ sub run
 		}
 	}
 
-	if($needFstabUpdate) {
-		$rs = $self->_processFstabEntries();
-		$self->{'FORCE_RETVAL'} = 'yes' if $rs;
-	}
+	$rs = $self->_processFstabEntries();
+	$self->{'FORCE_RETVAL'} = 'yes' if $rs;
 
 	$rs;
 }
@@ -506,7 +501,7 @@ sub uninstall
 		return 1;
 	}
 
-	# Uninstalling jailkit files
+	# Uninstalling jailkit
 	$self->_uninstallJailKit();
 }
 
@@ -630,7 +625,7 @@ sub _addJail($$)
 
 			# Mount (bind) the /var/run/mysqld directory
 			$rs = execute(
-				"/bin/mount -v --bind /var/run/mysqld $rootJailPath/$customerName/var/run/mysqld", \$stdout, \$stderr
+				"/bin/mount --bind /var/run/mysqld $rootJailPath/$customerName/var/run/mysqld", \$stdout, \$stderr
 			);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
@@ -695,7 +690,7 @@ sub _deleteJail($$$)
 	}
 
 	# Umount the /var/run/mysqld directory if any. This must be done before removing the
-	# jail, else, it content will get deleted
+	# jail, else, the system /var/run/mysqld directory will get deleted
     my $rs = $self->_umount("$rootJailPath/$customerName/var/run/mysqld");
     return $rs if $rs;
 
@@ -707,7 +702,7 @@ sub _deleteJail($$$)
 
  Update jails.
 
- Update all jails with last file versions available on the system. It also add any application as specified into the
+ Update all jails with last file versions available on the system. Also add any application as specified into the
 jail_app_sections and the jail_additional_apps configuration parameters.
 
 =cut
@@ -731,7 +726,7 @@ sub _updateJails
 		for(keys %{$rdata}) {
 			my $customerName = $rdata->{$_}->{'admin_name'};
 
-			# Needed in case apps sections and/or additional apps parameters were changed. Will also create the jail if
+			# Needed in case app sections and/or additional apps parameters were changed. Will also create the jail if
 			# it doesn't exist
 			my $rs = $self->_addJail($rdata->{$_}->{'admin_id'}, $customerName);
             return $rs if $rs;
@@ -822,7 +817,7 @@ sub _addSshUser($$$$$)
 		# Mount (bind) the parent user homedir into the SSH user web directory
 		# FIXME (NXW): Should we rbind (i.e mount --rbind...) too in case the i-MSCP customer homedir contain submounts
 		$rs = execute(
-			"/bin/mount -v --bind $main::imscpConfig{'USER_WEB_DIR'}/$customerName " .
+			"/bin/mount --bind $main::imscpConfig{'USER_WEB_DIR'}/$customerName " .
 			"$rootJailPath/$customerName/home/$sshLoginName/web",
 			\$stdout,
 			\$stderr
@@ -857,7 +852,7 @@ sub _changeSshUser($$$$)
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} else {
-		# SSH user doesn't exist so we add it
+		# SSH user doesn't exist so we create it
 		my $rs = $self->_addSshUser($customerId, $customerName, $sshLoginName, $sshLoginPass);
 		return $rs if $rs;
 	}
@@ -947,7 +942,7 @@ sub _changeSshUsers($$)
 		'jailkit_login_id', 
 		"
 			SELECT
-				jailkit_login_id, admin_id, admin_name, ssh_login_name, ssh_login_pass, ssh_login_locked
+				jailkit_login_id, admin_id, ssh_login_name, ssh_login_pass, ssh_login_locked, admin_name
 			FROM
 				jailkit_login
 			INNER JOIN
@@ -1031,10 +1026,33 @@ sub _processFstabEntries($;$)
 
 	$action ||= 'add';
 
-	my $rdata = {};
+	unless(-f '/etc/fstab') {
+		unless($action eq 'remove') {
+			error('File /etc/fstab not found');
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
+	my $jailkitEntries = {};
+	my $jailkitLoginEntries = {};
 
 	unless($action eq 'remove') {
-		$rdata = iMSCP::Database->factory()->doQuery(
+		if(
+			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
+			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
+		) {
+			$jailkitEntries = iMSCP::Database->factory()->doQuery(
+				'jailkit_id', "SELECT jailkit_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
+			);
+			unless(ref $jailkitEntries eq 'HASH') {
+				error($jailkitEntries);
+				return 1;
+			}
+		}
+
+		$jailkitLoginEntries = iMSCP::Database->factory()->doQuery(
 			'jailkit_login_id',
 			"
 				SELECT
@@ -1047,18 +1065,9 @@ sub _processFstabEntries($;$)
 					jailkit_login_status = 'ok'
 			"
 		);
-		unless(ref $rdata eq 'HASH') {
-			error($rdata);
+		unless(ref $jailkitEntries eq 'HASH') {
+			error($jailkitEntries);
 			return 1;
-		}
-	}
-
-	unless(-f '/etc/fstab') {
-		unless($action eq 'remove') {
-			error('File /etc/fstab not found');
-			return 1;
-		} else {
-			return 0;
 		}
 	}
 
@@ -1070,32 +1079,34 @@ sub _processFstabEntries($;$)
 		return 1;
 	}
 
-	my $bTag = "# Plugins::JailKit START\n";
-	my $eTag = "# Plugins::JailKit END\n";
+	my $bTag = "# Plugins::JailKit::Mysqld START\n";
+	my $eTag = "# Plugins::JailKit::Mysqld END\n";
 
-	# Removing any previous JailKit plugin entry
+	# Removing any previous entry
 	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
 
-	if(%{$rdata}) {
-		my $userWebDir = $main::imscpConfig{'USER_WEB_DIR'};
-		my $rootJailPath = $self->{'config'}->{'root_jail_path'};
+	my $rootJailPath = $self->{'config'}->{'root_jail_path'};
 
-		my $needMysqldSock = (
-			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
-			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
-		) ? 1 : 0;
+	if(%{$jailkitEntries}) {
+		$fileContent .= $bTag;
+		$fileContent .= "/var/run/mysqld $rootJailPath/$jailkitEntries->{$_}->{'admin_name'}/var/run/mysqld none bind\n"
+			for keys %{$jailkitEntries};
+		$fileContent .= $eTag;
+	}
+
+	$bTag = "# Plugins::JailKit::Web START\n";
+	$eTag = "# Plugins::JailKit::Web END\n";
+
+	# Removing any previous entry
+	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
+
+	if(%{$jailkitLoginEntries}) {
+		my $userWebDir = $main::imscpConfig{'USER_WEB_DIR'};
+		my $customerName = $jailkitLoginEntries->{$_}->{'admin_name'};
 
 		$fileContent .= $bTag;
-
-		for(keys %{$rdata}) {
-			$fileContent .= "$userWebDir/$rdata->{$_}->{'admin_name'} $rootJailPath/$rdata->{$_}->{'admin_name'}/home/" .
-				"$rdata->{$_}->{'ssh_login_name'}/web none bind\n";
-
-			if($needMysqldSock) {
-				$fileContent .= "/var/run/mysqld $rootJailPath/$rdata->{$_}->{'admin_name'}/var/run/mysql none bind\n";
-			}
-		}
-
+		$fileContent .= "$userWebDir/$customerName $rootJailPath/$customerName/home/" .
+			"$jailkitLoginEntries->{$_}->{'ssh_login_name'}/web none bind\n" for keys %{$jailkitLoginEntries};
 		$fileContent .= $eTag;
 	}
 
@@ -1253,7 +1264,8 @@ sub _processLogrotateEntries($;$)
 
 		unless($action eq 'remove') {
 			# Debian/Ubuntu
-			$fileContent =~ s%^(\s+)((?:invoke-rc.d|reload) rsyslog.*\n)%$1$2$1invoke-rc.d jailkit restart > /dev/null\n%gm;
+			$fileContent =~
+				s%^(\s+)((?:invoke-rc.d|reload) rsyslog.*\n)%$1$2$1invoke-rc.d jailkit restart > /dev/null\n%gm;
 		}
 
 		my $rs = $file->set($fileContent);
@@ -1545,7 +1557,7 @@ END
 	my $pluginInstance = Plugin::JailKit->getInstance();
 
 	if($pluginInstance->{'startDaemon'} && $pluginInstance->{'startDaemon'} eq 'yes') {
-		$rs |= $pluginInstance->startDaemon();
+		$rs |= $pluginInstance->_restartDaemon();
 	}
 
 	$? = $rs;
@@ -1553,10 +1565,10 @@ END
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
- Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>
+ Sascha Bay <info@space2place.de>
 
 =cut
 
