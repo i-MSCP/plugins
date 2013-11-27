@@ -134,5 +134,8 @@ return array(
 	'spamassMilterOptions' => '-e -f -I -u spamass-milter',
 	
 	// Don't change anything, if you don't know what you are doing!
+	'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock',
+	
+	// Don't change anything, if you don't know what you are doing!
 	'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin/'
 );

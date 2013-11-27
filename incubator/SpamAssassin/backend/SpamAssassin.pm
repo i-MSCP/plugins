@@ -60,20 +60,98 @@ use parent 'Common::SingletonClass';
 sub install
 {
 	my $self = shift;
-	
+
 	if(! -x '/usr/sbin/spamd') {
 		error('Unable to find SpamAssassin daemon. Please, install the spamassassin packages first.');
 		return 1;
 	}
-	
+
 	if(! -x '/usr/sbin/spamass-milter') {
 		error('Unable to find spamass-milter daemon. Please, install the spamass-milter package first.');
 		return 1;
 	}
-	
+
 	my $rs = $self->_setupDatabase();
 	return $rs if $rs;
-	
+
+	$rs = $self->change();
+	return $rs if $rs;
+
+	0;
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->_getSaDbPassword();
+	return $rs if $rs;
+
+	# SpamAssassin configuration
+	$rs = $self->_updateSpamassassinRules();
+	return $rs if $rs;
+
+	$rs = $self->_setSpamassassinConfig('00_imscp.cf');
+	return $rs if $rs;
+
+	$rs = $self->_modifySpamassassinDefaultConfig('add');
+	return $rs if $rs;
+
+	$rs = $self->_setSpamassassinConfig('00_imscp.pre');
+	return $rs if $rs;
+
+	$rs = $self->_checkSpamassassinPlugins();
+	return $rs if $rs;
+
+	$rs = $self->_restartDaemon('spamassassin', 'restart');
+	return $rs if $rs;
+
+	# spamass-milter configuration
+	$rs = $self->_modifySpamassMilterDefaultConfig('add');
+	return $rs if $rs;
+
+	$rs = $self->_restartDaemon('spamass-milter', 'restart');
+	return $rs if $rs;
+
+	# Roundcube Plugins configuration
+	$rs = $self->_installRoundcubePlugins();
+	return $rs if $rs;
+
+	$rs = $self->_setRoundcubePluginConfig('sauserprefs');
+	return $rs if $rs;
+
+	$rs = $self->_setRoundcubePluginConfig('markasjunk2');
+	return $rs if $rs;
+
+	$rs = $self->_checkRoundcubePlugins();
+	return $rs if $rs;
+
+	0;
+}
+
+=item update()
+
+ Perform update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my $self = shift;
+
+	my $rs = $self->change();
+	return $rs if $rs;
+
 	0;
 }
 
@@ -88,52 +166,14 @@ sub install
 sub enable
 {
 	my $self = shift;
-	
-	my $rs = $self->_updateSpamassassinRules();
+
+	# Add Postfix configuration
+	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
-	
-	$rs = $self->_getSaDbPassword();
-	return $rs if $rs;
-	
-	$rs = $self->_setSpamassassinConfig('00_imscp.cf');
-	return $rs if $rs;
-	
-	$rs = $self->_setSpamassassinConfig('00_imscp.pre');
-	return $rs if $rs;
-	
-	$rs = $self->_checkSpamassassinPlugins();
-	return $rs if $rs;
-	
-	$rs = $self->_modifySpamassMilterDefaultConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_modifySpamassassinDefaultConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_installRoundcubePlugins();
-	return $rs if $rs;
-	
-	$rs = $self->_setRoundcubePluginConfig('sauserprefs');
-	return $rs if $rs;
-	
-	$rs = $self->_setRoundcubePluginConfig('markasjunk2');
-	return $rs if $rs;
-	
-	$rs = $self->_checkRoundcubePlugins();
-	return $rs if $rs;
-	
-	$rs = $self->_modifyPostfixMainConfig('add');
-	return $rs if $rs;
-	
-	$rs = $self->_restartDaemon('spamassassin', 'restart');
-	return $rs if $rs;
-	
-	$rs = $self->_restartDaemon('spamass-milter', 'restart');
-	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
-	
+
 	0;
 }
 
@@ -148,7 +188,8 @@ sub enable
 sub disable
 {
 	my $self = shift;
-	
+
+	# Remove cronjobs
 	my $rs = $self->_unregisterCronjob('discover_razor');
 	return $rs if $rs;
 		
@@ -157,22 +198,24 @@ sub disable
 		
 	$rs = $self->_unregisterCronjob('clean_bayes_db');
 	return $rs if $rs;
-	
+
 	$rs = $self->_unregisterCronjob('bayes_sa-learn');
 	return $rs if $rs;
-	
+
+	# Deactivate Roundcube Plugins
 	$rs = $self->_setRoundcubePlugin('sauserprefs', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('markasjunk2', 'remove');
 	return $rs if $rs;
-	
+
+	# Remove Postfix configuration
 	$rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
-	
+
 	0;
 }
 
@@ -187,34 +230,38 @@ sub disable
 sub uninstall
 {
 	my $self = shift;
-	
+
+	# Remove Roundcube Plugins
 	my $rs = $self->_removeRoundcubePlugins();
 	return $rs if $rs;
-	
+
+	# Remove spamass-milter configuration
 	$rs = $self->_modifySpamassMilterDefaultConfig('remove');
 	return $rs if $rs;
-	
+
+	$rs = $self->_restartDaemon('spamass-milter', 'restart');
+	return $rs if $rs;	
+
+	# Remove SpamAssassin configuration
 	$rs = $self->_modifySpamassassinDefaultConfig('remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_removeSpamassassinConfig();
 	return $rs if $rs;
-	
+
 	$rs = $self->_setSpamassassinPlugin('DecodeShortURLs', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setSpamassassinPlugin('iXhash2', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemon('spamassassin', 'restart');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemon('spamass-milter', 'restart');
-	return $rs if $rs;
-	
+
+	# Delete database user
 	$rs = $self->_dropSaDatabaseUser();
 	return $rs if $rs;
-	
+
 	0;
 }
 
@@ -337,21 +384,21 @@ sub bayesSaLearn
 sub _init
 {
 	my $self = shift;
-	
+
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
-	
-    if($self->{'action'} ~~ ['install', 'enable', 'disable', 'uninstall']) {
-		# Set SpamAssassin database user
-		$self->{'SA_DATABASE_USER'} ='sa_user';
-		
-		# Set SpamAssassin host
-		if($main::imscpConfig{'DATABASE_HOST'} eq 'localhost') {
-			$self->{'SA_HOST'} = 'localhost'
-		} else {
-			$self->{'SA_HOST'} = $main::imscpConfig{'BASE_SERVER_IP'};
-		}
-		
+
+	# Set SpamAssassin database user
+	$self->{'SA_DATABASE_USER'} ='sa_user';
+
+	# Set SpamAssassin host
+	if($main::imscpConfig{'DATABASE_HOST'} eq 'localhost') {
+		$self->{'SA_HOST'} = 'localhost'
+	} else {
+		$self->{'SA_HOST'} = $main::imscpConfig{'BASE_SERVER_IP'};
+	}
+
+	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
 		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'SpamAssassin'
@@ -363,8 +410,8 @@ sub _init
 
 		$self->{'config'} = decode_json($rdata->{'SpamAssassin'}->{'plugin_config'});
 	}
-	
-    $self;
+
+	$self;
 }
 
 =item _updateSpamassassinRules()
@@ -476,6 +523,7 @@ sub _modifySpamassMilterDefaultConfig($$)
 	
 	if($action eq 'add') {
 		my $spamassMilterOptions = $self->{'config'}->{'spamassMilterOptions'};
+		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
 		
 		if($self->{'config'}->{'reject_spam'} eq 'yes') {
 			$spamassMilterOptions .= ' -r -1';
@@ -487,11 +535,11 @@ sub _modifySpamassMilterDefaultConfig($$)
 		}
 		
 		$fileContent =~ s/^OPTIONS=.*/OPTIONS="$spamassMilterOptions"/gm;
+		$fileContent =~ s/.*SOCKET=.*/SOCKET="$milterSocket"/gm;
 	}
 	elsif($action eq 'remove') {
-		my $spamassMilterOptions = "-u spamass-milter -i 127.0.0.1";
-		
-		$fileContent =~ s/^OPTIONS=.*/OPTIONS="$spamassMilterOptions"/gm;
+		$fileContent =~ s/^OPTIONS=.*/OPTIONS="-u spamass-milter -i 127.0.0.1"/gm;
+		$fileContent =~ s%^SOCKET=.*%# SOCKET="/var/spool/postfix/spamass/spamass.sock"%gm;
 	}
 	
 	my $rs = $file->set($fileContent);
@@ -572,7 +620,10 @@ sub _modifyPostfixMainConfig($$)
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
-	if($action eq 'add') {
+	if($action eq 'add') {	
+		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
+		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
+	
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
 		my @miltersValues = split(' ', $1);
 		
@@ -581,7 +632,7 @@ sub _modifyPostfixMainConfig($$)
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
 			
 			my $postfixSpamassassinConfig = "\n\t# Begin Plugin::SpamAssassin\n";
-			$postfixSpamassassinConfig .= "\tunix:/spamass/spamass.sock\n";
+			$postfixSpamassassinConfig .= "\tunix:" . $milterSocket . "\n";
 			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin";
 			
 			my $milterConnectMacros = "\n# Begin Plugin::SpamAssassin::Macros\n";
@@ -600,7 +651,7 @@ sub _modifyPostfixMainConfig($$)
 			$postfixSpamassassinConfig .= "milter_default_action = accept\n";
 			$postfixSpamassassinConfig .= "smtpd_milters = \n";
 			$postfixSpamassassinConfig .= "\t# Begin Plugin::SpamAssassin\n";
-			$postfixSpamassassinConfig .= "\tunix:/spamass/spamass.sock\n";
+			$postfixSpamassassinConfig .= "\tunix:" . $milterSocket . "\n";
 			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin\n";
 			$postfixSpamassassinConfig .= "non_smtpd_milters = \$smtpd_milters\n";
 			$postfixSpamassassinConfig .= "# Begin Plugin::SpamAssassin::Macros\n";
@@ -618,7 +669,7 @@ sub _modifyPostfixMainConfig($$)
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-		} elsif(! $fileContent =~ /^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n/sgm) {
+		} else {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
@@ -665,11 +716,8 @@ sub _restartDaemonPostfix
 {
 	my $self = shift;
 	
-	require Servers::mta;
-	
-	my $mta = Servers::mta->factory();
-	my $rs = $mta->restart();
-	return $rs if $rs;
+    require Servers::mta;
+    Servers::mta->factory()->{'restart'} = 'yes';
 	
 	0;
 }

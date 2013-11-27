@@ -48,7 +48,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 	}
-	
+
 	/**
 	 * onBeforeInstallPlugin event listener
 	 *
@@ -57,7 +57,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -66,7 +66,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			}
 		}
 	}
-	
+
 	/**
 	 * Plugin installation
 	 *
@@ -78,7 +78,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	{
 		// Only there to tell the plugin manager that this plugin is installable
 	}
-	
+
 	/**
 	 * Plugin uninstallation
 	 *
@@ -90,7 +90,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	{
 		// Only there to tell the plugin manager that this plugin can be uninstalled
 	}
-	
+
 	/**
 	 * Plugin enable
 	 *
@@ -106,7 +106,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Plugin disable
 	 *
@@ -122,7 +122,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Add SpamAssassin service port
 	 *
@@ -142,7 +142,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			$dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
 		}
 	}
-	
+
 	/**
 	 * Remove SpamAssassin service port
 	 *
