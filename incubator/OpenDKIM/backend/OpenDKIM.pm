@@ -910,7 +910,8 @@ sub _modifyPostfixMainConfig($$)
 
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
-		} else {
+		}
+		elsif($fileContent =~ /^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}

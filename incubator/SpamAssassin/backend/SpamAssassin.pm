@@ -620,13 +620,13 @@ sub _modifyPostfixMainConfig($$)
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	
-	if($action eq 'add') {	
-		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
-		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
-	
+	if($action eq 'add') {
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
 		my @miltersValues = split(' ', $1);
-		
+
+		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
+		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
+
 		if(scalar @miltersValues >= 1) {
 			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
@@ -669,7 +669,8 @@ sub _modifyPostfixMainConfig($$)
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-		} else {
+		}
+		elsif($fileContent =~ /^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}

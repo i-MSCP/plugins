@@ -417,12 +417,12 @@ sub _modifyPostfixMainConfig($$)
 	return $rs if $rs;
 	
 	if($action eq 'add') {
+		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
+		my @miltersValues = split(' ', $1);
+
 		my $milterSocket = $self->{'config'}->{'MilterSocket'};
 		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
 
-		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		my @miltersValues = split(' ', $1);
-		
 		if(scalar @miltersValues >= 1) {
 			$fileContent =~ s/^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
 		
@@ -450,7 +450,8 @@ sub _modifyPostfixMainConfig($$)
 		
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
-		} else {
+		} 
+		elsif($fileContent =~ /^\t# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
