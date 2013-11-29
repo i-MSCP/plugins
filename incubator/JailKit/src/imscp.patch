@@ -582,7 +582,7 @@ diff -rupN jailkit/py/jk_list.in jailkit_wrk/py/jk_list.in
  		sys.exit(1)
 diff -rupN jailkit/py/jk_update.in jailkit_wrk/py/jk_update.in
 --- jailkit/py/jk_update.in	2007-03-22 21:20:49.000000000 +0100
-+++ jailkit_wrk/py/jk_update.in	2013-11-27 06:42:14.766540525 +0100
++++ jailkit_wrk/py/jk_update.in	2013-11-29 15:27:32.134041875 +0100
 @@ -168,18 +168,19 @@ def updatejail(jail, dirs, skips, config
  			jk_lib.gen_library_cache(jail)
  
@@ -605,7 +605,7 @@ diff -rupN jailkit/py/jk_update.in jailkit_wrk/py/jk_update.in
 +	print '-h|--help                  : this message'
 +	print '-v|--verbose               : give verbose output'
 +	print '-c|--configsection=SECTION : use options specified in section of config file'
-+	print '-j|--jail=JAILDOR          : the jail to update'
++	print '-j|--jail=JAILDIR          : the jail to update'
 +	print '-d|--dry-run               : show what will be done'
 +	print '-s|--skip=FILE             : skip file, option can be used multiple times'
 +	print '-k|--hardlink              : use hardlinks if possible'
