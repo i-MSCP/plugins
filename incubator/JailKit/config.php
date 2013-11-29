@@ -33,7 +33,7 @@ return array(
 	// Jailkit installation directory.
 	// This path is used as value of the --prefix option (JailKit configure script).
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
-	'install_path' => '/usr/local',
+	'install_path' => '/usr/local', # (Recommended value)
 
 	// Path to the root jail directory which holds all jails. Be sure that the partition in which this directory is
 	// living has enough space to host the jails.
@@ -46,10 +46,8 @@ return array(
 
 	// See man jk_init
 	'jail_app_sections' => array(
-		'basicshell',
-		'editors',
-		'mysql-client',
-		'sftp'
+		'imscp-base', // Include Pre-selected sections, users and groups (See the jk_init.ini file)
+		'mysql-client'
 	),
 
 	// See man jk_cp
@@ -61,6 +59,7 @@ return array(
 		'/usr/bin/env',
 		'/usr/bin/id',
 		'/usr/bin/groups',
+		'/usr/bin/lesspipe',
 		'/usr/bin/tput',
 		'/usr/bin/which'
 	),

@@ -1,3 +1,4 @@
-- Normal SSH account
+- Add ACL support to avoid to kill parent user processes
+- Allow to set hostname per jail (uts namespaces / https://lwn.net/Articles/179345/)
 - Per jail application sections
 - Per jail additional applications

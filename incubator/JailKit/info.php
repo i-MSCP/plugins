@@ -30,11 +30,14 @@
  */
 
 return array(
-	'author' => 'i-MSCP Team',
-	'email' => 'team@i-mscp.net',
+	'author' => array(
+		'Laurent Declercq',
+		'Sascha Bay'
+	),
+	'email' => 'plugins@i-mscp.net',
 	'version' => '0.0.1',
 	'date' => '2013-11-26',
 	'name' => 'JailKit',
-	'desc' => 'Plugin providing jailed SSH accounts (using JailKit) for i-MSCP customers.',
-	'url' => 'http://i-mscp.net'
+	'desc' => 'Plugin providing jailed shell access (using JailKit).',
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:jailkit'
 );

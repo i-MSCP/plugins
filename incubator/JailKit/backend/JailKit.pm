@@ -89,11 +89,11 @@ sub update
 	my $rs = $self->_install();
 	return $rs if $rs;
 
-	$rs = $self->_updateJails();
-	return $rs if $rs;
+	#$rs = $self->_updateJails();
+	#return $rs if $rs;
 
-	$rs = $self->_processFstabEntries();
-	return $rs if $rs;
+	#$rs = $self->_processFstabEntries();
+	#return $rs if $rs;
 
 	$self->_processJkSocketdEntries();
 }
@@ -118,7 +118,7 @@ sub change
 			state $rdata;
 
 			unless(defined $rdata) {
-				my $rdata = iMSCP::Database->factory()->doQuery(
+				$rdata = iMSCP::Database->factory()->doQuery(
 					'jailkit_login_id',
 					'
 						SELECT
@@ -128,7 +128,6 @@ sub change
 						INNER JOIN
 							admin USING(admin_id)
 					'
-
 				);
 				unless(ref $rdata eq 'HASH') {
 					error($rdata);
@@ -147,7 +146,7 @@ sub change
 						if(my @pwnam = getpwnam($sshLoginName)) {
 							if($parentUserUid != $pwnam[2] || $parentUserGid != $pwnam[3]) {
 								my @cmd = (
-									"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u " . escapeShell($sshLoginName) . ';',
+									"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u", escapeShell($sshLoginName) . ';',
 									$main::imscpConfig{'CMD_USERMOD'},
 									'-u', escapeShell($parentUserUid), # user UID
 									'-g', escapeShell($parentUserGid), # group GID
@@ -223,7 +222,7 @@ sub change
 			0;
 		});
 	} else {
-		0;
+		$self->updateJails();
 	}
 }
 
@@ -559,8 +558,8 @@ sub _addJail($$)
 		# Initialize jail using application sections
 		my ($stdout, $stderr);
 		my $rs = execute(
-			"umask 022; $installPath/sbin/jk_init -f -k -c $installPath/etc/jailkit/jk_init.ini " .
-			"-j $rootJailPath/$customerName @{$self->{'config'}->{'jail_app_sections'}}",
+			"umask 022; $installPath/sbin/jk_init -f -k -j $rootJailPath/$customerName " .
+			"@{$self->{'config'}->{'jail_app_sections'}}",
 			\$stdout,
 			\$stderr
 		);
@@ -806,7 +805,7 @@ sub _addSshUser($$$$$)
 		my $rs = iMSCP::Dir->new(
 			'dirname' => "$rootJailPath/$customerName/home/$sshLoginName/web"
 		)->make(
-			{ 'user' => $sshLoginName, 'group' => $parentUserGroup, 'mode' => 0750 }
+			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0755 }
 		);
 		return $rs if $rs;
 
@@ -858,18 +857,20 @@ sub _changeSshUser($$$$)
 	}
 
 	if($action eq 'lock') {
-		my ($stdout, $stderr);
-		my $rs = execute(
-			"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u $sshLoginName; /usr/bin/passwd $sshLoginName -l",
-			\$stdout,
-			\$stderr
+		# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes which were
+		# not spawned through the SSH connection
+		my @cmd = (
+			"$main::imscpConfig{'CMD_PKILL'} -KILL -f", escapeShell("sshd: $sshLoginName") . ';',
+			"/usr/bin/passwd -l", escapeShell($sshLoginName)
 		);
+		my ($stdout, $stderr);
+		my $rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'unlock') {
 		my ($stdout, $stderr);
-		my $rs = execute("/usr/bin/passwd $sshLoginName -u", \$stdout, \$stderr);
+		my $rs = execute("/usr/bin/passwd -u " . escapeShell($sshLoginName), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -977,18 +978,20 @@ sub _changeSshUsers($$)
 			}
 
 			if($action eq 'lock') {
-				my ($stdout, $stderr);
-				$rs = execute(
-					"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u $sshLoginName; /usr/bin/passwd $sshLoginName -l",
-					\$stdout,
-					\$stderr
+				# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes
+				# which were not spawned through the SSH connection
+				my @cmd = (
+					"$main::imscpConfig{'CMD_PKILL'} -KILL -f", escapeShell("sshd: $sshLoginName") . ';',
+					"/usr/bin/passwd -l", escapeShell($sshLoginName)
 				);
+				my ($stdout, $stderr);
+				$rs = execute("@cmd", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
 			} elsif($action eq 'unlock' && $sshLoginLocked eq '0') {
 				my ($stdout, $stderr);
-				$rs = execute("/usr/bin/passwd $sshLoginName -u", \$stdout, \$stderr);
+				$rs = execute("/usr/bin/passwd -u " . escapeShell($sshLoginName), \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
@@ -1102,12 +1105,15 @@ sub _processFstabEntries($;$)
 
 	if(%{$jailkitLoginEntries}) {
 		my $userWebDir = $main::imscpConfig{'USER_WEB_DIR'};
-		my $customerName = $jailkitLoginEntries->{$_}->{'admin_name'};
 
-		$fileContent .= $bTag;
-		$fileContent .= "$userWebDir/$customerName $rootJailPath/$customerName/home/" .
-			"$jailkitLoginEntries->{$_}->{'ssh_login_name'}/web none bind\n" for keys %{$jailkitLoginEntries};
-		$fileContent .= $eTag;
+		for(keys %{$jailkitLoginEntries}) {
+			my $customerName = $jailkitLoginEntries->{$_}->{'admin_name'};
+
+			$fileContent .= $bTag;
+			$fileContent .= "$userWebDir/$customerName $rootJailPath/$customerName/home/" .
+				"$jailkitLoginEntries->{$_}->{'ssh_login_name'}/web none bind\n";
+			$fileContent .= $eTag;
+		}
 	}
 
 	my $rs = $file->set($fileContent);
@@ -1196,9 +1202,12 @@ sub _processJkSocketdEntries
 
 sub _restartDaemon
 {
-	# Don't use $stdout or $stderr. Request manager will hangs and only end if the daemon is restarted manually
-	# TODO: TO BE CHECKED
-	execute('service jailkit restart');
+	my ($stdout, $stderr);
+	my $rs = execute('/usr/sbin/service jailkit restart', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+
+	$rs;
 }
 
 =item _stopDaemon()
@@ -1211,9 +1220,12 @@ sub _restartDaemon
 
 sub _stopDaemon
 {
-	# Don't use $stdout or $stderr. Request manager will hangs and only end if the daemon is restarted manually
-	# TODO: TO BE CHECKED
-	execute('service jailkit stop');
+	my ($stdout, $stderr);
+	my $rs = execute('/usr/sbin/service jailkit stop', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+
+	$rs;
 }
 
 =item _createRootJail
@@ -1293,6 +1305,11 @@ sub _installJailKit
 	my $installPath = $self->{'config'}->{'install_path'};
 	my $rs = 0;
 
+	if(-f "/etc/init.d/jailkit") {
+		$rs = $self->_stopDaemon();
+		return $rs if $rs;
+	}
+
 	# Backup current jailkit configuration file if any
 	if(-d "$installPath/etc/jailkit") {
 		my @files = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit", 'fileType' => '\\.ini')->getFiles();
@@ -1345,6 +1362,7 @@ sub _installJailKit
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	error($stdout) if $rs && ! $stderr && $stdout;
 	return $rs if $rs;
 
 	# Configure
@@ -1358,6 +1376,20 @@ sub _installJailKit
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
+
+	# Fixing permissions on the jailkit confdir (should be owwned by root:root and not setgid)
+	require iMSCP::Rights;
+	iMSCP::Rights->import();
+	setRights(
+		"$installPath/etc/jailkit",
+		{
+			'dirmode' => '00750',
+			'filemode' => '0640',
+			'user' => $main::imscpConfig{'ROOT_USER'},
+			'group' => $main::imscpConfig{'ROOT_GROUP'},
+			'recursive' => 1
+		}
+	);
 
 	# Install JailKit daemon init script into the /etc/init.d directory
 	if(-f 'extra/jailkit') {
@@ -1374,7 +1406,7 @@ sub _installJailKit
 			return 1;
 		}
 
-		$fileContent =~ s%^(JK_SOCKETD=).*%$1$installPath/sbin/jk_socketd%m;
+		$fileContent =~ s%^(DAEMON=).*%$1$installPath/sbin/\$NAME%m;
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -1467,6 +1499,7 @@ sub _uninstallJailKit
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	error($stdout) if $rs && ! $stderr && $stdout;
 	return $rs if $rs;
 
 	# Configure

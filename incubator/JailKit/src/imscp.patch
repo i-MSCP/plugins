@@ -1,3 +1,155 @@
+diff -rupN jailkit/extra/jailkit jailkit_wrk/extra/jailkit
+--- jailkit/extra/jailkit	2011-08-20 09:30:14.000000000 +0200
++++ jailkit_wrk/extra/jailkit	2013-11-29 10:18:34.358450038 +0100
+@@ -5,44 +5,118 @@
+ # Required-Stop:     $remote_fs $syslog
+ # Default-Start:     2 3 4 5
+ # Default-Stop:      0 1 6
+-# Short-Description: Start jk_socketd at boot time
+-# Description:       Enable jk_socketd
++# Short-Description: Start and stop jk_socketd
++# Description:       jk_socketd is a daemon to create a
++#        rate-limited /dev/log socket inside a chroot
+ ### END INIT INFO
+-#
+-# start/stop jailkit logging daemon.
+-#
+-# chkconfig: 2345 60 40
+-# description: chroot() jail wrapping utilities
+ 
+-JK_SOCKETD=/usr/sbin/jk_socketd
++# Author: Laurent Declercq <l.declercq@nuxwin.com>
++
++PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
++DESC="jailkit daemon"
++NAME=jk_socketd
++DAEMON=/usr/sbin/$NAME
++PIDFILE=/var/run/$NAME.pid
++SCRIPTNAME=/etc/init.d/$NAME
++
++# Exit if the package is not installed
++[ -x "$DAEMON" ] || exit 0
++
++# Read configuration variable file if it is present
++#[ -r /etc/default/$NAME ] && . /etc/default/$NAME
++
++# Load the VERBOSE setting and other rcS variables
++. /lib/init/vars.sh
++
++# Define LSB log_* functions.
++# Depend on lsb-base (>= 3.2-14) to ensure that this file is present
++# and status_of_proc is working.
++. /lib/lsb/init-functions
+ 
+-test -x ${JK_SOCKETD} || exit 0
++#
++# Function that starts the daemon/service
++#
++do_start()
++{
++	# Return
++	#  0 if daemon has been started
++	#  1 if daemon was already running
++	#  2 if daemon could not be started
++	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON \
++		--test > /dev/null || return 1
++	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
++		--pidfile $PIDFILE || return 2
++}
++
++#
++# Function that stops the daemon/service
++#
++do_stop()
++{
++	# Return
++	#  0 if daemon has been stopped
++	#  1 if daemon was already stopped
++	#  2 if daemon could not be stopped
++	#  other if a failure occurred
++	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE \
++		--name $NAME
++	RETVAL="$?"
++	[ "$RETVAL" = 2 ] && return 2
++	# Wait for children to finish too if this is a daemon that forks
++	# and if the daemon is only ever run from this initscript.
++	# If the above conditions are not satisfied then add some other code
++	# that waits for the process to drop all resources that could be
++	# needed by services started subsequently.  A last resort is to
++	# sleep for some time.
++	#start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
++	#[ "$?" = 2 ] && return 2
++	# Many daemons don't delete their pidfiles when they exit.
++	rm -f $PIDFILE
++	return "$RETVAL"
++}
+ 
+ case "$1" in
+-    start)
+-	echo -n "Starting jailkit:"
+-	echo -n " jk_socketd"
+-	${JK_SOCKETD}
+-	echo " done."
+-	;;
+-    stop)
+-        echo -n "Stopping jailkit:"
+-        echo -n " jk_socketd"
+-        killall ${JK_SOCKETD}
+-        echo " done."
++  start)
++	log_daemon_msg "Starting $DESC" "$NAME "
++	do_start
++	case "$?" in
++		0|1) log_end_msg 0 ;;
++		2)   log_end_msg 1 ;;
++	esac
+ 	;;
+-    restart)
+-		$0 stop
+-		$0 start
++  stop)
++	log_daemon_msg "Stopping $DESC" "$NAME "
++	do_stop
++	case "$?" in
++		0|1) log_end_msg 0 ;;
++		2)   log_end_msg 1 ;;
++	esac
+ 	;;
+-	force-reload)
+-		$0 stop
+-		$0 start
++  status)
++	status_of_proc "$DAEMON" "$NAME " && exit 0 || exit $?
+ 	;;
+-    *)
+-	echo "Usage: $0 {start|stop|restart|force-reload}"
+-	exit 1
++  restart|force-reload)
++	log_daemon_msg "Restarting $DESC" "$NAME "
++	do_stop
++	case "$?" in
++		0|1)
++			do_start
++			case "$?" in
++				0) log_end_msg 0 ;;
++				1) log_end_msg 1 ;; # Old process is still running
++				*) log_end_msg 1 ;; # Failed to start
++			esac
++			;;
++		*)
++			# Failed to stop
++			log_end_msg 1
++			;;
++		esac
++		;;
++  *)
++	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
++	exit 3
+ 	;;
+ esac
+ 
+-exit 0
++:
 diff -rupN jailkit/ini/jk_check.ini jailkit_wrk/ini/jk_check.ini
 --- jailkit/ini/jk_check.ini	2003-12-22 17:27:11.000000000 +0100
 +++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
@@ -42,7 +194,7 @@ diff -rupN jailkit/ini/jk_chrootsh.ini jailkit_wrk/ini/jk_chrootsh.ini
 +env= TERM, PATH
 diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
 --- jailkit/ini/jk_init.ini	2012-08-10 22:16:47.000000000 +0200
-+++ jailkit_wrk/ini/jk_init.ini	2013-11-27 06:36:52.994547610 +0100
++++ jailkit_wrk/ini/jk_init.ini	2013-11-28 17:40:13.027768943 +0100
 @@ -1,23 +1,16 @@
 +# See man jk_init
  [uidbasics]
@@ -88,7 +240,16 @@ diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
  
  [ssh]
  comment = ssh secure shell
-@@ -88,7 +79,7 @@ includesections = basicshell, midnightco
+@@ -71,7 +62,7 @@ devices = /dev/null
+ 
+ [basicshell]
+ comment = bash based shell with several basic utilities
+-paths = /bin/sh, bash, ls, cat, chmod, mkdir, cp, cpio, date, dd, echo, egrep, false, fgrep, grep, gunzip, gzip, ln, ls, mkdir, mktemp, more, mv, pwd, rm, rmdir, sed, sh, sleep, sync, tar, touch, true, uncompress, zcat, /etc/motd, /etc/issue, /etc/bash.bashrc, /etc/bashrc, /etc/profile, /usr/lib/locale/en_US.utf8
++paths = /bin/sh, bash, ls, cat, chmod, mkdir, cp, cpio, date, dd, echo, egrep, false, fgrep, grep, gunzip, gzip, ln, ls, mkdir, mktemp, more, mv, pwd, rgrep, rm, rmdir, sed, sh, sleep, sync, tar, touch, true, uncompress, zcat, /etc/motd, /etc/issue, /etc/bash.bashrc, /etc/bashrc, /etc/profile, /usr/lib/locale/en_US.utf8
+ users = root
+ groups = root
+ includesections = uidbasics
+@@ -88,16 +79,16 @@ includesections = basicshell, midnightco
  
  [terminfo]
  comment = terminfo databases, required for ncurses
@@ -96,8 +257,20 @@ diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
 +paths = /etc/terminfo, /usr/share/terminfo, /lib/terminfo
  
  [editors]
- comment = vim, joe and nano
-@@ -151,3 +142,10 @@ paths_w_setuid = /bin/ping
+-comment = vim, joe and nano
++comment = vim, joe, nano and pico
+ includesections = terminfo
+-paths = joe, nano, vi, vim, /etc/vimrc, /etc/joe, /usr/share/vim
++paths = joe, nano, vi, vim, /etc/vimrc, /etc/joe, /usr/share/vim, /usr/bin/pico
+ 
+ [netutils]
+ comment = several internet utilities like wget, ftp, rsync, scp, ssh
+-paths = wget, lynx, ftp, host, rsync, smbclient
++paths = wget, ftp, rsync
+ includesections = netbasics, ssh, sftp, scp
+ 
+ [apacheutils]
+@@ -151,3 +142,16 @@ paths_w_setuid = /bin/ping
  #comment = xterm
  #paths = /usr/bin/X11/xterm, /usr/share/terminfo, /etc/terminfo
  #devices = /dev/pts/0, /dev/pts/1, /dev/pts/2, /dev/pts/3, /dev/pts/4, /dev/ptyb4, /dev/ptya4, /dev/tty, /dev/tty0, /dev/tty4
@@ -108,6 +281,12 @@ diff -rupN jailkit/ini/jk_init.ini jailkit_wrk/ini/jk_init.ini
 +groups = mysql
 +paths = /usr/bin/mysql
 +includesections = netbasics, uidbasics
++
++[imscp-base]
++comment = Pre-selected sections, users and groups
++users = root, www-data
++groups = root, www-data
++includesections = extendedshell, netutils
 diff -rupN jailkit/ini/jk_lsh.ini jailkit_wrk/ini/jk_lsh.ini
 --- jailkit/ini/jk_lsh.ini	2006-04-01 22:57:10.000000000 +0200
 +++ jailkit_wrk/ini/jk_lsh.ini	2013-11-27 06:36:52.994547610 +0100
@@ -449,6 +628,30 @@ diff -rupN jailkit/py/Makefile.in jailkit_wrk/py/Makefile.in
  	    -e "s!LIBDIR='[a-z/]*'!LIBDIR='${PYLIBDIR}'!" \
  	    -e "s!EXEPREFIX='[a-z/]*'!EXEPREFIX='${PREFIX}'!" \
  	    -e "s:#!/usr/bin/python:#!$(PYTHONINTERPRETER):" < $< > $@
+diff -rupN jailkit/src/jk_chrootsh.c jailkit_wrk/src/jk_chrootsh.c
+--- jailkit/src/jk_chrootsh.c	2013-04-12 22:08:56.000000000 +0200
++++ jailkit_wrk/src/jk_chrootsh.c	2013-11-29 07:38:32.318661455 +0100
+@@ -203,7 +203,7 @@ int main (int argc, char **argv) {
+ 		tmp++;
+ 	}
+ 
+-	if (strcmp(tmp, PROGRAMNAME) != 0 && strcmp(tmp, "su")!= 0 && (tmp[0] != '-' || strcmp(&tmp[1], PROGRAMNAME))) {
++	if (strcmp(tmp, PROGRAMNAME) != 0 && strcmp(tmp, "su")!= 0 && strcmp(tmp, "-su")!= 0 && strcmp(tmp, "-"PROGRAMNAME)!=0) {
+ 		DEBUG_MSG("wrong name, tmp=%s, &tmp[1]=%s\n", tmp, &tmp[1]);
+ 		syslog(LOG_ERR, "abort, "PROGRAMNAME" is called as %s", argv[0]);
+ 		exit(1);
+diff -rupN jailkit/src/jk_lib.c jailkit_wrk/src/jk_lib.c
+--- jailkit/src/jk_lib.c	2013-04-18 10:12:03.000000000 +0200
++++ jailkit_wrk/src/jk_lib.c	2013-11-29 07:36:55.438663588 +0100
+@@ -195,7 +195,7 @@ int getjaildir(const char *oldhomedir, c
+ 		}
+ 		i--;
+ 	}
+-	return 1;
++	return 0;
+ }
+ 
+ char *strip_string(char * string) {
 diff -rupN jailkit/src/jk_lsh.c jailkit_wrk/src/jk_lsh.c
 --- jailkit/src/jk_lsh.c	2013-04-18 10:12:03.000000000 +0200
 +++ jailkit_wrk/src/jk_lsh.c	2013-11-27 06:36:52.994547610 +0100
@@ -465,6 +668,23 @@ diff -rupN jailkit/src/jk_lsh.c jailkit_wrk/src/jk_lsh.c
  	}
  	if (iniparser_get_string_at_position(parser, section, "environment", section_pos, buffer, 1024) > 0) {
  		char **envs, **tmp;
+diff -rupN jailkit/src/jk_socketd.c jailkit_wrk/src/jk_socketd.c
+--- jailkit/src/jk_socketd.c	2008-04-23 19:46:02.000000000 +0200
++++ jailkit_wrk/src/jk_socketd.c	2013-11-29 07:43:19.262655137 +0100
+@@ -165,8 +165,12 @@ static void socketlink_handle(Tsocketlin
+ 		if (numbytes < 0) {
+ 			DEBUG_MSG("recvfrom error %d: %s\n", errno, strerror(errno));
+ 		} else if (numbytes > 0) {
+-			if (send(sl->outsocket, &buf, numbytes, 0) != numbytes) {
++			int ret = send(sl->outsocket, &buf, numbytes, 0);
++			if (ret == -1) {
+ 				DEBUG_MSG("send error %d: %s\n", errno, strerror(errno));
++				syslog(LOG_CRIT, "failed to write log message, error %d: %s",errno,strerror(errno));
++			} else if (ret != numbytes) {
++				syslog(LOG_WARNING, "failed to write complete log message, message was %d bytes, delivered %d bytes",numbytes, ret);
+ 			}
+ 			/* write(sl->outsocket, &buf, numbytes); */
+ 			gettimeofday(&sl->lasttime,NULL);
 diff -rupN jailkit/src/Makefile.in jailkit_wrk/src/Makefile.in
 --- jailkit/src/Makefile.in	2013-04-12 21:47:41.000000000 +0200
 +++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100

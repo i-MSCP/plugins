@@ -1,6 +1,6 @@
 ## i-MSCP JailKit plugin v0.0.1
 
-Plugin providing jailed SSH accounts (using JailKit) for i-MSCP customers.
+Plugin providing jailed shell access (using JailKit).
 
 ### LICENSE
 
@@ -30,19 +30,23 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### UPDATE
 
-	- Backup your current plugins/JailKit/config.php file
+	- Backup your current config.php file
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the JailKit plugin archive
-	- Restore your plugins/JailKit/config.php file (check for any change)
+	- Restore your config.php file (check for any change)
 	- Update the plugin list through the plugin interface
 
 ### CONFIGURATION
 
- See the plugins/JailKit/config.php file.
+ See the config.php file.
 
 ### DEVELOPERS NOTE
 
  See the src/README file
+
+## TODO
+
+	See TODO file
 
 ### AUTHORS
 
