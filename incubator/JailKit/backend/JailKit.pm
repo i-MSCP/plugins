@@ -663,11 +663,11 @@ sub _deleteJail($$$)
 	my $rootJailPath = $self->{'config'}->{'root_jail_path'};
 
 	if(%{$rdata}) {
-		my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
-
 		require iMSCP::SystemUser;
 
 		for(keys %{$rdata}) {
+			my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
+
 			# Umount the parent user homedir from the SSH user web directory if any. This must be done before removing
 			# the SSH user, else, the parent user homedir will get deleted
 			my $rs = $self->_umount("$rootJailPath/$customerName/home/$sshLoginName/web");
@@ -1305,7 +1305,7 @@ sub _installJailKit
 	my $installPath = $self->{'config'}->{'install_path'};
 	my $rs = 0;
 
-	if(-f "/etc/init.d/jailkit") {
+	if(-f "/etc/init.d/jailkit") {
 		$rs = $self->_stopDaemon();
 		return $rs if $rs;
 	}

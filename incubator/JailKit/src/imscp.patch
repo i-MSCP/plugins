@@ -670,7 +670,7 @@ diff -rupN jailkit/src/jk_lsh.c jailkit_wrk/src/jk_lsh.c
  		char **envs, **tmp;
 diff -rupN jailkit/src/jk_socketd.c jailkit_wrk/src/jk_socketd.c
 --- jailkit/src/jk_socketd.c	2008-04-23 19:46:02.000000000 +0200
-+++ jailkit_wrk/src/jk_socketd.c	2013-11-29 07:43:19.262655137 +0100
++++ jailkit_wrk/src/jk_socketd.c	2013-11-29 15:03:22.762073785 +0100
 @@ -165,8 +165,12 @@ static void socketlink_handle(Tsocketlin
  		if (numbytes < 0) {
  			DEBUG_MSG("recvfrom error %d: %s\n", errno, strerror(errno));
@@ -685,6 +685,31 @@ diff -rupN jailkit/src/jk_socketd.c jailkit_wrk/src/jk_socketd.c
  			}
  			/* write(sl->outsocket, &buf, numbytes); */
  			gettimeofday(&sl->lasttime,NULL);
+@@ -433,7 +437,7 @@ int main(int argc, char**argv) {
+ 		ret = testsafepath(path, 0,0);
+ 		if (ret != 0) {
+ 			syslog(LOG_ERR, "abort, path %s is not owned root:root or does not have 0644 permissions\n",path);
+-			exit(53);		
++			exit(53);
+ 		}
+ 		
+ 		if (!(chdir(path)==0 && chroot(path)==0)) {
+@@ -475,6 +479,15 @@ int main(int argc, char**argv) {
+ 		DEBUG_MSG("created thread %i for %s\n",i,sl[i]->inpath);
+ 	}
+ 	DEBUG_MSG("main thread starting work on socket\n");
++
++	/* NXW fixed: daemon hangup */
++	if (!nodetach) {
++		/* Close out the standard file descriptors */
++		close(STDIN_FILENO);
++		close(STDOUT_FILENO);
++		close(STDERR_FILENO);
++	}
++
+ 	socketlink_handle(sl[0]);
+ /*	DEBUG_MSG("pause() for process %d\n",getpid());
+ 	pause();
 diff -rupN jailkit/src/Makefile.in jailkit_wrk/src/Makefile.in
 --- jailkit/src/Makefile.in	2013-04-12 21:47:41.000000000 +0200
 +++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100
