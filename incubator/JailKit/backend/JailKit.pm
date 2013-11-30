@@ -146,7 +146,7 @@ sub change
 						if(my @pwnam = getpwnam($sshLoginName)) {
 							if($parentUserUid != $pwnam[2] || $parentUserGid != $pwnam[3]) {
 								my @cmd = (
-									"$main::imscpConfig{'CMD_PKILL'} -KILL -f -u", escapeShell($sshLoginName) . ';',
+									"$main::imscpConfig{'CMD_PKILL'} --KILL -f -u", escapeShell($sshLoginName) . ';',
 									$main::imscpConfig{'CMD_USERMOD'},
 									'-u', escapeShell($parentUserUid), # user UID
 									'-g', escapeShell($parentUserGid), # group GID
@@ -222,7 +222,8 @@ sub change
 			0;
 		});
 	} else {
-		$self->updateJails();
+		# Plugin configuration has been changed. All jails must be updated
+		$self->_updateJails();
 	}
 }
 
@@ -618,7 +619,7 @@ sub _addJail($$)
 			$rs = iMSCP::Dir->new(
 				'dirname' => "$rootJailPath/$customerName/var/run/mysqld"
 			)->make(
-				{ 'user' => 'mysql', 'group' => 'root', 'mode' => 0755 }
+				{ 'user' => 'root', 'group' => 'root', 'mode' => 0755 }
 			);
 			return $rs if $rs;
 
@@ -711,7 +712,7 @@ sub _updateJails
 	my $self = shift;
 
 	my $rdata = iMSCP::Database->factory()->doQuery(
-		'jailkit_id', "SELECT jailkit_id, admin_id, admin_name, FROM jailkit WHERE jailkit_status` = 'ok'"
+		'jailkit_id', "SELECT jailkit_id, admin_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -860,7 +861,7 @@ sub _changeSshUser($$$$)
 		# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes which were
 		# not spawned through the SSH connection
 		my @cmd = (
-			"$main::imscpConfig{'CMD_PKILL'} -KILL -f", escapeShell("sshd: $sshLoginName") . ';',
+			"$main::imscpConfig{'CMD_PKILL'} --KILL -f", escapeShell("sshd: $sshLoginName") . ';',
 			"/usr/bin/passwd -l", escapeShell($sshLoginName)
 		);
 		my ($stdout, $stderr);
@@ -981,7 +982,7 @@ sub _changeSshUsers($$)
 				# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes
 				# which were not spawned through the SSH connection
 				my @cmd = (
-					"$main::imscpConfig{'CMD_PKILL'} -KILL -f", escapeShell("sshd: $sshLoginName") . ';',
+					"$main::imscpConfig{'CMD_PKILL'} --KILL -f", escapeShell("sshd: $sshLoginName") . ';',
 					"/usr/bin/passwd -l", escapeShell($sshLoginName)
 				);
 				my ($stdout, $stderr);

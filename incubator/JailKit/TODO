@@ -1,4 +1,5 @@
 - Add ACL support to avoid to kill parent user processes
-- Allow to set hostname per jail (uts namespaces / https://lwn.net/Articles/179345/)
-- Per jail application sections
-- Per jail additional applications
+- Allow to set hostname in jails (uts namespaces / https://lwn.net/Articles/179345/)
+- Per reseller --> customers application sections
+- Per reseller --> customers additional applications
+- Per reseller activation

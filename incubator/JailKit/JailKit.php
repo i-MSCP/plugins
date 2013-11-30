@@ -105,6 +105,23 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Plugin deactivation
+	 *
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function disable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		// On plugin update, we warn the admin about longest task wich is plannified
+		if($pluginManager->getPluginStatus($this->getName()) == 'tochange'	) {
+			set_page_message(
+				tr(' JailKit Plugin: Depending of the number of jails hosted on you your system, the change task can take several minutes.'),
+				'warning'
+			);
+		}
+	}
+
+	/**
 	 * onResellerScriptStart event listener
 	 *
 	 * @return void
@@ -316,13 +333,14 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 					array(
 						'label' => tr('SSH Accounts'),
 						'uri' => '/reseller/jailkit.php',
+						'order' => 2,
 						'title_class' => 'users'
 					)
 				);
-			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
+			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('SSH Accounts'),
+						'label' => tr('SSH Users'),
 						'uri' => '/client/jailkit.php',
 						'title_class' => 'ftp'
 					)
