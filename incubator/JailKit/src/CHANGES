@@ -1,8 +1,8 @@
 Changes provided by the imscp.patch
 ===================================
 
-+++ jailkit_wrk/extra/jailkit	2013-11-29 15:34:53.094032165 +0100
-	- Rewritten entire file (Debian init script)
++++ jailkit_wrk/extra/jailkit	2013-12-02 00:26:12.385525544 +0100
+	- Rewritten: Init script ( using Debian init script skeleton)
 
 +++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
 	- Removed config sample
@@ -18,6 +18,7 @@ Changes provided by the imscp.patch
 
 jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
 	- Removed config sample
+
 +++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-27 06:36:52.994547610 +0100
 	- Removed config sample
 
@@ -68,7 +69,7 @@ jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
 
 +++ jailkit_wrk/src/jk_socketd.c	2013-11-29 15:03:22.762073785 +0100
 	- CS fixes
-	- Fixed: Daemon hangup when started/restarted from perl script
+	- Fixed: Daemon hangs when started/restarted from perl script
 
 +++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100
 	- CS fixes
