@@ -1,0 +1,74 @@
+Changes provided by the imscp.patch
+===================================
+
++++ jailkit_wrk/extra/jailkit	2013-11-29 15:34:53.094032165 +0100
+	- Rewritten entire file (Debian init script)
+
++++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
+	- Removed config sample
+
++++ jailkit_wrk/ini/jk_chrootsh.ini	2013-11-27 06:36:52.990547610 +0100
+	- Added TERM and PATH variables
+	- Removed config sample
+
++++ jailkit_wrk/ini/jk_init.ini	2013-11-28 17:40:13.027768943 +0100
+	- Added imscp-base and mysql-client section
+	- backported change from upstream sources repository
+	- Removed Solaris config sample
+
+jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
+	- Removed config sample
++++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-27 06:36:52.994547610 +0100
+	- Removed config sample
+
++++ jailkit_wrk/ini/jk_update.ini	2013-11-27 06:36:52.994547610 +0100
+	- Added DEFAULT section (hardlink set to 1)
+	- Removed config sample
+
++++ jailkit_wrk/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+	- CS fixes
+
++++ jailkit_wrk/man/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+	- CS fixes
+
++++ jailkit_wrk/py/jk_addjailuser.in	2013-11-27 06:42:14.762540525 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/jk_check.in	2013-11-27 06:42:14.754540523 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/jk_cp.in	2013-11-27 06:42:14.766540525 +0100
+	- CS fixes + typo
+	- Fixed: Unable to set jail directory using -j option
+
++++ jailkit_wrk/py/jk_init.in	2013-11-27 06:42:14.762540525 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/jk_jailuser.in	2013-11-27 06:42:14.766540525 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/jk_list.in	2013-11-27 06:42:14.766540525 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/jk_update.in	2013-11-29 15:27:32.134041875 +0100
+	- CS fixes + typo
+
++++ jailkit_wrk/py/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+	- Fixed: #40681 Bug - jk_jailuser.in - PREFIX is static even when using --prefix while configuration
+		See http://savannah.nongnu.org/bugs/?40681
+
++++ jailkit_wrk/src/jk_chrootsh.c	2013-11-29 07:38:32.318661455 +0100
+	- Backported changes from upstream sources repository
+
++++ jailkit_wrk/src/jk_lib.c	2013-11-29 07:36:55.438663588 +0100
+	- Backported changes from upstream sources repository
+
++++ jailkit_wrk/src/jk_lsh.c	2013-11-27 06:36:52.994547610 +0100
+	- Fixed: Compile time warning
+
++++ jailkit_wrk/src/jk_socketd.c	2013-11-29 15:03:22.762073785 +0100
+	- CS fixes
+	- Fixed: Daemon hangup when started/restarted from perl script
+
++++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+	- CS fixes

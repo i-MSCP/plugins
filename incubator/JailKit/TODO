@@ -1,4 +1,4 @@
-- Add ACL support to avoid to kill parent user processes
+- Allow to remove application from a specific jail
 - Allow to set hostname in jails (uts namespaces / https://lwn.net/Articles/179345/)
 - Per reseller --> customers application sections
 - Per reseller --> customers additional applications

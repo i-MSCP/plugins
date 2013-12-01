@@ -1,7 +1,12 @@
 diff -rupN jailkit/extra/jailkit jailkit_wrk/extra/jailkit
 --- jailkit/extra/jailkit	2011-08-20 09:30:14.000000000 +0200
-+++ jailkit_wrk/extra/jailkit	2013-11-29 10:18:34.358450038 +0100
-@@ -5,44 +5,118 @@
++++ jailkit_wrk/extra/jailkit	2013-11-29 15:34:53.094032165 +0100
+@@ -1,48 +1,122 @@
+-#!/bin/sh
++#! /bin/sh
+ ### BEGIN INIT INFO
+ # Provides:          jailkit
+ # Required-Start:    $remote_fs $syslog
  # Required-Stop:     $remote_fs $syslog
  # Default-Start:     2 3 4 5
  # Default-Stop:      0 1 6
@@ -23,7 +28,7 @@ diff -rupN jailkit/extra/jailkit jailkit_wrk/extra/jailkit
 +PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 +DESC="jailkit daemon"
 +NAME=jk_socketd
-+DAEMON=/usr/sbin/$NAME
++DAEMON=/usr/local/sbin/$NAME
 +PIDFILE=/var/run/$NAME.pid
 +SCRIPTNAME=/etc/init.d/$NAME
 +
@@ -31,7 +36,7 @@ diff -rupN jailkit/extra/jailkit jailkit_wrk/extra/jailkit
 +[ -x "$DAEMON" ] || exit 0
 +
 +# Read configuration variable file if it is present
-+#[ -r /etc/default/$NAME ] && . /etc/default/$NAME
++[ -r /etc/default/$NAME ] && . /etc/default/$NAME
 +
 +# Load the VERBOSE setting and other rcS variables
 +. /lib/init/vars.sh

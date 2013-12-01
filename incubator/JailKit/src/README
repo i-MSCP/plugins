@@ -6,9 +6,10 @@ Upstream sources modifications
 
 Any change made to the upstream sources *must* be provided in the imscp.patch
 patch, which is automatically applied on upstream sources during plugin
-installation.
+installation. This mean that you *must* never do any change on the upstream
+sources directly.
 
-This mean that you *must* never do any change on the upstream sources directly.
+All the changes must be documented in the CHANGES file.
 
 Note: In near future, the installer will be able to apply multiple patches,
 which is the preferable way to provide fixes.
@@ -44,4 +45,5 @@ Patch creation
 4. Test your changes by installing the plugin...
 5. Delete your working tree
  $ rm -r jailkit_wrk
-6. Push your changes
+6. Update the CHANGES file
+7. Push your changes
