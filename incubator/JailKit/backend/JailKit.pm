@@ -108,25 +108,23 @@ sub change
 	my $self = shift;
 
 	if (defined $main::execmode && $main::execmode eq 'setup') {
-		# Event listener which is responsible to update SSH users' group in case parent user group has been modified
+		# Event listener which is responsible to update SSH users' group name
 		$self->{'hooksManager'}->register('onBeforeAddImscpUnixUser', sub {
 			my ($customerId, $parentUserGroup, $parentUserGid) = ($_[0], $_[3], $_[9]);
 
 			state $rdata; # We get the data once to avoid too many queries
 
 			unless(defined $rdata) {
-				$rdata = iMSCP::Database->factory()->doQuery(
-					'admin_id', "SELECT jailkit, admin_id, admin_name FROM jailkit"
-				);
+				$rdata = iMSCP::Database->factory()->doQuery('admin_id', 'SELECT admin_id, admin_name FROM jailkit');
 				unless(ref $rdata eq 'HASH') {
 					error($rdata);
 					return 1;
 				}
 			}
 
-			my $rootJailPath = $self->{'config'}->{'root_jail_path'};
+			my $rootJailPath = $self->{'config'}->{'root_jail_dir'};
 
-			if(exists $rdata->{$customerId}) {
+			if($parentUserGid && exists $rdata->{$customerId}) {
 				my $customerName = $rdata->{$customerId}->{'admin_name'};
 				my $groupName = getgrgid($parentUserGid);
 
@@ -139,7 +137,7 @@ sub change
 
 				$fileContent =~ s/^$groupName:/$parentUserGroup:/gm;
 
-				$rs = $file->set($fileContent);
+				my $rs = $file->set($fileContent);
 				return $rs if $rs;
 
 				$file->save();
