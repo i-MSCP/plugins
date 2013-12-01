@@ -2,7 +2,7 @@ Changes provided by the imscp.patch
 ===================================
 
 +++ jailkit_wrk/extra/jailkit	2013-12-02 00:26:12.385525544 +0100
-	- Rewritten: Init script ( using Debian init script skeleton)
+	- Rewritten: Init script (using Debian init script skeleton)
 
 +++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
 	- Removed config sample
@@ -55,8 +55,8 @@ jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
 	- CS fixes + typo
 
 +++ jailkit_wrk/py/Makefile.in	2013-11-27 06:36:52.994547610 +0100
-	- Fixed: #40681 Bug - jk_jailuser.in - PREFIX is static even when using --prefix while configuration
-		See http://savannah.nongnu.org/bugs/?40681
+	- Fixed: #40681 Bug - jk_jailuser.in - PREFIX is static even when using
+		--prefix while configuration (See http://savannah.nongnu.org/bugs/?40681)
 
 +++ jailkit_wrk/src/jk_chrootsh.c	2013-11-29 07:38:32.318661455 +0100
 	- Backported changes from upstream sources repository
