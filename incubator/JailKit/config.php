@@ -35,14 +35,14 @@ return array(
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
 	'install_path' => '/usr/local', # (Recommended value)
 
-	// Path to the root jail directory which holds all jails. Be sure that the partition in which this directory is
+	// Full path to the root jail directory which holds all jails. Be sure that the partition in which this directory is
 	// living has enough space to host the jails.
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
-	'root_jail_path' => '/home/imscp-jails',
+	'root_jail_dir' => '/home/imscp-jails',
 
 	// See man shells
 	// Don't change this value if you do not know what you are doing
-	'shell' => '/bin/bash',
+	'shell' => '/bin/bash', # (Recommended value)
 
 	// See man jk_init
 	'jail_app_sections' => array(
@@ -67,9 +67,9 @@ return array(
 	// See man jk_socketd
 	'jail_socketd_base' => '512',
 	'jail_socketd_peak' => '2048',
-	'jail_socketd_interval' => '10',
+	'jail_socketd_interval' => '5.0',
 
 	// Max SSH user per customer
-	// This is only a default value which can be modified through the reseller interface
+	// This is only a default value which can be modified through the reseller interface for each customer
 	'max_allowed_ssh_user' => '1'
 );

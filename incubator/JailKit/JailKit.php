@@ -91,6 +91,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
+
+		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
 	}
 
 	/**
@@ -101,7 +103,31 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
-		// Only there to tell the plugin manager that this plugin can be uninstalled
+		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+	}
+
+	/**
+	 * Plugin update
+	 *
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	{
+		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+	}
+
+	/**
+	 * Plugin activation
+	 *
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		if($pluginManager->getPluginStatus($this->getName()) == 'toenable') {
+			set_page_message(tr(' JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+		}
 	}
 
 	/**
@@ -112,12 +138,10 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function disable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		// On plugin update, we warn the admin about longest task wich is plannified
-		if($pluginManager->getPluginStatus($this->getName()) == 'tochange'	) {
-			set_page_message(
-				tr(' JailKit Plugin: Depending of the number of jails hosted on you your system, the change task can take several minutes.'),
-				'warning'
-			);
+		$pluginStatus = $pluginManager->getPluginStatus($this->getName());
+
+		if($pluginStatus == 'tochange' || $pluginStatus == 'todisable') {
+			set_page_message( tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
 		}
 	}
 

@@ -34,9 +34,9 @@ return array(
 		'Laurent Declercq',
 		'Sascha Bay'
 	),
-	'email' => 'plugins@i-mscp.net',
+	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
-	'date' => '2013-11-26',
+	'date' => '2013-12-01',
 	'name' => 'JailKit',
 	'desc' => 'Plugin providing jailed shell access (using JailKit).',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:jailkit'

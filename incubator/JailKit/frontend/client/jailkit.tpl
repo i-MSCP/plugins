@@ -4,8 +4,9 @@
 	<button id="add_jailkit_login" value="{TR_ADD_JAILKIT_LOGIN}">{TR_ADD_JAILKIT_LOGIN}</button>
 </div>
 <!-- EDP: jailkit_add_button -->
+
 <!-- BDP: jailkit_login_list -->
-<table>
+<table class="firstColFixed">
 	<thead>
 	<tr>
 		<th>{TR_JAILKIT_LOGIN_STATUS}</th>
@@ -22,15 +23,24 @@
 	<!-- BDP: jailkit_login_item -->
 	<tr>
 		<td>
-			<a href="#" onclick="action_status('{JAILKIT_LOGIN_ID}', '{JAILKIT_USER_NAME}'); return false;"
+			<!-- BDP: jailkit_action_status_link -->
+			<a href="jailkit.php?action=change&login_id={JAILKIT_LOGIN_ID}"
+			   onclick="return action_status('{JAILKIT_USER_NAME}');"
 			   class="icon i_{STATUS_ICON}">{JAILKIT_LOGIN_STATUS}</a>
+			<!-- EDP: jailkit_action_status_link -->
+
+			<!-- BDP: jailkit_action_status_static -->
+			<span class="icon i_{STATUS_ICON}">{JAILKIT_LOGIN_STATUS}</span>
+			<!-- EDP: jailkit_action_status_static -->
 		</td>
 		<td>{JAILKIT_USER_NAME}</td>
 		<td>
+			<!-- BDP: jailkit_action_links -->
 			<a class="icon i_edit"
 			   href="jailkit.php?action=edit&amp;login_id={JAILKIT_LOGIN_ID}">{TR_EDIT_LOGINNAME}</a>
 			<a class="icon i_delete delete_sshlogin"
 			   href="jailkit.php?action=delete&amp;login_id={JAILKIT_LOGIN_ID}">{TR_DELETE_LOGINNAME}</a>
+			<!-- EDP: jailkit_action_links -->
 		</td>
 	</tr>
 	<!-- EDP: jailkit_login_item -->
@@ -40,11 +50,8 @@
 			<div class="icon i_{STATUS_ICON}">{JAILKIT_LOGIN_STATUS}
 				<div>
 		</td>
-		<td>{JAILKIT_USER_NAME}</td>
-		<td>
-			<a class="icon i_edit" href="#">{TR_EDIT_LOGINNAME}</a>
-			<a class="icon i_delete" href="#">{TR_DELETE_LOGINNAME}</a>
-		</td>
+		<td colspan="2">{JAILKIT_USER_NAME}</td>
+		<td>&nbsp;</td>
 	</tr>
 	<!-- EDP: jailkit_login_item_disabled -->
 	</tbody>
@@ -97,15 +104,27 @@
 	<table class="firstColFixed">
 		<thead>
 		<tr>
-			<th>{TR_JAILKIT_USERNAME}</th>
-			<th>{TR_POPUP_JAILKIT_PASSWORD}</th>
+			<th colspan="2">{TR_EDIT_SSH_USER}</th>
 		</tr>
 		</thead>
 		<tbody>
 		<tr>
-			<td><label for="max_logins">{JAILKIT_USERNAME}</label></td>
-			<td><input type="password" id="ssh_login_pass" name="ssh_login_pass" value="{JAILKIT_PASSWORD}"
-					   autocomplete="off"/></td>
+			<td><label for="ssh_login_name">{TR_SSH_USERNAME}</label></td>
+			<td>
+				<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}"
+					   disabled="disabled"/>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="ssh_login_pass">{TR_SSH_PASSWORD}</label></td>
+			<td><input type="password" id="ssh_login_pass" name="ssh_login_pass" value="" autocomplete="off"/></td>
+		</tr>
+		<tr>
+			<td><label for="ssh_login_pass_confirm">{TR_SSH_PASSWORD_CONFIRM}</label></td>
+			<td>
+				<input type="password" id="ssh_login_pass_confirm" name="ssh_login_pass_confirm" value=""
+					   autocomplete="off"/>
+			</td>
 		</tr>
 		</tbody>
 	</table>
@@ -123,15 +142,25 @@
 		<table>
 			<tr>
 				<td><label for="ssh_login_name">{TR_SSH_USERNAME}</label></td>
+				<td><strong>jk_</strong></td>
 				<td>
-					<strong>jk_</strong>
-					<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}" maxlength="13"/>
+					<input type="text" id="ssh_login_name" name="ssh_login_name" value="{JAILKIT_USERNAME}"
+						   maxlength="13"/>
 				</td>
 			</tr>
 			<tr>
 				<td><label for="ssh_login_pass">{TR_SSH_PASSWORD}</label></td>
+				<td>&nbsp;</td>
 				<td>
-					<input type="password" id="ssh_login_pass" name="ssh_login_pass" value="{JAILKIT_PASSWORD}"
+					<input type="password" id="ssh_login_pass" name="ssh_login_pass" value=""
+						   autocomplete="off"/>
+				</td>
+			</tr>
+			<tr>
+				<td><label for="ssh_login_pass_confirm">{TR_SSH_PASSWORD_CONFIRM}</label></td>
+				<td>&nbsp;</td>
+				<td>
+					<input type="password" id="ssh_login_pass_confirm" name="ssh_login_pass_confirm" value=""
 						   autocomplete="off"/>
 				</td>
 			</tr>
@@ -144,7 +173,7 @@
 	$(document).ready(function () {
 		$('#jailkit_add_dialog').dialog({
 			bgiframe: true,
-			title: '{TR_PAGE_TITLE_JAILKIT_ADD}',
+			title: '{TR_DIALOG_TITLE_ADD}',
 			hide: 'blind',
 			show: 'slide',
 			focus: false,
@@ -172,12 +201,8 @@
 		});
 	});
 
-	function action_status(login_id, login_name) {
-		if (!confirm(sprintf("{DISABLE_LOGIN_ALERT}", login_name))) {
-			return false;
-		}
-
-		location = ("jailkit.php?action=change&login_id=" + login_id);
+	function action_status(login_name) {
+		return confirm(sprintf("{DISABLE_LOGIN_ALERT}", login_name));
 	}
 </script>
 <!-- EDP: jailkit_add_dialog -->
