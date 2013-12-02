@@ -5,26 +5,26 @@ Changes provided by the imscp.patch
 	- Rewritten: Init script (using Debian init script skeleton)
 
 +++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
-	- Removed config sample
+	- Removed: Config sample
 
 +++ jailkit_wrk/ini/jk_chrootsh.ini	2013-11-27 06:36:52.990547610 +0100
-	- Added TERM and PATH variables
-	- Removed config sample
+	- Added: TERM and PATH variables
+	- Removed: Config sample
 
 +++ jailkit_wrk/ini/jk_init.ini	2013-11-28 17:40:13.027768943 +0100
-	- Added imscp-base and mysql-client section
-	- backported change from upstream sources repository
-	- Removed Solaris config sample
+	- Added imscp-base and mysql-client sections
+	- Backported: Changes from upstream sources repository
+	- Removed: Solaris config sample
 
 jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
-	- Removed config sample
+	- Removed: Config sample
 
 +++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-27 06:36:52.994547610 +0100
-	- Removed config sample
+	- Removed: config sample
 
 +++ jailkit_wrk/ini/jk_update.ini	2013-11-27 06:36:52.994547610 +0100
-	- Added DEFAULT section (hardlink set to 1)
-	- Removed config sample
+	- Added: DEFAULT section (hardlink set to 1)
+	- Removed: Config sample
 
 +++ jailkit_wrk/Makefile.in	2013-11-27 06:36:52.994547610 +0100
 	- CS fixes
@@ -59,10 +59,10 @@ jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
 		--prefix while configuration (See http://savannah.nongnu.org/bugs/?40681)
 
 +++ jailkit_wrk/src/jk_chrootsh.c	2013-11-29 07:38:32.318661455 +0100
-	- Backported changes from upstream sources repository
+	- Backported: Changes from upstream sources repository
 
 +++ jailkit_wrk/src/jk_lib.c	2013-11-29 07:36:55.438663588 +0100
-	- Backported changes from upstream sources repository
+	- Backported: Changes from upstream sources repository
 
 +++ jailkit_wrk/src/jk_lsh.c	2013-11-27 06:36:52.994547610 +0100
 	- Fixed: Compile time warning

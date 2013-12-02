@@ -35,8 +35,8 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  JailKit
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @author      Sascha Bay <info@space2place.de>
- * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  */
 class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 {
@@ -67,7 +67,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.2', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -103,7 +103,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
-		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+		set_page_message(tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
 	}
 
 	/**
@@ -114,7 +114,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
-		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+		set_page_message(tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
 	}
 
 	/**
@@ -126,7 +126,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
 		if($pluginManager->getPluginStatus($this->getName()) == 'toenable') {
-			set_page_message(tr(' JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+			set_page_message(tr(' JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
 		}
 	}
 
@@ -141,7 +141,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$pluginStatus = $pluginManager->getPluginStatus($this->getName());
 
 		if($pluginStatus == 'tochange' || $pluginStatus == 'todisable') {
-			set_page_message( tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+			set_page_message( tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
 		}
 	}
 
@@ -162,12 +162,9 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
 		$stmt = exec_query(
 			'SELECT admin_id FROM admin INNER JOIN jailkit USING(admin_id) WHERE admin_id = ? AND admin_status = ?',
-			array($_SESSION['user_id'], $cfg['ITEM_OK_STATUS'])
+			array($_SESSION['user_id'], 'ok')
 		);
 
 		if ($stmt->rowCount()) {
@@ -183,12 +180,9 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onAfterDeleteCustomer($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
 		exec_query(
 			'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?',
-			array($cfg['ITEM_TODELETE_STATUS'], $event->getParam('customerId'))
+			array('todelete', $event->getParam('customerId'))
 		);
 	}
 
@@ -200,29 +194,21 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onAfterChangeDomainStatus($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
 		$customerId = $event->getParam('customerId');
 
 		if ($event->getParam('action') == 'enable') {
-			exec_query(
-				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array($cfg['ITEM_OK_STATUS'], $customerId)
-			);
+			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('ok', $customerId));
 
 			exec_query(
 				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('0', $cfg['ITEM_TOCHANGE_STATUS'], $customerId)
+				array('0', 'tochange', $customerId)
 			);
 		} else {
-			exec_query(
-				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?',
-				array($cfg['ITEM_DISABLED_STATUS'], $customerId)
-			);
+			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('disabled', $customerId));
 
 			exec_query(
 				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('1', $cfg['ITEM_TOCHANGE_STATUS'], $customerId)
+				array('1', 'tochange', $customerId)
 			);
 		}
 	}
@@ -249,8 +235,6 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function getItemWithErrorStatus()
 	{
-		$cfg = iMSCP_Registry::get('config');
-
 		$stmt = exec_query(
 			"
 				SELECT
@@ -270,11 +254,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 					jailkit_login_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 			",
 			array(
-				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
-				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
-				$cfg['ITEM_TODELETE_STATUS'], $cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'],
-				$cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'],
-				$cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+				'ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete',
+				'ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete'
 			)
 		);
 
@@ -295,17 +276,12 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function changeItemStatus($table, $field, $itemId)
 	{
-		$cfg = iMSCP_Registry::get('config');
-
 		if ($table == 'jailkit' && $field == 'jailkit_status') {
-			exec_query(
-				'UPDATE jailkit SET jailkit_status = ? WHERE jailkit_id = ?',
-				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
-			);
+			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE jailkit_id = ?', array('tochange', $itemId));
 		} elseif ($table == 'jailkit_login' && $field == 'jailkit_login_status') {
 			exec_query(
 				'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
-				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
+				array('tochange', $itemId)
 			);
 		}
 	}
@@ -317,9 +293,6 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function getCountRequests()
 	{
-		/** @var $cfg iMSCP_Config_Handler_File */
-		$cfg = iMSCP_Registry::get('config');
-
 		$stmt = exec_query(
 			'
 				SELECT
@@ -330,10 +303,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				) AS cnt
 			',
 			array(
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'],
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+				'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete',
+				'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete'
 			)
 		);
 
@@ -357,7 +328,6 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 					array(
 						'label' => tr('SSH Accounts'),
 						'uri' => '/reseller/jailkit.php',
-						'order' => 2,
 						'title_class' => 'users'
 					)
 				);
@@ -366,7 +336,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 					array(
 						'label' => tr('SSH Users'),
 						'uri' => '/client/jailkit.php',
-						'title_class' => 'ftp'
+						'title_class' => 'users'
 					)
 				);
 			}
