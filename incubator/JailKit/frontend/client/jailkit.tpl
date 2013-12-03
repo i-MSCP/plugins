@@ -18,11 +18,12 @@
 		<td>
 			<!-- BDP: jailkit_action_status_link -->
 			<a href="jailkit.php?action=change&amp;login_id={JAILKIT_LOGIN_ID}"
-			   class="icon i_{STATUS_ICON} disable_action" title="{TR_DISABLE}">{JAILKIT_LOGIN_STATUS}</a>
+			   class="icon i_{STATUS_ICON} change_action" data-change-alert="{TR_CHANGE_ALERT}"
+			   title="{TR_CHANGE_ACTION_TOOLTIP}">{JAILKIT_LOGIN_STATUS}</a>
 			<!-- EDP: jailkit_action_status_link -->
 
 			<!-- BDP: jailkit_action_status_static -->
-			<span class="icon i_{STATUS_ICON}">{JAILKIT_LOGIN_STATUS}</span>
+			<span class="icon i_{STATUS_ICON}" title="{JAILKIT_LOGIN_STATUS}">{JAILKIT_LOGIN_STATUS}</span>
 			<!-- EDP: jailkit_action_status_static -->
 		</td>
 		<td>{JAILKIT_USER_NAME}</td>
@@ -91,8 +92,6 @@
 
 		$dialogOpen = {JAILKIT_DIALOG_OPEN};
 
-		if($dialogOpen) $(".error.flash_message").prependTo("#jailkit_dialog");
-
 		var dialog = $("#jailkit_dialog").dialog({
 			title: "{TR_DIALOG_ADD_TITLE}",
 			hide: "blind",
@@ -101,6 +100,8 @@
 			minHeight: 300,
 			minWidth: 650,
 			modal: true,
+			open: function() { if($dialogOpen) $(".error.flash_message").prependTo("#jailkit_dialog"); },
+			close: function() { $(".error.flash_message").remove(); },
 			buttons: {
 				"submit_button": {
 					id: "dialog_submit_button",
@@ -117,7 +118,9 @@
 				},
 				"cancel_button": {
 					text: "{TR_DIALOG_CANCEL}",
-					click: function () { $(this).dialog("close"); }
+					click: function () {
+						$(this).dialog("close");
+					}
 				}
 			}
 		});
@@ -147,7 +150,7 @@
 		});
 
 		$(".delete_action").click(function () { return confirm("{DELETE_LOGIN_ALERT}"); });
-		$(".disable_action").click(function () { return confirm("{DISABLE_LOGIN_ALERT}"); });
+		$(".change_action").click(function () { return confirm($(this).data('change-alert')); });
 	});
 </script>
 <!-- EDP: jailkit_dialog -->

@@ -183,11 +183,10 @@ function jailkit_editSshUser($tpl, $sshUserId)
 /**
  * Activate/Deactivate SSH user
  *
- * @param int $customerId Customer unique identifier
  * @param int $sshUserId SSH user unique identifier
  * @return void
  */
-function jailkit_changeSshUserStatus($customerId, $sshUserId)
+function jailkit_changeSshUserStatus($sshUserId)
 {
 	if ($sshUserId) {
 		$stmt = exec_query(
@@ -203,7 +202,7 @@ function jailkit_changeSshUserStatus($customerId, $sshUserId)
 				AND
 					jailkit_login_status IN (?, ?)
 			',
-			array($customerId, $sshUserId, 'ok', 'disabled')
+			array($_SESSION['user_id'], $sshUserId, 'ok', 'disabled')
 		);
 
 		if ($stmt->rowCount()) {
@@ -237,11 +236,10 @@ function jailkit_changeSshUserStatus($customerId, $sshUserId)
 /**
  * Delete SSH user
  *
- * @param int $customerId Customer unique identifier
  * @param int $sshUserId SSH user unique identifier
  * @return bool
  */
-function jailkit_deleteSshUser($customerId, $sshUserId)
+function jailkit_deleteSshUser($sshUserId)
 {
 	if ($sshUserId) {
 		$stmt = exec_query(
@@ -257,7 +255,7 @@ function jailkit_deleteSshUser($customerId, $sshUserId)
 				AND
 					jailkit_login_status IN (?, ?)
 			',
-			array($customerId, $sshUserId, 'ok', 'disabled')
+			array($_SESSION['user_id'], $sshUserId, 'ok', 'disabled')
 		);
 
 		if ($stmt->rowCount()) {
@@ -334,8 +332,20 @@ function jailkit_generatePage($tpl)
 		foreach ($rows as $row) {
 			if ($row['jailkit_login_status'] == 'ok') {
 				$statusIcon = 'ok';
+				$tpl->assign(
+					array(
+						'TR_CHANGE_ACTION_TOOLTIP' => tr('Deactivate'),
+						'TR_CHANGE_ALERT' => tr('Are you sure you want deactivate this SSH user?')
+					)
+				);
 			} elseif ($row['jailkit_login_status'] == 'disabled') {
 				$statusIcon = 'disabled';
+				$tpl->assign(
+					array(
+						'TR_CHANGE_ACTION_TOOLTIP' => tr('Activate'),
+						'TR_CHANGE_ALERT' => tr('Are you sure you want activate this " SSH user?')
+					)
+				);
 			} elseif (
 				$row['jailkit_login_status'] == 'toadd' || $row['jailkit_login_status'] == 'tochange' ||
 				$row['jailkit_login_status'] == 'todelete'
@@ -354,7 +364,7 @@ function jailkit_generatePage($tpl)
 				)
 			);
 
-			if ($row['jailkit_login_status'] != 'ok') {
+			if (!in_array($row['jailkit_login_status'], array('ok', 'disabled'))) {
 				$tpl->assign(
 					array(
 						'JAILKIT_ACTION_STATUS_LINK' => '',
@@ -429,7 +439,6 @@ $tpl->assign(
 		'TR_ADD_JAILKIT_LOGIN' => tr('Add SSH User'),
 		'DELETE_LOGIN_ALERT' => tr('Are you sure you want to delete this SSH user?'),
 		'DISABLE_LOGIN_ALERT' => tr('Are you sure you want to disable this SSH user?'),
-		'TR_DISABLE' => tr('Disable'),
 		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE' => tr('Delete'),
 		'TR_DIALOG_ADD' => tojs(tr('Add', true)),
@@ -459,12 +468,12 @@ if (isset($_REQUEST['action'])) {
 		}
 	} elseif ($action == 'change') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
-		jailkit_changeSshUserStatus($_SESSION['user_id'], $sshUserId);
+		jailkit_changeSshUserStatus($sshUserId);
 		redirectTo('jailkit.php');
 	} elseif ($action == 'delete') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
 
-		if (jailkit_deleteSshUser($_SESSION['user_id'], $sshUserId)) {
+		if (jailkit_deleteSshUser($sshUserId)) {
 			set_page_message(tr('SSH user successfully scheduled for deletion.'), 'success');
 			redirectTo('jailkit.php');
 		}
