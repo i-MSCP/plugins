@@ -162,14 +162,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		$stmt = exec_query(
-			'SELECT admin_id FROM admin INNER JOIN jailkit USING(admin_id) WHERE admin_id = ? AND admin_status = ?',
-			array($_SESSION['user_id'], 'ok')
-		);
-
-		if ($stmt->rowCount()) {
-			$this->setupNavigation('client');
-		}
+		$this->setupNavigation('client');
 	}
 
 	/**
@@ -336,11 +329,49 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 					array(
 						'label' => tr('SSH Users'),
 						'uri' => '/client/jailkit.php',
-						'title_class' => 'users'
+						'title_class' => 'users',
+						'privilege_callback' => array('name' => array($this, 'clientPrivilegeCalback'))
 					)
 				);
 			}
 		}
+	}
+
+	/**
+	 * Client privilege callback
+	 *
+	 * @return bool
+	 */
+	public function clientPrivilegeCalback()
+	{
+		$stmt = exec_query('SELECT jailkit_status FROM jailkit WHERE admin_id = ?', $_SESSION['user_id']);
+
+		if($stmt->rowCount()) {
+			$jailkitStatus = $stmt->fields['jailkit_status'];
+
+			if($jailkitStatus != 'ok') {
+				if($_SERVER['SCRIPT_NAME'] == '/client/jailkit.php') {
+					redirectTo('domains_manage.php');
+				}
+
+				if($_SERVER['SCRIPT_NAME'] == '/client/domains_manage.php') {
+					if($jailkitStatus == 'disabled' ) {
+						set_page_message(tr('SSH feature has been disabled by your reseller.'), 'warning');
+					} elseif($jailkitStatus != 'toadd' && $jailkitStatus != 'todelete') {
+						set_page_message(
+							tr('SSH feature is currently unavailable due to maintenance operation.'), 'warning'
+						);
+					}
+				}
+			} else {
+				return true;
+			}
+		} elseif($_SERVER['SCRIPT_NAME'] == '/client/jailkit.php') {
+			showBadRequestErrorPage();
+			exit;
+		}
+
+		return false;
 	}
 
 	/**

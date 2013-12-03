@@ -74,8 +74,8 @@
 				<td><input type="password" id="ssh_login_pass_confirm" name="ssh_login_pass_confirm" value=""/></td>
 			</tr>
 		</table>
-		<input type="hidden" id="login_id" name="login_id" value="{ACTION}"/>
-		<input type="hidden" id="action" name="action" value="{LOGIN_ID}"/>
+		<input type="hidden" id="login_id" name="login_id" value="{LOGIN_ID}"/>
+		<input type="hidden" id="action" name="action" value="{ACTION}"/>
 	</form>
 </div>
 
@@ -89,10 +89,15 @@
 			}
 		);
 
+		$dialogOpen = {JAILKIT_DIALOG_OPEN};
+
+		if($dialogOpen) $(".error.flash_message").prependTo("#jailkit_dialog");
+
 		var dialog = $("#jailkit_dialog").dialog({
+			title: "{TR_DIALOG_ADD_TITLE}",
 			hide: "blind",
 			show: "slide",
-			autoOpen: {JAILKIT_DIALOG_OPEN},
+			autoOpen: $dialogOpen,
 			minHeight: 300,
 			minWidth: 650,
 			modal: true,
@@ -101,21 +106,31 @@
 					id: "dialog_submit_button",
 					text: "{TR_DIALOG_ADD}",
 					click: function () {
+						if($("#action").val() == 'add') {
+							$("#login_id").prop('disabled', true);
+						} else {
+							$("#login_id").prop('disabled', false);
+						}
+
 						$("#jailkit_login_frm").submit();
 					}
 				},
 				"cancel_button": {
 					text: "{TR_DIALOG_CANCEL}",
-					click: function () {
-						$(this).dialog("close");
-					}
+					click: function () { $(this).dialog("close"); }
 				}
 			}
 		});
 
+		if($("#action").val() == 'edit') {
+			$("#ssh_login_name_prefix").hide();
+			$("#ssh_login_name").prop('disabled', true);
+			$("#dialog_submit_button").button("option", "label", "{TR_DIALOG_EDIT}");
+			dialog.dialog("option", "title", "{TR_DIALOG_EDIT_TITLE}");
+		}
+
 		$("#add_action").click(function () {
 			$("#jailkit_login_frm").find("input").val("").prop("disabled", false);
-			$("#login_id").prop('disabled', true);
 			$("#dialog_submit_button").button("option", "label", "{TR_DIALOG_ADD}");
 			$("#ssh_login_name_prefix").show();
 			$("#action").val('add');
@@ -125,18 +140,14 @@
 		$('.edit_action').click(function () {
 			$("#ssh_login_name_prefix").hide();
 			$("#ssh_login_name").val($(this).data("login-name")).prop('disabled', true);
-			$("#login_id").val($(this).data("login-id")).prop('disabled', false);
+			$("#login_id").val($(this).data("login-id"));
 			$("#action").val('edit');
 			$('#dialog_submit_button').button("option", "label", "{TR_DIALOG_EDIT}");
 			dialog.dialog("option", "title", "{TR_DIALOG_EDIT_TITLE}").dialog("open");
 		});
 
-		$(".delete_action").click(function () {
-			return confirm("{DELETE_LOGIN_ALERT}");
-		});
-		$(".disable_action").click(function () {
-			return confirm("{DISABLE_LOGIN_ALERT}");
-		});
+		$(".delete_action").click(function () { return confirm("{DELETE_LOGIN_ALERT}"); });
+		$(".disable_action").click(function () { return confirm("{DISABLE_LOGIN_ALERT}"); });
 	});
 </script>
 <!-- EDP: jailkit_dialog -->
