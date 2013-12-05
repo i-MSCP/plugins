@@ -46,7 +46,7 @@ return array(
 
 	// See man jk_init
 	'jail_app_sections' => array(
-		'imscp-base', // Include Pre-selected sections, users and groups (See the jk_init.ini file)
+		'imscp-base', // Include Pre-selected sections, users and groups
 		'mysql-client'
 	),
 
@@ -56,6 +56,7 @@ return array(
 		'/usr/bin/basename',
 		'/usr/bin/dircolors',
 		'/usr/bin/dirname',
+		'/usr/bin/clear_console',
 		'/usr/bin/env',
 		'/usr/bin/id',
 		'/usr/bin/groups',

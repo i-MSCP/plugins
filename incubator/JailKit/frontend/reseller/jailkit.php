@@ -241,7 +241,7 @@ function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
 	} else {
 		set_page_message(tr("An unexpected error occured. Please contact your administrator."), 'error');
 		write_log('Unable to load JailKit plugin configuration', E_USER_ERROR);
-		redirectTo('jailkit.php');
+		redirectTo('ssh_accounts.php');
 		exit;
 	}
 
@@ -259,7 +259,7 @@ function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
 		showBadRequestErrorPage();
 	}
 
-	redirectTo('jailkit.php');
+	redirectTo('ssh_accounts.php');
 }
 
 /**
@@ -284,7 +284,7 @@ function jailkit_deactivateSsh($customerId, $resellerId)
 		showBadRequestErrorPage();
 	}
 
-	redirectTo('jailkit.php');
+	redirectTo('ssh_accounts.php');
 }
 
 /**
@@ -314,7 +314,7 @@ function jailkit_changeCustomerJail($tpl, $customerId, $resellerId)
 					set_page_message(tr('SSH account limit succesfully updated.'), 'success');
 				}
 
-				redirectTo('jailkit.php');
+				redirectTo('ssh_accounts.php');
 			} else {
 				set_page_message(tr("Invalid SSH account limit."), 'error');
 			}
@@ -374,7 +374,7 @@ function jailkit_changeCustomerPermission($customerId, $resellerId)
 		showBadRequestErrorPage();
 	}
 
-	redirectTo('jailkit.php');
+	redirectTo('ssh_accounts.php');
 }
 
 /***********************************************************************************************************************

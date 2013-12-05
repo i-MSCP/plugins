@@ -18,7 +18,7 @@
 	<tr>
 		<td>
 			<!-- BDP: jailkit_action_status_link -->
-			<a href="jailkit.php?action=change&amp;login_id={JAILKIT_LOGIN_ID}"
+			<a href="ssh_users.php?action=change&amp;login_id={JAILKIT_LOGIN_ID}"
 			   class="icon i_{STATUS_ICON} change_action" data-change-alert="{TR_CHANGE_ALERT}"
 			   title="{TR_CHANGE_ACTION_TOOLTIP}">{JAILKIT_LOGIN_STATUS}</a>
 			<!-- EDP: jailkit_action_status_link -->
@@ -34,7 +34,7 @@
 				  data-login-name="{JAILKIT_USER_NAME}" title="{TR_EDIT}">{TR_EDIT}</span>
 
 			<a class="icon i_delete delete_action"
-			   href="jailkit.php?action=delete&amp;login_id={JAILKIT_LOGIN_ID}" title="{TR_DELETE}">{TR_DELETE}</a>
+			   href="ssh_users.php?action=delete&amp;login_id={JAILKIT_LOGIN_ID}" title="{TR_DELETE}">{TR_DELETE}</a>
 			<!-- EDP: jailkit_action_links -->
 		</td>
 	</tr>
@@ -54,7 +54,7 @@
 
 <!-- BDP: jailkit_dialog -->
 <div id="jailkit_dialog">
-	<form name="jailkit_login_frm" id="jailkit_login_frm" action="jailkit.php" method="post" autocomplete="off">
+	<form name="jailkit_login_frm" id="jailkit_login_frm" action="ssh_users.php" method="post" autocomplete="off">
 		<table>
 			<tr>
 				<td><label for="ssh_login_name">{TR_SSH_USERNAME}</label></td>

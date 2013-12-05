@@ -1435,7 +1435,7 @@ sub _uninstallJailKit
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	# Remove jailkit conffig directory
+	# Remove jailkit config directory
 	$rs = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit")->remove();
 	return $rs if $rs;
 

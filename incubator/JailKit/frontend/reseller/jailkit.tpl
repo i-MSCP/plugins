@@ -1,6 +1,6 @@
 
 <!-- BDP: jailkit_list -->
-<form action="jailkit.php" method="post" name="activate_customer" id="activate_customer">
+<form action="ssh_accounts.php" method="post" name="activate_customer" id="activate_customer">
 	<label>
 		<select name="admin_id">
 			<option value="-1">{TR_JAILKIT_SELECT_NAME_NONE}</option>
@@ -37,10 +37,10 @@
 		<td>{JAILKIT_CUSTOMER_NAME}</td>
 		<td>{JAILKIT_LOGIN_LIMIT}</td>
 		<td>
-			<a class="icon i_edit" href="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}"
+			<a class="icon i_edit" href="ssh_accounts.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}"
 			   title="{TR_EDIT_TOOLTIP}">{TR_EDIT_JAIL}</a>
 			<a class="icon i_delete deactivate_jailkit"
-			   href="jailkit.php?action=deactivate&amp;admin_id={JAILKIT_ADMIN_ID}"
+			   href="ssh_accounts.php?action=deactivate&amp;admin_id={JAILKIT_ADMIN_ID}"
 			   title="{TR_DEACTIVATE_TOOLTIP}">{TR_DELETE_JAIL}</a>
 		</td>
 	</tr>
@@ -51,7 +51,7 @@
 
 <div class="paginator">
 	<!-- BDP: scroll_prev -->
-	<a class="icon i_prev" href="jailkit.php?psi={PREV_PSI}" title="{TR_PREVIOUS}">{TR_PREVIOUS}</a>
+	<a class="icon i_prev" href="ssh_accounts.php?psi={PREV_PSI}" title="{TR_PREVIOUS}">{TR_PREVIOUS}</a>
 	<!-- EDP: scroll_prev -->
 	<!-- BDP: scroll_prev_gray -->
 	<a class="icon i_prev_gray" href="#"></a>
@@ -60,7 +60,7 @@
 	<a class="icon i_next_gray" href="#"></a>
 	<!-- EDP: scroll_next_gray -->
 	<!-- BDP: scroll_next -->
-	<a class="icon i_next" href="jailkit.php?psi={NEXT_PSI}" title="{TR_NEXT}">{TR_NEXT}</a>
+	<a class="icon i_next" href="ssh_accounts.php?psi={NEXT_PSI}" title="{TR_NEXT}">{TR_NEXT}</a>
 	<!-- EDP: scroll_next -->
 </div>
 
@@ -76,7 +76,7 @@
 			return false;
 		}
 
-		location = ("jailkit.php?action=change&admin_id=" + dom_id);
+		location = ("ssh_accounts.php?action=change&admin_id=" + dom_id);
 	}
 </script>
 <!-- EDP: jailkit_customer_list -->
@@ -107,7 +107,7 @@
 <!-- EDP: jailkit_list -->
 
 <!-- BDP: jailkit_edit -->
-<form action="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}" method="post" name="edit_jail" id="edit_jail">
+<form action="ssh_accounts.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}" method="post" name="edit_jail" id="edit_jail">
 	<table class="firstColFixed">
 		<thead>
 		<tr>
@@ -124,7 +124,7 @@
 
 	<div class="buttons">
 		<input name="submit" type="submit" value="{TR_UPDATE}"/>
-		<a class="link_as_button" href="jailkit.php">{TR_CANCEL}</a>
+		<a class="link_as_button" href="ssh_accounts.php">{TR_CANCEL}</a>
 	</div>
 </form>
 <!-- EDP: jailkit_edit -->

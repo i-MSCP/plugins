@@ -82,6 +82,9 @@ function jailkit_addSshUser($tpl)
 
 		if (!$error) {
 			try {
+
+				$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
+
 				exec_query(
 					'
 						INSERT INTO jailkit_login (
@@ -90,7 +93,7 @@ function jailkit_addSshUser($tpl)
 							?, ?, ?, ?
 						)
 					',
-					array($_SESSION['user_id'], $loginUsername, cryptPasswordWithSalt($loginPassword), 'toadd')
+					array($_SESSION['user_id'], $loginUsername, $loginPassword, 'toadd')
 				);
 
 				send_request();
@@ -156,9 +159,11 @@ function jailkit_editSshUser($tpl, $sshUserId)
 			}
 
 			if (!$error) {
+				$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
+
 				exec_query(
 					'UPDATE jailkit_login SET ssh_login_pass = ?, jailkit_login_status = ? WHERE jailkit_login_id = ?',
-					array(cryptPasswordWithSalt($loginPassword), 'tochange', $sshUserId)
+					array($loginPassword, 'tochange', $sshUserId)
 				);
 
 				send_request();
@@ -457,25 +462,25 @@ if (isset($_REQUEST['action'])) {
 	if ($action == 'add') {
 		if (jailkit_addSshUser($tpl)) {
 			set_page_message(tr('SSH user successfully scheduled for addition.'), 'success');
-			redirectTo('jailkit.php');
+			redirectTo('ssh_users.php');
 		}
 	} elseif ($action == 'edit') {
 		$sshUserId = (isset($_POST['login_id'])) ? clean_input($_POST['login_id']) : '';
 
 		if (jailkit_editSshUser($tpl, $sshUserId)) {
 			set_page_message(tr('SSH user successfully scheduled for update.'), 'success');
-			redirectTo('jailkit.php');
+			redirectTo('ssh_users.php');
 		}
 	} elseif ($action == 'change') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
 		jailkit_changeSshUserStatus($sshUserId);
-		redirectTo('jailkit.php');
+		redirectTo('ssh_users.php');
 	} elseif ($action == 'delete') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
 
 		if (jailkit_deleteSshUser($sshUserId)) {
 			set_page_message(tr('SSH user successfully scheduled for deletion.'), 'success');
-			redirectTo('jailkit.php');
+			redirectTo('ssh_users.php');
 		}
 	} else {
 		showBadRequestErrorPage();

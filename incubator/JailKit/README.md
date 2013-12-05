@@ -1,6 +1,6 @@
 ## i-MSCP JailKit plugin v0.0.1
 
-Plugin providing jailed shell access..
+Plugin providing jailed shell access.
 
 ### LICENSE
 
