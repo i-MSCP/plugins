@@ -90,7 +90,7 @@ function jailkit_addSshUser($tpl)
 							?, ?, ?, ?
 						)
 					',
-					array($_SESSION['user_id'], $loginUsername, $loginPassword, 'toadd')
+					array($_SESSION['user_id'], $loginUsername, cryptPasswordWithSalt($loginPassword), 'toadd')
 				);
 
 				send_request();
@@ -158,7 +158,7 @@ function jailkit_editSshUser($tpl, $sshUserId)
 			if (!$error) {
 				exec_query(
 					'UPDATE jailkit_login SET ssh_login_pass = ?, jailkit_login_status = ? WHERE jailkit_login_id = ?',
-					array($loginPassword, 'tochange', $sshUserId)
+					array(cryptPasswordWithSalt($loginPassword), 'tochange', $sshUserId)
 				);
 
 				send_request();
@@ -343,7 +343,7 @@ function jailkit_generatePage($tpl)
 				$tpl->assign(
 					array(
 						'TR_CHANGE_ACTION_TOOLTIP' => tr('Activate'),
-						'TR_CHANGE_ALERT' => tr('Are you sure you want activate this " SSH user?')
+						'TR_CHANGE_ALERT' => tr('Are you sure you want activate this SSH user?')
 					)
 				);
 			} elseif (

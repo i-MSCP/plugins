@@ -16,6 +16,7 @@
 	</div>
 </form>
 <!-- BDP: jailkit_customer_list -->
+
 <table>
 	<thead>
 	<tr>
@@ -39,7 +40,7 @@
 			<a class="icon i_edit" href="jailkit.php?action=edit&amp;admin_id={JAILKIT_ADMIN_ID}"
 			   title="{TR_EDIT_TOOLTIP}">{TR_EDIT_JAIL}</a>
 			<a class="icon i_delete deactivate_jailkit"
-			   href="jailkit.php?action=delete&amp;admin_id={JAILKIT_ADMIN_ID}"
+			   href="jailkit.php?action=deactivate&amp;admin_id={JAILKIT_ADMIN_ID}"
 			   title="{TR_DEACTIVATE_TOOLTIP}">{TR_DELETE_JAIL}</a>
 		</td>
 	</tr>
@@ -79,6 +80,7 @@
 	}
 </script>
 <!-- EDP: jailkit_customer_list -->
+
 <!-- BDP: jailkit_no_customer_item -->
 <table>
 	<thead>

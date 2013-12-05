@@ -92,7 +92,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 
-		set_page_message(tr('JailKit Plugin: This task can take few minutes. Be patient.'), 'warning');
+		set_page_message(tr('JailKit Plugin: This task can take few minutes. Please, be patient.'), 'warning');
 	}
 
 	/**
@@ -103,7 +103,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
-		set_page_message(tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
+		set_page_message(tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 	}
 
 	/**
@@ -114,7 +114,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
-		set_page_message(tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
+		set_page_message(tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 	}
 
 	/**
@@ -126,7 +126,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
 		if($pluginManager->getPluginStatus($this->getName()) == 'toenable') {
-			set_page_message(tr(' JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
+			set_page_message(tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 		}
 	}
 
@@ -141,7 +141,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$pluginStatus = $pluginManager->getPluginStatus($this->getName());
 
 		if($pluginStatus == 'tochange' || $pluginStatus == 'todisable') {
-			set_page_message( tr('JailKit Plugin: This task can take few seconds. Be patient.'), 'warning');
+			set_page_message( tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 		}
 	}
 
@@ -216,8 +216,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
 
 		return array(
-			'/reseller/jailkit.php' => $pluginDir . '/frontend/reseller/jailkit.php',
-			'/client/jailkit.php' => $pluginDir . '/frontend/client/jailkit.php'
+			'/reseller/ssh_accounts.php' => $pluginDir . '/frontend/reseller/jailkit.php',
+			'/client/ssh_users.php' => $pluginDir . '/frontend/client/jailkit.php'
 		);
 	}
 
@@ -320,15 +320,16 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 				$page->addPage(
 					array(
 						'label' => tr('SSH Accounts'),
-						'uri' => '/reseller/jailkit.php',
-						'title_class' => 'users'
+						'uri' => '/reseller/ssh_accounts.php',
+						'title_class' => 'users',
+						'privilege_callback' => array('name' => 'resellerHasCustomers')
 					)
 				);
 			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
 				$page->addPage(
 					array(
 						'label' => tr('SSH Users'),
-						'uri' => '/client/jailkit.php',
+						'uri' => '/client/ssh_users.php',
 						'title_class' => 'users',
 						'privilege_callback' => array('name' => array($this, 'clientPrivilegeCalback'))
 					)

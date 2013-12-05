@@ -108,14 +108,14 @@ sub change
 	my $self = shift;
 
 	if (defined $main::execmode && $main::execmode eq 'setup') {
-		# Event listener which is responsible to update SSH users' group name
+		# Event listener which is responsible to update SSH users' group name in jails
 		$self->{'hooksManager'}->register('onBeforeAddImscpUnixUser', sub {
 			my ($customerId, $parentUserGroup, $parentUserGid) = ($_[0], $_[3], $_[9]);
 
 			state $rdata; # We get the data once to avoid too many queries
 
 			unless(defined $rdata) {
-				$rdata = iMSCP::Database->factory()->doQuery('admin_id', 'SELECT admin_id, admin_name FROM jailkit');
+				$rdata = $self->{'db'}->doQuery('admin_id', 'SELECT admin_id, admin_name FROM jailkit');
 				unless(ref $rdata eq 'HASH') {
 					error($rdata);
 					return 1;
@@ -202,11 +202,9 @@ sub run
 {
 	my $self = shift;
 
-	my $db = iMSCP::Database->factory();
+	# Processing jailkit items - Add/change/Remove jails
 
-	# Processing jailkit items - Add/Remove jails
-
-	my $rdata = $db->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_id',
 		"
 			SELECT
@@ -255,7 +253,7 @@ sub run
 				}
 			}
 
-			$rs = $db->doQuery('dummy', @sql);
+			$rs = $self->{'db'}->doQuery('dummy', @sql);
 			unless(ref $rs eq 'HASH') {
 				$self->{'FORCE_RETVAL'} = 'yes';
 				error($rs);
@@ -272,7 +270,7 @@ sub run
 
 	# Processing jailkit_login items - Add/Change/Remove SSH users
 
-	$rdata = $db->doQuery(
+	$rdata = $self->{'db'}->doQuery(
 		'jailkit_login_id',
 		"
 			SELECT
@@ -287,7 +285,7 @@ sub run
 			WHERE
 				t1.jailkit_login_status IN('toadd', 'tochange', 'todelete')
 			AND
-				t2.jailkit_status = 'ok'
+				t2.jailkit_status  IN('ok', 'disabled')
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -342,7 +340,7 @@ sub run
 				}
 			}
 
-			$rs = $db->doQuery('dummy', @sql);
+			$rs = $self->{'db'}->doQuery('dummy', @sql);
 			unless(ref $rs eq 'HASH') {
 				$self->{'FORCE_RETVAL'} = 'yes';
 				error($rs);
@@ -369,37 +367,38 @@ sub uninstall
 {
 	my $self = shift;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
-		'jailkit_login_id',
-		'SELECT jailkit_login_id, ssh_login_name, admin_name FROM jailkit_login INNER JOIN jailkit USING(admin_id)'
-	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-
 	# Stopping the jailkit daemon
 	my $rs = _stopDaemon();
 	return $rs if $rs;
 
 	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
+	# Unmount /home/*/web directory from jails
+	for(glob("$rootJailDir/*/home/*/web")) {
+		$rs = $self->_umount($_);
+    	return $rs if $rs;
+	}
+
+	# Unmount any /var/run/mysqld directory from jails
+	for(glob("$rootJailDir/*/var/run/mysqld")) {
+		$rs = $self->_umount($_);
+    	return $rs if $rs;
+	}
+
 	# Removing all SSH users
+
+	my $rdata = $self->{'db'}->doQuery('ssh_login_name', 'SELECT ssh_login_name FROM jailkit_login');
+	unless(ref $rdata eq 'HASH') {
+		error($rdata);
+		return 1;
+	}
+
 	if(%{$rdata}) {
 		require iMSCP::SystemUser;
 
 		for(keys %{$rdata}) {
-			my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
-
-			# Umount the parent user homedir from the SSH user web directory. This must be done before removing the
-			# SSH user, else, the parent user homedir will get deleted
-			$rs = $self->_umount("$rootJailDir/$rdata->{$_}->{'admin_name'}/$sshLoginName/web");
-			return $rs if $rs;
-
 			# Removing SSH user
-			$rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($sshLoginName);
+			$rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($_);
 			return $rs if $rs;
 		}
 	}
@@ -417,14 +416,14 @@ sub uninstall
 	return $rs if $rs;
 
 	# Removing the jailkit database table
-	$rs = $db->doQuery('dummy', 'DROP TABLE IF EXISTS jailkit');
+	$rs = $self->{'db'}->doQuery('dummy', 'DROP TABLE IF EXISTS jailkit');
 	unless(ref $rs eq 'HASH') {
 		error($rs);
 		return 1;
 	}
 
 	# Removing the jailkit_login database table
-	$rs = $db->doQuery('dummy', 'DROP TABLE IF EXISTS jailkit_login');
+	$rs = $self->{'db'}->doQuery('dummy', 'DROP TABLE IF EXISTS jailkit_login');
 	unless(ref $rs eq 'HASH') {
 		error($rs);
 		return 1;
@@ -452,9 +451,12 @@ sub _init()
 {
 	my $self = shift;
 
+	# Get database connection
+	$self->{'db'} = iMSCP::Database->factory();
+
 	# Loading plugin configuration
 
-	my $rdata = iMSCP::Database->factory()->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'JailKit'
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -578,9 +580,7 @@ sub _deleteJail($$$)
 {
 	my ($self, $customerId, $customerName) = @_;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_login_id', 'SELECT jailkit_login_id, ssh_login_name FROM jailkit_login WHERE admin_id = ?', $customerId
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -606,7 +606,7 @@ sub _deleteJail($$$)
 			return $rs if $rs;
 
 			# Removing SSH user from database
-			$rs = $db->doQuery(
+			$rs = $self->{'db'}->doQuery(
 				'dummy', 'DELETE FROM jailkit_login WHERE jailkit_login_id = ?', $rdata->{$_}->{'jailkit_login_id'}
 			);
 			unless(ref $rs eq 'HASH') {
@@ -638,7 +638,7 @@ sub _updateJails
 {
 	my $self = shift;
 
-	my $rdata = iMSCP::Database->factory()->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_id', "SELECT jailkit_id, admin_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -693,6 +693,7 @@ sub _addSshUser($$$$$)
 				'-g', escapeShell($parentUserGid), # group GID
 				'-m', # Create home directory
 				'-k', escapeShell("$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/tpl/skel"), # Skel directory
+				'-p', escapeShell($sshLoginPass), # Hashed password
 				'-o', # Allow to reuse UID of existent user
 				escapeShell($sshLoginName) # Login
 			);
@@ -702,14 +703,6 @@ sub _addSshUser($$$$$)
 			error($stderr) if $stderr && $rs;
 			return $rs if $rs;
 		}
-
-		# Setting SSH user password
-		my @cmd = ($main::imscpConfig{'CMD_ECHO'}, escapeShell("$sshLoginName:$sshLoginPass"), '| /usr/sbin/chpasswd');
-		my ($stdout, $stderr);
-		my $rs = execute("@cmd", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
 
 		my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
@@ -722,7 +715,8 @@ sub _addSshUser($$$$$)
 			'-j', escapeShell("$rootJailDir/$customerName"),
 			escapeShell($sshLoginName)
 		);
-		$rs = execute("@cmd", \$stdout, \$stderr);
+		my ($stdout, $stderr);
+		my $rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -740,7 +734,6 @@ sub _addSshUser($$$$$)
 		return $rs if $rs;
 
 		# Mount (bind) the parent user homedir into the SSH user web directory
-		# FIXME (NXW): Should we rbind (i.e mount --rbind...) too in case the i-MSCP customer homedir contain submounts
 		$rs = execute(
 			"/bin/mount -v --bind $main::imscpConfig{'USER_WEB_DIR'}/$customerName " .
 			"$rootJailDir/$customerName/home/$sshLoginName/web",
@@ -758,7 +751,8 @@ sub _addSshUser($$$$$)
 
 =item _changeSshUser($parentUserUid, $customerName, $sshLoginName, $sshLoginPass, $action)
 
- Changes the given SSH User according the given action (lock/unlock)
+ Changes the given SSH User according the given action (lock/unlock). In both case the SSH user password get updated
+using hashed password as stored in the database.
 
  Return int 0 on success, other on failure
 
@@ -770,7 +764,11 @@ sub _changeSshUser($$$$)
 
 	if(getpwnam($sshLoginName)) {
 		# Setting new SSH user password
-		my @cmd = ($main::imscpConfig{'CMD_ECHO'}, escapeShell("$sshLoginName:$sshLoginPass"), '| /usr/sbin/chpasswd');
+		my @cmd = (
+			$main::imscpConfig{'CMD_USERMOD'},
+			'-p', escapeShell($sshLoginPass), # Hashed password
+			escapeShell($sshLoginName) # Login
+		);
 		my ($stdout, $stderr);
 		my $rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -819,10 +817,10 @@ sub _removeSshUser($$$)
 
 	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
-	# Umount the parent user homedir from the SSH user web directory. This must be done before removing the
-	# SSH user else it will get deleted
-    my $rs = $self->_umount("$rootJailDir/$customerName/home/$sshLoginName/web");
-    return $rs if $rs;
+	# Umount the parent user homedir from the SSH user web directory. This must be done before removing the SSH user,
+	# else, it will get deleted
+	my $rs = $self->_umount("$rootJailDir/$customerName/home/$sshLoginName/web");
+	return $rs if $rs;
 
 	# Removing SSH user
 	require iMSCP::SystemUser;
@@ -863,9 +861,7 @@ sub _changeSshUsers($$)
 {
 	my ($self, $action) = @_;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_login_id', 
 		"
 			SELECT
@@ -923,7 +919,7 @@ sub _changeSshUsers($$)
 				return $rs if $rs;
 			}
 
-			$rs = $db->doQuery(
+			$rs = $self->{'db'}->doQuery(
 				'dummy',
 				'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
 				($action eq 'unlock' && $sshLoginLocked eq '0')  ? 'ok' : 'disabled', $jailKitLoginId
@@ -972,7 +968,7 @@ sub _processFstabEntries($;$)
 			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
 			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
 		) {
-			$jailkitEntries = iMSCP::Database->factory()->doQuery(
+			$jailkitEntries = $self->{'db'}->doQuery(
 				'jailkit_id', "SELECT jailkit_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
 			);
 			unless(ref $jailkitEntries eq 'HASH') {
@@ -981,7 +977,7 @@ sub _processFstabEntries($;$)
 			}
 		}
 
-		$jailkitLoginEntries = iMSCP::Database->factory()->doQuery(
+		$jailkitLoginEntries = $self->{'db'}->doQuery(
 			'jailkit_login_id',
 			"
 				SELECT
@@ -1080,7 +1076,7 @@ sub _processJkSocketdEntries
 	# Removing any previous JailKit plugin entry
 	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
 
-	my $rdata = iMSCP::Database->factory()->doQuery(
+	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_id', "SELECT jailkit_id, admin_name, jailkit_status FROM jailkit WHERE jailkit_status = 'ok'"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -1437,6 +1433,10 @@ sub _uninstallJailKit
 	$rs = execute("$main::imscpConfig{'CMD_MAKE'} uninstall", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+
+	# Remove jailkit conffig directory
+	$rs = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit")->remove();
 	return $rs if $rs;
 
 	# Remove JailKit daemon init script from the /etc/init.d directory

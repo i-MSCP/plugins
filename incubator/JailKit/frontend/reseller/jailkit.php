@@ -42,9 +42,6 @@
  */
 function jailkit_generateSelect($tpl, $resellerId)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
 	$stmt = exec_query(
 		'
 			SELECT
@@ -60,7 +57,7 @@ function jailkit_generateSelect($tpl, $resellerId)
 			ORDER BY
 				admin_name ASC
 		',
-		array($resellerId, $cfg->ITEM_OK_STATUS)
+		array($resellerId, 'ok')
 	);
 
 	if ($stmt->rowCount()) {
@@ -90,7 +87,7 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 
-	$rowsPerPage = $cfg->DOMAIN_ROWS_PER_PAGE;
+	$rowsPerPage = $cfg['DOMAIN_ROWS_PER_PAGE'];
 
 	if (isset($_GET['psi']) && $_GET['psi'] == 'last') {
 		unset($_GET['psi']);
@@ -149,25 +146,21 @@ function jailkit_generateActivatedCustomers($tpl, $resellerId)
 		}
 
 		while ($data = $stmt->fetchRow()) {
-			if ($data['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
+			if ($data['jailkit_status'] == 'ok') {
 				$statusIcon = 'ok';
 				$tooltip = tr('Deactivate all SSH accounts owned by this customer');
-			} elseif ($data['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) {
+			} elseif ($data['jailkit_status'] == 'disabled') {
 				$statusIcon = 'disabled';
 				$tooltip = tr('Activate all SSH accounts owned by this customer');
 			} elseif (
 				(
-					$data['jailkit_status'] == $cfg->ITEM_TOADD_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TODELETE_STATUS
+					$data['jailkit_status'] == 'toadd' || $data['jailkit_status'] == 'tochange' ||
+					$data['jailkit_status'] == 'todelete'
 				) ||
 				(
-					$data['jailkit_status'] == $cfg->ITEM_TOADD_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TORESTORE_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TOENABLE_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TODISABLE_STATUS ||
-					$data['jailkit_status'] == $cfg->ITEM_TODELETE_STATUS
+					$data['jailkit_status'] == 'toadd' || $data['jailkit_status'] == 'torestore' ||
+					$data['jailkit_status'] == 'tochange' || $data['jailkit_status'] == 'toenable' ||
+					$data['jailkit_status'] == 'todisable' || $data['jailkit_status'] == 'todelete'
 				)
 			) {
 
@@ -240,7 +233,7 @@ function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
 
 	$stmt = exec_query(
 		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, $cfg->ITEM_OK_STATUS)
+		array($customerId, $resellerId, 'ok')
 	);
 
 	if (($plugin = $pluginManager->loadPlugin('JailKit', false, false)) !== null) {
@@ -257,9 +250,7 @@ function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
 
 		exec_query(
 			'INSERT INTO jailkit (admin_id, admin_name, max_logins, jailkit_status) VALUES (?, ?, ?, ?)',
-			array(
-				$data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh_user'], $cfg->ITEM_TOADD_STATUS
-			)
+			array($data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh_user'], 'toadd')
 		);
 
 		send_request();
@@ -280,19 +271,13 @@ function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
  */
 function jailkit_deactivateSsh($customerId, $resellerId)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
 	$stmt = exec_query(
 		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, $cfg->ITEM_OK_STATUS)
+		array($customerId, $resellerId, 'ok')
 	);
 
 	if ($stmt->rowCount()) {
-		exec_query(
-			'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array($cfg->ITEM_TODELETE_STATUS, $customerId)
-		);
-
+		exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('todelete', $customerId));
 		send_request();
 		set_page_message(tr('SSH support scheduled for deactivation. This can take few seconds.'), 'success');
 	} else {
@@ -312,12 +297,9 @@ function jailkit_deactivateSsh($customerId, $resellerId)
  */
 function jailkit_changeCustomerJail($tpl, $customerId, $resellerId)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
 	$stmt = exec_query(
 		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, $cfg->ITEM_OK_STATUS)
+		array($customerId, $resellerId, 'ok')
 	);
 
 	if ($stmt->rowCount()) {
@@ -361,38 +343,28 @@ function jailkit_changeCustomerJail($tpl, $customerId, $resellerId)
  */
 function jailkit_changeCustomerPermission($customerId, $resellerId)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
 	$stmt = exec_query(
 		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, $cfg->ITEM_OK_STATUS)
+		array($customerId, $resellerId, 'ok')
 	);
 
 	if ($stmt->rowCount()) {
 		$stmt = exec_query('SELECT admin_id, admin_name, jailkit_status FROM jailkit WHERE admin_id = ?', $customerId);
 
-		if ($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_DISABLED_STATUS) {
-			exec_query(
-				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array($cfg->ITEM_OK_STATUS, $customerId)
-			);
-
+		if ($stmt->rowCount() && $stmt->fields['jailkit_status'] == 'disabled') {
+			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('ok', $customerId));
 			exec_query(
 				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('0', $cfg->ITEM_TOCHANGE_STATUS, $customerId)
+				array('0', 'tochange', $customerId)
 			);
 
 			send_request();
 			set_page_message(tr('SSH support scheduled for activation. This can take few seconds.'), 'success');
-		} elseif ($stmt->rowCount() && $stmt->fields['jailkit_status'] == $cfg->ITEM_OK_STATUS) {
-			exec_query(
-				'UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?',
-				array($cfg->ITEM_DISABLED_STATUS, $customerId)
-			);
-
+		} elseif ($stmt->rowCount() && $stmt->fields['jailkit_status'] == 'ok') {
+			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('disabled', $customerId));
 			exec_query(
 				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('1', $cfg->ITEM_TOCHANGE_STATUS, $customerId)
+				array('1', 'tochange', $customerId)
 			);
 
 			send_request();
@@ -413,8 +385,7 @@ iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onResellerScriptStar
 
 check_login('reseller');
 
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
+resellerHasCustomers() or showBadRequestErrorPage();
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(
@@ -444,6 +415,12 @@ if (isset($_REQUEST['action'])) {
 		if ($customerId != '') {
 			jailkit_activateSsh($pluginManager, $customerId, $_SESSION['user_id']);
 		}
+	} elseif ($action == 'deactivate') {
+		$customerId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
+
+		if ($customerId != '') {
+			jailkit_deactivateSsh($customerId, $_SESSION['user_id']);
+		}
 	} elseif ($action == 'change') {
 		$customerId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
 
@@ -455,12 +432,6 @@ if (isset($_REQUEST['action'])) {
 
 		if ($customerId != '') {
 			jailkit_changeCustomerJail($tpl, $customerId, $_SESSION['user_id']);
-		}
-	} elseif ($action == 'delete') {
-		$customerId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
-
-		if ($customerId != '') {
-			jailkit_deactivateSsh($customerId, $_SESSION['user_id']);
 		}
 	}
 }

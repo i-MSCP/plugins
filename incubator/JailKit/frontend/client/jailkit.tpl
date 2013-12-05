@@ -1,3 +1,4 @@
+
 <!-- BDP: jailkit_login_list -->
 <table class="firstColFixed datatable">
 	<thead>
@@ -41,7 +42,6 @@
 	</tbody>
 </table>
 <!-- EDP: jailkit_login_list -->
-
 
 <div class="buttons">
 	<!-- BDP: jailkit_add_button -->
@@ -100,14 +100,18 @@
 			minHeight: 300,
 			minWidth: 650,
 			modal: true,
-			open: function() { if($dialogOpen) $(".error.flash_message").prependTo("#jailkit_dialog"); },
-			close: function() { $(".error.flash_message").remove(); },
+			open: function () {
+				if ($dialogOpen) $(".error.flash_message").prependTo("#jailkit_dialog");
+			},
+			close: function () {
+				$(".error.flash_message").remove();
+			},
 			buttons: {
 				"submit_button": {
 					id: "dialog_submit_button",
 					text: "{TR_DIALOG_ADD}",
 					click: function () {
-						if($("#action").val() == 'add') {
+						if ($("#action").val() == 'add') {
 							$("#login_id").prop('disabled', true);
 						} else {
 							$("#login_id").prop('disabled', false);
@@ -125,7 +129,7 @@
 			}
 		});
 
-		if($("#action").val() == 'edit') {
+		if ($("#action").val() == 'edit') {
 			$("#ssh_login_name_prefix").hide();
 			$("#ssh_login_name").prop('disabled', true);
 			$("#dialog_submit_button").button("option", "label", "{TR_DIALOG_EDIT}");
@@ -149,8 +153,13 @@
 			dialog.dialog("option", "title", "{TR_DIALOG_EDIT_TITLE}").dialog("open");
 		});
 
-		$(".delete_action").click(function () { return confirm("{DELETE_LOGIN_ALERT}"); });
-		$(".change_action").click(function () { return confirm($(this).data('change-alert')); });
+		$(".delete_action").click(function () {
+			return confirm("{DELETE_LOGIN_ALERT}");
+		});
+
+		$(".change_action").click(function () {
+			return confirm($(this).data('change-alert'));
+		});
 	});
 </script>
 <!-- EDP: jailkit_dialog -->
