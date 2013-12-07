@@ -34,13 +34,223 @@
  */
 
 /**
- * Generate page
+ * Activate SSH feature for the given customer
  *
- * @param $tpl iMSCP_pTemplate
- * @param int $resellerId Reseller unique identifier
+ * @param $pluginManager iMSCP_Plugin_Manager
+ * @param int $customerId Customer unique identifier
  * @return void
  */
-function jailkit_generateSelect($tpl, $resellerId)
+function jailkit_activateSsh($customerId)
+{
+	if ($customerId) {
+		$stmt = exec_query(
+			'
+				INSERT IGNORE INTO
+					jailkit (admin_id, max_logins, jailkit_status)
+				SELECT
+					admin_id, ?, ?
+				FROM
+					admin
+				WHERE
+				 	admin_id = ?
+				AND
+					created_by = ?
+				AND
+					admin_status = ?
+			',
+			array('1', 'toadd', $customerId, $_SESSION['user_id'], 'ok')
+		);
+
+		if ($stmt->rowCount()) {
+			send_request();
+			set_page_message(tr('SSH feature scheduled for activation. This can take few seconds.'), 'success');
+			redirectTo('ssh_accounts.php');
+		}
+	}
+
+	showBadRequestErrorPage();
+}
+
+/**
+ * Deactivate SSH feature for the given customer
+ *
+ * @param int $customerId Customer unique identifier
+ * @return void
+ */
+function jailkit_deactivateSsh($customerId)
+{
+	if ($customerId) {
+		$stmt = exec_query(
+			'
+				UPDATE
+					jailkit
+				INNER JOIN
+					admin USING(admin_id)
+				SET
+					jailkit_status = ?
+				WHERE
+					admin_id = ?
+				AND
+					created_by = ?
+				AND
+					admin_status = ?
+			',
+			array('todelete', $customerId, $_SESSION['user_id'], 'ok')
+		);
+
+		if ($stmt->rowCount()) {
+			send_request();
+			set_page_message(tr('SSH feature scheduled for deactivation. This can take few seconds.'), 'success');
+			redirectTo('ssh_accounts.php');
+		}
+	}
+
+	showBadRequestErrorPage();
+}
+
+/**
+ * Change customer jail
+ *
+ * @param iMSCP_pTemplate $tpl
+ * @param int $customerId Customer unique identifier
+ * @return void
+ */
+function jailkit_editCustomerJail($tpl, $customerId)
+{
+	if ($customerId && isset($_POST['max_logins'])) {
+		$maxLogins = clean_input($_POST['max_logins']);
+
+		$stmt = exec_query(
+			'
+				SELECT
+					jailkit_id, count(jailkit_login_id) as login_cnt
+				FROM
+					jailkit
+				INNER JOIN
+					admin USING(admin_id)
+				LEFT JOIN
+					jailkit_login USING(jailkit_id)
+				WHERE
+					admin_id = ?
+				AND
+					created_by = ?
+			',
+			array($customerId, $_SESSION['user_id'])
+		);
+		$row = $stmt->fetchRow();
+
+		if (!is_null($row['jailkit_id'])) {
+			if (is_number($_POST['max_logins'])) {
+				if ($row['login_cnt'] < $maxLogins) {
+					exec_query(
+						'UPDATE jailkit SET max_logins = ? WHERE admin_id = ?', array($maxLogins, $customerId)
+					);
+					set_page_message(tr('SSH user limit has been updated.'), 'success');
+				} else {
+					set_page_message('SSH user limit cannot be lower than number of existent SSH users');
+				}
+			} else {
+				set_page_message(tr('Invalid SSH user limit.'), 'error');
+
+				$tpl->assign(
+					array(
+						'MAX_LOGINS' => tohtml($maxLogins),
+						'JAILKIT_EDIT_ADMIN_ID' => $customerId,
+						'JAILKIT_DIALOG_OPEN' => 1,
+					)
+				);
+
+				return;
+			}
+		}
+
+		redirectTo('ssh_accounts.php');
+	}
+
+	showBadRequestErrorPage();
+}
+
+/**
+ * Suspend/Unsuspend SSH feature for the given customer
+ *
+ * @param int $customerId Customer unique identifier
+ * @param string $action Action (suspend|unsuspend)
+ * @return void
+ */
+function jailkit_changeCustomerJail($customerId, $action)
+{
+	if ($customerId) {
+		if ($action == 'unsuspend') {
+			$bindParams = array('ok', '0', 'tochange', $customerId);
+		} else {
+			$bindParams = array('disabled', '1', 'tochange', $customerId);
+		}
+
+		$stmt = exec_query(
+			'
+				UPDATE
+					jailkit
+				LEFT JOIN
+					jailkit_login USING(jailkit_id)
+				SET
+					jailkit_status = ?, ssh_login_locked = ?, jailkit_login_status = ?
+				WHERE
+					admin_id = ?
+			',
+			$bindParams
+		);
+
+		if ($stmt->rowCount()) {
+			send_request();
+
+			if ($action == 'unsuspend') {
+				set_page_message(tr('SSH feature scheduled for activation. This can take few seconds.'), 'success');
+			} else {
+				set_page_message(tr('SSH feature scheduled for deactivation. This can take few seconds.'), 'success');
+			}
+
+			redirectTo('ssh_accounts.php');
+		}
+	}
+
+	showBadRequestErrorPage();
+}
+
+
+/**
+ * Return SSH user limit for the given customer
+ *
+ * @param int $customerId Customer unique identifier
+ * @return string
+ */
+function get_jailkitLoginLimit($customerId)
+{
+	$stmt = exec_query(
+		'
+			SELECT
+				max_logins, count(jailkit_login_id) AS login_cnt
+			FROM
+				jailkit
+			LEFT JOIN
+				jailkit_login using(jailkit_id)
+			WHERE
+				admin_id = ?
+		',
+		$customerId
+	);
+
+	$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+
+	return $row['login_cnt'] . ' / ' . (($row['max_logins'] == 0) ? tr('unlimited') : $row['max_logins']);
+}
+
+/**
+ * Generate page
+ *
+ * @param iMSCP_pTemplate $tpl
+ * @return void
+ */
+function jailkit_generatePage($tpl)
 {
 	$stmt = exec_query(
 		'
@@ -57,7 +267,7 @@ function jailkit_generateSelect($tpl, $resellerId)
 			ORDER BY
 				admin_name ASC
 		',
-		array($resellerId, 'ok')
+		array($_SESSION['user_id'], 'ok')
 	);
 
 	if ($stmt->rowCount()) {
@@ -74,307 +284,96 @@ function jailkit_generateSelect($tpl, $resellerId)
 	} else {
 		$tpl->assign('JAILKIT_SELECT_ITEM', '');
 	}
-}
-
-/**
- * Generate list of customers for which SSH support is activated
- *
- * @param iMSCP_pTemplate $tpl
- * @param int $resellerId Reseller unique identifier
- */
-function jailkit_generateActivatedCustomers($tpl, $resellerId)
-{
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
-	$rowsPerPage = $cfg['DOMAIN_ROWS_PER_PAGE'];
-
-	if (isset($_GET['psi']) && $_GET['psi'] == 'last') {
-		unset($_GET['psi']);
-	}
-
-	$startIndex = isset($_GET['psi']) ? (int)$_GET['psi'] : 0;
 
 	$stmt = exec_query(
-		'SELECT COUNT(admin_id) AS cnt FROM admin INNER JOIN jailkit USING(admin_id) WHERE created_by = ?', $resellerId
+		'
+			SELECT
+				jailkit_status, admin_id, admin_name
+			FROM
+				jailkit
+			INNER JOIN
+				admin USING(admin_id)
+			WHERE
+				created_by = ?
+			ORDER BY
+				admin_name ASC
+		',
+		$_SESSION['user_id']
 	);
-	$recordsCount = $stmt->fields['cnt'];
 
-	if ($recordsCount > 0) {
-		$stmt = exec_query(
-			"
-				SELECT
-					jailkit.*
-				FROM
-					admin
-				INNER JOIN
-					jailkit USING(admin_id)
-				WHERE
-					created_by = ?
-				ORDER BY
-					admin_name ASC
-				LIMIT
-					$startIndex, $rowsPerPage
-			",
-			$resellerId
-		);
+	if ($stmt->rowCount()) {
+		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		$prevSi = $startIndex - $rowsPerPage;
-
-		if ($startIndex == 0) {
-			$tpl->assign('SCROLL_PREV', '');
-		} else {
-			$tpl->assign(
-				array(
-					'SCROLL_PREV_GRAY' => '',
-					'PREV_PSI' => $prevSi
-				)
-			);
-		}
-
-		$nextSi = $startIndex + $rowsPerPage;
-
-		if ($nextSi + 1 > $recordsCount) {
-			$tpl->assign('SCROLL_NEXT', '');
-		} else {
-			$tpl->assign(
-				array(
-					'SCROLL_NEXT_GRAY' => '',
-					'NEXT_PSI' => $nextSi
-				)
-			);
-		}
-
-		while ($data = $stmt->fetchRow()) {
-			if ($data['jailkit_status'] == 'ok') {
+		foreach ($rows as $row) {
+			if ($row['jailkit_status'] == 'ok') {
 				$statusIcon = 'ok';
-				$tooltip = tr('Deactivate all SSH accounts owned by this customer');
-			} elseif ($data['jailkit_status'] == 'disabled') {
+				$tpl->assign(
+					array(
+						'TR_CHANGE_ACTION_TOOLTIP' => tr('Suspend SSH feature for this customer'),
+						'TR_CHANGE_ALERT' => tr(
+							'Are you sure you want to suspend SSH feature for this customer?'
+						),
+						'CHANGE_ACTION' => 'suspend'
+					)
+				);
+			} elseif ($row['jailkit_status'] == 'disabled') {
 				$statusIcon = 'disabled';
-				$tooltip = tr('Activate all SSH accounts owned by this customer');
+				$tpl->assign(
+					array(
+						'TR_CHANGE_ACTION_TOOLTIP' => tr('Unsuspend SSH feature for this customer'),
+						'TR_CHANGE_ALERT' => tr(
+							'Are you sure you want to unsuspend SSH feature for this customer?'
+						),
+						'CHANGE_ACTION' => 'unsuspend'
+					)
+				);
 			} elseif (
-				(
-					$data['jailkit_status'] == 'toadd' || $data['jailkit_status'] == 'tochange' ||
-					$data['jailkit_status'] == 'todelete'
-				) ||
-				(
-					$data['jailkit_status'] == 'toadd' || $data['jailkit_status'] == 'torestore' ||
-					$data['jailkit_status'] == 'tochange' || $data['jailkit_status'] == 'toenable' ||
-					$data['jailkit_status'] == 'todisable' || $data['jailkit_status'] == 'todelete'
-				)
+				$row['jailkit_status'] == 'toadd' || $row['jailkit_status'] == 'tochange' ||
+				$row['jailkit_status'] == 'todelete'
 			) {
 
 				$statusIcon = 'reload';
-				$tooltip = translate_dmn_status($data['jailkit_status']);
 			} else {
 				$statusIcon = 'error';
-				$tooltip = translate_dmn_status($data['jailkit_status']);
 			}
 
 			$tpl->assign(
 				array(
-					'JAILKIT_CUSTOMER_NAME' => decode_idna($data['admin_name']),
-					'JAILKIT_STATUS' => translate_dmn_status($data['jailkit_status']),
-					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($data['admin_id']),
-					'JAILKIT_ADMIN_ID' => $data['admin_id'],
-					'STATUS_ICON' => $statusIcon,
-					'TOOLTIP_STATUS_ACTION' => $tooltip
+					'JAILKIT_CUSTOMER_NAME' => tohtml(decode_idna($row['admin_name'])),
+					'JAILKIT_STATUS' => translate_dmn_status($row['jailkit_status']),
+					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($row['admin_id']),
+					'JAILKIT_ADMIN_ID' => $row['admin_id'],
+					'STATUS_ICON' => $statusIcon
 				)
 			);
 
+			if (!in_array($row['jailkit_status'], array('ok', 'disabled'))) {
+				$tpl->assign(
+					array(
+						'JAILKIT_ACTION_STATUS_LINK' => '',
+						'JAILKIT_ACTION_LINKS' => ''
+					)
+				);
+				$tpl->parse('JAILKIT_ACTION_STATUS_STATIC', 'jailkit_action_status_static');
+			} else {
+				$tpl->assign('JAILKIT_ACTION_STATUS_STATIC', '');
+				$tpl->parse('JAILKIT_ACTION_STATUS_LINK', 'jailkit_action_status_link');
+				$tpl->parse('JAILKIT_ACTION_LINKS', 'jailkit_action_links');
+			}
+
 			$tpl->parse('JAILKIT_CUSTOMER_ITEM', '.jailkit_customer_item');
 		}
-
-		$tpl->assign('JAILKIT_NO_CUSTOMER_ITEM', '');
 	} else {
 		$tpl->assign(
 			array(
 				'JAILKIT_CUSTOMER_LIST' => '',
-				'SCROLL_PREV' => '',
-				'SCROLL_PREV_GRAY' => '',
-				'SCROLL_NEXT' => '',
-				'SCROLL_NEXT_GRAY' => ''
+				'JAILKIT_EDIT_DIALOG' => '',
+				'JAILKIT_JS' => ''
 			)
 		);
+
+		set_page_message('No customer with SSH feature has been found.', 'info');
 	}
-
-	$tpl->assign('JAILKIT_EDIT', '');
-}
-
-/**
- * Return SSH account limit for the given customer
- *
- * @param int $customerId Customer unique identifier
- * @return string
- */
-function get_jailkitLoginLimit($customerId)
-{
-	$stmt = exec_query('SELECT COUNT(jailkit_login_id) AS cnt FROM jailkit_login WHERE admin_id = ?', $customerId);
-	$recordsCount = $stmt->fields['cnt'];
-
-	$stmt = exec_query('SELECT max_logins FROM jailkit WHERE admin_id = ?', $customerId);
-
-	return $recordsCount . ' / ' . (($stmt->fields['max_logins'] == 0)
-		? '<b>unlimited</b>' : $stmt->fields['max_logins']);
-}
-
-/**
- * Activate SSH support for the given customer
- *
- * @param $pluginManager iMSCP_Plugin_Manager
- * @param int $customerId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- * @return void
- */
-function jailkit_activateSsh($pluginManager, $customerId, $resellerId)
-{
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
-	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, 'ok')
-	);
-
-	if (($plugin = $pluginManager->loadPlugin('JailKit', false, false)) !== null) {
-		$pluginConfig = $plugin->getConfig();
-	} else {
-		set_page_message(tr("An unexpected error occured. Please contact your administrator."), 'error');
-		write_log('Unable to load JailKit plugin configuration', E_USER_ERROR);
-		redirectTo('ssh_accounts.php');
-		exit;
-	}
-
-	if ($stmt->rowCount()) {
-		$data = $stmt->fetchRow();
-
-		exec_query(
-			'INSERT INTO jailkit (admin_id, admin_name, max_logins, jailkit_status) VALUES (?, ?, ?, ?)',
-			array($data['admin_id'], $data['admin_name'], $pluginConfig['max_allowed_ssh_user'], 'toadd')
-		);
-
-		send_request();
-		set_page_message(tr('SSH support scheduled for activation. This can take few seconds.'), 'success');
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	redirectTo('ssh_accounts.php');
-}
-
-/**
- * Deactivate SSH support for the given customer
- *
- * @param int $customerId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- * @return void
- */
-function jailkit_deactivateSsh($customerId, $resellerId)
-{
-	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, 'ok')
-	);
-
-	if ($stmt->rowCount()) {
-		exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('todelete', $customerId));
-		send_request();
-		set_page_message(tr('SSH support scheduled for deactivation. This can take few seconds.'), 'success');
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	redirectTo('ssh_accounts.php');
-}
-
-/**
- * Change customer jail
- *
- * @param iMSCP_pTemplate $tpl
- * @param int $customerId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- * @return void
- */
-function jailkit_changeCustomerJail($tpl, $customerId, $resellerId)
-{
-	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, 'ok')
-	);
-
-	if ($stmt->rowCount()) {
-		$stmt2 = exec_query('SELECT max_logins FROM jailkit WHERE admin_id = ?', $customerId);
-
-		if (isset($_POST['max_logins']) && $_POST['max_logins'] != '') {
-			$maxLogins = clean_input($_POST['max_logins']);
-
-			if ($maxLogins >= 0) {
-				if ($maxLogins != $stmt2->fields['max_logins']) {
-					exec_query('UPDATE jailkit SET max_logins = ? WHERE admin_id = ?', array($maxLogins, $customerId));
-					set_page_message(tr('SSH account limit succesfully updated.'), 'success');
-				}
-
-				redirectTo('ssh_accounts.php');
-			} else {
-				set_page_message(tr("Invalid SSH account limit."), 'error');
-			}
-		}
-
-		$tpl->assign(
-			array(
-				'TR_CUSTOMER' => tr('%s', decode_idna($stmt->fields['admin_name'])),
-				'MAX_LOGINS' => $stmt2->fields['max_logins'],
-				'JAILKIT_ADMIN_ID' => $customerId
-			)
-		);
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	$tpl->assign('JAILKIT_LIST', '');
-}
-
-/**
- * Change permissions
- *
- * @param int $customerId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- * @return void
- */
-function jailkit_changeCustomerPermission($customerId, $resellerId)
-{
-	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $resellerId, 'ok')
-	);
-
-	if ($stmt->rowCount()) {
-		$stmt = exec_query('SELECT admin_id, admin_name, jailkit_status FROM jailkit WHERE admin_id = ?', $customerId);
-
-		if ($stmt->rowCount() && $stmt->fields['jailkit_status'] == 'disabled') {
-			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('ok', $customerId));
-			exec_query(
-				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('0', 'tochange', $customerId)
-			);
-
-			send_request();
-			set_page_message(tr('SSH support scheduled for activation. This can take few seconds.'), 'success');
-		} elseif ($stmt->rowCount() && $stmt->fields['jailkit_status'] == 'ok') {
-			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('disabled', $customerId));
-			exec_query(
-				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('1', 'tochange', $customerId)
-			);
-
-			send_request();
-			set_page_message(tr('SSH support scheduled for deactivation. This can take few seconds.'), 'success');
-		}
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	redirectTo('ssh_accounts.php');
 }
 
 /***********************************************************************************************************************
@@ -394,84 +393,67 @@ $tpl->define_dynamic(
 		'page' => '../../plugins/JailKit/frontend/reseller/jailkit.tpl',
 		'page_message' => 'layout',
 		'jailkit_list' => 'page',
-		'jailkit_edit' => 'page',
-		'jailkit_select_item' => 'page',
-		'jailkit_customer_list' => 'page',
-		'jailkit_customer_item' => 'page',
-		'jailkit_no_customer_item' => 'page',
-		'scroll_prev_gray' => 'jailkit_customer_list',
-		'scroll_prev' => 'jailkit_customer_list',
-		'scroll_next_gray', 'jailkit_customer_list',
-		'scroll_next' => 'jailkit_customer_list'
+		'jailkit_select_item' => 'jailkit_list',
+		'jailkit_customer_list' => 'jailkit_list',
+		'jailkit_customer_item' => 'jailkit_customer_list',
+		'jailkit_action_status_link' => 'jailkit_customer_item',
+		'jailkit_action_status_static' => 'jailkit_customer_item',
+		'jailkit_action_links' => 'jailkit_customer_item',
+		'jailkit_edit_dialog' => 'jailkit_list',
+		'jailkit_js' => 'jailkit_list'
 	)
 );
-
-if (isset($_REQUEST['action'])) {
-	$action = clean_input($_REQUEST['action']);
-
-	if ($action == 'activate') {
-		$customerId = (isset($_POST['admin_id']) && $_POST['admin_id'] !== '-1') ? clean_input($_POST['admin_id']) : '';
-
-		if ($customerId != '') {
-			jailkit_activateSsh($pluginManager, $customerId, $_SESSION['user_id']);
-		}
-	} elseif ($action == 'deactivate') {
-		$customerId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
-
-		if ($customerId != '') {
-			jailkit_deactivateSsh($customerId, $_SESSION['user_id']);
-		}
-	} elseif ($action == 'change') {
-		$customerId = (isset($_GET['admin_id'])) ? clean_input($_GET['admin_id']) : '';
-
-		if ($customerId != '') {
-			jailkit_changeCustomerPermission($customerId, $_SESSION['user_id']);
-		}
-	} elseif ($action == 'edit') {
-		$customerId = ($_GET['admin_id'] !== '') ? (int)clean_input($_GET['admin_id']) : '';
-
-		if ($customerId != '') {
-			jailkit_changeCustomerJail($tpl, $customerId, $_SESSION['user_id']);
-		}
-	}
-}
 
 $tpl->assign(
 	array(
 		'TR_PAGE_TITLE' => tr('Reseller / Customers - SSH Accounts'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'CUSTOMER_NOT_SELECTED' => tr("No customer selected."),
+		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+		'TR_DIALOG_TITLE' => tojs(tr('Edit SSH user limit', true)),
 		'TR_JAILKIT_SELECT_NAME_NONE' => tr('Select a customer'),
 		'TR_SELECT_ACTION' => tr('Activate SSH support'),
 		'TR_SELECT_ACTION_TOOLTIP' => tr('Activate SSH support for the selected customer'),
 		'TR_UPDATE' => tr('Update'),
 		'TR_CANCEL' => tr('Cancel'),
 		'TR_JAILKIT_CUSTOMER_NAME' => tr('Customer'),
-		'TR_JAILKIT_NO_CUSTOMER' => tr('Customer SSH accounts'),
-		'JAILKIT_NO_CUSTOMER' => tr('No customer with SSH support has been found'),
 		'TR_JAILKIT_STATUS' => tr('Status'),
-		'TR_JAILKIT_LOGIN_LIMIT' => tr('SSH accounts'),
-		'DEACTIVATE_CUSTOMER_ALERT' => tr('Are you sure you want to deactivate the SSH support for this customer?'),
-		'DISABLE_CUSTOMER_ALERT' => tr('Are you sure you want to deactivate all SSH accounts for this customer?'),
+		'TR_JAILKIT_LOGIN_LIMIT' => tr('SSH users'),
+		'DEACTIVATE_CUSTOMER_ALERT' => tr('Are you sure you want to deactivate SSH support for this customer?'),
 		'TR_PREVIOUS' => tr('Previous'),
 		'TR_JAILKIT_ACTIONS' => tr('Actions'),
-		'TR_EDIT_JAIL' => tr('Edit'),
-		'TR_EDIT_TOOLTIP' => tr('Edit SSH account limit'),
+		'TR_EDIT_TOOLTIP' => tr('Edit SSH user limit for this customer'),
+		'TR_EDIT' => tr('Edit'),
 		'TR_DELETE_JAIL' => tr('Deactivate'),
 		'TR_DEACTIVATE_TOOLTIP' => tr('Deactivate SSH support for this customer'),
-		'TR_MAX_SSH_ACCOUNTS' => tr('Max. SSH accounts') . '<br /><i>(0 ' . tr('unlimited') . ')</i>',
-		'TR_NEXT' => tr('Next')
+		'TR_MAX_SSH_USERS' => tr('Max. SSH users') . '<br /><i>(0 ' . tr('unlimited') . ')</i>',
+		'JAILKIT_DIALOG_OPEN' => 0,
+		'TR_DIALOG_EDIT' => tojs(tr('Edit', true)),
+		'TR_DIALOG_CANCEL' => tojs(tr('CANCEL', true)),
+		'MAX_LOGINS' => '',
+		'JAILKIT_EDIT_ADMIN_ID' => ''
 	)
 );
 
-generateNavigation($tpl);
+if (isset($_REQUEST['action'])) {
+	$action = clean_input($_REQUEST['action']);
+	$customerId = (isset($_REQUEST['admin_id'])) ? clean_input($_REQUEST['admin_id']) : '';
 
-if (!isset($_GET['action'])) {
-	jailkit_generateSelect($tpl, $_SESSION['user_id']);
-	jailkit_generateActivatedCustomers($tpl, $_SESSION['user_id']);
+	if ($action == 'activate') {
+		jailkit_activateSsh($customerId);
+	} elseif ($action == 'deactivate') {
+		jailkit_deactivateSsh($customerId);
+	} elseif ($action == 'suspend' || $action == 'unsuspend') {
+		jailkit_changeCustomerJail($customerId, $action);
+	} elseif ($action == 'edit') {
+		jailkit_editCustomerJail($tpl, $customerId);
+	} else {
+		showBadRequestErrorPage();
+	}
 }
 
+generateNavigation($tpl);
+jailkit_generatePage($tpl);
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');

@@ -42,77 +42,81 @@
 function jailkit_addSshUser($tpl)
 {
 	if (isset($_POST['ssh_login_name']) && isset($_POST['ssh_login_pass']) && isset($_POST['ssh_login_pass_confirm'])) {
-		$error = false;
-
 		$loginUsername = 'jk_' . clean_input($_POST['ssh_login_name']);
-
 		$loginPassword = clean_input($_POST['ssh_login_pass']);
 		$loginPasswordConfirm = clean_input($_POST['ssh_login_pass_confirm']);
+		$error = false;
 
-		$stmt = exec_query('SELECT max_logins FROM jailkit WHERE admin_id = ?', $_SESSION['user_id']);
-		$sshUserLimit = $stmt->fields['max_logins'];
+		$stmt = exec_query('SELECT jailkit_id, max_logins FROM jailkit WHERE admin_id = ?', $_SESSION['user_id']);
 
-		$stmt = exec_query('SELECT COUNT(*) AS cnt FROM jailkit_login WHERE admin_id = ?', $_SESSION['user_id']);
+		if ($stmt->rowCount()) {
+			$jailkitId = $stmt->fields['jailkit_id'];
+			$sshUserLimit = $stmt->fields['max_logins'];
 
-		$activatedLogins = $stmt->fields['cnt'];
-
-		if ($sshUserLimit != '0' && $activatedLogins >= $sshUserLimit) {
-			showBadRequestErrorPage();
-			exit;
-		} elseif (strlen($loginUsername) < 6) {
-			set_page_message(tr('Username must be at least 6 characters long.'), 'error');
-			$error = true;
-		} elseif (strlen(clean_input($_POST['ssh_login_name'])) > 16) {
-			set_page_message(tr("Username is too long (max. 16 characters)."), 'error');
-			$error = true;
-		} elseif ($loginPassword !== $loginPasswordConfirm) {
-			set_page_message(tr('Passwords do not match.'), 'error');
-			$error = true;
-		} elseif (!preg_match("/^[a-z][-a-z0-9_]*$/", clean_input($_POST['ssh_login_name']))) {
-			set_page_message(
-				tr('Username must begin with a lower case letter, followed by lower case letters, digits, underscores, or dashes.'),
-				'error'
+			$stmt = exec_query(
+				'SELECT COUNT(*) AS cnt FROM jailkit_login INNER JOIN jailkit USING(jailkit_id) WHERE admin_id = ?',
+				$_SESSION['user_id']
 			);
-			$error = true;
-		}
 
-		if (!checkPasswordSyntax($loginPassword)) {
-			$error = true;
-		}
+			$activatedLogins = $stmt->fields['cnt'];
 
-		if (!$error) {
-			try {
-
-				$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
-
-				exec_query(
-					'
-						INSERT INTO jailkit_login (
-							admin_id, ssh_login_name, ssh_login_pass, jailkit_login_status
-						) VALUES(
-							?, ?, ?, ?
-						)
-					',
-					array($_SESSION['user_id'], $loginUsername, $loginPassword, 'toadd')
+			if ($sshUserLimit != '0' && $activatedLogins >= $sshUserLimit) {
+				showBadRequestErrorPage();
+				exit;
+			} elseif (strlen($loginUsername) < 6) {
+				set_page_message(tr('Username must be at least 6 characters long.'), 'error');
+				$error = true;
+			} elseif (strlen(clean_input($_POST['ssh_login_name'])) > 16) {
+				set_page_message(tr("Username is too long (max. 16 characters)."), 'error');
+				$error = true;
+			} elseif ($loginPassword !== $loginPasswordConfirm) {
+				set_page_message(tr('Passwords do not match.'), 'error');
+				$error = true;
+			} elseif (!preg_match("/^[a-z][-a-z0-9_]*$/", clean_input($_POST['ssh_login_name']))) {
+				set_page_message(
+					tr('Username must begin with a lower case letter, followed by lower case letters, digits, underscores, or dashes.'),
+					'error'
 				);
+				$error = true;
+			}
 
-				send_request();
-				return true;
-			} catch (iMSCP_Exception_Database $e) {
-				if ($e->getCode() == 23000) { // Duplicate entries
-					set_page_message(tr('SSH username already exist.'), 'error');
+			if (!checkPasswordSyntax($loginPassword)) {
+				$error = true;
+			}
+
+			if (!$error) {
+				try {
+					$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
+
+					exec_query(
+						'
+							INSERT INTO jailkit_login (
+								jailkit_id, ssh_login_name, ssh_login_pass, jailkit_login_status
+							) VALUES(
+								?, ?, ?, ?
+							)
+						',
+						array($jailkitId, $loginUsername, $loginPassword, 'toadd')
+					);
+
+					send_request();
+					return true;
+				} catch (iMSCP_Exception_Database $e) {
+					if ($e->getCode() == 23000) { // Duplicate entries
+						set_page_message(tr('SSH username already exist.'), 'error');
+					}
 				}
 			}
+
+			$tpl->assign(
+				array(
+					'JAILKIT_USERNAME' => tohtml($_POST['ssh_login_name']),
+					'JAILKIT_DIALOG_OPEN' => 1
+				)
+			);
+
+			return false;
 		}
-
-		$tpl->assign(
-			array(
-				'JAILKIT_USERNAME' => tohtml($_POST['ssh_login_name']),
-				'JAILKIT_DIALOG_OPEN' => 1
-			)
-		);
-
-		return false;
 	}
 
 	showBadRequestErrorPage();
@@ -126,53 +130,50 @@ function jailkit_addSshUser($tpl)
  * @param int $sshUserId SSH user unique identifier
  * @return bool
  */
-
 function jailkit_editSshUser($tpl, $sshUserId)
 {
-	if ($sshUserId && isset($_POST['ssh_login_pass']) && isset($_POST['ssh_login_pass_confirm'])) {
-		$stmt = exec_query(
-			'
-				SELECT
-					jailkit_login_id, ssh_login_name
-				FROM
-					jailkit_login
-				WHERE
-					admin_id = ?
-				AND
-					jailkit_login_id = ?
-				AND
-					jailkit_login_status IN (?, ?)
-			',
-			array($_SESSION['user_id'], $sshUserId, 'ok', 'disabled')
-		);
+	if (
+		$sshUserId && isset($_POST['ssh_login_pass']) && isset($_POST['ssh_login_pass_confirm']) &&
+		isset($_POST['ssh_login_name'])
+	) {
+		$loginPassword = clean_input($_POST['ssh_login_pass']);
+		$loginPasswordConfirm = clean_input($_POST['ssh_login_pass_confirm']);
+		$error = false;
 
-		if ($stmt->rowCount()) {
-			$error = false;
-			$loginPassword = clean_input($_POST['ssh_login_pass']);
-			$loginPasswordConfirm = clean_input($_POST['ssh_login_pass_confirm']);
+		if ($loginPassword !== $loginPasswordConfirm) {
+			set_page_message(tr('Passwords do not match.'), 'error');
+			$error = true;
+		} elseif (!checkPasswordSyntax($loginPassword)) {
+			$error = true;
+		}
 
-			if ($loginPassword !== $loginPasswordConfirm) {
-				set_page_message(tr('Passwords do not match.'), 'error');
-				$error = true;
-			} elseif (!checkPasswordSyntax($loginPassword)) {
-				$error = true;
-			}
+		if (!$error) {
+			$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
 
-			if (!$error) {
-				$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
+			$stmt = exec_query(
+				'
+					UPDATE
+						jailkit_login
+					INNER JOIN
+						jailkit USING (jailkit_id)
+					SET
+						ssh_login_pass = ?, jailkit_login_status = ?
+					WHERE
+						jailkit_login_id = ?
+					AND
+						admin_id = ?
+				',
+				array($loginPassword, 'tochange', $sshUserId, $_SESSION['user_id'])
+			);
 
-				exec_query(
-					'UPDATE jailkit_login SET ssh_login_pass = ?, jailkit_login_status = ? WHERE jailkit_login_id = ?',
-					array($loginPassword, 'tochange', $sshUserId)
-				);
-
+			if ($stmt->rowCount()) {
 				send_request();
 				return true;
 			}
-
+		} else {
 			$tpl->assign(
 				array(
-					'JAILKIT_USERNAME' => tohtml($stmt->fields['ssh_login_name']),
+					'JAILKIT_USERNAME' => tohtml($_POST['ssh_login_name']),
 					'JAILKIT_DIALOG_OPEN' => 1
 				)
 			);
@@ -189,44 +190,42 @@ function jailkit_editSshUser($tpl, $sshUserId)
  * Activate/Deactivate SSH user
  *
  * @param int $sshUserId SSH user unique identifier
+ * @param string $action Action (activate|deactivate)
  * @return void
  */
-function jailkit_changeSshUserStatus($sshUserId)
+function jailkit_changeSshUserStatus($sshUserId, $action)
 {
 	if ($sshUserId) {
+		if ($action == 'activate') {
+			$bindParams = array('0', 'tochange', $sshUserId, $_SESSION['user_id']);
+		} else {
+			$bindParams = array('1', 'tochange', $sshUserId, $_SESSION['user_id']);
+		}
+
 		$stmt = exec_query(
 			'
-				SELECT
-					jailkit_login_status
-				FROM
+				UPDATE
 					jailkit_login
+				INNER JOIN
+					jailkit USING(jailkit_id)
+				SET
+					ssh_login_locked = ?,
+					jailkit_login_status = ?
 				WHERE
-					admin_id = ?
-				AND
 					jailkit_login_id = ?
 				AND
-					jailkit_login_status IN (?, ?)
+					admin_id = ?
 			',
-			array($_SESSION['user_id'], $sshUserId, 'ok', 'disabled')
+			$bindParams
 		);
 
 		if ($stmt->rowCount()) {
-			if ($stmt->fields['jailkit_login_status'] == 'disabled') {
-				exec_query(
-					'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE jailkit_login_id = ?',
-					array('0', 'tochange', $sshUserId)
-				);
+			send_request();
 
-				send_request();
-				set_page_message(tr('SSH user successfully scheduled for activation.'), 'success');
-			} elseif ($stmt->fields['jailkit_login_status'] == 'ok') {
-				exec_query(
-					'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE jailkit_login_id = ?',
-					array('1', 'tochange', $sshUserId)
-				);
-
-				send_request();
-				set_page_message(tr('SSH user successfully scheduled for deactivation.'), 'success');
+			if ($action == 'activate') {
+				set_page_message(tr('SSH user scheduled for activation.'), 'success');
+			} else {
+				set_page_message(tr('SSH user scheduled for deactivation.'), 'success');
 			}
 
 			return;
@@ -234,8 +233,6 @@ function jailkit_changeSshUserStatus($sshUserId)
 	}
 
 	showBadRequestErrorPage();
-	exit;
-
 }
 
 /**
@@ -249,26 +246,21 @@ function jailkit_deleteSshUser($sshUserId)
 	if ($sshUserId) {
 		$stmt = exec_query(
 			'
-				SELECT
-					jailkit_login_id
-				FROM
+				UPDATE
 					jailkit_login
+				INNER JOIN
+					jailkit USING(jailkit_id)
+				SET
+					jailkit_login_status = ?
 				WHERE
-					admin_id = ?
-				AND
 					jailkit_login_id = ?
 				AND
-					jailkit_login_status IN (?, ?)
+					admin_id = ?
 			',
-			array($_SESSION['user_id'], $sshUserId, 'ok', 'disabled')
+			array('todelete', $sshUserId, $_SESSION['user_id'])
 		);
 
 		if ($stmt->rowCount()) {
-			exec_query(
-				'UPDATE jailkit_login SET jailkit_login_status = ? WHERE jailkit_login_id = ?',
-				array('todelete', $sshUserId)
-			);
-
 			send_request();
 			return true;
 		}
@@ -287,7 +279,8 @@ function jailkit_deleteSshUser($sshUserId)
 function jailkit_getSshUserLimit($tpl)
 {
 	$stmt = exec_query(
-		'SELECT COUNT(jailkit_login_id) AS cnt FROM jailkit_login WHERE admin_id = ?', $_SESSION['user_id']
+		'SELECT COUNT(*) AS cnt FROM jailkit_login INNER JOIN jailkit USING(jailkit_id )WHERE admin_id = ?',
+		$_SESSION['user_id']
 	);
 	$recordsCount = $stmt->fields['cnt'];
 
@@ -323,6 +316,8 @@ function jailkit_generatePage($tpl)
 				jailkit_login_id, ssh_login_name, jailkit_login_status
 			FROM
 				jailkit_login
+			INNER JOIN
+				jailkit USING(jailkit_id)
 			WHERE
 				admin_id = ?
 			ORDER BY
@@ -340,7 +335,9 @@ function jailkit_generatePage($tpl)
 				$tpl->assign(
 					array(
 						'TR_CHANGE_ACTION_TOOLTIP' => tr('Deactivate'),
-						'TR_CHANGE_ALERT' => tr('Are you sure you want deactivate this SSH user?')
+						'TR_CHANGE_ALERT' => tr('Are you sure you want to deactivate this SSH user?'),
+						'CHANGE_ACTION' => 'deactivate'
+
 					)
 				);
 			} elseif ($row['jailkit_login_status'] == 'disabled') {
@@ -348,7 +345,8 @@ function jailkit_generatePage($tpl)
 				$tpl->assign(
 					array(
 						'TR_CHANGE_ACTION_TOOLTIP' => tr('Activate'),
-						'TR_CHANGE_ALERT' => tr('Are you sure you want activate this SSH user?')
+						'TR_CHANGE_ALERT' => tr('Are you sure you want to activate this SSH user?'),
+						'CHANGE_ACTION' => 'activate'
 					)
 				);
 			} elseif (
@@ -398,7 +396,6 @@ function jailkit_generatePage($tpl)
 		)
 	);
 
-
 	jailkit_getSshUserLimit($tpl);
 }
 
@@ -409,7 +406,6 @@ function jailkit_generatePage($tpl)
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
 check_login('user');
-
 
 $tpl = new iMSCP_pTemplate();
 $tpl->define_dynamic(
@@ -422,14 +418,13 @@ $tpl->define_dynamic(
 		'jailkit_action_status_link' => 'jailkit_login_item',
 		'jailkit_action_status_static' => 'jailkit_login_item',
 		'jailkit_action_links' => 'jailkit_login_item',
-		'jailkit_dialog' => 'page',
 		'jailkit_add_button' => 'page'
 	)
 );
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => tr('Client / Webtool - SSH Users'),
+		'TR_PAGE_TITLE' => tr('Client / Domains - SSH Users'),
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
@@ -461,25 +456,25 @@ if (isset($_REQUEST['action'])) {
 
 	if ($action == 'add') {
 		if (jailkit_addSshUser($tpl)) {
-			set_page_message(tr('SSH user successfully scheduled for addition.'), 'success');
+			set_page_message(tr('SSH user scheduled for addition.'), 'success');
 			redirectTo('ssh_users.php');
 		}
 	} elseif ($action == 'edit') {
 		$sshUserId = (isset($_POST['login_id'])) ? clean_input($_POST['login_id']) : '';
 
 		if (jailkit_editSshUser($tpl, $sshUserId)) {
-			set_page_message(tr('SSH user successfully scheduled for update.'), 'success');
+			set_page_message(tr('SSH user scheduled for update.'), 'success');
 			redirectTo('ssh_users.php');
 		}
-	} elseif ($action == 'change') {
+	} elseif ($action == 'activate' || $action == 'deactivate') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
-		jailkit_changeSshUserStatus($sshUserId);
+		jailkit_changeSshUserStatus($sshUserId, $action);
 		redirectTo('ssh_users.php');
 	} elseif ($action == 'delete') {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
 
 		if (jailkit_deleteSshUser($sshUserId)) {
-			set_page_message(tr('SSH user successfully scheduled for deletion.'), 'success');
+			set_page_message(tr('SSH user scheduled for deletion.'), 'success');
 			redirectTo('ssh_users.php');
 		}
 	} else {

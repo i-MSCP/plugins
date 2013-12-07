@@ -1,5 +1,6 @@
 - Allow to remove application from a specific jail
 - Allow to set hostname in jails (uts namespaces / https://lwn.net/Articles/179345/)
+- Dissociate item errors from item status
 - Per reseller --> customers application sections
 - Per reseller --> customers additional applications
 - Per reseller activation

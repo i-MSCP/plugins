@@ -18,11 +18,10 @@
 	<tr>
 		<td>
 			<!-- BDP: jailkit_action_status_link -->
-			<a href="ssh_users.php?action=change&amp;login_id={JAILKIT_LOGIN_ID}"
+			<a href="ssh_users.php?action={CHANGE_ACTION}&amp;login_id={JAILKIT_LOGIN_ID}"
 			   class="icon i_{STATUS_ICON} change_action" data-change-alert="{TR_CHANGE_ALERT}"
 			   title="{TR_CHANGE_ACTION_TOOLTIP}">{JAILKIT_LOGIN_STATUS}</a>
 			<!-- EDP: jailkit_action_status_link -->
-
 			<!-- BDP: jailkit_action_status_static -->
 			<span class="icon i_{STATUS_ICON}" title="{JAILKIT_LOGIN_STATUS}">{JAILKIT_LOGIN_STATUS}</span>
 			<!-- EDP: jailkit_action_status_static -->
@@ -32,7 +31,6 @@
 			<!-- BDP: jailkit_action_links -->
 			<span class="icon i_edit edit_action clickable" data-login-id="{JAILKIT_LOGIN_ID}"
 				  data-login-name="{JAILKIT_USER_NAME}" title="{TR_EDIT}">{TR_EDIT}</span>
-
 			<a class="icon i_delete delete_action"
 			   href="ssh_users.php?action=delete&amp;login_id={JAILKIT_LOGIN_ID}" title="{TR_DELETE}">{TR_DELETE}</a>
 			<!-- EDP: jailkit_action_links -->
@@ -52,7 +50,6 @@
 	<a class="link_as_button" href="domains_manage.php">{TR_CANCEL}</a>
 </div>
 
-<!-- BDP: jailkit_dialog -->
 <div id="jailkit_dialog">
 	<form name="jailkit_login_frm" id="jailkit_login_frm" action="ssh_users.php" method="post" autocomplete="off">
 		<table>
@@ -131,13 +128,13 @@
 
 		if ($("#action").val() == 'edit') {
 			$("#ssh_login_name_prefix").hide();
-			$("#ssh_login_name").prop('disabled', true);
+			$("#ssh_login_name").prop('readonly', true);
 			$("#dialog_submit_button").button("option", "label", "{TR_DIALOG_EDIT}");
 			dialog.dialog("option", "title", "{TR_DIALOG_EDIT_TITLE}");
 		}
 
 		$("#add_action").click(function () {
-			$("#jailkit_login_frm").find("input").val("").prop("disabled", false);
+			$("#jailkit_login_frm").find("input").val("").prop("readonly", false);
 			$("#dialog_submit_button").button("option", "label", "{TR_DIALOG_ADD}");
 			$("#ssh_login_name_prefix").show();
 			$("#action").val('add');
@@ -146,20 +143,19 @@
 
 		$('.edit_action').click(function () {
 			$("#ssh_login_name_prefix").hide();
-			$("#ssh_login_name").val($(this).data("login-name")).prop('disabled', true);
+			$("#ssh_login_name").val($(this).data("login-name")).prop("readonly", true);
 			$("#login_id").val($(this).data("login-id"));
 			$("#action").val('edit');
 			$('#dialog_submit_button').button("option", "label", "{TR_DIALOG_EDIT}");
 			dialog.dialog("option", "title", "{TR_DIALOG_EDIT_TITLE}").dialog("open");
 		});
 
-		$(".delete_action").click(function () {
-			return confirm("{DELETE_LOGIN_ALERT}");
-		});
-
 		$(".change_action").click(function () {
 			return confirm($(this).data('change-alert'));
 		});
+
+		$(".delete_action").click(function () {
+			return confirm("{DELETE_LOGIN_ALERT}");
+		});
 	});
 </script>
-<!-- EDP: jailkit_dialog -->

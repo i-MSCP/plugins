@@ -125,7 +125,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		if($pluginManager->getPluginStatus($this->getName()) == 'toenable') {
+		if ($pluginManager->getPluginStatus($this->getName()) == 'toenable') {
 			set_page_message(tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 		}
 	}
@@ -140,8 +140,8 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	{
 		$pluginStatus = $pluginManager->getPluginStatus($this->getName());
 
-		if($pluginStatus == 'tochange' || $pluginStatus == 'todisable') {
-			set_page_message( tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
+		if ($pluginStatus == 'tochange' || $pluginStatus == 'todisable') {
+			set_page_message(tr('JailKit Plugin: This task can take few seconds. Please, be patient.'), 'warning');
 		}
 	}
 
@@ -187,23 +187,25 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	 */
 	public function onAfterChangeDomainStatus($event)
 	{
-		$customerId = $event->getParam('customerId');
-
 		if ($event->getParam('action') == 'enable') {
-			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('ok', $customerId));
-
-			exec_query(
-				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('0', 'tochange', $customerId)
-			);
+			$bindParams = array('ok', '0', 'tochange', $event->getParam('customerId'));
 		} else {
-			exec_query('UPDATE jailkit SET jailkit_status = ? WHERE admin_id = ?', array('disabled', $customerId));
-
-			exec_query(
-				'UPDATE jailkit_login SET ssh_login_locked = ?, jailkit_login_status = ? WHERE admin_id = ?',
-				array('1', 'tochange', $customerId)
-			);
+			$bindParams = array('disabled', '1', 'tochange', $event->getParam('customerId'));
 		}
+
+		exec_query(
+			'
+				UPDATE
+					jailkit
+				LEFT JOIN
+					jailkit_login USING(jailkit_id)
+				SET
+					jailkit_status = ?, ssh_login_locked = ?, jailkit_login_status = ?
+				WHERE
+					admin_id = ?
+			',
+			$bindParams
+		);
 	}
 
 	/**
@@ -347,18 +349,18 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 	{
 		$stmt = exec_query('SELECT jailkit_status FROM jailkit WHERE admin_id = ?', $_SESSION['user_id']);
 
-		if($stmt->rowCount()) {
+		if ($stmt->rowCount()) {
 			$jailkitStatus = $stmt->fields['jailkit_status'];
 
-			if($jailkitStatus != 'ok') {
-				if($_SERVER['SCRIPT_NAME'] == '/client/jailkit.php') {
+			if ($jailkitStatus != 'ok') {
+				if ($_SERVER['SCRIPT_NAME'] == '/client/ssh_users.php') {
 					redirectTo('domains_manage.php');
 				}
 
-				if($_SERVER['SCRIPT_NAME'] == '/client/domains_manage.php') {
-					if($jailkitStatus == 'disabled' ) {
+				if ($_SERVER['SCRIPT_NAME'] == '/client/domains_manage.php') {
+					if ($jailkitStatus == 'disabled') {
 						set_page_message(tr('SSH feature has been disabled by your reseller.'), 'warning');
-					} elseif($jailkitStatus != 'toadd' && $jailkitStatus != 'todelete') {
+					} elseif ($jailkitStatus != 'toadd' && $jailkitStatus != 'todelete') {
 						set_page_message(
 							tr('SSH feature is currently unavailable due to maintenance operation.'), 'warning'
 						);
@@ -367,7 +369,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			} else {
 				return true;
 			}
-		} elseif($_SERVER['SCRIPT_NAME'] == '/client/jailkit.php') {
+		} elseif ($_SERVER['SCRIPT_NAME'] == '/client/ssh_users.php') {
 			showBadRequestErrorPage();
 			exit;
 		}
@@ -385,13 +387,13 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		execute_query(
 			'
 				CREATE TABLE IF NOT EXISTS jailkit (
-					jailkit_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+					jailkit_id int(10) unsigned NOT NULL AUTO_INCREMENT,
 					admin_id int(10) unsigned NOT NULL,
-					admin_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					max_logins int(11) default NULL,
+					max_logins int(10) default NULL,
 					jailkit_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					PRIMARY KEY (jailkit_id),
-					KEY jailkit_id (jailkit_id)
+					UNIQUE KEY admin_id (admin_id),
+					KEY jailkit_status (jailkit_status)
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			'
 		);
@@ -399,15 +401,16 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 		execute_query(
 			"
 				CREATE TABLE IF NOT EXISTS jailkit_login (
-					jailkit_login_id int(11) unsigned NOT NULL AUTO_INCREMENT,
-					admin_id int(10) unsigned NOT NULL,
+					jailkit_login_id int(10) unsigned NOT NULL AUTO_INCREMENT,
+					jailkit_id int(10) unsigned NOT NULL,
 					ssh_login_name varchar(16) collate utf8_unicode_ci default NULL,
 					ssh_login_pass varchar(200) collate utf8_unicode_ci default NULL,
 					ssh_login_locked tinyint(1) default '0',
 					jailkit_login_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
 					PRIMARY KEY (jailkit_login_id),
+					KEY jailkit_id (jailkit_id),
 					UNIQUE KEY ssh_login_name (ssh_login_name),
-					KEY jailkit_login_id (jailkit_login_id)
+					KEY jailkit_login_status (jailkit_login_status)
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			"
 		);

@@ -4,8 +4,7 @@ Plugin providing jailed shell access.
 
 ### LICENSE
 
-Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) Sascha Bay <info@space2place.de>
+Copyright (C) Laurent Declercq <l.declercq@nuxwin.com> and Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

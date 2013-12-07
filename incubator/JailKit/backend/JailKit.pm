@@ -115,7 +115,9 @@ sub change
 			state $rdata; # We get the data once to avoid too many queries
 
 			unless(defined $rdata) {
-				$rdata = $self->{'db'}->doQuery('admin_id', 'SELECT admin_id, admin_name FROM jailkit');
+				$rdata = $self->{'db'}->doQuery(
+					'admin_id', 'SELECT admin_id, admin_name FROM jailkit INNER JOIN admin USING(admin_id)'
+				);
 				unless(ref $rdata eq 'HASH') {
 					error($rdata);
 					return 1;
@@ -208,13 +210,13 @@ sub run
 		'jailkit_id',
 		"
 			SELECT
-				t1.jailkit_id, t1.jailkit_status, t2.admin_id, t2.admin_name, t2.admin_sys_uid
+				jailkit_id, jailkit_status, admin_id, admin_name, admin_sys_uid
 			FROM
-				jailkit AS t1
+				jailkit
 			INNER JOIN
-				admin AS t2 USING(admin_id)
+				admin USING(admin_id)
 			WHERE
-				t1.jailkit_status IN('toadd', 'tochange', 'todelete')
+				jailkit_status IN('toadd', 'tochange', 'todelete')
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -241,7 +243,7 @@ sub run
 					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'jailkit_id'}
 				);
 			} elsif($status eq 'todelete') {
-				$rs = $self->_deleteJail($rdata->{$_}->{'admin_id'}, $rdata->{$_}->{'admin_name'});
+				$rs = $self->_deleteJail($rdata->{$_}->{'jailkit_id'}, $rdata->{$_}->{'admin_name'});
 
 				if($rs) {
 					@sql = (
@@ -274,18 +276,18 @@ sub run
 		'jailkit_login_id',
 		"
 			SELECT
-				t1.jailkit_login_id, t1.ssh_login_name, t1.ssh_login_pass, t1.ssh_login_locked, t1.jailkit_login_status,
-				t3.admin_name, t3.admin_sys_uid
+				jailkit_login_id, ssh_login_name, ssh_login_pass, ssh_login_locked, jailkit_login_status, admin_name,
+				admin_sys_uid
 			FROM
-				jailkit_login AS t1
+				jailkit_login
 			INNER JOIN
-				jailkit AS t2 USING(admin_id)
+				jailkit USING(jailkit_id)
 			INNER JOIN
-				admin AS t3 using(admin_id)
+				admin USING(admin_id)
 			WHERE
-				t1.jailkit_login_status IN('toadd', 'tochange', 'todelete')
+				jailkit_login_status IN('toadd', 'tochange', 'todelete')
 			AND
-				t2.jailkit_status  IN('ok', 'disabled')
+				jailkit_status IN('ok', 'disabled')
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -568,9 +570,9 @@ sub _addJail($$)
 	0;
 }
 
-=item _deleteJail($customerId, $customerName)
+=item _deleteJail($jailId, $customerName)
 
- Removes the jail owned by the given customer. Also removes any SSH user which belong to the customer.
+ Remove the given jail. Also removes any SSH user which belong to the jail.
 
  Return int 0 on success, other on failure
 
@@ -578,10 +580,10 @@ sub _addJail($$)
 
 sub _deleteJail($$$)
 {
-	my ($self, $customerId, $customerName) = @_;
+	my ($self, $jailId, $customerName) = @_;
 
 	my $rdata = $self->{'db'}->doQuery(
-		'jailkit_login_id', 'SELECT jailkit_login_id, ssh_login_name FROM jailkit_login WHERE admin_id = ?', $customerId
+		'jailkit_login_id', 'SELECT jailkit_login_id, ssh_login_name FROM jailkit_login WHERE jailkit_id = ?', $jailId
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -639,7 +641,17 @@ sub _updateJails
 	my $self = shift;
 
 	my $rdata = $self->{'db'}->doQuery(
-		'jailkit_id', "SELECT jailkit_id, admin_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
+		'jailkit_id',
+		"
+			SELECT
+				jailkit_id, admin_id, admin_name
+			FROM
+				jailkit
+			INNER JOIN
+				admin USING(admin_id)
+			WHERE
+				jailkit_status = 'ok'
+		"
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -869,6 +881,8 @@ sub _changeSshUsers($$)
 			FROM
 				jailkit_login
 			INNER JOIN
+				jailkit USING(jailkit_id)
+			INNER JOIN
 				admin USING(admin_id)
 			WHERE
 				jailkit_login_status IN ('ok', 'disabled')
@@ -969,7 +983,17 @@ sub _processFstabEntries($;$)
 			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
 		) {
 			$jailkitEntries = $self->{'db'}->doQuery(
-				'jailkit_id', "SELECT jailkit_id, admin_name FROM jailkit WHERE jailkit_status = 'ok'"
+				'jailkit_id',
+				"
+					SELECT
+						jailkit_id, admin_name
+					FROM
+						jailkit
+					INNER JOIN
+						admin USING(admin_id)
+					WHERE
+						jailkit_status = 'ok'
+				"
 			);
 			unless(ref $jailkitEntries eq 'HASH') {
 				error($jailkitEntries);
@@ -985,7 +1009,9 @@ sub _processFstabEntries($;$)
 				FROM
 					jailkit_login
 				INNER JOIN
-					jailkit USING(admin_id)
+					jailkit USING(jailkit_id)
+				INNER JOIN
+					admin USING(admin_id)
 				WHERE
 					jailkit_login_status = 'ok'
 			"
@@ -1077,7 +1103,17 @@ sub _processJkSocketdEntries
 	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
 
 	my $rdata = $self->{'db'}->doQuery(
-		'jailkit_id', "SELECT jailkit_id, admin_name, jailkit_status FROM jailkit WHERE jailkit_status = 'ok'"
+		'jailkit_id',
+		"
+			SELECT
+				jailkit_id, jailkit_status, admin_name
+			FROM
+				jailkit
+			INNER JOIN
+				admin USING(admin_id)
+			WHERE
+				jailkit_status = 'ok'
+		"
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);

@@ -68,9 +68,5 @@ return array(
 	// See man jk_socketd
 	'jail_socketd_base' => '512',
 	'jail_socketd_peak' => '2048',
-	'jail_socketd_interval' => '5.0',
-
-	// Max SSH user per customer
-	// This is only a default value which can be modified through the reseller interface for each customer
-	'max_allowed_ssh_user' => '1'
+	'jail_socketd_interval' => '5.0'
 );
