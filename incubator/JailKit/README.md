@@ -37,19 +37,19 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 Note: The update will only be triggered only if the plugin is enabled.
 
-### CONFIGURATION
+### CONFIGURATION CHANGE
 
-	- Made your changes in the config.php file.
+	- Made your changes in the plugin config.php file or [local configuration file](https://github.com/i-MSCP/imscp/tree/master/gui/data/persistent/plugins)
 	- Update the plugin list
 
- Note: The configuration change will be done only if the plugin is enabled.
+ **Note:** The configuration change will be done only if the plugin is enabled.
 
 ## JAILKIT EXPERTS
 
  If you are a jailkit expert, you can also adjust the jailkit configuration by
 editing the jailkit ini files. However, you should know that any change made in
 these files will be lost after updating the plugin to a new version. Therefore,
-you must think to backup your files to be able to restore them.
+you must think to backup your files.
 
 ### DEVELOPERS NOTE
 

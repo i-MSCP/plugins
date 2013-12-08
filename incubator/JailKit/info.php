@@ -36,7 +36,7 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
-	'date' => '2013-12-05',
+	'date' => '2013-12-08',
 	'name' => 'JailKit',
 	'desc' => 'Plugin providing jailed shell access.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:jailkit'

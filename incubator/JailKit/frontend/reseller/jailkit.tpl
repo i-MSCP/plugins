@@ -1,5 +1,6 @@
 
 <!-- BDP: jailkit_list -->
+<!-- BDP: jailkit_select_items -->
 <form action="ssh_accounts.php" method="post" name="activate_customer" id="activate_customer">
 	<label>
 		<select name="admin_id">
@@ -9,13 +10,12 @@
 			<!-- EDP: jailkit_select_item -->
 		</select>
 	</label>
-
 	<div class="buttons" style="display:inline-block;">
 		<input type="hidden" name="action" value="activate"/>
 		<input name="Submit" type="submit" value="{TR_SELECT_ACTION}" title="{TR_SELECT_ACTION_TOOLTIP}"/>
 	</div>
 </form>
-
+<!-- EDP: jailkit_select_items -->
 <!-- BDP: jailkit_customer_list -->
 <table class="firstColFixed datatable">
 	<thead>

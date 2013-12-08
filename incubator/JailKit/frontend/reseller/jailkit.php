@@ -63,6 +63,9 @@ function jailkit_activateSsh($customerId)
 
 		if ($stmt->rowCount()) {
 			send_request();
+			write_log(
+				"{$_SESSION['user_logged']} activated SSH feature for customer with ID $customerId", E_USER_NOTICE
+			);
 			set_page_message(tr('SSH feature scheduled for activation. This can take few seconds.'), 'success');
 			redirectTo('ssh_accounts.php');
 		}
@@ -100,6 +103,9 @@ function jailkit_deactivateSsh($customerId)
 
 		if ($stmt->rowCount()) {
 			send_request();
+			write_log(
+				"{$_SESSION['user_logged']} deactivated SSH feature for customer with ID $customerId", E_USER_NOTICE
+			);
 			set_page_message(tr('SSH feature scheduled for deactivation. This can take few seconds.'), 'success');
 			redirectTo('ssh_accounts.php');
 		}
@@ -140,23 +146,28 @@ function jailkit_editCustomerJail($tpl, $customerId)
 		$row = $stmt->fetchRow();
 
 		if (!is_null($row['jailkit_id'])) {
-			if (is_number($_POST['max_logins'])) {
-				if ($row['login_cnt'] < $maxLogins) {
-					exec_query(
-						'UPDATE jailkit SET max_logins = ? WHERE admin_id = ?', array($maxLogins, $customerId)
-					);
-					set_page_message(tr('SSH user limit has been updated.'), 'success');
-				} else {
-					set_page_message('SSH user limit cannot be lower than number of existent SSH users');
-				}
-			} else {
-				set_page_message(tr('Invalid SSH user limit.'), 'error');
+			$error = false;
 
+			if (!is_number($_POST['max_logins'])) {
+				set_page_message(tr('Invalid SSH user limit.'), 'error');
+				$error = true;
+			} elseif($maxLogins != 0 && $maxLogins < $row['login_cnt']) {
+				set_page_message('SSH user limit cannot be lower than the number of existent SSH users.', 'error');
+				$error = true;
+			}
+
+			if (!$error) {
+				exec_query('UPDATE jailkit SET max_logins = ? WHERE admin_id = ?', array($maxLogins, $customerId));
+				write_log(
+					"{$_SESSION['user_logged']} edited SSH user limit for customer with ID $customerId", E_USER_NOTICE
+				);
+				set_page_message(tr('SSH user limit has been updated.'), 'success');
+			} else {
 				$tpl->assign(
 					array(
 						'MAX_LOGINS' => tohtml($maxLogins),
 						'JAILKIT_EDIT_ADMIN_ID' => $customerId,
-						'JAILKIT_DIALOG_OPEN' => 1,
+						'JAILKIT_DIALOG_OPEN' => 1
 					)
 				);
 
@@ -204,8 +215,14 @@ function jailkit_changeCustomerJail($customerId, $action)
 			send_request();
 
 			if ($action == 'unsuspend') {
+				write_log(
+					"{$_SESSION['user_logged']} activated SSH feature for customer with ID $customerId", E_USER_NOTICE
+				);
 				set_page_message(tr('SSH feature scheduled for activation. This can take few seconds.'), 'success');
 			} else {
+				write_log(
+					"{$_SESSION['user_logged']} deactivated SSH feature for customer with ID $customerId", E_USER_NOTICE
+				);
 				set_page_message(tr('SSH feature scheduled for deactivation. This can take few seconds.'), 'success');
 			}
 
@@ -215,7 +232,6 @@ function jailkit_changeCustomerJail($customerId, $action)
 
 	showBadRequestErrorPage();
 }
-
 
 /**
  * Return SSH user limit for the given customer
@@ -282,7 +298,7 @@ function jailkit_generatePage($tpl)
 			$tpl->parse('JAILKIT_SELECT_ITEM', '.jailkit_select_item');
 		}
 	} else {
-		$tpl->assign('JAILKIT_SELECT_ITEM', '');
+		$tpl->assign('JAILKIT_SELECT_ITEMS', '');
 	}
 
 	$stmt = exec_query(
@@ -395,7 +411,8 @@ $tpl->define_dynamic(
 		'jailkit_list' => 'page',
 		'jailkit_select_item' => 'jailkit_list',
 		'jailkit_customer_list' => 'jailkit_list',
-		'jailkit_customer_item' => 'jailkit_customer_list',
+		'jailkit_select_items' => 'jailkit_customer_list',
+		'jailkit_customer_item' => 'jailkit_select_items',
 		'jailkit_action_status_link' => 'jailkit_customer_item',
 		'jailkit_action_status_static' => 'jailkit_customer_item',
 		'jailkit_action_links' => 'jailkit_customer_item',

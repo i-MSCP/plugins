@@ -86,8 +86,6 @@ function jailkit_addSshUser($tpl)
 
 			if (!$error) {
 				try {
-					$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
-
 					exec_query(
 						'
 							INSERT INTO jailkit_login (
@@ -96,7 +94,10 @@ function jailkit_addSshUser($tpl)
 								?, ?, ?, ?
 							)
 						',
-						array($jailkitId, $loginUsername, $loginPassword, 'toadd')
+						array(
+							$jailkitId, $loginUsername,
+							cryptPasswordWithSalt($loginPassword, generateRandomSalt(true)), 'toadd'
+						)
 					);
 
 					send_request();
@@ -148,8 +149,6 @@ function jailkit_editSshUser($tpl, $sshUserId)
 		}
 
 		if (!$error) {
-			$loginPassword = cryptPasswordWithSalt($loginPassword, generateRandomSalt(true));
-
 			$stmt = exec_query(
 				'
 					UPDATE
@@ -163,7 +162,10 @@ function jailkit_editSshUser($tpl, $sshUserId)
 					AND
 						admin_id = ?
 				',
-				array($loginPassword, 'tochange', $sshUserId, $_SESSION['user_id'])
+				array(
+					cryptPasswordWithSalt($loginPassword, generateRandomSalt(true)), 'tochange', $sshUserId,
+					$_SESSION['user_id']
+				)
 			);
 
 			if ($stmt->rowCount()) {
@@ -209,8 +211,7 @@ function jailkit_changeSshUserStatus($sshUserId, $action)
 				INNER JOIN
 					jailkit USING(jailkit_id)
 				SET
-					ssh_login_locked = ?,
-					jailkit_login_status = ?
+					ssh_login_locked = ?, jailkit_login_status = ?
 				WHERE
 					jailkit_login_id = ?
 				AND
@@ -223,8 +224,10 @@ function jailkit_changeSshUserStatus($sshUserId, $action)
 			send_request();
 
 			if ($action == 'activate') {
+				write_log("{$_SESSION['user_logged']} activated SSH user", E_USER_NOTICE);
 				set_page_message(tr('SSH user scheduled for activation.'), 'success');
 			} else {
+				write_log("{$_SESSION['user_logged']} deactived SSH user", E_USER_NOTICE);
 				set_page_message(tr('SSH user scheduled for deactivation.'), 'success');
 			}
 
@@ -291,7 +294,7 @@ function jailkit_getSshUserLimit($tpl)
 		tr(
 			'SSH Users: %s of %s',
 			$recordsCount,
-			($stmt->fields['max_logins'] == 0) ? '<b>unlimited</b>' : $stmt->fields['max_logins']
+			($stmt->fields['max_logins'] == 0) ? tr('unlimited') : $stmt->fields['max_logins']
 		)
 	);
 
@@ -456,6 +459,7 @@ if (isset($_REQUEST['action'])) {
 
 	if ($action == 'add') {
 		if (jailkit_addSshUser($tpl)) {
+			write_log("{$_SESSION['user_logged']} added new SSH user", E_USER_NOTICE);
 			set_page_message(tr('SSH user scheduled for addition.'), 'success');
 			redirectTo('ssh_users.php');
 		}
@@ -463,6 +467,7 @@ if (isset($_REQUEST['action'])) {
 		$sshUserId = (isset($_POST['login_id'])) ? clean_input($_POST['login_id']) : '';
 
 		if (jailkit_editSshUser($tpl, $sshUserId)) {
+			write_log("{$_SESSION['user_logged']} updated SSH user", E_USER_NOTICE);
 			set_page_message(tr('SSH user scheduled for update.'), 'success');
 			redirectTo('ssh_users.php');
 		}
@@ -474,6 +479,7 @@ if (isset($_REQUEST['action'])) {
 		$sshUserId = (isset($_GET['login_id'])) ? clean_input($_GET['login_id']) : '';
 
 		if (jailkit_deleteSshUser($sshUserId)) {
+			write_log("{$_SESSION['user_logged']} deleted SSH user", E_USER_NOTICE);
 			set_page_message(tr('SSH user scheduled for deletion.'), 'success');
 			redirectTo('ssh_users.php');
 		}
