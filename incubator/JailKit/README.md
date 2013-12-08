@@ -23,24 +23,24 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### INSTALLATION
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the plugin archive
-	- Install the plugin
+  - Login into the panel as admin and go to the plugin management interface
+  - Upload the plugin archive
+  - Install the plugin
 
 ### UPDATE
 
-	- Backup your current config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the plugin archive
-	- Restore your config.php file (check for any change)
-	- Update the plugin list
+  - Backup your current config.php file
+  - Login into the panel as admin and go to the plugin management interface
+  - Upload the plugin archive
+  - Restore your config.php file (check for any change)
+  - Update the plugin list
 
 Note: The update will only be triggered only if the plugin is enabled.
 
 ### CONFIGURATION CHANGE
 
-	- Made your changes in the plugin config.php file or [local configuration file](https://github.com/i-MSCP/imscp/tree/master/gui/data/persistent/plugins)
-	- Update the plugin list
+  - Made your changes in the plugin config.php file or [local configuration file](https://github.com/i-MSCP/imscp/tree/master/gui/data/persistent/plugins)
+  - Update the plugin list
 
  **Note:** The configuration change will be done only if the plugin is enabled.
 
