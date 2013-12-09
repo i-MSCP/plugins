@@ -33,7 +33,7 @@ return array(
 	// Jailkit installation directory.
 	// This path is used as value of the --prefix option (JailKit configure script).
 	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
-	'install_path' => '/usr/local', # (Recommended value)
+	'install_path' => '/usr/local', // (Recommended value)
 
 	// Full path to the root jail directory which holds all jails. Be sure that the partition in which this directory is
 	// living has enough space to host the jails.
@@ -42,7 +42,7 @@ return array(
 
 	// See man shells
 	// Don't change this value if you do not know what you are doing
-	'shell' => '/bin/bash', # (Recommended value)
+	'shell' => '/bin/bash', // (Recommended value)
 
 	// See man jk_init
 	'jail_app_sections' => array(
@@ -51,6 +51,7 @@ return array(
 	),
 
 	// See man jk_cp
+	// Any file which is not installed on your system will be ignored
 	'jail_additional_apps' => array(
 		'/bin/hostname',
 		'/usr/bin/basename',

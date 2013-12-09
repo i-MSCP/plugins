@@ -1,76 +1,82 @@
 Changes provided by the imscp.patch
 ===================================
 
-+++ jailkit_wrk/extra/jailkit	2013-12-02 00:26:12.385525544 +0100
+jailkit/extra/jailkit
 	- Rewritten: Init script (using Debian init script skeleton)
 
-+++ jailkit_wrk/ini/jk_check.ini	2013-11-27 06:36:52.990547610 +0100
+jailkit/ini/jk_check.ini
 	- Removed: Config sample
 
-+++ jailkit_wrk/ini/jk_chrootsh.ini	2013-12-04 01:30:54.089635374 +0100
+jailkit/ini/jk_chrootsh.ini
 	- Added: TERM and PATH variables
 	- Removed: Config sample
 
-+++ jailkit_wrk/ini/jk_init.ini	2013-12-04 01:29:24.061637356 +0100
+jailkit/ini/jk_init.ini
 	- Added imscp-base and mysql-client sections
 	- Backported: Changes from upstream sources repository
 	- Removed: Solaris config sample
 	- Replaced en_US.utf8 locale by C.UTF-8
 
-jailkit_wrk/ini/jk_socketd.ini	2013-11-27 06:36:52.994547610 +0100
+jailkit/ini/jk_socketd.ini
 	- Removed: Config sample
 
-+++ jailkit_wrk/ini/jk_uchroot.ini	2013-11-27 06:36:52.994547610 +0100
+jailkit/ini/jk_uchroot.ini
 	- Removed: config sample
 
-+++ jailkit_wrk/ini/jk_update.ini	2013-11-27 06:36:52.994547610 +0100
+jailkit/ini/jk_update.ini
 	- Added: DEFAULT section (hardlink set to 1)
 	- Removed: Config sample
 
-+++ jailkit_wrk/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+jailkit/Makefile.in
 	- CS fixes
 
-+++ jailkit_wrk/man/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+jailkit/man/Makefile.in
 	- CS fixes
 
-+++ jailkit_wrk/py/jk_addjailuser.in	2013-11-27 06:42:14.762540525 +0100
+jailkit/man/jk_cp.8
+	- Added documentation for the --ignore-missing option
+	- Added missing documentation for the --setuid option
+
+jailkit/py/jk_addjailuser.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/jk_check.in	2013-11-27 06:42:14.754540523 +0100
+jailkit/py/jk_check.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/jk_cp.in	2013-11-27 06:42:14.766540525 +0100
+jailkit/py/jk_cp.in
+	- Added the -ignore-missing option which allow to ignore missing files
+		instead of raising a fatal error
 	- CS fixes + typo
 	- Fixed: Unable to set jail directory using -j option
 
-+++ jailkit_wrk/py/jk_init.in	2013-11-27 06:42:14.762540525 +0100
+jailkit/py/jk_init.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/jk_jailuser.in	2013-11-27 06:42:14.766540525 +0100
+jailkit/py/jk_jailuser.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/jk_list.in	2013-11-27 06:42:14.766540525 +0100
+jailkit/py/jk_list.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/jk_update.in	2013-11-29 15:27:32.134041875 +0100
+jailkit/py/jk_update.in
 	- CS fixes + typo
 
-+++ jailkit_wrk/py/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+jailkit/py/Makefile.in
 	- Fixed: #40681 Bug - jk_jailuser.in - PREFIX is static even when using
 		--prefix while configuration (See http://savannah.nongnu.org/bugs/?40681)
 
-+++ jailkit_wrk/src/jk_chrootsh.c	2013-11-29 07:38:32.318661455 +0100
+jailkit/src/jk_chrootsh.c
 	- Backported: Changes from upstream sources repository
 
-+++ jailkit_wrk/src/jk_lib.c	2013-11-29 07:36:55.438663588 +0100
+jailkit/src/jk_lib.c
 	- Backported: Changes from upstream sources repository
 
-+++ jailkit_wrk/src/jk_lsh.c	2013-11-27 06:36:52.994547610 +0100
+jailkit/src/jk_lsh.c
 	- Fixed: Compile time warning
 
-+++ jailkit_wrk/src/jk_socketd.c	2013-11-29 15:03:22.762073785 +0100
+jailkit/src/jk_socketd.c
 	- CS fixes
 	- Fixed: Daemon hangs when started/restarted from perl script
 
-+++ jailkit_wrk/src/Makefile.in	2013-11-27 06:36:52.994547610 +0100
+jailkit/src/Makefile.in
 	- CS fixes

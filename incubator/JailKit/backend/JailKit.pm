@@ -502,7 +502,7 @@ sub _addJail($$)
 		# Installing additional apps inside the jail
 		if($self->{'config'}->{'jail_additional_apps'}) {
 			$rs = execute(
-				"umask 022; $installPath/sbin/jk_cp -f -k -j $rootJailDir/$customerName " .
+				"umask 022; $installPath/sbin/jk_cp -f -k -i -j $rootJailDir/$customerName " .
 				"@{$self->{'config'}->{'jail_additional_apps'}}",
 				\$stdout,
 				\$stderr
@@ -1334,13 +1334,13 @@ sub _installJailKit
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	# Fixing permissions on the jailkit confdir (should be owwned by root:root and not setgid)
+	# Fixing permissions on the jailkit confdir
 	require iMSCP::Rights;
 	iMSCP::Rights->import();
 	setRights(
 		"$installPath/etc/jailkit",
 		{
-			'dirmode' => '00750',
+			'dirmode' => 'a-rwxst,u+rwx,g+rx',
 			'filemode' => '0640',
 			'user' => $main::imscpConfig{'ROOT_USER'},
 			'group' => $main::imscpConfig{'ROOT_GROUP'},
