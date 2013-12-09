@@ -26,7 +26,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### Existing milter configurations
 
-	This plugin will not check for an existing milter configuration in the postfix main.cf file.
+	This plugin will not check for an existing milter configuration in the Postfix main.cf file.
 	If you need to add an extra milter, please ask in our forum!
 	
 ### INSTALLATION
@@ -80,7 +80,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the SpamAssassin plugin archive
-	- Activate the plugin
+	- Install the plugin
 
 ### UPDATE
 
@@ -102,14 +102,19 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the SpamAssassin plugin archive
-	- Force plugin re-installation
+	- Update the plugin list
 
 ### CONFIGURATION
 
 For the different configuration options please check the plugin config file.
 
 	# plugins/SpamAssassin/config.php
+	
+After you made your config changes, don't forget to update the plugin list.
 
+	- Login into the panel as admin and go to the plugin management interface
+	- Update the plugin list
+	
 
 #### 3rd party SpamAssasin Plugins
 

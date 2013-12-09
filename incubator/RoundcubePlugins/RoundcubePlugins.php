@@ -48,7 +48,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 	}
-		
+
 	/**
 	 * onBeforeInstallPlugin event listener
 	 *
@@ -57,7 +57,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -66,7 +66,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			}
 		}
 	}
-	
+
 	/**
 	 * Plugin installation
 	 *
@@ -84,7 +84,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Plugin uninstallation
 	 *
@@ -102,7 +102,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Plugin enable
 	 *
@@ -118,7 +118,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Plugin disable
 	 *
@@ -134,7 +134,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Create calendar roundcube database tables
 	 *
@@ -219,7 +219,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Drop calendar roundcube database tables
 	 *
@@ -239,7 +239,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Create pop3fetcher roundcube database table
 	 *
@@ -276,7 +276,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Drop pop3fetcher roundcube database table
 	 *
@@ -293,7 +293,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Create tasklist roundcube database tables
 	 *
@@ -352,7 +352,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Drop tasklist roundcube database tables
 	 *
@@ -370,7 +370,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		
 		execute_query('use ' . $cfg->DATABASE_NAME);
 	}
-	
+
 	/**
 	 * Add dovecot-sieve service port
 	 *
@@ -389,7 +389,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			$this->removeDovecotSieveServicePort();
 		}		
 	}
-	
+
 	/**
 	 * Remove dovecot-sieve service port
 	 *
@@ -403,5 +403,4 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			unset($dbConfig['PORT_DOVECOT-SIEVE']);
 		}
 	}
-	
 }

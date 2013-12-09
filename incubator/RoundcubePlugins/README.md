@@ -120,7 +120,7 @@ Only necessary if you want to use the Roundcube Plugin managesieve.
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the RoundcubePlugins plugin archive
-	- Activate the plugin
+	- Install the plugin
 
 ### UPDATE
 
@@ -143,8 +143,19 @@ Only necessary if you want to use the Roundcube Plugin managesieve.
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the RoundcubePlugins plugin archive
-	- Force plugin re-installation
+	- Update the plugin list
 
+### CONFIGURATION
+
+For the different configuration options please check the plugin config file.
+
+	# plugins/RoundcubePlugins/config.php
+	
+After you made your config changes, don't forget to update the plugin list.
+
+	- Login into the panel as admin and go to the plugin management interface
+	- Update the plugin list
+	
 ### AUTHORS AND CONTRIBUTORS
 
  - Rene Schuster <mail@reneschuster.de> (Author)

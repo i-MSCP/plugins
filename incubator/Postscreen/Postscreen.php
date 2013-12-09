@@ -47,7 +47,7 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
 	}
-	
+
 	/**
 	 * onBeforeInstallPlugin event listener
 	 *
@@ -56,7 +56,7 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -65,7 +65,7 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 			}
 		}
 	}
-	
+
 	/**
 	 * Plugin installation
 	 *
@@ -77,7 +77,7 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	{
 		// Only there to tell the plugin manager that this plugin is installable
 	}
-	
+
 	/**
 	 * Plugin uninstallation
 	 *
@@ -89,5 +89,4 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	{
 		// Only there to tell the plugin manager that this plugin can be uninstalled
 	}
-	
 }

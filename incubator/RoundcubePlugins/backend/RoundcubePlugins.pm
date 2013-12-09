@@ -49,6 +49,69 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
+=item install()
+
+ Perform install tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub install
+{
+	my $self = shift;
+
+	my $rs = $self->_installPlugins();
+	return $rs if $rs;
+
+	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
+	return $rs if $rs;
+
+	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
+	return $rs if $rs;
+
+	$rs = $self->_setPluginConfig('pop3fetcher', 'imscp_fetchmail.php');
+	return $rs if $rs;
+
+	0;
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	my $self = shift;
+
+	my $rs = $self->install();
+	return $rs if $rs;
+
+	0;
+}
+
+=item update()
+
+ Perform update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my $self = shift;
+
+	my $rs = $self->install();
+	return $rs if $rs;
+
+	0;
+}
+
 =item enable()
 
  Perform enable tasks
@@ -61,19 +124,7 @@ sub enable
 {
 	my $self = shift;
 	
-	my $rs = $self->_installPlugins();
-	return $rs if $rs;
-	
-	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
-	return $rs if $rs;
-	
-	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
-	return $rs if $rs;
-	
-	$rs = $self->_setPluginConfig('pop3fetcher', 'imscp_fetchmail.php');
-	return $rs if $rs;
-	
-	$rs = $self->_checkRoundcubePlugins();
+	my $rs = $self->_checkRoundcubePlugins();
 	return $rs if $rs;
 	
 	0;
@@ -216,7 +267,7 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 	
-    if($self->{'action'} ~~ ['install', 'enable', 'disable']) {
+    if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
 		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RoundcubePlugins'
@@ -670,13 +721,10 @@ sub _modifyDovecotConfig($$$)
 sub _restartDaemonDovecot
 {
 	my $self = shift;
-	
+
 	require Servers::po;
-	
-	my $po = Servers::po->factory();
-	my $rs = $po->restart();
-	return $rs if $rs;
-	
+	Servers::po->factory()->{'restart'} = 'yes';
+
 	0;
 }
 
