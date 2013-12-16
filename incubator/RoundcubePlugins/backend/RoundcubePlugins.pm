@@ -20,9 +20,10 @@
 # @category    i-MSCP
 # @package     iMSCP_Plugin
 # @subpackage  RoundcubePlugins
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   Rene Schuster <mail@reneschuster.de>
+# @copyright   Sascha Bay <info@space2place.de>
 # @author      Rene Schuster <mail@reneschuster.de>
-# @contributor Sascha Bay <info@space2place.de>
+# @author      Sascha Bay <info@space2place.de>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -794,10 +795,10 @@ sub _unregisterCronjobPop3fetcher
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
- - Rene Schuster <mail@reneschuster.de> (Author)
- - Sascha Bay <info@space2place.de> (Contributor)
+ Rene Schuster <mail@reneschuster.de>
+ Sascha Bay <info@space2place.de>
 
 =cut
 
