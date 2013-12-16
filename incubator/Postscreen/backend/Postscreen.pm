@@ -17,10 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# @category    i-MSCP
+# @category    iMSCP
 # @package     iMSCP_Plugin
 # @subpackage  Postscreen
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   Rene Schuster <mail@reneschuster.de>
 # @author      Rene Schuster <mail@reneschuster.de>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -385,7 +385,7 @@ sub _patchMailgraph($$)
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
 				
-				$rs = execute("/usr/bin/patch /usr/sbin/mailgraph $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/Postscreen/mailgraph/mailgraph_postscreen.patch", \$stdout, \$stderr);
+				$rs = execute("/usr/bin/patch -f /usr/sbin/mailgraph $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/Postscreen/mailgraph/mailgraph_postscreen.patch", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;

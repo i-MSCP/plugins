@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Postscreen
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Rene Schuster <mail@reneschuster.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,14 +29,14 @@
 return array(	
 	// For the different Postscreen options please check man postscreen or
 	// visit the online documentation:  http://www.postfix.org/postscreen.8.html
-	
-	
+
+
 	// Pregreet test  http://www.postfix.org/POSTSCREEN_README.html#pregreet
 	// 
 	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
 	'postscreen_greet_action' => 'enforce', // options: ignore, enforce (default), drop
-	
-	
+
+
 	// DNSBL tests  http://www.postfix.org/POSTSCREEN_README.html#dnsbl
 	// 
 	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_sites
@@ -46,14 +46,14 @@ return array(
 		'bl.spamcop.net*1',
 		'list.dnswl.org=127.0.[0..255].[1..3]*-2'
 	),
-	
+
 	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_threshold
 	'postscreen_dnsbl_threshold' => '3',
-	
+
 	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
 	'postscreen_dnsbl_action' => 'enforce', // options: ignore, enforce (default), drop
-	
-	
+
+
 	// Permanent white/blacklist
 	// 
 	// http://www.postfix.org/postconf.5.html#postscreen_access_list 
@@ -61,18 +61,18 @@ return array(
 		'permit_mynetworks',
 		'cidr:/etc/postfix/postscreen_access.cidr'
 	),
-	
+
 	// http://www.postfix.org/postconf.5.html#postscreen_blacklist_action
 	'postscreen_blacklist_action' => 'enforce', // options: ignore, enforce (default), drop
-	
-	
+
+
 	// Patch Mailgraph to count and also show the Postscreen rejects on the graphs
 	'patch_mailgraph' => 'yes', // YES to enable (default), NO to disable
-	
+
 	// Policyd-weight is not necessary anymore and could be disabled.
 	// The main functionality of policyd-weight (RBL checks) is integrated in Postscreen (postscreen_dnsbl_sites).
 	'disable_policyd-weight' => 'yes', // YES to enable (default), NO to disable
-	
+
 	// Postgrey is also not necessary anymore, because you eliminate up to 90% of the spam with Postscreen.
 	'disable_postgrey' => 'yes' // YES to enable (default), NO to disable
 );

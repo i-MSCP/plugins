@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Postscreen
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Rene Schuster <mail@reneschuster.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -28,10 +28,10 @@
 
 return array(
 	'author' => 'Rene Schuster',
-	'email' => 'mail@reneschuster.de',
+	'email' => 'plugins@i-mscp.net',
 	'version' => '0.0.1',
 	'date' => '2013-09-25',
 	'name' => 'Postscreen',
 	'desc' => 'Plugin allows to use Postscreen daemon with Postfix on i-MSCP',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postscreen'
 );

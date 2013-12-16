@@ -2,11 +2,6 @@
 
 Plugin allows to use Postscreen with Postfix on i-MSCP.
 
-For more information please visit: http://www.postfix.org/POSTSCREEN_README.html
-
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
-
 ### LICENSE
 
 Copyright (C) Rene Schuster <mail@reneschuster.de>
@@ -89,8 +84,8 @@ After you made your config changes, don't forget to update the plugin list.
 	- Login into the panel as admin and go to the plugin management interface
 	- Update the plugin list
 	
-### AUTHORS AND CONTRIBUTORS
+### AUTHORS
 
- - Rene Schuster <mail@reneschuster.de> (Author)
+ - Rene Schuster <mail@reneschuster.de>
 
 **Thank you for using this plugin.**
