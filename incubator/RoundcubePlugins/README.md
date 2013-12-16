@@ -2,8 +2,20 @@
 
 Plugin allows to use Roundcube Plugins with i-MSCP.
 
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
+### LICENSE
+
+Copyright (C) Rene Schuster <mail@reneschuster.de> and Sascha Bay <info@space2place.de>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### INCLUDED ROUNDCUBE PLUGINS
 
@@ -73,22 +85,6 @@ gui/plugins/ - if the folder is called different it will not work!
 
 	Adds an option to download all attachments of a message in one zip file.
 	
-
-### LICENSE
-
-Copyright (C) Rene Schuster <mail@reneschuster.de>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
-
 ### REQUIREMENTS
 
 	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
@@ -156,9 +152,9 @@ After you made your config changes, don't forget to update the plugin list.
 	- Login into the panel as admin and go to the plugin management interface
 	- Update the plugin list
 	
-### AUTHORS AND CONTRIBUTORS
+### AUTHORS
 
- - Rene Schuster <mail@reneschuster.de> (Author)
- - Sascha Bay <info@space2place.de> (Contributor)
+ - Rene Schuster <mail@reneschuster.de>
+ - Sascha Bay <info@space2place.de>
 
 **Thank you for using this plugin.**

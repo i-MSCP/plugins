@@ -2,12 +2,9 @@
 
 Plugin providing OpenDKIM an implementation for i-MSCP.
 
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
-
 ### LICENSE
 
-Copyright (C) Sascha Bay <info@space2place.de>
+Copyright (C) Sascha Bay <info@space2place.de> and Rene Schuster <mail@reneschuster.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -149,9 +146,9 @@ After you sent the mail, click on that page the 'View Results' button and verify
 	result = pass
 	Details:  
 
-### AUTHORS AND CONTRIBUTORS
+### AUTHORS
 
- - Sascha Bay <info@space2place.de> (Author)
- - Rene Schuster <mail@reneschuster.de> (Contributor)
+ - Sascha Bay <info@space2place.de>
+ - Rene Schuster <mail@reneschuster.de>
 
 **Thank you for using this plugin.**

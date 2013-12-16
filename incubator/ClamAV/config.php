@@ -20,9 +20,10 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  ClamAV
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Sascha Bay <info@space2place.de>
+ * @copyright   Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
- * @contributor Rene Schuster <mail@reneschuster.de>
+ * @author      Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -38,63 +39,63 @@ return array(
 	 * Don't change anything, if you don't know what you are doing!
 	 * 
 	 */
-	
+
 	'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
-	
+
 	'FixStaleSocket' => 'true',
-	
+
 	'User' => 'clamav',
-	
+
 	'AllowSupplementaryGroups' => 'true',
-	
+
 	'ReadTimeout' => '120',
-	
+
 	'Foreground' => 'false',
-	
+
 	'PidFile' => '/var/run/clamav/clamav-milter.pid',
-	
+
 	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
-	
+
 	'OnClean' => 'Accept',
-	
+
 	// Action to be performed on infected messages. Possible values: Reject, Quarantine
 	'OnInfected' => 'Reject',
-	
+
 	'OnFail' => 'Defer',
-	
+
 	// Possible values: Replace (or YES), NO
 	'AddHeader' => 'Replace',
-	
-	// Possible values: FALSE, TRUE
-	'LogSyslog' => 'false',
-	
+
+	// Possible values: TRUE, FALSE
+	'LogSyslog' => 'true',
+
 	// Look at http://linux.die.net/man/3/syslog => "facility"
 	'LogFacility' => 'LOG_MAIL',
-	
+
 	'LogVerbose' => 'false',
-	
+
 	// Possible values: Full, Basic, Off
-	'LogInfected' => 'Off',
-	
+	'LogInfected' => 'Basic',
+
 	'LogClean' => 'Off',
-	
+
 	// Messages larger than this value won't be scanned.
 	'MaxFileSize' => '25M',
-	
+
 	'TemporaryDirectory' => '/tmp',
-	
+
 	'LogFile' => '/var/log/clamav/clamav-milter.log',
-	
+
 	'LogTime' => 'true',
-	
+
 	'LogFileUnlock' => 'false',
-	
+
 	'LogFileMaxSize' => '0M',
-	
+
 	'MilterSocketGroup' => 'clamav',
-	
+
 	'MilterSocketMode' => '666',
-	
+
 	// The string "%v", if present, will be replaced with the virus name. (useful together with "OnInfected => Reject")
 	'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v' 
 );

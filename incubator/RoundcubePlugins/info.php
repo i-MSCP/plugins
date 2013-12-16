@@ -20,18 +20,23 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  RoundcubePlugins
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Rene Schuster <mail@reneschuster.de>
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
+ * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Rene Schuster',
-	'email' => 'mail@reneschuster.de',
+	'author' => array(
+		'Rene Schuster',
+		'Sascha Bay'
+	),
+	'email' => 'plugins@i-mscp.net',
 	'version' => '0.0.1',
 	'date' => '2013-10-30',
 	'name' => 'RoundcubePlugins',
 	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 );

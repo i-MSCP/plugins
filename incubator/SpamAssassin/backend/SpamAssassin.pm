@@ -17,12 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# @category    i-MSCP
+# @category    iMSCP
 # @package     iMSCP_Plugin
 # @subpackage  SpamAssassin
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   Sascha Bay <info@space2place.de>
+# @copyright   Rene Schuster <mail@reneschuster.de>
 # @author      Sascha Bay <info@space2place.de>
-# @contributor Rene Schuster <mail@reneschuster.de>
+# @author      Rene Schuster <mail@reneschuster.de>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -875,7 +876,7 @@ sub _setSpamassassinConfig($$)
 		$fileContent =~ s/\{SA_DATABASE_NAME\}/$main::imscpConfig{'DATABASE_NAME'}_spamassassin/g;
 		$fileContent =~ s/\{SA_DATABASE_USER\}/$self->{'SA_DATABASE_USER'}/g;
 		$fileContent =~ s/\{SA_DATABASE_PASSWORD\}/$self->{'SA_DATABASE_PASSWORD'}/g;
-		
+
 		if($self->{'config'}->{'site-wide_bayes'} eq 'yes') {
 			$fileContent =~ s/^#bayes_sql_override_username/bayes_sql_override_username/gm;
 			$fileContent =~ s/^#bayes_auto_expire/bayes_auto_expire/gm;
@@ -1148,7 +1149,7 @@ sub _checkSpamassassinPlugins
 		$rs = $self->_setSpamassassinPlugin('DecodeShortURLs', 'remove');
 		return $rs if $rs;
 	}
-	
+
 	if($self->{'config'}->{'iXhash2'} eq 'yes') {
 		$rs = $self->_setSpamassassinPlugin('iXhash2', 'add');
 		return $rs if $rs;
@@ -1156,7 +1157,7 @@ sub _checkSpamassassinPlugins
 		$rs = $self->_setSpamassassinPlugin('iXhash2', 'remove');
 		return $rs if $rs;
 	}
-	
+
 	0;
 }
 
@@ -1537,10 +1538,10 @@ sub _setSpamassassinPlugin($$$)
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
- - Sascha Bay <info@space2place.de> (Author)
- - Rene Schuster <mail@reneschuster.de> (Contributor)
+ Sascha Bay <info@space2place.de>
+ Rene Schuster <mail@reneschuster.de>
 
 =cut
 
