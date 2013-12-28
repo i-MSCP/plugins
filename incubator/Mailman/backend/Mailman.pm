@@ -38,7 +38,7 @@ use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
 use iMSCP::Execute;
-use iMSCP::iMSCP::TemplateParser;
+use iMSCP::TemplateParser;
 use iMSCP::Dir;
 use iMSCP::File;
 
@@ -766,7 +766,7 @@ sub _addlListsVhost($$)
 		USER => $userName
 	};
 
-	my $vhost = iMSCP::iMSCP::TemplateParser::process($variables, $self->_getListVhostTemplate());
+	my $vhost = iMSCP::TemplateParser::process($variables, $self->_getListVhostTemplate());
 	return 1 if ! $vhost;
 
 	my $httpd = Servers::httpd->factory();
