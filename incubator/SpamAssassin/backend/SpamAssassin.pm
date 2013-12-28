@@ -747,7 +747,7 @@ sub _registerCronjob($$)
 	}
 	
 	require iMSCP::TemplateParser;
-	iMSCP::iMSCP::TemplateParser->import();
+	iMSCP::TemplateParser->import();
 	
 	$cronjobFileContent = process(
 		{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },
