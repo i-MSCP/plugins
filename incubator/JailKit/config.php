@@ -69,5 +69,12 @@ return array(
 	// See man jk_socketd
 	'jail_socketd_base' => '512',
 	'jail_socketd_peak' => '2048',
-	'jail_socketd_interval' => '5.0'
+	'jail_socketd_interval' => '5.0',
+
+	// List of additional host directories to mount in jails
+	// See man mount (bind mounts section)
+	'jail_host_directories' => array(
+		// oldir => newdir_in_jail
+		'/var/run/mysqld' => '/var/run/mysqld'
+	)
 );

@@ -39,11 +39,13 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Templator;
+use Params::Check qw[check];
+use File::Spec;
 use JSON;
-
 use feature 'state';
-
 use parent 'Common::SingletonClass';
+
+local $Params::Check::STRICT_TYPE = 1;
 
 =head1 DESCRIPTION
 
@@ -87,9 +89,6 @@ sub update
 	my $self = shift;
 
 	my $rs = $self->install();
-	return $rs if $rs;
-
-	$rs = $self->_updateJails();
 	return $rs if $rs;
 
 	$self->_processJkSocketdEntries();
@@ -351,9 +350,6 @@ sub run
 		}
 	}
 
-	$rs = $self->_processFstabEntries();
-	$self->{'FORCE_RETVAL'} = 'yes' if $rs;
-
 	$rs;
 }
 
@@ -375,17 +371,9 @@ sub uninstall
 
 	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
-	# Unmount /home/*/web directory from jails
-	for(glob("$rootJailDir/*/home/*/web")) {
-		$rs = $self->_umount($_);
-    	return $rs if $rs;
-	}
-
-	# Unmount any /var/run/mysqld directory from jails
-	for(glob("$rootJailDir/*/var/run/mysqld")) {
-		$rs = $self->_umount($_);
-    	return $rs if $rs;
-	}
+	# Umount host directories from jails
+	$rs = $self->processHostDirs('umount');
+	return $rs if $rs;
 
 	# Removing all SSH users
 
@@ -404,10 +392,6 @@ sub uninstall
 			return $rs if $rs;
 		}
 	}
-
-	# Removing any JailKit plugin entry from the /etc/fstab conffile
-	$rs = $self->_processFstabEntries('remove');
-	return $rs if $rs;
 
 	# Removing any JailKit plugin entry from the logrotate conffile
 	$rs = $self->_processLogrotateEntries('remove');
@@ -433,6 +417,95 @@ sub uninstall
 
 	# Uninstalling jailkit
 	$self->_uninstallJailKit();
+}
+
+=item processHostDirs($action, [$jailDir = undef])
+
+ Mount/Umount host directories in jail(s)
+
+ Param string $action Action to be performed (mount|umount)
+ Param string $jailDir OPTIONAL Path of the jail to operate on (Default is to operate on all jails)
+ Return int 0 on success, other on failure
+
+=cut
+
+sub processHostDirs($$;$)
+{
+	my ($self, $action, $jailDir) = @_;
+
+	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
+	my $hostDirectories = $self->{'config'}->{'jail_host_directories'};
+
+	if($action eq 'mount') {
+		if(defined $jailDir) {
+			require File::Basename;
+			File::Basename->import();
+
+			$jailDir = basename($jailDir);
+
+			if(-d "$rootJailDir/$jailDir") {
+				while(my ($oldDir, $newDir) = each(%{$self->{'config'}->{'jail_host_directories'}})) {
+					my $rs = $self->_mount($oldDir, "$rootJailDir/$jailDir$newDir");
+					return $rs if $rs;
+				}
+			} else {
+				error("Jail doesn't exist: $jailDir");
+				return 1;
+			}
+		} else {
+			for my $jailDir(glob("$rootJailDir/*")) {
+				while(my ($oldDir, $newDir) = each(%{$self->{'config'}->{'jail_host_directories'}})) {
+					my $rs = $self->_mount($oldDir, "$jailDir$newDir");
+					return $rs if $rs;
+				}
+			}
+		}
+	} elsif($action eq 'umount') {
+		if(defined $jailDir) {
+			require File::Basename;
+			File::Basename->import();
+
+			$jailDir = basename($jailDir);
+
+			if(-d "$rootJailDir/$jailDir") {
+				for(values %{$self->{'config'}->{'jail_host_directories'}}) {
+					my $rs = $self->_umount("$rootJailDir/$jailDir$_");
+					return $rs if $rs;
+				}
+			} else {
+				error("Jail doesn't exist: $jailDir");
+				return 1;
+			}
+		} else {
+			for my $jailDir(glob("$rootJailDir/*")) {
+				for(values %{$self->{'config'}->{'jail_host_directories'}}) {
+					my $rs = $self->_umount("$jailDir$_");
+					return $rs if $rs;
+				}
+			}
+		}
+	} else {
+		error("Unknown action: $action");
+		return 1;
+	}
+
+	0;
+}
+
+=item processHostHomeDirs($action)
+
+ Mount/Umount Host Web directories in jail(s)
+
+ Param string $action Action to be performed (mount|umount)
+ Return int 0 on success, other on failure
+
+=cut
+
+sub processHostHomeDirs($$;$)
+{
+	my ($self, $action) = @_;
+
+	0;
 }
 
 =back
@@ -462,11 +535,45 @@ sub _init()
 		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'JailKit'
 	);
 	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
+		fatal($rdata);
 	}
 
-	$self->{'config'} = decode_json($rdata->{'JailKit'}->{'plugin_config'});
+	my $defaultConfig = {
+		'install_path' => {
+			'default' => '/usr/local',
+			'allow' => sub { $_[0] = File::Spec->canonpath($_[0]); 1; }
+		},
+		'root_jail_dir' => {
+			'default' => '/home/imscp_jails',
+			'allow' => sub { $_[0] = File::Spec->canonpath($_[0]); 1; }
+		},
+		'shell' => {
+			'default' => '/bin/bash',
+			allow => sub { $_[0] = File::Spec->canonpath($_[0]); 1; }
+		},
+		'jail_app_sections' => { 'default' => ['imscp-base', 'mysql-client'] },
+		'jail_additional_apps' => {
+			'default' => [
+				'/bin/hostname', '/usr/bin/basename', '/usr/bin/dircolors', '/usr/bin/dirname',
+				'/usr/bin/clear_console', '/usr/bin/env', '/usr/bin/id', '/usr/bin/groups', '/usr/bin/lesspipe',
+				'/usr/bin/tput', '/usr/bin/which'
+			],
+			'allow' => sub { for(0 .. $#{$_[0]}) { $_[0]->[$_] = File::Spec->canonpath($_[0]->[$_]); } 1;}
+		},
+		'jail_socketd_base' => { 'default' => '512', 'allow' => qr/^\d+$/ },
+		'jail_socketd_peak' => { 'default' => '2048', 'allow' => qr/^\d+$/ },
+		'jail_socketd_interval' => { 'default' => '5.0', 'allow' => qr/^\d+(?:\.\d+)?$/ },
+		'jail_host_directories' => {
+			'default' => { '/var/run/mysqld' => '/var/run/mysqld'},
+			'allow' => sub {
+				$_[0]->{File::Spec->canonpath($_)} = File::Spec->canonpath(delete $_[0]->{$_}) for keys %{$_[0]}; 1;
+			}
+		}
+	};
+
+	$self->{'config'} = check($defaultConfig, decode_json($rdata->{'JailKit'}->{'plugin_config'})) or fatal(
+		sprintf('Invalid configuration has been provided: %s1', Params::Check->last_error)
+	);
 
 	$self;
 }
@@ -475,6 +582,8 @@ sub _init()
 
  Add jail for the given customer
 
+ Param int $parentUserUid Parent SSH user uid
+ Param string $customerName Customer name
  Return int 0 on success, other on failure
 
 =cut
@@ -490,8 +599,7 @@ sub _addJail($$)
 		# Initialize jail using application sections
 		my ($stdout, $stderr);
 		my $rs = execute(
-			"umask 022; $installPath/sbin/jk_init -f -k -j $rootJailDir/$customerName " .
-			"@{$self->{'config'}->{'jail_app_sections'}}",
+			"umask 022; jk_init -f -k -j $rootJailDir/$customerName @{$self->{'config'}->{'jail_app_sections'}}",
 			\$stdout,
 			\$stderr
 		);
@@ -502,8 +610,7 @@ sub _addJail($$)
 		# Installing additional apps inside the jail
 		if($self->{'config'}->{'jail_additional_apps'}) {
 			$rs = execute(
-				"umask 022; $installPath/sbin/jk_cp -f -k -i -j $rootJailDir/$customerName " .
-				"@{$self->{'config'}->{'jail_additional_apps'}}",
+				"umask 022; jk_cp -f -k -i -j $rootJailDir/$customerName @{$self->{'config'}->{'jail_additional_apps'}}",
 				\$stdout,
 				\$stderr
 			);
@@ -513,6 +620,7 @@ sub _addJail($$)
 		}
 
 		# Copy the motd (message of the day) file inside the jail
+		# FIXME: Doesn't works for ubuntu
 		$rs = iMSCP::File->new(
 			'filename' => "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/tpl/motd"
 		)->copyFile(
@@ -536,44 +644,20 @@ sub _addJail($$)
 		);
 		return $rs if $rs;
 
-		# Needed for MySQL connect inside the jail. This is only required if the MySQL server is hosted locally and
-		# if the mysql client is available in the jail
-		if(
-			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
-			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
-		) {
-			# Try to umount first (recovery case)
-			$rs = $self->_umount("$rootJailDir/$customerName/var/run/mysqld");
-			return $rs if $rs;
-
-			# Creating var/run/mysqld directory or set its permissions if it already exist
-			$rs = iMSCP::Dir->new(
-				'dirname' => "$rootJailDir/$customerName/var/run/mysqld"
-			)->make(
-				{ 'user' => 'root', 'group' => 'root', 'mode' => 0755 }
-			);
-			return $rs if $rs;
-
-			# Mount (bind) the /var/run/mysqld directory
-			$rs = execute(
-				"/bin/mount -v --bind /var/run/mysqld $rootJailDir/$customerName/var/run/mysqld", \$stdout, \$stderr
-			);
-			debug($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			return $rs if $rs;
-		}
+		# Mounting host directories into jails
+		$self->processHostDirectories('mount', "$rootJailDir/$customerName");
 	} else {
 		error("Parent user doesn't exist."); # Should never occurs
 		return 1;
 	}
-
-	0;
 }
 
 =item _deleteJail($jailId, $customerName)
 
- Remove the given jail. Also removes any SSH user which belong to the jail.
+ Remove the given jail. Also removes any SSH user which belong to the jail
 
+ Param int $jailId Jail unique identifier
+ Param string $customerName Customer name
  Return int 0 on success, other on failure
 
 =cut
@@ -581,6 +665,12 @@ sub _addJail($$)
 sub _deleteJail($$$)
 {
 	my ($self, $jailId, $customerName) = @_;
+
+	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
+
+	# Umount host directories from the jail
+	my $rs = $self->processHostDirectories('umount', "$rootJailDir/$customerName");
+	return $rs if $rs;
 
 	my $rdata = $self->{'db'}->doQuery(
 		'jailkit_login_id', 'SELECT jailkit_login_id, ssh_login_name FROM jailkit_login WHERE jailkit_id = ?', $jailId
@@ -590,21 +680,12 @@ sub _deleteJail($$$)
 		return 1;
 	}
 
-	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
-
 	if(%{$rdata}) {
 		require iMSCP::SystemUser;
 
 		for(keys %{$rdata}) {
-			my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
-
-			# Umount the parent user homedir from the SSH user web directory if any. This must be done before removing
-			# the SSH user, else, the parent user homedir will get deleted
-			my $rs = $self->_umount("$rootJailDir/$customerName/home/$sshLoginName/web");
-			return $rs if $rs;
-
 			# Removing SSH user
-			$rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($sshLoginName);
+			$rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($rdata->{$_}->{'ssh_login_name'});
 			return $rs if $rs;
 
 			# Removing SSH user from database
@@ -618,18 +699,13 @@ sub _deleteJail($$$)
 		}
 	}
 
-	# Umount the /var/run/mysqld directory if any. This must be done before removing the jail, else, the system
-	# /var/run/mysqld directory will get deleted
-    my $rs = $self->_umount("$rootJailDir/$customerName/var/run/mysqld");
-    return $rs if $rs;
-
 	# Removing jail
 	iMSCP::Dir->new('dirname' => "$rootJailDir/$customerName")->remove();
 }
 
 =item _updateJails()
 
- Update jails.
+ Update jails
 
  Update all jails with last file versions available on the system. Also add any application as specified into the
 jail_app_sections and the jail_additional_apps configuration parameters.
@@ -644,13 +720,13 @@ sub _updateJails
 		'jailkit_id',
 		"
 			SELECT
-				jailkit_id, admin_id, admin_name
+				jailkit_id, admin_id, admin_name, admin_sys_uid
 			FROM
 				jailkit
 			INNER JOIN
 				admin USING(admin_id)
 			WHERE
-				jailkit_status = 'ok'
+				jailkit_status = IN('ok', 'disabled')
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -663,16 +739,14 @@ sub _updateJails
 		my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
 		for(keys %{$rdata}) {
-			my $customerName = $rdata->{$_}->{'admin_name'};
-
 			# Needed in case app sections and/or additional apps parameters were changed. Will also create the jail if
 			# it doesn't exist
-			my $rs = $self->_addJail($rdata->{$_}->{'admin_id'}, $customerName);
+			my $rs = $self->_addJail($rdata->{$_}->{'admin_sys_uid'}, $rdata->{$_}->{'admin_name'});
             return $rs if $rs;
 
 			# Update the jail with last system files versions
 			my ($stdout, $stderr);
-			$rs = execute("$installPath/sbin/jk_update -k -j $rootJailDir/$customerName", \$stdout, \$stderr);
+			$rs = execute("jk_update -k -j $rootJailDir/$rdata->{$_}->{'admin_name'}", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			return $rs if $rs;
@@ -686,6 +760,10 @@ sub _updateJails
 
  Add SSH user
 
+ Param int $parentUserUid Parent SSH user uid
+ Param string $customerName Customer name
+ Param string $sshLoginName SSH user login name
+ Param string $sshLoginPass SSH user hashed password
  Return int 0 on success, other on failure
 
 =cut
@@ -721,7 +799,7 @@ sub _addSshUser($$$$$)
 		# Adding SSH user in the jail of the customer to which it belong to
 		my @cmd = (
 			'umask 022;',
-			"$self->{'config'}->{'install_path'}/sbin/jk_jailuser -n",
+			"jk_jailuser -n",
 			(-d "/home/$sshLoginName") ? '-m' : '', # Do not try to copy the homedir if it doesn't exist (recovery case)
 			'-s', escapeShell($self->{'config'}->{'shell'}),
 			'-j', escapeShell("$rootJailDir/$customerName"),
@@ -732,29 +810,6 @@ sub _addSshUser($$$$$)
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
-
-		# Try to umount first (revocery case)
-		$rs = $self->_umount("$rootJailDir/$customerName/home/$sshLoginName/web");
-		return $rs if $rs;
-
-		# Creating web directory inside the homedir of the SSH user or sets its permissions if it already exist
-		my $rs = iMSCP::Dir->new(
-			'dirname' => "$rootJailDir/$customerName/home/$sshLoginName/web"
-		)->make(
-			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0755 }
-		);
-		return $rs if $rs;
-
-		# Mount (bind) the parent user homedir into the SSH user web directory
-		$rs = execute(
-			"/bin/mount -v --bind $main::imscpConfig{'USER_WEB_DIR'}/$customerName " .
-			"$rootJailDir/$customerName/home/$sshLoginName/web",
-			\$stdout,
-			\$stderr
-		);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		$rs;
 	} else {
 		error("Parent user doesn't exist."); # Should never occurs
 		return 1;
@@ -766,6 +821,11 @@ sub _addSshUser($$$$$)
  Changes the given SSH User according the given action (lock/unlock). In both case the SSH user password get updated
 using hashed password as stored in the database.
 
+ Param int $parentUserUid Parent SSH user uid
+ Param string $customerName Customer name
+ Param string $sshLoginName SSH user login name
+ Param string $sshLoginPass SSH user hashed password
+ Param string $action Action to be performed (lock|unlock)
  Return int 0 on success, other on failure
 
 =cut
@@ -793,11 +853,11 @@ sub _changeSshUser($$$$)
 	}
 
 	if($action eq 'lock') {
-		# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes which were
-		# not spawned through the SSH connection
+		# We are killing only the SSH processes. By doing this, we avoid to kill others processes which were not spawned
+		# through the SSH connection
 		my @cmd = (
 			"$main::imscpConfig{'CMD_PKILL'} -KILL -u", escapeShell($sshLoginName), 'sshd', ';',
-			'/usr/bin/passwd -l', escapeShell($sshLoginName)
+			'passwd -l', escapeShell($sshLoginName)
 		);
 		my ($stdout, $stderr);
 		my $rs = execute("@cmd", \$stdout, \$stderr);
@@ -806,7 +866,7 @@ sub _changeSshUser($$$$)
 		return $rs if $rs;
 	} elsif($action eq 'unlock') {
 		my ($stdout, $stderr);
-		my $rs = execute("/usr/bin/passwd -u " . escapeShell($sshLoginName), \$stdout, \$stderr);
+		my $rs = execute('passwd -u ' . escapeShell($sshLoginName), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -819,6 +879,8 @@ sub _changeSshUser($$$$)
 
  Remove SSH user
 
+ Param string $customerName Customer name
+ Param string $sshLoginName SSH user login name
  Return int 0 on success, other on failure
 
 =cut
@@ -829,14 +891,9 @@ sub _removeSshUser($$$)
 
 	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
-	# Umount the parent user homedir from the SSH user web directory. This must be done before removing the SSH user,
-	# else, it will get deleted
-	my $rs = $self->_umount("$rootJailDir/$customerName/home/$sshLoginName/web");
-	return $rs if $rs;
-
 	# Removing SSH user
 	require iMSCP::SystemUser;
-	$rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($sshLoginName);
+	my $rs = iMSCP::SystemUser->new('force' => 'yes')->delSystemUser($sshLoginName);
 	return $rs if $rs;
 
 	# Remove SSH user from the jail passwd file
@@ -865,6 +922,7 @@ sub _removeSshUser($$$)
 
  Enable/Disable SSH users by locking/unlocking their passwords.
 
+ Param string $action Action to be performed (lock|unlock)
  Return int 0 on success, other on failure
 
 =cut
@@ -894,8 +952,6 @@ sub _changeSshUsers($$)
 	}
 
 	if(%{$rdata}) {
-		my $needFstabUpdate = 0;
-
 		for(keys %{$rdata}) {
 			my $sshLoginName = $rdata->{$_}->{'ssh_login_name'};
 			my $sshLoginLocked = $rdata->{$_}->{'ssh_login_locked'};
@@ -909,16 +965,14 @@ sub _changeSshUsers($$)
 					$rdata->{$_}->{'ssh_login_pass'}
 				);
 				return $rs if $rs;
-
-				$needFstabUpdate = 1;
 			}
 
 			if($action eq 'lock') {
-				# We are killing only the SSH processes of the user. By doing this, we avoid to kill others processes
-				# which were not spawned through the SSH connection
+				# We are killing only the SSH processes. By doing this, we avoid to kill others processes which were not
+				# spawned through the SSH connection
 				my @cmd = (
 					"$main::imscpConfig{'CMD_PKILL'} -KILL -u", escapeShell($sshLoginName),  'sshd', ';',
-					'/usr/bin/passwd -l', escapeShell($sshLoginName)
+					'passwd -l', escapeShell($sshLoginName)
 				);
 				my ($stdout, $stderr);
 				$rs = execute("@cmd", \$stdout, \$stderr);
@@ -927,7 +981,7 @@ sub _changeSshUsers($$)
 				return $rs if $rs;
 			} elsif($action eq 'unlock' && $sshLoginLocked eq '0') {
 				my ($stdout, $stderr);
-				$rs = execute('/usr/bin/passwd -u ' . escapeShell($sshLoginName), \$stdout, \$stderr);
+				$rs = execute('passwd -u ' . escapeShell($sshLoginName), \$stdout, \$stderr);
 				debug($stdout) if $stdout;
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
@@ -943,131 +997,9 @@ sub _changeSshUsers($$)
 				return 1;
 			}
 		}
-
-		my $rs = $self->_processFstabEntries() if $needFstabUpdate;
-		return $rs if $rs;
 	}
 
 	0;
-}
-
-=item _processFstabEntries([$action = 'add'])
-
- Add/Remove fstab entries
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _processFstabEntries($;$)
-{
-	my ($self, $action) = @_;
-
-	$action ||= 'add';
-
-	unless(-f '/etc/fstab') {
-		unless($action eq 'remove') {
-			error('File /etc/fstab not found');
-			return 1;
-		} else {
-			return 0;
-		}
-	}
-
-	my $jailkitEntries = {};
-	my $jailkitLoginEntries = {};
-
-	unless($action eq 'remove') {
-		if(
-			$main::imscpConfig{'SQL_SERVER'} ne 'remote_server' && -d '/var/run/mysqld' &&
-			'mysql-client' ~~ $self->{'config'}->{'jail_app_sections'}
-		) {
-			$jailkitEntries = $self->{'db'}->doQuery(
-				'jailkit_id',
-				"
-					SELECT
-						jailkit_id, admin_name
-					FROM
-						jailkit
-					INNER JOIN
-						admin USING(admin_id)
-					WHERE
-						jailkit_status = 'ok'
-				"
-			);
-			unless(ref $jailkitEntries eq 'HASH') {
-				error($jailkitEntries);
-				return 1;
-			}
-		}
-
-		$jailkitLoginEntries = $self->{'db'}->doQuery(
-			'jailkit_login_id',
-			"
-				SELECT
-					jailkit_login_id, ssh_login_name, admin_name
-				FROM
-					jailkit_login
-				INNER JOIN
-					jailkit USING(jailkit_id)
-				INNER JOIN
-					admin USING(admin_id)
-				WHERE
-					jailkit_login_status = 'ok'
-			"
-		);
-		unless(ref $jailkitEntries eq 'HASH') {
-			error($jailkitEntries);
-			return 1;
-		}
-	}
-
-	my $file = iMSCP::File->new('filename' => '/etc/fstab');
-
-	my $fileContent = $file->get();
-	unless(defined $fileContent) {
-		error('Unable to read /etc/fstab');
-		return 1;
-	}
-
-	my $bTag = "# Plugins::JailKit::Mysqld START\n";
-	my $eTag = "# Plugins::JailKit::Mysqld END\n";
-
-	# Removing any previous entry
-	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
-
-	my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
-
-	if(%{$jailkitEntries}) {
-		$fileContent .= $bTag;
-		$fileContent .= "/var/run/mysqld $rootJailDir/$jailkitEntries->{$_}->{'admin_name'}/var/run/mysqld none bind\n"
-			for keys %{$jailkitEntries};
-		$fileContent .= $eTag;
-	}
-
-	$bTag = "# Plugins::JailKit::Web START\n";
-	$eTag = "# Plugins::JailKit::Web END\n";
-
-	# Removing any previous entry
-	$fileContent = replaceBloc($bTag, $eTag, '', $fileContent);
-
-	if(%{$jailkitLoginEntries}) {
-		my $userWebDir = $main::imscpConfig{'USER_WEB_DIR'};
-
-		for(keys %{$jailkitLoginEntries}) {
-			my $customerName = $jailkitLoginEntries->{$_}->{'admin_name'};
-
-			$fileContent .= $bTag;
-			$fileContent .= "$userWebDir/$customerName $rootJailDir/$customerName/home/" .
-				"$jailkitLoginEntries->{$_}->{'ssh_login_name'}/web none bind\n";
-			$fileContent .= $eTag;
-		}
-	}
-
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
-
-	$file->save();
 }
 
 =item _processJkSocketdEntries()
@@ -1160,7 +1092,7 @@ sub _processJkSocketdEntries
 sub _restartDaemon
 {
 	my ($stdout, $stderr);
-	my $rs = execute('/usr/sbin/service jailkit restart', \$stdout, \$stderr);
+	my $rs = execute('invoke-rc.d jailkit-socketd restart', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -1178,7 +1110,7 @@ sub _restartDaemon
 sub _stopDaemon
 {
 	my ($stdout, $stderr);
-	my $rs = execute('/usr/sbin/service jailkit stop', \$stdout, \$stderr);
+	my $rs = execute('invoke-rc.d jailkit-socketd stop', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -1209,6 +1141,7 @@ sub _createRootJailDirectory
 
  Add/Remove jailkit daemon entries into the rsyslog logrotate conffile
 
+ Param string $action Action to be performed (add|remove)
  Return int 0 on success, other on failure
 
 =cut
@@ -1247,6 +1180,73 @@ sub _processLogrotateEntries($;$)
 	0;
 }
 
+=item _mount($oldir, $newdir)
+
+ Mount the given directory in safe way
+
+ Param string $oldir Directory to mount
+ Param string $newdir Mount point
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _mount($$$)
+{
+	my ($self, $oldir, $newdir) = @_;
+
+	if(-d $oldir) {
+		my($stdout, $stderr);
+
+		if(execute("mount 2>/dev/null | grep 'on $newdir type '", \$stdout)) {
+			debug($stdout) if $stdout;
+
+			my $rs = iMSCP::Dir->new(
+				'dirname' => $newdir
+			)->make(
+				{
+					'user' => $main::imscpConfig{'ROOT_USER'},
+					'group' => $main::imscpConfig{'ROOT_GROUP'},
+					'mode' => 0755
+				}
+			);
+
+			$rs = execute("mount --bind $oldir $newdir", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
+		}
+	}
+
+	0;
+}
+
+=item _umount($directory)
+
+ Umount the given directory in safe way
+
+ Param string $directory Directory to umount
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _umount($$)
+{
+	my ($self, $directory) = @_;
+
+	my($stdout, $stderr);
+
+	until(execute("mount 2>/dev/null | grep 'on $directory type '", \$stdout)) {
+		debug($stdout) if $stdout;
+
+		my $rs = execute("umount -l $directory", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	}
+
+	0;
+}
+
 =item _installJailKit
 
  Installs jailkit
@@ -1262,22 +1262,20 @@ sub _installJailKit
 	my $installPath = $self->{'config'}->{'install_path'};
 	my $rs = 0;
 
-	if(-f "/etc/init.d/jailkit") {
+	if(-f '/etc/init.d/jailkit') {
 		$rs = $self->_stopDaemon();
 		return $rs if $rs;
 	}
 
 	# Backup current jailkit configuration file if any
 	if(-d "$installPath/etc/jailkit") {
-		my @files = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit", 'fileType' => '\\.ini')->getFiles();
+		require File::Copy;
+		File::Copy->import('move');
 
-		if(@files) {
-			my $file = iMSCP::File->new();
-
-			for(@files) {
-				$file->{'filename'} = "$installPath/etc/jailkit/$_";
-				$rs = $file->moveFile("$installPath/etc/jailkit/$_.old");
-				return $rs if $rs;
+		for(glob("$installPath/etc/jailkit/*.ini")) {
+			unless(move($_, "$_.old")) {
+				error("Unable to move file $_ to $_.old $!");
+				return 1;
 			}
 		}
 	}
@@ -1313,9 +1311,7 @@ sub _installJailKit
 
 	# Applying imscp.patch on upstream sources
 	$rs = execute(
-		"/usr/bin/patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch",
-		\$stdout,
-		\$stderr
+		"patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch", \$stdout, \$stderr
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
@@ -1323,7 +1319,9 @@ sub _installJailKit
 	return $rs if $rs;
 
 	# Configure
-	$rs = execute("sh configure --prefix=$installPath", \$stdout, \$stderr);
+	$rs = execute(
+		"IMSCPENGINEDIR=$main::imscpConfig{'ENGINE_ROOT_DIR'} sh configure --prefix=$installPath", \$stdout, \$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1337,6 +1335,7 @@ sub _installJailKit
 	# Fixing permissions on the jailkit confdir
 	require iMSCP::Rights;
 	iMSCP::Rights->import();
+
 	setRights(
 		"$installPath/etc/jailkit",
 		{
@@ -1348,14 +1347,14 @@ sub _installJailKit
 		}
 	);
 
-	# Install JailKit daemon init script into the /etc/init.d directory
-	if(-f 'extra/jailkit') {
-		my $file = iMSCP::File->new('filename', 'extra/jailkit');
+	# Install init scripts
+	for('jailkit-socketd', 'jailkit-mountdirs') {
+		my $file = iMSCP::File->new('filename', "extra/$_");
 
-		$rs = $file->copyFile('/etc/init.d/jailkit', { 'preserve' => 'no' });
+		$rs = $file->copyFile("/etc/init.d/$_", { 'preserve' => 'no' });
 		return $rs if $rs;
 
-		$file->{'filename'} = '/etc/init.d/jailkit';
+		$file->{'filename'} = "/etc/init.d/$_";
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
@@ -1364,6 +1363,7 @@ sub _installJailKit
 		}
 
 		$fileContent =~ s%^(DAEMON=).*%$1$installPath/sbin/\$NAME%m;
+		$fileContent =~ s%/usr/sbin
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -1378,18 +1378,15 @@ sub _installJailKit
 		return $rs if $rs;
 
 		# Reinstall or recovery case
-		$rs = execute("/usr/sbin/update-rc.d -f jailkit remove", \$stdout, \$stderr);
+		$rs = execute("update-rc.d -f $_ remove", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 
-		$rs = execute("/usr/sbin/update-rc.d jailkit defaults", \$stdout, \$stderr);
+		$rs = execute("update-rc.d $_ defaults", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
-	} else {
-		error("Unable to find extra/jailkit file in $buildDir directory");
-		return 1;
 	}
 
 	# Go back to previous directory
@@ -1450,9 +1447,7 @@ sub _uninstallJailKit
 
 	# Applying imscp.patch on upstream sources
 	$rs = execute(
-		"/usr/bin/patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch",
-		\$stdout,
-		\$stderr
+		"patch -f -p1 < $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/JailKit/src/imscp.patch", \$stdout, \$stderr
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
@@ -1460,7 +1455,9 @@ sub _uninstallJailKit
 	return $rs if $rs;
 
 	# Configure
-	$rs = execute("sh configure --prefix=$installPath", \$stdout, \$stderr);
+	$rs = execute(
+		"IMSCPENGINEDIR=$main::imscpConfig{'ENGINE_ROOT_DIR'} sh configure --prefix=$installPath", \$stdout, \$stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1475,15 +1472,17 @@ sub _uninstallJailKit
 	$rs = iMSCP::Dir->new('dirname' => "$installPath/etc/jailkit")->remove();
 	return $rs if $rs;
 
-	# Remove JailKit daemon init script from the /etc/init.d directory
-	if(-f '/etc/init.d/jailkit') {
-		$rs = execute("/usr/sbin/update-rc.d -f jailkit remove", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
+	# Remove  init scripts
+	for('jailkit-socketd', 'jailkit-mountdirs') {
+		if(-f "/etc/init.d/$_") {
+			$rs = execute("update-rc.d -f $_ remove", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
 
-		$rs = iMSCP::File->new('filename', '/etc/init.d/jailkit')->delFile();
-		return $rs if $rs;
+			$rs = iMSCP::File->new('filename', "/etc/init.d/$_")->delFile();
+			return $rs if $rs;
+		}
 	}
 
 	# Remove jk_chrootsh shell from the /etc/shells file if any
@@ -1515,34 +1514,6 @@ sub _uninstallJailKit
 	umask($umask);
 
 	$rs;
-}
-
-=item _umount($mountpoint)
-
- Umount the given mount point in safe way
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _umount($$)
-{
-	my ($self, $mountpoint) = @_;
-
-	if(-d $mountpoint) {
-		my($stdout, $stderr);
-
-		while(! execute("/bin/mount 2>/dev/null | grep 'on $mountpoint type '", \$stdout)) {
-			debug($stdout) if $stdout;
-
-			my $rs = execute("/bin/umount -v -l $mountpoint", \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			return $rs if $rs;
-		}
-	}
-
-	0;
 }
 
 END
