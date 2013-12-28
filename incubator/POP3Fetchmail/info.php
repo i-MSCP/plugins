@@ -30,7 +30,7 @@ return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
 	'version' => '0.0.1',
-	'date' => '2013-09-08',
+	'date' => '2013-12-28',
 	'name' => 'POP3Fetchmail',
 	'desc' => 'Plugin providing roundcube pop3fetchmail plugin with cronjob extension',
 	'url' => 'http://i-mscp.net'

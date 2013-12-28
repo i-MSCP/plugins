@@ -26,7 +26,7 @@ Development of this plugin has been sponsored by [Retail Service Management](htt
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0.rc4 (Not yet released)
+Plugin compatible with i-MSCP versions >= 1.1.0.rc4.8
 
 For now, it's assumed that you are using Mailman as provided by the
 Debian/Ubuntu mailman package.

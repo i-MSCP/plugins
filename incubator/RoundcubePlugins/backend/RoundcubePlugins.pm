@@ -751,8 +751,8 @@ sub _registerCronjobPop3fetcher
 		return 1;
 	}
 	
-	require iMSCP::Templator;
-	iMSCP::Templator->import();
+	require iMSCP::iMSCP::TemplateParser;
+	iMSCP::iMSCP::TemplateParser->import();
 	
 	$cronjobFileContent = process(
 		{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },

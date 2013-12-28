@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.2',
-	'date' => '2013-11-18',
+	'version' => '0.0.3',
+	'date' => '2013-12-28',
 	'name' => 'Mailgraph',
 	'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail).',
 	'url' => 'http://i-mscp.net'

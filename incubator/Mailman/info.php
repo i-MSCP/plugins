@@ -30,7 +30,7 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.2',
-	'date' => '2013-11-25',
+	'date' => '2013-12-28',
 	'name' => 'Mailman',
 	'desc' => 'Plugin allowing to manage mailing-lists (using Mailman).',
 	'url' => 'http://i-mscp.net'

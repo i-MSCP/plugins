@@ -71,7 +71,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (!$this->checkRequirements()) {
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}
@@ -114,7 +114,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (!$this->checkRequirements()) {
-				$event->stopPropagation(true);
+				$event->stopPropagation();
 			}
 		}
 	}
@@ -135,17 +135,17 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				exec_query(
 					'
 						UPDATE
-							`domain_dns`
+							domain_dns
 						SET
-							`owned_by` = ?
+							owned_by = ?
 						WHERE
-							`domain_dns` LIKE ?
+							domain_dns LIKE ?
 						AND
-							`domain_class` = ?
+							domain_class = ?
 						AND
-							`domain_type` = ?
+							domain_type = ?
 						AND
-							`owned_by` = ?
+							owned_by = ?
 					',
 					array('plugin_mailman', 'lists.%', 'IN', 'A', 'yes')
 				);
@@ -204,7 +204,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 
 		exec_query(
-			'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_admin_id` = ?',
+			'UPDATE mailman SET mailman_status = ? WHERE mailman_admin_id = ?',
 			array($cfg->ITEM_TODELETE_STATUS, $event->getParam('customerId'))
 		);
 	}
@@ -221,12 +221,12 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$stmt = exec_query(
 			"
 				SELECT
-					`mailman_id` AS `item_id`, `mailman_status` AS `status`, `mailman_list_name` AS `item_name`,
-					'mailman' AS `table`, 'mailman_status' AS `field`
+					mailman_id AS item_id, mailman_status AS status, mailman_list_name AS item_name,
+					'mailman' AS `table`, 'mailman_status' AS field
 				FROM
-					`mailman`
+					mailman
 				WHERE
-					`mailman_status` NOT IN(?, ?, ?, ?, ?, ?, ?)
+					mailman_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 			",
 			array(
 				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
@@ -255,7 +255,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$cfg = iMSCP_Registry::get('config');
 		if ($table == 'mailman' && $field == 'mailman_status') {
 			exec_query(
-				"UPDATE `mailman` SET `mailman_status` = ?  WHERE `mailman_id` = ?",
+				'UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?',
 				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
 			);
 		}
@@ -271,7 +271,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		/** @var $cfg iMSCP_Config_Handler_File */
 		$cfg = iMSCP_Registry::get('config');
 
-		$query = 'SELECT COUNT(`mailman_id`) AS `count` FROM `mailman` WHERE `mailman_status` IN (?, ?, ?, ?, ?, ?)';
+		$query = 'SELECT COUNT(mailman_id) AS cnt FROM mailman WHERE mailman_status IN (?, ?, ?, ?, ?, ?)';
 		$stmt = exec_query(
 			$query,
 			array(
@@ -280,7 +280,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			)
 		);
 
-		return $stmt->fields['count'];
+		return $stmt->fields['cnt'];
 	}
 
 	/**
@@ -314,16 +314,16 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		execute_query(
 			'
-				CREATE TABLE IF NOT EXISTS `mailman` (
-					`mailman_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`mailman_admin_id` int(11) unsigned NOT NULL,
-					`mailman_admin_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`mailman_admin_password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`mailman_list_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`mailman_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					PRIMARY KEY (`mailman_id`),
-					UNIQUE KEY `mailman_list_name` (`mailman_list_name`),
-					KEY `mailman_admin_id` (`mailman_admin_id`)
+				CREATE TABLE IF NOT EXISTS mailman (
+					mailman_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+					mailman_admin_id int(11) unsigned NOT NULL,
+					mailman_admin_email varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					mailman_admin_password varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					mailman_list_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					mailman_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+					PRIMARY KEY (mailman_id),
+					UNIQUE KEY mailman_list_name (mailman_list_name),
+					KEY mailman_admin_id (mailman_admin_id)
 				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 			'
 		);
@@ -338,7 +338,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
-		if ($cfg['Version'] != 'Git Master' && $cfg['Version'] <= 20130723) {
+		if ($cfg['Version'] != 'Git Master' && $cfg['Version'] <= 20131028) {
 			set_page_message(
 				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version'), 'error'
 			);
