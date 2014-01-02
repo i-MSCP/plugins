@@ -168,7 +168,7 @@ sub _installPop3fetcherRoundcubePlugin
 
 	my ($stdout, $stderr);
 	$rs = execute(
-		"$main::imscpConfig{'CMD_CP'} -fR $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/POP3Fetchmail/roundcube-plugin/*" .
+		"$main::imscpConfig{'CMD_CP'} -fR $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/POP3Fetchmail/roundcube-plugin/* " .
 			$pop3FetcherFolder,
 		\$stdout,
 		\$stderr
