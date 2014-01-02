@@ -68,7 +68,7 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.3', '<')) {
 				set_page_message(
 					tr('Error: OwnDDNS plugin is not compatible with installed i-MSCP version. Check www.i-mscp.net for updates.'), 'error'
 				);
@@ -217,7 +217,6 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onAfterDeleteDomainAlias($event)
 	{
-		exec_query('DELETE FROM `ownddns` WHERE `alias_id` = ?', $event->getParam('domainAliasId'));
 		exec_query('DELETE FROM `ownddns_accounts` WHERE `alias_id` = ?', $event->getParam('domainAliasId'));
 	}
 	
