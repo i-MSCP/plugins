@@ -59,6 +59,9 @@ return array(
 		'fail2ban' => 'n',
 		'icecast' => 'n',
 		'raspberrypi' => 'n',
+		'phpapc' => 'n',
+		'memcached' => 'n',
+		'wowza' => 'n',
 		'int' => 'y',
 	),
 
@@ -89,6 +92,9 @@ return array(
 		'fail2ban' => 'Fail2ban statistics',
 		'icecast' => 'Icecast Streaming Media Server',
 		'raspberrypi' => 'Raspberry Pi sensor statistics',
+		'phpapc' => 'Alternative PHP Cache statistics',
+		'memcached' => 'Memcached statistics',
+		'wowza' => 'Wowza Media Server',
 		'int' => 'Devices interrupt activity',
 	),
 
