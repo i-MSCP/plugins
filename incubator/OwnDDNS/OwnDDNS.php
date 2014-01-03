@@ -111,6 +111,22 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	}
 	
 	/**
+	 * Process plugin enable
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
+			$this->revokeOwnDDNSDnsEntries();
+		} catch(iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+	
+	/**
 	 * Process plugin disable
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -430,6 +446,49 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 					} else {
 						exec_query('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $data['domain_id']));
 					}
+				} else {
+					exec_query('UPDATE `domain_aliasses` SET `alias_status` = ? WHERE `alias_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $data['alias_id']));
+				}
+			}
+			
+			send_request();
+		}
+	}
+	
+	/**
+	 * Recovers all existing OwnDDNS DNS entries
+	 *
+	 * @return void
+	 */
+	protected function revokeOwnDDNSDnsEntries()
+	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+		
+		$stmt = exec_query('SELECT * FROM `ownddns_accounts` WHERE `ownddns_account_status` = ?', $cfg->ITEM_OK_STATUS);
+		if ($stmt->rowCount()) {
+			while ($data = $stmt->fetchRow()) {
+				$query = '
+					INSERT INTO `domain_dns` (
+						`domain_id`, `alias_id`, `domain_dns`,
+						`domain_class`, `domain_type`, `domain_text`,
+						`owned_by`
+					) VALUES(
+						?, ?, ?,
+						?, ?, ?,
+						?
+					)
+				';
+				
+				exec_query(
+					$query, array(
+						$data['domain_id'], $data['alias_id'], $data['ownddns_account_name'], 
+						'IN', 'A', (($data['ownddns_last_ip'] == '') ? $_SERVER['REMOTE_ADDR'] : $data['ownddns_last_ip']),
+						'ownddns_feature')
+				);
+				
+				if($data['alias_id'] == '0') {
+					exec_query('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $data['domain_id']));
 				} else {
 					exec_query('UPDATE `domain_aliasses` SET `alias_status` = ? WHERE `alias_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $data['alias_id']));
 				}
