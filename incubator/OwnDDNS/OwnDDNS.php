@@ -67,8 +67,18 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
+		/** @var iMSCP_Config_Handler_File $cfg */
+		$cfg = iMSCP_Registry::get('config');
+			
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.3', '<')) {
+				set_page_message(
+					tr('Error: OwnDDNS plugin is not compatible with installed i-MSCP version. Check www.i-mscp.net for updates.'), 'error'
+				);
+				
+				$event->stopPropagation();
+			}
+			if ($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20131121) {
 				set_page_message(
 					tr('Error: OwnDDNS plugin is not compatible with installed i-MSCP version. Check www.i-mscp.net for updates.'), 'error'
 				);

@@ -97,7 +97,7 @@ function checkiMSCP_Version($pluginConfig) {
 	/** @var iMSCP_Config_Handler_File $cfg */
 	$cfg = iMSCP_Registry::get('config');
 	
-	if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20131028){
+	if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20131121){
 		if($pluginConfig['debug'] === TRUE) write_log(sprintf('Error: OwnDDNS plugin is not compatible with installed i-MSCP version %s. Check www.i-mscp.net for updates! IP address: %s', $cfg->Version, $_SERVER['REMOTE_ADDR']));
 		exit(sprintf('Error: i-MSCP version %s mismatch!', $cfg->Version));
 	}

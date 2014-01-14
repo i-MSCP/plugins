@@ -52,11 +52,13 @@ function ownddns_generateAccountsList($tpl, $pluginManager, $userId)
 		redirectTo('ownddns.php');
 	}
 	
+	$baseServerVhostPrefix = ($cfg->BASE_SERVER_VHOST_PREFIX == 'https://') ? 'http(s)://' : $cfg->BASE_SERVER_VHOST_PREFIX;
+	
 	if($pluginConfig['use_base64_encoding'] === TRUE) {
-		$udateURL = $cfg->BASE_SERVER_VHOST_PREFIX.$cfg->BASE_SERVER_VHOST . '/ownddns.php?action=update&data=<b64>AccountName;AccessKey;FQDN</b64>';
+		$udateURL = $baseServerVhostPrefix.$cfg->BASE_SERVER_VHOST . '/ownddns.php?action=update&data=<b64>AccountName;AccessKey;FQDN</b64>';
 		set_page_message(tr('Base64 encoding is activated. Your router must send the data base64 encrypted!<br />Update-URL: <strong>%s</strong>' , $udateURL), 'info');
 	} else {
-		$udateURL = $cfg->BASE_SERVER_VHOST_PREFIX.$cfg->BASE_SERVER_VHOST . '/ownddns.php?action=update&data=AccountName;AccessKey;FQDN';
+		$udateURL = $baseServerVhostPrefix.$cfg->BASE_SERVER_VHOST . '/ownddns.php?action=update&data=AccountName;AccessKey;FQDN';
 		set_page_message(tr('Base64 encoding is deactivated. <br />Update-URL: <strong>%s</strong>' , $udateURL), 'info');
 	}
 
