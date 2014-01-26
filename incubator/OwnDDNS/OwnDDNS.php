@@ -67,20 +67,10 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-			
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.3', '<')) {
 				set_page_message(
-					tr('Error: OwnDDNS plugin is not compatible with installed i-MSCP version. Check www.i-mscp.net for updates.'), 'error'
-				);
-				
-				$event->stopPropagation();
-			}
-			if ($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20131121) {
-				set_page_message(
-					tr('Error: OwnDDNS plugin is not compatible with installed i-MSCP version. Check www.i-mscp.net for updates.'), 'error'
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 				
 				$event->stopPropagation();
@@ -256,9 +246,6 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeAddDomain($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
 		$query = "SELECT * FROM `ownddns_accounts` WHERE `ownddns_account_fqdn` = ?";
 		
 		$stmt = exec_query($query, $event->getParam('domainName'));
@@ -280,9 +267,6 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeAddDomainAlias($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
 		$query = "SELECT * FROM `ownddns_accounts` WHERE `ownddns_account_fqdn` = ?";
 		
 		$stmt = exec_query($query, $event->getParam('domainAliasName'));
@@ -304,9 +288,6 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeAddSubdomain($event)
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
 		if($event->getParam('subdomainType') != 'als') {
 			$query = "SELECT * FROM `ownddns_accounts` WHERE `domain_id` = ? AND `ownddns_account_fqdn` = ?";
 		} else {
@@ -316,7 +297,9 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 		$stmt = exec_query($query, array($event->getParam('parentDomainId'), $event->getParam('subdomainName')));
 		
 		if ($stmt->rowCount()) {
-			set_page_message(tr('Subdomain "%s" already in use by the OwnDDNS feature.', $event->getParam('subdomainName')), 'error');
+			set_page_message(
+				tr('Subdomain "%s" already in use by the OwnDDNS feature.', $event->getParam('subdomainName')), 'error'
+			);
 			
 			redirectTo('domains_manage.php');
 		}
@@ -343,9 +326,13 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 			$stmt = exec_query($query, $event->getParam('domainId'));
 			
 			if($stmt->fields['domain_dns'] == 'no') {
-				exec_query("UPDATE `domain` SET `domain_dns` = 'yes' WHERE `domain_id` = ?", $event->getParam('domainId'));
+				exec_query(
+					"UPDATE `domain` SET `domain_dns` = 'yes' WHERE `domain_id` = ?", $event->getParam('domainId')
+				);
 				
-				set_page_message(tr('OwnDDNS feature is activated for this customer, DNS was set back to enabled.'), 'warning');
+				set_page_message(
+					tr('OwnDDNS feature is activated for this customer, DNS was set back to enabled.'), 'warning'
+				);
 			}
 		}
 	}

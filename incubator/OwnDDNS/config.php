@@ -28,12 +28,12 @@
 
 return array(
 	'debug' => FALSE, // TRUE to enable debuging. Public script writes to the i-MSCP admin log
-	
+
 	'use_base64_encoding' => FALSE, // TRUE to enable base64 encoding for receiving data
-	
+
 	'max_allowed_accounts' => '5', // Default when activating a new customer
-	
+
 	'max_accounts_lenght' => '30', // Max. lenght of the subdomain name
-	
+
 	'update_repeat_time' => '5' // Minutes between updates
 );
