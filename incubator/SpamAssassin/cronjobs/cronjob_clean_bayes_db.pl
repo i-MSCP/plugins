@@ -32,7 +32,7 @@ use warnings;
 use lib "{IMSCP_PERLLIB_PATH}";
 
 use iMSCP::Debug;
-use iMSCP::Boot;
+use iMSCP::Bootstrapper;
 
 $ENV{'LC_MESSAGES'} = 'C';
 
@@ -42,7 +42,7 @@ newDebug('spamassassin-plugin-cronjob-clean-bayes-db.log');
 
 silent(1);
 
-iMSCP::Boot->getInstance()->boot({ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nolock' => 'yes' });
+iMSCP::Bootstrapper->getInstance()->boot({ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nolock' => 'yes' });
 
 my $pluginFile = "$main::imscpConfig{'ENGINE_ROOT_DIR'}/Plugins/SpamAssassin.pm";
 my $rs = 0;
