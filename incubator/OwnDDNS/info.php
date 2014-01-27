@@ -33,5 +33,5 @@ return array(
 	'date' => '2013-10-19',
 	'name' => 'OwnDDNS',
 	'desc' => 'Plugin allowing to manage your own DDNS service with i-MSCP',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:ownddns'
 );
