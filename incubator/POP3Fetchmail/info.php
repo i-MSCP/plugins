@@ -33,5 +33,5 @@ return array(
 	'date' => '2013-12-28',
 	'name' => 'POP3Fetchmail',
 	'desc' => 'Plugin providing roundcube pop3fetchmail plugin with cronjob extension',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:pop3fetchmail'
 );
