@@ -33,5 +33,5 @@ return array(
 	'date' => '2013-11-18',
 	'name' => 'AdminerSQL',
 	'desc' => 'Plugin allowing to manage i-MSCP databases through Adminer.',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
 );
