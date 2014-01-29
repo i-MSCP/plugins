@@ -1,6 +1,6 @@
 ## i-MSCP OwnDDNS plugin v0.0.1
 
-Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail)
+Plugin allowing to manage your own DDNS service with i-MSCP.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
