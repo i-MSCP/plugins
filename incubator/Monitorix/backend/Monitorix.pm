@@ -83,8 +83,11 @@ sub install
 sub enable
 {
 	my $self = shift;
+	
+	my $rs = $self->_modifyMonitorixCgiFile('add');
+	return $rs if $rs;
 
-	my $rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
+	$rs = $self->_modifyMonitorixSystemConfigEnabledGraphics();
 	return $rs if $rs;
 
 	$rs = $self->_restartDaemonMonitorix();
