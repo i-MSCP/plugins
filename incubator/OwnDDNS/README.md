@@ -1,9 +1,9 @@
 ## i-MSCP OwnDDNS plugin v0.0.1
 
-Plugin allowing to manage your own DDNS service with i-MSCP.
+Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail)
 
-If you install this plugin manually, make sure you install it in
-gui/plugins/ - in a different folder the plugin will not work.
+If you install this plugin manually, make sure it is installed in
+gui/plugins/ - if the folder is called different it will not work!
 
 ### LICENSE
 
@@ -22,32 +22,31 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
-	Bind must be activated on i-MSCP
-	Domain for your OwnDDNS must use the nameserver of your i-MSCP installation
+	- i-MSCP versions >= 1.1.0-rc4.7
+	- Bind must be activated on i-MSCP
+	- Domain for your OwnDDNS must use the nameserver of your i-MSCP installation
 
-### INSTALLATION AND UPDATE
+### INSTALLATION
 
-**1.** Backup your current plugins/OwnDDNS/config.php
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the Mailgraph plugin archive
+	- Activate the plugin
+	
+### UPDATE
 
-**2.** Get the plugin
+	- Backup your current plugins/OwnDDNS/config.php file
+	- Login into the panel as admin and go to the plugin management interface
+	- Upload the OwnDDNS plugin archive
+	- Restore your plugins/OwnDDNS/config.php file (check for any change)
+	- Update the plugin list through the plugin interface
+	
+### CONFIGURATION
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
-
-**3.** Copy the plugin directory into the gui/plugins directory of your i-MSCP installation.
-
-	# cp -fR plugins/OwnDDNS /var/www/imscp/gui/plugins
-
-**4.** Set permissions by running:
-
-	# perl /var/www/imscp/engine/setup/set-gui-permissions.pl
-
-**5.** Go to the panel plugins interface, update the plugin list and activate the plugin.
+See the plugins/OwnDDNS/config.php file.
 
 ### IMPORTANT
-	Some FRITZ!Box models don't work with a SSL url.
-	FRITZ!Box model: 3270, 7250, 7270
+Some FRITZ!Box models don't work with a SSL url.
+FRITZ!Box model: 3270, 7250, 7270
 
 ### AUTHORS AND CONTRIBUTORS
 
