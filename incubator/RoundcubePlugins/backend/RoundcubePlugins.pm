@@ -650,7 +650,7 @@ sub _checkManagesieveRequirements
 	}
 	
 	if(! -x '/usr/lib/dovecot/managesieve') {
-		error('Unable to find managesieve. Please, install the dovecot-managesieve package first.');
+		error('Unable to find managesieve. Please, install the dovecot-managesieved package first.');
 		return 1;
 	}
 	
