@@ -33,7 +33,7 @@ return array(
 	// sr, ta, tr, uk, xx, zh, zh-tw
 	'language' => 'all',
 
-	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite
+	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb
 	'driver' => 'mysql',
 
 	// default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq,
