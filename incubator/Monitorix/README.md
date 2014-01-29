@@ -54,7 +54,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	- Restore your plugins/Monitorix/config.php file (check for any change)
 	- Update the plugin list through the plugin interface
 
-### CONFIGURATION OF THE OPENDKIM DAEMON
+### CONFIGURATION OF MONITORIX
 
  See the plugins/Monitorix/config.php file.
 
