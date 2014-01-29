@@ -1,40 +1,35 @@
 // Adminer specific functions
 
-var jushRoot = '../externals/jush/'; // global variable to allow simple customization
-
 /** Load syntax highlighting
 * @param string first three characters of database system version
 */
 function bodyLoad(version) {
-	if (jushRoot) {
-		// copy of jush.style to load JS and CSS at once
-		var link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.type = 'text/css';
-		link.href = jushRoot + 'jush.css';
-		document.getElementsByTagName('head')[0].appendChild(link);
-		
-		var script = document.createElement('script');
-		script.src = jushRoot + 'jush.js';
-		script.onload = function () {
-			if (window.jush) { // IE runs in case of an error too
-				jush.create_links = ' target="_blank" rel="noreferrer"';
-				jush.urls.sql_sqlset = jush.urls.sql[0] = jush.urls.sqlset[0] = jush.urls.sqlstatus[0] = 'http://dev.mysql.com/doc/refman/' + version + '/en/$key';
-				var pgsql = 'http://www.postgresql.org/docs/' + version + '/static/';
-				jush.urls.pgsql_pgsqlset = jush.urls.pgsql[0] = pgsql + '$key';
-				jush.urls.pgsqlset[0] = pgsql + 'runtime-config-$key.html#GUC-$1';
-				if (window.jushLinks) {
-					jush.custom_links = jushLinks;
+	if (window.jush) {
+		jush.create_links = ' target="_blank" rel="noreferrer"';
+		for (var key in jush.urls) {
+			var obj = jush.urls;
+			if (typeof obj[key] != 'string') {
+				obj = obj[key];
+				key = 0;
+			}
+			obj[key] = obj[key]
+				.replace(/\/doc\/mysql/, '/doc/refman/' + version) // MySQL
+				.replace(/\/docs\/current/, '/docs/' + version) // PostgreSQL
+			;
+		}
+		if (window.jushLinks) {
+			jush.custom_links = jushLinks;
+		}
+		jush.highlight_tag('code', 0);
+		var tags = document.getElementsByTagName('textarea');
+		for (var i = 0; i < tags.length; i++) {
+			if (/(^|\s)jush-/.test(tags[i].className)) {
+				var pre = jush.textarea(tags[i]);
+				if (pre) {
+					setupSubmitHighlightInput(pre);
 				}
-				jush.highlight_tag('code', 0);
 			}
-		};
-		script.onreadystatechange = function () {
-			if (/^(loaded|complete)$/.test(script.readyState)) {
-				script.onload();
-			}
-		};
-		document.body.appendChild(script);
+		}
 	}
 }
 
@@ -69,7 +64,7 @@ function typePassword(el, disable) {
 function loginDriver(driver) {
 	var trs = parentTag(driver, 'table').rows;
 	for (var i=1; i < trs.length - 1; i++) {
-		trs[i].className = (/sqlite/.test(driver.value) ? 'hidden' : '');
+		alterClass(trs[i], 'hidden', /sqlite/.test(driver.value));
 	}
 }
 
@@ -102,43 +97,6 @@ function dbChange(el) {
 		el.value = dbPrevious[el.name];
 		dbPrevious[el.name] = undefined;
 	}
-}
-
-
-
-/** Handle Tab and Esc in textarea
-* @param HTMLTextAreaElement
-* @param KeyboardEvent
-* @return boolean
-*/
-function textareaKeydown(target, event) {
-	if (!event.shiftKey && !event.altKey && !isCtrl(event)) {
-		if (event.keyCode == 9) { // 9 - Tab
-			// inspired by http://pallieter.org/Projects/insertTab/
-			if (target.setSelectionRange) {
-				var start = target.selectionStart;
-				var scrolled = target.scrollTop;
-				target.value = target.value.substr(0, start) + '\t' + target.value.substr(target.selectionEnd);
-				target.setSelectionRange(start + 1, start + 1);
-				target.scrollTop = scrolled;
-				return false; //! still loses focus in Opera, can be solved by handling onblur
-			} else if (target.createTextRange) {
-				document.selection.createRange().text = '\t';
-				return false;
-			}
-		}
-		if (event.keyCode == 27) { // 27 - Esc
-			var els = target.form.elements;
-			for (var i=1; i < els.length; i++) {
-				if (els[i-1] == target) {
-					els[i].focus();
-					break;
-				}
-			}
-			return false;
-		}
-	}
-	return true;
 }
 
 
@@ -182,7 +140,7 @@ function selectFieldChange(form) {
 			}
 			if (col && /^order/.test(select.name)) {
 				if (!(col in indexColumns)) {
-					 ok = false;
+					ok = false;
 				}
 				break;
 			}
@@ -197,30 +155,6 @@ function selectFieldChange(form) {
 		return ok;
 	})();
 	setHtml('noindex', (ok ? '' : '!'));
-}
-
-/** Create edit query form
-* @param MouseEvent
-* @param HTMLSpanElement
-* @param string
-*/
-function selectEditSql(event, el, label) {
-	var a = parentTag(event.target || event.srcElement, 'a');
-	if (!isCtrl(event) || (a && a.href)) {
-		return;
-	}
-	var sql = el.firstChild;
-	var input = document.createElement('input');
-	input.name = 'query';
-	input.value = sql.textContent || sql.innerText;
-	input.style.width = sql.offsetWidth + 'px';
-	el.innerHTML = '';
-	el.appendChild(input);
-	var submit = document.createElement('input');
-	submit.type = 'submit';
-	submit.value = label;
-	el.appendChild(submit);
-	return true;
 }
 
 
@@ -317,10 +251,14 @@ function editingAddRow(button, focus) {
 	tags[0].onchange = function () {
 		editingNameChange(tags[0]);
 	};
+	tags[0].onkeyup = function () {
+	};
 	row.parentNode.insertBefore(row2, row.nextSibling);
 	if (focus) {
 		input.onchange = function () {
 			editingNameChange(input);
+		};
+		input.onkeyup = function () {
 		};
 		input.focus();
 	}
@@ -331,10 +269,11 @@ function editingAddRow(button, focus) {
 
 /** Remove table row for field
 * @param HTMLInputElement
+* @param string
 * @return boolean
 */
-function editingRemoveRow(button) {
-	var field = formField(button.form, button.name.replace(/drop_col(.+)/, 'fields$1[field]'));
+function editingRemoveRow(button, name) {
+	var field = formField(button.form, button.name.replace(/[^\[]+(.+)/, name));
 	field.parentNode.removeChild(field);
 	parentTag(button, 'tr').style.display = 'none';
 	return true;
@@ -350,28 +289,39 @@ function editingTypeChange(type) {
 	var text = selectValue(type);
 	for (var i=0; i < type.form.elements.length; i++) {
 		var el = type.form.elements[i];
-		if (el.name == name + '[length]' && !(
-			(/(char|binary)$/.test(lastType) && /(char|binary)$/.test(text))
-			|| (/(enum|set)$/.test(lastType) && /(enum|set)$/.test(text))
-		)) {
-			el.value = '';
+		if (el.name == name + '[length]') {
+			if (!(
+				(/(char|binary)$/.test(lastType) && /(char|binary)$/.test(text))
+				|| (/(enum|set)$/.test(lastType) && /(enum|set)$/.test(text))
+			)) {
+				el.value = '';
+			}
+			el.onchange.apply(el);
 		}
 		if (lastType == 'timestamp' && el.name == name + '[has_default]' && /timestamp/i.test(formField(type.form, name + '[default]').value)) {
 			el.checked = false;
 		}
 		if (el.name == name + '[collation]') {
-			el.className = (/(char|text|enum|set)$/.test(text) ? '' : 'hidden');
+			alterClass(el, 'hidden', !/(char|text|enum|set)$/.test(text));
 		}
 		if (el.name == name + '[unsigned]') {
-			el.className = (/((^|[^o])int|float|double|decimal)$/.test(text) ? '' : 'hidden');
+			alterClass(el, 'hidden', !/((^|[^o])int|float|double|decimal)$/.test(text));
 		}
 		if (el.name == name + '[on_update]') {
-			el.className = (text == 'timestamp' ? '' : 'hidden');
+			alterClass(el, 'hidden', text != 'timestamp');
 		}
 		if (el.name == name + '[on_delete]') {
-			el.className = (/`/.test(text) ? '' : 'hidden');
+			alterClass(el, 'hidden', !/`/.test(text));
 		}
 	}
+	helpClose();
+}
+
+/** Mark length as required
+* @param HTMLInputElement
+*/
+function editingLengthChange(el) {
+	alterClass(el, 'required', !el.value.length && /var(char|binary)$/.test(selectValue(el.parentNode.previousSibling.firstChild)));
 }
 
 /** Edit enum or set
@@ -382,7 +332,7 @@ function editingLengthFocus(field) {
 	if (/(enum|set)$/.test(selectValue(td.previousSibling.firstChild))) {
 		var edit = document.getElementById('enum-edit');
 		var val = field.value;
-		edit.value = (/^'.+','.+'$/.test(val) ? val.substr(1, val.length - 2).replace(/','/g, "\n").replace(/''/g, "'") : val);
+		edit.value = (/^'.+'$/.test(val) ? val.substr(1, val.length - 2).replace(/','/g, "\n").replace(/''/g, "'") : val); //! doesn't handle 'a'',''b' correctly
 		td.appendChild(edit);
 		field.style.display = 'none';
 		edit.style.display = 'inline';
@@ -396,7 +346,7 @@ function editingLengthFocus(field) {
 function editingLengthBlur(edit) {
 	var field = edit.parentNode.firstChild;
 	var val = edit.value;
-	field.value = (/\n/.test(val) ? "'" + val.replace(/\n+$/, '').replace(/'/g, "''").replace(/\n/g, "','") + "'" : val);
+	field.value = (/^'[^\n]+'$/.test(val) ? val : "'" + val.replace(/\n+$/, '').replace(/'/g, "''").replace(/\n/g, "','") + "'");
 	field.style.display = 'inline';
 	edit.style.display = 'none';
 }
@@ -408,7 +358,7 @@ function editingLengthBlur(edit) {
 function columnShow(checked, column) {
 	var trs = document.getElementById('edit-fields').getElementsByTagName('tr');
 	for (var i=0; i < trs.length; i++) {
-		trs[i].getElementsByTagName('td')[column].className = (checked ? '' : 'hidden');
+		alterClass(trs[i].getElementsByTagName('td')[column], 'hidden', !checked);
 	}
 }
 
@@ -426,8 +376,9 @@ function editingHideDefaults() {
 */
 function partitionByChange(el) {
 	var partitionTable = /RANGE|LIST/.test(selectValue(el));
-	el.form['partitions'].className = (partitionTable || !el.selectedIndex ? 'hidden' : '');
-	document.getElementById('partition-table').className = (partitionTable ? '' : 'hidden');
+	alterClass(el.form['partitions'], 'hidden', partitionTable || !el.selectedIndex);
+	alterClass(document.getElementById('partition-table'), 'hidden', !partitionTable);
+	helpClose();
 }
 
 /** Add next partition row
@@ -503,7 +454,9 @@ function indexesAddColumn(field, prefix) {
 	};
 	var select = field.form[field.name.replace(/\].*/, '][type]')];
 	if (!select.selectedIndex) {
-		select.selectedIndex = select.options.length - 1;
+		while (selectValue(select) != "INDEX" && select.selectedIndex < select.options.length) {
+			select.selectedIndex++;
+		}
 		select.onchange();
 	}
 	var column = cloneNode(field.parentNode);
@@ -594,4 +547,48 @@ function schemaMouseup(ev, db) {
 		link.href = link.href.replace(/[^=]+$/, '') + s;
 		cookie('adminer_schema-' + db + '=' + s, 30); //! special chars in db
 	}
+}
+
+var helpOpen, helpIgnore; // when mouse outs <option> then it mouse overs border of <select> - ignore it
+
+/** Display help
+* @param HTMLElement
+* @param MouseEvent
+* @param string
+* @param bool display on left side (otherwise on top)
+*/
+function helpMouseover(el, event, text, side) {
+	var target = getTarget(event);
+	if (!text) {
+		helpClose();
+	} else if (window.jush && (!helpIgnore || el != target)) {
+		helpOpen = 1;
+		var help = document.getElementById('help');
+		help.innerHTML = text;
+		jush.highlight_tag([ help ]);
+		alterClass(help, 'hidden');
+		var rect = target.getBoundingClientRect();
+		help.style.top = (rect.top - (side ? (help.offsetHeight - target.offsetHeight) / 2 : help.offsetHeight)) + 'px';
+		help.style.left = (rect.left - (side ? help.offsetWidth : (help.offsetWidth - target.offsetWidth) / 2)) + 'px';
+	}
+}
+
+/** Close help after timeout
+* @param HTMLElement
+* @param MouseEvent
+*/
+function helpMouseout(el, event) {
+	helpOpen = 0;
+	helpIgnore = (el != getTarget(event));
+	setTimeout(function () {
+		if (!helpOpen) {
+			helpClose();
+		}
+	}, 200);
+}
+
+/** Close help
+*/
+function helpClose() {
+	alterClass(document.getElementById('help'), 'hidden', true);
 }

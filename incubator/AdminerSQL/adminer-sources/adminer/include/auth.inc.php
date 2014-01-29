@@ -1,10 +1,11 @@
 <?php
 $connection = '';
 
-$token = $_SESSION["token"];
-if (!$_SESSION["token"]) {
+$has_token = $_SESSION["token"];
+if (!$has_token) {
 	$_SESSION["token"] = rand(1, 1e6); // defense against cross-site request forgery
 }
+$token = get_token(); ///< @var string CSRF protection
 
 $permanent = array();
 if ($_COOKIE["adminer_permanent"]) {
@@ -17,25 +18,30 @@ if ($_COOKIE["adminer_permanent"]) {
 $auth = $_POST["auth"];
 if ($auth) {
 	session_regenerate_id(); // defense against session fixation
-	$_SESSION["pwds"][$auth["driver"]][$auth["server"]][$auth["username"]] = $auth["password"];
-	$_SESSION["db"][$auth["driver"]][$auth["server"]][$auth["username"]][$auth["db"]] = true;
+	$driver = $auth["driver"];
+	$server = $auth["server"];
+	$username = $auth["username"];
+	$password = $auth["password"];
+	$db = $auth["db"];
+	set_password($driver, $server, $username, $password);
+	$_SESSION["db"][$driver][$server][$username][$db] = true;
 	if ($auth["permanent"]) {
-		$key = base64_encode($auth["driver"]) . "-" . base64_encode($auth["server"]) . "-" . base64_encode($auth["username"]) . "-" . base64_encode($auth["db"]);
+		$key = base64_encode($driver) . "-" . base64_encode($server) . "-" . base64_encode($username) . "-" . base64_encode($db);
 		$private = $adminer->permanentLogin(true);
-		$permanent[$key] = "$key:" . base64_encode($private ? encrypt_string($auth["password"], $private) : "");
+		$permanent[$key] = "$key:" . base64_encode($private ? encrypt_string($password, $private) : "");
 		cookie("adminer_permanent", implode(" ", $permanent));
 	}
 	if (count($_POST) == 1 // 1 - auth
-		|| DRIVER != $auth["driver"]
-		|| SERVER != $auth["server"]
-		|| $_GET["username"] !== $auth["username"] // "0" == "00"
-		|| DB != $auth["db"]
+		|| DRIVER != $driver
+		|| SERVER != $server
+		|| $_GET["username"] !== $username // "0" == "00"
+		|| DB != $db
 	) {
-		redirect(auth_url($auth["driver"], $auth["server"], $auth["username"], $auth["db"]));
+		redirect(auth_url($driver, $server, $username, $db));
 	}
 	
 } elseif ($_POST["logout"]) {
-	if ($token && $_POST["token"] != $token) {
+	if ($has_token && !verify_token()) {
 		page_header(lang('Logout'), lang('Invalid CSRF token. Send the form again.'));
 		page_footer("db");
 		exit;
@@ -44,7 +50,7 @@ if ($auth) {
 			set_session($key, null);
 		}
 		unset_permanent();
-		redirect(substr(preg_replace('~(username|db|ns)=[^&]*&~', '', ME), 0, -1), lang('Logout successful.'));
+		redirect(substr(preg_replace('~\b(username|db|ns)=[^&]*&~', '', ME), 0, -1), lang('Logout successful.'));
 	}
 	
 } elseif ($permanent && !$_SESSION["pwds"]) {
@@ -52,17 +58,17 @@ if ($auth) {
 	$private = $adminer->permanentLogin();
 	foreach ($permanent as $key => $val) {
 		list(, $cipher) = explode(":", $val);
-		list($driver, $server, $username, $db) = array_map('base64_decode', explode("-", $key));
-		$_SESSION["pwds"][$driver][$server][$username] = decrypt_string(base64_decode($cipher), $private);
-		$_SESSION["db"][$driver][$server][$username][$db] = true;
+		list($vendor, $server, $username, $db) = array_map('base64_decode', explode("-", $key));
+		set_password($vendor, $server, $username, decrypt_string(base64_decode($cipher), $private));
+		$_SESSION["db"][$vendor][$server][$username][$db] = true;
 	}
 }
 
 function unset_permanent() {
 	global $permanent;
 	foreach ($permanent as $key => $val) {
-		list($driver, $server, $username, $db) = array_map('base64_decode', explode("-", $key));
-		if ($driver == DRIVER && $server == SERVER && $username == $_GET["username"] && $db == DB) {
+		list($vendor, $server, $username, $db) = array_map('base64_decode', explode("-", $key));
+		if ($vendor == DRIVER && $server == SERVER && $username == $_GET["username"] && $db == DB) {
 			unset($permanent[$key]);
 		}
 	}
@@ -70,26 +76,28 @@ function unset_permanent() {
 }
 
 function auth_error($exception = null) {
-	global $connection, $adminer, $token;
+	global $connection, $adminer, $has_token;
 	$session_name = session_name();
 	$error = "";
 	if (!$_COOKIE[$session_name] && $_GET[$session_name] && ini_bool("session.use_only_cookies")) {
 		$error = lang('Session support must be enabled.');
 	} elseif (isset($_GET["username"])) {
-		if (($_COOKIE[$session_name] || $_GET[$session_name]) && !$token) {
+		if (($_COOKIE[$session_name] || $_GET[$session_name]) && !$has_token) {
 			$error = lang('Session expired, please login again.');
 		} else {
-			$password = &get_session("pwds");
+			$password = get_password();
 			if ($password !== null) {
 				$error = h($exception ? $exception->getMessage() : (is_string($connection) ? $connection : lang('Invalid credentials.')));
 				if ($password === false) {
 					$error .= '<br>' . lang('Master password expired. <a href="http://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.', '<code>permanentLogin()</code>');
 				}
-				$password = null;
+				set_password(DRIVER, SERVER, $_GET["username"], null);
 			}
 			unset_permanent();
 		}
 	}
+	$params = session_get_cookie_params();
+	cookie("adminer_key", ($_COOKIE["adminer_key"] ? $_COOKIE["adminer_key"] : rand_string()), $params["lifetime"]);
 	page_header(lang('Login'), $error, null);
 	echo "<form action='' method='post'>\n";
 	$adminer->loginForm();
@@ -98,6 +106,24 @@ function auth_error($exception = null) {
 	echo "</div>\n";
 	echo "</form>\n";
 	page_footer("auth");
+}
+
+function set_password($vendor, $server, $username, $password) {
+	$_SESSION["pwds"][$vendor][$server][$username] = ($_COOKIE["adminer_key"]
+		? array(encrypt_string($password, $_COOKIE["adminer_key"]))
+		: $password
+	);
+}
+
+function get_password() {
+	$return = get_session("pwds");
+	if (is_array($return)) {
+		$return = ($_COOKIE["adminer_key"]
+			? decrypt_string($return[0], $_COOKIE["adminer_key"])
+			: false
+		);
+	}
+	return $return;
 }
 
 if (isset($_GET["username"])) {
@@ -111,19 +137,20 @@ if (isset($_GET["username"])) {
 	$connection = connect();
 }
 
-if (is_string($connection) || !$adminer->login($_GET["username"], get_session("pwds"))) {
+if (!is_object($connection) || !$adminer->login($_GET["username"], get_password())) {
 	auth_error();
 	exit;
 }
 
-$token = $_SESSION["token"]; ///< @var string CSRF protection
+$driver = new Min_Driver($connection);
+
 if ($auth && $_POST["token"]) {
 	$_POST["token"] = $token; // reset token after explicit login
 }
 
 $error = ''; ///< @var string
 if ($_POST) {
-	if ($_POST["token"] != $token) {
+	if (!verify_token()) {
 		$ini = "max_input_vars";
 		$max_vars = ini_get($ini);
 		if (extension_loaded("suhosin")) {

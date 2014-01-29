@@ -4,7 +4,7 @@
 * @return string
 */
 function email_header($header) {
-	// iconv_mime_encode requires PHP 5, imap_8bit requires IMAP extension
+	// iconv_mime_encode requires iconv, imap_8bit requires IMAP extension
 	return "=?UTF-8?B?" . base64_encode($header) . "?="; //! split long lines
 }
 
@@ -17,7 +17,7 @@ function email_header($header) {
 * @return bool
 */
 function send_mail($email, $subject, $message, $from = "", $files = array()) {
-	$eol = (strncasecmp(PHP_OS, "win", 3) ? "\n" : "\r\n"); // PHP_EOL available since PHP 4.3.10 and 5.0.2
+	$eol = (DIRECTORY_SEPARATOR == "/" ? "\n" : "\r\n"); // PHP_EOL available since PHP 5.0.2
 	$message = str_replace("\n", $eol, wordwrap(str_replace("\r", "", "$message\n")));
 	$boundary = uniqid("boundary");
 	$attachments = "";
@@ -49,5 +49,5 @@ function send_mail($email, $subject, $message, $from = "", $files = array()) {
 * @return bool
 */
 function like_bool($field) {
-	return ereg("bool|(tinyint|bit)\\(1\\)", $field["full_type"]);
+	return preg_match("~bool|(tinyint|bit)\\(1\\)~", $field["full_type"]);
 }

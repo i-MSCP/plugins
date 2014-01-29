@@ -34,7 +34,7 @@ if (isset($_GET["host"]) && ($result = $connection->query("SHOW GRANTS FOR " . q
 				if ($val[1] != "USAGE") {
 					$grants["$match[2]$val[2]"][$val[1]] = true;
 				}
-				if (ereg(' WITH GRANT OPTION', $row[0])) { //! don't check inside strings and identifiers
+				if (preg_match('~ WITH GRANT OPTION~', $row[0])) { //! don't check inside strings and identifiers
 					$grants["$match[2]$val[2]"]["GRANT OPTION"] = true;
 				}
 			}
@@ -57,7 +57,7 @@ if ($_POST && !$error) {
 			$pass = $connection->result("SELECT PASSWORD(" . q($pass) . ")");
 			$error = !$pass;
 		}
-		
+
 		$created = false;
 		if (!$error) {
 			if ($old_user != $new_user) {
@@ -67,7 +67,7 @@ if ($_POST && !$error) {
 				queries("SET PASSWORD FOR $new_user = " . q($pass));
 			}
 		}
-		
+
 		if (!$error) {
 			$revoke = array();
 			foreach ($new_grants as $object => $grant) {
@@ -93,7 +93,7 @@ if ($_POST && !$error) {
 				}
 			}
 		}
-		
+
 		if (!$error && isset($_GET["host"])) {
 			if ($old_user != $new_user) {
 				queries("DROP USER $old_user");
@@ -105,9 +105,9 @@ if ($_POST && !$error) {
 				}
 			}
 		}
-		
+
 		queries_redirect(ME . "privileges=", (isset($_GET["host"]) ? lang('User has been altered.') : lang('User has been created.')), !$error);
-		
+
 		if ($created) {
 			// delete new user in case of an error
 			$connection->query("DROP USER $new_user");
@@ -142,7 +142,7 @@ if ($_POST) {
 <?php
 //! MAX_* limits, REQUIRE
 echo "<table cellspacing='0'>\n";
-echo "<thead><tr><th colspan='2'><a href='http://dev.mysql.com/doc/refman/" . substr($connection->server_info, 0, 3) . "/en/grant.html#priv_level' target='_blank' rel='noreferrer' class='help'>" . lang('Privileges') . "</a>";
+echo "<thead><tr><th colspan='2'>" . lang('Privileges') . doc_link(array('sql' => "grant.html#priv_level"));
 $i = 0;
 foreach ($grants as $object => $grant) {
 	echo '<th>' . ($object != "*.*" ? "<input name='objects[$i]' value='" . h($object) . "' size='10' autocapitalize='off'>" : "<input type='hidden' name='objects[$i]' value='*.*' size='10'>*.*"); //! separate db, table, columns, PROCEDURE|FUNCTION, routine

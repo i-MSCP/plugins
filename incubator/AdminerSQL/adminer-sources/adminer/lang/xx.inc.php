@@ -104,6 +104,7 @@ $translations = array(
 	'%d in total' => 'xx',
 	'Analyze' => 'xx',
 	'Optimize' => 'xx',
+	'Vacuum' => 'xx',
 	'Check' => 'xx',
 	'Repair' => 'xx',
 	'Truncate' => 'xx',
@@ -146,7 +147,6 @@ $translations = array(
 	'No tables.' => 'xx',
 	'Alter table' => 'xx',
 	'Create table' => 'xx',
-	'Create new table' => 'xx',
 	'Table has been dropped.' => 'xx',
 	'Tables have been dropped.' => 'xx',
 	'Tables have been optimized.' => 'xx',
@@ -245,6 +245,7 @@ $translations = array(
 	'File must be in UTF-8 encoding.' => 'xx',
 	
 	// in-place editing in select
+	'Modify' => 'xx',
 	'Ctrl+click on a value to modify it.' => 'xx',
 	'Use edit link to modify this value.' => 'xx',
 	
@@ -263,6 +264,7 @@ $translations = array(
 	'Save' => 'xx',
 	'Save and continue edit' => 'xx',
 	'Save and insert next' => 'xx',
+	'Selected' => 'xx',
 	'Clone' => 'xx',
 	'Delete' => 'xx',
 	'You have no privileges to update this table.' => 'xx',

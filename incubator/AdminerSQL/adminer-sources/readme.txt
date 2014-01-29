@@ -1,9 +1,9 @@
-Adminer - Database management in single PHP file
+Adminer - Database management in a single PHP file
 Adminer Editor - Data manipulation for end-users
 
 http://www.adminer.org/
-Supports: MySQL, PostgreSQL, SQLite, MS SQL, Oracle
-Requirements: PHP 4.3.3+ or PHP 5+
+Supports: MySQL, PostgreSQL, SQLite, MS SQL, Oracle, SimpleDB, Elasticsearch
+Requirements: PHP 5+
 Apache License 2.0 or GPL 2
 
 adminer/index.php - Run development version of Adminer

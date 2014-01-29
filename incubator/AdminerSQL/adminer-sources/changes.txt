@@ -1,4 +1,51 @@
-Adminer (released 2013-06-29):
+Adminer 4.0.2 (released 2014-01-11):
+Fix handling of long text in SQL textarea
+Support paste to SQL textarea in Opera
+
+Adminer 4.0.1 (released 2014-01-11):
+Don't use type=number if a SQL function is used
+Disable highlighting in textareas with long texts
+Don't autofocus SQL textarea in Firefox
+Don't link NULL foreign key values
+Fix displaying images in Editor, bug since Adminer 3.6.0
+Fix uploading files, bug since Adminer 4.0.0
+MongoDB: Count tables, display ObjectIds, sort, limit, offset, count rows
+Elasticsearch: Fix compiled version, create and drop DB, drop table
+
+Adminer 4.0.0 (released 2014-01-08):
+Driver for SimpleDB, MongoDB and Elasticsearch
+Highlight SQL in textareas
+Save and continue edit by AJAX
+Split SQL command and import
+Add a new column in alter table on key press
+Mark length as required for strings
+Add label to database selection, move logout button
+Add button for dropping an index
+Display number of selected rows
+Add links to documentation
+Disable underlining links
+Differentiate views in navigation
+Improve speed of CSV import
+Keep form values after refresh in Firefox
+Mark auto_increment fields in edit
+Don't append newlines to uploaded files, bug since Adminer 3.7.0
+Don't display SQL edit form on Ctrl+click on the select query, introduced in Adminer 3.6.4
+Use MD5 for editing long keys only in supported drivers, bug since Adminer 3.6.4
+Don't reset column when searching for an empty value with Enter, bug since Adminer 3.6.4
+Encrypt passwords stored in session by a key stored in cookie
+Don't execute external JavaScript when verifying version
+Include JUSH in the compiled version
+Protect CSRF token against BREACH
+Non-MySQL: View triggers
+SQLite: Allow editing primary key
+SQLite: Allow editing foreign keys
+PostgreSQL: Fix handling of nextval() default values
+PostgreSQL: Support creating array columns
+Customization: Provide schemas()
+Portugal Portuguese translation
+Thai translation
+
+Adminer 3.7.1 (released 2013-06-29):
 Increase click target for checkboxes
 Use shadow for highlighting default button
 Don't use LIMIT 1 if inline updating unique row
@@ -32,6 +79,7 @@ Don't use LIMIT 1 if updating unique row (bug #3613109)
 Restrict editing rows without unique identifier to search results
 Display navigation bellow main content on mobile browsers
 Get number of rows on export page asynchronously
+Respect 'whole result' even if some rows are checked (bug #339 since Adminer 3.7.0)
 MySQL: Optimize create table page and Editor navigation
 MySQL: Display bit type as binary number
 MySQL: Improve export of binary data types

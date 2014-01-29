@@ -11,7 +11,7 @@ if ($_POST && !$error && !isset($_POST["add_x"])) { // add is an image and PHP c
 		// create or rename database
 		if (DB != "") {
 			$_GET["db"] = $name;
-			queries_redirect(preg_replace('~db=[^&]*&~', '', ME) . "db=" . urlencode($name), lang('Database has been renamed.'), rename_database($name, $row["collation"]));
+			queries_redirect(preg_replace('~\bdb=[^&]*&~', '', ME) . "db=" . urlencode($name), lang('Database has been renamed.'), rename_database($name, $row["collation"]));
 		} else {
 			$databases = explode("\n", str_replace("\r", "", $name));
 			$success = true;
@@ -31,11 +31,11 @@ if ($_POST && !$error && !isset($_POST["add_x"])) { // add is an image and PHP c
 		if (!$row["collation"]) {
 			redirect(substr(ME, 0, -1));
 		}
-		query_redirect("ALTER DATABASE " . idf_escape($name) . (eregi('^[a-z0-9_]+$', $row["collation"]) ? " COLLATE $row[collation]" : ""), substr(ME, 0, -1), lang('Database has been altered.'));
+		query_redirect("ALTER DATABASE " . idf_escape($name) . (preg_match('~^[a-z0-9_]+$~i', $row["collation"]) ? " COLLATE $row[collation]" : ""), substr(ME, 0, -1), lang('Database has been altered.'));
 	}
 }
 
-page_header(DB != "" ? lang('Alter database') : lang('Create database'), $error, array(), DB);
+page_header(DB != "" ? lang('Alter database') : lang('Create database'), $error, array(), h(DB));
 
 $collations = collations();
 $name = DB;
@@ -60,7 +60,10 @@ if ($_POST) {
 echo ($_POST["add_x"] || strpos($name, "\n")
 	? '<textarea id="name" name="name" rows="10" cols="40">' . h($name) . '</textarea><br>'
 	: '<input name="name" id="name" value="' . h($name) . '" maxlength="64" autocapitalize="off">'
-) . "\n" . ($collations ? html_select("collation", array("" => "(" . lang('collation') . ")") + $collations, $row["collation"]) : "");
+) . "\n" . ($collations ? html_select("collation", array("" => "(" . lang('collation') . ")") + $collations, $row["collation"]) . doc_link(array(
+	'sql' => "charset-charsets.html",
+	'mssql' => "ms187963.aspx",
+)) : "");
 ?>
 <script type='text/javascript'>focus(document.getElementById('name'));</script>
 <input type="submit" value="<?php echo lang('Save'); ?>">
@@ -68,7 +71,7 @@ echo ($_POST["add_x"] || strpos($name, "\n")
 if (DB != "") {
 	echo "<input type='submit' name='drop' value='" . lang('Drop') . "'" . confirm() . ">\n";
 } elseif (!$_POST["add_x"] && $_GET["db"] == "") {
-	echo "<input type='image' name='add' src='../adminer/static/plus.gif' alt='+' title='" . lang('Add next') . "'>\n";
+	echo "<input type='image' class='icon' name='add' src='../adminer/static/plus.gif' alt='+' title='" . lang('Add next') . "'>\n";
 }
 ?>
 <input type="hidden" name="token" value="<?php echo $token; ?>">

@@ -18,22 +18,23 @@ page_header(lang('Process list'), $error);
 // HTML valid because there is always at least one process
 $i = -1;
 foreach (process_list() as $i => $row) {
-	
+
 	if (!$i) {
 		echo "<thead><tr lang='en'>" . (support("kill") ? "<th>&nbsp;" : "");
 		foreach ($row as $key => $val) {
-			echo "<th>" . ($jush == "sql"
-				? "<a href='http://dev.mysql.com/doc/refman/" . substr($connection->server_info, 0, 3) . "/en/show-processlist.html#processlist_" . strtolower($key) . "' target='_blank' rel='noreferrer' class='help'>$key</a>"
-				: $key
-			);
+			echo "<th>$key" . doc_link(array(
+				'sql' => "show-processlist.html#processlist_" . strtolower($key),
+				'pgsql' => "monitoring-stats.html#PG-STAT-ACTIVITY-VIEW",
+				'oracle' => "../b14237/dynviews_2088.htm",
+			));
 		}
 		echo "</thead>\n";
 	}
-	
+
 	echo "<tr" . odd() . ">" . (support("kill") ? "<td>" . checkbox("kill[]", $row["Id"], 0) : "");
 	foreach ($row as $key => $val) {
 		echo "<td>" . (
-			($jush == "sql" && $key == "Info" && ereg("Query|Killed", $row["Command"]) && $val != "") ||
+			($jush == "sql" && $key == "Info" && preg_match("~Query|Killed~", $row["Command"]) && $val != "") ||
 			($jush == "pgsql" && $key == "current_query" && $val != "<IDLE>") ||
 			($jush == "oracle" && $key == "sql_text" && $val != "")
 			? "<code class='jush-$jush'>" . shorten_utf8($val, 100, "</code>") . ' <a href="' . h(ME . ($row["db"] != "" ? "db=" . urlencode($row["db"]) . "&" : "") . "sql=" . urlencode($val)) . '">' . lang('Clone') . '</a>'

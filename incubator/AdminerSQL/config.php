@@ -27,7 +27,7 @@
  */
 
 return array(
-	'adminer_version' => '3.7.1',
+	'adminer_version' => '4.0.2',
 
 	// Available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, pl, pt, ro, ru, sk, sl,
 	// sr, ta, tr, uk, xx, zh, zh-tw
