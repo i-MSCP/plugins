@@ -84,6 +84,10 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 **zipdownload**
 
 	Adds an option to download all attachments of a message in one zip file.
+
+**additional_message_headers**
+
+	Adds a header identifying the originating ip for the mails sent via webmail.
 	
 ### REQUIREMENTS
 
