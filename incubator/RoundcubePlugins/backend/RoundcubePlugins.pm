@@ -39,7 +39,6 @@ use iMSCP::Execute;
 use iMSCP::File;
 use Servers::cron;
 use JSON;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -181,6 +180,9 @@ sub disable
 	
 	$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
 	return $rs if $rs;	
+
+	$rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
+	return $rs if $rs;
 	
 	$rs = $self->_unregisterCronjobPop3fetcher();
 	return $rs if $rs;
@@ -392,7 +394,7 @@ sub _setRoundcubePlugin($$$)
 		error("Unable to read $roundcubeMainIncFile");
 		return 1;
 	}
-	
+
 	if($plugin eq 'contextmenu') {
 		if($action eq 'add') {
 			if($fileContent =~ /imscp_pw_changer/sgm) {
@@ -459,8 +461,8 @@ sub _checkRoundcubePlugins
 	my $self = shift;
 	
 	my $rs = 0;
-	
-	if($self->{'config'}->{'archive_plugin'} eq 'yes') {	
+
+	if($self->{'config'}->{'archive_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('archive', 'add');
 		return $rs if $rs;
 		
@@ -578,7 +580,15 @@ sub _checkRoundcubePlugins
 		$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
 		return $rs if $rs;
 	}
-	
+
+	if($self->{'config'}->{'additional_message_headers_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
+		return $rs if $rs;
+	}
+
 	$rs = $self->_restartDaemonDovecot();
 	return $rs if $rs;
 	
