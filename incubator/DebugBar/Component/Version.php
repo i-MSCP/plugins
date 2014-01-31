@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2013 by Laurent Declercq
+ * Copyright (C) 2010-2014 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar_Component
- * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -93,7 +93,7 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
 		$pluginInfo = iMSCP_Registry::get('pluginManager')->getPluginInfo('DebugBar');
 
 		$panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
-			'<p>©2010-2013 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .
+			'<p>©2010-2014 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .
 			'Author: <a href="mailto:' . $pluginInfo['email'] . '">' . $pluginInfo['author'] . '</a><br />' .
 			'Includes images from the <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon set</a> by Mark James</p>';
 		$panel .= '<h4>i-MSCP ' . $version . ' / PHP ' . phpversion() . ' with extensions:</h4>';
