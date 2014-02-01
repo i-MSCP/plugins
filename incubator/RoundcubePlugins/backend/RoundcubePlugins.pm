@@ -141,61 +141,61 @@ sub enable
 sub disable
 {
 	my $self = shift;
-	
-	my $rs = $self->_setRoundcubePlugin('archive', 'remove');
+
+	my $rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
 	return $rs if $rs;
-	
+
+	$rs = $self->_setRoundcubePlugin('archive', 'remove');
+	return $rs if $rs;
+
 	$rs = $self->_setRoundcubePlugin('calendar', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('libcalendaring', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('contextmenu', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('dkimstatus', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('emoticons', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('logon_page', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('managesieve', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('newmail_notifier', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('pdfviewer', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('pop3fetcher', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_setRoundcubePlugin('tasklist', 'remove');
 	return $rs if $rs;
-	
-	$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
-	return $rs if $rs;	
 
-	$rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
+	$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_unregisterCronjobPop3fetcher();
 	return $rs if $rs;
-	
+
 	$rs = $self->_modifyDovecotConfig('archive', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_restartDaemonDovecot();
 	return $rs if $rs;
-	
+
 	0;
 }
 
@@ -462,6 +462,14 @@ sub _checkRoundcubePlugins
 	
 	my $rs = 0;
 
+	if($self->{'config'}->{'additional_message_headers_plugin'} eq 'yes') {
+		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'add');
+		return $rs if $rs;
+	} else {
+		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
+		return $rs if $rs;
+	}
+
 	if($self->{'config'}->{'archive_plugin'} eq 'yes') {
 		$rs = $self->_setRoundcubePlugin('archive', 'add');
 		return $rs if $rs;
@@ -578,14 +586,6 @@ sub _checkRoundcubePlugins
 		return $rs if $rs;
 	} else {
 		$rs = $self->_setRoundcubePlugin('zipdownload', 'remove');
-		return $rs if $rs;
-	}
-
-	if($self->{'config'}->{'additional_message_headers_plugin'} eq 'yes') {
-		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'add');
-		return $rs if $rs;
-	} else {
-		$rs = $self->_setRoundcubePlugin('additional_message_headers', 'remove');
 		return $rs if $rs;
 	}
 

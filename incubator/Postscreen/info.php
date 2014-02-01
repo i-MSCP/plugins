@@ -28,7 +28,7 @@
 
 return array(
 	'author' => 'Rene Schuster',
-	'email' => 'plugins@i-mscp.net',
+	'email' => 'mail@reneschuster.de',
 	'version' => '0.0.1',
 	'date' => '2013-09-25',
 	'name' => 'Postscreen',

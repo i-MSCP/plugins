@@ -33,7 +33,7 @@ return array(
 		'Sascha Bay',
 		'Rene Schuster'
 	),
-	'email' => 'plugins@i-mscp.net',
+	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
 	'date' => '2013-12-28',
 	'name' => 'SpamAssassin',
