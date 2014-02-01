@@ -29,6 +29,9 @@
  */
 
 return array(
+	// Adds the originating ip address for the emails sent via roundcube
+	'additional_message_headers_plugin' => 'yes', // YES to enable (default), NO to disable
+	
 	// Archive plugin adds a new button to the Roundcube toolbar
 	// to move messages to an (user selectable) archive folder.
 	'archive_plugin' => 'yes', // YES to enable (default), NO to disable
@@ -92,8 +95,5 @@ return array(
 	'tasklist_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// Adds an option to download all attachments of a message in one zip file.
-	'zipdownload_plugin' => 'yes', // YES to enable (default), NO to disable
-
-	// Adds the originating ip address for the emails sent via roundcube
-	'additional_message_headers_plugin' => 'yes' // YES to enable (default), NO to disable
+	'zipdownload_plugin' => 'yes' // YES to enable (default), NO to disable
 );

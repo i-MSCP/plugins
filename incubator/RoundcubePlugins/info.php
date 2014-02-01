@@ -33,7 +33,7 @@ return array(
 		'Rene Schuster',
 		'Sascha Bay'
 	),
-	'email' => 'plugins@i-mscp.net',
+	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
 	'date' => '2014-01-30',
 	'name' => 'RoundcubePlugins',
