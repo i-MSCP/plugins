@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugins
  * @subpackage  DomainAutoApproval
- * @copyright   Copyright (C) 2010 - 2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
