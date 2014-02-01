@@ -1,4 +1,4 @@
-## i-MSCP Demo plugin v0.0.10
+## i-MSCP Demo plugin v1.0.0
 
 Plugin allowing to create an i-MSCP Demo server in few minutes.
 
@@ -6,7 +6,7 @@ All documentation for this plugin can be found at [Demo Plugin Documentation](ht
 
 ### LICENSE
 
-Copyright (C) 2010 - 2013 by Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2010-2014 by Laurent Declercq <l.declercq@nuxwin.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0-rc4.7
+Plugin compatible with i-MSCP versions >= 1.1.0
 
 ### INSTALLATION
 
