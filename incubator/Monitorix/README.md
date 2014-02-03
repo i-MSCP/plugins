@@ -1,6 +1,6 @@
-## i-MSCP Monitorix plugin v0.0.3
+## i-MSCP Monitorix plugin v0.0.4
 
-Plugin provides lightweight system monitoring tool for Linux/UNIX servers.
+Plugin providing lightweight system monitoring tool for Linux/UNIX servers.
 
 If you install this plugin manually, make sure it is installed in
 gui/plugins/ - if the folder is called different it will not work!
@@ -32,6 +32,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	- Download package from: http://www.monitorix.org/downloads.html
 	- wget http://www.monitorix.org/monitorix_(version)-izzy1_all.deb
 	- apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libhttp-server-simple-perl libconfig-general-perl
+	( on Squeeze only ):
+	- apt-get install librrds-perl
 	- dpkg -i monitorix_(version)-izzy1_all.deb
 
 	Ubuntu:

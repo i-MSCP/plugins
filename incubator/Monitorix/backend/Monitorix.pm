@@ -179,13 +179,20 @@ sub buildMonitorixGraphics
 	} else {
 		$monitorixGraphColor = 'white';
 	}
-	
-	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
-		if($monitorixConfigValue eq 'y') {
-			my $rs = $self->_createMonitorixGraphics($monitorixConfigKey, $monitorixGraphColor);
+
+	for(keys %{$monitorixConfig->{'graph_enabled'}}) {
+		if($monitorixConfig->{'graph_enabled'}->{$_} eq 'y') {
+			my $rs = $self->_createMonitorixGraphics($_, $monitorixConfig->{'graph_enabled'}->{$_});
 			return $rs if $rs;
 		}
 	}
+
+	#while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
+	#	if($monitorixConfigValue eq 'y') {
+	#		my $rs = $self->_createMonitorixGraphics($monitorixConfigKey, $monitorixGraphColor);
+	#		return $rs if $rs;
+	#	}
+	#}
 	
 	$self->_setMonitorixGraphicsPermission();
 }
@@ -390,9 +397,13 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 
 	my $monitorixConfig = decode_json($rdata->{'Monitorix'}->{'plugin_config'});
 
-	while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
-		$fileContent =~ s/$monitorixConfigKey(\t\t|\t)= (y|n)/$monitorixConfigKey$1= $monitorixConfigValue/gm;
+	for(keys %{$monitorixConfig->{'graph_enabled'}}) {
+		$fileContent =~ s/$_(\t\t|\t)= (y|n)/$_$1= $monitorixConfig->{'graph_enabled'}->{$_}/gm;
 	}
+
+	#while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
+	#	$fileContent =~ s/$monitorixConfigKey(\t\t|\t)= (y|n)/$monitorixConfigKey$1= $monitorixConfigValue/gm;
+	#}
 
 	my $rs = $file->set($fileContent);
 	return 1 if $rs;
