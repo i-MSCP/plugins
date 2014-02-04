@@ -10,6 +10,14 @@
 		$this->_conn = $connection;
 	}
 	
+	/** Quote a SQL string or null value
+	* @param string
+	* @return string
+	*/
+	function quote($value) {
+		return ($value === null ? "NULL" : $this->_conn->quote($value));
+	}
+	
 	/** Select data from table
 	* @param string
 	* @param array result of $adminer->selectColumnsProcess()[0]
@@ -21,7 +29,7 @@
 	* @param bool whether to print the query
 	* @return Min_Result
 	*/
-	function select($table, $select, $where, $group, $order, $limit, $page, $print = false) {
+	function select($table, $select, $where, $group, $order = array(), $limit = 1, $page = 0, $print = false) {
 		global $adminer, $jush;
 		$is_group = (count($group) < count($select));
 		$query = $adminer->selectQueryBuild($select, $where, $group, $order, $limit, $page);

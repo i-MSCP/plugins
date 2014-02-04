@@ -89,8 +89,11 @@ if ($_POST["save"]) {
 		$select = array("*");
 	}
 	if ($select) {
-		$result = $driver->select($TABLE, $select, array($where), $select, array(), (isset($_GET["select"]) ? 2 : 1), 0);
+		$result = $driver->select($TABLE, $select, array($where), $select, array(), (isset($_GET["select"]) ? 2 : 1));
 		$row = $result->fetch_assoc();
+		if (!$row) { // MySQLi returns null
+			$row = false;
+		}
 		if (isset($_GET["select"]) && (!$row || $result->fetch_assoc())) { // $result->num_rows != 1 isn't available in all drivers
 			$row = null;
 		}
@@ -98,17 +101,19 @@ if ($_POST["save"]) {
 }
 
 if (!support("table") && !$fields) {
-	$id = ($jush == "mongo" ? "_id" : "itemName()"); // simpledb
 	if (!$where) { // insert
-		$row = $driver->select($TABLE, array("*"), $where, array("*"), array(), 1, 0);
-		$row = ($row ? $row->fetch_assoc() : array($id => ""));
+		$result = $driver->select($TABLE, array("*"), $where, array("*"));
+		$row = ($result ? $result->fetch_assoc() : false);
+		if (!$row) {
+			$row = array($driver->primary => "");
+		}
 	}
 	if ($row) {
 		foreach ($row as $key => $val) {
 			if (!$where) {
 				$row[$key] = null;
 			}
-			$fields[$key] = array("field" => $key, "null" => ($key != $id), "auto_increment" => ($key == $id));
+			$fields[$key] = array("field" => $key, "null" => ($key != $driver->primary), "auto_increment" => ($key == $driver->primary));
 		}
 	}
 }
@@ -160,9 +165,9 @@ if (!$fields) {
 
 	if (!support("table")) {
 		echo "<tr>"
-			. "<th><input name='field_keys[]' value='" . h($_POST["field_keys"][0]) . "'>"
-			. "<td class='function'>" . html_select("field_funs[]", $adminer->editFunctions(array()), $_POST["field_funs"][0])
-			. "<td><input name='field_vals[]' value='" . h($_POST["field_vals"][0]) . "'>"
+			. "<th><input name='field_keys[]' onkeyup='keyupChange.call(this);' onchange='fieldChange(this);' value=''>" // needs empty value for keyupChange()
+			. "<td class='function'>" . html_select("field_funs[]", $adminer->editFunctions(array("null" => isset($_GET["select"]))))
+			. "<td><input name='field_vals[]'>"
 			. "\n"
 		;
 	}

@@ -159,7 +159,7 @@ function html_select($name, $options, $value = "", $onchange = true) {
 function select_input($attrs, $options, $value = "", $placeholder = "") {
 	return ($options
 		? "<select$attrs><option value=''>$placeholder" . optionlist($options, $value, true) . "</select>"
-		: "<input$attrs value='" . h($value) . "' placeholder='$placeholder'>"
+		: "<input$attrs size='10' value='" . h($value) . "' placeholder='$placeholder'>"
 	);
 }
 
@@ -249,13 +249,13 @@ function sid() {
 	return $return;
 }
 
-/** Shortcut for $connection->quote($string)
+/** Shortcut for $driver->quote($string)
 * @param string
 * @return string
 */
 function q($string) {
-	global $connection;
-	return $connection->quote($string);
+	global $driver;
+	return $driver->quote($string);
 }
 
 /** Get list of values from database
@@ -880,7 +880,7 @@ function process_input($field) {
 		return ($field["on_update"] == "CURRENT_TIMESTAMP" ? idf_escape($field["field"]) : false);
 	}
 	if ($function == "NULL") {
-		return "NULL";
+		$value = null;
 	}
 	if ($field["type"] == "set") {
 		return array_sum((array) $value);
@@ -901,6 +901,31 @@ function process_input($field) {
 		return q($file);
 	}
 	return $adminer->processInput($field, $value, $function);
+}
+
+/** Compute fields() from $_POST edit data
+* @return array
+*/
+function fields_from_edit() {
+	global $driver;
+	$return = array();
+	foreach ((array) $_POST["field_keys"] as $key => $val) {
+		if ($val != "") {
+			$val = bracket_escape($val);
+			$_POST["function"][$val] = $_POST["field_funs"][$key];
+			$_POST["fields"][$val] = $_POST["field_vals"][$key];
+		}
+	}
+	foreach ((array) $_POST["fields"] as $key => $val) {
+		$name = bracket_escape($key, 1); // 1 - back
+		$return[$name] = array(
+			"field" => $name,
+			"privileges" => array("insert" => 1, "update" => 1),
+			"null" => 1,
+			"auto_increment" => ($key == $driver->primary),
+		);
+	}
+	return $return;
 }
 
 /** Print results of search in all tables

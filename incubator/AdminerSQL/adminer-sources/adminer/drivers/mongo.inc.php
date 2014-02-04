@@ -7,7 +7,7 @@ if (isset($_GET["mongo"])) {
 
 	if (class_exists('MongoDB')) {
 		class Min_DB {
-			var $extension = "Mongo", $error, $_link, $_db;
+			var $extension = "Mongo", $error, $last_id, $_link, $_db;
 
 			function connect($server, $username, $password) {
 				global $adminer;
@@ -114,7 +114,13 @@ if (isset($_GET["mongo"])) {
 
 
 	class Min_Driver extends Min_SQL {
-		function select($table, $select, $where, $group, $order, $limit, $page, $print = false) {
+		public $primary = "_id";
+		
+		function quote($value) {
+			return ($value === null ? $value : parent::quote($value));
+		}
+		
+		function select($table, $select, $where, $group, $order = array(), $limit = 1, $page = 0, $print = false) {
 			$select = ($select == array("*")
 				? array()
 				: array_fill_keys($select, true)
@@ -137,6 +143,7 @@ if (isset($_GET["mongo"])) {
 				$return = $this->_conn->_db->selectCollection($table)->insert($set);
 				$this->_conn->errno = $return['code'];
 				$this->_conn->error = $return['err'];
+				$this->_conn->last_id = $set['_id'];
 				return !$return['err'];
 			} catch (Exception $ex) {
 				$this->_conn->error = $ex->getMessage();
@@ -238,6 +245,7 @@ if (isset($_GET["mongo"])) {
 			$return[$index["name"]] = array(
 				"type" => ($index["name"] == "_id_" ? "PRIMARY" : ($index["unique"] ? "UNIQUE" : "INDEX")),
 				"columns" => array_keys($index["key"]),
+				"lengths" => array(),
 				"descs" => $descs,
 			);
 		}
@@ -245,7 +253,7 @@ if (isset($_GET["mongo"])) {
 	}
 
 	function fields($table) {
-		return array();
+		return fields_from_edit();
 	}
 
 	function convert_field($field) {
@@ -300,6 +308,37 @@ if (isset($_GET["mongo"])) {
 			}
 		}
 		return true;
+	}
+
+	function alter_indexes($table, $alter) {
+		global $connection;
+		foreach ($alter as $val) {
+			list($type, $name, $set) = $val;
+			if ($set == "DROP") {
+				$return = $connection->_db->command(array("deleteIndexes" => $table, "index" => $name));
+			} else {
+				$columns = array();
+				foreach ($set as $column) {
+					$column = preg_replace('~ DESC$~', '', $column, 1, $count);
+					$columns[$column] = ($count ? -1 : 1);
+				}
+				$return = $connection->_db->selectCollection($table)->ensureIndex($columns, array(
+					"unique" => ($type == "UNIQUE"),
+					"name" => $name,
+					//! "sparse"
+				));
+			}
+			if ($return['errmsg']) {
+				$connection->error = $return['errmsg'];
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	function last_id() {
+		global $connection;
+		return $connection->last_id;
 	}
 
 	function table($idf) {

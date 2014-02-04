@@ -1,3 +1,10 @@
+Adminer 4.0.3 (released 2014-02-01)
+MongoDB: insert, truncate, indexes
+SimpleDB, MongoDB: insert more fields at once
+SQLite: Fix creating table and altering primary key, bug since Adminer 4.0.0
+Don't store invalid credentials to session, bug since Adminer 4.0.0
+Norweigan translation
+
 Adminer 4.0.2 (released 2014-01-11):
 Fix handling of long text in SQL textarea
 Support paste to SQL textarea in Opera
