@@ -25,7 +25,7 @@ Plugin allowing to create persistent versions of service templates.
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP 1.1.0
+Plugin compatible with i-MSCP 1.1.1
 
 ### INSTALLATION
 
