@@ -22,14 +22,14 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	- i-MSCP versions >= 1.1.0-rc4.7
+	- i-MSCP versions >= 1.1.0
 	- Bind must be activated on i-MSCP
 	- Domain for your OwnDDNS must use the nameserver of your i-MSCP installation
 
 ### INSTALLATION
 
 	- Login into the panel as admin and go to the plugin management interface
-	- Upload the Mailgraph plugin archive
+	- Upload the OwnDDNS plugin archive
 	- Activate the plugin
 	
 ### UPDATE
@@ -45,8 +45,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 See the plugins/OwnDDNS/config.php file.
 
 ### IMPORTANT
-Some FRITZ!Box models don't work with a SSL url.
-FRITZ!Box model: 3270, 7250, 7270
+Some FRITZ!Box models don't work with a SSL url. You must use the non ssl url, even if the ssl feature of the panel is activated.
+FRITZ!Box model: 3270, 7170, 7250, 7270
 
 ### AUTHORS AND CONTRIBUTORS
 
