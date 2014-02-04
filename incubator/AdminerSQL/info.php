@@ -30,7 +30,7 @@ return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
 	'version' => '0.0.2',
-	'date' => '2014-01-29',
+	'date' => '2014-02-04',
 	'name' => 'AdminerSQL',
 	'desc' => 'Plugin allowing to manage i-MSCP databases through Adminer.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
