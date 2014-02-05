@@ -106,6 +106,30 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeEnablePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeEnablePlugin($event)
+	{
+		$this->onBeforeInstallPlugin($event);
+	}
+
+	/**
+	 * Plugin activation
+	 *
+	 * This method is automatically called by the plugin manager when the plugin is being enabled (activated).
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		$this->syncTemplates();
+	}
+
+	/**
 	 * Plugin uninstallation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -126,16 +150,6 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(sprintf('Unable to drop database table: %s', $e->getMessage()));
 		}
-	}
-
-	/**
-	 * onBeforeEnablePlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->onBeforeInstallPlugin($event);
 	}
 
 	/**
@@ -195,9 +209,10 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 
 		// Purge old templates (including childs)
 		if(!empty($templateNames)) {
-			$templateNames = explode(',', array_map('quoteValue', $templateNames));
+			$templateNames = implode(',', array_map('quoteValue', $templateNames));
+
 			execute_query(
-				"DELETE FROM template_editor_template WHERE parent_id IS NULL AND name NOT INT($templateNames)"
+				"DELETE FROM template_editor_template WHERE parent_id IS NULL AND name NOT IN($templateNames)"
 			);
 		}
 	}
