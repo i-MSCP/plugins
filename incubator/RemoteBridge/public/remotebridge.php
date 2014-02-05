@@ -241,7 +241,7 @@ function checkiMSCP_Version()
 	/** @var iMSCP_Config_Handler_File $cfg */
 	$cfg = iMSCP_Registry::get('config');
 
-	if ($cfg->Version != 'Git Master' && $cfg->Version <= 20130723) {
+	if (version_compare($cfg->Version, '1.1.0', '<')) {
 		exit(
 		createJsonMessage(
 			array(
