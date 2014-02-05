@@ -1,4 +1,22 @@
 <?php
+/**
+ * i-MSCP TemplateEditor plugin
+ * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 
 /**
  * Class iMSCP_Plugin_TemplateEditor
@@ -52,7 +70,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->setupDbTables($pluginManager);
-			$this->updateDefaultTemplates();
+			$this->syncTemplates();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(sprintf('Unable to create database schema: %s', $e->getMessage()));
 		}
@@ -81,7 +99,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->setupDbTables($pluginManager);
-			$this->updateDefaultTemplates();
+			$this->syncTemplates();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(sprintf('Unable to update database schema: %s', $e->getMessage()));
 		}
@@ -106,7 +124,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 			$pluginInfo['db_schema_version'] = '000';
 			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to drop database tables: %s', $e->getMessage()));
+			throw new iMSCP_Plugin_Exception(sprintf('Unable to drop database table: %s', $e->getMessage()));
 		}
 	}
 
@@ -145,7 +163,47 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Inject JailKit links into the navigation object
+	 * Sync default templates
+	 *
+	 * @return void
+	 */
+	public function syncTemplates()
+	{
+		$services = $this->getConfigParam('service_templates');
+		$templateNames = array();
+
+		// Sync default templates
+		if (!empty($services)) {
+			foreach ($services as $serviceName => $serviceTemplates) {
+				foreach ($serviceTemplates as $templateName => $templateMetadata) {
+					$templateNames[] = $templateName;
+
+					if (isset($templateMetadata['path']) && is_readable($templateMetadata['path'])) {
+						$fileContent = file_get_contents($templateMetadata['path']);
+
+						exec_query(
+							'REPLACE INTO template_editor_template (service, name, content, scope) VALUE (?, ?, ?, ?)',
+							array(
+								$serviceName, $templateName, $fileContent,
+								isset($templateMetadata['scope']) ? $templateMetadata['scope'] : 'system'
+							)
+						);
+					}
+				}
+			}
+		}
+
+		// Purge old templates (including childs)
+		if(!empty($templateNames)) {
+			$templateNames = explode(',', array_map('quoteValue', $templateNames));
+			execute_query(
+				"DELETE FROM template_editor_template WHERE parent_id IS NULL AND name NOT INT($templateNames)"
+			);
+		}
+	}
+
+	/**
+	 * Inject Links into the navigation object
 	 */
 	protected function setupNavigation()
 	{
@@ -156,7 +214,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 			if (($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tohtml(tr('Template Editor')),
+						'label' => tr('Template Editor'),
 						'uri' => '/admin/template_editor.php',
 						'title_class' => 'settings',
 						'order' => 7
@@ -200,30 +258,5 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 
 		$pluginInfo['db_schema_version'] = $dbSchemaVersion;
 		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
-	}
-
-	/**
-	 * Populate or update database (default templates)
-	 *
-	 * @return void
-	 */
-	protected function updateDefaultTemplates()
-	{
-		$services = $this->getConfigParam('service_templates');
-
-		if (!empty($services)) {
-			foreach ($services as $serviceName => $serviceTemplates) {
-				foreach ($serviceTemplates as $templateName => $templateMetadata) {
-					if (isset($templateMetadata['path']) && is_readable($templateMetadata['path'])) {
-						$fileContent = file_get_contents($templateMetadata['path']);
-
-						exec_query(
-							'REPLACE INTO template_editor_template (service, name, content, scope) VALUE (?, ?, ?, ?)',
-							array($serviceName, $templateName, $fileContent, $templateMetadata['scope'])
-						);
-					}
-				}
-			}
-		}
 	}
 }
