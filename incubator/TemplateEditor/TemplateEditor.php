@@ -141,8 +141,9 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 		try {
 			$pluginName = $this->getName();
 
-			execute_query('DROP TABLE IF EXISTS termplate_editor_template_admin');
+			execute_query('DROP TABLE IF EXISTS termplate_editor_group_admin');
 			execute_query('DROP TABLE IF EXISTS template_editor_template');
+			execute_query('DROP TABLE IF EXISTS template_editor_group');
 
 			$pluginInfo = $pluginManager->getPluginInfo($pluginName);
 			$pluginInfo['db_schema_version'] = '000';
@@ -177,43 +178,91 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Sync default templates
+	 * Sync default templates with those provided by i-MSCP core
 	 *
+	 * @throw iMSCP_Plugin_Exception When an error occurs while syncing a group of templates
 	 * @return void
 	 */
 	public function syncTemplates()
 	{
-		$services = $this->getConfigParam('service_templates');
-		$templateNames = array();
+		if($this->getConfigParam('sync_default_templates', true)) {
+			$db = iMSCP_Database::getRawInstance();
+			$sTs = $this->getConfigParam('service_templates', array());
+			$tNs = array();
+			$tGNs = array();
 
-		// Sync default templates
-		if (!empty($services)) {
-			foreach ($services as $serviceName => $serviceTemplates) {
-				foreach ($serviceTemplates as $templateName => $templateMetadata) {
-					$templateNames[] = $templateName;
+			if(!empty($sTs)) {
+				foreach($sTs as $sTN => $tGs) {
+					foreach($tGs as $tGN => $ts) {
+						if(!empty($ts)) {
+							$tGN = ucwords("$sTN $tGN");
+							$tGNs[] = $tGN;
 
-					if (isset($templateMetadata['path']) && is_readable($templateMetadata['path'])) {
-						$fileContent = file_get_contents($templateMetadata['path']);
+							try {
+								$db->beginTransaction();
 
-						exec_query(
-							'REPLACE INTO template_editor_template (service, name, content, scope) VALUE (?, ?, ?, ?)',
-							array(
-								$serviceName, $templateName, $fileContent,
-								isset($templateMetadata['scope']) ? $templateMetadata['scope'] : 'system'
-							)
-						);
+								exec_query(
+									'INSERT IGNORE template_editor_group (group_name, group_service_name) VALUE (?,?)',
+									array($tGN, $sTN)
+								);
+
+								if(!($tGI = $db->lastInsertId())) {
+									$stmt = exec_query(
+										'SELECT group_id FROM template_editor_group WHERE group_name = ?', $tGN
+									);
+									$tGI = $stmt->fields['group_id'];
+								}
+
+								foreach ($ts as $tN => $tD) {
+									$tNs[] = $tN;
+
+									if (isset($tD['path']) && is_readable($tD['path'])) {
+										$tC = file_get_contents($tD['path']);
+
+										exec_query(
+											'
+												REPLACE INTO template_editor_template (
+													template_group_id, template_name, template_content, template_scope
+												) VALUE (
+													?, ?, ?, ?
+												)
+											',
+											array($tGI, $tN, $tC, isset($tD['scope']) ? $tD['scope'] : 'system')
+										);
+									}
+								}
+
+								$db->commit();
+
+							} catch(iMSCP_Exception_Database $e) {
+								$db->rollBack();
+								throw new iMSCP_Plugin_Exception(
+									sprintf(
+										'Unable to sync %s template group: %s - %s',
+										$tGN, $e->getMessage(), $e->getQuery()
+									),
+									$e->getCode(),
+									$e
+								);
+							}
+						}
 					}
 				}
 			}
-		}
 
-		// Purge old templates (including childs)
-		if(!empty($templateNames)) {
-			$templateNames = implode(',', array_map('quoteValue', $templateNames));
+			if(!empty($tGNs)) {
+				$stGNs = implode(',', array_map('quoteValue', $tGNs));
+				exec_query(
+					"DELETE FROM template_editor_group WHERE group_parent_id IS NULL AND group_name NOT IN($stGNs)"
+				);
 
-			execute_query(
-				"DELETE FROM template_editor_template WHERE parent_id IS NULL AND name NOT IN($templateNames)"
-			);
+				if(!empty($tNs)) {
+					$tNs = implode(',', array_map('quoteValue', $tNs));
+					execute_query("DELETE FROM template_editor_template WHERE template_name NOT IN($tNs)");
+				}
+			} else {
+				exec_query("DELETE FROM template_editor_group");
+			}
 		}
 	}
 

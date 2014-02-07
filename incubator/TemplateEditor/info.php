@@ -24,6 +24,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2014-02-04',
 	'name' => 'TemplateEditor',
-	'desc' => 'Plugin allowing to create persistent versions of service templates.',
+	'desc' => 'Plugin allowing to create persistent and assignable versions of service templates.',
 	'url' => 'http://i-mscp.net'
 );

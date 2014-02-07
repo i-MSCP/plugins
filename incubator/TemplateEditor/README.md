@@ -1,6 +1,6 @@
 ## TemplateEditor v0.0.1 plugin for i-MSCP
 
-Plugin allowing to create persistent versions of service templates.
+Plugin allowing to create persistent and assignable versions of service templates.
 
 ### LICENSE
 

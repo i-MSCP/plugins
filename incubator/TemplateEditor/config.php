@@ -20,7 +20,7 @@
 
 return array(
 	// Service template definitions.
-	'templates' => array(
+	'service_templates' => array(
 		// Bind9 Templates
 		'bind9' => array(
 			'global' => array(
@@ -37,7 +37,7 @@ return array(
 					'scope' => 'system'
 				)
 			),
-			'master_zone' => array(
+			'master zone' => array(
 				'cfg_master.tpl' => array(
 					'path' => '/etc/imscp/bind/parts/cfg_master.tpl',
 					'scope' => 'site'
@@ -51,7 +51,7 @@ return array(
 					'scope' => 'site'
 				)
 			),
-			'slave_zone' => array(
+			'slave zone' => array(
 				'cfg_slave.tpl' => array(
 					'path' => '/etc/imscp/bind/parts/cfg_slave.tpl',
 					'scope' => 'site'
@@ -183,12 +183,10 @@ return array(
 
 		// Level for template assigment (only reseller level is currently supported)
 		// Note: Only site-wide templates are assignable
-		'assigmnent_level' => 'reseller',
+		//'assigmnent_level' => 'reseller',
 
-		// Whether or not default template must be synced with last available versions on update
-		'sync_templates' => true,
-
-		// Whether or not obsolete templates (including childs) must be purged on update
-		'purge_obsolete' => true
+		// Whether or not default templates must be synced with last available versions on update and if obsolete
+		// templates must be purged
+		'sync_default_templates' => true
 	)
 );
