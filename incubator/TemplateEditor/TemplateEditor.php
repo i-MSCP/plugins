@@ -150,7 +150,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 		try {
 			$this->dbMigrate($pluginManager, 'down');
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to migrate down: %s', $e->getMessage(), $e->getCode(), $e));
+			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage(), $e->getCode(), $e));
 		}
 	}
 
