@@ -26,7 +26,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Register a callback for the given event(s).
 	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
+	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventManager)
 	{
@@ -69,10 +69,12 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->setupDbTables($pluginManager);
-			$this->syncTemplates();
+			$this->dbMigrate($pluginManager, 'up');
+			$this->syncTemplates(true);
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to create database schema: %s', $e->getMessage()));
+			throw new iMSCP_Plugin_Exception(
+				sprintf('Unable to create database schema: %s', $e->getMessage()), $e->getCode(), $e
+			);
 		}
 	}
 
@@ -89,7 +91,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Plugin update
 	 *
-	 * @throws iMSCP_Plugin_Exception
+	 * @throws iMSCP_Plugin_Exception When update fail
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @param string $fromVersion Version from which plugin update is initiated
 	 * @param string $toVersion Version to which plugin is updated
@@ -98,10 +100,10 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->setupDbTables($pluginManager);
+			$this->dbMigrate($pluginManager, 'up');
 			$this->syncTemplates();
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to update database schema: %s', $e->getMessage()));
+			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -109,6 +111,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 * onBeforeEnablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 *
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
@@ -126,7 +129,13 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		$this->syncTemplates();
+		if($pluginManager->getPluginStatus($this->getName()) == 'tochange') {
+			try {
+				$this->syncTemplates();
+			} catch (iMSCP_Exception_Database $e) {
+				throw new iMSCP_Plugin_Exception(tr('Unable to change: %s', $e->getMessage()), $e->getCode(), $e);
+			}
+		}
 	}
 
 	/**
@@ -139,17 +148,9 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$pluginName = $this->getName();
-
-			execute_query('DROP TABLE IF EXISTS termplate_editor_group_admin');
-			execute_query('DROP TABLE IF EXISTS template_editor_template');
-			execute_query('DROP TABLE IF EXISTS template_editor_group');
-
-			$pluginInfo = $pluginManager->getPluginInfo($pluginName);
-			$pluginInfo['db_schema_version'] = '000';
-			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
+			$this->dbMigrate($pluginManager, 'down');
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to drop database table: %s', $e->getMessage()));
+			throw new iMSCP_Plugin_Exception(tr('Unable to migrate down: %s', $e->getMessage(), $e->getCode(), $e));
 		}
 	}
 
@@ -170,9 +171,9 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * onAdminScriptStart event listener
 	 *
-	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
-	public function onAdminScriptStart($event)
+	public function onAdminScriptStart()
 	{
 		$this->setupNavigation();
 	}
@@ -180,12 +181,13 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Sync default templates with those provided by i-MSCP core
 	 *
-	 * @throw iMSCP_Plugin_Exception When an error occurs while syncing a group of templates
+	 * @throw iMSCP_Exception_Database When synchronization fail
+	 * @param bool $force Force template synchronization
 	 * @return void
 	 */
-	public function syncTemplates()
+	public function syncTemplates($force = false)
 	{
-		if($this->getConfigParam('sync_default_templates', true)) {
+		if($force || $this->getConfigParam('sync_default_templates', true)) {
 			$db = iMSCP_Database::getRawInstance();
 			$sTs = $this->getConfigParam('service_templates', array());
 			$tNs = array();
@@ -193,58 +195,59 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 
 			if(!empty($sTs)) {
 				foreach($sTs as $sTN => $tGs) {
-					foreach($tGs as $tGN => $ts) {
-						if(!empty($ts)) {
-							$tGN = ucwords("$sTN $tGN");
-							$tGNs[] = $tGN;
+					foreach($tGs as $tGN => $tG) {
+						$tGN = ucwords("$sTN $tGN");
+						$tGNs[] = $tGN;
 
-							try {
-								$db->beginTransaction();
+						try {
+							$db->beginTransaction();
 
-								exec_query(
-									'INSERT IGNORE template_editor_group (group_name, group_service_name) VALUE (?,?)',
-									array($tGN, $sTN)
+							exec_query(
+								'
+									INSERT IGNORE template_editor_group (
+										group_name, group_service_name, group_scope
+									) VALUE (
+										?,?, ?
+									)
+								',
+								array($tGN, $sTN, isset($tG['scope']) ? $tG['scope'] : 'system')
+							);
+
+							if(!($tGI = $db->lastInsertId())) {
+								$stmt = exec_query(
+									'SELECT group_id FROM template_editor_group WHERE group_name = ?', $tGN
 								);
-
-								if(!($tGI = $db->lastInsertId())) {
-									$stmt = exec_query(
-										'SELECT group_id FROM template_editor_group WHERE group_name = ?', $tGN
-									);
-									$tGI = $stmt->fields['group_id'];
-								}
-
-								foreach ($ts as $tN => $tD) {
-									$tNs[] = $tN;
-
-									if (isset($tD['path']) && is_readable($tD['path'])) {
-										$tC = file_get_contents($tD['path']);
-
-										exec_query(
-											'
-												REPLACE INTO template_editor_template (
-													template_group_id, template_name, template_content, template_scope
-												) VALUE (
-													?, ?, ?, ?
-												)
-											',
-											array($tGI, $tN, $tC, isset($tD['scope']) ? $tD['scope'] : 'system')
-										);
-									}
-								}
-
-								$db->commit();
-
-							} catch(iMSCP_Exception_Database $e) {
-								$db->rollBack();
-								throw new iMSCP_Plugin_Exception(
-									sprintf(
-										'Unable to sync %s template group: %s - %s',
-										$tGN, $e->getMessage(), $e->getQuery()
-									),
-									$e->getCode(),
-									$e
-								);
+								$tGI = $stmt->fields['group_id'];
 							}
+
+							foreach ($tG['templates'] as $tN => $tP) {
+								$tNs[] = $tN;
+
+								if (is_readable($tP)) {
+									$tC = file_get_contents($tP);
+
+									exec_query(
+										'
+											REPLACE INTO template_editor_template (
+												template_group_id, template_name, template_content
+											) VALUE (
+												?, ?, ?
+											)
+										',
+										array($tGI, $tN, $tC)
+									);
+								} else {
+									set_page_message(
+										tr("TemplateEditor Plugin: Template %s is not readable or doesn't exist.", $tP),
+										'warning'
+									);
+								}
+							}
+
+							$db->commit();
+						} catch(iMSCP_Exception_Database $e) {
+							$db->rollBack();
+							throw $e;
 						}
 					}
 				}
@@ -289,38 +292,55 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Setup database tables
+	 * Migrate database
 	 *
+	 * @throws iMSCP_Exception_Database When migration fail
 	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @throws iMSCP_Plugin_Exception
+	 * @param string $migrationMode Migration mode (up|down)
+	 * @return void
 	 */
-	protected function setupDbTables(iMSCP_Plugin_Manager $pluginManager)
+	protected function dbMigrate(iMSCP_Plugin_Manager $pluginManager, $migrationMode = 'up')
 	{
 		$pluginName = $this->getName();
-
 		$pluginInfo = $pluginManager->getPluginInfo($pluginName);
-		$dbSchemaVersion = (isset($pluginInfo['db_version'])) ? $pluginInfo['db_schema_version'] : '000';
+		$dbSchemaVersion = (isset($pluginInfo['db_schema_version'])) ? $pluginInfo['db_schema_version'] : '000';
+		$migrationFiles = array();
 
-		$sqlFiles = array();
-
-		/** @var $fileInfo DirectoryIterator */
-		foreach (new DirectoryIterator(dirname(__FILE__) . '/data') as $fileInfo) {
-			if (!$fileInfo->isDot()) {
-				$sqlFiles[] = $fileInfo->getRealPath();
+		/** @var $migrationFileInfo DirectoryIterator */
+		foreach (new DirectoryIterator(dirname(__FILE__) . '/data') as $migrationFileInfo) {
+			if (!$migrationFileInfo->isDot()) {
+				$migrationFiles[] = $migrationFileInfo->getRealPath();
 			}
 		}
 
-		sort($sqlFiles, SORT_NATURAL | SORT_FLAG_CASE);
+		natsort($migrationFiles);
 
-		foreach ($sqlFiles as $sqlFile) {
-			if (preg_match('%([^/]+)\.sql$%', $sqlFile, $match) && $match[1] > $dbSchemaVersion) {
-				$sqlFileContent = file_get_contents($sqlFile);
-				execute_query($sqlFileContent);
-				$dbSchemaVersion = $match[1];
-			}
+		if($migrationMode != 'up') {
+			$migrationFiles = array_reverse($migrationFiles);
 		}
 
-		$pluginInfo['db_schema_version'] = $dbSchemaVersion;
+		try {
+			foreach ($migrationFiles as $migrationFile) {
+				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
+					if(
+						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
+						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
+					) {
+						$migrationFilesContent = include($migrationFile);
+						if(isset($migrationFilesContent[$migrationMode])) {
+							execute_query($migrationFilesContent[$migrationMode]);
+							$dbSchemaVersion = $match[1];
+						}
+					}
+				}
+			}
+		} catch(iMSCP_Exception_Database $e) {
+			$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
+			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
+			throw $e;
+		}
+
+		$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
 		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 	}
 }

@@ -19,174 +19,45 @@
  */
 
 return array(
+	// Allow to use memcached server for better performances
+	// Default is disabled. See the README.md file for instructions.
+	'memcached' => array(
+		'enabled' => 0,
+		'hostname' => 'localhost',
+		'port' => '11211'
+	),
+
+	// Whether or not default templates must be synced with last available versions on update
+	'sync_default_templates' => true,
+
 	// Service template definitions.
+	// Warning: imscp group must have read access to all paths defined below.
+	// Do not change anything if you don't know what you are doing.
 	'service_templates' => array(
 		// Bind9 Templates
 		'bind9' => array(
 			'global' => array(
-				'named.conf' => array(
-					'path' => '/etc/imscp/bind/named.conf',
-					'scope' => 'system'
+				'templates' => array(
+					'named.conf' => '/etc/imscp/bind/named.conf',
+					'named.conf.local' => '/etc/imscp/bind/named.conf.local',
+					'named.conf.options' => '/etc/imscp/bind/named.conf.options'
 				),
-				'named.conf.local' => array(
-					'path' => '/etc/imscp/bind/named.conf.local',
-					'scope' => 'system'
-				),
-				'named.conf.options' => array(
-					'path' => '/etc/imscp/bind/named.conf.options',
-					'scope' => 'system'
-				)
+				'scope' => 'system'
 			),
 			'master zone' => array(
-				'cfg_master.tpl' => array(
-					'path' => '/etc/imscp/bind/parts/cfg_master.tpl',
-					'scope' => 'site'
+				'templates' => array(
+					'cfg_master.tpl' => '/etc/imscp/bind/parts/cfg_master.tpl',
+					'db.tpl' => '/etc/imscp/bind/parts/db.tpl',
+					'db_sub.tpl' => '/etc/imscp/bind/parts/db_sub.tpl'
 				),
-				'db.tpl' => array(
-					'path' => '/etc/imscp/bind/parts/db.tpl',
-					'scope' => 'site'
-				),
-				'db_sub.tpl' => array(
-					'path' => '/etc/imscp/bind/parts/db_sub.tpl',
-					'scope' => 'site'
-				)
+				'scope' => 'site'
 			),
 			'slave zone' => array(
-				'cfg_slave.tpl' => array(
-					'path' => '/etc/imscp/bind/parts/cfg_slave.tpl',
-					'scope' => 'site'
-				)
+				'templates' => array(
+					'cfg_slave.tpl' => '/etc/imscp/bind/parts/cfg_slave.tpl'
+				),
+				'scope' => 'site'
 			)
 		),
-
-		/*
-		 // Apache2 Templates (adaoter not implemented yet)
-		'apache2' => array(
-			'global' => array(
-				'00_nameserver.conf' => array(
-					'path' => '/etc/imscp/apache/00_nameserver.conf',
-					'scope' => 'system'
-				),
-			),
-			'panel' => array(
-				'00_master.conf' => array(
-					'path' => '/etc/imscp/apache/00_master.conf',
-					'scope' => 'system'
-				),
-				'00_master_ssl.conf' => array(
-					'path' => '/etc/imscp/apache/00_master_ssl.conf',
-					'scope' => 'system'
-				)
-			),
-			'vhost' => array(
-				'domain.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain.tpl',
-					'scope' => 'site'
-				),
-				'domain_ssl.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain_ssl.tpl',
-					'scope' => 'site'
-				),
-				'domain_disabled.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain_disabled.tpl',
-					'scope' => 'site'
-				),
-				'domain_disabled_ssl.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain_disabled_ssl.tpl',
-					'scope' => 'site'
-				),
-				'domain_redirect.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain_redirect.tpl',
-					'scope' => 'site'
-				),
-				'domain_redirect_ssl.tpl' => array(
-					'path' => '/etc/imscp/apache/parts/domain_redirect_ssl.tpl',
-					'scope' => 'site'
-				)
-			)
-		),
-		*/
-
-		/*
-		// Courier Templates (adapter not implemented yet)
-		'courier' => array(
-			'global' => array(
-				'authmysqlrc' => array(
-					'path' => '/etc/imscp/courier/authmysqlrc',
-					'scope' => 'system'
-				),
-				'quota-warning' => array(
-					'path' => '/etc/imscp/courier/quota-warning',
-					'scope' => 'system'
-				)
-			)
-		),
-		*/
-
-		/*
-		 // Dovecot Templates (adapter not implemented yet)
-		'dovecot' => array(
-			'global' => array(
-				'dovecot.conf.1' => array(
-					'path' => '/etc/imscp/dovecot/dovecot.conf.1',
-					'scope' => 'system'
-				),
-				'dovecot.conf.2' => array(
-					'path' => '/etc/imscp/dovecot/dovecot.conf.2',
-					'scope' => 'system'
-				),
-				'dovecot-sql.conf' => array(
-					'path' => '/etc/imscp/dovecot/dovecot-sql.conf',
-					'scope' => 'system'
-				),
-				'quota-warning.1' => array(
-					'path' => '/etc/imscp/dovecot/quota-warning.1',
-					'scope' => 'system'
-				),
-				'quota-warning.2' => array(
-					'path' => '/etc/imscp/dovecot/quota-warning.1',
-					'scope' => 'system'
-				)
-			)
-		),
-		*/
-
-		/*
-		// Postfix Templates (adapter not implemented yet)
-		'postfix' => array(
-			'system' => array(
-				'main.cf' => array(
-					'path' => '/etc/imscp/postfix/main.cf',
-					'scope' => 'system'
-				),
-				'master.cf' => array(
-					'path' => '/etc/imscp/postfix/master.cf',
-					'scope' => 'system'
-				)
-			)
-		),
-		*/
-
-		/*
-		// Proftpd Templates (adapter not implemented yet)
-		'proftpd' => array(
-			'system' => array(
-				'proftpd.conf' => array(
-					'path' => '/etc/imscp/postfix/proftpd.conf',
-					'scope' => 'system'
-				)
-			)
-		),
-		*/
-
-		// TODO PHP templates
-
-		// Level for template assigment (only reseller level is currently supported)
-		// Note: Only site-wide templates are assignable
-		//'assigmnent_level' => 'reseller',
-
-		// Whether or not default templates must be synced with last available versions on update and if obsolete
-		// templates must be purged
-		'sync_default_templates' => true
 	)
 );
