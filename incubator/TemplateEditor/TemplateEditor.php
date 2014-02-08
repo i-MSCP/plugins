@@ -340,7 +340,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 			throw $e;
 		}
 
-		$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
+		$pluginInfo['db_schema_version'] =  ($migrationMode == 'up') ? $dbSchemaVersion : '000';
 		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 	}
 }
