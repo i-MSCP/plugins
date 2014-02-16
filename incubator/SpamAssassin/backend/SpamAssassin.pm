@@ -1369,47 +1369,8 @@ sub _setupDatabase
 	
 	# The SpamAssassin database doesn't exist, create it
 	unless(%$rs) {
-		my $quotedDbName = $db->quoteIdentifier($spamassassinDbName);
-		$rs = $db->doQuery('dummy', "CREATE DATABASE IF NOT EXISTS $quotedDbName CHARACTER SET utf8 COLLATE utf8_unicode_ci;");
-		unless(ref $rs eq 'HASH') {
-			error("Unable to create the SpamAssassin '$spamassassinDbName' SQL database: $rs");
-			return 1;
-		}
-		
-		# Connect to newly created SpamAssassin database
-		$db->set('DATABASE_NAME', $spamassassinDbName);
-		$rs = $db->connect();
-		if($rs) {
-			error("Unable to connect to the SpamAssassin '$spamassassinDbName' SQL database: $rs");
-			return $rs if $rs;
-		}
-		
-		my $spamassassinDumpFile = iMSCP::File->new('filename' => "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/SQL/mysql.initial.sql");
-		
-		my $dumpContent = $spamassassinDumpFile->get();
-		unless(defined $dumpContent) {
-			error("Unable to read $dumpContent");
-			return 1;
-		}
-		
-		$dumpContent =~ s/^(--[^\n]{0,})?\n//gm;
-		my @queries = (split /;\n/, $dumpContent);
-		
-		# Import SpamAssassin database schema
-		for (@queries) {
-			my $rdata = $db->doQuery('dummy', $_);
-			unless(ref $rdata eq 'HASH') {
-				$db->set('DATABASE_NAME', $imscpDbName);
-				$rs = $db->connect();
-				if($rs) {
-					error("Unable to connect to the i-MSCP '$imscpDbName' SQL database: $rs");
-					return $rs if $rs;
-				}
-				
-				error($rdata);
-				return 1;
-			}
-		}
+		error("Unable to find the SpamAssassin '$spamassassinDbName' SQL database.");
+		return 1;
 	}
 	
 	# Connect to imscp database
