@@ -166,19 +166,21 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			
 			$checkSpamAssassinDb = exec_query("SHOW DATABASES LIKE '" . $spamAssassinDbName . "';");
 			$dataSpamAssassinDb = $checkSpamAssassinDb->fetchRow();
+			$ignoreFilesIfDbExist = array('008_insert_bayes_global_vars.php', '009_insert_userpref.php');
 
-			if(empty($dataSpamAssassinDb)) {
-				foreach ($migrationFiles as $migrationFile) {
-					if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-						if(
-							($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
-							($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
-						) {
-							$migrationFilesContent = include($migrationFile);
-							if(isset($migrationFilesContent[$migrationMode])) {
-								execute_query($migrationFilesContent[$migrationMode]);
-								$dbSchemaVersion = $match[1];
-							}
+			foreach ($migrationFiles as $migrationFile) {
+				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
+					/* temporary solution */ 
+					if(!empty($dataSpamAssassinDb) && in_array(basename($migrationFile), $ignoreFilesIfDbExist)) continue;
+					/* temporary solution */
+					if(
+						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
+						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
+					) {
+						$migrationFilesContent = include($migrationFile);
+						if(isset($migrationFilesContent[$migrationMode])) {
+							execute_query($migrationFilesContent[$migrationMode]);
+							$dbSchemaVersion = $match[1];
 						}
 					}
 				}
