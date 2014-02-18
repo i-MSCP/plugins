@@ -19,7 +19,8 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
+	- i-MSCP versions >= 1.1.0
+	- See installation section for required software packages.
 	
 ### Existing milter configurations
 
@@ -28,40 +29,34 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### INSTALLATION
 
-**1.** Install needed Debian/Ubuntu packages if not already done
+**1. Install the needed Debian / Ubuntu packages**
 
-**1.1** Install the clamav packages
+Installation of clamav packages:
 
 	# aptitude update
 	# aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
 	
-**1.2** Stop the clamav-freshclam daemon if it is running
+Stop the clamav-freshclam daemon if it is running:
 
 	# service clamav-freshclam stop
 	
-**1.3** Update the virus database
+Update the virus database:
 
 	# freshclam
 	
-**1.4** Start the clamav-freshclam daemon
+Start the clamav-freshclam daemon:
 
 	# service clamav-freshclam start
 	
-**1.5** Restart the clamav-daemon
+Restart the clamav-daemon:
 
 	# service clamav-daemon restart
 	
-**2.** Get the plugin from github
+**2. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
-
-**3.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf ClamAV.tar.gz ClamAV
+http://i-mscp.net/filebase/index.php/Filebase/
 	
-**4.** Plugin upload and installation
+**3. Plugin upload and installation**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the ClamAV plugin archive
@@ -69,21 +64,15 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### UPDATE
 
-**1.** Get the plugin from github
+**1. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+http://i-mscp.net/filebase/index.php/Filebase/
 
-**2.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf ClamAV.tar.gz ClamAV
-
-**3.** Backup your current plugin config
+**2. Backup your current plugin config**
 
 	- plugins/ClamAV/config.php
 	
-**4.** Plugin upload and update
+**3. Plugin upload and update**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the ClamAV plugin archive

@@ -2,6 +2,13 @@
 
 Plugin allows to use Postscreen with Postfix on i-MSCP.
 
+The Postfix Postscreen daemon provides additional protection against mail 
+server overload. One Postscreen process handles multiple inbound SMTP 
+connections, and decides which clients may talk to a Postfix SMTP server 
+process. By keeping spambots away, Postscreen leaves more SMTP server 
+processes available for legitimate clients, and delays the onset of server 
+overload conditions.
+
 ### LICENSE
 
 Copyright (C) Rene Schuster <mail@reneschuster.de>
@@ -29,23 +36,43 @@ Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_REA
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.7
-
-	Postfix version >= 2.8
+	- i-MSCP versions >= 1.1.0
+	- Postfix version >= 2.8
+	- See installation section for required software packages.
 
 ### INSTALLATION
 
-**1.** Get the plugin from github
+**1. Install the needed Debian Squeeze / Ubuntu Lucid package**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+All newer versions of Debian / Ubuntu already have a compatible postfix version.
 
-**2.** Create new Plugin archive
+**Debian Squeeze**
 
-	# cd plugins
-	# tar cvzf Postscreen.tar.gz Postscreen
+Add the backports of Debian Squeeze to your /etc/apt/sources.list:
 	
-**3.** Plugin upload and installation
+	deb http://backports.debian.org/debian-backports squeeze-backports main contrib non-free
+
+Installation of newer postfix package:
+
+	# aptitude update
+	# aptitude -t squeeze-backports install postfix
+	
+**Ubuntu Lucid**
+
+Add the backports of Ubuntu Lucid to your /etc/apt/sources.list:
+
+	deb http://archive.ubuntu.com/ubuntu lucid-backports main restricted universe
+
+Installation of newer postfix package:
+
+	# aptitude update
+	# aptitude -t lucid-backports install postfix
+	
+**2. Get the plugin from Plugin Store**
+
+http://i-mscp.net/filebase/index.php/Filebase/
+	
+**3. Plugin upload and installation**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the Postscreen plugin archive
@@ -53,21 +80,15 @@ Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_REA
 
 ### UPDATE
 
-**1.** Get the plugin from github
+**1. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+http://i-mscp.net/filebase/index.php/Filebase/
 
-**2.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf Postscreen.tar.gz Postscreen
-
-**3.** Backup your current plugin config
+**2. Backup your current plugin config**
 
 	- plugins/Postscreen/config.php
 	
-**4.** Plugin upload and update
+**3. Plugin upload and update**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the Postscreen plugin archive

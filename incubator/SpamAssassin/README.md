@@ -19,7 +19,10 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.8
+	- i-MSCP versions >= 1.1.0
+	- SpamAssassin 3.3.x
+	- Roundcube 0.9.x
+	- See installation section for required software packages.
 
 ### Existing milter configurations
 
@@ -28,52 +31,50 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	
 ### INSTALLATION
 
-**1.** Install needed Debian/Ubuntu packages if not already done
+**1. Install the needed Debian / Ubuntu packages** 
 
-**Debian Wheezy**
+**Debian Squeeze / Ubuntu Lucid** (Spamassassin version 3.3.1)
 
-**1.1** Installation of spamassasin packages
+Installation of spamassasin packages:
 
 	# aptitude update
 	# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
 	
-**1.2** Optional install pyzor and razor
- 
-	# aptitude install pyzor razor
-	
-**Debian Squeeze**
+Configuration of spamassasin:
 
-	Add the backports of Debian Squezze to your /etc/apt/sources.list: 
+	# groupadd -g 5001 debian-spamd
+	# useradd -u 5001 -g debian-spamd -s /bin/sh -d /var/lib/spamassassin debian-spamd
+	# mkdir /var/lib/spamassassin
+	# chown debian-spamd:debian-spamd /var/lib/spamassassin	
+	
+**Debian Squeeze - from backports** (Spamassassin version 3.3.2)
+
+Add the backports of Debian Squezze to your /etc/apt/sources.list:
+
 	deb http://backports.debian.org/debian-backports squeeze-backports main contrib non-free
 	
-**1.1** Installation of spamassasin packages
+Installation of spamassasin packages:
 
 	# aptitude update
 	# aptitude -t squeeze-backports install spamassassin
 	# aptitude install spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
 	
-**1.2** Configuration of spamassasin
+**All other Debian / Ubuntu versions**
 
-	# groupadd -g 5001 debian-spamd
-	# useradd -u 5001 -g debian-spamd -s /bin/sh -d /var/lib/spamassassin debian-spamd
-	# mkdir /var/lib/spamassassin
-	# chown spamd:spamd /var/lib/spamassassin
+Installation of spamassasin packages:
 
-**1.3** Optional install pyzor and razor
+	# aptitude update
+	# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
+	
+**Optional install pyzor and razor**
 
 	# aptitude install pyzor razor
 	
-**2.** Get the plugin from github
+**2. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
-
-**3.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf SpamAssassin.tar.gz SpamAssassin
+http://i-mscp.net/filebase/index.php/Filebase/
 	
-**4.** Plugin upload and installation
+**3. Plugin upload and installation**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the SpamAssassin plugin archive
@@ -81,21 +82,15 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### UPDATE
 
-**1.** Get the plugin from github
+**1. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+http://i-mscp.net/filebase/index.php/Filebase/
 
-**2.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf SpamAssassin.tar.gz SpamAssassin
-
-**3.** Backup your current plugin config
+**2. Backup your current plugin config**
 
 	- plugins/SpamAssassin/config.php
 	
-**4.** Plugin upload and update
+**3. Plugin upload and update**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the SpamAssassin plugin archive

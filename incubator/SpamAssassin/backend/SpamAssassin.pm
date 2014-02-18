@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Database;
 use Servers::cron;
+use version;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -72,7 +73,10 @@ sub install
 		return 1;
 	}
 
-	my $rs = $self->_setupDatabase();
+	my $rs = $self->_checkVersion();
+	return $rs if $rs;
+
+	$rs = $self->_setupDatabase();
 	return $rs if $rs;
 
 	$rs = $self->change();
@@ -168,8 +172,11 @@ sub enable
 {
 	my $self = shift;
 
+	my $rs = $self->_checkVersion();
+	return $rs if $rs;
+
 	# Add Postfix configuration
-	my $rs = $self->_modifyPostfixMainConfig('add');
+	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 
 	$rs = $self->_restartDaemonPostfix();
@@ -1497,6 +1504,50 @@ sub _setSpamassassinPlugin($$$)
 	0;
 }
 
+=item _checkVersion()
+
+ Check the SpamAssassin and Roundcube versions.
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _checkVersion
+{
+	my $self = shift;
+
+	# Check the SpamAssassin version
+	my ($stdout, $stderr);
+	my $rs = execute('/usr/sbin/spamd --version', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr;
+	error('Unable to get SpamAssassin version') if $rs && ! $stderr;
+	return $rs if $rs;
+
+	chomp($stdout);
+	$stdout =~ m/^SpamAssassin\s*Server\s*version\s*([0-9\.]+)\s*/;
+
+	if($1) {
+		if(version->new($1) > version->new('3.3.2')) {
+			error("Your SpamAssassin version $1 is not compatible with this plugin version. Please check the documentation.");
+			return 1;
+		}
+	} else {
+		error("Unable to find SpamAssassin version.");
+		return 1;
+	}
+
+	# Check the Roundcube version
+	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
+	
+	if(version->new($self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}) > version->new('0.9.5')) {
+		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
+		return 1;
+	}
+	
+	0;
+}
+
 =back
 
 =head1 AUTHORS
@@ -1505,6 +1556,5 @@ sub _setSpamassassinPlugin($$$)
  Rene Schuster <mail@reneschuster.de>
 
 =cut
-
 
 1;
