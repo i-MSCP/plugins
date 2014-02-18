@@ -33,34 +33,6 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 **1. Install the needed Debian / Ubuntu packages** 
 
-**Debian Squeeze / Ubuntu Lucid** (Spamassassin version 3.3.1)
-
-Installation of spamassasin packages:
-
-	# aptitude update
-	# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
-	
-Configuration of spamassasin:
-
-	# groupadd -g 5001 debian-spamd
-	# useradd -u 5001 -g debian-spamd -s /bin/sh -d /var/lib/spamassassin debian-spamd
-	# mkdir /var/lib/spamassassin
-	# chown debian-spamd:debian-spamd /var/lib/spamassassin	
-	
-**Debian Squeeze - from backports** (Spamassassin version 3.3.2)
-
-Add the backports of Debian Squezze to your /etc/apt/sources.list:
-
-	deb http://backports.debian.org/debian-backports squeeze-backports main contrib non-free
-	
-Installation of spamassasin packages:
-
-	# aptitude update
-	# aptitude -t squeeze-backports install spamassassin
-	# aptitude install spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
-	
-**All other Debian / Ubuntu versions**
-
 Installation of spamassasin packages:
 
 	# aptitude update
