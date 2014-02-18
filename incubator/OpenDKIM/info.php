@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
-	'date' => '2013-08-05',
+	'date' => '2014-02-18',
 	'name' => 'OpenDKIM',
 	'desc' => 'Plugin providing an OpenDKIM implementation for i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
