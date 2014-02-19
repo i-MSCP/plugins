@@ -704,7 +704,7 @@ sub _modifyDovecotConfig($$$)
 	my $rs = execute('/usr/sbin/dovecot --version', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr;
-	error('Unable to get dovecot version. Is dovecot installed?') if $rs && ! $stderr;
+	error('Unable to get Dovecot version. Is Dovecot installed?') if $rs && ! $stderr;
 	return $rs if $rs;
 
 	chomp($stdout);
@@ -846,7 +846,7 @@ sub _unregisterCronjobPop3fetcher
 
 =item _checkVersion()
 
- Check the Dovecot and Roundcube version.
+ Check the Roundcube version.
 
  Return int 0 on success, other on failure
 
