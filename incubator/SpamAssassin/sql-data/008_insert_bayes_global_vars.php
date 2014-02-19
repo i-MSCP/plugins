@@ -20,7 +20,7 @@
 
 return array(
 	'up' => "
-		INSERT INTO ". $spamAssassinDbName .".`bayes_global_vars`
+		INSERT IGNORE INTO ". $spamAssassinDbName .".`bayes_global_vars`
 			(`variable`, `value`)
 		VALUE
 			('VERSION', '3');

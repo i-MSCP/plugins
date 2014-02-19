@@ -26,7 +26,8 @@ return array(
 			`value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
 			`prefid` int(11) NOT NULL AUTO_INCREMENT,
 			PRIMARY KEY (`prefid`),
-			KEY `username` (`username`)
+			KEY `username` (`username`),
+			UNIQUE KEY `user_pref` (`username`,`preference`)
 		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	",
 	'down' => ''

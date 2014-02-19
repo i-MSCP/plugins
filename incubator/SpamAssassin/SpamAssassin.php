@@ -58,7 +58,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.4', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -163,16 +163,9 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 
 		try {
 			$spamAssassinDbName = $cfg->DATABASE_NAME . '_spamassassin';
-			
-			$checkSpamAssassinDb = exec_query("SHOW DATABASES LIKE '" . $spamAssassinDbName . "';");
-			$dataSpamAssassinDb = $checkSpamAssassinDb->fetchRow();
-			$ignoreFilesIfDbExist = array('008_insert_bayes_global_vars.php', '009_insert_userpref.php');
 
 			foreach ($migrationFiles as $migrationFile) {
 				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-					/* temporary solution */ 
-					if(!empty($dataSpamAssassinDb) && in_array(basename($migrationFile), $ignoreFilesIfDbExist)) continue;
-					/* temporary solution */
 					if(
 						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
 						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)

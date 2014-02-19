@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `bayes_global_vars` (
 -- Dumping data for table `bayes_global_vars`
 --
 
-INSERT INTO `bayes_global_vars` (`variable`, `value`) VALUES
+INSERT IGNORE INTO `bayes_global_vars` (`variable`, `value`) VALUES
 ('VERSION', '3');
 
 -- --------------------------------------------------------
@@ -106,14 +106,15 @@ CREATE TABLE IF NOT EXISTS `userpref` (
   `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `prefid` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`prefid`),
-  KEY `username` (`username`)
+  KEY `username` (`username`),
+  UNIQUE KEY `user_pref` (`username`,`preference`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Dumping data for table `userpref`
 --
 
-INSERT INTO `userpref` (`username`, `preference`, `value`) VALUES
+INSERT IGNORE INTO `userpref` (`username`, `preference`, `value`) VALUES
 ('$GLOBAL', 'required_score', '5'),
 ('$GLOBAL', 'rewrite_header Subject', '*****SPAM*****'),
 ('$GLOBAL', 'report_safe', '1'),

@@ -20,7 +20,7 @@
 
 return array(
 	'up' => "
-		INSERT INTO ". $spamAssassinDbName .".`userpref`
+		INSERT IGNORE INTO ". $spamAssassinDbName .".`userpref`
 			(`username`, `preference`, `value`)
 		VALUES
 			('\$GLOBAL', 'required_score', '5'),
