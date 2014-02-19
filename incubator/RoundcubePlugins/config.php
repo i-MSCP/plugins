@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,7 +57,6 @@ return array(
 
 	// Uses the managesieve protocol and allows the user to manage his sieve mail rules.
 	// A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
-	// For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 	'managesieve_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// The name of the script which will be used when there's no user script

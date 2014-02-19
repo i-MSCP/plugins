@@ -60,7 +60,6 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	Uses the managesieve protocol and allows the user to manage his sieve mail rules.
 	A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
-	For this plugin you need Dovecot 2 on your system (please check INSTALLATION section).
 	
 	Roundcube user config: Settings -> Filters
 
@@ -91,32 +90,28 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0.rc4.8
-	
-	Dovecot 2 is required if you want to use the Roundcube plugin managesieve.
+	- i-MSCP versions >= 1.1.0
+	- Dovecot
+	- Roundcube 0.9.x
+	- See installation section for required software packages.
 	
 ### INSTALLATION
 
-**1.** Install needed Debian/Ubuntu packages if not already done
-
-**Debian Wheezy**
+**1. Install the needed Debian / Ubuntu packages**
 
 Only necessary if you want to use the Roundcube Plugin managesieve.
+
+**Attention:** Debian Squeeze and Ubuntu Lucid have these binares included with 
+the dovecot package. So on Squeeze and Lucid you don't need to install anything.
  
 	# aptitude update
 	# aptitude install dovecot-sieve dovecot-managesieved
 	
-**2.** Get the plugin from github
+**2. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
-
-**3.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf RoundcubePlugins.tar.gz RoundcubePlugins
+http://i-mscp.net/filebase/index.php/Filebase/
 	
-**4.** Plugin upload and installation
+**3. Plugin upload and installation**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the RoundcubePlugins plugin archive
@@ -124,22 +119,16 @@ Only necessary if you want to use the Roundcube Plugin managesieve.
 
 ### UPDATE
 
-**1.** Get the plugin from github
+**1. Get the plugin from Plugin Store**
 
-	# cd /usr/local/src
-	# git clone git://github.com/i-MSCP/plugins.git
+http://i-mscp.net/filebase/index.php/Filebase/
 
-**2.** Create new Plugin archive
-
-	# cd plugins
-	# tar cvzf RoundcubePlugins.tar.gz RoundcubePlugins
-
-**3.** Backup your current plugin config
+**2. Backup your current plugin config**
 
 	- plugins/RoundcubePlugins/config.php
 	- plugins/RoundcubePlugins/config-templates/logon_page/logon_page.html
 	
-**4.** Plugin upload and update
+**3. Plugin upload and update**
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Upload the RoundcubePlugins plugin archive
