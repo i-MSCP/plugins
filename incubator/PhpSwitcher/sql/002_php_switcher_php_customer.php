@@ -33,6 +33,6 @@ return array(
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	',
 	'down' => '
-		DROP TABLE IF EXISTS php_switcher_php_admin_id
+		DROP TABLE IF EXISTS php_switcher_version_admin
 	'
 );
