@@ -71,20 +71,20 @@ function phpSwitcher_get()
 			$stmt = exec_query('SELECT * FROM php_switcher_version WHERE version_id = ?', $versionId);
 
 			if ($stmt->rowCount()) {
-				_templateEditor_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
+				_phpSwitcher_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 
-			_templateEditor_sendJsonResponse(
+			_phpSwitcher_sendJsonResponse(
 				404, array('message' => tr('PHP Version %s has not been found.', $versionName))
 			);
 		} catch (iMSCP_Exception_Database $e) {
-			_templateEditor_sendJsonResponse(
+			_phpSwitcher_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 			);
 		}
 	}
 
-	_templateEditor_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -111,23 +111,23 @@ function phpSwitcher_add()
 				array($versionName, $versionBinaryPath, $versionConfdirPath)
 			);
 
-			_templateEditor_sendJsonResponse(
+			_phpSwitcher_sendJsonResponse(
 				200, array('message' => tr('PHP Version %s successfully created.', $versionName))
 			);
 		} catch (iMSCP_Exception_Database $e) {
 			if ($e->getCode() == '23000') {
-				_templateEditor_sendJsonResponse(
+				_phpSwitcher_sendJsonResponse(
 					400, array('message' => tr('PHP Version %s already exists', $versionName))
 				);
 			} else {
-				_templateEditor_sendJsonResponse(
+				_phpSwitcher_sendJsonResponse(
 					500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 				);
 			}
 		}
 	}
 
-	_templateEditor_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -161,19 +161,19 @@ function phpSwitcher_edit()
 			);
 
 			if ($stmt->rowCount()) {
-				_templateEditor_sendJsonResponse(
+				_phpSwitcher_sendJsonResponse(
 					200, array('message' => tr('PHP Version %s successfully updated.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			iMSCP_Database::getRawInstance()->rollBack();
-			_templateEditor_sendJsonResponse(
+			_phpSwitcher_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 			);
 		}
 	}
 
-	_templateEditor_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -191,18 +191,18 @@ function phpSwitcher_delete()
 			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
 
 			if ($stmt->rowCount()) {
-				_templateEditor_sendJsonResponse(
+				_phpSwitcher_sendJsonResponse(
 					200, array('message' => tr('PHP Version %s successfully deleted.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
-			_templateEditor_sendJsonResponse(
+			_phpSwitcher_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 			);
 		}
 	}
 
-	_templateEditor_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
