@@ -1,7 +1,5 @@
 ## PhpSwitcher v0.0.1 plugin for i-MSCP
 
-WARNING PLUGIN UNDER DEVELOPMENT - DO NOT USE IT
-
 Plugin allowing to provide many PHP versions to customers.
 
 ### LICENSE
@@ -31,11 +29,11 @@ Plugin compatible with i-MSCP >= 1.1.1
 
 ### INTRODUCTION
 
-This plugin allow to setup several PHP versions, which can be used by your customers. This plugin do not compile, nor
-install any PHP version itself. Those steps must be done by the administrator.
+This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
+install any PHP version itself. Those steps must be done by the administrator (See below).
 
-At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all implementations
-will be supported.
+**Note:** At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all
+implementations will be supported.
 
 ### INSTALLATION
 
@@ -51,8 +49,9 @@ will be supported.
 
 ### HOWTO SETUP NEW PHP VERSION
 
-At first, you must get, compile and install the PHP version which you want make available for your customers. For instance,
-if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy (X86_64 arch):
+At first, you must get, compile and install the PHP version which you want make available for your customers. For
+instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy
+(X86_64 arch):
 
 #### Creating build environment
 
