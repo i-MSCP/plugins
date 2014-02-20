@@ -1,6 +1,6 @@
 <?php
 /**
- * i-MSCP TemplateEditor plugin
+ * i-MSCP PhpSwitcher plugin
  * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
@@ -99,6 +99,10 @@ function phpSwitcher_add()
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
+		if($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
+			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+		}
+
 		try {
 			exec_query(
 				'
@@ -117,7 +121,7 @@ function phpSwitcher_add()
 		} catch (iMSCP_Exception_Database $e) {
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP Version %s already exists', $versionName))
+					400, array('message' => tr('PHP Version %s already exists',  $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -141,10 +145,14 @@ function phpSwitcher_edit()
 		isset($_POST['version_id']) && $_POST['version_name'] && isset($_POST['version_binary_path']) &&
 		isset($_POST['version_confdir_path'])
 	) {
-		$versionId = clean_input($_POST['version_id']);
+		$versionId = intval(clean_input($_POST['version_id']));
 		$versionName = clean_input($_POST['version_name']);
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
+
+		if($versionBinaryPath == '' || $versionConfdirPath == '') {
+			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+		}
 
 		try {
 
@@ -184,7 +192,7 @@ function phpSwitcher_edit()
 function phpSwitcher_delete()
 {
 	if (isset($_POST['version_id']) && isset($_POST['version_name'])) {
-		$versionId = clean_input($_POST['version_id']);
+		$versionId = intval(clean_input($_POST['version_id']));
 		$versionName = clean_input($_POST['version_name']);
 
 		try {
@@ -192,7 +200,8 @@ function phpSwitcher_delete()
 
 			if ($stmt->rowCount()) {
 				_phpSwitcher_sendJsonResponse(
-					200, array('message' => tr('PHP Version %s successfully deleted.', $versionName))
+					200,
+					array('message' => tr('PHP Version %s successfully deleted.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -377,9 +386,12 @@ $tpl->assign(
 
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 
-		'TR_ID' => tr('ID'),
+		'TR_ID' => tr('Id'),
 		'TR_NAME' => tr('Name'),
 		'TR_ACTIONS' => tr('Actions'),
+
+		'TR_BINARY_PATH' => tr('PHP Binary path'),
+		'TR_CONFDIR_PATH' => tr('PHP Configuration directory'),
 
 		'TR_PROCESSING_DATA' => tr('Processing...'),
 

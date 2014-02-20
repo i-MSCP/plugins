@@ -35,7 +35,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
-				IMSCP_Events::onAdminScriptStart
+				iMSCP_Events::onAdminScriptStart,
+				iMSCP_Events::onClientScriptStart
 			),
 			$this
 		);
@@ -66,9 +67,9 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 						),
 						'error'
 					);
-				}
 
-				$event->stopPropagation();
+					$event->stopPropagation();
+				}
 			}
 		}
 	}
@@ -154,7 +155,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		$pluginName = $this->getName();
 
 		return array(
-			'/admin/php-switcher' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/php_switcher.php',
+			'/admin/phpswitcher' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/php_switcher.php',
+			'/client/phpswitcher' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/php_switcher.php',
 		);
 	}
 
@@ -165,27 +167,49 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function onAdminScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('admin');
+	}
+
+	/**
+	 * onAdminScriptStart event listener
+	 *
+	 * @return void
+	 */
+	public function onClientScriptStart()
+	{
+		$this->setupNavigation('client');
 	}
 
 	/**
 	 * Inject Links into the navigation object
+	 *
+	 * @param string $uiLevel UI level
 	 */
-	protected function setupNavigation()
+	protected function setupNavigation($uiLevel)
 	{
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if (($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
+			if ($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
 						'label' => tr('PHP Switcher'),
-						'uri' => '/admin/php-switcher',
+						'uri' => '/admin/phpswitcher',
 						'title_class' => 'settings',
 						'order' => 8
 					)
 				);
+			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
+				if(customerHasFeature('php')) {
+					$page->addPage(
+						array(
+							'label' => tr('PHP Switcher'),
+							'uri' => '/client/phpswitcher',
+							'title_class' => 'domains',
+						)
+					);
+				}
 			}
 		}
 	}

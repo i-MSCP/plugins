@@ -19,20 +19,19 @@
  */
 
 return array(
-	'up' => '
-		CREATE TABLE IF NOT EXISTS php_switcher_version_admin (
-			version_admin_id int(10) unsigned AUTO_INCREMENT NOT NULL,
-			version_id int(10) unsigned NOT NULL,
-			admin_id int(10) unsigned NOT NULL,
-			PRIMARY KEY version_admin_id (version_admin_id),
-			UNIQUE KEY version_id_admin_id (version_id, admin_id),
-			CONSTRAINT version_admin_version_id FOREIGN KEY (version_id)
-				REFERENCES php_switcher_version (version_id) ON DELETE CASCADE ON UPDATE CASCADE,
-			CONSTRAINT version_admin_admin_id FOREIGN KEY (admin_id)
-				REFERENCES admin (admin_id) ON DELETE CASCADE ON UPDATE CASCADE
+	'up' => "
+		CREATE TABLE IF NOT EXISTS php_switcher_version (
+			version_id int(10) unsigned AUTO_INCREMENT NOT NULL,
+			version_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			version_binary_path varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+			version_confdir_path varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+			version_status varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'ok',
+			PRIMARY KEY version_id (version_id),
+			UNIQUE  KEY version_name (version_name),
+			KEY version_status (version_status)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-	',
+	",
 	'down' => '
-		DROP TABLE IF EXISTS php_switcher_version_admin
+		DROP TABLE IF EXISTS php_switcher_version
 	'
 );
