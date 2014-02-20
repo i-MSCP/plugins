@@ -49,10 +49,6 @@ will be supported.
 	- Upload the PhpSwitcher plugin archive
 	- Update the plugin list through the plugin interface
 
-### CONFIGURATION
-
-See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
-
 ### HOWTO SETUP NEW PHP VERSION
 
 At first, you must get, compile and install the PHP version which you want make available for your customers. For instance,
