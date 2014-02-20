@@ -77,7 +77,16 @@ sub run
 	$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherEventListener);
 }
 
-sub phpSwitcherEventListener
+
+=item phpSwitcherEventListener(\%data)
+
+ Event listener which is responsible to override PHP binary and conffdir paths
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub phpSwitcherEventListener($)
 {
 	my $data = $_[0];
 
@@ -113,9 +122,6 @@ sub phpSwitcherEventListener
 
 		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} =
 			$Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_confdir_path'};
-
-		use Data::Dumper;
-		print Dumper($Plugin::PhpSwitcher::httpdServer);
 	} else {
 		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} =
 			$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
