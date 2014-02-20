@@ -27,7 +27,7 @@
  *
  * @return void
  */
-function _phpSwitcher_scheduleChange()
+function _phpSwitcher_scheduleDomainsChange()
 {
 	$adminId = $_SESSION['user_id'];
 
@@ -119,7 +119,7 @@ function phpSwitcher_setVersion()
 				);
 			}
 
-			_phpSwitcher_scheduleChange();
+			_phpSwitcher_scheduleDomainsChange();
 
 			iMSCP_Database::getRawInstance()->commit();
 

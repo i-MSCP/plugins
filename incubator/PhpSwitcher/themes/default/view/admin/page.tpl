@@ -25,7 +25,7 @@
 </table>
 
 <div class="buttons">
-	<button data-action="add">New PHP Version</button>
+	<button data-action="add">{TR_NEW_PHP_VERSION}</button>
 </div>
 </div>
 
@@ -45,7 +45,6 @@
 				<td><input type="text" name="version_confdir_path" id="version_confdir_path" maxlength="255" value=""></td>
 			</tr>
 		</table>
-
 		<input type="hidden" name="version_id" id="version_id" value="">
 	</form>
 </div>

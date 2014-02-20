@@ -23,6 +23,78 @@
  */
 
 /**
+ * Schedule update for all domain which currently use the given PHP version
+ *
+ * @param int $versionId PHP version unique identifier
+ * @return bool TRUE if at least one domain has been update, FALSE otherwise
+ */
+function _phpSwitcher_scheduleDomainsChange($versionId)
+{
+	$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
+
+	if ($stmt->rowCount()) {
+		exec_query(
+			'UPDATE domain set domain_status = ? WHERE domain_admin_id = ? and domain_status = ?',
+			array('tochange', 'ok')
+		);
+
+		$adminIdList = implode(',', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+		exec_query(
+			'
+				UPDATE
+					subdomain
+				JOIN
+					domain USING(domain_id)
+				SET
+					subdomain_status = ?
+				WHERE
+					domain_admin_id = IN(' . $adminIdList . ')
+				AND
+					subdomain_status = ?
+			',
+			array('tochange', 'ok')
+		);
+
+		exec_query(
+			'
+				UPDATE
+					domain_aliasses
+				JOIN
+					domain USING(domain_id)
+				SET
+					alias_status = ?
+				WHERE
+					domain_admin_id = IN(' . $adminIdList . ')
+				AND
+					alias_status = ?
+			',
+			array('tochange', 'ok')
+		);
+
+		exec_query(
+			'
+				UPDATE
+					subdomain_alias
+				JOIN
+					domain_aliasses USING(alias_id)
+				SET
+					subdomain_alias_status = ?
+				WHERE
+					domain_id = (SELECT domain_id FROM domain where domain_admin_id IN(' . $adminIdList . '))
+				AND
+					subdomain_alias_status = ?
+							',
+			array('tochange', 'ok')
+		);
+
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Send Json response
  *
  * @param int $statusCode HTTPD status code
@@ -101,6 +173,11 @@ function phpSwitcher_add()
 
 		if($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+		} elseif(strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ) {
+			_phpSwitcher_sendJsonResponse(
+				400,
+				array('message' => tr('PHP Version %s already exists. This is the default PHP version.',  $versionName))
+			);
 		}
 
 		try {
@@ -142,10 +219,10 @@ function phpSwitcher_add()
 function phpSwitcher_edit()
 {
 	if (
-		isset($_POST['version_id']) && $_POST['version_name'] && isset($_POST['version_binary_path']) &&
+		isset($_POST['version_id']) && isset($_POST['version_name']) && isset($_POST['version_binary_path']) &&
 		isset($_POST['version_confdir_path'])
 	) {
-		$versionId = intval(clean_input($_POST['version_id']));
+		$versionId = intval($_POST['version_id']);
 		$versionName = clean_input($_POST['version_name']);
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
@@ -155,29 +232,38 @@ function phpSwitcher_edit()
 		}
 
 		try {
+			iMSCP_Database::getRawInstance()->beginTransaction();
 
 			$stmt = exec_query(
 				'
 					UPDATE
 						php_switcher_version
 					SET
-						version_binary_path = ?, version_confdir_path = ?
+						version_name = ?, version_binary_path = ?, version_confdir_path = ?
 					WHERE
 						version_id = ?
 				',
-				array($versionBinaryPath, $versionConfdirPath, $versionId)
+				array($versionName, $versionBinaryPath, $versionConfdirPath, $versionId)
 			);
 
-			if ($stmt->rowCount()) {
-				_phpSwitcher_sendJsonResponse(
-					200, array('message' => tr('PHP Version %s successfully updated.', $versionName))
-				);
+			if($stmt->rowCount() && _phpSwitcher_scheduleDomainsChange($versionId)) {
+					iMSCP_Database::getRawInstance()->commit();
+					send_request();
 			}
+
+			_phpSwitcher_sendJsonResponse(200, array('message' => tr('PHP Version successfully updated.')));
 		} catch (iMSCP_Exception_Database $e) {
 			iMSCP_Database::getRawInstance()->rollBack();
-			_phpSwitcher_sendJsonResponse(
-				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-			);
+
+			if ($e->getCode() == '23000') {
+				_phpSwitcher_sendJsonResponse(
+					400, array('message' => tr('PHP Version %s already exists',  $versionName))
+				);
+			} else {
+				_phpSwitcher_sendJsonResponse(
+					500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
+				);
+			}
 		}
 	}
 
@@ -196,15 +282,23 @@ function phpSwitcher_delete()
 		$versionName = clean_input($_POST['version_name']);
 
 		try {
+			iMSCP_Database::getRawInstance()->beginTransaction();
+
 			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
 
 			if ($stmt->rowCount()) {
+				if(_phpSwitcher_scheduleDomainsChange($versionId)) {
+					iMSCP_Database::getRawInstance()->commit();
+					send_request();
+				}
+
 				_phpSwitcher_sendJsonResponse(
 					200,
 					array('message' => tr('PHP Version %s successfully deleted.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
+			iMSCP_Database::getRawInstance()->rollBack();
 			_phpSwitcher_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 			);
@@ -390,10 +484,12 @@ $tpl->assign(
 		'TR_NAME' => tr('Name'),
 		'TR_ACTIONS' => tr('Actions'),
 
-		'TR_BINARY_PATH' => tr('PHP Binary path'),
+		'TR_BINARY_PATH' => tr('PHP binary path'),
 		'TR_CONFDIR_PATH' => tr('PHP Configuration directory'),
 
 		'TR_PROCESSING_DATA' => tr('Processing...'),
+
+		'TR_NEW_PHP_VERSION' => tr('New PHP Version'),
 
 		'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
 		'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
