@@ -123,7 +123,7 @@ function phpSwitcher_setVersion()
 
 			iMSCP_Database::getRawInstance()->commit();
 
-			//send_request();
+			send_request();
 			set_page_message(tr('PHP version successfully scheduled for update.'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
 			iMSCP_Database::getRawInstance()->rollBack();

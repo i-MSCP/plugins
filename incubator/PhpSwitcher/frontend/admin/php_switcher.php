@@ -495,7 +495,7 @@ $tpl->assign(
 		'TR_ACTIONS' => tr('Actions'),
 
 		'TR_BINARY_PATH' => tr('PHP binary path'),
-		'TR_CONFDIR_PATH' => tr('PHP Configuration directory'),
+		'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),
 
 		'TR_PROCESSING_DATA' => tr('Processing...'),
 

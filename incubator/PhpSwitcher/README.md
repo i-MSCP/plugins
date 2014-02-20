@@ -52,7 +52,7 @@ will be supported.
 ### HOWTO SETUP NEW PHP VERSION
 
 At first, you must get, compile and install the PHP version which you want make available for your customers. For instance,
-if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy:
+if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy (X86_64 arch):
 
 #### Creating build environment
 
@@ -64,7 +64,8 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 #### Installing needed libraries
 
 	# apt-get build-dep php5
-	# apt-get install libfcgi-dev libfcgi0ldbl libjpeg62-dbg libmcrypt-dev libssl-dev libc-client2007e libc-client2007e-dev
+	# apt-get install libfcgi-dev libfcgi0ldbl libjpeg62-dbg libmcrypt-dev libssl-dev libc-client2007e \
+	libc-client2007e-dev libpq5
 
 	# Needed on X86_64 arch only
 	# ln -s /usr/lib/libc-client.a /usr/lib/x86_64-linux-gnu/libc-client.a
@@ -93,13 +94,26 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 	# make
 	# make install
 
+#### Checking
+
+Test your php binary by running the following command:
+
+	# /opt/php-fcgid/5.3/bin/php-cgi -v
+
+which should give the following result:
+
+	PHP 5.3.28 (cgi-fcgi) (built: Feb 20 2014 18:02:14)
+	Copyright (c) 1997-2013 The PHP Group
+	Zend Engine v2.3.0, Copyright (c) 1998-2013 Zend Technologies
+
 ### Registration through PhpSwitcher
 
 	# Login into the panel as administrator and go to the PhpSwitcher interface
 	# Create a new PHP version with the following parameters:
-		- Name: PHP5.3 (Fcgid)
-		- PHP binary path: /opt/php-fcgid/5.3/bin/php-cgi
-		- PHP configuration path: /var/www/fcgi
+
+		**Name:** PHP5.3 (Fcgid)
+		**PHP binary path:** /opt/php-fcgid/5.3/bin/php-cgi
+		**PHP configuration directory:** /var/www/fcgi
 
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the 'Domains' section.
