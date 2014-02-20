@@ -33,9 +33,14 @@ use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
 use iMSCP::TemplateParser;
+use Servers::httpd;
 use parent 'Common::SingletonClass';
 
 our %phpVersions = ();
+
+our $httpdServer;
+our $PHP5_FASTCGI_BIN;
+our $PHP_STARTER_DIR;
 
 =head1 DESCRIPTION
 
@@ -55,53 +60,77 @@ our %phpVersions = ();
 
 sub run
 {
-	iMSCP::HooksManager->getInstance()->register('beforeHttpdBuildConfFile', \&overridePhpVersion);
+	$Plugin::PhpSwitcher::httpdServer = Servers::httpd->factory();
+	$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN = $httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'};
+	$Plugin::PhpSwitcher::PHP_STARTER_DIR = $httpdServer->{'config'}->{'PHP_STARTER_DIR'};
+
+	my $hooksManager = iMSCP::HooksManager->getInstance();
+
+	$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherEventListener);
+
+	$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherEventListener);
+	$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherEventListener);
 }
 
-sub overridePhpVersion
+sub phpSwitcherEventListener
 {
-	my ($tplContent, $tplName, $data) = @_;
+	my $data = $_[0];
 
-	if($tplName eq 'php5-fcgid-starter.tpl') {
-		my $adminId = $data->{'DOMAIN_ADMIN_ID'};
+	my $adminId = $data->{'DOMAIN_ADMIN_ID'};
 
-		if(!exists $phpVersions{$adminId}) {
-			my $rdata = iMSCP::Database->factory()->doQuery(
-				'admin_id',
-				'
-					SELECT
-						admin_id, version_binary_path, version_confdir_path
-					FROM
-						php_switcher_version
-					INNER JOIN
-						php_switcher_version_admin USING (version_id)
-					WHERE
-						admin_id = ?
-				',
-				$adminId
-			);
-
-			unless(ref $rdata eq 'HASH') {
-				error($rdata);
-				return 1;
-			} elsif(%{$rdata}) {
-				# TODO memcached
-				$Plugin::PhpSwitcher::phpVersions{$adminId} = $rdata->{$adminId};
-			}
-		}
-
-		if(exists $Plugin::PhpSwitcher::phpVersions{$adminId}) {;
-			$$tplContent = process(
-				{
-					PHP5_FASTCGI_BIN => $Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_binary_path'}
-					#PHP_STARTER_DIR => $Plugin::PhpSwitcher::phpVersions{$adminId}->{version_confdir_path'}
-				},
-				$$tplContent
-			);
+	if(!exists $Plugin::PhpSwitcher::phpVersions{$adminId}) {
+		my $rdata = iMSCP::Database->factory()->doQuery(
+			'admin_id',
+			'
+				SELECT
+					admin_id, version_binary_path, version_confdir_path
+				FROM
+					php_switcher_version
+				INNER JOIN
+					php_switcher_version_admin USING (version_id)
+				WHERE
+					admin_id = ?
+			',
+			$adminId
+		);
+		unless(ref $rdata eq 'HASH') {
+			error($rdata);
+			return 1;
+		} elsif(%{$rdata}) {
+			# TODO memcached
+			$Plugin::PhpSwitcher::phpVersions{$adminId} = $rdata->{$adminId};
 		}
 	}
 
+	if(exists $Plugin::PhpSwitcher::phpVersions{$adminId}) {
+		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} =
+			$Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_binary_path'};
+
+		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} =
+			$Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_confdir_path'};
+
+		use Data::Dumper;
+		print Dumper($Plugin::PhpSwitcher::httpdServer);
+	} else {
+		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} =
+			$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
+
+		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} =
+			$Plugin::PhpSwitcher::PHP_STARTER_DIR;
+	}
+
 	0;
+}
+
+END
+{
+	$httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} = $Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
+	$httpdServer->{'config'}->{'PHP_STARTER_DIR'} = $Plugin::PhpSwitcher::PHP_STARTER_DIR;
 }
 
 =back
