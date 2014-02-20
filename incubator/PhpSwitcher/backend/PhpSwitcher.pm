@@ -24,6 +24,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+# TODO delTmp for PHP version which are managed by this plugin
+
 package Plugin::PhpSwitcher;
 
 use strict;
@@ -135,8 +137,8 @@ sub phpSwitcherEventListener($)
 
 END
 {
-	$httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} = $Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
-	$httpdServer->{'config'}->{'PHP_STARTER_DIR'} = $Plugin::PhpSwitcher::PHP_STARTER_DIR;
+	$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} = $Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
+	$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} = $Plugin::PhpSwitcher::PHP_STARTER_DIR;
 }
 
 =back
