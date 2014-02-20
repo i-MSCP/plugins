@@ -2,7 +2,7 @@
 
 WARNING PLUGIN UNDER DEVELOPMENT - DO NOT USE IT
 
-Plugin allowing to add and set a specific PHP version to customers.
+Plugin allowing to provide many PHP versions to customers.
 
 ### LICENSE
 
@@ -131,7 +131,7 @@ which should give the following result:
 </table>
 
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
-PhpSwitcher interface, which is available in the 'Domains' section.
+PhpSwitcher interface, which is available in the **Domains** section.
 
 ### TROUBLESHOOTINGS
 
