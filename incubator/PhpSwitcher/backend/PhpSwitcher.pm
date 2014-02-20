@@ -31,7 +31,6 @@ package Plugin::PhpSwitcher;
 use strict;
 use warnings;
 
-use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
 use Servers::httpd;
@@ -61,27 +60,36 @@ our $PHP_STARTER_DIR;
 
 sub run
 {
-	$Plugin::PhpSwitcher::httpdServer = Servers::httpd->factory();
-	$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN = $httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'};
-	$Plugin::PhpSwitcher::PHP_STARTER_DIR = $httpdServer->{'config'}->{'PHP_STARTER_DIR'};
+	if($main::imscpConfig{'HTTPD_SERVER'} eq 'apache_fcgid') {
+		$Plugin::PhpSwitcher::httpdServer = Servers::httpd->factory();
 
-	my $hooksManager = iMSCP::HooksManager->getInstance();
+		# Small-haking to avoid too many IO operations and conffile override on failure
+		my %config = %{$httpdServer->{'config'}};
+		untie %{$httpdServer->{'config'}};
+		%{$httpdServer->{'config'}} = %config;
 
-	$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherEventListener);
+		$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN = $httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'};
+		$Plugin::PhpSwitcher::PHP_STARTER_DIR = $httpdServer->{'config'}->{'PHP_STARTER_DIR'};
 
-	$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherEventListener);
-	$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherEventListener);
+		my $hooksManager = iMSCP::HooksManager->getInstance();
+
+		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherEventListener);
+
+		$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherEventListener);
+	}
+
+	0;
 }
-
 
 =item phpSwitcherEventListener(\%data)
 
- Event listener which is responsible to override PHP binary and conffdir paths
+ Event listener which is responsible to override PHP binary and PHP configuration paths
 
  Return int 0 on success, other on failure
 
@@ -132,12 +140,6 @@ sub phpSwitcherEventListener($)
 	}
 
 	0;
-}
-
-END
-{
-	$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} = $Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
-	$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} = $Plugin::PhpSwitcher::PHP_STARTER_DIR;
 }
 
 =back
