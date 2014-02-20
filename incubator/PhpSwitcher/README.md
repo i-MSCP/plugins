@@ -104,6 +104,12 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the 'Domains' section.
 
+### TROUBLESHOOTINGS
+
+If you are currently running MariaDB on your server, you'll surely have some package dependencie problems while trying
+to install PHP build package dependencies. In such case, you must temporary switch to the MySQL version as provided by
+your distribution.
+
 ### AUTHORS AND CONTRIBUTORS
 
  * Laurent Declercq <l.declercq@nuxwin.com> (Author)
