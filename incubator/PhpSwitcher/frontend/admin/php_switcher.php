@@ -229,6 +229,11 @@ function phpSwitcher_edit()
 
 		if($versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+		} elseif(strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ) {
+			_phpSwitcher_sendJsonResponse(
+				400,
+				array('message' => tr('PHP Version %s already exists. This is the default PHP version.',  $versionName))
+			);
 		}
 
 		try {
@@ -246,9 +251,13 @@ function phpSwitcher_edit()
 				array($versionName, $versionBinaryPath, $versionConfdirPath, $versionId)
 			);
 
-			if($stmt->rowCount() && _phpSwitcher_scheduleDomainsChange($versionId)) {
-					iMSCP_Database::getRawInstance()->commit();
+			if($stmt->rowCount()) {
+				$ret = _phpSwitcher_scheduleDomainsChange($versionId);
+				iMSCP_Database::getRawInstance()->commit();
+
+				if($ret) {
 					send_request();
+				}
 			}
 
 			_phpSwitcher_sendJsonResponse(200, array('message' => tr('PHP Version successfully updated.')));
@@ -287,14 +296,15 @@ function phpSwitcher_delete()
 			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
 
 			if ($stmt->rowCount()) {
-				if(_phpSwitcher_scheduleDomainsChange($versionId)) {
-					iMSCP_Database::getRawInstance()->commit();
+				$ret = _phpSwitcher_scheduleDomainsChange($versionId);
+				iMSCP_Database::getRawInstance()->commit();
+
+				if($ret) {
 					send_request();
 				}
 
 				_phpSwitcher_sendJsonResponse(
-					200,
-					array('message' => tr('PHP Version %s successfully deleted.', $versionName))
+					200, array('message' => tr('PHP Version %s successfully deleted.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
