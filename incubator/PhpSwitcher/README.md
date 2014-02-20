@@ -29,6 +29,14 @@ Plugin allowing to add and set a specific PHP version to customers.
 
 Plugin compatible with i-MSCP >= 1.1.1
 
+### INTRODUCTION
+
+	This plugin allow to setup several PHP versions, which can be used by your customers. This plugin do not compile,
+	nor install any PHP version itself. It's the responsability of the administrator to perform these steps.
+
+	At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, it will support
+	all implementations.
+
 ### INSTALLATION
 
 	- Login into the panel as admin and go to the plugin management interface
@@ -44,6 +52,53 @@ Plugin compatible with i-MSCP >= 1.1.1
 ### CONFIGURATION
 
 See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+
+
+### HOWTO SETUP NEW PHP VERSION
+
+	At first, you must grab, compile and install the PHP version which you want make avaible for your customer. For
+	instance, if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you can process as follow on
+	Debian Wheezy:
+
+#### Creating build environment
+
+	# cd /usr/local/src
+	# mkdir -p php_buildenv/php53 && cd php_buildenv/php53
+	# mkdir -p /opt/php/5.3/
+	# apt-get update
+	# apt-get install build-essential
+
+#### Installing needed libraries
+
+	# apt-get build-dep php5
+	# apt-get install libfcgi-dev libfcgi0ldbl libjpeg62-dbg libmcrypt-dev libssl-dev libc-client2007e libc-client2007e-dev
+
+	# Needed on X86_64 arch only
+	# ln -s /usr/lib/libc-client.a /usr/lib/x86_64-linux-gnu/libc-client.a
+
+#### Fetching PHP sources
+
+	# wget http://au1.php.net/get/php-5.3.28.tar.bz2/from/this/mirror -O php.tar.bz2
+	# tar jxf php.tar.bz2
+	# cd php-5.3.28
+
+#### Configuration
+
+	# ./configure --prefix=/opt/php/5.3 --with-pdo-pgsql --with-zlib-dir --with-freetype-dir --enable-mbstring \
+	--with-libxml-dir=/usr --enable-soap --enable-calendar --with-curl --with-mcrypt --with-zlib --with-gd \
+	--with-pgsql --disable-rpath --enable-inline-optimization --with-bz2 --with-zlib --enable-sockets \
+	--enable-sysvsem --enable-sysvshm --enable-pcntl --enable-mbregex --enable-exif --enable-bcmath --with-mhash \
+	--enable-zip --with-pcre-regex --with-mysql=mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli=mysqlnd \
+	--with-mysql-sock=/var/run/mysqld/mysqld.sock --with-jpeg-dir=/usr --with-png-dir=/usr --enable-gd-native-ttf \
+	--with-openssl --with-libdir=/lib/x86_64-linux-gnu --enable-ftp --with-imap --with-imap-ssl --with-kerberos \
+	--with-gettext --with-xmlrpc --with-xsl --enable-cgi
+
+	Note: If you need more modules, you must tune the configuration options and install needed libraries
+
+#### Compilation and installation
+
+	# make
+	# make install
 
 ### AUTHORS AND CONTRIBUTORS
 
