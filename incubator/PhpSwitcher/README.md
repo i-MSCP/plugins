@@ -30,7 +30,7 @@ Plugin compatible with i-MSCP >= 1.1.1
 ### INTRODUCTION
 
 This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
-install any PHP version itself. Those steps must be done by the administrator (See below).
+install any PHP version itself. Those steps must be done by the administrator (see below).
 
 **Note:** At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all
 implementations will be supported.
@@ -107,8 +107,8 @@ which should give the following result:
 
 ### Registration through PhpSwitcher
 
-**1. Login into the panel as administrator and go to the PhpSwitcher interface**
-**2. Create a new PHP version with the following parameters:**
+  **1. Login into the panel as administrator and go to the PhpSwitcher interface**
+  **2. Create a new PHP version with the following parameters:**
 
 <table>
 	<tr>
