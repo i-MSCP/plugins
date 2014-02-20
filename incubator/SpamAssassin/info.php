@@ -22,7 +22,7 @@
  * @subpackage  SpamAssassin
  * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
+ * @author      Sascha Bay <info@space2place.de> 
  * @author      Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
