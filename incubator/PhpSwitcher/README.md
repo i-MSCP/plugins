@@ -107,8 +107,8 @@ which should give the following result:
 
 ### Registration through PhpSwitcher
 
-  **1. Login into the panel as administrator and go to the PhpSwitcher interface**
-  **2. Create a new PHP version with the following parameters:**
+1. **Login into the panel as administrator and go to the PhpSwitcher interface**
+2. **Create a new PHP version with the following parameters:**
 
 <table>
 	<tr>
