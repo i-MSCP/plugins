@@ -55,16 +55,15 @@ See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin 
 
 ### HOWTO SETUP NEW PHP VERSIONS
 
-At first, you must grab, compile and install the PHP version which you want make avaible for your customer. For instance,
-if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you can process as follow on Debian Wheezy:
+At first, you must get, compile and install the PHP version which you want make available for your customers. For instance,
+if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy:
 
 #### Creating build environment
 
 	# cd /usr/local/src
 	# mkdir -p php_buildenv/php53 && cd php_buildenv/php53
 	# mkdir -p /opt/php/5.3/
-	# apt-get update
-	# apt-get install build-essential
+	# apt-get update && apt-get install build-essential
 
 #### Installing needed libraries
 
@@ -91,9 +90,9 @@ if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you
 	--with-openssl --with-libdir=/lib/x86_64-linux-gnu --enable-ftp --with-imap --with-imap-ssl --with-kerberos \
 	--with-gettext --with-xmlrpc --with-xsl --enable-cgi
 
-**Note:** If you need more modules, you must tune the configuration options and install needed libraries
+**Note:** If you need more modules, you must tune the configuration options and install needed libraries.
 
-### Make new version available for customers
+### Registration
 
 	# Login into the panel as administrator and go to the PhpSwitcher interface
 	# Create new PHP version with the following parameters:
@@ -101,7 +100,7 @@ if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you
 		- PHP binary path: /opt/php/5.3/bin/php-cgi
 		- PHP configuration path: /var/www/fcgi
 
-Once it's done and if all goes well, your customers should be able to switch to that new PHP version using their own
+Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the 'Domains' section.
 
 #### Compilation and installation

@@ -59,7 +59,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			} else {
 				$coreConfig = iMSCP_Registry::get('config');
 
-				if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
+				//if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
+				if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
 					set_page_message(
 						tr(
 							'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
