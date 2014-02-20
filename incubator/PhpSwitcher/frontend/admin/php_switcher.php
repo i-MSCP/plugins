@@ -364,7 +364,7 @@ function phpSwitcher_getTable()
 		$sWhere = '';
 
 		if ($_REQUEST['sSearch'] != '') {
-			$sWhere .= ' AND (';
+			$sWhere .= 'WHERE (';
 
 			for ($i = 0; $i < $nbAColumns; $i++) {
 				$sWhere .= $aColumns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
