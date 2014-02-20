@@ -32,7 +32,7 @@ Plugin compatible with i-MSCP >= 1.1.1
 ### INTRODUCTION
 
 This plugin allow to setup several PHP versions, which can be used by your customers. This plugin do not compile, nor
-install any PHP version itself. Those steps should be done by the administrator.
+install any PHP version itself. Those steps must be done by the administrator.
 
 At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all implementations
 will be supported.
@@ -53,7 +53,7 @@ will be supported.
 
 See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
 
-### HOWTO SETUP NEW PHP VERSIONS
+### HOWTO SETUP NEW PHP VERSION
 
 At first, you must get, compile and install the PHP version which you want make available for your customers. For instance,
 if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy:
@@ -62,7 +62,7 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 
 	# cd /usr/local/src
 	# mkdir -p php_buildenv/php53 && cd php_buildenv/php53
-	# mkdir -p /opt/php/5.3/
+	# mkdir -p /opt/php-fcgid/5.3
 	# apt-get update && apt-get install build-essential
 
 #### Installing needed libraries
@@ -81,7 +81,7 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 
 #### Configuration
 
-	# ./configure --prefix=/opt/php/5.3 --with-pdo-pgsql --with-zlib-dir --with-freetype-dir --enable-mbstring \
+	# ./configure --prefix=/opt/php-fcgid/5.3 --with-pdo-pgsql --with-zlib-dir --with-freetype-dir --enable-mbstring \
 	--with-libxml-dir=/usr --enable-soap --enable-calendar --with-curl --with-mcrypt --with-zlib --with-gd \
 	--with-pgsql --disable-rpath --enable-inline-optimization --with-bz2 --with-zlib --enable-sockets \
 	--enable-sysvsem --enable-sysvshm --enable-pcntl --enable-mbregex --enable-exif --enable-bcmath --with-mhash \
@@ -92,21 +92,21 @@ if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these st
 
 **Note:** If you need more modules, you must tune the configuration options and install needed libraries.
 
-### Registration
-
-	# Login into the panel as administrator and go to the PhpSwitcher interface
-	# Create new PHP version with the following parameters:
-		- Name: PHP5.3 (Fcgid)
-		- PHP binary path: /opt/php/5.3/bin/php-cgi
-		- PHP configuration path: /var/www/fcgi
-
-Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
-PhpSwitcher interface, which is available in the 'Domains' section.
-
 #### Compilation and installation
 
 	# make
 	# make install
+
+### Registration through PhpSwitcher
+
+	# Login into the panel as administrator and go to the PhpSwitcher interface
+	# Create a new PHP version with the following parameters:
+		- Name: PHP5.3 (Fcgid)
+		- PHP binary path: /opt/php-fcgid/5.3/bin/php-cgi
+		- PHP configuration path: /var/www/fcgi
+
+Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
+PhpSwitcher interface, which is available in the 'Domains' section.
 
 ### AUTHORS AND CONTRIBUTORS
 
