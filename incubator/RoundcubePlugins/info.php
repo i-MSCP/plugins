@@ -21,7 +21,7 @@
  * @package     iMSCP_Plugin
  * @subpackage  RoundcubePlugins
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de>
+ * @copyright   Sascha Bay <info@space2place.de> 
  * @author      Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
