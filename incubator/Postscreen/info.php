@@ -21,7 +21,7 @@
  * @package     iMSCP_Plugin
  * @subpackage  Postscreen
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Rene Schuster <mail@reneschuster.de>
+ * @author      Rene Schuster <mail@reneschuster.de> 
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
