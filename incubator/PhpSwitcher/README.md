@@ -111,9 +111,24 @@ which should give the following result:
 	# Login into the panel as administrator and go to the PhpSwitcher interface
 	# Create a new PHP version with the following parameters:
 
-		**Name:** PHP5.3 (Fcgid)
-		**PHP binary path:** /opt/php-fcgid/5.3/bin/php-cgi
-		**PHP configuration directory:** /var/www/fcgi
+<table>
+	<tr>
+		<th>Parameter</th>
+		<th>value</th>
+	</tr>
+	<tr>
+		<td>Name</td>
+		<td>PHP5.3 (Fcgid)</td>
+	</tr>
+	<tr>
+		<td>PHP binary path</td>
+		<td>/opt/php-fcgid/5.3/bin/php-cgi</td>
+	</tr>
+	<tr>
+		<td>PHP configuration directory</td>
+		<td>/var/www/fcgi</td>
+	</tr>
+</table>
 
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the 'Domains' section.
