@@ -31,11 +31,11 @@ Plugin compatible with i-MSCP >= 1.1.1
 
 ### INTRODUCTION
 
-	This plugin allow to setup several PHP versions, which can be used by your customers. This plugin do not compile,
-	nor install any PHP version itself. It's the responsability of the administrator to perform these steps.
+This plugin allow to setup several PHP versions, which can be used by your customers. This plugin do not compile, nor
+install any PHP version itself. Those steps should be done by the administrator.
 
-	At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, it will support
-	all implementations.
+At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all implementations
+will be supported.
 
 ### INSTALLATION
 
@@ -53,12 +53,10 @@ Plugin compatible with i-MSCP >= 1.1.1
 
 See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
 
+### HOWTO SETUP NEW PHP VERSIONS
 
-### HOWTO SETUP NEW PHP VERSION
-
-	At first, you must grab, compile and install the PHP version which you want make avaible for your customer. For
-	instance, if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you can process as follow on
-	Debian Wheezy:
+At first, you must grab, compile and install the PHP version which you want make avaible for your customer. For instance,
+if you want provide PHP5.3 as FastCGI application (Fcgid) to your customers, you can process as follow on Debian Wheezy:
 
 #### Creating build environment
 
@@ -93,7 +91,18 @@ See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin 
 	--with-openssl --with-libdir=/lib/x86_64-linux-gnu --enable-ftp --with-imap --with-imap-ssl --with-kerberos \
 	--with-gettext --with-xmlrpc --with-xsl --enable-cgi
 
-	Note: If you need more modules, you must tune the configuration options and install needed libraries
+**Note:** If you need more modules, you must tune the configuration options and install needed libraries
+
+### Make new version available for customers
+
+	# Login into the panel as administrator and go to the PhpSwitcher interface
+	# Create new PHP version with the following parameters:
+		- Name: PHP5.3 (Fcgid)
+		- PHP binary path: /opt/php/5.3/bin/php-cgi
+		- PHP configuration path: /var/www/fcgi
+
+Once it's done and if all goes well, your customers should be able to switch to that new PHP version using their own
+PhpSwitcher interface, which is available in the 'Domains' section.
 
 #### Compilation and installation
 

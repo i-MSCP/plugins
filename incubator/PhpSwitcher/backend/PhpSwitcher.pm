@@ -34,7 +34,6 @@ use warnings;
 use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
-use iMSCP::TemplateParser;
 use Servers::httpd;
 use parent 'Common::SingletonClass';
 
