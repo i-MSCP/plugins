@@ -39,15 +39,15 @@ will be supported.
 
 ### INSTALLATION
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the PhpSwitcher plugin archive
-	- Activate the plugin
+	1. Login into the panel as admin and go to the plugin management interface
+	2. Upload the PhpSwitcher plugin archive
+	3. Activate the plugin
 
 ### UPDATE
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the PhpSwitcher plugin archive
-	- Update the plugin list through the plugin interface
+	1. Login into the panel as admin and go to the plugin management interface
+	2. Upload the PhpSwitcher plugin archive
+	3. Update the plugin list through the plugin interface
 
 ### HOWTO SETUP NEW PHP VERSION
 
@@ -108,8 +108,8 @@ which should give the following result:
 
 ### Registration through PhpSwitcher
 
-	# Login into the panel as administrator and go to the PhpSwitcher interface
-	# Create a new PHP version with the following parameters:
+**1. Login into the panel as administrator and go to the PhpSwitcher interface**
+**2. Create a new PHP version with the following parameters:**
 
 <table>
 	<tr>
