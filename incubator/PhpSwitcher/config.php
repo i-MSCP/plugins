@@ -19,11 +19,11 @@
  */
 
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.2',
-	'date' => '2014-02-21',
-	'name' => 'PhpSwitcher',
-	'desc' => 'Plugin allowing to provide many PHP versions to customers.',
-	'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/PhpSwitcher'
+	// Allow to use memcached server for better performances
+	// Default is disabled. See the README.md file for instructions.
+	'memcached' => array(
+		'enabled' => false,
+		'hostname' => '127.0.0.1',
+		'port' => '11211'
+	),
 );

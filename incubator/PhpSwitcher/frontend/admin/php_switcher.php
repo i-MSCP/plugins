@@ -184,6 +184,8 @@ function phpSwitcher_add()
 				array($versionName, $versionBinaryPath, $versionConfdirPath)
 			);
 
+			iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+
 			_phpSwitcher_sendJsonResponse(
 				200, array('message' => tr('PHP Version %s successfully created.', $versionName))
 			);
@@ -256,6 +258,8 @@ function phpSwitcher_edit()
 
 				$db->commit();
 
+				iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+
 				if ($sendRequest) {
 					send_request();
 				}
@@ -309,6 +313,8 @@ function phpSwitcher_delete()
 			if ($stmt->rowCount()) {
 				$db->commit();
 
+				iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+
 				if ($sendRequest) {
 					send_request();
 				}
@@ -336,7 +342,7 @@ function phpSwitcher_delete()
 function phpSwitcher_getTable()
 {
 	try {
-		$columns = array('version_id', 'version_name');
+		$columns = array('version_id', 'version_name', 'version_binary_path', 'version_confdir_path');
 		$nbColumns = count($columns);
 
 		$indexColumn = 'version_id';
@@ -424,7 +430,9 @@ function phpSwitcher_getTable()
 			$row = array();
 
 			for ($i = 0; $i < $nbColumns; $i++) {
-				$row[$columns[$i]] = $data[$columns[$i]];
+				if($columns[$i] != 'version_id') {
+					$row[$columns[$i]] = $data[$columns[$i]];
+				}
 			}
 
 			$row['actions'] =
@@ -500,6 +508,8 @@ $tpl->assign(
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'TR_ID' => tr('Id'),
 		'TR_NAME' => tr('Name'),
+		'TR_BINARY' => tr('Binary'),
+		'TR_CONFDIR' => tr('Configuration Directory'),
 		'TR_ACTIONS' => tr('Actions'),
 		'TR_BINARY_PATH' => tr('PHP binary path'),
 		'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),

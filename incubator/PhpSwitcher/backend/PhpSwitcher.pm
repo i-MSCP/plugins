@@ -31,16 +31,13 @@ package Plugin::PhpSwitcher;
 use strict;
 use warnings;
 
+use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
 use Servers::httpd;
+use JSON;
+
 use parent 'Common::SingletonClass';
-
-our %phpVersions = ();
-
-our $httpdServer;
-our $PHP5_FASTCGI_BIN;
-our $PHP_STARTER_DIR;
 
 =head1 DESCRIPTION
 
@@ -61,16 +58,6 @@ our $PHP_STARTER_DIR;
 sub run
 {
 	if($main::imscpConfig{'HTTPD_SERVER'} eq 'apache_fcgid') {
-		$Plugin::PhpSwitcher::httpdServer = Servers::httpd->factory();
-
-		# Small-haking to avoid too many IO operations and conffile override on failure
-		my %config = %{$httpdServer->{'config'}};
-		untie %{$httpdServer->{'config'}};
-		%{$httpdServer->{'config'}} = %config;
-
-		$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN = $httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'};
-		$Plugin::PhpSwitcher::PHP_STARTER_DIR = $httpdServer->{'config'}->{'PHP_STARTER_DIR'};
-
 		my $hooksManager = iMSCP::HooksManager->getInstance();
 
 		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
@@ -97,12 +84,13 @@ sub run
 
 sub phpSwitcherEventListener($)
 {
-	my $data = $_[0];
+	my $phpSwitcher = __PACKAGE__->getInstance();
+	my $adminId = $_[0]->{'DOMAIN_ADMIN_ID'} // 0;
 
-	my $adminId = $data->{'DOMAIN_ADMIN_ID'};
+	my $phpVersions = ($phpSwitcher->{'memcached'}) ? $phpSwitcher->{'memcached'}->get('php_versions') : { };
 
-	if(!exists $Plugin::PhpSwitcher::phpVersions{$adminId}) {
-		my $rdata = iMSCP::Database->factory()->doQuery(
+	if(! defined $phpVersions) {
+		$phpVersions = $phpSwitcher->{'db'}->doQuery(
 			'admin_id',
 			'
 				SELECT
@@ -111,35 +99,109 @@ sub phpSwitcherEventListener($)
 					php_switcher_version
 				INNER JOIN
 					php_switcher_version_admin USING (version_id)
-				WHERE
-					admin_id = ?
-			',
-			$adminId
+			'
 		);
-		unless(ref $rdata eq 'HASH') {
-			error($rdata);
+		unless(ref $phpVersions eq 'HASH') {
+			error($phpVersions);
 			return 1;
-		} elsif(%{$rdata}) {
-			# TODO memcached
-			$Plugin::PhpSwitcher::phpVersions{$adminId} = $rdata->{$adminId};
 		}
+
+		$phpSwitcher->{'memcached'}->set('php_versions', $phpVersions);
 	}
 
-	if(exists $Plugin::PhpSwitcher::phpVersions{$adminId}) {
-		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} =
-			$Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_binary_path'};
-
-		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} =
-			$Plugin::PhpSwitcher::phpVersions{$adminId}->{'version_confdir_path'};
+	if(exists $phpVersions->{$adminId}) {
+		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersions->{$adminId}->{'version_binary_path'};
+    	$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersions->{$adminId}->{'version_confdir_path'};
 	} else {
-		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP5_FASTCGI_BIN'} =
-			$Plugin::PhpSwitcher::PHP5_FASTCGI_BIN;
-
-		$Plugin::PhpSwitcher::httpdServer->{'config'}->{'PHP_STARTER_DIR'} =
-			$Plugin::PhpSwitcher::PHP_STARTER_DIR;
+		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpSwitcher->{'default_binary_path'},;
+		$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpSwitcher->{'default_confdir_path'};
 	}
 
 	0;
+}
+
+=back
+
+=head1 PRIVATE METHODS
+
+=over 4
+
+=item _init()
+
+ Initialize plugin instance
+
+ Return Plugin::PhpSwitcher
+
+=cut
+
+sub _init()
+{
+	my $self = $_[0];
+
+	$self->{'db'} = iMSCP::Database->factory();
+
+	my $pluginConfig = $self->{'db'}->doQuery(
+		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PhpSwitcher'
+	);
+	unless(ref $pluginConfig eq 'HASH') {
+		fatal($pluginConfig);
+	} else {
+		$self->{'config'} = decode_json($pluginConfig->{'PhpSwitcher'}->{'plugin_config'});
+	}
+
+	$self->{'httpd'} = Servers::httpd->factory();
+	$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'};
+	$self->{'default_confdir_path'} = $self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'};
+
+	# Small-haking to avoid too many IO operations and conffile override on failure
+	my %config = %{$self->{'httpd'}->{'config'}};
+	untie %{$self->{'httpd'}->{'config'}};
+	%{$self->{'httpd'}->{'config'}} = %config;
+
+	$self->{'memcached'} = $self->_getMemcached();
+
+	$self;
+}
+
+=item _getMemcached()
+
+ Get memcached instance
+
+ Return Cache::Memcached::Fast or undef in case memcached server is not enabled
+
+=cut
+
+sub _getMemcached
+{
+	my $self = $_[0];
+
+	my $memcached;
+
+	if($self->{'config'}->{'memcached'}->{'enabled'}) {
+		if(eval 'require Cache::Memcached::Fast') {
+			require Digest::SHA;
+			Digest::SHA->import('sha1_hex');
+
+			$memcached = new Cache::Memcached::Fast({
+				servers => ["$self->{'config'}->{'memcached'}->{'hostname'}:$self->{'config'}->{'memcached'}->{'port'}"],
+				namespace => substr(sha1_hex('PhpSwitcher'), 0 , 8) . '_', # Hashed manually (expected)
+				connect_timeout => 0.5,
+				io_timeout => 0.5,
+				close_on_error => 1,
+				compress_threshold => 100_000,
+				compress_ratio => 0.9,
+				compress_methods => [ \&IO::Compress::Gzip::gzip, \&IO::Uncompress::Gunzip::gunzip ],
+				max_failures => 3,
+				failure_timeout => 2,
+				ketama_points => 150,
+				nowait => 1,
+				serialize_methods => [ \&Storable::freeze, \&Storable::thaw ],
+				utf8 => 1,
+			});
+		}
+	}
+
+	$memcached;
 }
 
 =back

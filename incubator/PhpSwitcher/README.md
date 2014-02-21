@@ -1,4 +1,4 @@
-## PhpSwitcher v0.0.1 plugin for i-MSCP
+## PhpSwitcher v0.0.2 plugin for i-MSCP
 
 Plugin allowing to provide many PHP versions to customers.
 
@@ -28,6 +28,14 @@ Plugin allowing to provide many PHP versions to customers.
 * Plugin compatible with i-MSCP >= 1.1.1
 * i-MSCP Fcgid httpd server implementation (apache_fcgid)
 
+#### Memcached support (Optional)
+
+Debian / Ubuntu packages to install in case you want enable memcached support (recommended)
+
+- memcached
+- libcache-memcached-perl
+- php5-memcached
+
 ### INTRODUCTION
 
 This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
@@ -38,15 +46,51 @@ implementations will be supported.
 
 ### INSTALLATION
 
-	1. Login into the panel as admin and go to the plugin management interface
-	2. Upload the PhpSwitcher plugin archive
-	3. Activate the plugin
+1. Login into the panel as admin and go to the plugin management interface
+2. Upload the PhpSwitcher plugin archive
+3. Activate the plugin
+
+#### MEMCACHED SUPPORT
+
+In order, to enable memcached support, you must:
+
+1. Install the needed packages (see the requirements section above)
+2. Edit the PhpSwitcher plugins/PhpSwitcher/config.php configuration file to enable memcached support
+3. Login into the panel interface as admin and go to the plugin management interface
+4. Update the plugin list
+
+#####Memcached configuration parameters
+
+<table>
+	<tr>
+		<th>Parameter</th>
+		<th>Description</th>
+		<th>value</th>
+	</tr>
+	<tr>
+		<td>enabled</td>
+		<td>boolean</td>
+		<td>Allow to enable or disable memcached support</td>
+	</tr>
+	<tr>
+		<td>hostname</td>
+		<td>string</td>
+		<td>Memcached server hostname (Either an IP or hostname)</td>
+	</tr>
+	<tr>
+		<td>port</td>
+		<td>integer</td>
+		<td>Memcached server port</td>
+	</tr>
+</table>
 
 ### UPDATE
 
-	1. Login into the panel as admin and go to the plugin management interface
-	2. Upload the PhpSwitcher plugin archive
-	3. Update the plugin list through the plugin interface
+1. Backup your current config file plugins/PhpSwitcher/config.php
+2. Login into the panel as admin and go to the plugin management interface
+3. Upload the PhpSwitcher plugin archive
+4. Restore your plugins/PhpSwitcher/config.php (compare it with new config file first)
+5. Update the plugin list through the plugin interface
 
 ### HOWTO SETUP NEW PHP VERSION
 
@@ -67,7 +111,8 @@ instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follo
 	# apt-get install libfcgi-dev libfcgi0ldbl libjpeg62-dbg libmcrypt-dev libssl-dev libc-client2007e \
 	libc-client2007e-dev libpq5
 
-	# Needed on X86_64 arch only
+##### Needed on X86_64 arch only
+
 	# ln -s /usr/lib/libc-client.a /usr/lib/x86_64-linux-gnu/libc-client.a
 
 #### Fetching PHP sources

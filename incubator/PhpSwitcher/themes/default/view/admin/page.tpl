@@ -5,15 +5,17 @@
 <table class="datatable">
 	<thead>
 	<tr>
-		<th>{TR_ID}</th>
-		<th>{TR_NAME}</th>
+		<th style="width:30%;">{TR_NAME}</th>
+		<th style="width:30%;">{TR_BINARY}</th>
+		<th style="width:30%;">{TR_CONFDIR}</th>
 		<th>{TR_ACTIONS}</th>
 	</tr>
 	</thead>
 	<tfoot>
 	<tr>
-		<td>{TR_ID}</td>
 		<td>{TR_NAME}</td>
+		<td>{TR_BINARY}</td>
+		<td>{TR_CONFDIR}</td>
 		<td>{TR_ACTIONS}</td>
 	</tr>
 	</tfoot>
@@ -116,10 +118,12 @@
 			bServerSide: true,
 			sAjaxSource: "/admin/phpswitcher?action=table",
 			bStateSave: true,
-			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 2 ] } ],
+			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 3 ] } ],
 			aoColumns: [
-				{ mData: "version_id" },
+				//{ mData: "version_id" },
 				{ mData: "version_name" },
+				{ mData: "version_binary_path" },
+				{ mData: "version_confdir_path" },
 				{ mData: "actions" }
 			],
 			fnServerData: function (sSource, aoData, fnCallback) {

@@ -60,10 +60,11 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 				$coreConfig = iMSCP_Registry::get('config');
 
 				//if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
-				if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
+				if (!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
 					set_page_message(
 						tr(
-							'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
+						//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
+							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this implementation by running the i-MSCP installer as follow: %s',
 							'<strong>perl imscp-autoinstall -dr httpd</strong>'
 						),
 						'error'
@@ -113,6 +114,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
+			$this->flushCache();
 			$this->dbMigrate($pluginManager, 'up');
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
@@ -131,6 +133,18 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Plugin deactivation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function disable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		$this->flushCache();
+	}
+
+	/**
 	 * Plugin uninstallation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -140,6 +154,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			$this->flushCache();
 			$this->dbMigrate($pluginManager, 'down');
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage(), $e->getCode(), $e));
@@ -182,6 +197,32 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Flush memcached
+	 *
+	 * @return void
+	 */
+	public function flushCache()
+	{
+		if (class_exists('Memcached')) {
+			$memcachedConfig = $this->getConfigParam('memcached', array());
+
+			if (!empty($memcachedConfig['enabled'])) {
+				if (isset($memcachedConfig['hostname']) && isset($memcachedConfig['port'])) {
+					//print_r($memcachedConfig);exit;
+					$memcached = new Memcached($this->getName());
+					$memcached->setOption(Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
+
+					if (!count($memcached->getServerList())) {
+						$memcached->addServer($memcachedConfig['hostname'], $memcachedConfig['port']);
+					}
+
+					$memcached->delete(substr(sha1($this->getName()), 0, 8) . '_' . 'php_versions');
+				}
+			}
+		}
+	}
+
+	/**
 	 * Inject Links into the navigation object
 	 *
 	 * @param string $uiLevel UI level
@@ -201,8 +242,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 						'order' => 8
 					)
 				);
-			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
-				if(customerHasFeature('php')) {
+			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
+				if (customerHasFeature('php')) {
 					$page->addPage(
 						array(
 							'label' => tr('PHP Switcher'),
@@ -239,20 +280,20 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 
 		natsort($migrationFiles);
 
-		if($migrationMode != 'up') {
+		if ($migrationMode != 'up') {
 			$migrationFiles = array_reverse($migrationFiles);
 		}
 
 		try {
 			foreach ($migrationFiles as $migrationFile) {
 				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-					if(
+					if (
 						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
 						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
 					) {
 						$migrationFilesContent = include($migrationFile);
 
-						if(isset($migrationFilesContent[$migrationMode])) {
+						if (isset($migrationFilesContent[$migrationMode])) {
 							execute_query($migrationFilesContent[$migrationMode]);
 						}
 					}
@@ -260,13 +301,13 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 					$dbSchemaVersion = $match[1];
 				}
 			}
-		} catch(iMSCP_Exception_Database $e) {
-			$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
+		} catch (iMSCP_Exception_Database $e) {
+			$pluginInfo['db_schema_version'] = $dbSchemaVersion;
 			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 			throw $e;
 		}
 
-		$pluginInfo['db_schema_version'] =  ($migrationMode == 'up') ? $dbSchemaVersion : '000';
+		$pluginInfo['db_schema_version'] = ($migrationMode == 'up') ? $dbSchemaVersion : '000';
 		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 	}
 }

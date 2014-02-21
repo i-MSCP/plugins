@@ -125,6 +125,8 @@ function phpSwitcher_setVersion()
 
 			$db->commit();
 
+			iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+
 			send_request();
 			set_page_message(tr('PHP version successfully scheduled for update. Please, be patient...'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
