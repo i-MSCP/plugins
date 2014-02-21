@@ -111,7 +111,7 @@ sub phpSwitcherEventListener($)
 
 	if(exists $phpVersions->{$adminId}) {
 		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersions->{$adminId}->{'version_binary_path'};
-    	$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersions->{$adminId}->{'version_confdir_path'};
+		$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersions->{$adminId}->{'version_confdir_path'};
 	} else {
 		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpSwitcher->{'default_binary_path'},;
 		$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpSwitcher->{'default_confdir_path'};
