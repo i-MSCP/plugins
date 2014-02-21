@@ -77,7 +77,7 @@ function _phpSwitcher_scheduleDomainsChange()
 			SET
 				subdomain_alias_status = ?
 			WHERE
-				domain_id = (SELECT domain_id FROM domain where domain_admin_id = ?)
+				domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id = ?)
 			AND
 				subdomain_alias_status = ?
 		',
@@ -95,8 +95,10 @@ function phpSwitcher_setVersion()
 	if (isset($_POST['version_id'])) {
 		$versionId = intval($_POST['version_id']);
 
+		$db = iMSCP_Database::getRawInstance();
+
 		try {
-			iMSCP_Database::getRawInstance()->beginTransaction();
+			$db->beginTransaction();
 
 			if (!$versionId) {
 				exec_query('DELETE FROM php_switcher_version_admin WHERE admin_id = ?', $_SESSION['user_id']);
@@ -121,12 +123,12 @@ function phpSwitcher_setVersion()
 
 			_phpSwitcher_scheduleDomainsChange();
 
-			iMSCP_Database::getRawInstance()->commit();
+			$db->commit();
 
 			send_request();
-			set_page_message(tr('PHP version successfully scheduled for update.'), 'success');
+			set_page_message(tr('PHP version successfully scheduled for update. Please, be patient...'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
-			iMSCP_Database::getRawInstance()->rollBack();
+			$db->rollBack();
 			set_page_message(tr('An unexpected error occured.', 'error'));
 		}
 	} else {
@@ -167,7 +169,7 @@ function phpSwitcher_generatePage($tpl)
 		);
 	}
 
-	$versions['PHP' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION] = array('version_id' => 0);
+	$versions['PHP' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ' (Default)'] = array('version_id' => 0);
 	ksort($versions, SORT_NATURAL);
 
 	foreach ($versions as $version => $data) {
@@ -214,7 +216,7 @@ if (customerHasFeature('php')) {
 			'ISP_LOGO' => layout_getUserLogo(),
 			'TR_HINT' => tr('Please choose the PHP version you want use below.'),
 			'TR_VERSION' => tr('VERSION'),
-			'TR_UPDATE' => tr('Update'),
+			'TR_UPDATE' => tr('Update')
 		)
 	);
 

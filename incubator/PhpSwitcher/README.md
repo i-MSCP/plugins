@@ -25,14 +25,15 @@ Plugin allowing to provide many PHP versions to customers.
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP >= 1.1.1
+* Plugin compatible with i-MSCP >= 1.1.1
+* i-MSCP Fcgid httpd server implementation (apache_fcgid)
 
 ### INTRODUCTION
 
 This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
 install any PHP version itself. Those steps must be done by the administrator (see below).
 
-**Note:** At this moment, this plugin only support the i-MSCP Fcgid server implementation but in near future, all
+**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future, all
 implementations will be supported.
 
 ### INSTALLATION

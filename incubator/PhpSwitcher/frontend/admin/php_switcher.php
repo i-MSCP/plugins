@@ -23,75 +23,67 @@
  */
 
 /**
- * Schedule update for all domain which currently use the given PHP version
+ * Schedule change for all domains which belong to the given user list
  *
- * @param int $versionId PHP version unique identifier
- * @return bool TRUE if at least one domain has been update, FALSE otherwise
+ * @param array $adminIds List of user ID for which domains configuration files must be regenerated
+ * @return void
  */
-function _phpSwitcher_scheduleDomainsChange($versionId)
+function _phpSwitcher_scheduleDomainsChange(array $adminIds)
 {
-	$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
+	$adminIdList = implode(',', $adminIds);
 
-	if ($stmt->rowCount()) {
-		exec_query(
-			'UPDATE domain set domain_status = ? WHERE domain_admin_id = ? and domain_status = ?',
-			array('tochange', 'ok')
-		);
+	exec_query(
+		'UPDATE domain SET domain_status = ? WHERE domain_admin_id IN (' . $adminIdList . ') AND domain_status = ?',
+		array('tochange', 'ok')
+	);
 
-		$adminIdList = implode(',', $stmt->fetchAll(PDO::FETCH_COLUMN));
+	exec_query(
+		'
+			UPDATE
+				subdomain
+			JOIN
+				domain USING(domain_id)
+			SET
+				subdomain_status = ?
+			WHERE
+				domain_admin_id IN (' . $adminIdList . ')
+			AND
+				subdomain_status = ?
+		',
+		array('tochange', 'ok')
+	);
 
-		exec_query(
-			'
-				UPDATE
-					subdomain
-				JOIN
-					domain USING(domain_id)
-				SET
-					subdomain_status = ?
-				WHERE
-					domain_admin_id = IN(' . $adminIdList . ')
-				AND
-					subdomain_status = ?
-			',
-			array('tochange', 'ok')
-		);
+	exec_query(
+		'
+			UPDATE
+				domain_aliasses
+			JOIN
+				domain USING(domain_id)
+			SET
+				alias_status = ?
+			WHERE
+				domain_admin_id IN (' . $adminIdList . ')
+			AND
+				alias_status = ?
+		',
+		array('tochange', 'ok')
+	);
 
-		exec_query(
-			'
-				UPDATE
-					domain_aliasses
-				JOIN
-					domain USING(domain_id)
-				SET
-					alias_status = ?
-				WHERE
-					domain_admin_id = IN(' . $adminIdList . ')
-				AND
-					alias_status = ?
-			',
-			array('tochange', 'ok')
-		);
-
-		exec_query(
-			'
-				UPDATE
-					subdomain_alias
-				JOIN
-					domain_aliasses USING(alias_id)
-				SET
-					subdomain_alias_status = ?
-				WHERE
-					domain_id = (SELECT domain_id FROM domain where domain_admin_id IN(' . $adminIdList . '))
-				AND
-					subdomain_alias_status = ?
-							',
-			array('tochange', 'ok')
-		);
-
-		return true;
-	}
-
-	return false;
+	exec_query(
+		'
+			UPDATE
+				subdomain_alias
+			JOIN
+				domain_aliasses USING(alias_id)
+			SET
+				subdomain_alias_status = ?
+			WHERE
+				domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
+			AND
+				subdomain_alias_status = ?
+		',
+		array('tochange', 'ok')
+	);
 }
 
 /**
@@ -136,7 +128,7 @@ function _phpSwitcher_sendJsonResponse($statusCode = 200, array $data = array())
 function phpSwitcher_get()
 {
 	if (isset($_GET['version_id']) && isset($_GET['version_name'])) {
-		$versionId = clean_input($_REQUEST['version_id']);
+		$versionId = intval($_REQUEST['version_id']);
 		$versionName = clean_input($_REQUEST['version_name']);
 
 		try {
@@ -171,12 +163,12 @@ function phpSwitcher_add()
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
-		if($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
+		if ($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif(strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ) {
+		} elseif (strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP Version %s already exists. This is the default PHP version.',  $versionName))
+				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
 			);
 		}
 
@@ -198,7 +190,7 @@ function phpSwitcher_add()
 		} catch (iMSCP_Exception_Database $e) {
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP Version %s already exists',  $versionName))
+					400, array('message' => tr('PHP Version %s already exists', $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -227,17 +219,19 @@ function phpSwitcher_edit()
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
-		if($versionBinaryPath == '' || $versionConfdirPath == '') {
+		if ($versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif(strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ) {
+		} elseif (strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP Version %s already exists. This is the default PHP version.',  $versionName))
+				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
 			);
 		}
 
+		$db = iMSCP_Database::getRawInstance();
+
 		try {
-			iMSCP_Database::getRawInstance()->beginTransaction();
+			$db->beginTransaction();
 
 			$stmt = exec_query(
 				'
@@ -251,22 +245,29 @@ function phpSwitcher_edit()
 				array($versionName, $versionBinaryPath, $versionConfdirPath, $versionId)
 			);
 
-			if($stmt->rowCount()) {
-				$ret = _phpSwitcher_scheduleDomainsChange($versionId);
-				iMSCP_Database::getRawInstance()->commit();
+			if ($stmt->rowCount()) {
+				$sendRequest = false;
+				$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
-				if($ret) {
+				if ($stmt->rowCount()) {
+					_phpSwitcher_scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+					$sendRequest = true;
+				}
+
+				$db->commit();
+
+				if ($sendRequest) {
 					send_request();
 				}
 			}
 
 			_phpSwitcher_sendJsonResponse(200, array('message' => tr('PHP Version successfully updated.')));
 		} catch (iMSCP_Exception_Database $e) {
-			iMSCP_Database::getRawInstance()->rollBack();
+			$db->rollBack();
 
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP Version %s already exists',  $versionName))
+					400, array('message' => tr('PHP Version %s already exists', $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -290,16 +291,25 @@ function phpSwitcher_delete()
 		$versionId = intval(clean_input($_POST['version_id']));
 		$versionName = clean_input($_POST['version_name']);
 
+		$db = iMSCP_Database::getRawInstance();
+
 		try {
-			iMSCP_Database::getRawInstance()->beginTransaction();
+			$db->beginTransaction();
+
+			$sendRequest = false;
+			$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
+
+			if($stmt->rowCount()) {
+				_phpSwitcher_scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+				$sendRequest = true;
+			}
 
 			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
 
 			if ($stmt->rowCount()) {
-				$ret = _phpSwitcher_scheduleDomainsChange($versionId);
-				iMSCP_Database::getRawInstance()->commit();
+				$db->commit();
 
-				if($ret) {
+				if ($sendRequest) {
 					send_request();
 				}
 
@@ -308,7 +318,7 @@ function phpSwitcher_delete()
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
-			iMSCP_Database::getRawInstance()->rollBack();
+			$db->rollBack();
 			_phpSwitcher_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
 			);
@@ -319,111 +329,111 @@ function phpSwitcher_delete()
 }
 
 /**
- * Get Table data
+ * Get table data
  *
  * @return void
  */
 function phpSwitcher_getTable()
 {
 	try {
-		$aColumns = array('version_id', 'version_name');
-		$nbAColumns = count($aColumns);
+		$columns = array('version_id', 'version_name');
+		$nbColumns = count($columns);
 
-		$sIndexColumn = 'version_id';
+		$indexColumn = 'version_id';
 
 		/* DB table to use */
-		$sTable = 'php_switcher_version';
+		$table = 'php_switcher_version';
 
 		/* Paging */
-		$sLimit = '';
+		$limit = '';
 
 		if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
-			$sLimit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
+			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Ordering */
-		$sOrder = '';
+		$order = '';
 
 		if (isset($_GET['iSortCol_0'])) {
-			$sOrder = 'ORDER BY ';
+			$order = 'ORDER BY ';
 
 			for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
 				if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
-					$sOrder .= $aColumns[intval($_GET['iSortCol_' . $i])] . ' ' . $_GET['sSortDir_' . $i] . ', ';
+					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $_GET['sSortDir_' . $i] . ', ';
 				}
 			}
 
-			$sOrder = substr_replace($sOrder, '', -2);
+			$order = substr_replace($order, '', -2);
 
-			if ($sOrder == 'ORDER BY') {
-				$sOrder = '';
+			if ($order == 'ORDER BY') {
+				$order = '';
 			}
 		}
 
 		/* Filtering */
-		$sWhere = '';
+		$where = '';
 
 		if ($_REQUEST['sSearch'] != '') {
-			$sWhere .= 'WHERE (';
+			$where .= 'WHERE (';
 
-			for ($i = 0; $i < $nbAColumns; $i++) {
-				$sWhere .= $aColumns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
+			for ($i = 0; $i < $nbColumns; $i++) {
+				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
 			}
 
-			$sWhere = substr_replace($sWhere, '', -3);
-			$sWhere .= ')';
+			$where = substr_replace($where, '', -3);
+			$where .= ')';
 		}
 
 		/* Individual column filtering */
-		for ($i = 0; $i < $nbAColumns; $i++) {
+		for ($i = 0; $i < $nbColumns; $i++) {
 			if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
-				$sWhere .= "AND {$aColumns[$i]} LIKE " . quoteValue("%{$_GET["sSearch_$i"]}%");
+				$where .= "AND {$columns[$i]} LIKE " . quoteValue("%{$_GET["sSearch_$i"]}%");
 			}
 		}
 
 		/* Get data to display */
 		$rResult = execute_query(
 			"
-				SELECT SQL_CALC_FOUND_ROWS " . str_replace(' , ', ' ', implode(', ', $aColumns)) . "
-				FROM $sTable $sWhere $sOrder $sLimit
+				SELECT SQL_CALC_FOUND_ROWS " . str_replace(' , ', ' ', implode(', ', $columns)) . "
+				FROM $table $where $order $limit
 			"
 		);
 
 		/* Data set length after filtering */
-		$rResultFilterTotal = execute_query('SELECT FOUND_ROWS()');
-		$aResultFilterTotal = $rResultFilterTotal->fetchRow(PDO::FETCH_NUM);
-		$iFilteredTotal = $aResultFilterTotal[0];
+		$resultFilterTotal = execute_query('SELECT FOUND_ROWS()');
+		$resultFilterTotal = $resultFilterTotal->fetchRow(PDO::FETCH_NUM);
+		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
-		$rResultTotal = execute_query("SELECT COUNT($sIndexColumn) FROM $sTable");
-		$aResultTotal = $rResultTotal->fetchRow(PDO::FETCH_NUM);
-		$iTotal = $aResultTotal[0];
+		$resultTotal = execute_query("SELECT COUNT($indexColumn) FROM $table");
+		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
+		$total = $resultTotal[0];
 
 		/* Output */
 		$output = array(
 			'sEcho' => intval($_GET['sEcho']),
-			'iTotalRecords' => $iTotal,
-			'iTotalDisplayRecords' => $iFilteredTotal,
+			'iTotalRecords' => $total,
+			'iTotalDisplayRecords' => $filteredTotal,
 			'aaData' => array()
 		);
 
 		$trEditTooltip = tr('Edit this PHP version');
 		$trDeleteTooltip = tr('Delete this PHP version');
 
-		while ($aRow = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
+		while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for ($i = 0; $i < $nbAColumns; $i++) {
-				$row[$aColumns[$i]] = $aRow[$aColumns[$i]];
+			for ($i = 0; $i < $nbColumns; $i++) {
+				$row[$columns[$i]] = $data[$columns[$i]];
 			}
 
 			$row['actions'] =
 				"<span title=\"$trEditTooltip\" data-action=\"edit\" " .
-				"data-version-id=\"{$aRow['version_id']}\" data-version-name=\"{$aRow['version_name']}\" " .
+				"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
 				"class=\"icon i_edit clickable\">&nbsp;</span> "
 				.
 				"<span title=\"$trDeleteTooltip\" data-action=\"delete\" " .
-				"data-version-id=\"{$aRow['version_id']}\" data-version-name=\"{$aRow['version_name']}\" " .
+				"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
 				"class=\"icon i_close clickable\">&nbsp;</span>";
 
 			$output['aaData'][] = $row;
@@ -487,31 +497,23 @@ $tpl->assign(
 		'THEME_CHARSET' => tr('encoding'),
 		'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
 		'ISP_LOGO' => layout_getUserLogo(),
-
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-
 		'TR_ID' => tr('Id'),
 		'TR_NAME' => tr('Name'),
 		'TR_ACTIONS' => tr('Actions'),
-
 		'TR_BINARY_PATH' => tr('PHP binary path'),
 		'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),
-
 		'TR_PROCESSING_DATA' => tr('Processing...'),
-
 		'TR_NEW_PHP_VERSION' => tr('New PHP Version'),
-
 		'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
 		'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
 		'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
-
 		'TR_NEW' => tojs(tr('New PHP Version', true)),
 		'TR_EDIT' => tojs(tr('Edit %%s PHP Version', true)),
 		'TR_SAVE' => tojs(tr('Save', true)),
 		'TR_CANCEL' => tojs(tr('Cancel', true)),
-		'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version?', true))
+		'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version? All configuration files for domains which belong to this PHP version will be scheduled for regeneration.', true))
 	)
-
 );
 
 generateNavigation($tpl);
