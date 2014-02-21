@@ -208,7 +208,6 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 
 			if (!empty($memcachedConfig['enabled'])) {
 				if (isset($memcachedConfig['hostname']) && isset($memcachedConfig['port'])) {
-					//print_r($memcachedConfig);exit;
 					$memcached = new Memcached($this->getName());
 					$memcached->setOption(Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
 
