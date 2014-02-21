@@ -64,8 +64,8 @@ In order, to enable memcached support, you must:
 <table>
 	<tr>
 		<th>Parameter</th>
+		<th>Value</th>
 		<th>Description</th>
-		<th>value</th>
 	</tr>
 	<tr>
 		<td>enabled</td>
