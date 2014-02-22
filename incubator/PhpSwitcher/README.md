@@ -33,7 +33,7 @@ Plugin allowing to provide many PHP versions to customers.
 Debian / Ubuntu packages to install in case you want enable memcached support (recommended)
 
 - memcached
-- libcache-memcached-perl
+- libcache-memcached-fast-perl
 - php5-memcached
 
 ### INTRODUCTION
