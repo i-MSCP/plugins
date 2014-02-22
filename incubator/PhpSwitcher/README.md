@@ -25,7 +25,7 @@ Plugin allowing to provide many PHP versions to customers.
 
 ### REQUIREMENTS
 
-* Plugin compatible with i-MSCP >= 1.1.1
+* i-MSCP >= 1.1.1
 * i-MSCP Fcgid httpd server implementation (apache_fcgid)
 
 #### Memcached support (Optional)
@@ -41,8 +41,8 @@ Debian / Ubuntu packages to install in case you want enable memcached support (r
 This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
 install any PHP version itself. Those steps must be done by the administrator (see below).
 
-**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future, all
-implementations will be supported.
+**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
+the PHP5-FPM implementations will be also supported.
 
 ### INSTALLATION
 
@@ -153,25 +153,29 @@ which should give the following result:
 
 ### Registration through PhpSwitcher
 
-1. **Login into the panel as administrator and go to the PhpSwitcher interface**
+1. **Login into the panel as administrator and go to the PhpSwitcher interface (settings section)**
 2. **Create a new PHP version with the following parameters:**
 
 <table>
 	<tr>
 		<th>Parameter</th>
-		<th>value</th>
+		<th>Value</th>
+		<th>Description</th>
 	</tr>
 	<tr>
 		<td>Name</td>
 		<td>PHP5.3 (Fcgid)</td>
+		<td>This is the unique name for the new PHP version</td>
 	</tr>
 	<tr>
 		<td>PHP binary path</td>
 		<td>/opt/php-fcgid/5.3/bin/php-cgi</td>
+		<td>This is the path of the PHP binary</td>
 	</tr>
 	<tr>
 		<td>PHP configuration directory</td>
 		<td>/var/www/fcgi</td>
+		<td>This is the directory in which customers's configuration files will be stored</td>
 	</tr>
 </table>
 
@@ -180,9 +184,9 @@ PhpSwitcher interface, which is available in the **Domains** section.
 
 ### TROUBLESHOOTINGS
 
-If you are currently running MariaDB on your server, you'll surely have some package dependencie problems while trying
-to install PHP build package dependencies. In such case, you must temporary switch to the MySQL version as provided by
-your distribution.
+If you are running MariaDB on your server and if you encounter some problems while trying to install PHP build packages,
+you must temporary switch to the MySQL version as provided by your distribution. This can be done easily by using the
+i-MSCP installer.
 
 ### AUTHORS AND CONTRIBUTORS
 

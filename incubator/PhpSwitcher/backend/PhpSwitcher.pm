@@ -24,12 +24,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-# TODO delTmp for PHP version which are managed by this plugin
+# TODO PHP5-FPM support
+# TODO delTmp for PHP versions which are managed by this plugin
+
 
 package Plugin::PhpSwitcher;
 
 use strict;
 use warnings;
+
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 use iMSCP::Debug;
 use iMSCP::HooksManager;
@@ -57,7 +61,7 @@ use parent 'Common::SingletonClass';
 
 sub run
 {
-	if($main::imscpConfig{'HTTPD_SERVER'} eq 'apache_fcgid') {
+	if($main::imscpConfig{'HTTPD_SERVER'} ~~ ['apache_fcgid']) {
 		my $hooksManager = iMSCP::HooksManager->getInstance();
 
 		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
@@ -138,27 +142,32 @@ sub _init()
 {
 	my $self = $_[0];
 
-	$self->{'db'} = iMSCP::Database->factory();
+	my $serverImpl = $main::imscpConfig{'HTTPD_SERVER'};
 
-	my $pluginConfig = $self->{'db'}->doQuery(
-		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PhpSwitcher'
-	);
-	unless(ref $pluginConfig eq 'HASH') {
-		fatal($pluginConfig);
-	} else {
-		$self->{'config'} = decode_json($pluginConfig->{'PhpSwitcher'}->{'plugin_config'});
+	if($serverImpl ~~ ['apache_fcgid']) {
+		$self->{'db'} = iMSCP::Database->factory();
+
+		my $pluginConfig = $self->{'db'}->doQuery(
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PhpSwitcher'
+		);
+		unless(ref $pluginConfig eq 'HASH') {
+			fatal($pluginConfig);
+		} else {
+			$self->{'config'} = decode_json($pluginConfig->{'PhpSwitcher'}->{'plugin_config'});
+		}
+
+		$self->{'httpd'} = Servers::httpd->factory();
+
+		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'};
+		$self->{'default_confdir_path'} = $self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'};
+
+		# Small-haking to avoid too many IO operations and conffile override on failure
+		my %config = %{$self->{'httpd'}->{'config'}};
+		untie %{$self->{'httpd'}->{'config'}};
+		%{$self->{'httpd'}->{'config'}} = %config;
+
+		$self->{'memcached'} = $self->_getMemcached();
 	}
-
-	$self->{'httpd'} = Servers::httpd->factory();
-	$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'};
-	$self->{'default_confdir_path'} = $self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'};
-
-	# Small-haking to avoid too many IO operations and conffile override on failure
-	my %config = %{$self->{'httpd'}->{'config'}};
-	untie %{$self->{'httpd'}->{'config'}};
-	%{$self->{'httpd'}->{'config'}} = %config;
-
-	$self->{'memcached'} = $self->_getMemcached();
 
 	$self;
 }
