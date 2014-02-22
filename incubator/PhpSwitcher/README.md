@@ -21,7 +21,7 @@ Plugin allowing to provide many PHP versions to customers.
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
- See [GPL v2](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+ See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
 
 ### REQUIREMENTS
 
@@ -47,7 +47,7 @@ the PHP5-FPM implementations will be also supported.
 ### INSTALLATION
 
 1. Login into the panel as admin and go to the plugin management interface
-2. Upload the PhpSwitcher plugin archive
+2. Upload the **PhpSwitcher** plugin archive
 3. Activate the plugin
 
 #### MEMCACHED SUPPORT
@@ -55,11 +55,11 @@ the PHP5-FPM implementations will be also supported.
 In order, to enable memcached support, you must:
 
 1. Install the needed packages (see the requirements section above)
-2. Edit the PhpSwitcher plugins/PhpSwitcher/config.php configuration file to enable memcached support
+2. Edit the **plugins/PhpSwitcher/config.php** configuration file to enable memcached support
 3. Login into the panel interface as admin and go to the plugin management interface
-4. Update the plugin list
+4. Click on the **Update Plugins** button in the plugin management interface
 
-#####Memcached configuration parameters
+##### Memcached configuration parameters
 
 <table>
 	<tr>
@@ -86,16 +86,16 @@ In order, to enable memcached support, you must:
 
 ### UPDATE
 
-1. Backup your current config file plugins/PhpSwitcher/config.php
+1. Backup your current config file **plugins/PhpSwitcher/config.php**
 2. Login into the panel as admin and go to the plugin management interface
-3. Upload the PhpSwitcher plugin archive
-4. Restore your plugins/PhpSwitcher/config.php (compare it with new config file first)
-5. Update the plugin list through the plugin interface
+3. Upload the **PhpSwitcher** plugin archive
+4. Restore your **plugins/PhpSwitcher/config.php** (compare it with new config file first)
+5. Click on the **Update Plugins button** in the plugin management interface
 
-### HOWTO SETUP NEW PHP VERSION
+### SETUP NEW PHP VERSION
 
 At first, you must get, compile and install the PHP version which you want make available for your customers. For
-instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow these steps on Debian Wheezy
+instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow the following steps on Debian Wheezy
 (X86_64 arch):
 
 #### Creating build environment
@@ -117,8 +117,8 @@ instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follo
 
 #### Fetching PHP sources
 
-	# wget http://au1.php.net/get/php-5.3.28.tar.bz2/from/this/mirror -O php.tar.bz2
-	# tar jxf php.tar.bz2
+	# wget http://de.php.net/get/php-5.3.28.tar.bz2/from/this/mirror -O php.tar.bz2
+	# tar xjf php.tar.bz2
 	# cd php-5.3.28
 
 #### Configuration
@@ -145,13 +145,13 @@ Test your php binary by running the following command:
 
 	# /opt/php-fcgid/5.3/bin/php-cgi -v
 
-which should give the following result:
+which should give a result such as:
 
 	PHP 5.3.28 (cgi-fcgi) (built: Feb 20 2014 18:02:14)
 	Copyright (c) 1997-2013 The PHP Group
 	Zend Engine v2.3.0, Copyright (c) 1998-2013 Zend Technologies
 
-### Registration through PhpSwitcher
+#### Registration through PhpSwitcher
 
 1. **Login into the panel as administrator and go to the PhpSwitcher interface (settings section)**
 2. **Create a new PHP version with the following parameters:**
@@ -182,7 +182,7 @@ which should give the following result:
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the **Domains** section.
 
-### TROUBLESHOOTINGS
+#### Troubleshootings
 
 If you are running MariaDB on your server and if you encounter some problems while trying to install PHP build packages,
 you must temporary switch to the MySQL version as provided by your distribution. This can be done easily by using the

@@ -27,7 +27,6 @@
 # TODO PHP5-FPM support
 # TODO delTmp for PHP versions which are managed by this plugin
 
-
 package Plugin::PhpSwitcher;
 
 use strict;
@@ -205,7 +204,7 @@ sub _getMemcached
 				ketama_points => 150,
 				nowait => 1,
 				serialize_methods => [ \&Storable::freeze, \&Storable::thaw ],
-				utf8 => 1,
+				utf8 => 1
 			});
 		}
 	}
