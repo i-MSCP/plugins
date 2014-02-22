@@ -101,7 +101,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 Only necessary if you want to use the Roundcube Plugin managesieve.
 
-**Attention:** Debian Squeeze and Ubuntu Lucid have these binares included with 
+**Attention:** Debian Squeeze and Ubuntu Lucid have these binaries included with
 the dovecot package. So on Squeeze and Lucid you don't need to install anything.
  
 	# aptitude update

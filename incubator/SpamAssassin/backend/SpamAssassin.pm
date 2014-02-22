@@ -32,6 +32,8 @@ package Plugin::SpamAssassin;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
@@ -340,7 +342,7 @@ sub cleanBayesDb
 	my ($stdout, $stderr);
 	my $rs = execute("/usr/bin/sa-learn --force-expire", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;	
+	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	0;

@@ -30,6 +30,8 @@ package Plugin::Postscreen;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
