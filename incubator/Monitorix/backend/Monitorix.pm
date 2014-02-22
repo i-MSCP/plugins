@@ -56,7 +56,7 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	if(! -x '/usr/bin/monitorix') {
 		error('Unable to find monitorix daemon. Please take a look on the README.md and install the monitorix package first.');
@@ -82,8 +82,8 @@ sub install
 
 sub enable
 {
-	my $self = shift;
-	
+	my $self = $_[0];
+
 	my $rs = $self->_modifyMonitorixCgiFile('add');
 	return $rs if $rs;
 
@@ -109,9 +109,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
-
-	$self->_unregisterCronjob();
+	$_[0]->_unregisterCronjob();
 }
 
 =item uninstall()
@@ -124,7 +122,7 @@ sub disable
 
 sub uninstall
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_modifyMonitorixCgiFile('remove');
 	return $rs if $rs;
@@ -156,7 +154,7 @@ sub uninstall
 
 sub buildMonitorixGraphics
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $monitorixGraphColor;
 
@@ -168,12 +166,12 @@ sub buildMonitorixGraphics
 		error($rdata);
 		return 1;
 	}
-	
+
 	require JSON;
 	JSON->import();
-	
+
 	my $monitorixConfig = decode_json($rdata->{'Monitorix'}->{'plugin_config'});
-	
+
 	if($monitorixConfig->{'graph_color'}) {
 		$monitorixGraphColor = $monitorixConfig->{'graph_color'};
 	} else {
@@ -187,13 +185,6 @@ sub buildMonitorixGraphics
 		}
 	}
 
-	#while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
-	#	if($monitorixConfigValue eq 'y') {
-	#		my $rs = $self->_createMonitorixGraphics($monitorixConfigKey, $monitorixGraphColor);
-	#		return $rs if $rs;
-	#	}
-	#}
-	
 	$self->_setMonitorixGraphicsPermission();
 }
 
@@ -401,10 +392,6 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 		$fileContent =~ s/$_(\t\t|\t)= (y|n)/$_$1= $monitorixConfig->{'graph_enabled'}->{$_}/gm;
 	}
 
-	#while (my($monitorixConfigKey, $monitorixConfigValue) = each($monitorixConfig->{'graph_enabled'})) {
-	#	$fileContent =~ s/$monitorixConfigKey(\t\t|\t)= (y|n)/$monitorixConfigKey$1= $monitorixConfigValue/gm;
-	#}
-
 	my $rs = $file->set($fileContent);
 	return 1 if $rs;
 
@@ -437,7 +424,7 @@ sub _modifyMonitorixCgiFile
 		error('Unable to read $monitorixCgi.');
 		return 1;
 	}
-	
+
 	my $monitorixCgiConfig = "open(IN, \"< /usr/share/monitorix/cgi/monitorix.conf.path\");";
 	my $monitorixCgiOldConfig = "open(IN, \"< monitorix.conf.path\");";
 
@@ -463,8 +450,7 @@ sub _modifyMonitorixCgiFile
 
 sub _modifyDefaultMonitorixApacheConfig
 {
-	my $self = shift;
-	my $action = shift;
+	my ($self, $action) @_;
 
 	my $rs = 0;
 
@@ -608,7 +594,7 @@ sub _unregisterCronjob
 
 sub _checkRequirements
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = 0;
 

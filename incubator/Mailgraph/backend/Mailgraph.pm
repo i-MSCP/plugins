@@ -73,7 +73,7 @@ sub install
 
 sub enable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
@@ -91,7 +91,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	$self->_unregisterCronjob();
 }
@@ -106,7 +106,7 @@ sub disable
 
 sub buildGraphs
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_buildMailgraph();
 	return $rs if $rs;
@@ -133,7 +133,7 @@ sub buildGraphs
 
 sub _buildMailgraph
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
 
@@ -278,7 +278,7 @@ sub _createMailgraphPicture
 
 sub _buildMailgraphVirus
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
 	my $mailgraphVirusRRD = '/var/lib/mailgraph/mailgraph_virus.rrd';
@@ -449,7 +449,7 @@ sub _createMailgraphVirusPicture
 
 sub _buildMailgraphGreylist
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph_greylist.rrd';
 

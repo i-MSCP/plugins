@@ -53,12 +53,7 @@ use parent 'Common::SingletonClass';
 
 sub change
 {
-	my $self = shift;
-
-	my $rs = $self->update();
-	return $rs if $rs;
-
-	0;
+	$_[0]->update();
 }
 
 =item update()
@@ -71,15 +66,12 @@ sub change
 
 sub update
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_modifyApacheMasterConf('add');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemonApache();
-	return $rs if $rs;
-	
-	0;
+
+	$self->_restartDaemonApache();
 }
 
 =item enable()
@@ -92,15 +84,12 @@ sub update
 
 sub enable()
 {
-	my $self = shift;
-	
+	my $self = $_[0];
+
 	my $rs = $self->_modifyApacheMasterConf('add');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemonApache();
-	return $rs if $rs;
 
-	0;
+	$self->_restartDaemonApache();
 }
 
 =item disable()
@@ -113,15 +102,12 @@ sub enable()
 
 sub disable()
 {
-	my $self = shift;
-	
+	my $self = $_[0];
+
 	my $rs = $self->_modifyApacheMasterConf('remove');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemonApache();
-	return $rs if $rs;
 
-	0;
+	$self->_restartDaemonApache();
 }
 
 =item _modifyApacheMasterConf($action)
@@ -136,7 +122,7 @@ sub _modifyApacheMasterConf($$)
 {
 	my ($self, $action) = @_;
 	my $ownDdnsConfig;
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/apache2/sites-available/00_master.conf');
 
 	my $fileContent = $file->get();
@@ -156,8 +142,7 @@ sub _modifyApacheMasterConf($$)
 		if ($fileContent =~ /# SECTION custom BEGIN.*# SECTION custom END\.\n/sgm && $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'https://') {
 			$fileContent =~ s/# SECTION custom BEGIN.*# SECTION custom END\.\n/$ownDdnsConfig/sgm;
 		}
-	} 
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$ownDdnsConfig = "# SECTION custom BEGIN.\n";
 		$ownDdnsConfig .= "    RewriteEngine On\n";
 		$ownDdnsConfig .= "    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n";
@@ -171,10 +156,7 @@ sub _modifyApacheMasterConf($$)
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$rs = $file->save();
-	return $rs if $rs;
-
-	0;
+	$file->save();
 }
 
 =item _restartDaemonApache()

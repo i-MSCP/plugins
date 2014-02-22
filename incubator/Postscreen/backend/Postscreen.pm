@@ -59,17 +59,14 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	if(! -x '/usr/lib/postfix/postscreen') {
 		error('Postfix version too low. The Postscreen features are available in Postfix 2.8 and later.');
 		return 1;
 	}
 
-	my $rs = $self->change();
-	return $rs if $rs;
-
-	0;
+	$self->change();
 }
 
 =item change()
@@ -82,12 +79,7 @@ sub install
 
 sub change
 {
-	my $self = shift;
-
-	my $rs = $self->_patchMailgraph('add');
-	return $rs if $rs;
-
-	0;
+	$_[0]->_patchMailgraph('add');
 }
 
 =item update()
@@ -100,12 +92,7 @@ sub change
 
 sub update
 {
-	my $self = shift;
-
-	my $rs = $self->change();
-	return $rs if $rs;
-
-	0;
+	$_[0]->change();
 }
 
 =item enable()
@@ -118,7 +105,7 @@ sub update
 
 sub enable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
@@ -129,10 +116,7 @@ sub enable
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
 
-	$rs = $self->_changeRoundcubeSmtpPort('add');
-	return $rs if $rs;
-
-	0;
+	$self->_changeRoundcubeSmtpPort('add');
 }
 
 =item disable()
@@ -145,7 +129,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
@@ -156,10 +140,7 @@ sub disable
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
 
-	$rs = $self->_changeRoundcubeSmtpPort('remove');
-	return $rs if $rs;
-
-	0;
+	$self->_changeRoundcubeSmtpPort('remove');
 }
 
 =item uninstall()
@@ -172,12 +153,7 @@ sub disable
 
 sub uninstall
 {
-	my $self = shift;
-	
-	my $rs = $self->_patchMailgraph('remove');
-	return $rs if $rs;
-	
-	0;
+	$_[0]->_patchMailgraph('remove');
 }
 
 =back
@@ -196,7 +172,7 @@ sub uninstall
 
 sub _init
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
@@ -228,12 +204,12 @@ sub _init
 sub _modifyPostfixMainConfig($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my $rs = 0;
 	my $policyService;
 	my $postscreenDnsblSites;
 	my $postscreenAccessList;
-	
+
 	for(@{$self->{'config'}->{'postscreen_dnsbl_sites'}}) {
 		if(! $postscreenDnsblSites) {
 			$postscreenDnsblSites = $_;
@@ -241,32 +217,34 @@ sub _modifyPostfixMainConfig($$)
 			$postscreenDnsblSites .= ",\n\t\t\t $_";
 		}
 	}
-	
+
 	for(@{$self->{'config'}->{'postscreen_access_list'}}) {
 		if(! $postscreenAccessList) {
 			$postscreenAccessList = $_;
 		} else {
 			$postscreenAccessList .= ",\n\t\t\t $_";
 		}
+
 		my $cidrFile = $_;
+
 		if($cidrFile =~ /^cidr:/sgm) {
 				$cidrFile =~ s/^(cidr:)(.*)/$2/gm;
 				$rs = $self->_createPostscreenAccessFile($cidrFile);
 				return $rs if $rs;
 		}
 	}
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read /etc/postfix/main.cf");
 		return 1;
 	}
-	
+
 	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:12525,\n//gm;
 	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:10023,\n//gm;
-	
+
 	if($self->{'config'}->{'disable_policyd-weight'} eq 'no') {
 		$policyService .= "                               check_policy_service inet:127.0.0.1:12525,\n";
 		$rs = $self->_servicePorts('show', 'PORT_POLICYD-WEIGHT');
@@ -275,7 +253,7 @@ sub _modifyPostfixMainConfig($$)
 		$rs = $self->_servicePorts('hide', 'PORT_POLICYD-WEIGHT');
 		return $rs if $rs;
 	}
-	
+
 	if($self->{'config'}->{'disable_postgrey'} eq 'no') {
 		$policyService .= "                               check_policy_service inet:127.0.0.1:10023,\n";
 		$rs = $self->_servicePorts('show', 'PORT_POSTGREY');
@@ -284,7 +262,7 @@ sub _modifyPostfixMainConfig($$)
 		$rs = $self->_servicePorts('hide', 'PORT_POSTGREY');
 		return $rs if $rs;
 	}
-	
+
 	my $postfixPostscreenConfig = "\n# Begin Plugin::Postscreen\n";
 	$postfixPostscreenConfig .= "postscreen_greet_action = ". $self->{'config'}->{'postscreen_greet_action'} ."\n";
 	$postfixPostscreenConfig .= "postscreen_dnsbl_sites = ". $postscreenDnsblSites ."\n";
@@ -293,30 +271,29 @@ sub _modifyPostfixMainConfig($$)
 	$postfixPostscreenConfig .= "postscreen_access_list = ". $postscreenAccessList ."\n";
 	$postfixPostscreenConfig .= "postscreen_blacklist_action = ". $self->{'config'}->{'postscreen_blacklist_action'} ."\n";
 	$postfixPostscreenConfig .= "# Ending Plugin::Postscreen\n";
-	
+
 	if($action eq 'add') {
 		$fileContent =~ s/^\n# Begin Plugin::Postscreen.*Ending Plugin::Postscreen\n//sgm;
 		$fileContent .= "$postfixPostscreenConfig";
-	} 
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$policyService  = "                               check_policy_service inet:127.0.0.1:12525,\n";
 		$policyService .= "                               check_policy_service inet:127.0.0.1:10023,\n";
 		$fileContent =~ s/^\n# Begin Plugin::Postscreen.*Ending Plugin::Postscreen\n//sgm;
-		
+
 		$rs = $self->_servicePorts('show', 'PORT_POLICYD-WEIGHT');
 		return $rs if $rs;
 		$rs = $self->_servicePorts('show', 'PORT_POSTGREY');
 		return $rs if $rs;
 	}
-	
+
 	$fileContent =~ s/(\s*reject_unlisted_recipient,\n)/$1$policyService/gm;
-	
+
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
-	
+
 	$rs = $file->save();
 	return $rs if $rs;
-	
+
 	0;
 }
 
@@ -331,38 +308,34 @@ sub _modifyPostfixMainConfig($$)
 sub _modifyPostfixMasterConfig($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/master.cf');
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read /etc/postfix/master.cf");
 		return 1;
 	}
-	
+
 	my $postfixPostscreenConfig = "# Begin Plugin::Postscreen\n";
 	$postfixPostscreenConfig .= "smtp      inet  n       -       -       -       1       postscreen\n";
 	$postfixPostscreenConfig .= "smtpd     pass  -       -       -       -       -       smtpd\n";
 	$postfixPostscreenConfig .= "tlsproxy  unix  -       -       -       -       0       tlsproxy\n";
 	$postfixPostscreenConfig .= "dnsblog   unix  -       -       -       -       0       dnsblog\n";
 	$postfixPostscreenConfig .= "# Ending Plugin::Postscreen";
-	
+
 	if($action eq 'add') {
 		$fileContent =~ s/^# Begin Plugin::Postscreen.*Ending Plugin::Postscreen//sgm;
 		$fileContent =~ s/^smtp\s*inet\s*n\s*-\s*-\s*-\s*-\s*smtpd/$postfixPostscreenConfig/gm;
-	} 
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$postfixPostscreenConfig = "smtp      inet  n       -       -       -       -       smtpd";
 		$fileContent =~ s/^# Begin Plugin::Postscreen.*Ending Plugin::Postscreen/$postfixPostscreenConfig/sgm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
-	
-	0;
+
+	$file->save();
 }
 
 =item _patchMailgraph($action)
@@ -376,9 +349,9 @@ sub _modifyPostfixMasterConfig($$)
 sub _patchMailgraph($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my ($rs, $stdout, $stderr) = (0, undef, undef);
-	
+
 	if(-x '/usr/sbin/mailgraph') {
 		if($action eq 'add') {
 			if($self->{'config'}->{'patch_mailgraph'} eq 'yes' && ! -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
@@ -397,18 +370,17 @@ sub _patchMailgraph($$)
 				error($stderr) if $stderr && $rs;
 				return $rs if $rs;
 			}
-		}
-		elsif($action eq 'remove' && -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
+		} elsif($action eq 'remove' && -x '/usr/sbin/mailgraph_POSTSCREEN-PLUGIN') {
 			$rs = execute("$main::imscpConfig{'CMD_MV'} /usr/sbin/mailgraph_POSTSCREEN-PLUGIN /usr/sbin/mailgraph", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			return $rs if $rs;
 		}
-		
+
 		$rs = $self->_restartDaemonMailgraph();
 		return $rs if $rs;
 	}
-	
+
 	0;
 }
 
@@ -423,30 +395,30 @@ sub _patchMailgraph($$)
 sub _servicePorts($$$)
 {
 	my ($self, $action, $service) = @_;
-	
+
 	my $newValue;
-	
+
 	my $rdata = iMSCP::Database->factory()->doQuery('name', 'SELECT `name`, `value` FROM `config` WHERE `name` = ?', $service);
-	
+
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
 	my ($c1, $c2, $c3, $c4, $c5) = split(/;/, $rdata->{$service}->{'value'});
-	
+
 	if($action eq 'show') {
 		$newValue = $c1.";".$c2.";".$c3.";1;".$c5;
-	} 
-	elsif($action eq 'hide') {
+	} elsif($action eq 'hide') {
 		$newValue = $c1.";".$c2.";".$c3.";0;".$c5;
 	}
+
 	my @sql = ('UPDATE `config` SET `value` = ? WHERE `name` = ?', $newValue, $service);
 	my $rdata = iMSCP::Database->factory->doQuery('dummy', @sql);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
-	
+
 	0;
 }
 
@@ -464,7 +436,7 @@ sub _createPostscreenAccessFile($$)
 	
 	if(! -e $fileName) {
 		my $file = iMSCP::File->new('filename' => $fileName);
-		
+
 		my $fileContent = "# For more information please check man postscreen or:\n";
 		$fileContent .= "# http://www.postfix.org/postconf.5.html#postscreen_access_list\n";
 		$fileContent .= "#\n";
@@ -472,13 +444,13 @@ sub _createPostscreenAccessFile($$)
 		$fileContent .= "# Blacklist 192.168.* except 192.168.0.1\n";
 		$fileContent .= "# 192.168.0.1         permit\n";
 		$fileContent .= "# 192.168.0.0/16      reject\n";
-		
+
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;
-		
+
 		$rs = $file->save();
 		return $rs if $rs;
-		
+
 		$rs = $file->mode(0644);
 		return $rs if $rs;
 	}
@@ -500,27 +472,23 @@ sub _changeRoundcubeSmtpPort($$)
 
 	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read $roundcubeMainIncFile");
 		return 1;
 	}
-	
+
 	if($action eq 'add') {
 		$fileContent =~ s/=\s+25;/= 587;/sgm;
-	}
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$fileContent =~ s/=\s+587;/= 25;/sgm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
-	
-	0;
+
+	$file->save();
 }
 
 =item _restartDaemonPostfix()
@@ -533,11 +501,9 @@ sub _changeRoundcubeSmtpPort($$)
 
 sub _restartDaemonPostfix
 {
-	my $self = shift;
-	
-    require Servers::mta;
-    Servers::mta->factory()->{'restart'} = 'yes';
-	
+	require Servers::mta;
+	Servers::mta->factory()->{'restart'} = 'yes';
+
 	0;
 }
 
@@ -551,15 +517,12 @@ sub _restartDaemonPostfix
 
 sub _restartDaemonMailgraph
 {
-	my $self = shift;
-	
 	my ($stdout, $stderr) = (undef, undef);
 	my $rs = execute('service mailgraph restart', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-	
-	0;
+
+	$rs
 }
 
 =back

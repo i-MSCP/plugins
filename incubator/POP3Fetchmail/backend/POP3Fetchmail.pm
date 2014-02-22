@@ -56,7 +56,7 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_installPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
@@ -80,7 +80,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_unregisterPop3fetcherRoundcubePlugin();
 	return $rs if $rs;
@@ -98,7 +98,7 @@ sub disable
 
 sub uninstall
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $pop3FetcherFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools$main::imscpConfig{'WEBMAIL_PATH'}" .
 		'plugins/pop3fetcher';
