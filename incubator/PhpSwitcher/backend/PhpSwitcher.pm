@@ -52,7 +52,7 @@ use parent 'Common::SingletonClass';
 
 =item run()
 
- Register event listener
+ Register event listener which is responsible to override default PHP paths
 
  Return int 0 on success, other on failure
 
@@ -67,7 +67,6 @@ sub run
 		$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherEventListener);
 		$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherEventListener);
 		$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherEventListener);
-
 		$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherEventListener);
 		$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherEventListener);
 		$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherEventListener);
@@ -89,8 +88,7 @@ sub phpSwitcherEventListener($)
 {
 	my $phpSwitcher = __PACKAGE__->getInstance();
 	my $adminId = $_[0]->{'DOMAIN_ADMIN_ID'} // 0;
-
-	my $phpVersions = ($phpSwitcher->{'memcached'}) ? $phpSwitcher->{'memcached'}->get('php_versions') : { };
+	my $phpVersions = ($phpSwitcher->{'memcached'}) ? $phpSwitcher->{'memcached'}->get('php_versions') : undef;
 
 	if(! defined $phpVersions) {
 		$phpVersions = $phpSwitcher->{'db'}->doQuery(
@@ -109,7 +107,7 @@ sub phpSwitcherEventListener($)
 			return 1;
 		}
 
-		$phpSwitcher->{'memcached'}->set('php_versions', $phpVersions);
+		$phpSwitcher->{'memcached'}->set('php_versions', $phpVersions) if $phpSwitcher->{'memcached'};
 	}
 
 	if(exists $phpVersions->{$adminId}) {

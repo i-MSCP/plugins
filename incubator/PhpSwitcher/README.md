@@ -50,7 +50,7 @@ the PHP5-FPM implementations will be also supported.
 2. Upload the **PhpSwitcher** plugin archive
 3. Activate the plugin
 
-#### MEMCACHED SUPPORT
+#### Memcached Support
 
 In order, to enable memcached support, you must:
 
@@ -69,17 +69,17 @@ In order, to enable memcached support, you must:
 	</tr>
 	<tr>
 		<td>enabled</td>
-		<td>boolean</td>
+		<td>boolean (default false)</td>
 		<td>Allow to enable or disable memcached support</td>
 	</tr>
 	<tr>
 		<td>hostname</td>
-		<td>string</td>
+		<td>string (default 127.0.0.1)</td>
 		<td>Memcached server hostname (Either an IP or hostname)</td>
 	</tr>
 	<tr>
 		<td>port</td>
-		<td>integer</td>
+		<td>integer (default 11211)</td>
 		<td>Memcached server port</td>
 	</tr>
 </table>
@@ -123,14 +123,52 @@ instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follo
 
 #### Configuration
 
-	# ./configure --prefix=/opt/php-fcgid/5.3 --with-pdo-pgsql --with-zlib-dir --with-freetype-dir --enable-mbstring \
-	--with-libxml-dir=/usr --enable-soap --enable-calendar --with-curl --with-mcrypt --with-zlib --with-gd \
-	--with-pgsql --disable-rpath --enable-inline-optimization --with-bz2 --with-zlib --enable-sockets \
-	--enable-sysvsem --enable-sysvshm --enable-pcntl --enable-mbregex --enable-exif --enable-bcmath --with-mhash \
-	--enable-zip --with-pcre-regex --with-mysql=mysqlnd --with-pdo-mysql=mysqlnd --with-mysqli=mysqlnd \
-	--with-mysql-sock=/var/run/mysqld/mysqld.sock --with-jpeg-dir=/usr --with-png-dir=/usr --enable-gd-native-ttf \
-	--with-openssl --with-libdir=/lib/x86_64-linux-gnu --enable-ftp --with-imap --with-imap-ssl --with-kerberos \
-	--with-gettext --with-xmlrpc --with-xsl --enable-cgi
+	# ./configure \
+	--prefix=/opt/php-fcgid/5.3 \
+	--with-config-file-scan-dir=/opt/php-fcgid/5.3/conf.d \
+	--with-pdo-pgsql \
+	--with-zlib-dir \
+	--with-freetype-dir \
+	--enable-mbstring \
+	--with-libxml-dir=/usr \
+	--enable-soap \
+	--enable-calendar \
+	--with-curl \
+	--with-mcrypt \
+	--with-zlib \
+	--with-gd \
+	--with-pgsql \
+	--disable-rpath \
+	--enable-inline-optimization \
+	--with-bz2 \
+	--with-zlib \
+	--enable-sockets \
+	--enable-sysvsem \
+	--enable-sysvshm \
+	--enable-pcntl \
+	--enable-mbregex \
+	--enable-exif \
+	--enable-bcmath \
+	--with-mhash \
+	--enable-zip \
+	--with-pcre-regex \
+	--with-mysql=mysqlnd \
+	--with-pdo-mysql=mysqlnd \
+	--with-mysqli=mysqlnd \
+	--with-mysql-sock=/var/run/mysqld/mysqld.sock \
+	--with-jpeg-dir=/usr \
+	--with-png-dir=/usr \
+	--enable-gd-native-ttf \
+	--with-openssl \
+	--with-libdir=/lib/x86_64-linux-gnu \
+	--enable-ftp \
+	--with-imap \
+	--with-imap-ssl \
+	--with-kerberos \
+	--with-gettext \
+	--with-xmlrpc \
+	--with-xsl \
+	--enable-cgi
 
 **Note:** If you need more modules, you must tune the configuration options and install needed libraries.
 

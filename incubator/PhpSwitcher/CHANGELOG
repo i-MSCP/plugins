@@ -14,3 +14,10 @@ Version 0.0.2
 	- Added: Binary path and configuration directory path to datatable
 	- Added: Optional but recommended memcached support
 	- Removed: Version ID from datatable
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+	- Fixed: If the memcached server do not work, plugin must work in degraded mode
+	- Fixed: Wrong package name in documentation for memcached support (perl side)
