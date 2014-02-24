@@ -131,6 +131,24 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	}
 	
 	/**
+	 * Plugin update
+	 *
+	 * @throws iMSCP_Plugin_Exception When update fail
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @param string $fromVersion Version from which plugin update is initiated
+	 * @param string $toVersion Version to which plugin is updated
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	{
+		try {
+			$this->dbMigrate($pluginManager, 'up');
+		} catch (iMSCP_Exception_Database $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+		}
+	}
+	
+	/**
 	 * Migrate database
 	 *
 	 * @throws iMSCP_Exception_Database When migration fail
