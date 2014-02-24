@@ -59,7 +59,7 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	if(! -x '/usr/sbin/clamd') {
 		error('Unable to find clamav daemon. Please, install the clamav and clamav-daemon packages first.');
@@ -76,10 +76,7 @@ sub install
 		return 1;
 	}
 
-	my $rs = $self->change();
-	return $rs if $rs;
-
-	0;
+	$self->change();
 }
 
 =item change()
@@ -92,7 +89,7 @@ sub install
 
 sub change
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_modifyClamavMilterDefaultConfig('add');
 	return $rs if $rs;
@@ -100,10 +97,7 @@ sub change
 	$rs = $self->_modifyClamavMilterSystemConfig('add');
 	return $rs if $rs;
 
-	$rs = $self->_restartDaemon('clamav-milter', 'restart');
-	return $rs if $rs;
-
-	0;
+	$self->_restartDaemon('clamav-milter', 'restart');
 }
 
 =item update()
@@ -116,12 +110,7 @@ sub change
 
 sub update
 {
-	my $self = shift;
-
-	my $rs = $self->change();
-	return $rs if $rs;
-
-	0;
+	$_[0]->change();
 }
 
 =item enable()
@@ -134,15 +123,12 @@ sub update
 
 sub enable
 {
-	my $self = shift;
-	
+	my $self = $_[0];
+
 	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
-	
-	0;
+
+	$self->_restartDaemonPostfix();
 }
 
 =item disable()
@@ -155,15 +141,12 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
-	
+	my $self = $_[0];
+
 	my $rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemonPostfix();
-	return $rs if $rs;
-	
-	0;
+
+	$self->_restartDaemonPostfix();
 }
 
 =item uninstall()
@@ -176,18 +159,15 @@ sub disable
 
 sub uninstall
 {
-	my $self = shift;
-		
+	my $self = $_[0];
+
 	my $rs = $self->_modifyClamavMilterDefaultConfig('remove');
 	return $rs if $rs;
-	
+
 	$rs = $self->_modifyClamavMilterSystemConfig('remove');
 	return $rs if $rs;
-	
-	$rs = $self->_restartDaemon('clamav-milter', 'restart');
-	return $rs if $rs;
-	
-	0;
+
+	$self->_restartDaemon('clamav-milter', 'restart');
 }
 
 =back
@@ -206,7 +186,7 @@ sub uninstall
 
 sub _init
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
@@ -220,7 +200,7 @@ sub _init
 			error($rdata);
 			return 1;
 		}
-		
+
 		$self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
 	}
 
@@ -238,19 +218,19 @@ sub _init
 sub _modifyClamavMilterDefaultConfig($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/default/clamav-milter');
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read /etc/default/clamav-milter");
 		return 1;
 	}
-	
+
 	my $clamavMilterSocketConfig = "\n# Begin Plugin::ClamAV\n";
 	$clamavMilterSocketConfig .= "SOCKET_RWGROUP=postfix\n";
 	$clamavMilterSocketConfig .= "# Ending Plugin::ClamAV\n";
-	
+
 	if($action eq 'add') {
 		if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$clamavMilterSocketConfig/sgm;
@@ -260,14 +240,11 @@ sub _modifyClamavMilterDefaultConfig($$)
 	} elsif($action eq 'remove') {
 		$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
-	
-	0;
+
+	$file->save();
 }
 
 =item _modifyClamavMilterSystemConfig($action)
@@ -281,15 +258,15 @@ sub _modifyClamavMilterDefaultConfig($$)
 sub _modifyClamavMilterSystemConfig($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/clamav/clamav-milter.conf');
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read /etc/clamav/clamav-milter.conf");
 		return 1;
 	}
-	
+
 	if($action eq 'add') {
 		$fileContent =~ s/^(MilterSocket.*)/#$1/gm;
 		$fileContent =~ s/^(FixStaleSocket.*)/#$1/gm;
@@ -316,7 +293,7 @@ sub _modifyClamavMilterSystemConfig($$)
 		$fileContent =~ s/^(LogFileMaxSize.*)/#$1/gm;
 		$fileContent =~ s/^(MilterSocketGroup.*)/#$1/gm;
 		$fileContent =~ s/^(MilterSocketMode.*)/#$1/gm;
-		
+
 		my $clamavMilterSystemConfig = "\n# Begin Plugin::ClamAV\n";
 		$clamavMilterSystemConfig .= "MilterSocket " . $self->{'config'}->{'MilterSocket'} ."\n";
 		$clamavMilterSystemConfig .= "FixStaleSocket " . $self->{'config'}->{'FixStaleSocket'} ."\n";
@@ -345,14 +322,13 @@ sub _modifyClamavMilterSystemConfig($$)
 		$clamavMilterSystemConfig .= "MilterSocketMode " . $self->{'config'}->{'MilterSocketMode'} ."\n";
 		$clamavMilterSystemConfig .= "RejectMsg " . $self->{'config'}->{'RejectMsg'} ."\n";
 		$clamavMilterSystemConfig .= "# Ending Plugin::ClamAV\n";
-		
+
 		if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$clamavMilterSystemConfig/sgm;
 		} else {
 			$fileContent .= "$clamavMilterSystemConfig";
 		}
-	}
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$fileContent =~ s/^(#)(MilterSocket.*)/$2/gm;
 		$fileContent =~ s/^(#)(FixStaleSocket.*)/$2/gm;
 		$fileContent =~ s/^(#)(User.*)/$2/gm;
@@ -378,17 +354,13 @@ sub _modifyClamavMilterSystemConfig($$)
 		$fileContent =~ s/^(#)(LogFileMaxSize.*)/$2/gm;
 		$fileContent =~ s/^(#)(MilterSocketGroup.*)/$2/gm;
 		$fileContent =~ s/^(#)(MilterSocketMode.*)/$2/gm;
-		
 		$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
 	}
-	
+
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
-	
-	0;
+
+	$file->save();
 }
 
 =item _modifyPostfixMainConfig($action)
@@ -402,21 +374,21 @@ sub _modifyClamavMilterSystemConfig($$)
 sub _modifyPostfixMainConfig($$)
 {
 	my ($self, $action) = @_;
-	
+
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
-	
+
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read /etc/postfix/main.cf");
 		return 1;
 	}
-	
+
 	my ($stdout, $stderr);
 	my $rs = execute('postconf smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
-	
+
 	if($action eq 'add') {
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
 		my @miltersValues = split(' ', $1);
@@ -444,8 +416,7 @@ sub _modifyPostfixMainConfig($$)
 			
 			$fileContent .= "$postfixClamavConfig";
 		}
-	} 
-	elsif($action eq 'remove') {
+	} elsif($action eq 'remove') {
 		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
 		my @miltersValues = split(/\s+/, $1);
 		
@@ -456,14 +427,11 @@ sub _modifyPostfixMainConfig($$)
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
-	
+
 	$rs = $file->set($fileContent);
 	return $rs if $rs;
-	
-	$rs = $file->save();
-	return $rs if $rs;
-	
-	0;
+
+	$file->save();
 }
 
 =item _restartDaemon($daemon, $action)
@@ -477,14 +445,13 @@ sub _modifyPostfixMainConfig($$)
 sub _restartDaemon($$$)
 {
 	my ($self, $daemon, $action) = @_;
-	
+
 	my ($stdout, $stderr);
 	my $rs = execute("service $daemon $action", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-	
-	0;
+
+	$rs;
 }
 
 =item _restartDaemonPostfix()
@@ -497,11 +464,9 @@ sub _restartDaemon($$$)
 
 sub _restartDaemonPostfix
 {
-	my $self = shift;
-	
-    require Servers::mta;
-    Servers::mta->factory()->{'restart'} = 'yes';
-	
+	require Servers::mta;
+	Servers::mta->factory()->{'restart'} = 'yes';
+
 	0;
 }
 
