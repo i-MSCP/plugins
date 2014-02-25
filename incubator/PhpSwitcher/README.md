@@ -1,4 +1,4 @@
-## PhpSwitcher v0.0.3 plugin for i-MSCP
+## PhpSwitcher v0.0.4 plugin for i-MSCP
 
 Plugin allowing to provide many PHP versions to customers.
 
@@ -48,7 +48,8 @@ the PHP5-FPM implementations will be also supported.
 
 1. Login into the panel as admin and go to the plugin management interface
 2. Upload the **PhpSwitcher** plugin archive
-3. Activate the plugin
+3. Click on the **Update Plugins** button
+4. Activate the plugin
 
 #### Memcached Support
 
@@ -90,7 +91,7 @@ In order, to enable memcached support, you must:
 2. Login into the panel as admin and go to the plugin management interface
 3. Upload the **PhpSwitcher** plugin archive
 4. Restore your **plugins/PhpSwitcher/config.php** (compare it with new config file first)
-5. Click on the **Update Plugins button** in the plugin management interface
+5. Click on the **Update Plugins** button in the plugin management interface
 
 ### SETUP NEW PHP VERSION
 

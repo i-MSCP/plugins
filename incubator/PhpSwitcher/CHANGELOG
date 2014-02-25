@@ -1,5 +1,5 @@
-i-MSCP PhpSwitcher plugin ChangeLog
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PhpSwitcher plugin ChangeLog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
@@ -20,4 +20,12 @@ Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
 	- Fixed: If the memcached server do not work, plugin must work in degraded mode
-	- Fixed: Wrong package name in documentation for memcached support (perl side)
+	- Fixed: Wrong package name in documentation for memcached support (Perl side)
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.4
+------------------------------------------------------------------------------------------------------------------------
+
+	- Fixed: PHP versions set by customers must be reset back to the default PHP version when the plugin is deactivated
+	- Fixed: PHP versions set by customers must be set when the plugin is being reactivated
+	- Fixed: PHP versions set by customers must remain persistent when i-MSCP is being updated

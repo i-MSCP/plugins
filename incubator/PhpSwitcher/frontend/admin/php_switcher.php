@@ -23,70 +23,6 @@
  */
 
 /**
- * Schedule change for all domains which belong to the given user list
- *
- * @param array $adminIds List of user ID for which domains configuration files must be regenerated
- * @return void
- */
-function _phpSwitcher_scheduleDomainsChange(array $adminIds)
-{
-	$adminIdList = implode(',', $adminIds);
-
-	exec_query(
-		'UPDATE domain SET domain_status = ? WHERE domain_admin_id IN (' . $adminIdList . ') AND domain_status = ?',
-		array('tochange', 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				subdomain
-			JOIN
-				domain USING(domain_id)
-			SET
-				subdomain_status = ?
-			WHERE
-				domain_admin_id IN (' . $adminIdList . ')
-			AND
-				subdomain_status = ?
-		',
-		array('tochange', 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				domain_aliasses
-			JOIN
-				domain USING(domain_id)
-			SET
-				alias_status = ?
-			WHERE
-				domain_admin_id IN (' . $adminIdList . ')
-			AND
-				alias_status = ?
-		',
-		array('tochange', 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				subdomain_alias
-			JOIN
-				domain_aliasses USING(alias_id)
-			SET
-				subdomain_alias_status = ?
-			WHERE
-				domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
-			AND
-				subdomain_alias_status = ?
-		',
-		array('tochange', 'ok')
-	);
-}
-
-/**
  * Send Json response
  *
  * @param int $statusCode HTTPD status code
@@ -165,7 +101,9 @@ function phpSwitcher_add()
 
 		if ($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif (strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) {
+		} elseif (
+			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
+		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
 				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
@@ -223,7 +161,9 @@ function phpSwitcher_edit()
 
 		if ($versionBinaryPath == '' || $versionConfdirPath == '') {
 			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif (strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) {
+		} elseif (
+			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
+		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
 				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
@@ -251,14 +191,17 @@ function phpSwitcher_edit()
 				$sendRequest = false;
 				$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
+				/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
+				$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+
 				if ($stmt->rowCount()) {
-					_phpSwitcher_scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+					$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
 					$sendRequest = true;
 				}
 
 				$db->commit();
 
-				iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+				$pluginManager->flushCache();
 
 				if ($sendRequest) {
 					send_request();
@@ -303,8 +246,11 @@ function phpSwitcher_delete()
 			$sendRequest = false;
 			$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
-			if($stmt->rowCount()) {
-				_phpSwitcher_scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+			/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
+			$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+
+			if ($stmt->rowCount()) {
+				$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
 				$sendRequest = true;
 			}
 
@@ -313,7 +259,7 @@ function phpSwitcher_delete()
 			if ($stmt->rowCount()) {
 				$db->commit();
 
-				iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+				$pluginManager->flushCache();
 
 				if ($sendRequest) {
 					send_request();
@@ -399,8 +345,8 @@ function phpSwitcher_getTable()
 
 		/* Get data to display */
 		$rResult = execute_query(
-			"
-				SELECT SQL_CALC_FOUND_ROWS " . str_replace(' , ', ' ', implode(', ', $columns)) . "
+			'
+				SELECT SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . "
 				FROM $table $where $order $limit
 			"
 		);
@@ -430,7 +376,7 @@ function phpSwitcher_getTable()
 			$row = array();
 
 			for ($i = 0; $i < $nbColumns; $i++) {
-				if($columns[$i] != 'version_id') {
+				if ($columns[$i] != 'version_id') {
 					$row[$columns[$i]] = $data[$columns[$i]];
 				}
 			}

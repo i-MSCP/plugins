@@ -23,74 +23,11 @@
  */
 
 /**
- * Schedule PHP version update for all customer 's domains
- *
- * @return void
- */
-function _phpSwitcher_scheduleDomainsChange()
-{
-	$adminId = $_SESSION['user_id'];
-
-	exec_query(
-		'UPDATE domain set domain_status = ? WHERE domain_admin_id = ? AND domain_status = ?',
-		array('tochange', $adminId, 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				subdomain
-			JOIN
-				domain USING(domain_id)
-			SET
-				subdomain_status = ?
-			WHERE
-				domain_admin_id = ?
-			AND
-				subdomain_status = ?
-		',
-		array('tochange', $adminId, 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				domain_aliasses
-			JOIN
-				domain USING(domain_id)
-			SET
-				alias_status = ?
-			WHERE
-				domain_admin_id = ?
-			AND
-				alias_status = ?
-		',
-		array('tochange', $adminId, 'ok')
-	);
-
-	exec_query(
-		'
-			UPDATE
-				subdomain_alias
-			JOIN
-				domain_aliasses USING(alias_id)
-			SET
-				subdomain_alias_status = ?
-			WHERE
-				domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id = ?)
-			AND
-				subdomain_alias_status = ?
-		',
-		array('tochange', $adminId, 'ok')
-	);
-}
-
-/**
  * Set PHP version
  *
  * @return void
  */
-function phpSwitcher_setVersion()
+function phpSwitcher_changePhpVersion()
 {
 	if (isset($_POST['version_id'])) {
 		$versionId = intval($_POST['version_id']);
@@ -121,14 +58,17 @@ function phpSwitcher_setVersion()
 				);
 			}
 
-			_phpSwitcher_scheduleDomainsChange();
+			/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
+			$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+
+			$pluginManager->scheduleDomainsChange(array($_SESSION['user_id']));
 
 			$db->commit();
 
-			iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+			$pluginManager->flushCache();
 
 			send_request();
-			set_page_message(tr('PHP version successfully scheduled for update. Please, be patient...'), 'success');
+			set_page_message(tr('PHP version successfully scheduled for update. Please be patient...'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 			set_page_message(tr('An unexpected error occured.', 'error'));
@@ -171,7 +111,10 @@ function phpSwitcher_generatePage($tpl)
 		);
 	}
 
-	$versions['PHP' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . ' (Default)'] = array('version_id' => 0);
+	$versions['PHP' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION] = array(
+		'version_id' => 0
+	);
+
 	ksort($versions, SORT_NATURAL);
 
 	foreach ($versions as $version => $data) {
@@ -197,7 +140,7 @@ check_login('user');
 
 if (customerHasFeature('php')) {
 	if (isset($_POST['version_id'])) {
-		phpSwitcher_setVersion();
+		phpSwitcher_changePhpVersion();
 		redirectTo('/client/phpswitcher');
 	}
 
@@ -217,7 +160,7 @@ if (customerHasFeature('php')) {
 			'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
 			'ISP_LOGO' => layout_getUserLogo(),
 			'TR_HINT' => tr('Please choose the PHP version you want use below.'),
-			'TR_VERSION' => tr('VERSION'),
+			'TR_VERSION' => tr('Version'),
 			'TR_UPDATE' => tr('Update')
 		)
 	);

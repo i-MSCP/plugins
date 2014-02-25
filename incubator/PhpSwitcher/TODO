@@ -1,2 +1,4 @@
+- Allow to disable specific PHP version
+- Allow to set default PHP version (admin side)
 - PHP5-FPM support
 - PHP5 Compilation HOWTOs

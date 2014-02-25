@@ -39,7 +39,6 @@ use iMSCP::HooksManager;
 use iMSCP::Database;
 use Servers::httpd;
 use JSON;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -63,20 +62,52 @@ sub run
 	if($main::imscpConfig{'HTTPD_SERVER'} ~~ ['apache_fcgid']) {
 		my $hooksManager = iMSCP::HooksManager->getInstance();
 
-		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherEventListener);
-		$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherEventListener);
+		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherListener);
 	}
 
 	0;
 }
 
-=item phpSwitcherEventListener(\%data)
+=item enable()
+
+ Perform enable tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub enable
+{
+	$_[0]->run();
+}
+
+=item change()
+
+ Perform change tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub change
+{
+	$_[0]->run();
+}
+
+=back
+
+=head1 EVENT LISTENERS
+
+=over 4
+
+=item phpSwitcherListener(\%data)
 
  Event listener which is responsible to override PHP binary and PHP configuration paths
 
@@ -84,13 +115,13 @@ sub run
 
 =cut
 
-sub phpSwitcherEventListener($)
+sub phpSwitcherListener($)
 {
-	my $phpSwitcher = __PACKAGE__->getInstance();
 	my $adminId = $_[0]->{'DOMAIN_ADMIN_ID'} // 0;
+	my $phpSwitcher = __PACKAGE__->getInstance();
 	my $phpVersions = ($phpSwitcher->{'memcached'}) ? $phpSwitcher->{'memcached'}->get('php_versions') : undef;
 
-	if(! defined $phpVersions) {
+	unless(defined $phpVersions) {
 		$phpVersions = $phpSwitcher->{'db'}->doQuery(
 			'admin_id',
 			'
@@ -100,7 +131,10 @@ sub phpSwitcherEventListener($)
 					php_switcher_version
 				INNER JOIN
 					php_switcher_version_admin USING (version_id)
-			'
+				WHERE
+					version_status = ?
+			',
+			'ok'
 		);
 		unless(ref $phpVersions eq 'HASH') {
 			error($phpVersions);

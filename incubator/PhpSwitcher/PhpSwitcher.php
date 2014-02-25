@@ -49,31 +49,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			} else {
-				$coreConfig = iMSCP_Registry::get('config');
-
-				//if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
-				if (!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
-					set_page_message(
-						tr(
-						//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
-							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this implementation by running the i-MSCP installer as follow: %s',
-							'<strong>perl imscp-autoinstall -dr httpd</strong>'
-						),
-						'error'
-					);
-
-					$event->stopPropagation();
-				}
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -99,7 +75,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		$this->onBeforeInstallPlugin($event);
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -114,8 +90,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->flushCache();
 			$this->dbMigrate($pluginManager, 'up');
+			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
@@ -129,7 +105,36 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		$this->onBeforeInstallPlugin($event);
+		$this->checkCompat($event);
+	}
+
+	/**
+	 * Plugin activation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		$db = iMSCP_Database::getRawInstance();
+
+		try {
+			$db->beginTransaction();
+
+			$stmt = execute_query('SELECT admin_id FROM php_switcher_version_admin');
+
+			if ($stmt->rowCount()) {
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+			}
+
+			$db->commit();
+
+			$this->flushCache();
+		} catch (iMSCP_Exception_Database $e) {
+			$db->rollBack();
+			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage(), $e->getCode(), $e));
+		}
 	}
 
 	/**
@@ -141,7 +146,24 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function disable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		$this->flushCache();
+		$db = iMSCP_Database::getRawInstance();
+
+		try {
+			$db->beginTransaction();
+
+			$stmt = execute_query('SELECT admin_id FROM php_switcher_version_admin');
+
+			if ($stmt->rowCount()) {
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+			}
+
+			$db->commit();
+
+			$this->flushCache();
+		} catch (iMSCP_Exception_Database $e) {
+			$db->rollBack();
+			throw new iMSCP_Plugin_Exception(tr('Unable to disable: %s', $e->getMessage(), $e->getCode(), $e));
+		}
 	}
 
 	/**
@@ -154,8 +176,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->flushCache();
 			$this->dbMigrate($pluginManager, 'down');
+			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage(), $e->getCode(), $e));
 		}
@@ -222,9 +244,109 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Inject Links into the navigation object
+	 * Schedule change for all domains which belong to the given user list
+	 *
+	 * @throw iMSCP_Exception_Database
+	 * @param array $adminIds
+	 * @return void
+	 */
+	public function scheduleDomainsChange(array $adminIds)
+	{
+		$adminIdList = implode(',', $adminIds);
+
+		exec_query(
+			'UPDATE domain SET domain_status = ? WHERE domain_admin_id IN (' . $adminIdList . ') AND domain_status = ?',
+			array('tochange', 'ok')
+		);
+
+		exec_query(
+			'
+				UPDATE
+					subdomain
+				JOIN
+					domain USING(domain_id)
+				SET
+					subdomain_status = ?
+				WHERE
+					domain_admin_id IN (' . $adminIdList . ')
+				AND
+					subdomain_status = ?
+			',
+			array('tochange', 'ok')
+		);
+
+		exec_query(
+			'
+				UPDATE
+					domain_aliasses
+				JOIN
+					domain USING(domain_id)
+				SET
+					alias_status = ?
+				WHERE
+					domain_admin_id IN (' . $adminIdList . ')
+				AND
+				alias_status = ?
+			',
+			array('tochange', 'ok')
+		);
+
+		exec_query(
+			'
+				UPDATE
+					subdomain_alias
+				JOIN
+					domain_aliasses USING(alias_id)
+				SET
+					subdomain_alias_status = ?
+				WHERE
+					domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
+				AND
+					subdomain_alias_status = ?
+			',
+			array('tochange', 'ok')
+		);
+	}
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	protected function checkCompat($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			} else {
+				$coreConfig = iMSCP_Registry::get('config');
+
+				//if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
+				if (!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
+					set_page_message(
+						tr(
+						//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
+							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this implementation by running the i-MSCP installer as follow: %s',
+							'<strong>perl imscp-autoinstall -dr httpd</strong>'
+						),
+						'error'
+					);
+
+					$event->stopPropagation();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Setup plugin navigation
 	 *
 	 * @param string $uiLevel UI level
+	 * @return void
 	 */
 	protected function setupNavigation($uiLevel)
 	{
@@ -241,16 +363,17 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 						'order' => 8
 					)
 				);
-			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
-				if (customerHasFeature('php')) {
-					$page->addPage(
-						array(
-							'label' => tr('PHP Switcher'),
-							'uri' => '/client/phpswitcher',
-							'title_class' => 'domains',
-						)
-					);
-				}
+			} elseif (
+				$uiLevel == 'client' && customerHasFeature('php') &&
+				($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))
+			) {
+				$page->addPage(
+					array(
+						'label' => tr('PHP Switcher'),
+						'uri' => '/client/phpswitcher',
+						'title_class' => 'domains'
+					)
+				);
 			}
 		}
 	}
