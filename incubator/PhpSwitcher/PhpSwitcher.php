@@ -133,7 +133,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
-			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage(), $e->getCode(), $e));
+			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -162,7 +162,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
-			throw new iMSCP_Plugin_Exception(tr('Unable to disable: %s', $e->getMessage(), $e->getCode(), $e));
+			throw new iMSCP_Plugin_Exception(tr('Unable to disable: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -179,7 +179,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$this->dbMigrate($pluginManager, 'down');
 			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage(), $e->getCode(), $e));
+			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
