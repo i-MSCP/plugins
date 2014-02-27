@@ -2,10 +2,31 @@ PhpSwitcher plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 0.0.1
+Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	- First release
+	- Added: Event logs (admin/client side)
+	- Added: PHP version status to datatable (admin side)
+	- Fixed: Ajax errors are not handled correctly - Error message are not shown (admin side)
+	- Fixed: Plugin must be deactivated while update in case the http server implementation is not supported
+	- Fixed: When a customer is deleted all its PHP configuration directories must be deleted
+	- Fixed: When a PHP version is deleted, configuration directories which belong to this version must be deleted
+	- Fixed: When a PHP version is updated, previous customer's configuration directories must be deleted
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.4
+------------------------------------------------------------------------------------------------------------------------
+
+	- Fixed: PHP versions set by customers must be reset back to the default PHP version when the plugin is deactivated
+	- Fixed: PHP versions set by customers must be set when the plugin is being reactivated
+	- Fixed: PHP versions set by customers must remain persistent when i-MSCP is being updated
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+	- Fixed: If the memcached server do not work, plugin must work in degraded mode
+	- Fixed: Wrong package name in documentation for memcached support (Perl side)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
@@ -16,16 +37,7 @@ Version 0.0.2
 	- Removed: Version ID from datatable
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 0.0.3
+Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: If the memcached server do not work, plugin must work in degraded mode
-	- Fixed: Wrong package name in documentation for memcached support (Perl side)
-
-------------------------------------------------------------------------------------------------------------------------
-Version 0.0.4
-------------------------------------------------------------------------------------------------------------------------
-
-	- Fixed: PHP versions set by customers must be reset back to the default PHP version when the plugin is deactivated
-	- Fixed: PHP versions set by customers must be set when the plugin is being reactivated
-	- Fixed: PHP versions set by customers must remain persistent when i-MSCP is being updated
+	- First release

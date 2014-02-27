@@ -1,4 +1,4 @@
-## PhpSwitcher v0.0.4 plugin for i-MSCP
+## PhpSwitcher v0.0.5 plugin for i-MSCP
 
 Plugin allowing to provide many PHP versions to customers.
 
@@ -25,7 +25,7 @@ Plugin allowing to provide many PHP versions to customers.
 
 ### REQUIREMENTS
 
-* i-MSCP >= 1.1.1
+* i-MSCP >= 1.1.2
 * i-MSCP Fcgid httpd server implementation (apache_fcgid)
 
 #### Memcached support (Optional)
