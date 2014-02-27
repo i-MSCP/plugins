@@ -56,6 +56,16 @@ return array(
 	// If set to 'YES', global bayes database will be activated.
 	// This could be used to group all users together to share bayesian filter data.
 	'site-wide_bayes' => 'no', // YES, NO (default)
+	
+	// Cronjob to learn the bayesian database with Spam/Ham maila.
+	// Normally it is sufficient to run this cronjob twice a day.
+	'cronjob_bayes_sa-learn' => array( // See man CRONTAB(5) for allowed values
+		'minute' => '*',
+		'hour' => '*/12',
+		'day' => '*',
+		'month' => '*',
+		'dweek' => '*'
+	),
 
 	// Cronjob to cleanup the bayes database from expired tokens.
 	// Normally it is sufficient to run this cronjob on a daily basis.
@@ -138,5 +148,5 @@ return array(
 	'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock',
 
 	// Don't change anything, if you don't know what you are doing!
-	'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin/'
+	'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
 );

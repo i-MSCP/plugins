@@ -726,11 +726,11 @@ sub _registerCronjob($$)
 		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'Plugin::SpamAssassin::BayesSaLearn',
-				'MINUTE' => '*/5',
-				'HOUR' => '*',
-				'DAY' => '*',
-				'MONTH' => '*',
-				'DWEEK' => '*',
+				'MINUTE' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'minute'},
+				'HOUR' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'hour'},
+				'DAY' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'day'},
+				'MONTH' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'month'},
+				'DWEEK' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'dweek'},
 				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
 			}
 		);
@@ -1017,7 +1017,7 @@ sub _checkSpamassassinPlugins
 		$rs = $self->_setSpamassassinUserprefs('use_razor2', '1');
 		return $rs if $rs;
 
-		if(! -d $helperHomeDir . '.razor') {
+		if(! -d $helperHomeDir . '/.razor') {
 			$rs = $self->_createRazor();
 			return $rs if $rs;
 		}
@@ -1474,12 +1474,12 @@ sub _checkSaUser
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
-		
-		$rs = execute("$main::imscpConfig{'CMD_CHOWN'} -R $user:$group $helperHomeDir", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
 	}
+
+	$rs = execute("$main::imscpConfig{'CMD_CHOWN'} -R $user:$group $helperHomeDir", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
 
 	0;
 }

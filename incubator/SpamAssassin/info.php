@@ -34,8 +34,8 @@ return array(
 		'Rene Schuster'
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '0.0.2',
-	'date' => '2014-02-24',
+	'version' => '0.0.3',
+	'date' => '2014-02-27',
 	'name' => 'SpamAssassin',
 	'desc' => 'Plugin allows to use SpamAssassin with i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
