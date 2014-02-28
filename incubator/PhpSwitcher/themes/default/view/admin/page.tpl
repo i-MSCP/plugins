@@ -2,33 +2,35 @@
 <div class="flash_message" style="display: none;"></div>
 
 <div id="page">
-<table class="datatable">
-	<thead>
-	<tr>
-		<th style="width:30%;">{TR_NAME}</th>
-		<th style="width:30%;">{TR_BINARY}</th>
-		<th style="width:30%;">{TR_CONFDIR}</th>
-		<th>{TR_ACTIONS}</th>
-	</tr>
-	</thead>
-	<tfoot>
-	<tr>
-		<td>{TR_NAME}</td>
-		<td>{TR_BINARY}</td>
-		<td>{TR_CONFDIR}</td>
-		<td>{TR_ACTIONS}</td>
-	</tr>
-	</tfoot>
-	<tbody>
-	<tr>
-		<td colspan="5" class="dataTables_empty">{TR_PROCESSING_DATA}</td>
-	</tr>
-	</tbody>
-</table>
+	<table class="datatable">
+		<thead>
+		<tr>
+			<th style="width:10%;">{TR_NAME}</th>
+			<th style="width:25%;">{TR_BINARY}</th>
+			<th style="width:25%;">{TR_CONFDIR}</th>
+			<th style="width:30%;">{TR_STATUS}</th>
+			<th style="width:10%;">{TR_ACTIONS}</th>
+		</tr>
+		</thead>
+		<tfoot>
+		<tr>
+			<td>{TR_NAME}</td>
+			<td>{TR_BINARY}</td>
+			<td>{TR_CONFDIR}</td>
+			<td>{TR_STATUS}</td>
+			<td>{TR_ACTIONS}</td>
+		</tr>
+		</tfoot>
+		<tbody>
+		<tr>
+			<td colspan="6" class="dataTables_empty">{TR_PROCESSING_DATA}</td>
+		</tr>
+		</tbody>
+	</table>
 
-<div class="buttons">
-	<button data-action="add">{TR_NEW_PHP_VERSION}</button>
-</div>
+	<div class="buttons">
+		<button data-action="add">{TR_ADD_NEW_VERSION}</button>
+	</div>
 </div>
 
 <div id="php_dialog" style="display: none;">
@@ -43,15 +45,15 @@
 				<td><input type="text" name="version_binary_path" id="version_binary_path" maxlength="255" value=""></td>
 			</tr>
 			<tr>
-				<td><label for="version_confdir_path">{TR_CONFDIR_PATH}</label></td>
+				<td><label for="version_confdir_path">{TR_CONFDIR_PATH}</span></label></td>
 				<td><input type="text" name="version_confdir_path" id="version_confdir_path" maxlength="255" value=""></td>
 			</tr>
 		</table>
 		<input type="hidden" name="version_id" id="version_id" value="">
 	</form>
 </div>
-<script>
 
+<script>
 	var oTable;
 
 	function doRequest(rType, action, data)
@@ -95,7 +97,7 @@
 		});
 	}
 
-	function flashMessage(type, message, prependTo)
+	function flashMessage(type, message)
 	{
 		var flashMessage = $(".flash_message").text(message).addClass(type);
 
@@ -118,12 +120,12 @@
 			bServerSide: true,
 			sAjaxSource: "/admin/phpswitcher?action=table",
 			bStateSave: true,
-			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 3 ] } ],
+			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
 			aoColumns: [
-				//{ mData: "version_id" },
 				{ mData: "version_name" },
 				{ mData: "version_binary_path" },
 				{ mData: "version_confdir_path" },
+				{ mData: "version_status" },
 				{ mData: "actions" }
 			],
 			fnServerData: function (sSource, aoData, fnCallback) {

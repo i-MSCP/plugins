@@ -65,10 +65,12 @@ function phpSwitcher_changePhpVersion()
 
 			$db->commit();
 
-			$pluginManager->flushCache();
+			$pluginManager->flushCache(array('php_version_admin'));
 
 			send_request();
-			set_page_message(tr('PHP version successfully scheduled for update. Please be patient...'), 'success');
+
+			write_log(tr('%s updated its PHP version.', idn_to_utf8($_SESSION['user_logged'])), E_USER_NOTICE);
+			set_page_message(tr('PHP version successfully scheduled for update. Please be patient.'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 			set_page_message(tr('An unexpected error occured.', 'error'));
@@ -122,7 +124,7 @@ function phpSwitcher_generatePage($tpl)
 			array(
 				'VERSION_ID' => $data['version_id'],
 				'VERSION_NAME' => tohtml($version),
-				'SELECTED' => ((int)$data['version_id'] == $selectedVersion) ? ' selected=selected' : ''
+				'SELECTED' => ((int)$data['version_id'] == $selectedVersion) ? ' selected' : ''
 			)
 		);
 

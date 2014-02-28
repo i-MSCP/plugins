@@ -221,9 +221,10 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	/**
 	 * Flush memcached
 	 *
+	 * @param array $keys OPTIONAL Keys to flush in cache
 	 * @return void
 	 */
-	public function flushCache()
+	public function flushCache(array $keys = array())
 	{
 		if (class_exists('Memcached')) {
 			$memcachedConfig = $this->getConfigParam('memcached', array());
@@ -237,7 +238,16 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 						$memcached->addServer($memcachedConfig['hostname'], $memcachedConfig['port']);
 					}
 
-					$memcached->delete(substr(sha1($this->getName()), 0, 8) . '_' . 'php_versions');
+					$prefix = substr(sha1($this->getName()), 0, 8) . '_';
+
+					if(!empty($keys)) {
+						foreach($keys as $key) {
+							$memcached->delete($prefix . $key);
+						}
+					} else {
+						$memcached->delete($prefix . 'php_version_admin');
+						$memcached->delete($prefix . 'php_confdirs');
+					}
 				}
 			}
 		}
@@ -316,7 +326,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.6', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -330,8 +340,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 					set_page_message(
 						tr(
 						//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
-							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this implementation by running the i-MSCP installer as follow: %s',
-							'<strong>perl imscp-autoinstall -dr httpd</strong>'
+							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this httpd server implementation by running the i-MSCP installer as follow: %s',
+							'<br /><br /><strong>perl imscp-autoinstall -dr httpd</strong><br />'
 						),
 						'error'
 					);

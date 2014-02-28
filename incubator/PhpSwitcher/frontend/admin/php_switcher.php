@@ -75,7 +75,7 @@ function phpSwitcher_get()
 			}
 
 			_phpSwitcher_sendJsonResponse(
-				404, array('message' => tr('PHP Version %s has not been found.', $versionName))
+				404, array('message' => tr('PHP version %s has not been found.', $versionName))
 			);
 		} catch (iMSCP_Exception_Database $e) {
 			_phpSwitcher_sendJsonResponse(
@@ -106,7 +106,7 @@ function phpSwitcher_add()
 		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
+				array('message' => tr('PHP version %s already exists. This is the default PHP version.', $versionName))
 			);
 		}
 
@@ -124,13 +124,16 @@ function phpSwitcher_add()
 
 			iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
 
+			write_log(tr('PHP version %s has been created.'), E_USER_NOTICE);
+
 			_phpSwitcher_sendJsonResponse(
-				200, array('message' => tr('PHP Version %s successfully created.', $versionName))
+				200, array('message' => tr('PHP version %s successfully created.', $versionName))
 			);
+
 		} catch (iMSCP_Exception_Database $e) {
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP Version %s already exists', $versionName))
+					400, array('message' => tr('PHP version %s already exists.', $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -166,7 +169,7 @@ function phpSwitcher_edit()
 		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP Version %s already exists. This is the default PHP version.', $versionName))
+				array('message' => tr('PHP version %s already exists. This is the default PHP version.', $versionName))
 			);
 		}
 
@@ -180,15 +183,17 @@ function phpSwitcher_edit()
 					UPDATE
 						php_switcher_version
 					SET
-						version_name = ?, version_binary_path = ?, version_confdir_path = ?
+						version_name = ?, version_binary_path = ?, version_confdir_path_prev = version_confdir_path,
+						version_confdir_path = ?, version_status = ?
 					WHERE
 						version_id = ?
+					AND
+						version_status = ?
 				',
-				array($versionName, $versionBinaryPath, $versionConfdirPath, $versionId)
+				array($versionName, $versionBinaryPath, $versionConfdirPath, 'tochange', $versionId, 'ok')
 			);
 
 			if ($stmt->rowCount()) {
-				$sendRequest = false;
 				$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
 				/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
@@ -196,25 +201,26 @@ function phpSwitcher_edit()
 
 				if ($stmt->rowCount()) {
 					$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
-					$sendRequest = true;
 				}
 
 				$db->commit();
 
 				$pluginManager->flushCache();
 
-				if ($sendRequest) {
-					send_request();
-				}
-			}
+				send_request();
 
-			_phpSwitcher_sendJsonResponse(200, array('message' => tr('PHP Version successfully updated.')));
+				write_log(tr('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
+
+				_phpSwitcher_sendJsonResponse(
+					200, array('message' => tr('PHP version %s successfully scheduled for update.', $versionName))
+				);
+			}
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP Version %s already exists', $versionName))
+					400, array('message' => tr('PHP version %s already exists.', $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -243,7 +249,6 @@ function phpSwitcher_delete()
 		try {
 			$db->beginTransaction();
 
-			$sendRequest = false;
 			$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
 			/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
@@ -251,22 +256,23 @@ function phpSwitcher_delete()
 
 			if ($stmt->rowCount()) {
 				$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
-				$sendRequest = true;
 			}
 
-			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
+			$stmt = exec_query(
+				'UPDATE php_switcher_version SET version_status = ? WHERE version_id = ?', array('todelete', $versionId)
+			);
 
 			if ($stmt->rowCount()) {
 				$db->commit();
 
-				$pluginManager->flushCache();
+				//$pluginManager->flushCache();
 
-				if ($sendRequest) {
-					send_request();
-				}
+				send_request();
+
+				write_log(tr('PHP version %s has scheduled for deletion.', $versionName), E_USER_NOTICE);
 
 				_phpSwitcher_sendJsonResponse(
-					200, array('message' => tr('PHP Version %s successfully deleted.', $versionName))
+					200, array('message' => tr('PHP version %s successfully scheduled for deletion.', $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -288,7 +294,7 @@ function phpSwitcher_delete()
 function phpSwitcher_getTable()
 {
 	try {
-		$columns = array('version_id', 'version_name', 'version_binary_path', 'version_confdir_path');
+		$columns = array('version_id', 'version_name', 'version_binary_path', 'version_confdir_path', 'version_status');
 		$nbColumns = count($columns);
 
 		$indexColumn = 'version_id';
@@ -376,19 +382,25 @@ function phpSwitcher_getTable()
 			$row = array();
 
 			for ($i = 0; $i < $nbColumns; $i++) {
-				if ($columns[$i] != 'version_id') {
+				if($columns[$i] == 'version_status') {
+					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
+				} elseif($columns[$i] != 'version_id') {
 					$row[$columns[$i]] = $data[$columns[$i]];
 				}
 			}
 
-			$row['actions'] =
-				"<span title=\"$trEditTooltip\" data-action=\"edit\" " .
-				"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
-				"class=\"icon i_edit clickable\">&nbsp;</span> "
-				.
-				"<span title=\"$trDeleteTooltip\" data-action=\"delete\" " .
-				"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
-				"class=\"icon i_close clickable\">&nbsp;</span>";
+			if($data['version_status'] == 'ok') {
+				$row['actions'] =
+					"<span title=\"$trEditTooltip\" data-action=\"edit\" " .
+					"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
+					"class=\"icon i_edit clickable\">&nbsp;</span> "
+					.
+					"<span title=\"$trDeleteTooltip\" data-action=\"delete\" " .
+					"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
+					"class=\"icon i_close clickable\">&nbsp;</span>";
+			} else {
+				$row['actions'] = '';
+			}
 
 			$output['aaData'][] = $row;
 		}
@@ -456,16 +468,17 @@ $tpl->assign(
 		'TR_NAME' => tr('Name'),
 		'TR_BINARY' => tr('Binary'),
 		'TR_CONFDIR' => tr('Configuration Directory'),
+		'TR_STATUS' => tr('Status'),
 		'TR_ACTIONS' => tr('Actions'),
 		'TR_BINARY_PATH' => tr('PHP binary path'),
 		'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),
 		'TR_PROCESSING_DATA' => tr('Processing...'),
-		'TR_NEW_PHP_VERSION' => tr('New PHP Version'),
+		'TR_ADD_NEW_VERSION' => tr('Add new version'),
 		'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
 		'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
 		'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
-		'TR_NEW' => tojs(tr('New PHP Version', true)),
-		'TR_EDIT' => tojs(tr('Edit %%s PHP Version', true)),
+		'TR_NEW' => tojs(tr('New PHP version', true)),
+		'TR_EDIT' => tojs(tr('Edit %%s version', true)),
 		'TR_SAVE' => tojs(tr('Save', true)),
 		'TR_CANCEL' => tojs(tr('Cancel', true)),
 		'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version? All configuration files for domains which belong to this PHP version will be scheduled for regeneration.', true))

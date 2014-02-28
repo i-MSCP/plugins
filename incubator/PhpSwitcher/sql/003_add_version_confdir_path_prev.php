@@ -19,11 +19,15 @@
  */
 
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.5',
-	'date' => '2014-02-27',
-	'name' => 'PhpSwitcher',
-	'desc' => 'Plugin allowing to provide many PHP versions to customers.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:phpswitcher'
+	'up' => '
+		ALTER TABLE
+			php_switcher_version
+		ADD
+			version_confdir_path_prev varchar(255) COLLATE utf8_unicode_ci NULL DEFAULT NULL
+		AFTER
+			version_binary_path
+	',
+	'down' => '
+		ALTER TABLE php_switcher_version DROP COLUMN version_confdir_path_prev
+	'
 );

@@ -38,12 +38,13 @@ use iMSCP::Debug;
 use iMSCP::HooksManager;
 use iMSCP::Database;
 use Servers::httpd;
+use iMSCP::Dir;
 use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provides the backend part for the i-MSCP PhpSwitcher plugin.
+ This package implement the backend for the PhpSwitcher plugin.
 
 =head1 PUBLIC METHODS
 
@@ -51,7 +52,7 @@ use parent 'Common::SingletonClass';
 
 =item run()
 
- Register event listener which is responsible to override default PHP paths
+ Register event listeners
 
  Return int 0 on success, other on failure
 
@@ -59,17 +60,64 @@ use parent 'Common::SingletonClass';
 
 sub run
 {
-	if($main::imscpConfig{'HTTPD_SERVER'} ~~ ['apache_fcgid']) {
+	my $self = $_[0];
+
+	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
 		my $hooksManager = iMSCP::HooksManager->getInstance();
 
-		$hooksManager->register('beforeHttpdAddDmn', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdRestoreDmn', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdDisableDmn', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdDelDmn', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdAddSub', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdRestoreSub', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdDisableSub', \&phpSwitcherListener);
-		$hooksManager->register('beforeHttpdDelSub', \&phpSwitcherListener);
+		$hooksManager->register('beforeHttpdAddDmn', \&changeListener);
+		$hooksManager->register('beforeHttpdRestoreDmn', \&changeListener);
+		$hooksManager->register('beforeHttpdAddSub', \&changeListener);
+		$hooksManager->register('beforeHttpdRestoreSub', \&changeListener);
+
+		$hooksManager->register('beforeHttpdDisableDmn', \&deleteListener);
+		$hooksManager->register('beforeHttpdDelDmn', \&deleteListener);
+		$hooksManager->register('beforeHttpdDisableSub', \&deleteListener);
+		$hooksManager->register('beforeHttpdDelSub', \&deleteListener);
+
+		$hooksManager->register('afterDispatchRequest', sub {
+			my $rs = $_[0];
+
+			unless($rs) {
+				my $ret = $self->{'db'}->doQuery(
+					'dummy',
+					"
+						UPDATE
+							php_switcher_version
+						SET
+							version_confdir_path_prev = NULL, version_status = 'ok'
+						WHERE
+							version_status = 'tochange'
+					"
+				);
+				unless(ref $ret eq 'HASH') {
+					error($ret);
+					return 1;
+				}
+
+				$ret = $self->{'db'}->doQuery(
+					'dummy', "DELETE FROM php_switcher_version WHERE version_status = 'todelete'"
+				);
+				unless(ref $ret eq 'HASH') {
+					error($ret);
+					return 1;
+				}
+
+				0;
+			} else {
+				my $ret = $self->{'db'}->doQuery(
+					'dummy',
+					(
+						"UPDATE plugin SET plugin_error = ? WHERE plugin_name = ?",
+						(scalar getMessageByType('error') || 'unknown error'),
+						'PhpSwitcher'
+					)
+				);
+				error($ret) unless ref $ret eq 'HASH';
+			}
+
+			$rs;
+		});
 	}
 
 	0;
@@ -88,6 +136,22 @@ sub enable
 	$_[0]->run();
 }
 
+=item disable()
+
+ Perform disable tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub disable
+{
+	my $hooksManager = iMSCP::HooksManager->getInstance();
+
+	$hooksManager->register('beforeHttpdAddDmn', \&deleteListener);
+	$hooksManager->register('beforeHttpdAddSub', \&deleteListener);
+}
+
 =item change()
 
  Perform change tasks
@@ -98,7 +162,30 @@ sub enable
 
 sub change
 {
-	$_[0]->run();
+	my $self = $_[0];
+
+	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
+		$self->run();
+	} else {
+		my $hooksManager = iMSCP::HooksManager->getInstance();
+
+		$hooksManager->register('beforeHttpdAddDmn', \&deleteListener);
+		$hooksManager->register('beforeHttpdAddSub', \&deleteListener);
+
+		$hooksManager->register('afterDispatchRequest', sub {
+			my $rs = $self->{'db'}->doQuery(
+				'dummy', "UPDATE plugin SET plugin_status = 'disabled' WHERE plugin_name 'PhpSwitcher'"
+			);
+			unless(ref $rs eq 'HASH') {
+				error($rs);
+				return 1;
+			}
+
+			0;
+		});
+
+		0;
+	}
 }
 
 =back
@@ -107,49 +194,132 @@ sub change
 
 =over 4
 
-=item phpSwitcherListener(\%data)
+=item changeListener(\%data)
 
- Event listener which is responsible to override PHP binary and PHP configuration paths
+ Listener responsible to change customers PHP versions
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub phpSwitcherListener($)
+sub changeListener($)
 {
-	my $adminId = $_[0]->{'DOMAIN_ADMIN_ID'} // 0;
-	my $phpSwitcher = __PACKAGE__->getInstance();
-	my $phpVersions = ($phpSwitcher->{'memcached'}) ? $phpSwitcher->{'memcached'}->get('php_versions') : undef;
+	my $data = $_[0];
+	my $self = __PACKAGE__->getInstance();
+	my $phpVersionAdmin = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_version_admin') : undef;
+	my $rs = 0;
 
-	unless(defined $phpVersions) {
-		$phpVersions = $phpSwitcher->{'db'}->doQuery(
+	# Get data from database only if needed
+	unless(defined $phpVersionAdmin) {
+		$phpVersionAdmin = $self->{'db'}->doQuery(
 			'admin_id',
-			'
+			"
 				SELECT
-					admin_id, version_binary_path, version_confdir_path
+					admin_id, version_binary_path, version_confdir_path_prev, version_confdir_path, version_status
 				FROM
 					php_switcher_version
 				INNER JOIN
 					php_switcher_version_admin USING (version_id)
 				WHERE
-					version_status = ?
-			',
-			'ok'
+					version_status IN('ok', 'tochange', 'todelete')
+			"
 		);
-		unless(ref $phpVersions eq 'HASH') {
-			error($phpVersions);
+		unless(ref $phpVersionAdmin eq 'HASH') {
+			error($phpVersionAdmin);
 			return 1;
 		}
 
-		$phpSwitcher->{'memcached'}->set('php_versions', $phpVersions) if $phpSwitcher->{'memcached'};
+		# Cache data if memcached support is enabled
+		$self->{'memcached'}->set('php_version_admin', $phpVersionAdmin) if $self->{'memcached'};
 	}
 
-	if(exists $phpVersions->{$adminId}) {
-		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersions->{$adminId}->{'version_binary_path'};
-		$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersions->{$adminId}->{'version_confdir_path'};
+	my $adminId = $data->{'DOMAIN_ADMIN_ID'};
+
+	if($phpVersionAdmin->{$adminId}) {
+		if($phpVersionAdmin->{$adminId}->{'version_status'} eq 'todelete') { # Customer PHP version will be deleted
+			# Remove Customer's PHP configuration directory
+			$rs = iMSCP::Dir->new(
+				'dirname' => "$phpVersionAdmin->{$adminId}->{'version_confdir_path'}/$data->{'DOMAIN_NAME'}"
+			)->remove();
+			return $rs if $rs;
+
+			# Remove customer's PHP version data from cache
+			if($self->{'memcached'}) {
+				delete $phpVersionAdmin->{$adminId};
+				$self->{'memcached'}->set('php_version_admin', $phpVersionAdmin);
+			}
+
+			# Reset back Customer's PHP version
+			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $self->{'default_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
+		} elsif($phpVersionAdmin->{$adminId}->{'version_status'} eq 'tochange') { # Customer's PHP version is updated
+			# Remove Customer's previous PHP configuration directory
+			my $prevConfDir = $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
+
+			if($prevConfDir) {
+				$rs = iMSCP::Dir->new('dirname' => "$prevConfDir/$data->{'DOMAIN_NAME'}")->remove();
+				return $rs if $rs;
+
+				# Update cache
+				if($self->{'memcached'}) {
+					delete $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
+					$self->{'memcached'}->set('php_version_admin', $phpVersionAdmin);
+				}
+			}
+
+			# Set customer PHP paths according its PHP version
+			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
+		} else {
+			# Set customer PHP paths according its PHP version
+			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
+		}
 	} else {
-		$phpSwitcher->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpSwitcher->{'default_binary_path'},;
-		$phpSwitcher->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpSwitcher->{'default_confdir_path'};
+		# Set customer PHP paths to default PHP version
+		$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $self->{'default_binary_path'};
+		$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
+	}
+
+	Plugin::PhpSwitcher::deleteListener($data);
+}
+
+=item deleteListener(\%data)
+
+ Listener responsible to delete customer's PHP configuration directories
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub deleteListener($)
+{
+	my $data = $_[0];
+	my $self = __PACKAGE__->getInstance();
+	my $phpConfigDirs = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_versions') : undef;
+
+	unless(defined $phpConfigDirs) {
+		$phpConfigDirs = $self->{'db'}->doQuery(
+			'version_confdir_path',
+			'SELECT version_confdir_path FROM php_switcher_version GROUP BY version_confdir_path'
+		);
+		unless(ref $phpConfigDirs eq 'HASH') {
+			error($phpConfigDirs);
+			return 1;
+		}
+
+		$phpConfigDirs->{$self->{'default_confdir_path'}} = {
+			'version_confdir_path' => $self->{'default_confdir_path'}
+		};
+
+		$self->{'memcached'}->set('php_confdirs', $phpConfigDirs) if $self->{'memcached'};
+	}
+
+	if(%{$phpConfigDirs}) {
+		for(keys %{$phpConfigDirs}) {
+			my $rs = iMSCP::Dir->new('dirname' => "$_/$data->{'DOMAIN_NAME'}")->remove();
+			return $rs if $rs;
+		}
 	}
 
 	0;
@@ -173,11 +343,10 @@ sub _init()
 {
 	my $self = $_[0];
 
-	my $serverImpl = $main::imscpConfig{'HTTPD_SERVER'};
+	$self->{'server_implementation'} = $main::imscpConfig{'HTTPD_SERVER'};
+	$self->{'db'} = iMSCP::Database->factory();
 
-	if($serverImpl ~~ ['apache_fcgid']) {
-		$self->{'db'} = iMSCP::Database->factory();
-
+	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
 		my $pluginConfig = $self->{'db'}->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PhpSwitcher'
 		);
