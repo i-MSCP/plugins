@@ -580,7 +580,7 @@ sub _modifyPostfixMainConfig($$)
 	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
 
 	my $fileContent = $file->get();
-	unless(defined $fileContent) {
+	unless (defined $fileContent) {
 		error("Unable to read /etc/postfix/main.cf");
 		return 1;
 	}
@@ -600,22 +600,16 @@ sub _modifyPostfixMainConfig($$)
 		if(scalar @miltersValues >= 1) {
 			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-			
-			my $postfixSpamassassinConfig = "\n\t# Begin Plugin::SpamAssassin\n";
+
+			my $postfixSpamassassinConfig = "\t# Begin Plugin::SpamAssassin\n";
 			$postfixSpamassassinConfig .= "\tunix:" . $milterSocket . "\n";
-			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin";
-			
+			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin\n";
+
 			my $milterConnectMacros = "\n# Begin Plugin::SpamAssassin::Macros\n";
 			$milterConnectMacros .= "milter_connect_macros = j {daemon_name} v {if_name} _\n";
 			$milterConnectMacros .= "# Ending Plugin::SpamAssassin::Macros";
-			
-			if($fileContent =~ /# Ending Plugin::ClamAV/gm) {
-				$fileContent =~ s/(# Ending Plugin::ClamAV.*)/$1$postfixSpamassassinConfig/gm;
-			} else {
-				$fileContent =~ s/^(smtpd_milters.*)/$milterConnectMacros$1/gm;
-			}
-			
-			$fileContent =~ s/^(non_smtpd_milters.*)/$1$milterConnectMacros/gm;
+
+			$fileContent =~ s/^(non_smtpd_milters.*)/$postfixSpamassassinConfig$1$milterConnectMacros/gm;
 		} else {
 			my $postfixSpamassassinConfig = "\n# Begin Plugins::i-MSCP\n";
 			$postfixSpamassassinConfig .= "milter_default_action = accept\n";
@@ -638,8 +632,7 @@ sub _modifyPostfixMainConfig($$)
 		if(scalar @miltersValues > 1) {
 			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-		}
-		elsif($fileContent =~ /^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n/sgm) {
+		} elsif($fileContent =~ /^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n/sgm) {
 			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
 		}
 	}
