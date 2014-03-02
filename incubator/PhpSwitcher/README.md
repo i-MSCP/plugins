@@ -1,4 +1,4 @@
-## PhpSwitcher v0.0.5 plugin for i-MSCP
+## PhpSwitcher v0.0.6 plugin for i-MSCP
 
 Plugin allowing to provide many PHP versions to customers.
 

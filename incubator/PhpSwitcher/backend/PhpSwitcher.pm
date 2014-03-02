@@ -35,7 +35,6 @@ use warnings;
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 use iMSCP::Debug;
-use iMSCP::HooksManager;
 use iMSCP::Database;
 use Servers::httpd;
 use iMSCP::Dir;
@@ -63,19 +62,17 @@ sub run
 	my $self = $_[0];
 
 	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
-		my $hooksManager = iMSCP::HooksManager->getInstance();
+		$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&changeListener);
+		$self->{'hooksManager'}->register('beforeHttpdRestoreDmn', \&changeListener);
+		$self->{'hooksManager'}->register('beforeHttpdAddSub', \&changeListener);
+		$self->{'hooksManager'}->register('beforeHttpdRestoreSub', \&changeListener);
 
-		$hooksManager->register('beforeHttpdAddDmn', \&changeListener);
-		$hooksManager->register('beforeHttpdRestoreDmn', \&changeListener);
-		$hooksManager->register('beforeHttpdAddSub', \&changeListener);
-		$hooksManager->register('beforeHttpdRestoreSub', \&changeListener);
+		$self->{'hooksManager'}->register('beforeHttpdDisableDmn', \&deleteListener);
+		$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteListener);
+		$self->{'hooksManager'}->register('beforeHttpdDisableSub', \&deleteListener);
+		$self->{'hooksManager'}->register('beforeHttpdDelSub', \&deleteListener);
 
-		$hooksManager->register('beforeHttpdDisableDmn', \&deleteListener);
-		$hooksManager->register('beforeHttpdDelDmn', \&deleteListener);
-		$hooksManager->register('beforeHttpdDisableSub', \&deleteListener);
-		$hooksManager->register('beforeHttpdDelSub', \&deleteListener);
-
-		$hooksManager->register('afterDispatchRequest', sub {
+		$self->{'hooksManager'}->register('afterDispatchRequest', sub {
 			my $rs = $_[0];
 
 			unless($rs) {
@@ -146,10 +143,10 @@ sub enable
 
 sub disable
 {
-	my $hooksManager = iMSCP::HooksManager->getInstance();
+	my $self = $_[0];
 
-	$hooksManager->register('beforeHttpdAddDmn', \&deleteListener);
-	$hooksManager->register('beforeHttpdAddSub', \&deleteListener);
+	$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&deleteListener);
+	$self->{'hooksManager'}->register('beforeHttpdAddSub', \&deleteListener);
 }
 
 =item change()
@@ -167,14 +164,12 @@ sub change
 	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
 		$self->run();
 	} else {
-		my $hooksManager = iMSCP::HooksManager->getInstance();
+		$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&deleteListener);
+		$self->{'hooksManager'}->register('beforeHttpdAddSub', \&deleteListener);
 
-		$hooksManager->register('beforeHttpdAddDmn', \&deleteListener);
-		$hooksManager->register('beforeHttpdAddSub', \&deleteListener);
-
-		$hooksManager->register('afterDispatchRequest', sub {
+		$self->{'hooksManager'}->register('afterDispatchRequest', sub {
 			my $rs = $self->{'db'}->doQuery(
-				'dummy', "UPDATE plugin SET plugin_status = 'disabled' WHERE plugin_name 'PhpSwitcher'"
+				'dummy', "UPDATE plugin SET plugin_status = 'disabled' WHERE plugin_name = 'PhpSwitcher'"
 			);
 			unless(ref $rs eq 'HASH') {
 				error($rs);
@@ -296,27 +291,27 @@ sub deleteListener($)
 {
 	my $data = $_[0];
 	my $self = __PACKAGE__->getInstance();
-	my $phpConfigDirs = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_versions') : undef;
+	my $phpConfDirs = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_confdirs') : undef;
 
-	unless(defined $phpConfigDirs) {
-		$phpConfigDirs = $self->{'db'}->doQuery(
+	unless(defined $phpConfDirs) {
+		$phpConfDirs = $self->{'db'}->doQuery(
 			'version_confdir_path',
 			'SELECT version_confdir_path FROM php_switcher_version GROUP BY version_confdir_path'
 		);
-		unless(ref $phpConfigDirs eq 'HASH') {
-			error($phpConfigDirs);
+		unless(ref $phpConfDirs eq 'HASH') {
+			error($phpConfDirs);
 			return 1;
 		}
 
-		$phpConfigDirs->{$self->{'default_confdir_path'}} = {
+		$phpConfDirs->{$self->{'default_confdir_path'}} = {
 			'version_confdir_path' => $self->{'default_confdir_path'}
 		};
 
-		$self->{'memcached'}->set('php_confdirs', $phpConfigDirs) if $self->{'memcached'};
+		$self->{'memcached'}->set('php_confdirs', $phpConfDirs) if $self->{'memcached'};
 	}
 
-	if(%{$phpConfigDirs}) {
-		for(keys %{$phpConfigDirs}) {
+	if(%{$phpConfDirs}) {
+		for(keys %{$phpConfDirs}) {
 			my $rs = iMSCP::Dir->new('dirname' => "$_/$data->{'DOMAIN_NAME'}")->remove();
 			return $rs if $rs;
 		}

@@ -43,7 +43,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
+	 * onBeforeInstallPlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
@@ -63,13 +63,13 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->dbMigrate($pluginManager, 'up');
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
 	/**
-	 * onBeforeUpdatePlugin event listener
+	 * onBeforeUpdatePlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
@@ -90,15 +90,15 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'up');
+			$this->dbMigrate($pluginManager,'up');
 			$this->flushCache();
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
 	/**
-	 * onBeforeEnablePlugin event listener
+	 * onBeforeEnablePlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 *
@@ -176,9 +176,9 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'down');
+			$this->dbMigrate($pluginManager,'down');
 			$this->flushCache();
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
@@ -339,7 +339,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 				if (!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
 					set_page_message(
 						tr(
-						//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
+							//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
 							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this httpd server implementation by running the i-MSCP installer as follow: %s',
 							'<br /><br /><strong>perl imscp-autoinstall -dr httpd</strong><br />'
 						),
@@ -391,10 +391,10 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	/**
 	 * Migrate database
 	 *
-	 * @throws iMSCP_Exception_Database When migration fail
 	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @param string $migrationMode Migration mode (up|down)
-	 * @return void
+	 * @param string $migrationMode
+	 * @throws iMSCP_Plugin_Exception
+	 * @todo Switch to the iMSCP_Plugin::migrateDb() method when plugin API 0.2.7 will be released
 	 */
 	protected function dbMigrate(iMSCP_Plugin_Manager $pluginManager, $migrationMode = 'up')
 	{
@@ -403,43 +403,58 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		$dbSchemaVersion = (isset($pluginInfo['db_schema_version'])) ? $pluginInfo['db_schema_version'] : '000';
 		$migrationFiles = array();
 
-		/** @var $migrationFileInfo DirectoryIterator */
-		foreach (new DirectoryIterator(dirname(__FILE__) . '/sql') as $migrationFileInfo) {
-			if (!$migrationFileInfo->isDot()) {
-				$migrationFiles[] = $migrationFileInfo->getRealPath();
-			}
-		}
+		$sqlDir = dirname(__FILE__) . '/sql';
 
-		natsort($migrationFiles);
-
-		if ($migrationMode != 'up') {
-			$migrationFiles = array_reverse($migrationFiles);
-		}
-
-		try {
-			foreach ($migrationFiles as $migrationFile) {
-				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-					if (
-						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
-						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
-					) {
-						$migrationFilesContent = include($migrationFile);
-
-						if (isset($migrationFilesContent[$migrationMode])) {
-							execute_query($migrationFilesContent[$migrationMode]);
-						}
-					}
-
-					$dbSchemaVersion = $match[1];
+		if (is_dir($sqlDir)) {
+			/** @var $migrationFileInfo DirectoryIterator */
+			foreach (new DirectoryIterator($sqlDir) as $migrationFileInfo) {
+				if (!$migrationFileInfo->isDot()) {
+					$migrationFiles[] = $migrationFileInfo->getRealPath();
 				}
 			}
-		} catch (iMSCP_Exception_Database $e) {
-			$pluginInfo['db_schema_version'] = $dbSchemaVersion;
-			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
-			throw $e;
-		}
 
-		$pluginInfo['db_schema_version'] = ($migrationMode == 'up') ? $dbSchemaVersion : '000';
-		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
+			natsort($migrationFiles);
+
+			if ($migrationMode == 'down') {
+				$migrationFiles = array_reverse($migrationFiles);
+			}
+
+			try {
+				foreach ($migrationFiles as $migrationFile) {
+					if (is_readable($migrationFile)) {
+						if (preg_match('%/(\d+)_[^/]+?\.php$%', $migrationFile, $version)) {
+							if (
+								($migrationMode == 'up' && $version[1] > $dbSchemaVersion) ||
+								($migrationMode == 'down' && $version[1] <= $dbSchemaVersion)
+							) {
+								$migrationFilesContent = include($migrationFile);
+
+								if (isset($migrationFilesContent[$migrationMode])) {
+									execute_query($migrationFilesContent[$migrationMode]);
+								}
+
+								$dbSchemaVersion = $version[1];
+							}
+						} else {
+							throw new iMSCP_Plugin_Exception(
+								sprintf("File %s doesn't look like a migration file.", $migrationFile)
+							);
+						}
+					} else {
+						throw new iMSCP_Plugin_Exception(sprintf('Migration file %s is not readable.', $migrationFile));
+					}
+				}
+
+				$pluginInfo['db_schema_version'] = ($migrationMode == 'up') ? $dbSchemaVersion : '000';
+				$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
+			} catch (iMSCP_Exception $e) {
+				$pluginInfo['db_schema_version'] = $dbSchemaVersion;
+				$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
+
+				throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+			}
+		} else {
+			throw new iMSCP_Plugin_Exception(sprintf("Directory %s doesn't exists.", $sqlDir));
+		}
 	}
 }
