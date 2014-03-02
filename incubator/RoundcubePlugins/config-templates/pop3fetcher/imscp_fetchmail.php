@@ -84,7 +84,7 @@ class fetchmail_cronjob
 	private function detectDocumentRoot()
 	{
 		$dir = dirname(__FILE__);
-		$this->docRoot = str_replace('plugins/pop3fetcher/imscp', null, $dir);
+		$this->docRoot = str_replace('plugins/pop3fetcher', null, $dir);
 		define('INSTALL_PATH', $this->docRoot);
 	}
 
