@@ -108,16 +108,14 @@ function phpSwitcher_generatePage($tpl)
 
 	foreach ($rows as $version => $data) {
 		$selectedVersion = $data[0]['current_version'];
-		$versions[$version] = array(
-			'version_id' => $data[0]['version_id'],
-		);
+		$versions[$version] = array('version_id' => $data[0]['version_id']);
 	}
 
 	$versions['PHP' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION] = array(
 		'version_id' => 0
 	);
 
-	ksort($versions, SORT_NATURAL);
+	ksort($versions);
 
 	foreach ($versions as $version => $data) {
 		$tpl->assign(
