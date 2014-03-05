@@ -872,7 +872,7 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 
 		$query = "
 			INSERT INTO `domain` (
-				`domain_name`, `domain_admin_id`, `domain_created_id`, `domain_created`, `domain_expires`,
+				`domain_name`, `domain_admin_id`, `domain_created`, `domain_expires`,
 				`domain_mailacc_limit`, `domain_ftpacc_limit`, `domain_traffic_limit`, `domain_sqld_limit`,
 				`domain_sqlu_limit`, `domain_status`, `domain_subd_limit`, `domain_alias_limit`, `domain_ip_id`,
 				`domain_disk_limit`, `domain_disk_usage`, `domain_php`, `domain_cgi`, `allowbackup`, `domain_dns`,
@@ -880,14 +880,14 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 				`phpini_perm_display_errors`, `phpini_perm_disable_functions`, `domain_external_mail`,
 				`web_folder_protection`, `mail_quota`
 			) VALUES (
-				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 			)
 		";
 
 		exec_query(
 			$query,
 			array(
-				$dmnUsername, $recordId, $resellerId, time(), $dmnExpire, $domain_mailacc_limit, $domain_ftpacc_limit,
+				$dmnUsername, $recordId, time(), $dmnExpire, $domain_mailacc_limit, $domain_ftpacc_limit,
 				$domain_traffic_limit, $domain_sqld_limit, $domain_sqlu_limit, $cfg->ITEM_TOADD_STATUS,
 				$domain_subd_limit, $domain_alias_limit, $domain_ip_id, $domain_disk_limit, 0, $domain_php, $domain_cgi,
 				$allowbackup, $domain_dns, $domain_software_allowed, $phpini_perm_system, $phpini_perm_allow_url_fopen,
@@ -1023,10 +1023,19 @@ function addAliasDomain($resellerId, $resellerIpaddress, $postData)
 	$domain = strtolower($postData['domain']);
 	$dmnUsername = encode_idna($postData['domain']);
 
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = '
+		SELECT
+			domain_admin_id, domain_status, created_by
+		FROM
+			domain
+		INNER JOIN
+			admin ON(admin_id = domain_admin_id)
+		WHERE
+			domain_name= ?
+	';
 	$stmt = exec_query($query, $dmnUsername);
 
-	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
+	if ($stmt->rowCount() && $stmt->fields['created_by'] == $resellerId) {
 		$customerId = $stmt->fields['domain_admin_id'];
 		createAliasDomain($resellerId, $customerId, $resellerIpaddress, $postData);
 		echo(
@@ -1210,10 +1219,19 @@ function deleteUser($resellerId, $domain)
 
 	$dmnUsername = encode_idna($domain);
 
-	$query = 'SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?';
+	$query = '
+		SELECT
+			domain_admin_id, domain_status, created_by
+		FROM
+			domain
+		INNER JOIN
+			admin ON(admin_id = domain_admin_id)
+		WHERE
+			domain_name = ?
+	';
 	$stmt = exec_query($query, $dmnUsername);
 
-	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
+	if ($stmt->rowCount() && $stmt->fields['created_by'] == $resellerId) {
 		$customerId = $stmt->fields['domain_admin_id'];
 		try {
 			if (!deleteCustomer($customerId, true)) {
@@ -1293,10 +1311,19 @@ function disableUser($resellerId, $domain)
 
 	$dmnUsername = encode_idna($domain);
 
-	$query = 'SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?';
+	$query = '
+		SELECT
+			domain_admin_id, domain_status, created_by
+		FROM
+			domain
+		INNER JOIN
+			admin ON(admin_id = domain_admin_id)
+		WHERE
+			domain_name = ?
+	';
 	$stmt = exec_query($query, $dmnUsername);
 
-	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
+	if ($stmt->rowCount() && $stmt->fields['created_by'] == $resellerId) {
 		$customerId = $stmt->fields['domain_admin_id'];
 
 		if ($stmt->fields['domain_status'] == $cfg->ITEM_OK_STATUS) {
@@ -1359,10 +1386,19 @@ function enableUser($resellerId, $domain)
 
 	$dmnUsername = encode_idna($domain);
 
-	$query = "SELECT `domain_admin_id`, `domain_created_id`, `domain_status` FROM `domain` WHERE `domain_name` = ?";
+	$query = '
+		SELECT
+			domain_admin_id, domain_status, created_by
+		FROM
+			domain
+		INNER JOIN
+			admin ON(admin_id = domain_admin_id)
+		WHERE
+			domain_name = ?
+	';
 	$stmt = exec_query($query, $dmnUsername);
 
-	if ($stmt->rowCount() && $stmt->fields['domain_created_id'] == $resellerId) {
+	if ($stmt->rowCount() && $stmt->fields['created_by'] == $resellerId) {
 		$customerId = $stmt->fields['domain_admin_id'];
 
 		if ($stmt->fields['domain_status'] == $cfg->ITEM_DISABLED_STATUS) {
@@ -1419,7 +1455,16 @@ function enableUser($resellerId, $domain)
  */
 function collectUsageData($resellerId, $domain)
 {
-	$query = 'SELECT `domain_id` FROM  `domain` WHERE `domain_created_id` = ?';
+	$query = '
+		SELECT
+			domain_id
+		FROM
+			domain
+		INNER JOIN
+			admin ON(admin_id = domain_admin_id)
+		WHERE
+			created_by = ?
+	';
 
 	if ($domain == 'all') {
 		$stmt = exec_query($query, $resellerId);
