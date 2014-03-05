@@ -48,15 +48,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -69,12 +61,10 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'up');
+			$this->migrateDb('up');
 			$this->syncTemplates(true);
-		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(
-				sprintf('Unable to create database schema: %s', $e->getMessage()), $e->getCode(), $e
-			);
+		} catch (iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -85,7 +75,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		$this->onBeforeInstallPlugin($event);
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -100,9 +90,9 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'up');
+			$this->migrateDb('up');
 			$this->syncTemplates();
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
@@ -115,7 +105,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		$this->onBeforeInstallPlugin($event);
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -129,13 +119,13 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		if($pluginManager->getPluginStatus($this->getName()) == 'tochange') {
+		//if($pluginManager->getPluginStatus($this->getName()) == 'tochange') {
 			try {
 				$this->syncTemplates();
-			} catch (iMSCP_Exception_Database $e) {
+			} catch (iMSCP_Exception $e) {
 				throw new iMSCP_Plugin_Exception(tr('Unable to change: %s', $e->getMessage()), $e->getCode(), $e);
 			}
-		}
+		//}
 	}
 
 	/**
@@ -148,9 +138,9 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'down');
-		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage(), $e->getCode(), $e));
+			$this->migrateDb('down');
+		} catch (iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -187,84 +177,158 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	 */
 	public function syncTemplates($force = false)
 	{
-		if($force || $this->getConfigParam('sync_default_templates', true)) {
+		if ($force || $this->getConfigParam('sync_default_templates', true)) {
 			$db = iMSCP_Database::getRawInstance();
-			$sTs = $this->getConfigParam('service_templates', array());
-			$tNs = array();
-			$tGNs = array();
+			$serviceTemplates = $this->getConfigParam('service_templates', array());
+			$serviceNames = array();
 
-			if(!empty($sTs)) {
-				foreach($sTs as $sTN => $tGs) {
-					foreach($tGs as $tGN => $tG) {
-						$tGN = ucwords("$sTN $tGN");
-						$tGNs[] = $tGN;
+			if (!empty($serviceTemplates)) {
+				foreach ($serviceTemplates as $serviceName => $templates) {
+					$serviceNames[] = $serviceName;
 
-						try {
-							$db->beginTransaction();
+					foreach ($templates as $templateName => $templateData) {
+						$templateFiles = $templateData['files'];
+						$templateScope = $templateData['scope'];
 
-							exec_query(
-								'
-									INSERT IGNORE template_editor_group (
-										group_name, group_service_name, group_scope
-									) VALUE (
-										?,?, ?
-									)
-								',
-								array($tGN, $sTN, isset($tG['scope']) ? $tG['scope'] : 'system')
-							);
+						if(preg_match('/^[a-z0-9\s_-]+$/i', $templateName)) {
+							try {
+								$db->beginTransaction();
 
-							if(!($tGI = $db->lastInsertId())) {
-								$stmt = exec_query(
-									'SELECT group_id FROM template_editor_group WHERE group_name = ?', $tGN
+								// Create/Update template
+								exec_query(
+									'
+										INSERT IGNORE INTO template_editor_templates (
+											name, service_name, is_default, scope
+										) VALUES (
+											?, ?, ?, ?
+										)
+									',
+									array($templateName, $serviceName, 1, $templateScope)
 								);
-								$tGI = $stmt->fields['group_id'];
-							}
 
-							foreach ($tG['templates'] as $tN => $tP) {
-								$tNs[] = $tN;
-
-								if (is_readable($tP)) {
-									$tC = file_get_contents($tP);
-
-									exec_query(
-										'
-											REPLACE INTO template_editor_template (
-												template_group_id, template_name, template_content
-											) VALUE (
-												?, ?, ?
-											)
-										',
-										array($tGI, $tN, $tC)
+								if (!($templateId = $db->lastInsertId())) {
+									$stmt = exec_query(
+										'SELECT id FROM template_editor_templates WHERE name = ? AND service_name = ?',
+										array($templateName, $serviceName)
 									);
-								} else {
-									set_page_message(
-										tr("TemplateEditor Plugin: Template %s is not readable or doesn't exist.", $tP),
-										'warning'
-									);
+
+									$templateId = $stmt->fields('id');
 								}
-							}
 
-							$db->commit();
-						} catch(iMSCP_Exception_Database $e) {
-							$db->rollBack();
-							throw $e;
+								// Insert/Update files which belong to the template
+
+								foreach ($templateFiles as $fileName => $filePath) {
+									$fileNames[$serviceName] = $fileName;
+
+									if (is_readable($filePath)) {
+										$fileContent = file_get_contents($filePath);
+
+										$stmt = exec_query(
+											'
+												INSERT INTO template_editor_files (
+													template_id, name, content
+												) VALUES (
+													:template_id, :name, :content
+												) ON DUPLICATE KEY UPDATE
+													content = :content
+											',
+											array(
+												'template_id' => $templateId,
+												'name' => $fileName,
+												'content' => $fileContent
+											)
+										);
+
+
+										if ($stmt->rowCount()) {
+											// New file added to template which have childs?
+											// Then, we add new file for child too
+											$stmt = exec_query(
+												'
+													SELECT
+														id
+													FROM
+														template_editor_templates
+													WHERE
+														parent_id = ?
+													AND
+														service_name = ?
+												',
+												array($templateId, $serviceName)
+											);
+
+											if ($stmt->rowCount()) {
+												while ($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+													exec_query(
+														'
+															INSERT IGNORE template_editor_files (
+																template_id, name, content
+															) value (
+																?, ?, ?
+															)
+														',
+														array($data['id'], $fileName, $fileContent)
+													);
+												}
+											}
+										}
+									} else {
+										set_page_message(
+											tr("File %s is not readable or doesn't exist.", $filePath), 'warning'
+										);
+									}
+								}
+
+								$db->commit();
+							} catch (iMSCP_Exception_Database $e) {
+								$db->rollBack();
+								throw $e;
+							}
+						} else {
+							set_page_message(
+								tr("Template %s is not valid: Character out of allowed range.", $templateName), 'warning'
+							);
 						}
 					}
 				}
 			}
 
-			if(!empty($tGNs)) {
-				$stGNs = implode(',', array_map('quoteValue', $tGNs));
+			if(!empty($serviceNames)) {
+				// Delete template which are no longer set in configuration file
+				$serviceNames = implode(',', array_map('quoteValue', $serviceNames));
 				exec_query(
-					"DELETE FROM template_editor_group WHERE group_parent_id IS NULL AND group_name NOT IN($stGNs)"
+					"
+						DELETE FROM
+							template_editor_templates
+						WHERE
+							parent_id IS NULL
+						AND
+							service_name NOT IN($serviceNames)
+					"
 				);
 
-				if(!empty($tNs)) {
-					$tNs = implode(',', array_map('quoteValue', $tNs));
-					execute_query("DELETE FROM template_editor_template WHERE template_name NOT IN($tNs)");
-				}
+				// TODO Delete files which are no longer in plugin configuration file
 			} else {
-				exec_query("DELETE FROM template_editor_group");
+				exec_query('DELETE FROM template_editor_templates');
+			}
+		}
+	}
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	protected function checkCompat($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.7', '<')) {
+				set_page_message(
+					tr('TemplateEditor: Your i-MSCP version is not compatible with this plugin. Try with a newer version.'),
+					'error'
+				);
+
+				$event->stopPropagation();
 			}
 		}
 	}
@@ -289,58 +353,5 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 				);
 			}
 		}
-	}
-
-	/**
-	 * Migrate database
-	 *
-	 * @throws iMSCP_Exception_Database When migration fail
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @param string $migrationMode Migration mode (up|down)
-	 * @return void
-	 */
-	protected function dbMigrate(iMSCP_Plugin_Manager $pluginManager, $migrationMode = 'up')
-	{
-		$pluginName = $this->getName();
-		$pluginInfo = $pluginManager->getPluginInfo($pluginName);
-		$dbSchemaVersion = (isset($pluginInfo['db_schema_version'])) ? $pluginInfo['db_schema_version'] : '000';
-		$migrationFiles = array();
-
-		/** @var $migrationFileInfo DirectoryIterator */
-		foreach (new DirectoryIterator(dirname(__FILE__) . '/data') as $migrationFileInfo) {
-			if (!$migrationFileInfo->isDot()) {
-				$migrationFiles[] = $migrationFileInfo->getRealPath();
-			}
-		}
-
-		natsort($migrationFiles);
-
-		if($migrationMode != 'up') {
-			$migrationFiles = array_reverse($migrationFiles);
-		}
-
-		try {
-			foreach ($migrationFiles as $migrationFile) {
-				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-					if(
-						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
-						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
-					) {
-						$migrationFilesContent = include($migrationFile);
-						if(isset($migrationFilesContent[$migrationMode])) {
-							execute_query($migrationFilesContent[$migrationMode]);
-							$dbSchemaVersion = $match[1];
-						}
-					}
-				}
-			}
-		} catch(iMSCP_Exception_Database $e) {
-			$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
-			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
-			throw $e;
-		}
-
-		$pluginInfo['db_schema_version'] =  ($migrationMode == 'up') ? $dbSchemaVersion : '000';
-		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 	}
 }

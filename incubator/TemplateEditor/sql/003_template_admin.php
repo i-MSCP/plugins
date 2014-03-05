@@ -20,17 +20,17 @@
 
 return array(
 	'up' => '
-		CREATE TABLE IF NOT EXISTS `termplate_editor_group_admin` (
-			`group_id` int(10) unsigned NOT NULL,
-			`admin_id` int(10) unsigned NOT NULL,
-			UNIQUE KEY `group_admin` (`group_id`,`admin_id`),
-			KEY `group_id` (`group_id`),
-			KEY `admin_id` (`admin_id`),
-			CONSTRAINT `group_admin_group_id` FOREIGN KEY (`group_id`)
-				REFERENCES `template_editor_group` (`group_id`) ON DELETE CASCADE,
-			CONSTRAINT `group_admin_admin_id` FOREIGN KEY (`admin_id`)
-				REFERENCES `admin` (`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+		CREATE TABLE IF NOT EXISTS template_editor_admins_templates (
+ 			admin_id int(10) unsigned NOT NULL,
+ 			template_id int(10) unsigned NOT NULL,
+ 			UNIQUE KEY admin_id_template_id (admin_id,template_id),
+  			CONSTRAINT admins_templates_admin_id FOREIGN KEY (admin_id)
+  				REFERENCES admin (admin_id) ON DELETE CASCADE,
+ 			CONSTRAINT admins_templates_template_id FOREIGN KEY (template_id)
+ 				REFERENCES template_editor_templates (id) ON DELETE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	',
-	'down' => 'DROP TABLE IF EXISTS termplate_editor_group_admin'
+	'down' => '
+		DROP TABLE IF EXISTS template_editor_admins_templates
+	'
 );

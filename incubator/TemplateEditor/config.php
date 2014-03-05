@@ -22,7 +22,7 @@ return array(
 	// Allow to use memcached server for better performances
 	// Default is disabled. See the README.md file for instructions.
 	'memcached' => array(
-		'enabled' => 0,
+		'enabled' => false,
 		'hostname' => 'localhost',
 		'port' => '11211'
 	),
@@ -30,34 +30,45 @@ return array(
 	// Whether or not default templates must be synced with last available versions on update
 	'sync_default_templates' => true,
 
-	// Service template definitions.
-	// Warning: imscp group must have read access to all paths defined below.
+	// Service template definitions
+	// Warning: imscp unix group must have read access to all file paths defined below.
 	// Do not change anything if you don't know what you are doing.
 	'service_templates' => array(
 		// Bind9 Templates
-		'bind9' => array(
-			'global' => array(
-				'templates' => array(
+		'Bind9' => array(
+			'System' => array(
+				'files' => array(
 					'named.conf' => '/etc/imscp/bind/named.conf',
 					'named.conf.local' => '/etc/imscp/bind/named.conf.local',
 					'named.conf.options' => '/etc/imscp/bind/named.conf.options'
 				),
 				'scope' => 'system'
 			),
-			'master zone' => array(
-				'templates' => array(
+			'Master Zone' => array(
+				'files' => array(
 					'cfg_master.tpl' => '/etc/imscp/bind/parts/cfg_master.tpl',
 					'db.tpl' => '/etc/imscp/bind/parts/db.tpl',
 					'db_sub.tpl' => '/etc/imscp/bind/parts/db_sub.tpl'
 				),
 				'scope' => 'site'
 			),
-			'slave zone' => array(
-				'templates' => array(
+			'Slave Zone' => array(
+				'files' => array(
 					'cfg_slave.tpl' => '/etc/imscp/bind/parts/cfg_slave.tpl'
 				),
 				'scope' => 'site'
 			)
 		),
+
+		// Postfix template
+		'Postfix' => array(
+			'System' => array(
+				'files' => array(
+					'main.cf' => '/etc/imscp/postfix/main.cf',
+					'master.cf' => '/etc/imscp/postfix/master.cf',
+				),
+				'scope' => 'system'
+			)
+		)
 	)
 );
