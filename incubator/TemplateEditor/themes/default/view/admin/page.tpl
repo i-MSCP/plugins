@@ -116,6 +116,7 @@
 				templateFileEntries = [];
 
 				$.each(template.files, function(index, file) {
+					var height = ( action == 'create_template' ? 387 : 457 );
 					templateFileEntries.push({
 						caption: file.name,
 						id: file.id,
@@ -123,7 +124,7 @@
 							type: "textarea",
 							css: {
 								"font-size": "1.1em", "border-color": "#cccccc", "-webkit-box-shadow":"none",
-								"-moz-box-shadow": "none", "box-shadow": "none", "width": "97.5%", "padding": "10px"
+								"-moz-box-shadow": "none", "box-shadow": "none", "width": "97.5%", "padding": "10px", "height": height+"px"
 							},
 							name: "files[" + file.name + "]", html: file.content
 						}
