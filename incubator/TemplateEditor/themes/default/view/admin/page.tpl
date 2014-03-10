@@ -1,7 +1,10 @@
 
-<link href="/TemplateEditor/themes/default/assets/css/template_editor.css" rel="stylesheet" type="text/css"/>
-<!--<script src="/TemplateEditor/themes/default/assets/js/templateEditor.js"></script>-->
-<script src="/TemplateEditor/themes/default/assets/js/vendor/jquery.dform-1.1.0.js"></script>
+<link href="/TemplateEditor/themes/default/assets/css/template_editor.css?v={TEMPLATE_EDITOR_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+<link href="/TemplateEditor/themes/default/assets/css/multi-select.css?v={TEMPLATE_EDITOR_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+
+<script src="/TemplateEditor/themes/default/assets/js/vendor/jquery.dform-1.1.0.js?v={TEMPLATE_EDITOR_ASSET_VERSION}"></script>
+<script src="/TemplateEditor/themes/default/assets/js/vendor/jquery.multi-select.js?v={TEMPLATE_EDITOR_ASSET_VERSION}"></script>
+<script src="/TemplateEditor/themes/default/assets/js/vendor/jquery.quicksearch.js?v={TEMPLATE_EDITOR_ASSET_VERSION}"></script>
 
 <div class="flash_message" style="display: none;"></div>
 <p class="hint" style="font-variant: small-caps;font-size: small;">{TR_HINT}</p>
@@ -56,13 +59,13 @@
 	</tbody>
 </table>
 <div class="buttons">
-	<input type="button" id="dsync" title="{TR_SYNC_TOOLTIP}" value="{TR_SYNC}" />
+	<input type="button" id="sync_default_templates" title="{TR_SYNC_TOOLTIP}" value="{TR_SYNC}" />
 </div>
-<div id="template_dialog" style="display: none;">
-	<form id="template_frm"></form>
+<div id="dialog" style="display: none;">
+	<form id="dialog_frm"></form>
 </div>
-<script>
 
+<script>
 	var oTable;
 	var oSelect;
 
@@ -79,7 +82,7 @@
 
 	function templateDialog(title, action)
 	{
-		return $("#template_dialog").dialog({
+		return $("#dialog").dialog({
 			autoOpen: false,
 			height: 650,
 			width: 980,
@@ -87,8 +90,8 @@
 			title: title,
 			buttons: {
 				"{TR_SAVE}": function() {
-					doRequest('POST', action, $("#template_frm").serialize()).done(function(data) {
-						$("#template_dialog").dialog("close");
+					doRequest('POST', action, $("#dialog_frm").serialize()).done(function(data) {
+						$("#dialog").dialog("close");
 						flashMessage('success', data.message);
 						oTable.fnDraw();
 					});
@@ -124,30 +127,19 @@
 							type: "textarea",
 							css: {
 								"font-size": "1.1em", "border-color": "#cccccc", "-webkit-box-shadow":"none",
-								"-moz-box-shadow": "none", "box-shadow": "none", "width": "97.5%", "padding": "10px", "height": height+"px"
+								"-moz-box-shadow": "none", "box-shadow": "none", "width": "97.5%", "padding": "10px",
+								"height": height+"px"
 							},
 							name: "files[" + file.name + "]", html: file.content
 						}
 					});
 				});
 
-				// Build reseller list
-				resellerEntries = {
-					"type": "select",
-					"options" : {
-						"1": {
-							"selected": "selected",
-							"html": "reseller 1"
-						},
-						"2": "Reseller 2"
-					}
-				};
-
 				form.html.push({ type: "tabs", entries: templateFileEntries });
 				form.html.push({ type: "hidden", name: "id", value: template.id });
 
 				// Build form and enable tab support in textareas
-				$("#template_frm").dform(form).find('textarea').keydown(function(e) {
+				$("#dialog_frm").dform(form).find('textarea').keydown(function(e) {
 					if(e.keyCode === 9) {
 						var start = this.selectionStart;
 						end = this.selectionEnd;
@@ -159,7 +151,96 @@
 				});
 			},
 			close: function() {
-				$("#template_frm").empty();
+				$("#dialog_frm").empty();
+			}
+		});
+	}
+
+	function adminsTemplatesDialog()
+	{
+		return $("#dialog").dialog({
+			autoOpen: false,
+			height: '370',
+			width: 395,
+			modal: true,
+			title: '{TR_TEMPLATE_ASSIGNMENT}',
+			buttons: {
+				"{TR_SAVE}": function() {
+					doRequest('POST', 'set_admins_templates', $("#dialog_frm").serialize()).done(function(data) {
+						$("#dialog").dialog("close");
+						flashMessage('success', data.message);
+						oTable.fnDraw();
+					});
+				},
+				"{TR_CANCEL}": function() { $(this).dialog("close"); }
+			},
+			open: function() {
+				template = $(this).data('template');
+
+				var form = { html: [ ] };
+
+				// Build multiselect entries
+				var optionEntries = { };
+
+				$.each(template.admins_templates, function(index, entry) {
+					optionEntries[entry.admin_id] = { html: entry.admin_name };
+
+					if(entry.template_id != "0") {
+						optionEntries[entry.admin_id].selected ="selected";
+					}
+				});
+
+				form.html.push(
+					{
+						type: "select",
+						id: "multiselect",
+						name: "admins_templates[]",
+						multiple : "multiple",
+						options: optionEntries
+					}
+				);
+
+				form.html.push({ type: "hidden", name: "id", value: template.id });
+
+				// Build form
+				$("#dialog_frm").dform(form).find("#multiselect").multiSelect({
+					selectableHeader: '<input type="text" class="search-input" autocomplete="off" placeholder="Search">',
+					selectionHeader: '<input type="text" class="search-input" autocomplete="off" placeholder="Search">',
+					selectableFooter: '<div class="custom-header">Unassigned</div>',
+					selectionFooter: '<div class="custom-header">Assigned</div>',
+					afterInit: function(ms) {
+						var that = this,
+							$selectableSearch = that.$selectableUl.prev(),
+							$selectionSearch = that.$selectionUl.prev(),
+							selectableSearchString = "#" + that.$container.attr("id") + " .ms-elem-selectable:not(.ms-selected)",
+							selectionSearchString = "#" + that.$container.attr("id")+ " .ms-elem-selection.ms-selected";
+
+						that.qs1 = $selectableSearch.quicksearch(selectableSearchString).on("keydown", function(e){
+							if (e.which === 40){
+								that.$selectableUl.focus();
+								return false;
+							}
+						});
+
+						that.qs2 = $selectionSearch.quicksearch(selectionSearchString).on("keydown", function(e){
+							if (e.which == 40){
+								that.$selectionUl.focus();
+								return false;
+							}
+						});
+					},
+					afterSelect: function(){
+						this.qs1.cache();
+						this.qs2.cache();
+					},
+					afterDeselect: function(){
+						this.qs1.cache();
+						this.qs2.cache();
+					}
+				});
+			},
+			close: function() {
+				$("#dialog_frm").empty();
 			}
 		});
 	}
@@ -242,8 +323,8 @@
 					 }
 			 		break;
 				case 'set_admins_templates':
-					 doRequest("GET", action, { id: templateId }).done( function(data) {
-						 adminsTemplatesDialog().data({ admins_templates: data }).dialog("open");
+					 doRequest("GET", 'get_admins_templates', { id: templateId }).done( function(data) {
+						 adminsTemplatesDialog().data({ template: data }).dialog("open");
 					 });
 					 break;
 				case 'sync_template':
@@ -258,8 +339,8 @@
 			 }
 		});
 
-		$('#dsync').click(function() {
-			doRequest("POST", 'dsync').done( function(data) {
+		$('#sync_default_templates').click(function() {
+			doRequest("POST", 'sync_default_templates').done( function(data) {
 				oTable.fnDraw(); flashMessage('success', data.message);
 			});
 		});

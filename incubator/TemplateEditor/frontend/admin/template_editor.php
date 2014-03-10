@@ -107,6 +107,9 @@ function templateEditor_getAdminsTemplates()
 {
 	if(isset($_GET['id'])) {
 		$templateId = intval($_GET['id']);
+		$temlate = array(
+			'id' => $templateId,
+		);
 
 		$stmt = exec_query(
 			'
@@ -123,13 +126,12 @@ function templateEditor_getAdminsTemplates()
 				AND
 					(template_id = ? OR template_id IS NULL)
 			',
-			array('ok', 'reseller', $templateId)
+			array('reseller', 'ok', $templateId)
 		);
 
 		if($stmt->rowCount()) {
-			_templateEditor_sendJsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
-		} else {
-			_templateEditor_sendJsonResponse(array());
+			$temlate['admins_templates'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			_templateEditor_sendJsonResponse(200, $temlate);
 		}
 	}
 
@@ -143,7 +145,7 @@ function templateEditor_getAdminsTemplates()
  */
 function template_editor_setAdminsTemplates()
 {
-
+	_templateEditor_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -193,7 +195,7 @@ function templateEditor_getDatatable()
 			/* Filtering */
 			$where = 'WHERE t1.service_name = ' . quoteValue($serviceName);
 
-			if ($_REQUEST['sSearch'] != '') {
+			if ($_GET['sSearch'] != '') {
 				$where .= ' AND (';
 
 				for ($i = 0; $i < $nbColumns; $i++) {
@@ -243,12 +245,13 @@ function templateEditor_getDatatable()
 				'aaData' => array()
 			);
 
-			$trNewTooltip = tr('Create new version of this template');
+			$trNewTooltip = tr('Create new version from this template');
 			$trEditTooltip = tr('Edit this template');
 			$trDeleteTooltip = tr('Delete this template');
-			$trSyncTooltip = tr("Synchronize customers's configuration files with this template");
+			$trSyncTooltip = tr("Synchronize the system with this template");
 			$trSyncInProgressTooltip = tr('Synchronization in progress...');
 			$trErrorTooltip = tr('Go to the debugger interface for more details...');
+			$trManageAssignment = tr('Template assignment');
 
 			while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 				$row = array();
@@ -280,21 +283,26 @@ function templateEditor_getDatatable()
 					"<span title=\"$trNewTooltip\" data-action=\"create_template\" data-id=\"{$data['id']}\" " .
 					"class=\"icon icon_add clickable\">&nbsp;</span> " .
 					(
-					!is_null($data['parent_name'])
-						? "<span title=\"$trEditTooltip\" data-action=\"edit_template\" " .
-						"data-id=\"{$data['id']}\" class=\"icon icon_edit clickable\">&nbsp;</span> "
-						: ''
+						(!is_null($data['parent_name']))
+							? "<span title=\"$trEditTooltip\" data-action=\"edit_template\" " .
+								"data-id=\"{$data['id']}\" class=\"icon icon_edit clickable\">&nbsp;</span> "
+							: ''
 					) . (
-					($data['status'] == 'ok' && $data['scope'] == 'site' && $serviceName == 'Bind9')
-						? "<span title=\"$trSyncTooltip\" data-action=\"sync_template\" " .
-						"data-id=\"{$data['id']}\" " .
-						"class=\"icon icon_refresh clickable\">&nbsp;</span>"
-						: ''
+						(!is_null($data['parent_name']) && $data['status'] == 'ok')
+							? "<span title=\"$trSyncTooltip\" data-action=\"sync_template\" " .
+								"data-id=\"{$data['id']}\" " .
+							"class=\"icon icon_refresh clickable\">&nbsp;</span>"
+							: ''
 					) . (
-					!is_null($data['parent_name'])
-						? "<span title=\"$trDeleteTooltip\" data-action=\"delete_template\" " .
-						"data-id=\"{$data['id']}\" class=\"icon icon_delete clickable\">&nbsp;</span>"
-						: ''
+							(!is_null($data['parent_name']))
+								? "<span title=\"$trDeleteTooltip\" data-action=\"delete_template\" " .
+									"data-id=\"{$data['id']}\" class=\"icon icon_delete clickable\">&nbsp;</span>"
+								: ''
+					) . (
+							(!is_null($data['parent_name']) && systemHasResellers())
+								? "<span title=\"$trManageAssignment\" data-action=\"set_admins_templates\" " .
+									"data-id=\"{$data['id']}\" class=\"icon icon_assign clickable\">&nbsp;</span> "
+								: ''
 					);
 
 				$row['service_name'] = '';
@@ -334,7 +342,7 @@ function templateEditor_create()
 						INSERT INTO template_editor_templates (
 							parent_id, name, service_name, is_default, scope
 						) SELECT
-							id, ?, service_name, ?, scope
+							IFNULL(parent_id, id), ?, service_name, ?, scope
 						FROM
 							template_editor_templates
 						WHERE
@@ -351,28 +359,29 @@ function templateEditor_create()
 						$fileContent = clean_input($fileContent);
 
 						exec_query(
-							'
-								INSERT INTO template_editor_files (
-									template_id, name, content
-								) VALUES(
-									?, ?, ?
-								)
-							',
+							'INSERT INTO template_editor_files (template_id, name, content) VALUES(?, ?, ?)',
 							array($templateId, $fileName, $fileContent)
 						);
 					}
 
 					$db->commit();
 
-					_templateEditor_sendJsonResponse(200, array("Template successfully created."));
+					_templateEditor_sendJsonResponse(200, array('message' => tr('Template successfully created.')));
 				}
 			} catch (iMSCP_Exception_Database $e) {
 				iMSCP_Database::getRawInstance()->rollBack();
+
+				if($e->getCode() === 23000) {
+					_templateEditor_sendJsonResponse(
+						400, array('message' => tr('Template with same name already exists.'))
+					);
+				}
+
 				_templateEditor_sendJsonResponse(500, array('message' => tr('An unexpected error occured.')));
 			}
 		} else {
 			_templateEditor_sendJsonResponse(
-				400, array('message' => tr('Template name is not valid: Character out of allowed range.'))
+				400, array('message' => tr('Template name is not valid.'))
 			);
 		}
 	}
@@ -385,23 +394,23 @@ function templateEditor_create()
  *
  * @return void
  */
-function templateEditor_read()
+function templateEditor_get()
 {
 	if(isset($_GET['id'])) {
-		$templateId =  intval($_REQUEST['id']);
+		$templateId =  intval($_GET['id']);
 
 		$stmt = exec_query('SELECT * FROM template_editor_templates WHERE id = ?', $templateId);
 
 		if($stmt->rowCount()) {
-			$templateData = $stmt->fetchRow(PDO::FETCH_ASSOC);
+			$temlate = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
 			$stmt = exec_query('SELECT * FROM template_editor_files WHERE template_id = ?', $templateId);
 
 			if($stmt->rowCount()) {
 				$files = $stmt->fetchAll(PDO::FETCH_ASSOC);
-				$templateData['files'] = $files;
+				$temlate['files'] = $files;
 
-				_templateEditor_sendJsonResponse(200, $templateData);
+				_templateEditor_sendJsonResponse(200, $temlate);
 			}
 
 			_templateEditor_sendJsonResponse(404, array('message' => tr('No file found for the template.')));
@@ -418,7 +427,7 @@ function templateEditor_read()
  *
  * @return void
  */
-function templateEditor_update()
+function templateEditor_edit()
 {
 	if(isset($_POST['id']) && isset($_POST['files'])) {
 		$templateId = intval($_POST['id']);
@@ -444,7 +453,7 @@ function templateEditor_update()
 
 			$db->commit();
 
-			_templateEditor_sendJsonResponse(200, array("Template successfully updated."));
+			_templateEditor_sendJsonResponse(200, array('message' => tr('Template successfully edited.')));
 		} catch(iMSCP_Exception_Database $e) {
 			iMSCP_Database::getRawInstance()->rollBack();
 			_templateEditor_sendJsonResponse(500, array('message' => tr('An unexpected error occured.')));
@@ -510,15 +519,15 @@ if(isset($_REQUEST['action'])) {
 				templateEditor_create();
 				break;
 			case 'get_template':
-				templateEditor_read();
+				templateEditor_get();
 				break;
 			case 'edit_template':
-				templateEditor_update();
+				templateEditor_edit();
 				break;
 			case 'delete_template':
 				templateEditor_delete();
 				break;
-			case 'get_admin_templates':
+			case 'get_admins_templates':
 				templateEditor_getAdminsTemplates();
 				break;
 			case 'set_admins_templates':
@@ -531,7 +540,7 @@ if(isset($_REQUEST['action'])) {
 				try {
 					iMSCP_Registry::get('pluginManager')->getPlugin('TemplateEditor')->syncTemplates(true);
 					_templateEditor_sendJsonResponse(
-						200, array('message' => tr('Default template were successfully synchronized.'))
+						200, array('message' => tr('Templates were successfully synchronized.'))
 					);
 				} catch(iMSCP_Exception $e) {
 					_templateEditor_sendJsonResponse(500, array('message' => tr('An unexpected error occured.')));
@@ -543,6 +552,13 @@ if(isset($_REQUEST['action'])) {
 	}
 
 	showBadRequestErrorPage();
+}
+
+if(iMSCP_Registry::get('config')->DEBUG) {
+	$assetVersion = time();
+} else {
+	$pluginInfo = iMSCP_Registry::get('pluginManager')->getPluginInfo('TemplateEditor');
+	$assetVersion = strtotime($pluginInfo['date']);
 }
 
 $tpl = new iMSCP_pTemplate();
@@ -560,24 +576,10 @@ $tpl->assign(
 		'THEME_CHARSET' => tr('encoding'),
 		'TR_PAGE_TITLE' => tr('Admin / Settings / Template Editor'),
 		'ISP_LOGO' => layout_getUserLogo(),
-
-		'TR_HINT' => tr(
-			'
-				This interface allows creation of customized and persistent versions of service templates which are used
-				by i-MSCP to generate final configuration files. Only site-wide templates can be assigned to resellers.
-				Other templates act at system-wide. If you delete a template which is already in use, it will be reset
-				back to the default template.
-			'
-		),
-		'TR_WARNING' => tr(
-			"
-				You must pay attention when you create new template versions or when you edit them. This should be
-				reserved to experts because no validity check is made, meaning that the system can break if you do a
-				mistake. You're warned.
-			"
-		),
+		'TEMPLATE_EDITOR_ASSET_VERSION' => $assetVersion,
+		'TR_HINT' => tr('This interface allows creation of customized and persistent versions of service templates which are used by i-MSCP to generate final configuration files. Only site-wide templates can be assigned to resellers. Other templates act at system-wide. If you delete a template which is already in use, it will be reset back to the default template.'),
+		'TR_WARNING' => tr("You must pay attention when you create new template versions or when you edit them. This should be reserved to experts because no validity check is made, meaning that the system can break if you do a mistake. You're warned."),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-
 		'TR_NAME' => tr('Name'),
 		'TR_PARENT' => tr('Parent'),
 		'TR_SCOPE' => tr('Scope'),
@@ -585,33 +587,19 @@ $tpl->assign(
 		'TR_ACTIONS' => tr('Actions'),
 		'TR_AVAILABLE_FOR' => tr('Available For'),
 		'TR_SERVICE_NAME' => tr('Service Name'),
-
 		'TR_PROCESSING_DATA' => tr('Processing...'),
-
+		'TR_TEMPLATE_ASSIGNMENT' => tr('Template assignment'),
 		'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
 		'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
 		'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
-
 		'TR_NEW' => tojs(tr('New template version from: %%s', true)),
 		'TR_EDIT' => tojs(tr('Edit %%s template', true)),
 		'TR_SAVE' => tojs(tr('Save', true)),
 		'TR_CANCEL' => tojs(tr('Cancel', true)),
-		'TR_SYNC' => tr('Synchronize default templates'),
-		'TR_SYNC_TOOLTIP' => tr(
-			'Synchronize default templates with last versions available in i-MSCP configuration directory.'
-		),
-		'TR_DELETE_CONFIRM' => tojs(
-			tr(
-				'Are you sure you want to delete this template? Deleting this template will cause deletion of all its children.',
-				true
-			)
-		),
-		'TR_TSYNC_CONFIRM' => tojs(
-			tr(
-				"Are you sure you want to synchronize customers's configuration files with this template? Be aware that the system can break in case the template is not valid.",
-				true
-			)
-		)
+		'TR_SYNC' => tr('Synchronize templates'),
+		'TR_SYNC_TOOLTIP' => tr('Synchronize templates with last versions available in i-MSCP configuration directory.'),
+		'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this template?', true)),
+		'TR_TSYNC_CONFIRM' => tojs(tr("Are you sure you want to synchronize the system with this template? Be aware that the system can break in case the template is not valid. In case of a site wide template, only configuration files from customers to which this template is assigned will be synchronized.", true))
 	)
 );
 

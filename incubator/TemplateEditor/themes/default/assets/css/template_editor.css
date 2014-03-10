@@ -28,10 +28,30 @@
     padding-left: 20px;
 }
 
-.icon_add { background-image: url("/TemplateEditor/themes/default/assets/images/add.png");}
-.icon_edit { background-image: url("/TemplateEditor/themes/default/assets/images/edit.png");}
-.icon_delete { background-image: url("/TemplateEditor/themes/default/assets/images/delete.png");}
-.icon_assign { background-image: url("/TemplateEditor/themes/default/assets/images/assign.png");}
-.icon_ok { background-image: url("/TemplateEditor/themes/default/assets/images/ok.png"); }
-.icon_refresh { background-image: url("/TemplateEditor/themes/default/assets/images/refresh.png");}
-.icon_error{ background-image: url("/TemplateEditor/themes/default/assets/images/error.png");}
+.icon_add {
+    background-image: url("/TemplateEditor/themes/default/assets/images/add.png");
+}
+
+.icon_edit {
+    background-image: url("/TemplateEditor/themes/default/assets/images/edit.png");
+}
+
+.icon_delete {
+    background-image: url("/TemplateEditor/themes/default/assets/images/delete.png");
+}
+
+.icon_assign {
+    background-image: url("/TemplateEditor/themes/default/assets/images/assign.png");
+}
+
+.icon_ok {
+    background-image: url("/TemplateEditor/themes/default/assets/images/ok.png");
+}
+
+.icon_refresh {
+    background-image: url("/TemplateEditor/themes/default/assets/images/refresh.png");
+}
+
+.icon_error {
+    background-image: url("/TemplateEditor/themes/default/assets/images/error.png");
+}

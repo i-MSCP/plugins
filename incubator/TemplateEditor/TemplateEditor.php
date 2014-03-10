@@ -239,22 +239,12 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 											)
 										);
 
-
+										// New file added to template which have childs?
+										// Then, we add new file for child too
 										if ($stmt->rowCount()) {
-											// New file added to template which have childs?
-											// Then, we add new file for child too
 											$stmt = exec_query(
-												'
-													SELECT
-														id
-													FROM
-														template_editor_templates
-													WHERE
-														parent_id = ?
-													AND
-														service_name = ?
-												',
-												array($templateId, $serviceName)
+												'SELECT id FROM template_editor_templates WHERE parent_id = ?',
+												$templateId
 											);
 
 											if ($stmt->rowCount()) {
@@ -262,12 +252,17 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 													exec_query(
 														'
 															INSERT IGNORE template_editor_files (
-																template_id, name, content
-															) value (
-																?, ?, ?
-															)
+																parent_id, template_id, name, content
+															) SELECT
+																parent_id, ?, name, content
+															FROM
+																template_editor_files
+															WHERE
+																template_id = ?
+															AND
+																name = ?
 														',
-														array($data['id'], $fileName, $fileContent)
+														array($data['id'], $templateId, $fileName)
 													);
 												}
 											}
@@ -285,9 +280,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 								throw $e;
 							}
 						} else {
-							set_page_message(
-								tr("Template %s is not valid: Character out of allowed range.", $templateName), 'warning'
-							);
+							set_page_message(tr("Template name %s is not valid.", $templateName), 'warning');
 						}
 					}
 				}
