@@ -1,0 +1,32 @@
+{
+    "name": "imscp/server-provisioning",
+    "description": "Plugin providing server provisioning API",
+    "minimum-stability": "stable",
+    "license": "LGPL-2.1+",
+    "authors": [
+        {
+            "name": "Laurent Declercq",
+            "email": "l.declercq@nuxwin.com"
+        }
+    ],
+    "config": {
+        "vendor-dir": "library/vendor"
+    },
+    "autoload": {
+        "classmap": [
+            "library/ServerProvisioning",
+            "library/vendor/zendframework"
+        ]
+    },
+    "keywords": [
+        "imscp",
+        "whmcs",
+        "boxbilling",
+        "server",
+        "provisioning"
+    ],
+    "require": {
+        "php": ">=5.3.23",
+        "zendframework/zend-http": "2.3.0"
+    }
+}

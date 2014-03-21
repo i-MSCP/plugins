@@ -25,17 +25,11 @@
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/lgpl-2.1.txt LGPL v2.1
  */
+namespace ServerProvisioning\Login;
 
-namespace ServerProvisioning\Controller\Package;
+use ServerProvisioning\Controller\Login;
 
-use ServerProvisioning\Controller\Package;
-
-/**
- * Class Sanity
- *
- * @package ServerProvisioning\Api\Package
- */
-class Sanity extends Package
+class Sanity extends Login
 {
 
 }

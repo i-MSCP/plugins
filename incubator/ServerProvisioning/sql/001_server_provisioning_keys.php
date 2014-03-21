@@ -5,7 +5,7 @@ return array(
 		CREATE TABLE IF NOT EXISTS server_provisioning_keys (
 			admin_id int(10) unsigned NOT NULL,
 			access_key_id varchar (64) NOT NULL,
-			private_key varchar (64) NOT NULL,
+			secret_access_key varchar (64) NOT NULL,
 			UNIQUE KEY keys_admin_id (admin_id),
 			KEY access_key_id (access_key_id),
 			CONSTRAINT keys_admin_id FOREIGN KEY (admin_id)

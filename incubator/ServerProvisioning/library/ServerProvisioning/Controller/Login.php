@@ -65,13 +65,13 @@ class Login extends AbstractController
 	/**
 	 * Return array describing payload requirements
 	 *
-	 * @param string $apiFunction
+	 * @param string $action Action
 	 * @return array
 	 */
-	protected function getPayloadRequirements($apiFunction)
+	protected function getPayloadRequirements($action)
 	{
 		$req = array('authenticate' => array('username', 'password'));
 
-		return $req[$apiFunction];
+		return $req[$action];
 	}
 }

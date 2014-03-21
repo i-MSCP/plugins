@@ -31,20 +31,26 @@ use DateTime;
 use iMSCP_Authentication_Result as AuthResult;
 use iMSCP_Events_Event as Event;
 use PDO;
+use Zend\Http\PhpEnvironment\Request as Request;
 
 /**
  * Class HMACAuthentication
  *
- * Authentication handler providing an  hash based message authentication.
+ * Authentication handler providing an hash based message authentication.
+ *
+ * Client which want authenticate through this handler must sign their requests using their Access keys. Access keys
+ * consist of an access key ID and a secret access key.
+ *
+ * SEE <TODO> for more information about signing process.
  *
  * @package ServerProvisioning
  */
 class HMACAuthentication
 {
 	/**
-	 * @var Api
+	 * @var Request
 	 */
-	protected $api;
+	protected $request;
 
 	/**
 	 * @var int Signature version
@@ -54,12 +60,12 @@ class HMACAuthentication
 	/**
 	 * Constructor
 	 *
-	 * @param Api $api Api controller instance
+	 * @param Request
 	 * @return void
 	 */
-	public function __construct(Api $api)
+	public function __construct(Request $request)
 	{
-		$this->api = $api;
+		$this->request = $request;
 	}
 
 	/**
@@ -69,13 +75,20 @@ class HMACAuthentication
 	 */
 	public function __invoke(Event $event)
 	{
-		$datetime = DateTime::createFromFormat('Y-m-d\TH:i:s+', $this->api->getRequestParams('SpTimestamp'));
-		$accessKeyId = $this->api->getRequestParams('SpAccessKeyId');
+		if($this->request->isGet()) {
+			$accessKeyId = $this->request->getQuery('SpAccessKeyId');
+			$timestamp = $this->request->getQuery('SpTimestamp');
+		} else {
+			$accessKeyId = $this->request->getPost('SpAccessKeyId');
+			$timestamp = $this->request->getPost('SpTimestamp');
+		}
+
+		$datetime = DateTime::createFromFormat('Y-m-d\TH:i:s+', $timestamp);
 
 		if($accessKeyId && $datetime && (($datetime->getTimestamp() + 30 ) <= time())) {
 			$identity = $this->getIdentity($accessKeyId);
 
-			if($identity && $this->checkSign($identity->private_key)) {
+			if($identity && $this->checkSign($identity->secret_access_key)) {
 				$event->stopPropagation();
 				return new AuthResult(AuthResult::SUCCESS, $identity);
 			}
@@ -95,7 +108,7 @@ class HMACAuthentication
 		$stmt = exec_query(
 			'
 				SELECT
-					private_key, admin_id, admin_name, admin_type, email, created_by
+					secret_access_key, admin_id, admin_name, admin_type, email, created_by
 				FROM
 					server_provisioning_keys
 				INNER JOIN
@@ -116,30 +129,36 @@ class HMACAuthentication
 	/**
 	 * Check request signature
 	 *
-	 * @param string $privateKey private key
+	 * @param string $secretAccessKey Secret access key
 	 * @return bool
 	 */
-	protected function checkSign($privateKey)
+	protected function checkSign($secretAccessKey)
 	{
-		$signatureVersion = $this->api->getRequestParams('SpSignatureVersion');
-		$signatureMethod = $this->api->getRequestParams('SpSignatureMethod');
-		$signature = $this->api->getRequestParams('SpSignature');
+		if($this->request->isGet()) {
+			$signatureVersion = $this->request->getQuery('SpSignatureVersion');
+			$signatureMethod = $this->request->getQuery('SpSignatureMethod');
+			$signature = $this->request->getQuery('SpSignature');
+		} else {
+			$signatureVersion = $this->request->getPost('SpSignatureVersion');
+			$signatureMethod = $this->request->getPost('SpSignatureMethod');
+			$signature = $this->request->getPost('SpSignature');
+		}
 
 		if(
 			$signature && $signatureVersion == $this->signatureVersion &&
 			in_array($signatureMethod, array('HmacSHA1', 'HmacSHA256'))
 		) {
 			// Get the path and ensure it's absolute
-			$path = '/' . ltrim($this->normalizePath($_SERVER['REQUEST_URI']), '/');
+			$path = '/' . ltrim($this->normalizePath($this->request->getUri()->getPath()), '/');
 
 			// build string to sign
-			$sign = $this->api->getRequestMethod() . "\n"
-				. $this->api->getRequestHost() . "\n"
+			$sign = $this->request->getMethod() . "\n"
+				. $this->request->getUri()->getHost() . "\n"
 				. $path . "\n"
 				. $this->getCanonicalizedParameterString();
 
 			$sign = base64_encode(
-				hash_hmac(($signatureMethod == 'HmacSHA1') ? 'sha1' : 'sha256', $sign, $privateKey, true)
+				hash_hmac(($signatureMethod == 'HmacSHA1') ? 'sha1' : 'sha256', $sign, $secretAccessKey, true)
 			);
 
 			return ($sign === $signature);
@@ -189,10 +208,10 @@ class HMACAuthentication
 	 */
 	protected function getCanonicalizedParameterString()
 	{
-		if ($this->api->getRequestMethod() == 'POST') {
-			$params = $_POST;
+		if ($this->request->isPost()) {
+			$params = $this->request->getPost();
 		} else {
-			$params = $_GET;
+			$params = $this->request->getQuery();
 		}
 
 		unset($params['SpSignature']);

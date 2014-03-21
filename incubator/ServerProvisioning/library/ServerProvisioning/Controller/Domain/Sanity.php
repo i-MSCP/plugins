@@ -26,16 +26,16 @@
  * @license     http://www.gnu.org/licenses/lgpl-2.1.txt LGPL v2.1
  */
 
-namespace ServerProvisioning\Controller\Package;
+namespace ServerProvisioning\Domain;
 
-use ServerProvisioning\Controller\Package;
+use ServerProvisioning\Controller\Domain;
 
 /**
  * Class Sanity
  *
- * @package ServerProvisioning\Api\Package
+ * @package ServerProvisioning\Domain
  */
-class Sanity extends Package
+class Sanity extends Domain
 {
 
 }

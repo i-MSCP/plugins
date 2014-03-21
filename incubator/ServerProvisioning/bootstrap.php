@@ -27,20 +27,14 @@
 
 namespace ServerProvisioning;
 
-use iMSCP\Loader\AutoloaderFactory as LoaderFactory;
-use iMSCP\Loader\UniversalLoader as Loader;
 use iMSCP_Registry as Registry;
 
-/** @var Loader $loader */
-$loader = LoaderFactory::getAutoloader('iMSCP\Loader\UniversalLoader');
+require 'library/vendor/autoload.php';
 
-// Add classMap into the universal loader (more faster than using autoloader)
-$loader->addClassMap(include('autoload_classmap.php'));
-
-$api = new Api();
+$api = new ApiController();
 $api->getRouter()
 	->setBasePath(Registry::get('pluginManager')->getPlugin('ServerProvisioning')->getConfigParam('base_endpoint'))
-	->addRoutes(include('routes.php'));
+	->addRoutes(include('config/routes.php'));
 
-// Process API call
-$api->run();
+// Execute API call
+$api->execute();

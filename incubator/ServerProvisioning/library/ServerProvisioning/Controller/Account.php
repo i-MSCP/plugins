@@ -28,10 +28,7 @@
 
 namespace ServerProvisioning\Controller;
 
-use Exception;
-use iMSCP_Events as Events;
-use iMSCP_Events_Manager as EventsManager;
-use iMSCP_PHPini as PhpEditor;
+use iMSCP_Plugin_Exception as Exception;
 
 /**
  * Class Account
@@ -39,232 +36,114 @@ use iMSCP_PHPini as PhpEditor;
  *  API calls:
  *
  * Create:    POST   http(s)://<panel.tld>/<base_endpoint>/accounts
- * Update:    PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/<account_name>
- * Suspend:   PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/<account_name>/suspend
- * Unsuspend: PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/<account_name>/unsuspend
- * Delete:    DELETE http(s)://<panel.tld>/<base_endpoint>/accounts/<account_name>
+ * Update:    PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/:account_name
+ * Suspend:   PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/:account_name/suspend
+ * Unsuspend: PUT    http(s)://<panel.tld>/<base_endpoint>/accounts/:account_name/unsuspend
+ * Delete:    DELETE http(s)://<panel.tld>/<base_endpoint>/accounts/:account_name
  *
  * @package ServerProvisioning\Controller
  */
 class Account extends AbstractController
 {
 	/**
-	 * Create account
+	 * Create customer account
 	 *
-	 * Only resellers can create new account
-	 *
-	 * @param array $data
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function create(array $data)
 	{
-		try {
-			$resellerId = $this->identity->admin_id;
+		$resellerId = $this->identity->admin_id;
 
-			$packageStr = implode(
-				';',
-				array(
-					'', '', $data['subdomains'], $data['domain_aliases'], $data['mail_accounts'], $data['ftp_accounts'],
-					$data['sql_databases'], $data['sql_users'], $data['monthly_traffic'], $data['disk_quota']
-				)
-			);
+		$packageStr = implode(
+			';',
+			array(
+				'', '', $data['subdomains'], $data['domain_aliases'], $data['mail_accounts'], $data['ftp_accounts'],
+				$data['sql_databases'], $data['sql_users'], $data['monthly_traffic'], $data['disk_quota']
+			)
+		);
 
-			if (reseller_limits_check($resellerId, $packageStr)) {
+		if (reseller_limits_check($resellerId, $packageStr)) {
+			try {
 				$this->db->beginTransaction();
 
-				EventsManager::getInstance()->dispatch(
-					Events::onBeforeAddDomain,
-					array(
-						'domainName' => $data['domain_name'],
-						'createdBy' => $resellerId,
-						'customerId' => $data['customer_id'],
-						'customerEmail' =>  $data['email']
-					)
-				);
+				// Create user
+				$user = new User();
 
-				// Get PHP editor default permissions
-				$phpEditorPermissions = PhpEditor::getInstance()->getClPerm();
+				if ($user->checkPayload('create', $data)) {
+					$response = $user->create($data);
 
-				$timestamp = time();
-				$domainIpId = ''; // TODO
+					if ($response['code'] != 201) {
+						return $response;
+					}
 
-				// Create customer
-				exec_query(
-					'
-						INSERT INTO admin (
-							admin_name,
-							admin_pass,
-							admin_type,
-							domain_created,
-							created_by,
-							fname,
-							lname,
-							firm,
-							zip,
-							city,
-							state,
-							country,
-							email,
-							phone,
-							fax,
-							street1,
-							street2,
-							customer_id,
-							gender
-						) VALUES (
-							?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-						)
-					',
-					$data['account_name'],
-					cryptPasswordWithSalt($data['password']),
-					'user',
-					$timestamp,
-					$data['reseller_id'],
-					$data['firstname'],
-					$data['lastname'],
-					$data['firm'],
-					$data['zipcode'],
-					$data['city'],
-					$data['state'],
-					$data['country'],
-					$data['email'],
-					$data['phone'],
-					$data['fax'],
-					$data['street_1'],
-					$data['street_2'],
-					$data['customer_id'],
-					$data['gender']
-				);
+					$data['user_id'] = $response['user_id'];
+				}
 
-				$accountId = $this->db->lastInsertId();
+				// Create customer main domain
+				$domain = new Domain();
 
-				// create domain
-				exec_query(
-					'
-						INSERT INTO domain (
-							domain_name,
-							domain_admin_id,
-							domain_created,
-							domain_expires,
-							domain_mailacc_limit,
-							domain_ftpacc_limit,
-							domain_traffic_limit,
-							domain_sqld_limit,
-							domain_sqlu_limit,
-							domain_status,
-							domain_subd_limit,
-							domain_alias_limit,
-							domain_ip_id,
-							domain_disk_limit,
-							domain_disk_usage,
-							domain_php,
-							domain_cgi,
-							allowbackup,
-							domain_dns,
-							domain_software_allowed,
-							phpini_perm_system,
-							phpini_perm_allow_url_fopen,
-							phpini_perm_display_errors,
-							phpini_perm_disable_functions,
-							domain_external_mail,
-							web_folder_protection,
-							mail_quota
-						) VALUES (
-							?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-						)
-					',
-					$data['domain_name'],
-					$accountId,
-					$timestamp,
-					0,
-					$data['mail_accounts'],
-					$data['ftp_accounts'],
-					$data['monthly_traffic'],
-					$data['sql_databases'],
-					$data['sql_users'],
-					'toadd',
-					$data['subdomains'],
-					$data['domain_aliases'],
-					$domainIpId,
-					$data['disk_quota'],
-					0, $data['php'],
-					$data['cgi'],
-					$data['backup'],
-					$data['custom_dns_records'],
-					$data['software_installer'],
-					$data['php_editor'],
-					$phpEditorPermissions['phpiniAllowUrlFopen'],
-					$phpEditorPermissions['phpiniDisplayErrors'],
-					$phpEditorPermissions['phpiniDisableFunctions'],
-					$data['external_mail_server'],
-					$data['web_folder_protection'],
-					$data['mail_quota']
-				);
+				if ($domain->checkPayload('create', $data)) {
+					$response = $domain->create($data);
 
-				$domainId = $this->db->lastInsertId();
+					if ($response['code'] != 201) {
+						return $response;
+					}
 
-				// Create htuser for statistics
-				exec_query(
-					'INSERT INTO htaccess_users (dmn_id, uname, upass, status) VALUES(?, ?, ?, ?)',
-					array(
-						$domainId,
-						$data['domain_name'],
-						cryptPasswordWithSalt($data['password']),
-						'toadd'
-					)
-				);
+					$data['domain_id'] = $response['domain_id'];
+				}
 
-				$htuserId = $this->db->lastInsertId();
+				// Create htuser fpr statistic access
+				$htuser = new Htuser();
+
+				if ($htuser->checkPayload('create', $data)) {
+					$data['password'] = cryptPasswordWithSalt($data['password']);
+
+					$response = $htuser->create($data);
+
+					if ($response['code'] != 201) {
+						return $response;
+					}
+
+					$data['htuser_id'] = $response['htuser_id'];
+				}
 
 				// Create htgroup for statistic access
-				exec_query(
-					'INSERT INTO htaccess_group (dmn_id, ugroup, members, status) VALUES (?, ?, ?, ?)',
-					array(
-						$domainId,
-						$this->imscpConfig['AWSTATS_GROUP_AUTH'],
-						$htuserId,
-						'toadd'
-					)
-				);
+				$htgroup = new Htgroup();
+
+				if ($htgroup->checkPayload('create', $data)) {
+					$data['group_name'] = $this->imscpConfig['AWSTATS_GROUP_AUTH'];
+
+					$response = $htuser->$htgroup($data);
+
+					if ($response['code'] != 201) {
+						return $response;
+					}
+				}
 
 				// Create default addresses if needed
-				client_mail_add_default_accounts($domainId, $data['email'], $data['domain_name']);
+				client_mail_add_default_accounts($data['domain_id'], $data['email'], $data['domain_name']);
 
 				$this->db->commit();
+			} catch (Exception $e) {
+				$this->db->rollBack();
 
-				EventsManager::getInstance()->dispatch(
-					Events::onAfterAddDomain,
-					array(
-						'domainName' => $data['domain_name'],
-						'createdBy' => $resellerId,
-						'customerId' => $accountId,
-						'customerEmail' => $data['email'],
-						'domainId' => $domainId
-					)
-				);
-
-				send_request();
-				$response = array('code' => 201, 'message' => 'Account successfully scheduled for creation');
-			} else {
-				$response = array('code' => 422, 'message' => 'Limits reached');
+				if($e->getCode() == '23000') {
+					return array('code' => '409', 'Account already exist');
+				}
 			}
-		} catch (Exception $e) {
-			$this->db->rollBack();
-
-			if ($e->getCode() == '23000') {
-				$response = array('code' => 409, 'message' => sprintf('Account already exists'));
-			} else {
-				throw $e;
-			}
+		} else {
+			return array('code' => 403, 'message' => 'Limit reached');
 		}
 
-		return $response;
+		return array('code' => '201', 'message' => 'Account successfully scheduled for creation');
 	}
 
 	/**
-	 * Read account
+	 * Read customer account
 	 *
-	 * @param array $data
-	 * @return array nameserver data
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function read(array $data)
 	{
@@ -308,11 +187,11 @@ class Account extends AbstractController
 				INNER JOIN
 					domain on(domain_admin_id = admin_id)
 				WHERE
-					admin_id = ?
+					admin_name = ?
 				AND
 					created_by = ?
 			',
-			array($data['account_id'], $this->identity->admin_id)
+			array($data['account_name'], $this->identity->admin_id)
 		);
 
 		if (!$stmt->rowCount()) {
@@ -325,9 +204,10 @@ class Account extends AbstractController
 	}
 
 	/**
-	 * Change account password
+	 * Update customer account (password change only)
 	 *
-	 * @param array $data
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function update(array $data)
 	{
@@ -338,7 +218,7 @@ class Account extends AbstractController
 			)
 		);
 
-		if(!$stmt->rowCount()) {
+		if (!$stmt->rowCount()) {
 			$response = array('code' => '404', 'message' => 'Account not found');
 		} else {
 			$response = array('code' => '200', 'message' => 'Account password successfully updated');
@@ -348,10 +228,10 @@ class Account extends AbstractController
 	}
 
 	/**
-	 * Suspend account
+	 * Suspend customer account
 	 *
-	 * @param array $data
-	 * @return array
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function suspend(array $data)
 	{
@@ -360,9 +240,9 @@ class Account extends AbstractController
 			array($data['account_name'], $this->identity->admin_id)
 		);
 
-		if($stmt->rowCount()) {
-				change_domain_status($data['account_id'], 'deactivate');
-				$response = array('code' => '200', 'message' => 'Account succcessfully schceduled for suspension');
+		if ($stmt->rowCount()) {
+			change_domain_status($data['account_id'], 'deactivate');
+			$response = array('code' => '200', 'message' => 'Account succcessfully scheduled for deactivation');
 		} else {
 			$response = array('code' => '404', 'message' => 'Account not found');
 		}
@@ -371,10 +251,10 @@ class Account extends AbstractController
 	}
 
 	/**
-	 * Unsuspend account
+	 * Unsuspend customer account
 	 *
-	 * @param array $data
-	 * @return array
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function unsuspend(array $data)
 	{
@@ -383,9 +263,9 @@ class Account extends AbstractController
 			array($data['account_name'], $this->identity->admin_id)
 		);
 
-		if($stmt->rowCount()) {
+		if ($stmt->rowCount()) {
 			change_domain_status($data['account_id'], 'deactivate');
-			$response = array('code' => '200', 'message' => 'Account succcessfully schceduled for suspension');
+			$response = array('code' => '200', 'message' => 'Account succcessfully scheduled for activation');
 		} else {
 			$response = array('code' => '404', 'message' => 'Account not found');
 		}
@@ -394,17 +274,17 @@ class Account extends AbstractController
 	}
 
 	/**
-	 * Delete account
+	 * Delete customer account
 	 *
-	 * @param array $data
-	 * @return $response
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	public function delete(array $data)
 	{
 		$stmt = exec_query('SELECT admin_id FROM admin WHERE admin_name = ?', $data['account_name']);
 
-		if($stmt->rowCount()) {
-			if(deleteCustomer($data['account_name'], $this->identity->admin_id)) {
+		if ($stmt->rowCount()) {
+			if (deleteCustomer($data['account_name'], $this->identity->admin_id)) {
 				$response = array('code' => '200', 'message' => 'Account successfully scheduled for deletion');
 			} else {
 				$response = array('code' => '404', 'message' => 'Account not found');
@@ -419,8 +299,8 @@ class Account extends AbstractController
 	/**
 	 * Return array describing payload requirements
 	 *
-	 * @param string $apiFunction
-	 * @return array
+	 * @param array $data Account data
+	 * @return array Response
 	 */
 	protected function getPayloadRequirements($apiFunction)
 	{
@@ -462,11 +342,10 @@ class Account extends AbstractController
 				'web_folder_protection'
 			),
 			'read' => array('account_name'),
-			'update' => array('account_name'),
-			'delete' => array('account_name'),
+			'update' => array('account_name', 'password'),
 			'suspsend' => array('account_name'),
 			'unsuspend' => array('account_name'),
-			'change_password' => array('account_name', 'password')
+			'delete' => array('account_name'),
 		);
 
 		return $req[$apiFunction];

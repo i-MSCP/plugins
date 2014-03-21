@@ -31,8 +31,8 @@ namespace ServerProvisioning\Controller;
 use iMSCP_Authentication as Authentication;
 use iMSCP_Config_Handler_File;
 use iMSCP_Database as Database;
+use iMSCP_Events_Manager as EventsManager;
 use iMSCP_Registry as Registry;
-use PDO;
 
 /**
  * Class ServerProvisioning
@@ -54,9 +54,21 @@ abstract class AbstractController
 	protected $imscpConfig;
 
 	/**
-	 * @var PDO
+	 * @var Database
 	 */
 	protected $db;
+
+	/**
+	 * @var EventsManager
+	 */
+	protected $eventManager;
+
+	/**
+	 * Whether or not send backend request
+	 *
+	 * @var bool
+	 */
+	protected $sendRequest = false;
 
 	/**
 	 * Constructor
@@ -67,28 +79,54 @@ abstract class AbstractController
 	{
 		$this->identity = Authentication::getInstance()->getIdentity();
 		$this->imscpConfig = Registry::get('config');
-		$this->db = Database::getRawInstance();
+		$this->db = Database::getInstance();
+	}
+
+	/**
+	 * Get event manager
+	 *
+	 * @return EventsManager
+	 */
+	public function getEventManager()
+	{
+		if(is_null($this->eventManager)) {
+			$this->eventManager = EventsManager::getInstance();
+		}
+
+		return $this->eventManager;
 	}
 
 	/**
 	 * Return array describing payload requirements
 	 *
-	 * @param string $apiFunction
+	 * @param string $action Action
 	 * @return array
 	 */
-	abstract protected function getPayloadRequirements($apiFunction);
+	abstract protected function getPayloadRequirements($action);
 
 	/**
 	 * Check payload
 	 *
-	 * @param string $apiFunction
+	 * @param string $action Action
 	 * @param array $data
 	 * @return bool
 	 */
-	public function checkPayload($apiFunction, array $data)
+	public function checkPayload($action, array $data)
 	{
-		$diff = array_diff($this->getPayloadRequirements($apiFunction), array_keys($data));
+		$diff = array_diff($this->getPayloadRequirements($action), array_keys($data));
 
 		return empty($diff);
+	}
+
+	/**
+	 * Send backend request;
+	 *
+	 * @return void
+	 */
+	public function sendRequest()
+	{
+		if($this->sendRequest) {
+			send_request();
+		}
 	}
 }

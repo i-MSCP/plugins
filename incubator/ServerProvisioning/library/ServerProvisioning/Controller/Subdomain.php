@@ -26,16 +26,19 @@
  * @license     http://www.gnu.org/licenses/lgpl-2.1.txt LGPL v2.1
  */
 
-namespace ServerProvisioning\Controller\Package;
+namespace ServerProvisioning\Controller;
 
-use ServerProvisioning\Controller\Package;
-
-/**
- * Class Sanity
- *
- * @package ServerProvisioning\Api\Package
- */
-class Sanity extends Package
+class Subdomain extends AbstractController
 {
 
+	/**
+	 * Return array describing payload requirements
+	 *
+	 * @param string $action Action
+	 * @return array
+	 */
+	protected function getPayloadRequirements($action)
+	{
+		// TODO: Implement getPayloadRequirements() method.
+	}
 }
