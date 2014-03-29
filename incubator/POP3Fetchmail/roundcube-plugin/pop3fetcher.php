@@ -3,7 +3,7 @@
 /**
  * Download emails from POP3 accounts and save them in your IMAP account.
  *
- * @version 1.2
+ * @version 1.9
  * @author Paolo Moretti <morepaolo@gmail.com>
  *
  *
@@ -59,7 +59,8 @@ function init(){
     $this->add_hook('template_object_pop3fetcher_form_edit', array($this, 'accounts_edit'));
     $this->add_hook('template_object_pop3fetcher_form_add', array($this, 'accounts_add'));
 	
-	if($_GET['_action']=='check-recent'||$_GET['_action']=='plugin.checkunread'){
+	// ADDED A CHECK ON ACTION "refresh", used since Roundcube 9.X
+	if($_GET['_action']=='check-recent'||$_GET['_action']=='plugin.checkunread'||$_GET['_action']=='refresh'){
 		define('DISPLAY_XPM4_ERRORS', false); // display XPM4 errors
 		// path to 'POP3.php' file from XPM4 package
       	require_once './plugins/pop3fetcher/XPM4/POP35.php';
