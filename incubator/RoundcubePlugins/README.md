@@ -1,4 +1,4 @@
-## i-MSCP RoundcubePlugins plugin v0.0.3
+## i-MSCP RoundcubePlugins plugin v0.0.4
 
 Plugin allows to use Roundcube Plugins with i-MSCP.
 
