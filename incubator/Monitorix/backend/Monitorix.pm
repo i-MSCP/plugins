@@ -63,8 +63,8 @@ sub install
 		return 1;
 	}
 
-	if(! -f '/usr/share/monitorix/cgi/monitorix.cgi') {
-		error('Unable to find monitorix cgi script. Please check the path: /usr/share/monitorix/cgi/monitorix.cgi');
+	if(! -f '/var/lib/monitorix/www/cgi/monitorix.cgi') {
+		error('Unable to find monitorix cgi script. Please check the path: /var/lib/monitorix/www/cgi/monitorix.cgi');
 		return 1;
 	}
 
@@ -208,7 +208,7 @@ sub _createMonitorixGraphics
 
 	my ($stdout, $stderr);
 	my $rs = execute(
-		'/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -216,7 +216,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=week color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=week color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -224,7 +224,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=month color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=month color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -232,7 +232,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/usr/share/monitorix/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=year color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=year color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -410,7 +410,7 @@ sub _modifyMonitorixCgiFile
 {
 	my ($self, $action) = @_;
 
-	my $monitorixCgi = '/usr/share/monitorix/cgi/monitorix.cgi';
+	my $monitorixCgi = '/var/lib/monitorix/www/cgi/monitorix.cgi';
 
 	if(! -f $monitorixCgi) {
 		error("File $monitorixCgi is missing.");
@@ -425,7 +425,7 @@ sub _modifyMonitorixCgiFile
 		return 1;
 	}
 
-	my $monitorixCgiConfig = "open(IN, \"< /usr/share/monitorix/cgi/monitorix.conf.path\");";
+	my $monitorixCgiConfig = "open(IN, \"< /var/lib/monitorix/www/cgi/monitorix.conf.path\");";
 	my $monitorixCgiOldConfig = "open(IN, \"< monitorix.conf.path\");";
 
 	if($action eq 'add') {
@@ -450,7 +450,7 @@ sub _modifyMonitorixCgiFile
 
 sub _modifyDefaultMonitorixApacheConfig
 {
-	my ($self, $action) @_;
+	my ($self, $action) = @_;
 
 	my $rs = 0;
 
