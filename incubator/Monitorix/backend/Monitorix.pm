@@ -208,7 +208,7 @@ sub _createMonitorixGraphics
 
 	my ($stdout, $stderr);
 	my $rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=day color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1day color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -216,7 +216,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=week color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1week color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -224,7 +224,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=month color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1month color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -232,7 +232,7 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . ' when=year color=' . $graphColor . ' silent=imagetag',
+		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1year color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -298,7 +298,7 @@ sub _modifyMonitorixSystemConfig
 {
 	my ($self, $action) = @_;
 
-	my $monitorixSystemConfig = '/etc/monitorix.conf';
+	my $monitorixSystemConfig = '/etc/monitorix/monitorix.conf';
 
 	if(! -f $monitorixSystemConfig) {
 		error("File $monitorixSystemConfig is missing.");
@@ -322,8 +322,8 @@ sub _modifyMonitorixSystemConfig
 	$monitorixImgDirConfig .= "# Added by Plugins::Monitorix End_ImgDir\n";
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^base_dir = \/usr\/share\/monitorix\//gm) {
-			$fileContent =~ s/^base_dir = \/usr\/share\/monitorix\//$monitorixBaseDirConfig/gm;
+		if ($fileContent =~ /^base_dir = \/var\/lib\/monitorix\/www\//gm) {
+			$fileContent =~ s/^base_dir = \/var\/lib\/monitorix\/www\//$monitorixBaseDirConfig/gm;
 		}
 
 		if ($fileContent =~ /^# Start_BaseDir Added by Plugins.*End_BaseDir\n/sgm) {
@@ -338,7 +338,7 @@ sub _modifyMonitorixSystemConfig
 			$fileContent =~ s/^# Start ImgDir added by Plugins.*End_ImgDir\n/$monitorixImgDirConfig/sgm;
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^# Start_BaseDir Added by Plugins.*End_BaseDir\n/base_dir = \/usr\/share\/monitorix\//sgm;
+		$fileContent =~ s/^# Start_BaseDir Added by Plugins.*End_BaseDir\n/base_dir = \/var\/lib\/monitorix\/www\//sgm;
 
 		$fileContent =~ s/^# Start_ImgDir Added by Plugins.*End_ImgDir\n/imgs_dir = imgs\//sgm;
 	}
@@ -359,7 +359,7 @@ sub _modifyMonitorixSystemConfig
 
 sub _modifyMonitorixSystemConfigEnabledGraphics
 {
-	my $monitorixSystemConfig = '/etc/monitorix.conf';
+	my $monitorixSystemConfig = '/etc/monitorix/monitorix.conf';
 
 	if(! -f $monitorixSystemConfig) {
 		error("File $monitorixSystemConfig is missing.");

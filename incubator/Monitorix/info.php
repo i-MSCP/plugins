@@ -29,7 +29,7 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.5',
+	'version' => '0.0.6',
 	'date' => '2014-04-03',
 	'name' => 'Monitorix',
 	'desc' => 'Plugin providing lightweight system monitoring tool for Linux/UNIX servers',
