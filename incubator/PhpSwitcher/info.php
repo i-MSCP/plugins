@@ -21,8 +21,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.7',
-	'date' => '2014-03-03',
+	'version' => '0.0.8',
+	'date' => '2014-04-06',
 	'name' => 'PhpSwitcher',
 	'desc' => 'Plugin allowing to provide many PHP versions to customers.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:phpswitcher'

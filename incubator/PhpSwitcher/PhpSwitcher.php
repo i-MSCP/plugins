@@ -296,7 +296,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 				WHERE
 					domain_admin_id IN (' . $adminIdList . ')
 				AND
-				alias_status = ?
+					alias_status = ?
 			',
 			array('tochange', 'ok')
 		);
@@ -310,7 +310,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 				SET
 					subdomain_alias_status = ?
 				WHERE
-					domain_id = (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
+					domain_id IN (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
 				AND
 					subdomain_alias_status = ?
 			',

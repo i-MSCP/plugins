@@ -43,7 +43,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package implement the backend for the PhpSwitcher plugin.
+ This package implements the backend for the PhpSwitcher plugin.
 
 =head1 PUBLIC METHODS
 
@@ -371,7 +371,7 @@ sub _init()
 
  Get memcached instance
 
- Return Cache::Memcached::Fast or undef in case memcached server is not enabled
+ Return Cache::Memcached::Fast or undef in case memcached server is not enabled or not available
 
 =cut
 
