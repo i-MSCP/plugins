@@ -213,7 +213,7 @@
 		$(document).ajaxStart(function () { oTable.fnProcessingIndicator();});
 		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
 		$(document).ajaxError(function (e, jqXHR, settings, exception) {
-			if(jqXHR.status = 403) {
+			if(jqXHR.status == 403) {
 				window.location.href = '/index.php';
 			} else if (jqXHR.responseJSON != "") {
 				flashMessage("error", jqXHR.responseJSON.message);
