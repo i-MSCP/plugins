@@ -1,0 +1,18 @@
+.icon {
+    background-position: left center;
+    background-repeat: no-repeat;
+    display: inline-block;
+    display: -moz-inline-block;
+    overflow: hidden;
+    height: 16px;
+    line-height: 18px;
+    padding-left: 20px;
+}
+
+.icon_edit {
+    background-image: url("/InstantSSH/themes/default/assets/images/edit.png");
+}
+
+.icon_delete {
+    background-image: url("/InstantSSH/themes/default/assets/images/delete.png");
+}

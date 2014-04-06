@@ -1,0 +1,227 @@
+<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet"
+	  type="text/css"/>
+
+<div class="flash_message" style="display: none;"></div>
+
+<div id="page">
+	<p class="hint" style="font-variant: small-caps;font-size: small;">
+		This is the list of SSH public keys associated with your account. Remove any keys that you do not recognize.
+	</p>
+	<br/>
+
+	<div class="info">
+		You can generate your rsa key pair using the following command:
+		<strong>ssh-keygen -t rsa -C user@domain.tld</strong>
+	</div>
+
+	<table class="datatable">
+		<thead>
+		<tr>
+			<th>Key Name</th>
+			<th>Key Fingerprint</th>
+			<th>Key User</th>
+			<th>Key Status</th>
+			<th>Key Actions</th>
+		</tr>
+		</thead>
+		<tfoot>
+		<tr>
+			<td>Key Name</td>
+			<td>Key Fingerprint</td>
+			<td>Key User</td>
+			<td>KeyStatus</td>
+			<td>Key Actions</td>
+		</tr>
+		</tfoot>
+		<tbody>
+		<tr>
+			<td colspan="3">Processing...</td>
+		</tr>
+		</tbody>
+	</table>
+
+	<form name="ssh_key_frm" id="ssh_key_frm" method="post" enctype="application/x-www-form-urlencoded">
+		<table>
+			<thead>
+			<tr>
+				<th colspan="2">Add / Edit SSH Key</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td>
+					<label for="ssh_key_name">
+						Key name
+					<span class="icon i_help"
+						  title="Arbitrary name which allow you to retrieve your SSH key">&nbsp;</span>
+					</label>
+				</td>
+				<td>
+					<input type="text" class="inputTitle" name="ssh_key_name" id="ssh_key_name" value="" maxlength="255"
+						   placeholder="Enter a key name">
+				</td>
+			</tr>
+			<!-- BDP: ssh_key_options_block -->
+			<tr>
+				<td>
+					<label for="ssh_key_options">
+						Key options
+						<span class="icon i_help"
+							  title="SSH key options (See man authorized_keys for allowed options)">&nbsp;</span>
+					</label>
+				</td>
+				<td>
+					<textarea style="height: 45px" name="ssh_key_options"
+							  id="ssh_key_options">{DEFAULT_KEY_OPTIONS}</textarea>
+				</td>
+			</tr>
+			<!-- EDP: ssh_key_options_block -->
+			<tr>
+				<td>
+					<label for="ssh_key">
+						Key
+						<span class="icon i_help"
+							  title="Supported RSA key formats are PKCS#1, openSSH and XML Signature">&nbsp;</span>
+					</label>
+				</td>
+				<td>
+					<textarea style="height: 90px" name="ssh_key" id="ssh_key" placeholder="Enter a key"></textarea>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="text-align: right;">
+					<button data-action="add_ssh_key">Save</button>
+					<input type="hidden" id="ssh_key_id" name="ssh_key_id" value="0">
+					<input type="reset" value="Cancel"/>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+
+<script>
+	var oTable;
+
+	function doRequest(rType, action, data) {
+		return $.ajax({
+			dataType: "json",
+			type: rType,
+			url: "/client/ssh_keys?action=" + action,
+			data: data,
+			timeout: 3000
+		});
+	}
+
+	function flashMessage(type, message) {
+		$('<div />',
+			{
+				"class": 'flash_message ' + type,
+				"text": message,
+				"hide": true
+				//"style": "position:absolute;width:50%;left:50%;margin-left:-25%;z-index:3000"
+			}
+		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function() { $(this).remove(); });
+	}
+
+	$(document).ready(function () {
+		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (oSettings, onoff) {
+			if (typeof(onoff) == "undefined") {
+				onoff = true;
+			}
+
+			this.oApi._fnProcessingDisplay(oSettings, onoff);
+		};
+
+		oTable = $(".datatable").dataTable({
+			oLanguage: {DATATABLE_TRANSLATIONS},
+			iDisplayLength: 5,
+			bProcessing: true,
+			bServerSide: true,
+			sAjaxSource: "/client/ssh_keys?action=get_ssh_keys",
+			bStateSave: true,
+			aoColumnDefs: [
+				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
+			],
+			aoColumns: [
+				{ mData: "ssh_key_name" },
+				{ mData: "ssh_key_fingerprint" },
+				{ mData: "admin_sys_name" },
+				{ mData: "ssh_key_status" },
+				{ mData: "ssh_key_actions" }
+			],
+			fnServerData: function (sSource, aoData, fnCallback) {
+				$.ajax({
+					dataType: "json",
+					type: "GET",
+					url: sSource,
+					data: aoData,
+					success: fnCallback,
+					timeout: 3000,
+					error: function (xhr, textStatus, error) {
+						alert(xhr.status);
+						oTable.fnProcessingIndicator(false);
+					}
+				}).done(function () {
+					oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+				});
+			}
+		});
+
+		$("input:reset").click(function () {
+			$("#ssh_key_id").val("0");
+			$("#ssh_key_name").prop("readonly", false);
+		});
+
+		$("#page").on("click", "span[data-action], button", function (e) {
+			e.preventDefault();
+
+			action = $(this).data('action');
+			sshKeyName = $(this).data('ssh-key-name');
+			sshKeyId = $(this).data('ssh-key-id');
+
+			switch (action) {
+				case "add_ssh_key":
+					doRequest('POST', "add_ssh_key", $("#ssh_key_frm").serialize()).done(function (data) {
+						$("input:reset").trigger("click");
+						flashMessage('success', data.message);
+						oTable.fnDraw();
+					});
+					break;
+				case "edit_ssh_key":
+					doRequest('GET', "get_ssh_key", { ssh_key_id: sshKeyId }).done(function (data) {
+						$("#ssh_key_id").val(data.ssh_key_id);
+						$("#ssh_key_name").val(data.ssh_key_name).prop("readonly", true);
+						$("#ssh_key").val(data.ssh_key);
+					});
+					break;
+				case "delete_ssh_key":
+					if (confirm("Are you sure you want to delete this SSH key?")) {
+						doRequest("POST", action, { ssh_key_id: sshKeyId }).done(
+							function (data) {
+								oTable.fnDraw();
+								flashMessage('success', data.message);
+							}
+						);
+					}
+					break;
+				default:
+					alert("Unknown Action");
+			}
+		});
+
+		$(document).ajaxStart(function () { oTable.fnProcessingIndicator();});
+		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
+		$(document).ajaxError(function (e, jqXHR, settings, exception) {
+			if(jqXHR.status = 403) {
+				window.location.href = '/index.php';
+			} else if (jqXHR.responseJSON != "") {
+				flashMessage("error", jqXHR.responseJSON.message);
+			} else if (exception == "timeout") {
+				flashMessage("error", "Request Timeout: The server took too long to send the data.");
+			} else {
+				flashMessage("error", "An unexpected error occurred.");
+			}
+		});
+	});
+</script>
