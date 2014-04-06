@@ -274,7 +274,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	protected function setupNavigation($uiLevel)
 	{
-		if (!is_xhr()) {
+		if (!is_xhr() && iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 

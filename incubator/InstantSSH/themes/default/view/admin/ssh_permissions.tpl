@@ -185,7 +185,7 @@
 					).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop('readonly', true);
 							$("#ssh_permission_max_keys").val(data.ssh_permission_max_keys);
-							$("#ssh_permission_key_options").prop('checked', data.ssh_permission_key_options);
+							$("#ssh_permission_key_options").prop('checked', (data.ssh_permission_key_options != 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);
 						});
 					break;

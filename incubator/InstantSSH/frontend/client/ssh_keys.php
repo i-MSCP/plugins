@@ -130,12 +130,12 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 		$sshKeyName = clean_input($_POST['ssh_key_name']);
 		$sshKey = clean_input($_POST['ssh_key']);
 		$sshKeyFingerprint = '';
-		$sshKeyCommandOption = $pluginManager->getPlugin('InstantSSH')->getConfigParam('default_ssh_key_options', '');
+		$sshKeyOptions = $pluginManager->getPlugin('InstantSSH')->getConfigParam('default_ssh_key_options', '');
 
 		if ($sshPermissions['ssh_permission_key_options']) {
 			if(isset($_POST['ssh_key_options']) && is_string($_POST['ssh_key_options'])) {
-				$sshKeyCommandOption = clean_input($_POST['ssh_key_options']);
-				$sshKeyCommandOption = str_replace(array("\r\n", "\r", "\n"), "", $sshKeyCommandOption);
+				$sshKeyOptions = clean_input($_POST['ssh_key_options']);
+				$sshKeyOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshKeyOptions);
 			} else {
 				_instantssh_sendJsonResponse(400, array('message' => tr('Bad requests.')));
 			}
@@ -150,7 +150,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 		} elseif (strlen($sshKeyName) > 255) {
 			_instantssh_sendJsonResponse(400, array('message' => tr('SSH key name is too long (Max 255 characters).')));
 		} else {
-			if (($sshKey = _instant_getOpenSshKey($sshKey,$pluginManager)) === false) {
+			if (($sshKey = _instant_getOpenSshKey($sshKey, $pluginManager)) === false) {
 				_instantssh_sendJsonResponse(400, array('message' => tr('Invalid SSH key.')));
 			}
 
@@ -175,7 +175,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 						',
 						array(
 							$sshPermissions['ssh_permission_id'], $_SESSION['user_id'],$sshKeyName, $sshKey,
-							$sshKeyFingerprint, $sshKeyCommandOption, 'toadd'
+							$sshKeyFingerprint, $sshKeyOptions, 'toadd'
 						)
 					);
 
@@ -186,13 +186,13 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 				} else {
 					_instantssh_sendJsonResponse(400, array('message' => tr('Your SSH key limit is reached.')));
 				}
-			} else { // Update SSH key
+			} elseif($sshPermissions['ssh_permission_key_options']) { // Update SSH key
 				exec_query(
 					'
 						UPDATE
 							instant_ssh_keys
 						SET
-							ssh_key = ?, ssh_key_fingerprint = ?, ssh_key_options = ?, ssh_key_status = ?
+							ssh_key_options = ?, ssh_key_status = ?
 						WHERE
 							ssh_key_id = ?
 						AND
@@ -200,10 +200,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 						AND
 							ssh_key_status = ?
 					',
-					array(
-						$sshKey, $sshKeyFingerprint, $sshKeyCommandOption, 'tochange', $sshKeyId, $_SESSION['user_id'],
-						'ok'
-					)
+					array($sshKeyOptions, 'tochange', $sshKeyId, $_SESSION['user_id'], 'ok')
 				);
 
 				send_request();
@@ -268,6 +265,8 @@ function instantssh_deleteSshKey()
  */
 function instantssh_getSshKeys()
 {
+	global $sshPermissions;
+
 	try {
 		$columns = array('ssh_key_id', 'ssh_key_name', 'ssh_key', 'ssh_key_fingerprint', 'admin_sys_name', 'ssh_key_status');
 		$nbColumns = count($columns);
@@ -306,7 +305,7 @@ function instantssh_getSshKeys()
 		/* Filtering */
 		$where = '';
 
-		if ($_REQUEST['sSearch'] != '') {
+		if ($_GET['sSearch'] != '') {
 			$where .= 'WHERE (';
 
 			for ($i = 0; $i < $nbColumns; $i++) {
@@ -332,7 +331,7 @@ function instantssh_getSshKeys()
 				FROM
 					$table
 				INNER JOIN
-					admin on(admin_id = ssh_key_admin_id)
+					admin ON(admin_id = ssh_key_admin_id)
 				$where
 				$order
 				$limit
@@ -357,7 +356,8 @@ function instantssh_getSshKeys()
 			'aaData' => array()
 		);
 
-		$trEditTooltip = tr('Edit this SSH key');
+		$trShowSshKey = tr('Show SSH key');
+		$trEditTooltip = tr('Edit SSH key options');
 		$trDeleteTooltip = tr('Delete this SSH key');
 
 		while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
@@ -373,9 +373,15 @@ function instantssh_getSshKeys()
 
 			if ($data['ssh_key_status'] == 'ok') {
 				$row['ssh_key_actions'] =
-					"<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
-					"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-					"class=\"icon icon_edit clickable\">&nbsp;</span> "
+					(
+						($sshPermissions['ssh_permission_key_options'])
+							? "<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
+							 "data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
+							 "class=\"icon icon_edit clickable\">&nbsp;</span> "
+							: "<span title=\"$trShowSshKey\" data-action=\"show_ssh_key\" " .
+							 "data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
+							 "class=\"icon icon_show clickable\">&nbsp;</span> "
+					)
 					.
 					"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_key\" " .
 					"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
@@ -442,13 +448,10 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'layout' => 'shared/layouts/ui.tpl',
 			'page' => '../../plugins/InstantSSH/themes/default/view/client/ssh_keys.tpl',
 			'page_message' => 'layout',
-			'ssh_key_options_block' => 'page'
+			'ssh_key_options_block' => 'page',
+			'ssh_key_save_button_block' => 'page'
 		)
 	);
-
-	if(!$sshPermissions['ssh_permission_key_options']) {
-		$tpl->assign('SSH_KEY_OPTIONS_BLOCK', '');
-	}
 
 	if (iMSCP_Registry::get('config')->DEBUG) {
 		$assetVersion = time();
@@ -464,9 +467,22 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'ISP_LOGO' => layout_getUserLogo(),
 			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_key_options']) ?  tr('Add / Edit') : tr('Add / Show'),
 			'DEFAULT_KEY_OPTIONS' => $plugin->getConfigParam('default_ssh_key_options', '')
 		)
 	);
+
+	if(!$sshPermissions['ssh_permission_key_options']) {
+		$tpl->assign(
+			array(
+				'TR_RESET_BUTTON_LABEL' => tr('Reset'),
+				'SSH_KEY_OPTIONS_BLOCK' => '',
+				'SSH_KEY_SAVE_BUTTON_BLOCK' => ''
+			)
+		);
+	} else {
+		$tpl->assign('TR_RESET_BUTTON_LABEL', tr('Cancel'));
+	}
 
 	generateNavigation($tpl);
 	generatePageMessage($tpl);

@@ -44,7 +44,7 @@
 		<table>
 			<thead>
 			<tr>
-				<th colspan="2">Add / Edit SSH Key</th>
+				<th colspan="2">{TR_DYN_ACTIONS} SSH Key</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -90,9 +90,11 @@
 			</tr>
 			<tr>
 				<td colspan="2" style="text-align: right;">
+					<!-- BDP: ssh_key_save_button_block -->
 					<button data-action="add_ssh_key">Save</button>
+					<!-- EDP: ssh_key_save_button_block -->
 					<input type="hidden" id="ssh_key_id" name="ssh_key_id" value="0">
-					<input type="reset" value="Cancel"/>
+					<input type="reset" value="{TR_RESET_BUTTON_LABEL}"/>
 				</td>
 			</tr>
 			</tbody>
@@ -171,6 +173,7 @@
 		$("input:reset").click(function () {
 			$("#ssh_key_id").val("0");
 			$("#ssh_key_name").prop("readonly", false);
+			$("#ssh_key").prop("readonly", false);
 		});
 
 		$("#page").on("click", "span[data-action], button", function (e) {
@@ -188,11 +191,12 @@
 						oTable.fnDraw();
 					});
 					break;
+				case "show_ssh_key":
 				case "edit_ssh_key":
 					doRequest('GET', "get_ssh_key", { ssh_key_id: sshKeyId }).done(function (data) {
 						$("#ssh_key_id").val(data.ssh_key_id);
 						$("#ssh_key_name").val(data.ssh_key_name).prop("readonly", true);
-						$("#ssh_key").val(data.ssh_key);
+						$("#ssh_key").val(data.ssh_key).prop('readonly', true);
 					});
 					break;
 				case "delete_ssh_key":

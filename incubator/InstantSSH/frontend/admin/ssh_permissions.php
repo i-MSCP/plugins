@@ -164,7 +164,7 @@ function instantssh_addSshPermissions()
 
 					$stmt = exec_query(
 						'UPDATE instant_ssh_keys SET ssh_key_options = ?, ssh_key_status = ? WHERE ssh_permission_id = ?',
-						array($defaultSshKeyOptions, 'tochange')
+						array($defaultSshKeyOptions, 'tochange', $sshPermissionId)
 					);
 
 					if($stmt->rowCount()) {

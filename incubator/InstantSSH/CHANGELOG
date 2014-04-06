@@ -2,6 +2,15 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.2
+------------------------------------------------------------------------------------------------------------------------
+
+	- Fixed: Checkbox remain checked whatever the value from database (ssh permissions UI)
+	- Fixed: Customer shouldn't be able to edit full SSH key. Only key options must be editable
+	- Fixed: Number of bound variables does not match... (ssh permissions UI - edit action)
+	- Fixed: Unregistered data 'navigation'
+
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
