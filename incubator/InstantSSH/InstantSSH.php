@@ -288,23 +288,21 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 					)
 				);
 			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/profile.php'))) {
-				if($page->isActive()) {
-					$self = $this;
+				$self = $this;
 
-					$page->addPage(
-						array(
-							'label' => tr('SSH keys'),
-							'uri' => '/client/ssh_keys',
-							'title_class' => 'profile',
-							'privilege_callback' => array(
-								'name' => function() use($self) {
-									$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
-									return (bool) ($sshPermissions['ssh_permission_max_keys'] > -1);
-								}
-							)
+				$page->addPage(
+					array(
+						'label' => tr('SSH keys'),
+						'uri' => '/client/ssh_keys',
+						'title_class' => 'profile',
+						'privilege_callback' => array(
+							'name' => function() use($self) {
+								$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
+								return (bool) ($sshPermissions['ssh_permission_max_keys'] > -1);
+							}
 						)
-					);
-				}
+					)
+				);
 			}
 		}
 	}
