@@ -31,8 +31,8 @@ return array(
 	 *
 	 * Valid options are:
 	 *
-	 * \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY (for the cert-authority option)
 	 * \InstantSSH\Validate\SshAuthOptions::ALL (for all options)
+	 * \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY (for the cert-authority option)
 	 * \InstantSSH\Validate\SshAuthOptions::COMMAND (for the 'command' option)
 	 * \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT (for the 'environment' option)
 	 * \InstantSSH\Validate\SshAuthOptions::FROM (for the 'from' option)
@@ -46,12 +46,6 @@ return array(
 	 * \InstantSSH\Validate\SshAuthOptions::TUNNEL (for the 'tunnel' option)
 	 */
 	'allowed_ssh_auth_options' => array(
-		\InstantSSH\Validate\SshAuthOptions::COMMAND,
-		\InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING,
-		\InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING,
-		\InstantSSH\Validate\SshAuthOptions::NO_PTY,
-		\InstantSSH\Validate\SshAuthOptions::NO_USER_RC,
-		\InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING,
-		\InstantSSH\Validate\SshAuthOptions::PERMITOPEN
+		\InstantSSH\Validate\SshAuthOptions::ALL
 	)
 );
