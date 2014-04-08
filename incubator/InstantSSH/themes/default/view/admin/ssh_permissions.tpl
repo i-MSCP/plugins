@@ -15,7 +15,7 @@
 		<tr>
 			<th>Customer Name</th>
 			<th>Max Keys</th>
-			<th>Can Edit Key Options</th>
+			<th>Can Edit Auth Options</th>
 			<th>Actions</th>
 		</tr>
 		</thead>
@@ -23,7 +23,7 @@
 		<tr>
 			<td>Customer Name</td>
 			<td>Max Keys</td>
-			<td>Can Edit Key Options</td>
+			<td>Can Edit Auth Options</td>
 			<td>Actions</td>
 		</tr>
 		</tfoot>
@@ -62,9 +62,9 @@
 					</td>
 				</tr>
 				<tr>
-					<td><label for="ssh_permission_key_options">Can edit key options</label></td>
+					<td><label for="ssh_permission_auth_options">Can edit auth options</label></td>
 					<td>
-						<input type="checkbox" name="ssh_permission_key_options" id="ssh_permission_key_options"
+						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options"
 							   value="1"/>
 					</td>
 				</tr>
@@ -100,7 +100,7 @@
 			type: rType,
 			url: "/admin/ssh_permissions?action=" + action,
 			data: data,
-			timeout: 3000
+			timeout: 5000
 		});
 	}
 
@@ -126,7 +126,7 @@
 			aoColumns: [
 				{ mData: "admin_name" },
 				{ mData: "ssh_permission_max_keys" },
-				{ mData: "ssh_permission_key_options" },
+				{ mData: "ssh_permission_auth_options" },
 				{ mData: "ssh_permission_actions" }
 			],
 			fnServerData: function (sSource, aoData, fnCallback) {
@@ -162,7 +162,7 @@
 		$("input:reset").click(function () {
 			$("#admin_name").prop('readonly', false);
 			$("#ssh_permission_max_keys").val("0");
-			$("#ssh_permission_key_options").prop('checked', false);
+			$("#ssh_permission_auth_options").prop('checked', false);
 			$("#ssh_permission_id").val("0");
 		});
 
@@ -185,7 +185,7 @@
 					).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop('readonly', true);
 							$("#ssh_permission_max_keys").val(data.ssh_permission_max_keys);
-							$("#ssh_permission_key_options").prop('checked', (data.ssh_permission_key_options != 0));
+							$("#ssh_permission_auth_options").prop('checked', (data.ssh_permission_auth_options != 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);
 						});
 					break;

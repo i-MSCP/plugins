@@ -18,12 +18,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+# Rename ssh_key_options column to ssh_auth_options
+
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.3',
-	'date' => '2014-04-08',
-	'name' => 'InstantSSH',
-	'desc' => 'Plugin allowing to provide full SSH access to customers.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:instantssh'
+	'up' =>
+		'
+			ALTER TABLE
+				instant_ssh_keys
+			CHANGE
+				ssh_key_options ssh_auth_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
+		'
+	,
+	'down' =>
+		'
+			ALTER TABLE
+				instant_ssh_keys
+			CHANGE
+				ssh_auth_options ssh_key_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
+		'
 );

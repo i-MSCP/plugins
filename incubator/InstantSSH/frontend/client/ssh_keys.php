@@ -58,16 +58,12 @@ function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
 
 /**
  * Get openSSH key and its associated fingerprint
- * @param iMSCP_Plugin_Manager $pluginManager
+ *
  * @param string $rsaKey RSA key (Supported formats: PKCS#1, openSSH and XML Signature)
  * @return array|false An array which contain the normalized SSH key and its associated fingerprint or false on failure
  */
-function _instant_getOpenSshKey($rsaKey, $pluginManager)
+function _instant_getOpenSshKey($rsaKey)
 {
-	set_include_path(
-		get_include_path() . PATH_SEPARATOR . $pluginManager->getPluginDirectory() . '/InstantSSH/vendor/phpseclib'
-	);
-
 	$ret = false;
 
 	require_once 'Crypt/RSA.php';
@@ -125,17 +121,29 @@ function instantssh_getSshKey()
 function instantssh_addSshKey($pluginManager, $sshPermissions)
 {
 	if (isset($_POST['ssh_key_id']) && isset($_POST['ssh_key_name']) && isset($_POST['ssh_key'])) {
-
 		$sshKeyId = intval($_POST['ssh_key_id']);
 		$sshKeyName = clean_input($_POST['ssh_key_name']);
 		$sshKey = clean_input($_POST['ssh_key']);
 		$sshKeyFingerprint = '';
-		$sshKeyOptions = $pluginManager->getPlugin('InstantSSH')->getConfigParam('default_ssh_key_options', '');
 
-		if ($sshPermissions['ssh_permission_key_options']) {
-			if(isset($_POST['ssh_key_options']) && is_string($_POST['ssh_key_options'])) {
-				$sshKeyOptions = clean_input($_POST['ssh_key_options']);
-				$sshKeyOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshKeyOptions);
+		/** @var iMSCP_Plugin_InstantSSH $plugin */
+		$plugin = $pluginManager->getPlugin('InstantSSH');
+
+		$sshAuthOptions = $plugin->getConfigParam('default_ssh_auth_options', '');
+
+		if ($sshPermissions['ssh_permission_auth_options']) {
+			if (isset($_POST['ssh_auth_options']) && is_string($_POST['ssh_auth_options'])) {
+				$sshAuthOptions = clean_input($_POST['ssh_auth_options']);
+				$sshAuthOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshAuthOptions);
+				$allowedAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options', array());
+
+				require_once 'InstantSSH/Validate/SshAuthOptions.php';
+				$validator = new \InstantSSH\Validate\SshAuthOptions(array('auth_option' => $allowedAuthOptions));
+
+				if (!$validator->isValid($sshAuthOptions)) {
+					//$message = implode(', ', $validator->getMessages());
+					_instantssh_sendJsonResponse(400, array('message' => implode('<br />', $validator->getMessages())));
+				}
 			} else {
 				_instantssh_sendJsonResponse(400, array('message' => tr('Bad requests.')));
 			}
@@ -168,14 +176,14 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 						'
 							INSERT INTO instant_ssh_keys (
 								ssh_permission_id, ssh_key_admin_id, ssh_key_name, ssh_key, ssh_key_fingerprint,
-								ssh_key_options, ssh_key_status
+								ssh_auth_options, ssh_key_status
 							) VALUES (
 								?, ?, ?, ?, ?, ?, ?
 							)
 						',
 						array(
-							$sshPermissions['ssh_permission_id'], $_SESSION['user_id'],$sshKeyName, $sshKey,
-							$sshKeyFingerprint, $sshKeyOptions, 'toadd'
+							$sshPermissions['ssh_permission_id'], $_SESSION['user_id'], $sshKeyName, $sshKey,
+							$sshKeyFingerprint, $sshAuthOptions, 'toadd'
 						)
 					);
 
@@ -186,13 +194,13 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 				} else {
 					_instantssh_sendJsonResponse(400, array('message' => tr('Your SSH key limit is reached.')));
 				}
-			} elseif($sshPermissions['ssh_permission_key_options']) { // Update SSH key
+			} elseif ($sshPermissions['ssh_permission_auth_options']) { // Update SSH key
 				exec_query(
 					'
 						UPDATE
 							instant_ssh_keys
 						SET
-							ssh_key_options = ?, ssh_key_status = ?
+							ssh_auth_options = ?, ssh_key_status = ?
 						WHERE
 							ssh_key_id = ?
 						AND
@@ -200,7 +208,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 						AND
 							ssh_key_status = ?
 					',
-					array($sshKeyOptions, 'tochange', $sshKeyId, $_SESSION['user_id'], 'ok')
+					array($sshAuthOptions, 'tochange', $sshKeyId, $_SESSION['user_id'], 'ok')
 				);
 
 				send_request();
@@ -374,13 +382,13 @@ function instantssh_getSshKeys()
 			if ($data['ssh_key_status'] == 'ok') {
 				$row['ssh_key_actions'] =
 					(
-						($sshPermissions['ssh_permission_key_options'])
-							? "<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
-							 "data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-							 "class=\"icon icon_edit clickable\">&nbsp;</span> "
-							: "<span title=\"$trShowSshKey\" data-action=\"show_ssh_key\" " .
-							 "data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-							 "class=\"icon icon_show clickable\">&nbsp;</span> "
+					($sshPermissions['ssh_permission_auth_options'])
+						? "<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
+						"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
+						"class=\"icon icon_edit clickable\">&nbsp;</span> "
+						: "<span title=\"$trShowSshKey\" data-action=\"show_ssh_key\" " .
+						"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
+						"class=\"icon icon_show clickable\">&nbsp;</span> "
 					)
 					.
 					"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_key\" " .
@@ -414,11 +422,18 @@ $pluginManager = iMSCP_Registry::get('pluginManager');
 
 /** @var iMSCP_Plugin_InstantSSH $plugin */
 $plugin = $pluginManager->getPlugin('InstantSSH');
+
 $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 
 if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 	if (isset($_REQUEST['action'])) {
 		if (is_xhr()) {
+			set_include_path(
+				get_include_path() .
+				PATH_SEPARATOR . $pluginManager->getPluginDirectory() . '/InstantSSH/library' .
+				PATH_SEPARATOR . $pluginManager->getPluginDirectory() . '/InstantSSH/library/vendor/phpseclib'
+			);
+
 			$action = clean_input($_REQUEST['action']);
 
 			switch ($action) {
@@ -448,7 +463,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'layout' => 'shared/layouts/ui.tpl',
 			'page' => '../../plugins/InstantSSH/themes/default/view/client/ssh_keys.tpl',
 			'page_message' => 'layout',
-			'ssh_key_options_block' => 'page',
+			'ssh_auth_options_block' => 'page',
 			'ssh_key_save_button_block' => 'page'
 		)
 	);
@@ -467,16 +482,16 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'ISP_LOGO' => layout_getUserLogo(),
 			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_key_options']) ?  tr('Add / Edit') : tr('Add / Show'),
-			'DEFAULT_KEY_OPTIONS' => $plugin->getConfigParam('default_ssh_key_options', '')
+			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_auth_options']) ? tr('Add / Edit') : tr('Add / Show'),
+			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
 		)
 	);
 
-	if(!$sshPermissions['ssh_permission_key_options']) {
+	if (!$sshPermissions['ssh_permission_auth_options']) {
 		$tpl->assign(
 			array(
 				'TR_RESET_BUTTON_LABEL' => tr('Reset'),
-				'SSH_KEY_OPTIONS_BLOCK' => '',
+				'SSH_AUTH_OPTIONS_BLOCK' => '',
 				'SSH_KEY_SAVE_BUTTON_BLOCK' => ''
 			)
 		);

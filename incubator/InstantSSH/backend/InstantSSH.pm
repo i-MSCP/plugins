@@ -108,6 +108,7 @@ sub run
 	my $self = $_[0];
 
 	my ($rs, $ret, $qrs) = (0, 0, undef);
+	$seenCustomers = []; # Reset seen customer stack
 
 	# Remove SSH permissions
 
@@ -321,7 +322,7 @@ sub _addSshKey($$)
 
 		my $sshKeyReg = quotemeta($sshKeyData->{'ssh_key'});
 		$authorizedKeysFileContent =~ s/[^\n]*?$sshKeyReg\n//;
-		$authorizedKeysFileContent .= "$sshKeyData->{'ssh_key_options'} $sshKeyData->{'ssh_key'}\n";
+		$authorizedKeysFileContent .= "$sshKeyData->{'ssh_auth_options'} $sshKeyData->{'ssh_key'}\n";
 
 		$rs = $authorizedKeysFile->set($authorizedKeysFileContent);
 		return $rs if $rs;

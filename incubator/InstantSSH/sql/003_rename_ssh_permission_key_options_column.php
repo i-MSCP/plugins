@@ -18,12 +18,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+# Rename ssh_permission_key_options column to ssh_permission_auth_options
+
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.3',
-	'date' => '2014-04-08',
-	'name' => 'InstantSSH',
-	'desc' => 'Plugin allowing to provide full SSH access to customers.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:instantssh'
+	'up' =>
+		'
+			ALTER TABLE
+				instant_ssh_permissions
+			CHANGE
+				ssh_permission_key_options ssh_permission_auth_options TINYINT(1) NOT NULL
+		'
+	,
+	'down' =>
+		'
+			ALTER TABLE
+				instant_ssh_permissions
+			CHANGE
+				ssh_permission_auth_options ssh_permission_key_options TINYINT(1) NOT NULL
+		'
 );

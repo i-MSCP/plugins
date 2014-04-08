@@ -68,8 +68,8 @@ function instantssh_getSshPermissions()
 			$stmt = exec_query(
 				'
 					SELECT
-						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_key_options,
-						admin_name
+						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_keys,
+						ssh_permission_auth_options, admin_name
 					FROM
 						instant_ssh_permissions
 					INNER JOIN
@@ -107,7 +107,7 @@ function instantssh_addSshPermissions()
 		$sshPermissionId = intval($_POST['ssh_permission_id']);
 		$adminName = encode_idna(clean_input($_POST['admin_name']));
 		$sshPermissionMaxKey = clean_input($_POST['ssh_permission_max_keys']);
-		$sshPermissionKeyOptions = (isset($_POST['ssh_permission_key_options'])) ? : 0;
+		$sshPermissionKeyOptions = (isset($_POST['ssh_permission_auth_options'])) ? : 0;
 
 		if ($adminName == '' || $sshPermissionMaxKey == '') {
 			_instantssh_sendJsonResponse(400, array('message' => tr('All fields are required.')));
@@ -126,7 +126,7 @@ function instantssh_addSshPermissions()
 				$stmt = exec_query(
 					'
 						INSERT INTO instant_ssh_permissions(
-							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_key_options
+							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options
 						) SELECT
 							admin_id, ?, ?
 						FROM
@@ -149,7 +149,7 @@ function instantssh_addSshPermissions()
 						UPDATE
 							instant_ssh_permissions
 						SET
-							ssh_permission_max_keys = ?, ssh_permission_key_options = ?
+							ssh_permission_max_keys = ?, ssh_permission_auth_options = ?
 						WHERE
 							ssh_permission_id = ?
 					',
@@ -160,10 +160,17 @@ function instantssh_addSshPermissions()
 					/** @var iMSCP_Plugin_Manager $pluginManager */
 					$pluginManager = iMSCP_Registry::get('pluginManager');
 					$defaultSshKeyOptions = $pluginManager->getPlugin('InstantSSH')
-						->getConfigParam('default_ssh_key_options', '');
+						->getConfigParam('default_ssh_auth_options', '');
 
 					$stmt = exec_query(
-						'UPDATE instant_ssh_keys SET ssh_key_options = ?, ssh_key_status = ? WHERE ssh_permission_id = ?',
+						'
+							UPDATE
+								instant_ssh_keys
+							SET
+								ssh_auth_options = ?, ssh_key_status = ?
+							WHERE
+								ssh_permission_id = ?
+						',
 						array($defaultSshKeyOptions, 'tochange', $sshPermissionId)
 					);
 
@@ -276,7 +283,7 @@ function instantssh_getSshPermissionsList()
 	try {
 		$columns = array(
 			'ssh_permission_id', 'ssh_permission_admin_id', 'admin_name', 'ssh_permission_max_keys',
-			'ssh_permission_key_options'
+			'ssh_permission_auth_options'
 		);
 
 		$nbColumns = count($columns);
@@ -375,7 +382,7 @@ function instantssh_getSshPermissionsList()
 			for ($i = 0; $i < $nbColumns; $i++) {
 				if($columns[$i] == 'admin_name') {
 					$row[$columns[$i]] = tohtml(decode_idna($data[$columns[$i]]));
-				} elseif ($columns[$i] == 'ssh_permission_key_options') {
+				} elseif ($columns[$i] == 'ssh_permission_auth_options') {
 					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('yes') : tr('no');
 				} elseif($columns[$i] == 'ssh_permission_max_keys') {
 					$row[$columns[$i]] = (!$data[$columns[$i]]) ? tr('unlimited') : $data[$columns[$i]];

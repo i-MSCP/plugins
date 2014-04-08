@@ -51,9 +51,9 @@
 			<tr>
 				<td>
 					<label for="ssh_key_name">
-						Key name
-					<span class="icon i_help"
-						  title="Arbitrary name which allow you to retrieve your SSH key">&nbsp;</span>
+						SSH Key name
+						<span class="icon i_help"
+							  title="Arbitrary name which allow you to retrieve your SSH key">&nbsp;</span>
 					</label>
 				</td>
 				<td>
@@ -61,25 +61,24 @@
 						   placeholder="Enter a key name">
 				</td>
 			</tr>
-			<!-- BDP: ssh_key_options_block -->
+			<!-- BDP: ssh_auth_options_block -->
 			<tr>
 				<td>
-					<label for="ssh_key_options">
-						Key options
-						<span class="icon i_help"
-							  title="SSH key options (See man authorized_keys for allowed options)">&nbsp;</span>
+					<label for="ssh_auth_options">
+						Authentication options
+						<span class="icon i_help" title="See man authorized_keys for allowed options">&nbsp;</span>
 					</label>
 				</td>
 				<td>
-					<textarea style="height: 45px" name="ssh_key_options"
-							  id="ssh_key_options">{DEFAULT_KEY_OPTIONS}</textarea>
+					<textarea style="height: 45px" name="ssh_auth_options"
+							  id="ssh_auth_options">{DEFAULT_AUTH_OPTIONS}</textarea>
 				</td>
 			</tr>
-			<!-- EDP: ssh_key_options_block -->
+			<!-- EDP: ssh_auth_options_block -->
 			<tr>
 				<td>
 					<label for="ssh_key">
-						Key
+						SSH Key
 						<span class="icon i_help"
 							  title="Supported RSA key formats are PKCS#1, openSSH and XML Signature">&nbsp;</span>
 					</label>
@@ -111,7 +110,7 @@
 			type: rType,
 			url: "/client/ssh_keys?action=" + action,
 			data: data,
-			timeout: 3000
+			timeout: 5000
 		});
 	}
 
@@ -123,7 +122,9 @@
 				"hide": true
 				//"style": "position:absolute;width:50%;left:50%;margin-left:-25%;z-index:3000"
 			}
-		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function() { $(this).remove(); });
+		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function () {
+				$(this).remove();
+			});
 	}
 
 	$(document).ready(function () {
@@ -214,10 +215,14 @@
 			}
 		});
 
-		$(document).ajaxStart(function () { oTable.fnProcessingIndicator();});
-		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
+		$(document).ajaxStart(function () {
+			oTable.fnProcessingIndicator();
+		});
+		$(document).ajaxStop(function () {
+			oTable.fnProcessingIndicator(false);
+		});
 		$(document).ajaxError(function (e, jqXHR, settings, exception) {
-			if(jqXHR.status == 403) {
+			if (jqXHR.status == 403) {
 				window.location.href = '/index.php';
 			} else if (jqXHR.responseJSON != "") {
 				flashMessage("error", jqXHR.responseJSON.message);

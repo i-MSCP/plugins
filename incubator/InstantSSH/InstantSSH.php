@@ -70,6 +70,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			$this->checkDefaultAuthOptions();
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
@@ -99,6 +100,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
+			$this->checkDefaultAuthOptions();
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
@@ -143,7 +145,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		$customerId = $event->getParam('customerId');
 		$action = $event->getParam('action');
 
-		if($action == 'activate') {
+		if ($action == 'activate') {
 			exec_query(
 				'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_admin_id = ?',
 				array('toenable', $customerId)
@@ -176,7 +178,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			array('ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 		);
 
-		if($stmt->rowCount()) {
+		if ($stmt->rowCount()) {
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 		}
 
@@ -267,6 +269,28 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Check default SSH authentication options
+	 *
+	 * @throw iMSCP_Plugin_Exception in case default key options are invalid
+	 * @return void
+	 */
+	protected function checkDefaultAuthOptions()
+	{
+		require_once __DIR__ . '/library/InstantSSH/Validate/SshAuthOptions.php';
+
+		$defaulltAuthOptions = $this->getConfigParam('default_ssh_auth_options', '');
+
+		if ($defaulltAuthOptions != '') {
+			$validator = new InstantSSH\Validate\SshAuthOptions();
+
+			if (!$validator->isValid($defaulltAuthOptions)) {
+				$messages = implode(', ', $validator->getMessages());
+				throw new iMSCP_Plugin_Exception(sprintf('Invalid default authentication options: %s', $messages));
+			}
+		}
+	}
+
+	/**
 	 * Setup plugin navigation
 	 *
 	 * @param string $uiLevel UI level
@@ -296,9 +320,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'uri' => '/client/ssh_keys',
 						'title_class' => 'profile',
 						'privilege_callback' => array(
-							'name' => function() use($self) {
+							'name' => function () use ($self) {
 								$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
-								return (bool) ($sshPermissions['ssh_permission_max_keys'] > -1);
+								return (bool)($sshPermissions['ssh_permission_max_keys'] > -1);
 							}
 						)
 					)
@@ -315,11 +339,11 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function getCustomerPermissions($customerId)
 	{
-		if(null === $this->customerSshPermissions) {
+		if (null === $this->customerSshPermissions) {
 			$stmt = exec_query(
 				'
 					SELECT
-						ssh_permission_id, ssh_permission_max_keys, ssh_permission_key_options,
+						ssh_permission_id, ssh_permission_max_keys, ssh_permission_auth_options,
 						COUNT(ssh_key_id) as ssh_permission_cnb_keys
 					FROM
 						instant_ssh_permissions
@@ -333,7 +357,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 				intval($customerId)
 			);
 
-			if($stmt->rowCount()) {
+			if ($stmt->rowCount()) {
 				$this->customerSshPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
 			} else {
 				$this->customerSshPermissions = array(
