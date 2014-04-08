@@ -84,7 +84,7 @@ class SshAuthOptions extends ValidateAbstract
 	protected $_messageTemplates = array(
 		self::ALREADY_DEFINED => "The '%value%' authentication option cannot be defined multiple times",
 		self::DISABLED => "The '%value%' authentication option is valid but has been disabled on this system",
-		self::INVALID => "Invalid key option given. String expected",
+		self::INVALID => "Invalid authentication option given. String expected",
 		self::INVALID_VALUE => "The '%value%' authentication option value is invalid",
 		self::MISSING_END_QUOTE => "Missing end quote for the '%value%' authentication option",
 		self::UNKNOWN => "Unknown authentication option has been detected"
@@ -100,7 +100,7 @@ class SshAuthOptions extends ValidateAbstract
 	/**
 	 * Constructor
 	 *
-	 * @param array $options
+	 * @param array|string|Zend_Config $options
 	 * @return void
 	 */
 	public function __construct($options = array())

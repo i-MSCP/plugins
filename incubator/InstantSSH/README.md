@@ -26,18 +26,15 @@ Plugin allowing to provide full SSH access to customers.
 ### INTRODUCTION
 
 This plugin allow to give your customers a full SSH access by allowing them to add their SSH keys in i-MSCP. This plugin
-doesn't provide a secured shell environment such as jailkit. Thus, customers to which an SSH access is given must be
-trusted even if they are restricted in their actions. For the same reason, no reseller interface is provided at this
+doesn't provide a secured shell environment such as jailkit. Therefore, customers to which an SSH access is given must
+be trusted even if they are restricted in their actions. For the same reason, no reseller interface is provided at this
 moment. Thus, SSH permissions can be added only through the admin interface.
 
-For each customer, you can set the maximum number of allowed SSH keys and choose if he can override the default SSH key
-options which are defined in the plugin configuration file.
+For each customer, you can set the maximum number of allowed SSH keys, and choose if they can override the default
+authentication options. The authentication options are those specified in the authorized_keys file documentation
+(see man authorized_keys).
 
-SSH key options which are allowed are those specified in the authorized_keys file documentation (see man authorized_keys).
-You must be aware that while the SSH keys validity is checked, no test is made for the SSH key options. Therefore,
-customers which are allowed to override the SSH key options must know what they are doing.
-
-Default SSH key options are set as follow:
+Default authentication options are set as follow:
 
 	no-agent-forwarding,no-port-forwarding,no-X11-forwarding
 
@@ -47,7 +44,8 @@ which in order:
 * Forbids TCP forwarding
 * Forbids X11 forwarding
 
-You can override default SSH key options by editing the plugin configuration file.
+You can override default authentication options by editing the plugin configuration file. In that file, you can also
+restrict the list of authentication options that your customers can add.
 
 ### REQUIREMENTS
 
