@@ -32,26 +32,25 @@ use Zend_Validate_Abstract as ValidateAbstract;
  */
 class SshAuthOptions extends ValidateAbstract
 {
-	CONST ALL = 'All';
-	CONST CERT_AUTHORITY = 'cert-authority';
-	CONST COMMAND = 'command';
-	CONST ENVIRONMENT = 'environment';
-	CONST FROM = 'from';
-	CONST NO_AGENT_FORWARDING = 'no-agent-forwarding';
-	CONST NO_PORT_FORWARDING = 'no-port-forwarding';
-	CONST NO_PTY = 'no-pty';
-	CONST NO_USER_RC = 'no-user-rc';
-	CONST NO_X11_FORWARDING = 'no-x11-forwarding';
-	CONST PERMITOPEN = 'permitopen';
-	CONST PRINCIPALS = 'principals';
+	const ALL = 'All';
+	const CERT_AUTHORITY = 'cert-authority';
+	const COMMAND = 'command';
+	const ENVIRONMENT = 'environment';
+	const FROM = 'from';
+	const NO_AGENT_FORWARDING = 'no-agent-forwarding';
+	const NO_PORT_FORWARDING = 'no-port-forwarding';
+	const NO_PTY = 'no-pty';
+	const NO_USER_RC = 'no-user-rc';
+	const NO_X11_FORWARDING = 'no-x11-forwarding';
+	const PERMITOPEN = 'permitopen';
+	const PRINCIPALS = 'principals';
 	const TUNNEL = 'tunnel';
 
-	const BAD_OPTION = 'authOptionBadOption';
-	const DEFINED_TWICE = 'authOptionDefinedTwice';
-	const INVALID = 'authOptionInvalid';
-	const INVALID_VALUE = 'authOptionValueInvalid';
-	const MISSING_END_QUOTE = 'authOptionMissinEndQuote';
+	const ALREADY_DEFINED = 'authOptionAlreadyDefined';
 	const DISABLED = 'authOptionDisabled';
+	const INVALID = 'authOptionInvalid';
+	const INVALID_VALUE = 'authOptionInvalidValue';
+	const MISSING_END_QUOTE = 'authOptionMissinEndQuote';
 	const UNKNOWN = 'authOptionUnknown';
 
 	/**
@@ -83,13 +82,12 @@ class SshAuthOptions extends ValidateAbstract
 	 * @var array Validation failure message template definitions
 	 */
 	protected $_messageTemplates = array(
-		self::BAD_OPTION => "Bad authentication option has been detected.",
-		self::DEFINED_TWICE => "The '%value%' authentication option cannot be defined multiple times",
+		self::ALREADY_DEFINED => "The '%value%' authentication option cannot be defined multiple times",
+		self::DISABLED => "The '%value%' authentication option is valid but has been disabled on this system",
 		self::INVALID => "Invalid key option given. String expected",
 		self::INVALID_VALUE => "The '%value%' authentication option value is invalid",
 		self::MISSING_END_QUOTE => "Missing end quote for the '%value%' authentication option",
-		self::DISABLED => "The '%value%' authentication option is valid but has been disabled on this system.",
-		self::UNKNOWN => "Unknow authentication option has been detected"
+		self::UNKNOWN => "Unknown authentication option has been detected"
 	);
 
 	/**
@@ -209,7 +207,7 @@ class SshAuthOptions extends ValidateAbstract
 							goto next_option;
 						}
 
-						$this->_error(self::DEFINED_TWICE, $booleanOption);
+						$this->_error(self::ALREADY_DEFINED, $booleanOption);
 						goto bad_option;
 					} else {
 						$this->_error(self::DISABLED, $booleanOption);
@@ -229,7 +227,7 @@ class SshAuthOptions extends ValidateAbstract
 					}
 
 					if (in_array($valueOption, $seen)) {
-						$this->_error(self::DEFINED_TWICE, $valueOption);
+						$this->_error(self::ALREADY_DEFINED, $valueOption);
 						goto bad_option;
 					}
 
@@ -306,7 +304,7 @@ class SshAuthOptions extends ValidateAbstract
 
 		bad_option:
 		if (!$this->_messages)
-			$this->_error(self::BAD_OPTION);
+			$this->_error(self::UNKNOWN);
 
 		return false;
 	}
