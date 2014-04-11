@@ -144,41 +144,50 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			require_once 'InstantSSH/Converter/SshAuthOptions.php';
 		}
 
-		$db = iMSCP_Database::getInstance();
-
 		try {
 			$this->checkDefaultAuthOptions();
 
-			$db->beginTransaction();
-
 			$allowedSshAuthOptions = $this->getConfigParam('allowed_ssh_auth_options', array());
 
-			$stmt = exec_query(
-				'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?', 'todelete'
-			);
+			if (!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
+				$db = iMSCP_Database::getInstance();
 
-			if ($stmt->rowCount()) {
-				while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-					$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($row['ssh_auth_options']);
+				try {
+					$db->beginTransaction();
 
-					# Remove any ssh authentication option which is no longer allowed
-					$sshAuthOptionNew = array_filter(
-						$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
-						return in_array($sshAuthOption, $allowedSshAuthOptions);
-					});
+					$stmt = exec_query(
+						'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?', 'todelete'
+					);
 
-					if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
-						exec_query(
-							'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id ) ?',
-							array($row['ssh_key_id'], \InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew))
-						);
+					if ($stmt->rowCount()) {
+						while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+							$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($row['ssh_auth_options']);
+
+							# Remove any ssh authentication option which is no longer allowed
+							$sshAuthOptionNew = array_filter(
+								$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
+								return in_array($sshAuthOption, $allowedSshAuthOptions);
+							});
+
+							if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
+								exec_query(
+									'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id ) ?',
+									array(
+										$row['ssh_key_id'],
+										\InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew)
+									)
+								);
+							}
+						}
 					}
+
+					$db->commit();
+				} catch (iMSCP_Exception_Database $e) {
+					$db->rollBack();
+					throw $e;
 				}
 			}
-
-			$db->commit();
 		} catch (iMSCP_Exception $e) {
-			$db->rollBack();
 			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
@@ -362,17 +371,19 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 					$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions);
 
-					# Remove any ssh authentication option which is not allowed
-					$sshAuthOptionNew = array_filter(
-						$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
-						return in_array($sshAuthOption, $allowedSshAuthOptions);
-					});
+					if (!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
+						# Remove any ssh authentication option which is not allowed
+						$sshAuthOptionNew = array_filter(
+							$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
+							return in_array($sshAuthOption, $allowedSshAuthOptions);
+						});
 
-					if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
-						throw new iMSCP_Plugin_Exception(
-							'Any authentication options appearing in the default_ssh_auth_options parameter must be ' .
-							'specified in the allowed_ssh_auth_options parameter.'
-						);
+						if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
+							throw new iMSCP_Plugin_Exception(
+								'Any authentication options appearing in the default_ssh_auth_options parameter must ' .
+								'be specified in the allowed_ssh_auth_options parameter.'
+							);
+						}
 					}
 				}
 			} else {

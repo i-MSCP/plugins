@@ -48,8 +48,6 @@ return array(
 	 * \InstantSSH\Validate\SshAuthOptions::TUNNEL (for the 'tunnel' option)
 	 */
 	'allowed_ssh_auth_options' => array(
-		\InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING,
-		\InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING,
-		\InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING
+		\InstantSSH\Validate\SshAuthOptions::ALL
 	)
 );
