@@ -237,6 +237,53 @@ sub run
 
 =back
 
+=head1 EVENT LISTENERS
+
+=over 4
+
+=item deleteDomain(\%data)
+
+ Initialize instance
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub deleteDomain($)
+{
+	my $data = $_[0];
+
+	if($data->{'DOMAIN_TYPE'} eq 'dmn') {
+		my $username = $data->{'USER'};
+		my $homeDir = File::HomeDir->users_home($username);
+		my $isProtectedHomeDir = isImmutable($homeDir);
+		my $rs = 0;
+
+		if(defined $homeDir) {
+			if(-f "$homeDir/.ssh/authorized_keys") {
+				# Force logout of ssh login if any
+				my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($username), 'sshd');
+				execute("@cmd");
+
+				clearImmutable($homeDir);
+				clearImmutable("$homeDir/.ssh/authorized_keys");
+
+				$rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->remove();
+				return $rs if $rs;
+
+				setImmutable($homeDir) if $isProtectedHomeDir;
+			}
+		} else {
+			error("Unable to retrieve $username unix user home dir");
+    		return 1;
+		}
+	}
+
+	0;
+}
+
+=back
+
 =head1 PRIVATE METHODS
 
 =over 4
@@ -253,11 +300,13 @@ sub _init
 {
 	my $self = $_[0];
 
+	eval { require File::HomeDir };
+	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Pleas, read the plugin documentation') if $@;
+
 	$self->{'db'} = iMSCP::Database->factory();
 	$self->{'isListenerRegistered'} = 0;
 
-	eval { require File::HomeDir };
-	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Pleas, read the plugin documentation') if $@;
+	$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteDomain());
 
 	$self;
 }
@@ -291,9 +340,7 @@ sub _addSshKey($$)
 			);
 
 			my @cmd = (
-				"$main::imscpConfig{'CMD_USERMOD'}",
-				'-s /bin/bash',
-				escapeShell($sshKeyData->{'admin_sys_name'})
+				"$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/bash', escapeShell($sshKeyData->{'admin_sys_name'})
 			);
 			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
@@ -424,7 +471,7 @@ sub _deleteSshPermissions($$)
 		if(-f "$homeDir/.ssh/authorized_keys") {
 			# Force logout of ssh login if any
 			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($adminSysName), 'sshd');
-			execute("@cmd", \$stdout, \$stderr);
+			execute("@cmd");
 
 			clearImmutable($homeDir);
 			clearImmutable("$homeDir/.ssh/authorized_keys");

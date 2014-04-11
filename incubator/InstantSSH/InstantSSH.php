@@ -141,6 +141,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
 		if ($pluginManager->getPluginStatus($this->getName()) != 'toinstall') {
+			require_once 'InstantSSH/Validate/SshAuthOptions.php';
 			require_once 'InstantSSH/Converter/SshAuthOptions.php';
 		}
 
@@ -150,24 +151,30 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			$allowedSshAuthOptions = $this->getConfigParam('allowed_ssh_auth_options', array());
 
 			if (!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
+				// Normalize options for comparaison
+				$allowedSshAuthOptions = array_map('strtolower', $allowedSshAuthOptions);
+
 				$db = iMSCP_Database::getInstance();
 
 				try {
 					$db->beginTransaction();
 
 					$stmt = exec_query(
-						'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?', 'todelete'
+						'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?',
+						'todelete'
 					);
 
 					if ($stmt->rowCount()) {
 						while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-							$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($row['ssh_auth_options']);
+							// Convert authentication options string to array
+							$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray(
+								$row['ssh_auth_options']
+							);
 
-							# Remove any ssh authentication option which is no longer allowed
-							$sshAuthOptionNew = array_filter(
-								$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
-								return in_array($sshAuthOption, $allowedSshAuthOptions);
-							});
+							# Remove any authentication option which is no longer allowed
+							$sshAuthOptionNew = array_intersect_key(
+								$sshAuthOptionsOld, array_flip($allowedSshAuthOptions)
+							);
 
 							if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
 								exec_query(
@@ -369,14 +376,15 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						);
 					}
 
-					$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions);
-
 					if (!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
-						# Remove any ssh authentication option which is not allowed
-						$sshAuthOptionNew = array_filter(
-							$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
-							return in_array($sshAuthOption, $allowedSshAuthOptions);
-						});
+						// Normalize options for comparaison
+						$allowedSshAuthOptions = array_map('strtolower', $allowedSshAuthOptions);
+
+						// Convert default authentication options string to array
+						$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions);
+
+						# Remove any authentication option which is not allowed
+						$sshAuthOptionNew = array_intersect_key($sshAuthOptionsOld, array_flip($allowedSshAuthOptions));
 
 						if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
 							throw new iMSCP_Plugin_Exception(

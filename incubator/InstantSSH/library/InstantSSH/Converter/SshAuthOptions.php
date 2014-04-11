@@ -29,8 +29,8 @@ class SshAuthOptions
 		$optionsArr = array();
 
 		while ($options != '') {
-			if (preg_match('/^((?i)[a-z0-9-]+=")/', $options, $m)) {
-				$option = $m[1];
+			if (preg_match('/^((?i)[a-z0-9-]+=")/', $options, $m)) { // Value option
+				$option = strtolower($m[1]);
 				$optionValue = '';
 				$options = substr($options, strlen($option));
 
@@ -41,7 +41,7 @@ class SshAuthOptions
 
 					if ($options[0] == '\\' && (isset($options[1]) && $options[1] == '"')) {
 						$options = substr($options, 2);
-						$optionValue .= '\\"';
+						$optionValue .= '"';
 						continue;
 					}
 
@@ -53,12 +53,19 @@ class SshAuthOptions
 					throw new iMSCP_Exception('Invalid authentication options provided');
 				}
 
-				$optionsArr[] = $option . $optionValue . '"';
+				$option = substr($option, 0, -2);
+
+				if ($option == 'environment') {
+					$optionsArr['environment'][] = $optionValue;
+				} else {
+					$optionsArr[$option] = $optionValue;
+				}
+
 				$options = substr($options, 1);
-			} elseif (preg_match('/^((?i)[a-z0-9-]+)/', $options, $m)) {
+			} elseif (preg_match('/^((?i)[a-z0-9-]+)/', $options, $m)) { // Boolean option
 				$option = $m[1];
 				$options = substr($options, strlen($option));
-				$optionsArr[] = $option;
+				$optionsArr[$option] = true;
 			} else {
 				throw new iMSCP_Exception('Invalid authentication options provided');
 			}
@@ -85,7 +92,21 @@ class SshAuthOptions
 	static public function toString($options)
 	{
 		if (is_array($options)) {
-			return implode(',', $options);
+			$tmpOptions = array();
+
+			foreach ($options as $key => $value) {
+				if (is_array($value)) {
+					foreach ($value as $v) {
+						$tmpOptions[] = $key . '="' . addcslashes($v, '"') . '"';
+					}
+				} elseif (!is_bool($value)) {
+					$tmpOptions[] = $key . '="' . addcslashes($value, '"') . '"';
+				} else {
+					$tmpOptions[] = $options;
+				}
+			}
+
+			return implode(',', $tmpOptions);
 		} else {
 			throw new iMSCP_Exception('Array expected');
 		}

@@ -66,7 +66,7 @@
 				<td>
 					<label for="ssh_auth_options">
 						Authentication options
-						<span class="icon i_help" title="See man authorized_keys for allowed options">&nbsp;</span>
+						<span class="icon i_help" title="{TR_ALLOWED_OPTIONS}">&nbsp;</span>
 					</label>
 				</td>
 				<td>

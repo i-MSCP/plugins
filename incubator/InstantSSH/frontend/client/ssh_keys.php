@@ -276,7 +276,10 @@ function instantssh_getSshKeys()
 	global $sshPermissions;
 
 	try {
-		$columns = array('ssh_key_id', 'ssh_key_name', 'ssh_key', 'ssh_key_fingerprint', 'admin_sys_name', 'ssh_key_status');
+		$columns = array(
+			'ssh_key_id', 'ssh_key_name', 'ssh_key', 'ssh_key_fingerprint', 'admin_sys_name', 'ssh_key_status'
+		);
+
 		$nbColumns = count($columns);
 
 		$indexColumn = 'ssh_key_id';
@@ -311,10 +314,10 @@ function instantssh_getSshKeys()
 		}
 
 		/* Filtering */
-		$where = '';
+		$where = 'WHERE ssh_key_admin_id = ' . quoteValue($_SESSION['user_id']);
 
 		if ($_GET['sSearch'] != '') {
-			$where .= 'WHERE (';
+			$where .= ' AND (';
 
 			for ($i = 0; $i < $nbColumns; $i++) {
 				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
@@ -413,7 +416,7 @@ function instantssh_getSshKeys()
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
 check_login('user');
 
@@ -477,7 +480,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_auth_options']) ? tr('Add / Edit') : tr('Add / Show'),
-			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
+			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
 		)
 	);
 
@@ -490,7 +493,19 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			)
 		);
 	} else {
-		$tpl->assign('TR_RESET_BUTTON_LABEL', tr('Cancel'));
+		require_once 'InstantSSH/Validate/SshAuthOptions.php';
+
+		$allowedSshAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options');
+
+		$tpl->assign(
+			array(
+				'TR_ALLOWED_OPTIONS' => tr(
+					'Allowed authentication options: %s <br />See man authorized_keys for more details',
+					implode(', ', $allowedSshAuthOptions)
+				),
+				'TR_RESET_BUTTON_LABEL' => tr('Cancel')
+			)
+		);
 	}
 
 	generateNavigation($tpl);
@@ -498,7 +513,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 } else {
