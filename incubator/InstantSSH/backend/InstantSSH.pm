@@ -424,7 +424,7 @@ sub _deleteSshPermissions($$)
 		if(-f "$homeDir/.ssh/authorized_keys") {
 			# Force logout of ssh login if any
 			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($adminSysName), 'sshd');
-        	execute("@cmd", \$stdout, \$stderr);
+			execute("@cmd", \$stdout, \$stderr);
 
 			clearImmutable($homeDir);
 			clearImmutable("$homeDir/.ssh/authorized_keys");
