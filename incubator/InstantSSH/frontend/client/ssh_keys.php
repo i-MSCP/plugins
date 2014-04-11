@@ -314,7 +314,7 @@ function instantssh_getSshKeys()
 		}
 
 		/* Filtering */
-		$where = 'WHERE ssh_key_admin_id = ' . quoteValue($_SESSION['user_id']);
+		$where = 'WHERE ssh_key_admin_id = ' . intval($_SESSION['user_id']);
 
 		if ($_GET['sSearch'] != '') {
 			$where .= ' AND (';

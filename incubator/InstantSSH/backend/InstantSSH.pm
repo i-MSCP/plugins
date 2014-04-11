@@ -301,12 +301,12 @@ sub _init
 	my $self = $_[0];
 
 	eval { require File::HomeDir };
-	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Pleas, read the plugin documentation') if $@;
+	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Please, read the plugin documentation') if $@;
 
 	$self->{'db'} = iMSCP::Database->factory();
 	$self->{'isListenerRegistered'} = 0;
 
-	$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteDomain());
+	$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteDomain);
 
 	$self;
 }

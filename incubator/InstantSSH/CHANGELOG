@@ -2,13 +2,14 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 0.0.3
+Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	- Added: Configuration option allowing to define which SSH authentication options can be overriden by customers
 	- Added: SSH Authentication options validator and converter (string to array and vice versa)
 	- Fixed: All keys are shown in datatable whatever the owner
 	- Fixed: SSH users are not logged out when SSH permissions are revoked
+	- Fixed: Unable to delete customer account
 	- Fixed: Unable to update in some contexts
 
 ------------------------------------------------------------------------------------------------------------------------
