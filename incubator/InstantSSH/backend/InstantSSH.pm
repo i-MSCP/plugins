@@ -422,6 +422,10 @@ sub _deleteSshPermissions($$)
 
 	if(defined $homeDir) {
 		if(-f "$homeDir/.ssh/authorized_keys") {
+			# Force logout of ssh login if any
+			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($adminSysName), 'sshd');
+        	execute("@cmd", \$stdout, \$stderr);
+
 			clearImmutable($homeDir);
 			clearImmutable("$homeDir/.ssh/authorized_keys");
 
@@ -431,7 +435,7 @@ sub _deleteSshPermissions($$)
 			setImmutable($homeDir) if $isProtectedHomeDir;
 
 			# Change customer unix user shell to /bin/false
-			my @cmd = ("$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($adminSysName));
+			@cmd = ("$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($adminSysName));
 			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;

@@ -18,10 +18,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-require_once __DIR__ . '/library/InstantSSH/Validate/SshAuthOptions.php';
+require_once 'InstantSSH/Validate/SshAuthOptions.php';
 
 return array(
-	// Default SSH authentication options added on any new customer key.
+	// Default SSH authentication options added for any new customer key.
 	// See man authorized_keys for list of allowed authentication options.
 	// eg. command="dump /home",no-pty,no-port-forwarding
 	//

@@ -5,9 +5,10 @@ i-MSCP InstantSSH plugin
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added: SSH Authentication options validator
 	- Added: Configuration option allowing to define which SSH authentication options can be overriden by customers
-	- Fixed: Unable to update plugin in some contexts
+	- Added: SSH Authentication options validator and converter (string to array and vice versa)
+	- Fixed: Unable to update in some contexts
+	- Fixed: SSH users are not logged out when SSH permissions are revoked
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
