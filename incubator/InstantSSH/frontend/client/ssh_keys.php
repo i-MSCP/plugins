@@ -189,7 +189,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 
 					send_request();
 					_instantssh_sendJsonResponse(
-						200, array('message' => tr('SSH key successfully scheduled for addition.'))
+						200, array('message' => tr('SSH key scheduled for addition.'))
 					);
 				} else {
 					_instantssh_sendJsonResponse(400, array('message' => tr('Your SSH key limit is reached.')));
@@ -212,7 +212,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 				);
 
 				send_request();
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH key successfully scheduled for update.')));
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for update.')));
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			if ($e->getCode() == '23000') {
@@ -255,7 +255,7 @@ function instantssh_deleteSshKey()
 
 			send_request();
 
-			_instantssh_sendJsonResponse(200, array('message' => tr('SSH key successfully scheduled for deletion.')));
+			_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for deletion.')));
 		} catch (iMSCP_Exception_Database $e) {
 			_instantssh_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))

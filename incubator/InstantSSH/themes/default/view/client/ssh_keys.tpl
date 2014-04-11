@@ -197,6 +197,7 @@
 					doRequest('GET', "get_ssh_key", { ssh_key_id: sshKeyId }).done(function (data) {
 						$("#ssh_key_id").val(data.ssh_key_id);
 						$("#ssh_key_name").val(data.ssh_key_name).prop("readonly", true);
+						$("#ssh_auth_options").val(data.ssh_auth_options);
 						$("#ssh_key").val(data.ssh_key).prop('readonly', true);
 					});
 					break;

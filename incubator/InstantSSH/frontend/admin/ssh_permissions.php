@@ -100,10 +100,7 @@ function instantssh_getSshPermissions()
  */
 function instantssh_addSshPermissions()
 {
-	if (
-		isset($_POST['ssh_permission_id']) && isset($_POST['admin_name']) && isset($_POST['ssh_permission_max_keys']) &&
-		isset($_POST['ssh_permission_auth_options'])
-	) {
+	if (isset($_POST['ssh_permission_id']) && isset($_POST['admin_name']) && isset($_POST['ssh_permission_max_keys'])) {
 		$sshPermissionId = intval($_POST['ssh_permission_id']);
 		$adminName = encode_idna(clean_input($_POST['admin_name']));
 		$sshPermissionMaxKey = clean_input($_POST['ssh_permission_max_keys']);
@@ -139,7 +136,7 @@ function instantssh_addSshPermissions()
 
 				if($stmt->rowCount()) {
 					$db->commit();
-					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions successfully added.')));
+					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions added.')));
 				}
 			} else { // Update SSH permissions
 				exec_query(
@@ -177,7 +174,7 @@ function instantssh_addSshPermissions()
 
 				send_request();
 
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions successfully updated.')));
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions updated.')));
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
@@ -206,7 +203,7 @@ function instantssh_deleteSshPermissions()
 
 			if($stmt->rowCount()) {
 				send_request();
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were successfully revoked.')));
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions revoked.')));
 			}
 		} catch(iMSCP_Exception_Database $e) {
 			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
