@@ -2,7 +2,7 @@
 
 Plugin allowing to provide full SSH access to customers.
 
-### INTRODUCTION
+### Introduction
 
 This plugin allow to give your customers a full SSH access by allowing them to add their SSH keys in i-MSCP. This plugin
 doesn't provide a secured shell environment such as jailkit. Therefore, customers to which an SSH access is given must
@@ -28,7 +28,7 @@ in the plugin configuration file. In that file, you can also restrict the list o
 customers can add by editing the **allowed_ssh_auth_options** parameter. You must note that any authentication option
 appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** parameter.
 
-### REQUIREMENTS
+### Requirements
 
 * i-MSCP >= 1.1.5 (plugin API >= 0.2.8)
 * openSSH server with public key authentication support enabled
@@ -37,13 +37,13 @@ appearing in the the default authentication string must also be specified in the
 
 * libfile-homedir-perl
 
-### INSTALLATION
+### Installation
 
 1. Login into the panel as admin and go to the plugin management interface
 2. Upload the **InstantSSH** plugin archive
 3. Activate the plugin
 
-### UPDATE
+### Update
 
 1. Backup your current config file **plugins/InstantSSH/config.php**
 2. Login into the panel as admin and go to the plugin management interface
@@ -51,7 +51,7 @@ appearing in the the default authentication string must also be specified in the
 4. Restore your **plugins/InstantSSH/config.php** (compare it with the new configuration file first)
 5. Click on the **Update Plugins** button in the plugin management interface
 
-### LICENSE
+### License
 
  i-MSCP InstantSSH plugin
  Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
@@ -72,6 +72,6 @@ appearing in the the default authentication string must also be specified in the
 
  See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
 
-### AUTHOR
+### Author
 
  * Laurent Declercq <l.declercq@nuxwin.com>
