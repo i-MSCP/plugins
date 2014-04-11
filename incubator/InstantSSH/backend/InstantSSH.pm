@@ -275,7 +275,7 @@ sub deleteDomain($)
 			}
 		} else {
 			error("Unable to retrieve $username unix user home dir");
-    		return 1;
+			return 1;
 		}
 	}
 

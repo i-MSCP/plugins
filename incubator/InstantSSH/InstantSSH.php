@@ -152,7 +152,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 			if (!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
 				// Normalize options for comparaison
-				$allowedSshAuthOptions = array_map('strtolower', $allowedSshAuthOptions);
+				$allowedSshAuthOptions = array_change_key_case(array_flip($allowedSshAuthOptions), CASE_LOWER);
 
 				$db = iMSCP_Database::getInstance();
 
@@ -167,21 +167,19 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 					if ($stmt->rowCount()) {
 						while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
 							// Convert authentication options string to array
-							$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray(
-								$row['ssh_auth_options']
+							$sshAuthOptionsOld = array_change_key_case(
+								\InstantSSH\Converter\SshAuthOptions::toArray($row['ssh_auth_options']), CASE_LOWER
 							);
 
 							# Remove any authentication option which is no longer allowed
-							$sshAuthOptionNew = array_intersect_key(
-								$sshAuthOptionsOld, array_flip($allowedSshAuthOptions)
-							);
+							$sshAuthOptionNew = array_intersect_key($sshAuthOptionsOld, $allowedSshAuthOptions);
 
 							if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
 								exec_query(
-									'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id ) ?',
+									'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id = ?',
 									array(
-										$row['ssh_key_id'],
-										\InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew)
+										\InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew),
+										$row['ssh_key_id']
 									)
 								);
 							}
@@ -381,7 +379,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						$allowedSshAuthOptions = array_map('strtolower', $allowedSshAuthOptions);
 
 						// Convert default authentication options string to array
-						$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions);
+						$sshAuthOptionsOld = array_change_key_case(
+							\InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions), CASE_LOWER
+						);
 
 						# Remove any authentication option which is not allowed
 						$sshAuthOptionNew = array_intersect_key($sshAuthOptionsOld, array_flip($allowedSshAuthOptions));

@@ -480,7 +480,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_auth_options']) ? tr('Add / Edit') : tr('Add / Show'),
-			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
+			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
 		)
 	);
 

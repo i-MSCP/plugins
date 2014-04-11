@@ -102,7 +102,7 @@ class SshAuthOptions
 				} elseif (!is_bool($value)) {
 					$tmpOptions[] = $key . '="' . addcslashes($value, '"') . '"';
 				} else {
-					$tmpOptions[] = $options;
+					$tmpOptions[] = $key;
 				}
 			}
 
