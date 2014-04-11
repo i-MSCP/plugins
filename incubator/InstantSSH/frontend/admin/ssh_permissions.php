@@ -102,12 +102,12 @@ function instantssh_addSshPermissions()
 {
 	if (
 		isset($_POST['ssh_permission_id']) && isset($_POST['admin_name']) && isset($_POST['ssh_permission_max_keys']) &&
-		isset($_POST['ssh_permission_max_keys'])
+		isset($_POST['ssh_permission_auth_options'])
 	) {
 		$sshPermissionId = intval($_POST['ssh_permission_id']);
 		$adminName = encode_idna(clean_input($_POST['admin_name']));
 		$sshPermissionMaxKey = clean_input($_POST['ssh_permission_max_keys']);
-		$sshPermissionKeyOptions = (isset($_POST['ssh_permission_auth_options'])) ? : 0;
+		$sshPermissionAuthOptions = (isset($_POST['ssh_permission_auth_options'])) ? : 0;
 
 		if ($adminName == '' || $sshPermissionMaxKey == '') {
 			_instantssh_sendJsonResponse(400, array('message' => tr('All fields are required.')));
@@ -134,7 +134,7 @@ function instantssh_addSshPermissions()
 						WHERE
 							admin_name = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionKeyOptions, $adminName)
+					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $adminName)
 				);
 
 				if($stmt->rowCount()) {
@@ -142,8 +142,6 @@ function instantssh_addSshPermissions()
 					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions successfully added.')));
 				}
 			} else { // Update SSH permissions
-				$sendRequest = false;
-
 				exec_query(
 					'
 						UPDATE
@@ -153,16 +151,16 @@ function instantssh_addSshPermissions()
 						WHERE
 							ssh_permission_id = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionKeyOptions, $sshPermissionId)
+					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionId)
 				);
 
-				if(!$sshPermissionKeyOptions) {
+				if(!$sshPermissionAuthOptions) {
 					/** @var iMSCP_Plugin_Manager $pluginManager */
 					$pluginManager = iMSCP_Registry::get('pluginManager');
-					$defaultSshKeyOptions = $pluginManager->getPlugin('InstantSSH')
+					$defaultSshAuthOptions = $pluginManager->getPlugin('InstantSSH')
 						->getConfigParam('default_ssh_auth_options', '');
 
-					$stmt = exec_query(
+					exec_query(
 						'
 							UPDATE
 								instant_ssh_keys
@@ -171,19 +169,13 @@ function instantssh_addSshPermissions()
 							WHERE
 								ssh_permission_id = ?
 						',
-						array($defaultSshKeyOptions, 'tochange', $sshPermissionId)
+						array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
 					);
-
-					if($stmt->rowCount()) {
-						$sendRequest = true;
-					}
 				}
 
 				$db->commit();
 
-				if($sendRequest) {
-					send_request();
-				}
+				send_request();
 
 				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions successfully updated.')));
 			}

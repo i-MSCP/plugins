@@ -29,6 +29,23 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	protected $customerSshPermissions;
 
 	/**
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		$pluginDirectory = iMSCP_Registry::get('pluginManager')->getPluginDirectory();
+
+		// Set include path
+		set_include_path(
+			get_include_path() .
+			PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library' .
+			PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library/vendor/phpseclib'
+		);
+	}
+
+	/**
 	 * Register event listeners
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
@@ -38,12 +55,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	{
 		$eventManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin,
-				iMSCP_Events::onAdminScriptStart,
-				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterChangeDomainStatus
+				iMSCP_Events::onBeforeInstallPlugin, iMSCP_Events::onBeforeUpdatePlugin,
+				iMSCP_Events::onBeforeEnablePlugin, iMSCP_Events::onAdminScriptStart,
+				iMSCP_Events::onClientScriptStart, iMSCP_Events::onAfterChangeDomainStatus
 			),
 			$this
 		);
@@ -100,7 +114,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->checkDefaultAuthOptions();
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
@@ -116,6 +129,58 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function onBeforeEnablePlugin($event)
 	{
 		$this->checkCompat($event);
+	}
+
+	/**
+	 * Plugin activation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		if ($pluginManager->getPluginStatus($this->getName()) != 'toinstall') {
+			require_once 'InstantSSH/Converter/SshAuthOptions.php';
+		}
+
+		$db = iMSCP_Database::getInstance();
+
+		try {
+			$this->checkDefaultAuthOptions();
+
+			$db->beginTransaction();
+
+			$allowedSshAuthOptions = $this->getConfigParam('allowed_ssh_auth_options', array());
+
+			$stmt = exec_query(
+				'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?', 'todelete'
+			);
+
+			if ($stmt->rowCount()) {
+				while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+					$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($row['ssh_auth_options']);
+
+					# Remove any ssh authentication option which is no longer allowed
+					$sshAuthOptionNew = array_filter(
+						$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
+						return in_array($sshAuthOption, $allowedSshAuthOptions);
+					});
+
+					if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
+						exec_query(
+							'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id ) ?',
+							array($row['ssh_key_id'], \InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew))
+						);
+					}
+				}
+			}
+
+			$db->commit();
+		} catch (iMSCP_Exception $e) {
+			$db->rollBack();
+			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
+		}
 	}
 
 	/**
@@ -276,17 +341,45 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	protected function checkDefaultAuthOptions()
 	{
-		require_once __DIR__ . '/library/InstantSSH/Validate/SshAuthOptions.php';
+		require_once 'InstantSSH/Validate/SshAuthOptions.php';
+		require_once 'InstantSSH/Converter/SshAuthOptions.php';
 
 		$defaulltAuthOptions = $this->getConfigParam('default_ssh_auth_options', '');
 
-		if ($defaulltAuthOptions != '') {
-			$validator = new InstantSSH\Validate\SshAuthOptions();
+		if (is_string($defaulltAuthOptions)) {
+			$allowedSshAuthOptions = $this->getConfigParam('allowed_ssh_auth_options', array());
 
-			if (!$validator->isValid($defaulltAuthOptions)) {
-				$messages = implode(', ', $validator->getMessages());
-				throw new iMSCP_Plugin_Exception(sprintf('Invalid default authentication options: %s', $messages));
+			if (is_array($allowedSshAuthOptions)) {
+				if ($defaulltAuthOptions != '') {
+					$validator = new InstantSSH\Validate\SshAuthOptions();
+
+					if (!$validator->isValid($defaulltAuthOptions)) {
+						$messages = implode(', ', $validator->getMessages());
+						throw new iMSCP_Plugin_Exception(
+							sprintf('Invalid default authentication options: %s', $messages)
+						);
+					}
+
+					$sshAuthOptionsOld = \InstantSSH\Converter\SshAuthOptions::toArray($defaulltAuthOptions);
+
+					# Remove any ssh authentication option which is not allowed
+					$sshAuthOptionNew = array_filter(
+						$sshAuthOptionsOld, function ($sshAuthOption) use ($allowedSshAuthOptions) {
+						return in_array($sshAuthOption, $allowedSshAuthOptions);
+					});
+
+					if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
+						throw new iMSCP_Plugin_Exception(
+							'Any authentication options appearing in the default_ssh_auth_options parameter must be ' .
+							'specified in the allowed_ssh_auth_options parameter.'
+						);
+					}
+				}
+			} else {
+				throw new iMSCP_Plugin_Exception('allowed_ssh_auth_options parameter must be an array.');
 			}
+		} else {
+			throw new iMSCP_Plugin_Exception('default_ssh_auth_options parameter must be a string.');
 		}
 	}
 
@@ -321,9 +414,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'title_class' => 'profile',
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
-								$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
-								return (bool)($sshPermissions['ssh_permission_max_keys'] > -1);
-							}
+									$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
+									return (bool)($sshPermissions['ssh_permission_max_keys'] > -1);
+								}
 						)
 					)
 				);

@@ -44,8 +44,10 @@ which in order:
 * Forbids TCP forwarding
 * Forbids X11 forwarding
 
-You can override default authentication options by editing the plugin configuration file. In that file, you can also
-restrict the list of authentication options that your customers can add.
+You can override default authentication options by changing the default_ssh_auth_options parameter which is defined in
+the plugin configuration file. In that file, you can also restrict the list of authentication options that your
+customers can add by changing the allowed_ssh_auth_options parameter. You must note that any authentication option
+appearing in the the default authentication string must also be specified in the allowed_ssh_auth_options parameter.
 
 ### REQUIREMENTS
 

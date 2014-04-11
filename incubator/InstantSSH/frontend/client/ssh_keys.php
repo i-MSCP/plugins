@@ -64,10 +64,10 @@ function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
  */
 function _instant_getOpenSshKey($rsaKey)
 {
-	$ret = false;
-
 	require_once 'Crypt/RSA.php';
+
 	$rsa = new Crypt_RSA();
+	$ret = false;
 
 	if ($rsa->loadKey($rsaKey)) {
 		$ret = array();
@@ -138,10 +138,10 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 				$allowedAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options', array());
 
 				require_once 'InstantSSH/Validate/SshAuthOptions.php';
+
 				$validator = new \InstantSSH\Validate\SshAuthOptions(array('auth_option' => $allowedAuthOptions));
 
 				if (!$validator->isValid($sshAuthOptions)) {
-					//$message = implode(', ', $validator->getMessages());
 					_instantssh_sendJsonResponse(400, array('message' => implode('<br />', $validator->getMessages())));
 				}
 			} else {
@@ -428,12 +428,6 @@ $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 	if (isset($_REQUEST['action'])) {
 		if (is_xhr()) {
-			set_include_path(
-				get_include_path() .
-				PATH_SEPARATOR . $pluginManager->getPluginDirectory() . '/InstantSSH/library' .
-				PATH_SEPARATOR . $pluginManager->getPluginDirectory() . '/InstantSSH/library/vendor/phpseclib'
-			);
-
 			$action = clean_input($_REQUEST['action']);
 
 			switch ($action) {

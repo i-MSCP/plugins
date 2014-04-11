@@ -24,6 +24,8 @@ return array(
 	// Default SSH authentication options added on any new customer key.
 	// See man authorized_keys for list of allowed authentication options.
 	// eg. command="dump /home",no-pty,no-port-forwarding
+	//
+	// Note that any option defined here must be specified in the allowed_ssh_auth_options parameter (see below)
 	'default_ssh_auth_options' => 'no-agent-forwarding,no-port-forwarding,no-X11-forwarding',
 
 	/**
@@ -46,6 +48,8 @@ return array(
 	 * \InstantSSH\Validate\SshAuthOptions::TUNNEL (for the 'tunnel' option)
 	 */
 	'allowed_ssh_auth_options' => array(
-		\InstantSSH\Validate\SshAuthOptions::ALL
+		\InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING,
+		\InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING,
+		\InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING
 	)
 );

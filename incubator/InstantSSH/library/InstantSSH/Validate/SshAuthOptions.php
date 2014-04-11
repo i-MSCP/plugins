@@ -41,7 +41,7 @@ class SshAuthOptions extends ValidateAbstract
 	const NO_PORT_FORWARDING = 'no-port-forwarding';
 	const NO_PTY = 'no-pty';
 	const NO_USER_RC = 'no-user-rc';
-	const NO_X11_FORWARDING = 'no-x11-forwarding';
+	const NO_X11_FORWARDING = 'no-X11-forwarding';
 	const PERMITOPEN = 'permitopen';
 	const PRINCIPALS = 'principals';
 	const TUNNEL = 'tunnel';
@@ -50,8 +50,9 @@ class SshAuthOptions extends ValidateAbstract
 	const DISABLED = 'authOptionDisabled';
 	const INVALID = 'authOptionInvalid';
 	const INVALID_VALUE = 'authOptionInvalidValue';
+	const MISSING_VALUE = 'authOptionMissingValue';
 	const MISSING_END_QUOTE = 'authOptionMissinEndQuote';
-	const UNKNOWN = 'authOptionUnknown';
+	const UNKNOWN_MALFORMED = 'authOptionUnknown';
 
 	/**
 	 * @var array Boolean options
@@ -86,8 +87,9 @@ class SshAuthOptions extends ValidateAbstract
 		self::DISABLED => "The '%value%' authentication option is valid but has been disabled on this system",
 		self::INVALID => "Invalid authentication option given. String expected",
 		self::INVALID_VALUE => "The '%value%' authentication option value is invalid",
+		self::MISSING_VALUE => "Value is missing for the '%value%' authentication option",
 		self::MISSING_END_QUOTE => "Missing end quote for the '%value%' authentication option",
-		self::UNKNOWN => "Unknown authentication option has been detected"
+		self::UNKNOWN_MALFORMED => "Unknown or malformed authentication option has been detected"
 	);
 
 	/**
@@ -256,19 +258,34 @@ class SshAuthOptions extends ValidateAbstract
 
 					switch ($valueOption) {
 						case 'command':
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							}
 							$seen[] = $valueOption;
 							break;
 						case 'environment':
-							if (!preg_match('/^[a-z_]+?[a-z-09_]*=(:?[^[:cntrl:]\n"]|")+$/i', $optionValue)) {
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							} elseif (!preg_match('/^[a-z_]+?[a-z0-9_]*=(:?[^[:cntrl:]\n"]|")+$/i', $optionValue)) {
 								$this->_error(self::INVALID_VALUE, $valueOption);
 								goto bad_option;
 							}
 							break;
 						case 'from':
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							}
 							// TODO pattern-list validation
 							$seen[] = $valueOption;
 							break;
 						case 'tunnel':
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							}
 							if (!preg_match('/^"[0-9]+"$/D', $value)) {
 								$this->_error(self::INVALID_VALUE, $valueOption);
 								goto bad_option;
@@ -276,10 +293,18 @@ class SshAuthOptions extends ValidateAbstract
 							$seen[] = $valueOption;
 							break;
 						case 'permitopen':
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							}
 							// TODO host:port... validation
 							$seen[] = $valueOption;
 							break;
 						case 'principals':
+							if ($optionValue == '') {
+								$this->_error(self::MISSING_VALUE, $valueOption);
+								goto bad_option;
+							}
 							// TODO principals validation
 							$seen[] = $valueOption;
 							break;
@@ -304,7 +329,7 @@ class SshAuthOptions extends ValidateAbstract
 
 		bad_option:
 		if (!$this->_messages)
-			$this->_error(self::UNKNOWN);
+			$this->_error(self::UNKNOWN_MALFORMED);
 
 		return false;
 	}
