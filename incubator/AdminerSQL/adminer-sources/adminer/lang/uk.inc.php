@@ -93,6 +93,7 @@ $translations = array(
 	
 	// thousands separator - must contain single byte
 	',' => ' ',
+	'0123456789' => '0123456789',
 	'Engine' => 'Рушій',
 	'Collation' => 'Співставлення',
 	'Data Length' => 'Об\'єм даних',
@@ -297,7 +298,6 @@ $translations = array(
 	'Schema has been dropped.' => 'Схему було видалено.',
 	'Schema has been created.' => 'Схему було створено.',
 	'Schema has been altered.' => 'Схему було змінено.',
-	'schema' => 'схема',
 	'Schema' => 'Схема',
 	'Invalid schema.' => 'Невірна схема.',
 	

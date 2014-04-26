@@ -27,16 +27,16 @@
  */
 
 return array(
-	'adminer_version' => '4.0.3',
+	'adminer_version' => '4.1.0',
 
 	// Available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, no, pl, pt, ro, ru, sk, sl,
-	// sr, ta, tr, uk, xx, zh, zh-tw
+	// sr, ta, tr, uk, vi, xx, zh, zh-tw
 	'language' => 'all',
 
 	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb
 	'driver' => 'mysql',
 
-	// default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq,
+	// default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha
 	// pilot, pokorny, price
 	'theme' => 'default'
 );

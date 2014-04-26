@@ -11,6 +11,7 @@ $translations = array(
 	'Logged as: %s' => 'Přihlášen jako: %s',
 	'Logout successful.' => 'Odhlášení proběhlo v pořádku.',
 	'Invalid credentials.' => 'Neplatné přihlašovací údaje.',
+	'Too many unsuccessful logins, try again in %d minute(s).' => array('Příliš mnoho pokusů o přihlášení, zkuste to znovu za %d minutu.', 'Příliš mnoho pokusů o přihlášení, zkuste to znovu za %d minuty.', 'Příliš mnoho pokusů o přihlášení, zkuste to znovu za %d minut.'),
 	'Master password expired. <a href="http://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.' => 'Platnost hlavního hesla vypršela. <a href="http://www.adminer.org/cs/extension/" target="_blank">Implementujte</a> metodu %s, aby platilo stále.',
 	'Language' => 'Jazyk',
 	'Invalid CSRF token. Send the form again.' => 'Neplatný token CSRF. Odešlete formulář znovu.',
@@ -95,6 +96,7 @@ $translations = array(
 	
 	// thousands separator - must contain single byte
 	',' => ' ',
+	'0123456789' => '0123456789',
 	'Engine' => 'Úložiště',
 	'Collation' => 'Porovnávání',
 	'Data Length' => 'Velikost dat',
@@ -165,6 +167,8 @@ $translations = array(
 	'Default values' => 'Výchozí hodnoty',
 	'Drop' => 'Odstranit',
 	'Are you sure?' => 'Opravdu?',
+	'Size' => 'Velikost',
+	'Compute' => 'Spočítat',
 	'Move up' => 'Přesunout nahoru',
 	'Move down' => 'Přesunout dolů',
 	'Remove' => 'Odebrat',
@@ -308,7 +312,6 @@ $translations = array(
 	'Schema has been dropped.' => 'Schéma bylo odstraněno.',
 	'Schema has been created.' => 'Schéma bylo vytvořeno.',
 	'Schema has been altered.' => 'Schéma bylo změněno.',
-	'schema' => 'schéma',
 	'Schema' => 'Schéma',
 	'Invalid schema.' => 'Nesprávné schéma.',
 	

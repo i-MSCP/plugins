@@ -64,6 +64,16 @@ jush.textarea = (function () {
 		}
 	}
 	
+	function setText(pre, text, end) {
+		var lang = 'txt';
+		if (text.length < 1e4) { // highlighting is slow with most languages
+			var match = /(^|\s)(?:jush|language)-(\S+)/.exec(pre.jushTextarea.className);
+			lang = (match ? match[2] : 'htm');
+		}
+		var html = jush.highlight(lang, text).replace(/\n/g, '<br>');
+		setHTML(pre, html, text, end);
+	}
+	
 	function setHTML(pre, html, text, pos) {
 		pre.innerHTML = html;
 		pre.lastHTML = pre.innerHTML; // not html because IE reformats the string
@@ -90,12 +100,12 @@ jush.textarea = (function () {
 					if (this.jushUndoPos + 1 < this.jushUndo.length) {
 						this.jushUndoPos++;
 						var undo = this.jushUndo[this.jushUndoPos];
-						setHTML(this, undo.html, undo.text, undo.end);
+						setText(this, undo.text, undo.end)
 					}
 				} else if (this.jushUndoPos >= 0) {
 					this.jushUndoPos--;
 					var undo = this.jushUndo[this.jushUndoPos] || { html: '', text: '' };
-					setHTML(this, undo.html, undo.text, this.jushUndo[this.jushUndoPos + 1].start);
+					setText(this, undo.text, this.jushUndo[this.jushUndoPos + 1].start);
 				}
 				return false;
 			}
@@ -135,21 +145,14 @@ jush.textarea = (function () {
 				.replace(/<(br|div)\b[^>]*>/gi, '\n') // Firefox, Chrome
 				.replace(/&nbsp;(<\/[pP]\b)/g, '$1') // IE
 				.replace(/<\/p\b[^>]*>($|<p\b[^>]*>)/gi, '\n') // IE
+				.replace(/(&nbsp;)+$/gm, '') // Chrome for some users
 			;
-			var text = pre.textContent;
-			var lang = 'txt';
-			if (text.length < 1e4) { // highlighting is slow with most languages
-				var match = /(^|\s)(?:jush|language)-(\S+)/.exec(pre.jushTextarea.className);
-				lang = (match ? match[2] : 'htm');
-			}
-			var html = jush.highlight(lang, text).replace(/\n/g, '<br>');
-			setHTML(pre, html, text, end);
+			setText(pre, pre.textContent, end);
 			pre.jushUndo.length = pre.jushUndoPos + 1;
 			if (forceNewUndo || !pre.jushUndo.length || pre.jushUndo[pre.jushUndoPos].end !== start) {
-				pre.jushUndo.push({ html: pre.lastHTML, text: pre.jushTextarea.value, start: start, end: (forceNewUndo ? undefined : end) });
+				pre.jushUndo.push({ text: pre.jushTextarea.value, start: start, end: (forceNewUndo ? undefined : end) });
 				pre.jushUndoPos++;
 			} else {
-				pre.jushUndo[pre.jushUndoPos].html = pre.lastHTML;
 				pre.jushUndo[pre.jushUndoPos].text = pre.jushTextarea.value;
 				pre.jushUndo[pre.jushUndoPos].end = end;
 			}

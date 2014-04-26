@@ -66,7 +66,9 @@ function typePassword(el, disable) {
 function loginDriver(driver) {
 	var trs = parentTag(driver, 'table').rows;
 	for (var i=1; i < trs.length - 1; i++) {
-		alterClass(trs[i], 'hidden', /sqlite/.test(driver.value));
+		var disabled = /sqlite/.test(driver.value);
+		alterClass(trs[i], 'hidden', disabled);
+		trs[i].getElementsByTagName('input')[0].disabled = disabled;
 	}
 }
 
@@ -310,7 +312,7 @@ function editingTypeChange(type) {
 			alterClass(el, 'hidden', !/((^|[^o])int|float|double|decimal)$/.test(text));
 		}
 		if (el.name == name + '[on_update]') {
-			alterClass(el, 'hidden', text != 'timestamp');
+			alterClass(el, 'hidden', !/timestamp|datetime/.test(text)); // MySQL supports datetime since 5.6.5
 		}
 		if (el.name == name + '[on_delete]') {
 			alterClass(el, 'hidden', !/`/.test(text));
@@ -486,6 +488,21 @@ function indexesAddColumn(field, prefix) {
 
 
 
+/** Handle changing trigger time or event
+* @param RegExp
+* @param string
+* @param HTMLFormElement
+*/
+function triggerChange(tableRe, table, form) {
+	var formEvent = selectValue(form['Event']);
+	if (tableRe.test(form['Trigger'].value)) {
+		form['Trigger'].value = table + '_' + (selectValue(form['Timing']).charAt(0) + formEvent.charAt(0)).toLowerCase();
+	}
+	alterClass(form['Of'], 'hidden', formEvent != 'UPDATE OF');
+}
+
+
+
 var that, x, y; // em and tablePos defined in schema.inc.php
 
 /** Get mouse position
@@ -563,6 +580,8 @@ function schemaMouseup(ev, db) {
 	}
 }
 
+
+
 var helpOpen, helpIgnore; // when mouse outs <option> then it mouse overs border of <select> - ignore it
 
 /** Display help
@@ -582,8 +601,9 @@ function helpMouseover(el, event, text, side) {
 		jush.highlight_tag([ help ]);
 		alterClass(help, 'hidden');
 		var rect = target.getBoundingClientRect();
-		help.style.top = (rect.top - (side ? (help.offsetHeight - target.offsetHeight) / 2 : help.offsetHeight)) + 'px';
-		help.style.left = (rect.left - (side ? help.offsetWidth : (help.offsetWidth - target.offsetWidth) / 2)) + 'px';
+		var body = document.documentElement;
+		help.style.top = (body.scrollTop + rect.top - (side ? (help.offsetHeight - target.offsetHeight) / 2 : help.offsetHeight)) + 'px';
+		help.style.left = (body.scrollLeft + rect.left - (side ? help.offsetWidth : (help.offsetWidth - target.offsetWidth) / 2)) + 'px';
 	}
 }
 

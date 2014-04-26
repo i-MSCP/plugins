@@ -93,6 +93,7 @@ $translations = array(
 	
 	// thousands separator - must contain single byte
 	',' => ' ',
+	'0123456789' => '0123456789',
 	'Engine' => 'Variklis',
 	'Collation' => 'Lyginimas',
 	'Data Length' => 'Duomenų ilgis',
@@ -293,7 +294,6 @@ $translations = array(
 	'Schema has been dropped.' => 'Schema pašalinta.',
 	'Schema has been created.' => 'Schema sukurta.',
 	'Schema has been altered.' => 'Schema pakeista.',
-	'schema' => 'schema',
 	'Schema' => 'Schema',
 	'Invalid schema.' => 'Neteisinga schema.',
 	

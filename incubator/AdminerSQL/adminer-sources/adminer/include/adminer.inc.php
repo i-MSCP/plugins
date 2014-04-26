@@ -27,6 +27,13 @@ class Adminer {
 		return password_file($create);
 	}
 
+	/** Return key used to group brute force attacks; behind a reverse proxy, you want to return the last part of X-Forwarded-For
+	* @return string
+	*/
+	function bruteForceKey() {
+		return $_SERVER["REMOTE_ADDR"];
+	}
+
 	/** Identifier of selected database
 	* @return string
 	*/
@@ -177,11 +184,12 @@ username.form['auth[driver]'].onchange();
 
 	/** Query printed in select before execution
 	* @param string query to be executed
+	* @param string elapsed time
 	* @return string
 	*/
-	function selectQuery($query) {
+	function selectQuery($query, $time) {
 		global $jush;
-		return "<p><code class='jush-$jush'>" . h(str_replace("\n", " ", $query)) . "</code>"
+		return "<p><code class='jush-$jush'>" . h(str_replace("\n", " ", $query)) . "</code> <span class='time'>($time)</span>"
 			. (support("sql") ? " <a href='" . h(ME) . "sql=" . urlencode($query) . "'>" . lang('Edit') . "</a>" : "")
 			. "</p>" // </p> - required for IE9 inline edit
 		;
@@ -224,7 +232,7 @@ username.form['auth[driver]'].onchange();
 		if (preg_match('~blob|bytea|raw|file~', $field["type"]) && !is_utf8($val)) {
 			$return = lang('%d byte(s)', strlen($original));
 		}
-		return ($link ? "<a href='" . h($link) . "'>$return</a>" : $return);
+		return ($link ? "<a href='" . h($link) . "'" . (is_url($link) ? " rel='noreferrer'" : "") . ">$return</a>" : $return);
 	}
 
 	/** Value conversion used in select and edit
@@ -500,9 +508,10 @@ username.form['auth[driver]'].onchange();
 
 	/** Query printed after execution in the message
 	* @param string executed query
+	* @param string elapsed time
 	* @return string
 	*/
-	function messageQuery($query) {
+	function messageQuery($query, $time) {
 		global $jush;
 		restart_session();
 		$history = &get_session("queries");
@@ -510,9 +519,10 @@ username.form['auth[driver]'].onchange();
 		if (strlen($query) > 1e6) {
 			$query = preg_replace('~[\x80-\xFF]+$~', '', substr($query, 0, 1e6)) . "\n..."; // [\x80-\xFF] - valid UTF-8, \n - can end by one-line comment
 		}
-		$history[$_GET["db"]][] = array($query, time()); // not DB - $_GET["db"] is changed in database.inc.php //! respect $_GET["ns"]
+		$history[$_GET["db"]][] = array($query, time(), $time); // not DB - $_GET["db"] is changed in database.inc.php //! respect $_GET["ns"]
 		return " <span class='time'>" . @date("H:i:s") . "</span> <a href='#$id' onclick=\"return !toggle('$id');\">" . lang('SQL command') . "</a>" // @ - time zone may be not set
 			. "<div id='$id' class='hidden'><pre><code class='jush-$jush'>" . shorten_utf8($query, 1000) . '</code></pre>'
+			. ($time ? " <span class='time'>($time)</span>" : '')
 			. (support("sql") ? '<p><a href="' . h(str_replace("db=" . urlencode(DB), "db=" . urlencode($_GET["db"]), ME) . 'sql=&history=' . (count($history[$_GET["db"]]) - 1)) . '">' . lang('Edit') . '</a>' : '')
 			. '</div>'
 		;
@@ -740,7 +750,7 @@ username.form['auth[driver]'].onchange();
 			($ext == "sql" || $output != "file" ? "text/plain" : "text/csv") . "; charset=utf-8"
 		)));
 		if ($output == "gz") {
-			ob_start('gzencode', 1e6);
+			ob_start('ob_gzencode', 1e6);
 		}
 		return $ext;
 	}
@@ -852,7 +862,7 @@ bodyLoad('<?php echo (is_object($connection) ? substr($connection->server_info, 
 		echo "<input type='submit' value='" . lang('Use') . "'" . ($databases ? " class='hidden'" : "") . ">\n";
 		if ($missing != "db" && DB != "" && $connection->select_db(DB)) {
 			if (support("scheme")) {
-				echo "<br><select name='ns'$db_events>" . optionlist(array("" => "(" . lang('schema') . ")") + $adminer->schemas(), $_GET["ns"]) . "</select>";
+				echo "<br>" . lang('Schema') . ": <select name='ns'$db_events>" . optionlist(array("" => "") + $adminer->schemas(), $_GET["ns"]) . "</select>";
 				if ($_GET["ns"] != "") {
 					set_schema($_GET["ns"]);
 				}
