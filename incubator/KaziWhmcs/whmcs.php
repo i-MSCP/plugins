@@ -1,456 +1,398 @@
 <?php
-/**
- * i-MSCP - internet Multi Server Control Panel
- *
- * i-MSCP - internet Multi Server Control Panel
- * Copyright 2010-2013 by internet Multi Server Control Panel
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * Portions created by the i-MSCP Team are Copyright (C) 2010-2013 by
- * i-MSCP - internet Multi Server Control Panel. All Rights Reserved.
- *
- * @copyright   2010-2013 by i-MSCP | http://i-mscp.net
- * @author      i-MSCP Team
- * @link        http://i-mscp.net
+
+/***********************************************************************************************************************
+ * Functions
  */
 
-define('iMSCP_Min_Vers', '1.0.1.6');
-define('iMSCP_Max_Vers', '1.1.0-beta1');
+/**
+ * Delete the given customer account
+ *
+ * @param int $resellerId Reseller unique identifier
+ * @param string $domainName Customer's main domain name
+ * @return void
+ */
+function whmcs_deleteUser($resellerId, $domainName)
+{
+    $domainNameAscii = encode_idna($domainName);
 
-require 'imscp-lib.php';
-//error_reporting(E_ALL);
+    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
 
-testVersion();
-$reseller_id = testReseller();
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-switch($_POST['action']){
-    case 'create':
-        $hp = testHP($reseller_id);
-        $ip = testIP($reseller_id);
-        createUser($reseller_id, $hp, $ip);
-        break;
-    case 'Terminate':
-        deleteUser();
-        break;
-    case 'Suspend':
-        disableUser();
-        break;
-    case 'Unsuspend':
-        enableUser();
-        break;
-    case 'create':
-        createUser();
-        break;
-    default:
-        exit("Error: action $_POST[action] is not implemented");
-}
+        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
+        $_SESSION['user_id'] = $resellerId;
 
-function deleteUser(){
-    $domain_name	= encode_idna(urldecode($_POST['domain']));
-
-    $query = "
-		SELECT
-			`domain_id`,
-			`domain_name`
-		FROM
-			`domain`
-		WHERE
-			`domain_name` = ?
-	";
-
-    $rs = exec_query($query, $domain_name);
-
-    if (!$rs->fields['domain_id']){
-        exit("Error: no such domain $domain_name");
+        try {
+            deleteCustomer($row['domain_id'], true);
+            exit('success');
+        } catch (iMSCP_Exception $e) {
+            exit(sprintf("Error: Unable to delete the '%s' account:", $domainName, $e->getMessage()));
+        }
     }
 
-    $_SESSION['user_logged'] = 'WHMCS';
-
-    echo 'success';
-
-    delete_domain($rs->fields['domain_id']);
+    exit(sprintf("Error: The %s customer account doesn't exist", $domainName));
 }
 
-function enableUser(){
-    $domain_name	= encode_idna(urldecode($_POST['domain']));
+/**
+ * Activate the given customer account
+ *
+ * @param string $domainName Customer's main domain name
+ * @return void
+ */
+function whmcs_enableUser($domainName)
+{
+    $domainNameAscii = encode_idna($domainName);
 
-    $query = "
-		SELECT
-			`domain_id`,
-			`domain_name`
-		FROM
-			`domain`
-		WHERE
-			`domain_name` = ?
-	";
+    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
 
-    $rs = exec_query($query, $domain_name);
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-    if (!$rs->fields['domain_id']){
-        exit("Error: no such domain $domain_name");
+        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
+
+        try {
+            change_domain_status($row['domain_id'], 'activate');
+            exit('success');
+        } catch (iMSCP_Exception $e) {
+            exit(sprintf('Error: Unable to activate customer account: %s', $e->getMessage()));
+        }
     }
 
-    $_SESSION['user_logged'] = 'WHMCS';
-
-    echo 'success';
-
-    change_domain_status($rs->fields['domain_id'], $domain_name, 'enable', '');
+    exit(sprintf("Error: The %s customer account doesn't exist", $domainName));
 }
 
-function disableUser(){
-    $domain_name	= encode_idna(urldecode($_POST['domain']));
+/**
+ * Deactivate the given customer account
+ *
+ * @param string $domainName Customer's main domain name
+ * @return void
+ */
+function whmcs_disableUser($domainName)
+{
+    $domainNameAscii = encode_idna($domainName);
 
-    $query = "
-		SELECT
-			`domain_id`,
-			`domain_name`
-		FROM
-			`domain`
-		WHERE
-			`domain_name` = ?
-	";
+    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
 
-    $rs = exec_query($query, $domain_name);
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-    if (!$rs->fields['domain_id']){
-        exit("Error: no such domain $domain_name");
+        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
+
+        try {
+            change_domain_status($row['domain_id'], 'deactivate');
+            exit('success');
+        } catch (iMSCP_Exception $e) {
+            exit(sprintf('Error: Unable to activate customer account: %s', $e->getMessage()));
+        }
     }
 
-    $_SESSION['user_logged'] = 'WHMCS';
-
-    echo 'success';
-
-    change_domain_status($rs->fields['domain_id'], $domain_name, 'disable', '');
+    exit(sprintf("Error: The %s customer account doesn't exist", $domainName));
 }
 
-function createUser($reseller_id, $hp, $ip){
+/**
+ * Create new customer account
+ *
+ * @param int $resellerId Reseller unique identifier
+ * @param array $hostingPlanProperties Hosting plan properties
+ * @param string $resellerIp Reseller IP address
+ */
+function whmcs_createUser($resellerId, $hostingPlanProperties, $resellerIp)
+{
+    $db = iMSCP_Database::getRawInstance();
+    $cfg = iMSCP_Registry::get('config');
 
-    $db					= iMSCP_Registry::get('db');
-    $cfg				= iMSCP_Registry::get('config');
+    $createDefaultMail = true;
 
-    $createDefaultMail	= true;
+    $pure_user_pass = urldecode($_POST['admin_pass']);
+    $adminName = encode_idna(urldecode($_POST['admin_name']));
+    $adminEncryptedPassword = cryptPasswordWithSalt($pure_user_pass);
+    $adminType = 'user';
+    $createdBy = $resellerId;
+    $firstName = (isset($_POST['fname'])) ? clean_input($_POST['fname']) : '';
+    $lastName = (isset($_POST['lname'])) ? clean_input($_POST['lname']) : '';
+    $firm = (isset($_POST['firm'])) ? clean_input($_POST['firm']) : '';
+    $zip = (isset($_POST['zip'])) ? clean_input($_POST['zip']) : '';
+    $city = (isset($_POST['city'])) ? clean_input($_POST['city']) : '';
+    $state = (isset($_POST['state'])) ? clean_input($_POST['state']) : '';
+    $country = (isset($_POST['country'])) ? clean_input($_POST['country']) : '';
+    $email = (isset($_POST['email'])) ? clean_input($_POST['email']) : '';
+    $phone = (isset($_POST['phone'])) ? clean_input($_POST['phone']) : '';
+    $fax = '';
+    $street1 = (isset($_POST['street1'])) ?clean_input($_POST['street1']) : '';
+    $street2 = (isset($_POST['street2'])) ? clean_input($_POST['street2']) : '';
+    $customerId = (isset($_POST['customer_id'])) ? clean_input($_POST['customer_id']) : '';
+    $gender = 'U';
+    $domainName = (isset($_POST['domain'])) ? encode_idna($_POST['domain']) : '';
 
-    $pure_user_pass		= urldecode($_POST['admin_pass']);
-    $admin_name				= encode_idna(urldecode($_POST['admin_name']));
-    $admin_pass				= crypt_user_pass($pure_user_pass);
-    $admin_type				= 'user';
-    //$domain_created	= time();
-    $created_by				= $reseller_id;
-    $fname						= clean_input(urldecode($_POST['fname']));
-    $lname						= clean_input(urldecode($_POST['lname']));
-    $firm							= clean_input(urldecode($_POST['firm']));
-    $zip							= clean_input(urldecode($_POST['zip']));
-    $city							= clean_input(urldecode($_POST['city']));
-    $state						= clean_input(urldecode($_POST['state']));
-    $country					= clean_input(urldecode($_POST['country']));
-    $email						= clean_input(urldecode($_POST['email']));
-    $phone						= clean_input(urldecode($_POST['phone']));
-    $fax							='';
-    $street1					= clean_input(urldecode($_POST['street1']));
-    $street2					= clean_input(urldecode($_POST['street2']));
-    $customer_id			= clean_input(urldecode($_POST['customer_id']));
-    $gender						= 'U';
-    $domain_name			= encode_idna(urldecode($_POST['domain']));
+    $stmt = exec_query(
+        'SELECT COUNT(*) AS cnt FROM mail_users WHERE mail_addr IN ( ?, ? ,?)',
+        array("webmaster@$domainName", "abuse@$domainName", "postmaster@$domainName")
+    );
 
-    $query = "
-		SELECT
-			COUNT(*) AS `cnt`
-		FROM
-			`mail_users`
-		WHERE
-			`mail_addr` IN ( ?, ? ,?)
-	";
-    $rs = exec_query($query, array("webmaster@$domain_name", "abuse@$domain_name", "postmaster@$domain_name"));
+    $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-    if ($rs->fields['cnt'] != 0 ){
+    if ($row['cnt'] != 0) {
         $createDefaultMail = false;
     }
 
-    $pdo = iMSCP_Database::getRawInstance();
-
     try {
-        $pdo->beginTransaction();
-
-        $query = "
-			INSERT INTO
-				`admin`
-			(
-				`admin_name`, `admin_pass`, `admin_type`, `domain_created`,
-				`created_by`, `fname`, `lname`, `firm`, `zip`, `city`, `state`,
-				`country`, `email`, `phone`, `fax`, `street1`, `street2`,
-				`customer_id`, `gender`
-			) VALUES (
-				?, ?, ?, unix_timestamp(),
-				?, ?, ?, ?, ?, ?, ?,
-				?, ?, ?, ?, ?, ?,
-				?, ?
-			)
-		";
+        $db->beginTransaction();
 
         exec_query(
-            $query,
+            '
+			  INSERT INTO admin (
+				  admin_name, admin_pass, admin_type, domain_created, created_by, fname, lname, firm, zip, city, state,
+				  country, email, phone, fax, street1, street2, customer_id, gender
+			  ) VALUES (
+				  ?, ?, ?, unix_timestamp(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+			  )
+            ',
             array(
-                $admin_name, $admin_pass, $admin_type, /*$domain_created,*/
-                $created_by, $fname, $lname, $firm, $zip, $city, $state,
-                $country, $email, $phone, $fax, $street1, $street2,
-                $customer_id, $gender
+                $adminName, $adminEncryptedPassword, $adminType, $createdBy, $firstName, $lastName, $firm, $zip, $city,
+                $state, $country, $email, $phone, $fax, $street1, $street2, $customerId, $gender
             )
         );
 
-        $domain_admin_id				= $db->insertId();
-        $domain_created_id				= $reseller_id;
-        $domain_created					= time();
-        $domain_expires					= 0;
-        $domain_mailacc_limit			= $hp['hp_mail'];
-        $domain_ftpacc_limit			= $hp['hp_ftp'];
-        $domain_traffic_limit			= $hp['hp_traff'];
-        $domain_sqld_limit				= $hp['hp_sql_db'];
-        $domain_sqlu_limit				= $hp['hp_sql_user'];
-        $domain_status					= $cfg->ITEM_ADD_STATUS;
-        $domain_subd_limit				= $hp['hp_sub'];
-        $domain_alias_limit				= $hp['hp_als'];
-        $domain_ip_id					= $ip;
-        $domain_disk_limit				= $hp['hp_disk'];
-        $domain_disk_usage				= 0;
-        $domain_php						= preg_replace("/\_/", '', $hp['hp_php']);
-        $domain_cgi						= preg_replace("/\_/", '', $hp['hp_cgi']);
-        $allowbackup					= preg_replace("/\_/", '', $hp['hp_backup']);
-        $domain_dns						= preg_replace("/\_/", '', $hp['hp_dns']);
-        $domain_software_allowed		= preg_replace("/\_/", '', $hp['hp_allowsoftware']);
-        $phpini_perm_system				= $hp['phpini_system'];
-        $phpini_perm_register_globals	= $hp['phpini_al_register_globals'];
-        $phpini_perm_allow_url_fopen	= $hp['phpini_al_allow_url_fopen'];
-        $phpini_perm_display_errors		= $hp['phpini_al_display_errors'];
-        $phpini_perm_disable_functions	= $hp['phpini_al_disable_functions'];
-
-        $query = "
-			INSERT INTO
-				`domain` (
-					`domain_name`, `domain_admin_id`, `domain_created_id`, `domain_created`,
-					`domain_expires`, `domain_mailacc_limit`, `domain_ftpacc_limit`,
-					`domain_traffic_limit`, `domain_sqld_limit`, `domain_sqlu_limit`,
-					`domain_status`, `domain_subd_limit`, `domain_alias_limit`,
-					`domain_ip_id`, `domain_disk_limit`, `domain_disk_usage`,
-					`domain_php`, `domain_cgi`, `allowbackup`, `domain_dns`,
-					`domain_software_allowed`, `phpini_perm_system`, `phpini_perm_register_globals`,
-					`phpini_perm_allow_url_fopen`, `phpini_perm_display_errors`, `phpini_perm_disable_functions`
-				) VALUES (
-					?, ?, ?, ?,
-					?, ?, ?,
-					?, ?, ?,
-					?, ?, ?,
-					?, ?, ?,
-					?, ?, ?, ?,
-					?, ?, ?,
-					?, ?, ?
-				)
-		";
+        $domainAdminId = $db->lastInsertId();
+        $domainCreatedId = $resellerId;
+        $domainCreated = time();
+        $domainExpire = 0;
+        $domainMailUsersLimit = $hostingPlanProperties['hp_mail'];
+        $domainFtpUsersLimit = $hostingPlanProperties['hp_ftp'];
+        $domainMonthlyTrafficLimit = $hostingPlanProperties['hp_traff'];
+        $domainSqlDbLimit = $hostingPlanProperties['hp_sql_db'];
+        $domainSqlUserLimit = $hostingPlanProperties['hp_sql_user'];
+        $domainSubdomainLimit = $hostingPlanProperties['hp_sub'];
+        $domainAliasesLimit = $hostingPlanProperties['hp_als'];
+        $domainIpId = $resellerIp;
+        $domainDiskLimit = $hostingPlanProperties['hp_disk'];
+        $domainDiskUsage = 0;
+        $domainPhpFeature = preg_replace('/\_/', '', $hostingPlanProperties['hp_php']);
+        $domainCgiFeature = preg_replace('/\_/', '', $hostingPlanProperties['hp_cgi']);
+        $domainBackupFeature = preg_replace('/\_/', '', $hostingPlanProperties['hp_backup']);
+        $domainDnsFeature = preg_replace('/\_/', '', $hostingPlanProperties['hp_dns']);
+        $domainSoftwareInstallerFeature = preg_replace('/\_/', '', $hostingPlanProperties['hp_allowsoftware']);
+        $domainPhpEditorFeature = $hostingPlanProperties['phpini_system'];
+        $phpiniPermAllowUrlFopen = $hostingPlanProperties['phpini_al_allow_url_fopen'];
+        $phpiniPermDisplayErrors = $hostingPlanProperties['phpini_al_display_errors'];
+        $phpiniPermDisableFunctions = $hostingPlanProperties['phpini_al_disable_functions'];
 
         exec_query(
-            $query,
+            '
+			  INSERT INTO domain (
+                domain_name, domain_admin_id, domain_created_id, domain_created, domain_expires, domain_mailacc_limit,
+                domain_ftpacc_limit, domain_traffic_limit, domain_sqld_limit, domain_sqlu_limit, domain_status,
+                domain_subd_limit, domain_alias_limit, domain_ip_id, domain_disk_limit, domain_disk_usage, domain_php,
+                domain_cgi, allowbackup, domain_dns, domain_software_allowed, phpini_perm_system,
+                phpini_perm_register_globals, phpini_perm_allow_url_fopen, phpini_perm_display_errors,
+                phpini_perm_disable_functions
+              ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+              )
+            ',
             array(
-                $domain_name, $domain_admin_id, $domain_created_id, $domain_created,
-                $domain_expires, $domain_mailacc_limit, $domain_ftpacc_limit,
-                $domain_traffic_limit, $domain_sqld_limit, $domain_sqlu_limit,
-                $domain_status, $domain_subd_limit, $domain_alias_limit,
-                $domain_ip_id, $domain_disk_limit, $domain_disk_usage,
-                $domain_php, $domain_cgi, $allowbackup, $domain_dns,
-                $domain_software_allowed, $phpini_perm_system, $phpini_perm_register_globals,
-                $phpini_perm_allow_url_fopen, $phpini_perm_display_errors, $phpini_perm_disable_functions
+                $domainName, $domainAdminId, $domainCreatedId, $domainCreated, $domainExpire, $domainMailUsersLimit,
+                $domainFtpUsersLimit, $domainMonthlyTrafficLimit, $domainSqlDbLimit, $domainSqlUserLimit, 'toadd',
+                $domainSubdomainLimit, $domainAliasesLimit, $domainIpId, $domainDiskLimit, $domainDiskUsage,
+                $domainPhpFeature, $domainCgiFeature, $domainBackupFeature, $domainDnsFeature,
+                $domainSoftwareInstallerFeature, $domainPhpEditorFeature, $phpiniPermAllowUrlFopen,
+                $phpiniPermDisplayErrors, $phpiniPermDisableFunctions
             )
         );
 
-        $dmn_id = $db->insertId();
+        $domainId = $db->lastInsertId();
 
-        if ($phpini_perm_system == 'yes') {
+        if ($domainPhpEditorFeature == 'yes') {
             $phpini = iMSCP_PHPini::getInstance();
 
             $phpini->setData('phpiniSystem', 'yes');
-            $phpini->setData('phpiniPostMaxSize', $hp['phpini_post_max_size']);
-            $phpini->setData('phpiniUploadMaxFileSize', $hp['phpini_upload_max_filesize']);
-            $phpini->setData('phpiniMaxExecutionTime', $hp['phpini_max_execution_time']);
-            $phpini->setData('phpiniMaxInputTime', $hp['phpini_max_input_time']);
-            $phpini->setData('phpiniMemoryLimit', $hp['phpini_memory_limit']);
+            $phpini->setData('phpiniPostMaxSize', $hostingPlanProperties['phpini_post_max_size']);
+            $phpini->setData('phpiniUploadMaxFileSize', $hostingPlanProperties['phpini_upload_max_filesize']);
+            $phpini->setData('phpiniMaxExecutionTime', $hostingPlanProperties['phpini_max_execution_time']);
+            $phpini->setData('phpiniMaxInputTime', $hostingPlanProperties['phpini_max_input_time']);
+            $phpini->setData('phpiniMemoryLimit', $hostingPlanProperties['phpini_memory_limit']);
 
-            $phpini->saveCustomPHPiniIntoDb($dmn_id);
+            $phpini->saveCustomPHPiniIntoDb($domainId);
         }
 
-        $query = "
-			INSERT INTO
-				`htaccess_users` (
-					`dmn_id`, `uname`, `upass`, `status`
-				) VALUES (
-					?, ?, ?, ?
-				)
-		";
-
         exec_query(
-            $query,
+            'INSERT INTO htaccess_users (dmn_id, uname, upass, status) VALUES (?, ?, ?, ?)',
             array(
-                $dmn_id, $domain_name, crypt_user_pass_with_salt($pure_user_pass), $cfg->ITEM_ADD_STATUS
+                $domainId, $domainName, crypt_user_pass_with_salt($pure_user_pass), $cfg->ITEM_ADD_STATUS
             )
         );
 
-        $user_id = $db->insertId();
-
-        $query = "
-			INSERT INTO
-				`htaccess_groups` (
-					`dmn_id`, `ugroup`, `members`, `status`
-				) VALUES (
-					?, ?, ?, ?
-				)
-		";
+        $adminId = $db->lastInsertId();
 
         exec_query(
-            $query,
+            'INSERT INTO htaccess_groups (dmn_id, ugroup, members, status) VALUES (?, ?, ?, ?)',
             array(
-                $dmn_id,
-                $cfg->AWSTATS_GROUP_AUTH,
-                $user_id,
-                $cfg->ITEM_ADD_STATUS
+                $domainId, $cfg['AWSTATS_GROUP_AUTH'], $adminId, 'toadd'
             )
         );
 
         // Create default addresses if needed
         if ($cfg->CREATE_DEFAULT_EMAIL_ADDRESSES && $createDefaultMail) {
             $_SESSION['user_email'] = $email;
-            client_mail_add_default_accounts($dmn_id, $email, $domain_name);
+            client_mail_add_default_accounts($domainId, $email, $domainName);
         } else {
-            $query = "
-				UPDATE
-					`mail_users`
-				SET
-					`domain_id` = ?
-				WHERE
-					`mail_addr` IN ( ?, ? ,?)
-			";
-            $rs = exec_query($query, array($dmn_id, "webmaster@$domain_name", "abuse@$domain_name", "postmaster@$domain_name"));
+            exec_query(
+                'UPDATE mail_users SET domain_id = ? WHERE mail_addr IN ( ?, ? ,?)',
+                array($domainId, "webmaster@$domainName", "abuse@$domainName", "postmaster@$domainName"));
         }
 
-        $user_def_lang = $cfg->USER_INITIAL_LANG;
-        $user_theme_color = $cfg->USER_INITIAL_THEME;
-
-        $query = "
-			INSERT INTO
-				`user_gui_props`
-			(
-				`user_id`, `lang`, `layout`
-			) VALUES (
-				?, ?, ?
-			)
-		";
-
-        exec_query($query, array($domain_admin_id, $user_def_lang, $user_theme_color));
+        exec_query(
+            'INSERT INTO user_gui_props (user_id, lang, layout) VALUES (?, ?, ?)',
+            array($domainAdminId, $cfg['USER_INITIAL_LANG'], $cfg['USER_INITIAL_THEME']));
 
         send_request();
 
-        write_log("WHCMS: add user: $domain_name (for domain $domain_name)", E_USER_NOTICE);
-        write_log("WHCMS: add domain: $domain_name", E_USER_NOTICE);
+        write_log("WHCMS: add user: $domainName (for domain $domainName)", E_USER_NOTICE);
+        write_log("WHCMS: add domain: $domainName", E_USER_NOTICE);
 
-        update_reseller_c_props($reseller_id);
+        update_reseller_c_props($resellerId);
 
-        $pdo->commit();
-
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        exit("Error while creating user: ".($e->getMessage() ? $e->getMessage() :'unknown'));
+        $db->commit();
+    } catch (iMSCP_Exception_Database $e) {
+        $db->rollBack();
+        exit(sprintf("Error: Unable to create customer: %s", $e->getMessage()));
     }
 
-    echo 'success';
+    exit('success');
 }
 
-function testIP($reseller_id){
-    $query = "SELECT * FROM `reseller_props` WHERE `reseller_id` = ?";
-    $stmt = exec_query($query, $reseller_id);
-    $data = $stmt->fetchRow();
-    if(!$data){
-        exit("Error: reseller does not have any ip assigned");
-    }
-    $ips = explode(';', $data['reseller_ips']);
-    if(array_key_exists('0', $ips)){
-        return $ips[0];
-    } else {
-        exit("Error: Can not retrieve reseller ip");
-    }
-}
+/**
+ * Get first IP address of the given reseller
+ *
+ * @param int $resellerId Reseller unique identifier
+ * @return string
+ */
+function whmcs_getResellerIP($resellerId)
+{
+    $stmt = exec_query('SELECT * FROM reseller_props WHERE reseller_id = ?', $resellerId);
 
-function testVersion(){
-    $cfg = iMSCP_Registry::get('config');
-    if(version_compare($cfg->Version, iMSCP_Min_Vers, '<') ||version_compare($cfg->Version, iMSCP_Max_Vers, '>')){
-        exit("Error: iMSCP version $cfg->Version is not compatible with this bridge. Check <a href='http://i-mscp.net'>developer site</a> for newer versions");
-    }
-}
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-function testReseller(){
-    // Purge expired session
-    do_session_timeout();
+        $resellerIps = explode(';', $row['reseller_ips']);
 
-    $auth = iMSCP_Authentication::getInstance();
-
-    // Init login process
-    init_login($auth->events());
-
-    if (!empty($_POST['super_user']) && !empty($_POST['super_pass'])) {
-        $result = $auth
-            ->setUsername(idn_to_ascii(clean_input($_POST['super_user'])))
-            ->setPassword(clean_input($_POST['super_pass']))->authenticate();
-
-        if (!$result->isValid()) {
-            if(($messages = $result->getMessages())) {
-                exit(format_message($result->getMessages()));
-            }
+        if (!empty($resellerId)) {
+            return $resellerIps[0];
+        } else {
+            exit("Error: Unable to retrieve reseller's address IP");
         }
-    } else {
-        exit(tr('Login data is missing.'));
     }
-    return $_SESSION['user_id'];
 
+    exit("Error: reseller does not have any IP address");
 }
 
-function testHP($reseller_id){
+/**
+ * Get hosting plan properties
+ *
+ * @param int $resellerId Reseller unique identifier
+ * @return array
+ */
+function whmcs_getHostingPlan($resellerId)
+{
     $cfg = iMSCP_Registry::get('config');
 
     $hpName = urldecode($_POST['hpName']);
 
-    if($cfg->HOSTING_PLANS_LEVEL === 'admin'){
-        $query = "SELECT * FROM `hosting_plans` WHERE `name` = ?";
+    if ($cfg['HOSTING_PLANS_LEVEL'] == 'admin') {
+        $query = "SELECT * FROM hosting_plans WHERE `name` = ?";
         $param = array($hpName);
     } else {
-        $query = "SELECT * FROM `hosting_plans` WHERE `name` = ? AND `reseller_id` = ?";
-        $param = array($hpName, $reseller_id);
+        $query = "SELECT * FROM hosting_plans WHERE name = ? AND reseller_id = ?";
+        $param = array($hpName, $resellerId);
     }
 
     $stmt = exec_query($query, $param);
-    $data = $stmt->fetchRow();
-    $props = $data['props'];
-    if(!$data){
-        exit("Error: No such hosting plan named $hpName");
-    }
-    $result =  array_combine(
-        array(
-            'hp_php', 'hp_cgi', 'hp_sub', 'hp_als', 'hp_mail', 'hp_ftp', 'hp_sql_db',
-            'hp_sql_user', 'hp_traff', 'hp_disk', 'hp_backup', 'hp_dns', 'hp_allowsoftware',
-            'phpini_system', 'phpini_al_register_globals', 'phpini_al_allow_url_fopen',
-            'phpini_al_display_errors', 'phpini_al_disable_functions', 'phpini_post_max_size',
-            'phpini_upload_max_filesize', 'phpini_max_execution_time', 'phpini_max_input_time',
-            'phpini_memory_limit'
-        ),
-        array_pad(explode(';', $props), 23, 'no')
-    );
 
-    return $result;
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow();
+
+        return array_combine(
+            array(
+                'hp_php', 'hp_cgi', 'hp_sub', 'hp_als', 'hp_mail', 'hp_ftp', 'hp_sql_db', 'hp_sql_user', 'hp_traff',
+                'hp_disk', 'hp_backup', 'hp_dns', 'hp_allowsoftware', 'phpini_system', 'phpini_al_register_globals',
+                'phpini_al_allow_url_fopen', 'phpini_al_display_errors', 'phpini_al_disable_functions',
+                'phpini_post_max_size', 'phpini_upload_max_filesize', 'phpini_max_execution_time',
+                'phpini_max_input_time',
+                'phpini_memory_limit'
+            ),
+            array_pad(explode(';', $row['props']), 23, 'no')
+        );
+    }
+
+    exit("Error: No such hosting plan named $hpName");
 }
+
+/**
+ * Login
+ *
+ * @param string $username Username
+ * @param string $password Password
+ * @return int
+ */
+function whmcs_login($username, $password)
+{
+    do_session_timeout();
+
+    $authentication = iMSCP_Authentication::getInstance();
+
+    init_login($authentication->getEvents());
+
+    $authResult = $authentication
+        ->setUsername($username)
+        ->setPassword($password)
+        ->authenticate();
+
+    if (!$authResult->isValid()) {
+        if (($messages = $authResult->getMessages())) {
+            exit('Error: ' . format_message($authResult->getMessages()));
+        } else {
+            exit('Error: Unable to login');
+        }
+    }
+
+    return $_SESSION['user_id'];
+}
+
+/***********************************************************************************************************************
+ * Main
+ */
+
+if (isset($_POST['action'])) {
+    $action = clean_input($_POST['action']);
+
+    if (isset($_POST['super_user']) && isset($_POST['super_pass'])) {
+        $resellerId = whmcs_login(
+            encode_idna(clean_input($_POST['super_user'])), clean_input($_POST['super_pass'])
+        );
+
+        switch ($action) {
+            case 'create':
+                $hpProperties = whmcs_getHostingPlan($resellerId);
+                $resellerIpAddress = whmcs_getResellerIP($resellerId);
+                whmcs_createUser($resellerId, $hpProperties, $resellerIpAddress);
+                break;
+            case 'Terminate':
+                if (isset($_POST['domain'])) {
+                    whmcs_deleteUser($resellerId, clean_input($_POST['domain']));
+                }
+                break;
+            case 'Suspend':
+                if (isset($_POST['domain'])) {
+                    whmcs_disableUser(clean_input($_POST['domain']));
+                }
+                break;
+            case 'Unsuspend':
+                if (isset($_POST['domain'])) {
+                    whmcs_enableUser(clean_input($_POST['domain']));
+                }
+        }
+    }
+}
+
+exit('Error: Bad request');
