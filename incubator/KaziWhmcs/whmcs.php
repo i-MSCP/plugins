@@ -118,7 +118,19 @@ function whmcs_getResellerIP($resellerId)
  */
 function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
 {
-    if (isset($_POST['admin_name']) && isset($_POST['admin_pass']) && isset($_POST['domain'])) {
+    if (isset($_POST['admin_name']) && isset($_POST['admin_pass']) && isset($_POST['domain']) && isset($_POST['email'])) {
+        $email = clean_input($_POST['email']);
+
+        if(chk_email($email)) {
+            die(sprintf("KaziWhmcs: '%s' is not a valid email", $email));
+        }
+
+        $adminPassword = clean_input($_POST['admin_pass']);
+
+        if(!checkPasswordSyntax($adminPassword)) {
+            die(sprintf("KaziWhmcs: '%s' is not a valid password", $adminPassword));
+        }
+
         $domainNameUtf8 = decode_idna(strtolower(clean_input($_POST['domain'])));
 
         if ($domainNameUtf8 && isValidDomainName($domainNameUtf8)) {
@@ -159,7 +171,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                 $city = (isset($_POST['city'])) ? clean_input($_POST['city']) : '';
                 $state = (isset($_POST['state'])) ? clean_input($_POST['state']) : '';
                 $country = (isset($_POST['country'])) ? clean_input($_POST['country']) : '';
-                $email = (isset($_POST['email'])) ? clean_input($_POST['email']) : '';
+
                 $phone = (isset($_POST['phone'])) ? clean_input($_POST['phone']) : '';
                 $fax = '';
                 $street1 = (isset($_POST['street1'])) ? clean_input($_POST['street1']) : '';
@@ -405,32 +417,30 @@ if(iMSCP_Registry::isRegistered('bufferFilter')) {
 if (isset($_POST['action'])) {
     $action = clean_input($_POST['action']);
 
-    if (isset($_POST['reseller_user']) && isset($_POST['reseller_password'])) {
-        $resellerId = whmcs_login(
-            encode_idna(clean_input($_POST['reseller_user'])), clean_input($_POST['reseller_password'])
-        );
+    if (isset($_POST['reseller_name']) && isset($_POST['reseller_pass'])) {
+        $resellerId = whmcs_login(clean_input($_POST['reseller_name']), clean_input($_POST['reseller_pass']));
 
         switch ($action) {
             case 'create':
-                if (isset($_POST['hpName'])) {
+                if (isset($_POST['hp_name'])) {
                     whmcs_CreateAccount(
                         $resellerId,
-                        whmcs_getHostingPlan($resellerId, clean_input($_POST['hpName'])),
+                        whmcs_getHostingPlan($resellerId, clean_input($_POST['hp_name'])),
                         whmcs_getResellerIP($resellerId)
                     );
                 }
                 break;
-            case 'Suspend':
+            case 'suspend':
                 if (isset($_POST['domain'])) {
                     whmcs_SuspendAccount(clean_input($_POST['domain']));
                 }
                 break;
-            case 'Unsuspend':
+            case 'unsuspend':
                 if (isset($_POST['domain'])) {
                     whmcs_UnsuspendAccount(clean_input($_POST['domain']));
                 }
                 break;
-            case 'Terminate':
+            case 'terminate':
                 if (isset($_POST['domain'])) {
                     whmcs_TerminateAccount($resellerId, clean_input($_POST['domain']));
                 }

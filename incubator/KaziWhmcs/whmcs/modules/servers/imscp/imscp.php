@@ -49,7 +49,7 @@ function imscp_CreateAccount($data)
         array(
             'action' => 'create',
             'domain' => $data['domain'],
-            'hpName' => $data['configoption1'],
+            'hp_name' => $data['configoption1'],
             'admin_name' => $data['domain'],
             'admin_pass' => $data['password'],
             'customer_id' => $data['clientsdetails']['userid'],
@@ -64,8 +64,8 @@ function imscp_CreateAccount($data)
             'phone' => $data['clientsdetails']['phonenumber'],
             'street1' => $data['clientsdetails']['address1'],
             'street2' => $data['clientsdetails']['address2'],
-            'reseller_username' => $data['serverusername'],
-            'reseller_password' => $data['serverpassword']
+            'reseller_name' => $data['serverusername'],
+            'reseller_pass' => $data['serverpassword']
         )
     );
 
@@ -87,9 +87,9 @@ function imscp_SuspendAccount($data)
     return _imscp_sendRequest(
         $data['serverhostname'],
         array(
-            'action' => 'Suspend',
-            'reseller_user' => $data['serverusername'],
-            'reseller_password' => $data['serverpassword'],
+            'action' => 'suspend',
+            'reseller_name' => $data['serverusername'],
+            'reseller_pass' => $data['serverpassword'],
             'domain' => $data['domain']
         )
     );
@@ -106,9 +106,9 @@ function imscp_UnsuspendAccount($data)
     return _imscp_sendRequest(
         $data['serverhostname'],
         array(
-            'action' => 'Unsuspend',
-            'reseller_user' => $data['serverusername'],
-            'reseller_password' => $data['serverpassword'],
+            'action' => 'unsuspend',
+            'reseller_name' => $data['serverusername'],
+            'reseller_pass' => $data['serverpassword'],
             'domain' => $data['domain']
         )
     );
@@ -125,9 +125,9 @@ function imscp_TerminateAccount($data)
     return _imscp_sendRequest(
         $data['serverhostname'],
         array(
-            'action' => 'Terminate',
-            'reseller_user' => $data['serverusername'],
-            'reseller_password' => $data['serverpassword'],
+            'action' => 'terminate',
+            'reseller_name' => $data['serverusername'],
+            'reseller_pass' => $data['serverpassword'],
             'domain' => $data['domain']
         )
     );
@@ -240,12 +240,11 @@ function _imscp_sendRequest(array $serverData, array $postData)
     }
 
     // Open socket connection
-    if (
-    !(
-    $socket = stream_socket_client(
-        "$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context)
-    )
-    ) {
+    $socket = @stream_socket_client(
+        "tcp://$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context
+    );
+
+    if (!$socket) {
         @fclose($socket);
         return sprintf("KaziWhmcs: Unable to connect to server (%s:%s): %s - %s", $host, $port, $errno, $errstr);
     }
@@ -543,14 +542,23 @@ function _imscp_parseResponseFromString($string)
 
     return $response;
 }
-
-_imscp_sendRequest(
+/*
+$response = _imscp_sendRequest(
     array(
         'serverhostname' => 'wheezy.nuxwin.com',
-        'serversecure' => false
+        'serversecure' => true
     ),
     array(
-        'param1' => 'value1'
+        'action' => 'create',
+        'reseller_user' => 'reseller1',
+        'reseller_password' => 'dummy2305',
+
+        'domain' => 'new.domain.tld',
+        'admin_name' => 'new.domain.tld',
+        'admin_pass' => 'dummy2305',
+        'email' => 'l.declercq@nuxwin.com'
     )
 );
 
+print $response;
+*/
