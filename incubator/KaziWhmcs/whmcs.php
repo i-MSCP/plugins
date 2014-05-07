@@ -48,7 +48,7 @@ function whmcs_login($username, $password)
         } else {
             die('KaziWhmcs: Unable to login');
         }
-    } elseif($authResult->getIdentity()->admin_type != 'rreseller') {
+    } elseif($authResult->getIdentity()->admin_type != 'reseller') {
         die('KaziWhmcs: Wrong user type. Only resellers can use the KaziWhmcs API');
     }
 
