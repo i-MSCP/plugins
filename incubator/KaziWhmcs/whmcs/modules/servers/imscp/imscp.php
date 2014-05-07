@@ -1,343 +1,556 @@
 <?php
+/**
+ * i-MSCP KaziWhmcs plugin
+ * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
 
-//error_reporting(E_ALL);
+define('KAZIWHMCS_API_ENDPOINT', '/kaziwhmcs');
+define('KAZIWHMCS_CONNECTION_TIMEOUT', 5);
+define('KAZIWHMCS_READ_TIMEOUT', 3);
 
-define('WHMCS_IMSCP_TIMEOUT',		1000);
-define('WHMCS_IMSCP_SERVER_PORT',	80);
-
-function imscp_ConfigOptions(){
-    $configarray = array(
-        "Package Name" => array( "Type" => "text", "Size" => "25", ),
-    );
-    return $configarray;
-}
-
-function imscp_CreateAccount($data){
-
-    $accData = array(
-        'action'		=> 'create',
-
-        //'admin_id'
-        'admin_name'	=> $data['domain'],
-        'admin_pass'	=> $data['password'],
-        //'admin_type'
-        //'domain_created'
-        'customer_id'	=> $data['clientsdetails']['userid'],
-        //'created_by'
-        'fname'			=> $data['clientsdetails']['firstname'],
-        'lname'			=> $data['clientsdetails']['lastname'],
-        //'gender'
-        'firm'			=> $data['clientsdetails']['companyname'],
-        'zip'			=> $data['clientsdetails']['postcode'],
-        'city'			=> $data['clientsdetails']['city'],
-        'state'			=> $data['clientsdetails']['state'],
-        'country'		=> $data['clientsdetails']['countryname'],
-        'email'			=> $data['clientsdetails']['email'],
-        'phone'			=> $data['clientsdetails']['phonenumber'],
-        'street1'		=> $data['clientsdetails']['address1'],
-        'street2'		=> $data['clientsdetails']['address2'],
-        //'uniqkey'
-        //'uniqkey_time'
-
-
-        'super_user'	=> $data['serverusername'],
-        'super_pass'	=> $data['serverpassword'],
-
-        'domain'		=> $data['domain'],
-        'hpName'		=> $data['configoption1'],
-    );
-
-    if(!$data['clientsdetails']['email']){
-        return 'Error: User does not have email set';
-    }
-
-    $result = imscp_send_request($data['serverip'], $accData);
-
-    if(strpos($result, 'success') !== false) {
-        $table = 'tblhosting';
-        $array = array('username' => $data[domain]);
-        $where = array('id' => $data[serviceid]);
-        update_query($table, $array, $where);
-        return 'success';
-    }
-
-    return $result;
-}
-
-function imscp_TerminateAccount($data){
-
-    $accData = array(
-        'action'		=> 'Terminate',
-
-        'super_user'	=> $data['serverusername'],
-        'super_pass'	=> $data['serverpassword'],
-
-        'domain'		=> $data['domain'],
-    );
-
-    $result = imscp_send_request($data['serverip'], $accData);
-
-    if(strpos($result, 'success') !== false) {
-        return 'success';
-    }
-
-    return $result;
-
-}
-
-function imscp_SuspendAccount($data){
-
-    $accData = array(
-        'action'		=> 'Suspend',
-
-        'super_user'	=> $data['serverusername'],
-        'super_pass'	=> $data['serverpassword'],
-
-        'domain'		=> $data['domain'],
-    );
-
-    $result = imscp_send_request($data['serverip'], $accData);
-
-    if(strpos($result, 'success') !== false) {
-        return 'success';
-    }
-
-    return $result;
-
-}
-
-function imscp_UnsuspendAccount($data){
-
-    $accData = array(
-        'action'		=> 'Unsuspend',
-
-        'super_user'	=> $data['serverusername'],
-        'super_pass'	=> $data['serverpassword'],
-
-        'domain'		=> $data['domain'],
-    );
-
-    $result = imscp_send_request($data['serverip'], $accData);
-
-    if(strpos($result, 'success') !== false) {
-        return 'success';
-    }
-
-    return $result;
-
-}
-
-/*function imscp_ChangePassword($params) {
-
-	# Code to perform action goes here...
-
-	if ($successful) {
-		$result = "success";
-	} else {
-		$result = "Error Message Goes Here...";
-	}
-	return $result;
-
-}*/
-
-/*function imscp_ChangePackage($params) {
-
-	# Code to perform action goes here...
-
-	if ($successful) {
-		$result = "success";
-	} else {
-		$result = "Error Message Goes Here...";
-	}
-	return $result;
-
-}*/
-
-
-function imscp_ClientArea($data){
-    return '
-		<form action="http://'.$data['serverip'].'/" method="post" target="_blank">
-			<input type="hidden" name="uname" value="'.$data['domain'].'" />
-			<input type="hidden" name="upass" value="'.$data['password'].'" />
-			<input type="submit" value="Login to iMSCP CP" />
-			<input type="button" value="Login to Webmail" onClick="window.open(\'http://'.$data['serverip'].'/tools/webmail\')" />
-		</form>';
-}
-
-function imscp_AdminLink($data){
-    return '
-		<form action="http://'.$data['serverip'].'" method="post" target="_blank">
-			<input type="hidden" name="uname" value="'.$data['serverusername'].'" />
-			<input type="hidden" name="upass" value="'.$data['serverpassword'].'" />
-			<input type="submit" value="Login to '.$data['serverhostname'].' iMSCP CP" />
-		</form>';
-}
-
-function imscp_LoginLink($data){
-    echo '<a href="http://'.$data['serverip'].'" target="_blank">Login to iMSCP CP</a>';
+/**
+ * Get config options
+ *
+ * @return array Config options
+ */
+function imscp_ConfigOptions()
+{
+    return array('Package Name' => array('Type' => 'text', 'Size' => '30'));
 }
 
 /**
- * Send request to iMSCP side of bridge.
+ * Create the given customer account
  *
- * @param string $ip Target IP of server where iMSCP is installed
- * @param array $getdata HTTP GET Data ex: array('var1' => 'val1', 'var2' => 'val2')
- * @param array $postdata HTTP POST Data ie. array('var1' => 'val1', 'var2' => 'val2')
- * @return string respond text without headers
+ * @param array $data Provisioning data
+ * @return string
  */
-function imscp_send_request($ip, $post_arr = array()){
-    $rv = '';
-    $post_str = '';
-
-    foreach ($post_arr as $var => $value){
-        $post_str .= urlencode($var) .'='. urlencode($value) .'&';
+function imscp_CreateAccount($data)
+{
+    if (empty($data['clientsdetails']['email'])) {
+        return 'KaziWhmcs: Customer email is not set in WHMCS';
     }
 
-    $req = 'POST  /bridge.php HTTP/1.1' . "\r\n";
-    $req .= "Host: $ip\r\n";
-    $req .= "User-Agent: Mozilla/5.0 Firefox/3.6.12\r\n";
-    $req .= "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n";
-    $req .= "Accept-Language: en-us,en;q=0.5\r\n";
-    $req .= "Accept-Encoding: deflate\r\n";
-    $req .= "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n";
+    $ret = _imscp_sendRequest(
+        $data['serverhostname'],
+        array(
+            'action' => 'create',
+            'domain' => $data['domain'],
+            'hpName' => $data['configoption1'],
+            'admin_name' => $data['domain'],
+            'admin_pass' => $data['password'],
+            'customer_id' => $data['clientsdetails']['userid'],
+            'fname' => $data['clientsdetails']['firstname'],
+            'lname' => $data['clientsdetails']['lastname'],
+            'firm' => $data['clientsdetails']['companyname'],
+            'zip' => $data['clientsdetails']['postcode'],
+            'city' => $data['clientsdetails']['city'],
+            'state' => $data['clientsdetails']['state'],
+            'country' => $data['clientsdetails']['countryname'],
+            'email' => $data['clientsdetails']['email'],
+            'phone' => $data['clientsdetails']['phonenumber'],
+            'street1' => $data['clientsdetails']['address1'],
+            'street2' => $data['clientsdetails']['address2'],
+            'reseller_username' => $data['serverusername'],
+            'reseller_password' => $data['serverpassword']
+        )
+    );
 
-    $post_str = substr($post_str, 0, -1);
-    $req .= "Content-Type: application/x-www-form-urlencoded\r\n";
-    $req .= 'Content-Length: '. strlen($post_str) . "\r\n\r\n";
-    $req .= $post_str;
-
-    if (($fp = @fsockopen($ip, WHMCS_IMSCP_SERVER_PORT, $errno, $errstr)) == false){
-        return "Error: Can not connect to $ip:". WHMCS_IMSCP_SERVER_PORT ."\n$errno: $errstr\n";
+    if ($ret === 'success') {
+        //update_query('tblhosting', array('username' => $data['domain']), array('id' => $data['serviceid']));
     }
 
-    stream_set_timeout($fp, 0, WHMCS_IMSCP_TIMEOUT * 1000);
-
-    fputs($fp, $req);
-    while ($line = fgets($fp)){
-        $rv .= $line;
-    }
-    fclose($fp);
-
-    $rv = substr($rv, strpos($rv, "\r\n\r\n") + 4);
-    if(!$rv){
-        $rv = "Error: Unknown error\n";
-    }
-
-    return $rv;
+    return $ret;
 }
 
-/*function imscp_reboot($params) {
+/**
+ * Suspend the given customer account
+ *
+ * @param array $data Provisioning data
+ * @return string
+ */
+function imscp_SuspendAccount($data)
+{
+    return _imscp_sendRequest(
+        $data['serverhostname'],
+        array(
+            'action' => 'Suspend',
+            'reseller_user' => $data['serverusername'],
+            'reseller_password' => $data['serverpassword'],
+            'domain' => $data['domain']
+        )
+    );
+}
 
-	# Code to perform reboot action goes here...
+/**
+ * Unsuspend the given customer account
+ *
+ * @param array $data Provisioning data
+ * @return string
+ */
+function imscp_UnsuspendAccount($data)
+{
+    return _imscp_sendRequest(
+        $data['serverhostname'],
+        array(
+            'action' => 'Unsuspend',
+            'reseller_user' => $data['serverusername'],
+            'reseller_password' => $data['serverpassword'],
+            'domain' => $data['domain']
+        )
+    );
+}
 
-	if ($successful) {
-		$result = "success";
-	} else {
-		$result = "Error Message Goes Here...";
-	}
-	return $result;
+/**
+ * Terminate the given customer account
+ *
+ * @param array $data Provisioning data
+ * @return string
+ */
+function imscp_TerminateAccount($data)
+{
+    return _imscp_sendRequest(
+        $data['serverhostname'],
+        array(
+            'action' => 'Terminate',
+            'reseller_user' => $data['serverusername'],
+            'reseller_password' => $data['serverpassword'],
+            'domain' => $data['domain']
+        )
+    );
+}
 
-}*/
+/**
+ * Return admin form
+ *
+ * @param array $serverData Server data
+ * @return string
+ */
+function imscp_AdminLink($serverData)
+{
+    if ($serverData['serversecure']) {
+        $scheme = 'https://';
+    } else {
+        $scheme = 'http://';
+    }
 
-/*function imscp_shutdown($params) {
+    $host = $serverData['serverhostname'];
+    $username = htmlentities($serverData['serverusername'], ENT_QUOTES, 'UTF-8', false);
+    $password = htmlentities($serverData['serverpassword'], ENT_QUOTES, 'UTF-8', false);
 
-	# Code to perform shutdown action goes here...
+    return <<<EOT
+<form action="$scheme$host" method="post" target="_blank">
+    <input type="hidden" name="uname" value="$username" />
+    <input type="hidden" name="upass" value="$password" />
+    <input type="hidden" name="action" value="login">
+    <input type="submit" value="Login to i-MSCP" />
+</form>
+EOT;
+}
 
-	if ($successful) {
-		$result = "success";
-	} else {
-		$result = "Error Message Goes Here...";
-	}
-	return $result;
+/**
+ * Login link
+ *
+ * @param array $serverData Server data
+ */
+function imscp_LoginLink($serverData)
+{
+    if ($serverData['serversecure']) {
+        $scheme = 'https://';
+    } else {
+        $scheme = 'http://';
+    }
 
-}*/
+    echo <<<EOT
+<a href="$scheme{$serverData['serverhostname']}" target="_blank">Login to i-MSCP</a>';
+EOT;
+}
 
-/*function imscp_ClientAreaCustomButtonArray() {
-	$buttonarray = array(
-		"Reboot Server" => "reboot",
-	);
-	return $buttonarray;
-}*/
+/**
+ * Client login and link
+ *
+ * @param array $serverData Server data
+ * @return string
+ */
+function imscp_ClientArea($serverData)
+{
+    if ($serverData['serversecure']) {
+        $scheme = 'https://';
+    } else {
+        $scheme = 'http://';
+    }
 
-/*function imscp_AdminCustomButtonArray() {
-	$buttonarray = array(
-		"Reboot Server" => "reboot",
-		"Shutdown Server" => "shutdown",
-	);
-	return $buttonarray;
-}*/
+    $host = $serverData['serverhostname'];
+    $username = htmlentities($serverData['domain'], ENT_QUOTES, 'UTF-8', false);
+    $password = htmlentities($serverData['serverpassword'], ENT_QUOTES, 'UTF-8', false);
 
-/*function imscp_extrapage($params) {
-	$pagearray = array(
-		'templatefile' => 'example',
-		'breadcrumb' => ' > <a href="#">Example Page</a>',
-		'vars' => array(
-			'var1' => 'demo1',
-			'var2' => 'demo2',
-		 ),
-	);
-	return $pagearray;
-}*/
+    return <<<EOT
+<form action="$scheme$host" method="post" target="_blank">
+    <input type="hidden" name="uname" value="$username" />
+    <input type="hidden" name="upass" value="$password" />
+    <input type="hidden" name="action" value="login">
+    <input type="submit" value="Login to i-MSCP CP" />
+    <input type="button" value="Login to Webmail" onClick="window.open('$scheme$host/webmail')" />
+</form>
+EOT;
+}
 
-/*function imscp_UsageUpdate($params) {
+// Internal functions
 
-	$serverid = $params['serverid'];
-	$serverhostname = $params['serverhostname'];
-	$serverip = $params['serverip'];
-	$serverusername = $params['serverusername'];
-	$serverpassword = $params['serverpassword'];
-	$serveraccesshash = $params['serveraccesshash'];
-	$serversecure = $params['serversecure'];
+/**
+ * Send POST request to i-MSCP
+ *
+ * @param array $serverData Server data
+ * @param array $postData POST data
+ * @return string String indicating if the request is successful
+ */
+function _imscp_sendRequest(array $serverData, array $postData)
+{
+    $host = $serverData['serverhostname'];
 
-	# Run connection to retrieve usage for all domains/accounts on $serverid
+    // Create stream context
+    $context = stream_context_create();
 
-	# Now loop through results and update DB
+    // Set SSL option if needed
+    if ($serverData['serversecure']) {
+        if (!stream_context_set_option($context, 'ssl', 'verify_peer', false)) {
+            return 'Error: Unable to set sslverifypeer option';
+        }
 
-	foreach ($results AS $domain=>$values) {
-		update_query(
-			"tblhosting",
-			array(
-				"diskused"=>$values['diskusage'],
-				"dislimit"=>$values['disklimit'],
-				"bwused"=>$values['bwusage'],
-				"bwlimit"=>$values['bwlimit'],
-				"lastupdate"=>"now()",
-			),
-			array(
-				"server"=>$serverid,
-				"domain"=>$values['domain']
-			)
-		);
-	}
+        if (!stream_context_set_option($context, 'ssl', 'allow_self_signed', true)) {
+            return 'Error: Unable to set sslallowselfsigned option';
+        }
 
-}*/
+        $port = 443;
+    } else {
+        $port = 80;
+    }
 
-/*function imscp_AdminServicesTabFields($params) {
+    // Open socket connection
+    if (
+    !(
+    $socket = stream_socket_client(
+        "$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context)
+    )
+    ) {
+        @fclose($socket);
+        return sprintf("KaziWhmcs: Unable to connect to server (%s:%s): %s - %s", $host, $port, $errno, $errstr);
+    }
 
-	$result = select_query("mod_customtable","",array("serviceid"=>$params['serviceid']));
-	$data = mysql_fetch_array($result);
-	$var1 = $data['var1'];
-	$var2 = $data['var2'];
-	$var3 = $data['var3'];
-	$var4 = $data['var4'];
+    // Set the stream timeout
+    if (!stream_set_timeout($socket, KAZIWHMCS_READ_TIMEOUT)) {
+        return 'KaziWhmcs: Unable to set the connection timeout';
+    }
 
-	$fieldsarray = array(
-		'Field 1' => '<input type="text" name="modulefields[0]" size="30" value="'.$var1.'" />',
-		'Field 2' => '<select name="modulefields[1]"><option>Val1</option</select>',
-		'Field 3' => '<textarea name="modulefields[2]" rows="2" cols="80">'.$var3.'</textarea>',
-		'Field 4' => $var4, # Info Output Only
-	);
-	return $fieldsarray;
+    // Enable encryption if needed
+    if ($serverData['serversecure']) {
+        if (!@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_SSLv23_CLIENT)) {
+            $errorString = '';
 
-}*/
+            if (extension_loaded('openssl')) {
+                while (($sslError = openssl_error_string()) != false) {
+                    $errorString .= "; SSL error: $sslError";
+                }
+            }
 
-/*function imscp_AdminServicesTabFieldsSave($params) {
-	update_query(
-		"mod_customtable",array(
-			"var1"=>$_POST['modulefields'][0],
-			"var2"=>$_POST['modulefields'][1],
-			"var3"=>$_POST['modulefields'][2],
-		),
-		array("serviceid"=>$params['serviceid'])
-	);
-}*/
+            @fclose($socket);
+            return sprintf('KaziWhmcs: Unable to enable crypto on TCP connection %s%s', $host, $errorString);
+        }
+    }
+
+    // Prepare request body
+    $body = http_build_query($postData);
+
+    // Prepare request headers
+    $headers = 'POST '. KAZIWHMCS_API_ENDPOINT .  " HTTP/1.1\r\n";
+    $headers .= "Host: $host\r\n";
+    $headers .= "Accept: text/html\r\n";
+    if (function_exists('gzinflate')) {
+        $headers .= "Accept-Encoding: gzip, deflate\r\n";
+    } else {
+        $headers .= "Accept-Encoding: identity\r\n";
+    }
+    $headers .= "User-Agent: WHMCS\r\n";
+    $headers .= "Content-Type: application/x-www-form-urlencoded\r\n";
+    $headers .= 'Content-Length: ' . strlen($body) . "\r\n";
+
+    // Prepare request
+    $request = "$headers\r\n$body";
+
+    // Write request
+    if (!@fwrite($socket, $request)) {
+        @fclose($socket);
+        return 'KaziWhmcs:: Unable to write request to server';
+    }
+
+    // Read response (headers only)
+    $response = '';
+    $gotStatus = false;
+
+    while (($line = fgets($socket)) !== false) {
+        $gotStatus = $gotStatus || (strpos($line, 'HTTP') !== false);
+
+        if ($gotStatus) {
+            $response .= $line;
+            if (rtrim($line) === '') {
+                break;
+            }
+        }
+    }
+
+    // check timeout
+    if ($socket) {
+        $info = stream_get_meta_data($socket);
+        $timedOut = $info['timed_out'];
+        if ($timedOut) {
+            @fclose($socket);
+            return 'KaziWhmcs: Read timed out after 2 seconds';
+        }
+    }
+
+    try {
+        $responseArr = _imscp_parseResponseFromString($response);
+    } catch (Exception $e) {
+        return sprintf('KaziWhmcs: Unable to parse response: %s', $e->getMessage());
+    }
+
+    $headers = $responseArr['headers'];
+    $transferEncoding = isset($headers['transfer-encoding']) ? $headers['transfer-encoding'] : false;
+    $contentLength = isset($headers['content-length']) ? $headers['content-length'] : false;
+
+    if ($transferEncoding !== false) {
+        if (stripos($transferEncoding, 'chunked')) {
+            do {
+                $line = fgets($socket);
+
+                if ($socket) { // check timeout
+                    $info = stream_get_meta_data($socket);
+                    $timedOut = $info['timed_out'];
+                    if ($timedOut) {
+                        @fclose($socket);
+                        return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
+                    }
+                }
+
+                $chunk = $line;
+
+                // Get the next chunk size
+                $chunksize = trim($line);
+                if (!ctype_xdigit($chunksize)) {
+                    @fclose($socket);
+                    return sprintf("KaziWhmcs: Invalid chunk size '%s' unable to read chunked body", $chunksize);
+                }
+
+                // Convert the hexadecimal value to plain integer
+                $chunksize = hexdec($chunksize);
+
+                // Read next chunk
+                $readTo = ftell($socket) + $chunksize;
+
+                do {
+                    $currentPos = ftell($socket);
+                    if ($currentPos >= $readTo) {
+                        break;
+                    }
+
+                    $line = fread($socket, $readTo - $currentPos);
+                    if ($line === false || strlen($line) === 0) {
+                        if ($socket) { // check timeout
+                            $info = stream_get_meta_data($socket);
+                            $timedOut = $info['timed_out'];
+                            if ($timedOut) {
+                                @fclose($socket);
+                                return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
+                            }
+                        }
+                        break;
+                    }
+
+                    $chunk .= $line;
+
+                } while (!feof($socket));
+
+                $chunk .= fgets($socket);
+
+                if ($socket) { // check timeout
+                    $info = stream_get_meta_data($socket);
+                    $timedOut = $info['timed_out'];
+                    if ($timedOut) {
+                        @fclose($socket);
+                        return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
+                    }
+                }
+
+                $response .= $chunk;
+            } while ($chunksize > 0);
+        } else {
+            @fclose($socket);
+            return sprintf("KaziWhmcs: Cannot handle '%s' transfer encoding", $transferEncoding);
+        }
+    } elseif ($contentLength !== false) { //  Else, if we got the content-length header, read this number of bytes
+        $currentPos = ftell($socket);
+
+        for ($readTo = $currentPos + $contentLength; $readTo > $currentPos; $currentPos = ftell($socket)) {
+            $chunk = fread($socket, $readTo - $currentPos);
+            if ($chunk === false || strlen($chunk) === 0) {
+                if ($socket) { // check timeout
+                    $info = stream_get_meta_data($socket);
+                    $timedOut = $info['timed_out'];
+                    if ($timedOut) {
+                        @fclose($socket);
+                        return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
+                    }
+                }
+                break;
+            }
+
+            $response .= $chunk;
+
+            // Break if the connection ended prematurely
+            if (feof($socket)) {
+                break;
+            }
+        }
+    } else { // Fallback: just read the response until EOF
+        do {
+            $buffer = fread($socket, 8192);
+            if ($buffer === false || strlen($buffer) === 0) {
+                if ($socket) { // check timeout
+                    $info = stream_get_meta_data($socket);
+                    $timedOut = $info['timed_out'];
+                    if ($timedOut) {
+                        @fclose($socket);
+                        return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
+                    }
+                }
+                break;
+            } else {
+                $response .= $buffer;
+            }
+        } while (feof($socket) === false);
+
+        @fclose($socket);
+    }
+
+    try {
+        $response = _imscp_parseResponseFromString($response);
+        return $response['body'];
+    } catch (Exception $e) {
+        return sprintf('KaziWhmcs: Unable to parse response: %s', $e->getMessage());
+    }
+}
+
+/**
+ * Parse response from the given string
+ *
+ * @param string $string
+ * @return array response
+ * @throws InvalidArgumentException
+ */
+function _imscp_parseResponseFromString($string)
+{
+    $response = array();
+    $lines = explode("\r\n", $string);
+
+    if (!is_array($lines) || count($lines) == 1) {
+        $lines = explode("\n", $string);
+    }
+
+    $firstLine = array_shift($lines);
+
+    $regex = '/^HTTP\/(?P<version>1\.[01]) (?P<status>\d{3})(?:[ ]+(?P<reason>.*))?$/';
+    $matches = array();
+
+    if (!preg_match($regex, $firstLine, $matches)) {
+        throw new \InvalidArgumentException('Response status not found');
+    }
+
+    $response['version'] = $matches['version'];
+    $response['status'] = $matches['status'];
+    $response['reason_phrase'] = (isset($matches['reason']) ? $matches['reason'] : '');
+
+    if (count($lines) == 0) {
+        return $response;
+    }
+
+    $isHeader = true;
+    $headers = $body = array();
+
+    while ($lines) {
+        $nextLine = array_shift($lines);
+
+        if ($isHeader && $nextLine == '') {
+            $isHeader = false;
+            continue;
+        }
+
+        if ($isHeader) {
+            $headers[] = $nextLine;
+        } else {
+            $body[] = $nextLine;
+        }
+    }
+
+    if ($headers) {
+        foreach ($headers as $header) {
+            $header = explode(':', $header);
+            $response['headers'][strtolower($header[0])] = $header[1];
+        }
+    }
+
+    if ($body) {
+        $body = implode("\r\n", $body);
+
+        $contentEncoding = isset($response['headers']['content-encoding'])
+            ? $response['headers']['content-encoding'] : false;
+
+        if (
+            $contentEncoding !== false &&
+            (stripos($contentEncoding, 'gzip') !== false || stripos($contentEncoding, 'deflate') !== false)
+        ) {
+            $unzip = function ($data) {
+                $offset = 0;
+
+                if (substr($data, 0, 2) === "\x1f\x8b") {
+                    $offset = 2;
+                }
+
+                if (substr($data, $offset, 1) === "\x08") {
+                    return gzinflate(substr($data, $offset + 8));
+                }
+
+                return $data;
+            };
+
+            $body = $unzip($body);
+        }
+
+        $response['body'] = $body;
+    }
+
+    return $response;
+}
+
+_imscp_sendRequest(
+    array(
+        'serverhostname' => 'wheezy.nuxwin.com',
+        'serversecure' => false
+    ),
+    array(
+        'param1' => 'value1'
+    )
+);
+

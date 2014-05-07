@@ -1,6 +1,4 @@
 <?php
-
-<?php
 /**
  * i-MSCP KaziWhmcs plugin
  * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
@@ -106,7 +104,7 @@ class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
     public function getRoutes()
     {
         return array(
-            '/whmcs' => PLUGINS_PATH . '/' .  $this->getName() . '/whmcs.php',
+            '/kaziwhmcs' => PLUGINS_PATH . '/' .  $this->getName() . '/whmcs.php',
         );
     }
 
