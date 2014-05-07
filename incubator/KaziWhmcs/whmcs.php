@@ -44,12 +44,12 @@ function whmcs_login($username, $password)
 
     if (!$authResult->isValid()) {
         if (($messages = $authResult->getMessages())) {
-            die('KaziWhmcs: ' . implode("\n", $authResult->getMessages()));
+            die('KaziWhmcs: ' . implode(' - ', $authResult->getMessages()));
         } else {
             die('KaziWhmcs: Unable to login');
         }
-    } elseif($authResult->getIdentity()->admin_type != 'reseller') {
-        die('KaziWhmcs: Bad user type');
+    } elseif($authResult->getIdentity()->admin_type != 'rreseller') {
+        die('KaziWhmcs: Wrong user type. Only resellers can use the KaziWhmcs API');
     }
 
     return $_SESSION['user_id'];
