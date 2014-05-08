@@ -24,28 +24,6 @@
 class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
 {
     /**
-     * @var array customer SSH permissions
-     */
-    protected $customerSshPermissions;
-
-    /**
-     * Plugin initialization
-     *
-     * @return void
-     */
-    public function init()
-    {
-        $pluginDirectory = iMSCP_Registry::get('pluginManager')->getPluginDirectory();
-
-        // Set include path
-        set_include_path(
-            get_include_path() .
-            PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library' .
-            PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library/vendor/phpseclib'
-        );
-    }
-
-    /**
      * Register event listeners
      *
      * @param $eventManager iMSCP_Events_Manager_Interface $eventManager

@@ -22,7 +22,8 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.1',
-	'date' => '2014-05-06',
+	'date' => '2014-05-08',
 	'name' => 'KaziWhmcs',
-	'desc' => 'Plugin providing a bridge for the WHMCS billing software'
+	'desc' => 'Plugin allowing server provisioning through the WHMCS billing software.',
+    'url' => 'https://github.com/c0urier/plugins/tree/master/incubator/KaziWhmcs'
 );

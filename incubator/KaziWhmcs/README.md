@@ -1,6 +1,6 @@
 ## i-MSCP KaziWhmcs plugin v0.0.1
 
-Plugin providing a bridge for the WHMCS billing software
+Plugin allowing server provisioning through the WHMCS billing software.
 
 ### Introduction
 
@@ -63,7 +63,7 @@ billing software. It allow server provisioning through WHMCS.
 	</tr>
 </table>
 
-Note: Only mandatory parameters are described above.
+**Note:** Only mandatory parameters are described above.
 
 You can create as many servers as you want (using different i-MSCP resellers).
 
