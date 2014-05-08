@@ -327,13 +327,13 @@ function whmcs_SuspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_admin_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
         try {
-            change_domain_status($row['domain_id'], 'deactivate');
+            change_domain_status($row['domain_admin_id'], 'deactivate');
 
             write_log(
                 sprintf("KaziWhmcs: The '%s' customer account has been suspended through WHMCS", $domainName),
@@ -359,13 +359,13 @@ function whmcs_UnsuspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_admin_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
         try {
-            change_domain_status($row['domain_id'], 'activate');
+            change_domain_status($row['domain_admin_id'], 'activate');
 
             write_log(
                 sprintf("KaziWhmcs: The '%s' customer account has been un-suspended through WHMCS", $domainName),
@@ -391,13 +391,13 @@ function whmcs_TerminateAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_admin_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
         try {
-            deleteCustomer($row['domain_id'], true);
+            deleteCustomer($row['domain_admin_id'], true);
 
             write_log(
                 sprintf("KaziWhmcs: The '%s' customer account has been deleted through WHMCS", $domainName),
