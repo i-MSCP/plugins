@@ -59,7 +59,7 @@ billing software. It allow server provisioning through WHMCS.
     <tr>
         <td>Secure</td>
         <td>checkbox</td>
-        <td>Tick if SSL must be used for connections from WHMCS to the i-MSCP control panel</td>
+        <td>Tick if SSL must be used for connections from WHMCS to the i-MSCP control panel (recommended)</td>
     </tr>
 </table>
 

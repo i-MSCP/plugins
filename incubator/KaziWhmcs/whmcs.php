@@ -425,45 +425,51 @@ function whmcs_TerminateAccount($resellerId, $domainName)
  * Main
  */
 
-// Disable compression information
-if (iMSCP_Registry::isRegistered('bufferFilter')) {
-    /** @var iMSCP_Filter_Compress_Gzip $filter */
-    $filter = iMSCP_Registry::get('bufferFilter');
-    $filter->compressionInformation = false;
-}
+try {
+    // Disable compression information (HTML comment)
+    if (iMSCP_Registry::isRegistered('bufferFilter')) {
+        /** @var iMSCP_Filter_Compress_Gzip $filter */
+        $filter = iMSCP_Registry::get('bufferFilter');
+        $filter->compressionInformation = false;
+    }
 
-if (isset($_POST['action'])) {
-    $action = clean_input($_POST['action']);
+    if (isset($_POST['action'])) {
+        $action = clean_input($_POST['action']);
 
-    if (isset($_POST['reseller_name']) && isset($_POST['reseller_pass'])) {
-        $resellerId = whmcs_login(clean_input($_POST['reseller_name']), clean_input($_POST['reseller_pass']));
+        if (isset($_POST['reseller_name']) && isset($_POST['reseller_pass'])) {
+            $resellerId = whmcs_login(clean_input($_POST['reseller_name']), clean_input($_POST['reseller_pass']));
 
-        switch ($action) {
-            case 'create':
-                if (isset($_POST['hp_name'])) {
-                    whmcs_CreateAccount(
-                        $resellerId,
-                        whmcs_getHostingPlanProps($resellerId, clean_input($_POST['hp_name'])),
-                        whmcs_getResellerIP($resellerId)
-                    );
-                }
-                break;
-            case 'suspend':
-                if (isset($_POST['domain'])) {
-                    whmcs_SuspendAccount(clean_input($_POST['domain']));
-                }
-                break;
-            case 'unsuspend':
-                if (isset($_POST['domain'])) {
-                    whmcs_UnsuspendAccount(clean_input($_POST['domain']));
-                }
-                break;
-            case 'terminate':
-                if (isset($_POST['domain'])) {
-                    whmcs_TerminateAccount($resellerId, clean_input($_POST['domain']));
-                }
+            switch ($action) {
+                case 'create':
+                    if (isset($_POST['hp_name'])) {
+                        whmcs_CreateAccount(
+                            $resellerId,
+                            whmcs_getHostingPlanProps($resellerId, clean_input($_POST['hp_name'])),
+                            whmcs_getResellerIP($resellerId)
+                        );
+                    }
+                    break;
+                case 'suspend':
+                    if (isset($_POST['domain'])) {
+                        whmcs_SuspendAccount(clean_input($_POST['domain']));
+                    }
+                    break;
+                case 'unsuspend':
+                    if (isset($_POST['domain'])) {
+                        whmcs_UnsuspendAccount(clean_input($_POST['domain']));
+                    }
+                    break;
+                case 'terminate':
+                    if (isset($_POST['domain'])) {
+                        whmcs_TerminateAccount($resellerId, clean_input($_POST['domain']));
+                    }
+            }
         }
     }
+} catch (Exception $e) {
+    header("Status: 500 Internal Server Error");
+    die('An unexpected error occurred');
 }
 
+header("Status: 400 Bad Request");
 die('Bad request');

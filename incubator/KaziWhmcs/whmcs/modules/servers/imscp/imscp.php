@@ -456,7 +456,7 @@ function _imscp_sendRequest(array $serverData, array $postData)
  * Parse response from the given string
  *
  * @param string $string
- * @return array response
+ * @return array response An array containing response (protocol version, status, reason phrase, headers and body)
  * @throws InvalidArgumentException
  */
 function _imscp_parseResponseFromString($string)
