@@ -332,8 +332,6 @@ function whmcs_SuspendAccount($domainName)
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
-
         try {
             change_domain_status($row['domain_id'], 'deactivate');
 
@@ -366,8 +364,6 @@ function whmcs_UnsuspendAccount($domainName)
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
-
         try {
             change_domain_status($row['domain_id'], 'activate');
 
@@ -388,11 +384,10 @@ function whmcs_UnsuspendAccount($domainName)
 /**
  * Terminate the given customer account
  *
- * @param int $resellerId Reseller unique identifier
  * @param string $domainName Customer's main domain name
  * @return void
  */
-function whmcs_TerminateAccount($resellerId, $domainName)
+function whmcs_TerminateAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
@@ -400,9 +395,6 @@ function whmcs_TerminateAccount($resellerId, $domainName)
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-
-        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
-        //$_SESSION['user_id'] = $resellerId;
 
         try {
             deleteCustomer($row['domain_id'], true);
@@ -461,7 +453,7 @@ try {
                     break;
                 case 'terminate':
                     if (isset($_POST['domain'])) {
-                        whmcs_TerminateAccount($resellerId, clean_input($_POST['domain']));
+                        whmcs_TerminateAccount(clean_input($_POST['domain']));
                     }
             }
         }
