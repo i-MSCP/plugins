@@ -227,11 +227,11 @@ function _imscp_sendRequest(array $serverData, array $postData)
     // Set SSL option if needed
     if ($serverData['serversecure']) {
         if (!stream_context_set_option($context, 'ssl', 'verify_peer', false)) {
-            return 'Error: Unable to set sslverifypeer option';
+            return 'KaziWhmcs: Unable to set sslverifypeer option';
         }
 
         if (!stream_context_set_option($context, 'ssl', 'allow_self_signed', true)) {
-            return 'Error: Unable to set sslallowselfsigned option';
+            return 'KaziWhmcs: Unable to set sslallowselfsigned option';
         }
 
         $port = 443;
@@ -241,12 +241,12 @@ function _imscp_sendRequest(array $serverData, array $postData)
 
     // Open socket connection
     $socket = @stream_socket_client(
-        "tcp://$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context
+        "$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context
     );
 
     if (!$socket) {
         @fclose($socket);
-        return sprintf("KaziWhmcs: Unable to connect to server (%s:%s): %s - %s", $host, $port, $errno, $errstr);
+        return sprintf("KaziWhmcs: Unable to connect to server (%s:%s); %s - %s", $host, $port, $errno, $errstr);
     }
 
     // Set the stream timeout
@@ -274,7 +274,7 @@ function _imscp_sendRequest(array $serverData, array $postData)
     $body = http_build_query($postData);
 
     // Prepare request headers
-    $headers = 'POST '. KAZIWHMCS_API_ENDPOINT .  " HTTP/1.1\r\n";
+    $headers = 'POST ' . KAZIWHMCS_API_ENDPOINT . " HTTP/1.1\r\n";
     $headers .= "Host: $host\r\n";
     $headers .= "Accept: text/html\r\n";
     if (function_exists('gzinflate')) {
@@ -292,7 +292,7 @@ function _imscp_sendRequest(array $serverData, array $postData)
     // Write request
     if (!@fwrite($socket, $request)) {
         @fclose($socket);
-        return 'KaziWhmcs:: Unable to write request to server';
+        return 'KaziWhmcs: Unable to write request to server';
     }
 
     // Read response (headers only)
@@ -316,13 +316,13 @@ function _imscp_sendRequest(array $serverData, array $postData)
         $timedOut = $info['timed_out'];
         if ($timedOut) {
             @fclose($socket);
-            return 'KaziWhmcs: Read timed out after 2 seconds';
+            return sprintf('KaziWhmcs: Read timed out after %s seconds', KAZIWHMCS_READ_TIMEOUT);
         }
     }
 
     try {
         $responseArr = _imscp_parseResponseFromString($response);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         return sprintf('KaziWhmcs: Unable to parse response: %s', $e->getMessage());
     }
 
@@ -350,7 +350,7 @@ function _imscp_sendRequest(array $serverData, array $postData)
                 $chunksize = trim($line);
                 if (!ctype_xdigit($chunksize)) {
                     @fclose($socket);
-                    return sprintf("KaziWhmcs: Invalid chunk size '%s' unable to read chunked body", $chunksize);
+                    return sprintf("KaziWhmcs: Invalid chunk size '%s'; unable to read chunked body", $chunksize);
                 }
 
                 // Convert the hexadecimal value to plain integer
@@ -447,8 +447,8 @@ function _imscp_sendRequest(array $serverData, array $postData)
     try {
         $response = _imscp_parseResponseFromString($response);
         return $response['body'];
-    } catch (Exception $e) {
-        return sprintf('KaziWhmcs: Unable to parse response: %s', $e->getMessage());
+    } catch (\Exception $e) {
+        return sprintf('KaziWhmcs: Unable to parse response; %s', $e->getMessage());
     }
 }
 

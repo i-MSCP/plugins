@@ -35,7 +35,7 @@ class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
             array(
                 iMSCP_Events::onBeforeInstallPlugin,
                 iMSCP_Events::onBeforeUpdatePlugin,
-                iMSCP_Events::onBeforeEnablePlugin,
+                iMSCP_Events::onBeforeEnablePlugin
             ),
             $this
         );
@@ -82,7 +82,7 @@ class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
     public function getRoutes()
     {
         return array(
-            '/kaziwhmcs' => PLUGINS_PATH . '/' .  $this->getName() . '/whmcs.php',
+            $this->getConfigParam('api_endpoint', '/kaziWhmcs') => PLUGINS_PATH . '/' .  $this->getName() . '/whmcs.php'
         );
     }
 
