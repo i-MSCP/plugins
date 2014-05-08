@@ -182,7 +182,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                     $webFolderProtection = 'no';
                 }
 
-                $db = iMSCP_Database::getRawInstance();
+                $db = iMSCP_Database::getInstance();
 
                 try {
                     iMSCP_Events_Aggregator::getInstance()->dispatch(
@@ -212,7 +212,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         )
                     );
 
-                    $adminId = $db->lastInsertId();
+                    $adminId = $db->insertId();
 
                     exec_query(
                         '
@@ -236,7 +236,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         )
                     );
 
-                    $domainId = $db->lastInsertId();
+                    $domainId = $db->insertId();
 
                     // save php.ini if exist
                     if ($phpEditorFeature == 'yes') {
@@ -259,7 +259,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         array($domainId, $domainNameAscii, $encryptedAdminPassword, 'toadd')
                     );
 
-                    $htuserId = $db->lastInsertId();
+                    $htuserId = $db->insertId();
 
                     exec_query(
                         'INSERT INTO htaccess_groups (dmn_id, ugroup, members, status) VALUES (?, ?, ?, ?)',
@@ -468,7 +468,7 @@ try {
     }
 } catch (Exception $e) {
     header("Status: 500 Internal Server Error");
-    die('An unexpected error occurred');
+    die(sprintf('An unexpected error occurred: %s', $e->getMessage()));
 }
 
 header("Status: 400 Bad Request");
