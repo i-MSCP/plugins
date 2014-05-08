@@ -18,6 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+error_reporting(0);
+//ini_set('display_errors', 1);
+
 define('KAZIWHMCS_API_ENDPOINT', '/kaziwhmcs');
 define('KAZIWHMCS_CONNECTION_TIMEOUT', 5);
 define('KAZIWHMCS_READ_TIMEOUT', 3);
@@ -46,13 +49,16 @@ function imscp_CreateAccount($data)
 
     $ret = _imscp_sendRequest(
         $data['serverhostname'],
+        ($data['serversecure'] == 'on') ? true : false,
         array(
+            'reseller_name' => $data['serverusername'],
+            'reseller_pass' => $data['serverpassword'],
             'action' => 'create',
             'domain' => $data['domain'],
             'hp_name' => $data['configoption1'],
             'admin_name' => $data['domain'],
             'admin_pass' => $data['password'],
-            'customer_id' => $data['clientsdetails']['userid'],
+            'customer_id' => 'whmcs_' . $data['clientsdetails']['userid'],
             'fname' => $data['clientsdetails']['firstname'],
             'lname' => $data['clientsdetails']['lastname'],
             'firm' => $data['clientsdetails']['companyname'],
@@ -63,14 +69,22 @@ function imscp_CreateAccount($data)
             'email' => $data['clientsdetails']['email'],
             'phone' => $data['clientsdetails']['phonenumber'],
             'street1' => $data['clientsdetails']['address1'],
-            'street2' => $data['clientsdetails']['address2'],
-            'reseller_name' => $data['serverusername'],
-            'reseller_pass' => $data['serverpassword']
+            'street2' => $data['clientsdetails']['address2']
         )
     );
 
     if ($ret === 'success') {
-        //update_query('tblhosting', array('username' => $data['domain']), array('id' => $data['serviceid']));
+        // Override login name (i-MSCP is using domain name as login name)
+        update_query(
+            'tblhosting',
+            array(
+                'username' => $data['domain'],
+                'lastupdate' => 'now()',
+            ),
+            array(
+                'id' => $data['serviceid']
+            )
+        );
     }
 
     return $ret;
@@ -86,6 +100,7 @@ function imscp_SuspendAccount($data)
 {
     return _imscp_sendRequest(
         $data['serverhostname'],
+        ($data['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'suspend',
             'reseller_name' => $data['serverusername'],
@@ -105,6 +120,7 @@ function imscp_UnsuspendAccount($data)
 {
     return _imscp_sendRequest(
         $data['serverhostname'],
+        ($data['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'unsuspend',
             'reseller_name' => $data['serverusername'],
@@ -124,6 +140,7 @@ function imscp_TerminateAccount($data)
 {
     return _imscp_sendRequest(
         $data['serverhostname'],
+        ($data['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'terminate',
             'reseller_name' => $data['serverusername'],
@@ -141,7 +158,7 @@ function imscp_TerminateAccount($data)
  */
 function imscp_AdminLink($serverData)
 {
-    if ($serverData['serversecure']) {
+    if ($serverData['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
@@ -168,7 +185,7 @@ EOT;
  */
 function imscp_LoginLink($serverData)
 {
-    if ($serverData['serversecure']) {
+    if ($serverData['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
@@ -187,7 +204,7 @@ EOT;
  */
 function imscp_ClientArea($serverData)
 {
-    if ($serverData['serversecure']) {
+    if ($serverData['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
@@ -213,19 +230,19 @@ EOT;
 /**
  * Send POST request to i-MSCP
  *
+ * @param string $host i-MSCP server host name
+ * @param bool $ssl Does the connection should be secured through SSL
  * @param array $serverData Server data
  * @param array $postData POST data
  * @return string String indicating if the request is successful
  */
-function _imscp_sendRequest(array $serverData, array $postData)
+function _imscp_sendRequest($host, $ssl, array $postData)
 {
-    $host = $serverData['serverhostname'];
-
     // Create stream context
     $context = stream_context_create();
 
     // Set SSL option if needed
-    if ($serverData['serversecure']) {
+    if ($ssl) {
         if (!stream_context_set_option($context, 'ssl', 'verify_peer', false)) {
             return 'KaziWhmcs: Unable to set sslverifypeer option';
         }
@@ -255,7 +272,7 @@ function _imscp_sendRequest(array $serverData, array $postData)
     }
 
     // Enable encryption if needed
-    if ($serverData['serversecure']) {
+    if ($ssl) {
         if (!@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_SSLv23_CLIENT)) {
             $errorString = '';
 
@@ -546,25 +563,3 @@ function _imscp_parseResponseFromString($string)
 
     return $response;
 }
-/*
-$response = _imscp_sendRequest(
-    array(
-        'serverhostname' => 'wheezy.nuxwin.com',
-        'serversecure' => true
-    ),
-    array(
-        'action' => 'create',
-        'reseller_name' => 'reseller1',
-        'reseller_pass' => 'dummy2305',
-
-        'hp_name' => 'whmcs',
-
-        'domain' => 'new.domain.tld',
-        'admin_name' => 'new.domain.tld',
-        'admin_pass' => 'dummy2305',
-        'email' => 'l.declercq@nuxwin.com'
-    )
-);
-
-print $response;
-*/
