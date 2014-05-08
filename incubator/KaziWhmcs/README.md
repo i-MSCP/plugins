@@ -21,7 +21,8 @@ billing software. It allow server provisioning through WHMCS.
 
 #### WHMCS side
 
-1. Copy the imscp directory from the plugin archive into the whmcs server module directory (module/servers)
+1. Copy the imscp directory from the plugin archive into the WHMCS server module directory (module/servers)
+2. Setup a new server and products/services using imscp server provisioning module
 
 ### License
 
