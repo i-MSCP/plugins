@@ -503,12 +503,16 @@ function _imscp_parseResponseFromString($string)
         }
     }
 
+    $response['headers'] = array();
+
     if ($headers) {
         foreach ($headers as $header) {
             $header = explode(':', $header);
             $response['headers'][strtolower($header[0])] = $header[1];
         }
     }
+
+    $response['body'] = '';
 
     if ($body) {
         $body = implode("\r\n", $body);
@@ -550,8 +554,10 @@ $response = _imscp_sendRequest(
     ),
     array(
         'action' => 'create',
-        'reseller_user' => 'reseller1',
-        'reseller_password' => 'dummy2305',
+        'reseller_name' => 'reseller1',
+        'reseller_pass' => 'dummy2305',
+
+        'hp_name' => 'whmcs',
 
         'domain' => 'new.domain.tld',
         'admin_name' => 'new.domain.tld',

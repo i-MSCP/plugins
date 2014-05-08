@@ -122,7 +122,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
     if (isset($_POST['admin_name']) && isset($_POST['admin_pass']) && isset($_POST['domain']) && isset($_POST['email'])) {
         $email = clean_input($_POST['email']);
 
-        if (chk_email($email)) {
+        if (!chk_email($email)) {
             die(sprintf("KaziWhmcs: '%s' is not a valid email", $email));
         }
 
