@@ -48,7 +48,7 @@ function whmcs_login($username, $password)
         } else {
             die('KaziWhmcs: Unable to login');
         }
-    } elseif($authResult->getIdentity()->admin_type != 'reseller') {
+    } elseif ($authResult->getIdentity()->admin_type != 'reseller') {
         die('KaziWhmcs: Wrong user type. Only resellers can use the KaziWhmcs API');
     }
 
@@ -56,28 +56,29 @@ function whmcs_login($username, $password)
 }
 
 /**
- * Get hosting plan
+ * Get hosting plan properties
  *
  * @param int $resellerId Reseller unique identifier
  * @param string $hpName Hosting plan name
- * @return array
+ * @return array Hosting plan properties
  */
-function whmcs_getHostingPlan($resellerId, $hpName)
+function whmcs_getHostingPlanProps($resellerId, $hpName)
 {
     $cfg = iMSCP_Registry::get('config');
 
     if ($cfg['HOSTING_PLANS_LEVEL'] == 'admin') {
-        $query = "SELECT * FROM hosting_plans WHERE `name` = ?";
-        $param = array($hpName);
+        $q = 'SELECT props FROM hosting_plans WHERE name = ?';
+        $p = array($hpName);
     } else {
-        $query = "SELECT * FROM hosting_plans WHERE name = ? AND reseller_id = ?";
-        $param = array($hpName, $resellerId);
+        $q = 'SELECT props FROM hosting_plans WHERE name = ? AND reseller_id = ?';
+        $p = array($hpName, $resellerId);
     }
 
-    $stmt = exec_query($query, $param);
+    $stmt = exec_query($q, $p);
 
     if ($stmt->rowCount()) {
-        return $stmt->fetchRow();
+        $row = $stmt->fetchRow();
+        return $row['props'];
     }
 
     die(sprintf("KaziWhmcs: The '%s' hosting plan doesn't exists", $hpName));
@@ -91,7 +92,7 @@ function whmcs_getHostingPlan($resellerId, $hpName)
  */
 function whmcs_getResellerIP($resellerId)
 {
-    $stmt = exec_query('SELECT * FROM reseller_props WHERE reseller_id = ?', $resellerId);
+    $stmt = exec_query('SELECT reseller_ips FROM reseller_props WHERE reseller_id = ?', $resellerId);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
@@ -105,7 +106,7 @@ function whmcs_getResellerIP($resellerId)
         }
     }
 
-    die('KaziWhmcs: Reseller does not have any IP address');
+    die("KaziWhmcs: Reseller doesn't have any IP address");
 }
 
 /**
@@ -121,13 +122,13 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
     if (isset($_POST['admin_name']) && isset($_POST['admin_pass']) && isset($_POST['domain']) && isset($_POST['email'])) {
         $email = clean_input($_POST['email']);
 
-        if(chk_email($email)) {
+        if (chk_email($email)) {
             die(sprintf("KaziWhmcs: '%s' is not a valid email", $email));
         }
 
         $adminPassword = clean_input($_POST['admin_pass']);
 
-        if(!checkPasswordSyntax($adminPassword)) {
+        if (!checkPasswordSyntax($adminPassword)) {
             die(sprintf("KaziWhmcs: '%s' is not a valid password", $adminPassword));
         }
 
@@ -250,7 +251,6 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         $phpini->setData('phpiniMaxInputTime', $phpiniMaxInputTime);
                         $phpini->setData('phpiniMemoryLimit', $phpiniMemoryLimit);
 
-                        // save it to php_ini table
                         $phpini->saveCustomPHPiniIntoDb($domainId);
                     }
 
@@ -271,7 +271,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         client_mail_add_default_accounts($domainId, $email, $domainNameAscii);
                     }
 
-                    // let's send mail to user
+                    // Let's send mail to user
                     send_add_user_auto_msg(
                         $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName, tr('Customer', true)
                     );
@@ -306,10 +306,10 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                     exit('success');
                 } catch (Exception $e) {
                     $db->rollBack();
-                    die(sprintf("KaziWhmcs:Unable to create the '%s' customer account: %s", $e->getMessage()));
+                    die(sprintf("KaziWhmcs: Unable to create the '%s' customer account: %s", $e->getMessage()));
                 }
             } else {
-                die(sprintf("KaziWhmcs:Domain '%s' already exists or is not allowed", $domainNameUtf8));
+                die(sprintf("KaziWhmcs: Domain '%s' already exists or is not allowed", $domainNameUtf8));
             }
         } else {
             die(sprintf("KaziWhmcs: Domain '%s' is not valid", $domainNameUtf8));
@@ -327,18 +327,24 @@ function whmcs_SuspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
+        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
 
         try {
             change_domain_status($row['domain_id'], 'deactivate');
+
+            write_log(
+                sprintf("KaziWhmcs: The '%s' customer account has been suspended through WHMCS", $domainName),
+                E_USER_NOTICE
+            );
+
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("KaziWhmcs: Unable to activate the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(sprintf("KaziWhmcs: Unable to suspend the '%s' customer account: %s", $domainName, $e->getMessage()));
         }
     }
 
@@ -355,18 +361,24 @@ function whmcs_UnsuspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
+        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
 
         try {
             change_domain_status($row['domain_id'], 'activate');
+
+            write_log(
+                sprintf("KaziWhmcs: The '%s' customer account has been un-suspended through WHMCS", $domainName),
+                E_USER_NOTICE
+            );
+
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("KaziWhmcs: Unable to activate the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(sprintf("KaziWhmcs: Unable to unsuspend the '%s' customer account: %s", $domainName, $e->getMessage()));
         }
     }
 
@@ -384,19 +396,25 @@ function whmcs_TerminateAccount($resellerId, $domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
-    $stmt = exec_query('SELECT domain_id, domain_name FROM domain WHERE domain_name = ?', $domainNameAscii);
+    $stmt = exec_query('SELECT domain_id FROM domain WHERE domain_name = ?', $domainNameAscii);
 
     if ($stmt->rowCount()) {
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-        $_SESSION['user_logged'] = 'WHMCS'; // Fake user
-        $_SESSION['user_id'] = $resellerId;
+        //$_SESSION['user_logged'] = 'WHMCS'; // Fake user
+        //$_SESSION['user_id'] = $resellerId;
 
         try {
             deleteCustomer($row['domain_id'], true);
+
+            write_log(
+                sprintf("KaziWhmcs: The '%s' customer account has been deleted through WHMCS", $domainName),
+                E_USER_NOTICE
+            );
+
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("KaziWhmcs: Unable to delete the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(sprintf("KaziWhmcs: Unable to terminate the '%s' customer account: %s", $domainName, $e->getMessage()));
         }
     }
 
@@ -408,7 +426,7 @@ function whmcs_TerminateAccount($resellerId, $domainName)
  */
 
 // Disable compression information
-if(iMSCP_Registry::isRegistered('bufferFilter')) {
+if (iMSCP_Registry::isRegistered('bufferFilter')) {
     /** @var iMSCP_Filter_Compress_Gzip $filter */
     $filter = iMSCP_Registry::get('bufferFilter');
     $filter->compressionInformation = false;
@@ -425,7 +443,7 @@ if (isset($_POST['action'])) {
                 if (isset($_POST['hp_name'])) {
                     whmcs_CreateAccount(
                         $resellerId,
-                        whmcs_getHostingPlan($resellerId, clean_input($_POST['hp_name'])),
+                        whmcs_getHostingPlanProps($resellerId, clean_input($_POST['hp_name'])),
                         whmcs_getResellerIP($resellerId)
                     );
                 }

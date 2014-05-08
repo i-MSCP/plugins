@@ -24,5 +24,5 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2014-05-06',
 	'name' => 'KaziWhmcs',
-	'desc' => 'Plugin providing a bridge for WHMCS billing software'
+	'desc' => 'Plugin providing a bridge for the WHMCS billing software'
 );
