@@ -79,7 +79,7 @@ function imscp_CreateAccount($data)
             'tblhosting',
             array(
                 'username' => $data['domain'],
-                'lastupdate' => 'now()',
+                'lastupdate' => 'now()'
             ),
             array(
                 'id' => $data['serviceid']
