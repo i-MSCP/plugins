@@ -70,7 +70,7 @@ You can create as many servers as you want (using different i-MSCP resellers).
 ### License
 
 The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
-license in [LICENSE.txt](incubator/KaziWhmcs/LICENSE.txt).
+license in [LICENSE.txt](LICENSE.txt).
 
 ### Author
 
