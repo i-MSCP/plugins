@@ -25,7 +25,7 @@ billing software. It allow server provisioning through BoxBilling.
 2. Setup a new server, an hosting plan (see below) and a product/service using the imscp server manager
 
 **Note:** Only the hosting plan name is relevant. The hosting plan must match with one that has been created in the
-i-MSCP control panel, and that is owned either by an administrator (admin level hosting plan) or by the reseller
+i-MSCP control panel, and be owned either by an administrator (admin level hosting plan) or by the reseller
 (reseller level hosting plan) as filled out while creating the server.
 
 ### License
