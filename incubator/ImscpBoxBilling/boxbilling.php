@@ -133,6 +133,10 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
         $adminPassword = clean_input($_POST['admin_pass']);
 
+        $cfg = iMSCP_Registry::get('config');
+
+        $cfg['PASSWD_STRONG'] = 0; // WHMCS must manage this
+
         if (!checkPasswordSyntax($adminPassword)) {
             die(sprintf("ImscpBoxBilling: '%s' is not a valid password", $adminPassword));
         }
@@ -141,8 +145,6 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
         if ($domainNameUtf8 && isValidDomainName($domainNameUtf8)) {
             $domainNameAscii = encode_idna($domainNameUtf8);
-
-            $cfg = iMSCP_Registry::get('config');
 
             if (!imscp_domain_exists($domainNameAscii, $resellerId) && $domainNameAscii != $cfg['BASE_SERVER_VHOST']) {
                 $domainExpire = 0;
@@ -456,6 +458,10 @@ function imscpboxbilling_changePassword($customerName, $newPassword)
 {
     $customerNameAscii = encode_idna($customerName);
 
+    $cfg = iMSCP_Registry::get('config');
+
+    $cfg['PASSWD_STRONG'] = 0; // WHMCS must manage this
+
     if (!checkPasswordSyntax($newPassword)) {
         die(sprintf("ImscpBoxBilling: '%s' is not a valid password", $newPassword));
     }
@@ -486,8 +492,8 @@ function imscpboxbilling_changePassword($customerName, $newPassword)
             exec_query(
                 'UPDATE htaccess_users SET upass = ?, status = ? WHERE dmn_id = ? AND uname = ?',
                 array(
-                    cryptPasswordWithSalt($newPassword, generateRandomSalt(true)), get_user_domain_id($adminId),
-                    'tochange', $customerNameAscii
+                    cryptPasswordWithSalt($newPassword, generateRandomSalt(true)), 'tochange',
+                    get_user_domain_id($adminId), $customerNameAscii
                 )
             );
 

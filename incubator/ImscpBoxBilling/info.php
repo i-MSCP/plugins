@@ -21,7 +21,7 @@
 return array(
     'author' => 'Laurent Declercq',
     'email' => 'l.declercq@nuxwin.com',
-    'version' => '0.0.1',
+    'version' => '0.0.2',
     'date' => '2014-05-09',
     'name' => 'ImscpBoxBilling',
     'desc' => 'Plugin allowing server provisioning through the BoxBilling software.',

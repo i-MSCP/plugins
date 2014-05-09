@@ -1,4 +1,4 @@
-## i-MSCP ImscpBoxBilling plugin v0.0.1
+## i-MSCP ImscpBoxBilling plugin v0.0.2
 
 Plugin allowing server provisioning through the BoxBilling software.
 

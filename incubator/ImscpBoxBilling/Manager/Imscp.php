@@ -20,6 +20,8 @@
 
 /**
  * Class Server_Manager_Imscp
+ *
+ * @author Laurent Declercq <l.declercq@nuxwin.com>
  */
 class Server_Manager_Imscp extends Server_Manager
 {
@@ -57,15 +59,13 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function getLoginUrl()
     {
-        $host = $this->_config['host'];
-
         if ($this->_config['secure']) {
             $scheme = 'https://';
         } else {
             $scheme = 'http://';
         }
 
-        return "$scheme$host/index.php";
+        return $scheme . $this->_config['host'];
     }
 
     /**
@@ -75,15 +75,13 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function getResellerLoginUrl()
     {
-        $host = $this->_config['host'];
-
         if ($this->_config['secure']) {
             $scheme = 'https://';
         } else {
             $scheme = 'http://';
         }
 
-        return "$scheme$host/index.php";
+        return $scheme . $this->_config['host'];
     }
 
     /**
@@ -107,8 +105,6 @@ class Server_Manager_Imscp extends Server_Manager
     public function testConnection()
     {
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'reseller_name' => $this->_config['username'],
                 'reseller_pass' => $this->_config['password'],
@@ -144,8 +140,6 @@ class Server_Manager_Imscp extends Server_Manager
         $package = $serverAccount->getPackage();
 
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'reseller_name' => $this->_config['username'],
                 'reseller_pass' => $this->_config['password'],
@@ -207,8 +201,6 @@ class Server_Manager_Imscp extends Server_Manager
         );
 
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'action' => 'suspend',
                 'reseller_name' => $this->_config['username'],
@@ -238,8 +230,6 @@ class Server_Manager_Imscp extends Server_Manager
         );
 
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'action' => 'unsuspend',
                 'reseller_name' => $this->_config['username'],
@@ -269,8 +259,6 @@ class Server_Manager_Imscp extends Server_Manager
         );
 
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'action' => 'cancel',
                 'reseller_name' => $this->_config['username'],
@@ -301,8 +289,6 @@ class Server_Manager_Imscp extends Server_Manager
         );
 
         $ret = $this->doRequest(
-            $this->_config['host'],
-            $this->_config['secure'],
             array(
                 'action' => 'changepw',
                 'reseller_name' => $this->_config['username'],
@@ -374,13 +360,14 @@ class Server_Manager_Imscp extends Server_Manager
     /**
      * Send request to i-MSCP
      *
-     * @param string $host i-MSCP server host name
-     * @param bool $ssl Does the connection should be secured through SSL
      * @param array $postData POST data
      * @return string String indicating if the request is successful
      */
-    protected function doRequest($host, $ssl, $postData)
+    protected function doRequest(array $postData)
     {
+        $host = $this->_config['host'];
+        $ssl = $this->_config['secure'];
+
         // Create stream context
         $context = stream_context_create();
 
@@ -406,7 +393,9 @@ class Server_Manager_Imscp extends Server_Manager
 
         if (!$socket) {
             @fclose($socket);
-            return sprintf("ImscpBoxBilling: Unable to connect to server (%s:%s); %s - %s", $host, $port, $errno, $errstr);
+            return sprintf(
+                "ImscpBoxBilling: Unable to connect to server (%s:%s); %s - %s", $host, $port, $errno, $errstr
+            );
         }
 
         // Set the stream timeout
@@ -543,7 +532,6 @@ class Server_Manager_Imscp extends Server_Manager
                         }
 
                         $chunk .= $line;
-
                     } while (!feof($socket));
 
                     $chunk .= fgets($socket);
