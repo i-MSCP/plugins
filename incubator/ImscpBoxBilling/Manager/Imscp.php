@@ -155,7 +155,7 @@ class Server_Manager_Imscp extends Server_Manager
                 'admin_name' => $serverAccount->getDomain(),
                 'admin_pass' => $serverAccount->getPassword(),
                 'email' => $client->getEmail(),
-                'customer_id' => 'boxbilling_' . $client->getId(),
+                'customer_id' => '',
                 'fname' => $client->getFullName(),
                 'lname' => '',
                 'firm' => $client->getCompany(),
