@@ -256,7 +256,7 @@ function imscp_LoginLink($params)
     }
 
     echo <<<EOT
-<a href="$scheme{$params['serverhostname']}" target="_blank">Go to control panel</a>';
+<p><a href="$scheme{$params['serverhostname']}" target="_blank"><span>Go to control panel</span></a></p>
 EOT;
 }
 
