@@ -52,6 +52,8 @@ function imscpboxbilling_login($username, $password)
         die('ImscpBoxBilling: Wrong user type. Only resellers can use the ImscpBoxBilling API');
     }
 
+    register_shutdown_function(function() { iMSCP_Authentication::getInstance()->unsetIdentity(); });
+
     return $authResult->getIdentity()->admin_id;
 }
 

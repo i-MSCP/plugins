@@ -38,15 +38,15 @@ class Server_Manager_Imscp extends Server_Manager
         //ini_set('display_errors', 1);
 
         if (empty($this->_config['host'])) {
-            throw new Server_Exception('Server manager "Imscp" is not configured properly. Hostname is not set');
+            throw new Server_Exception('ImscpBoxBilling: Hostname is not set');
         }
 
         if (empty($this->_config['username'])) {
-            throw new Server_Exception('Server manager "Imscp" is not configured properly. Username is not set');
+            throw new Server_Exception('ImscpBoxBilling: Username is not set');
         }
 
         if (empty($this->_config['password'])) {
-            throw new Server_Exception('Server manager "Imscp" is not configured properly. Authentication is not set');
+            throw new Server_Exception('ImscpBoxBilling: Authentication is not set');
         }
     }
 
@@ -137,7 +137,7 @@ class Server_Manager_Imscp extends Server_Manager
         );
 
         if ($serverAccount->getReseller()) {
-            throw new Server_Exception('Server manager "Imscp" error: Only customer accounts can be created');
+            throw new Server_Exception('ImscpBoxBilling: Only customer accounts can be created', 403);
         }
 
         $client = $serverAccount->getClient();
@@ -150,7 +150,7 @@ class Server_Manager_Imscp extends Server_Manager
                 'reseller_name' => $this->_config['username'],
                 'reseller_pass' => $this->_config['password'],
                 'action' => 'create',
-                'domain' => $a->getDomain(),
+                'domain' => $serverAccount->getDomain(),
                 'hp_name' => $package->getName(),
                 'admin_name' => $serverAccount->getDomain(),
                 'admin_pass' => $serverAccount->getPassword(),
@@ -329,7 +329,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountUsername(Server_Account $serverAccount, $newUsername)
     {
-        throw new Server_Exception('Server manager "Imscp" error: Action not allowed');
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
     }
 
     /**
@@ -342,7 +342,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountDomain(Server_Account $serverAccount, $newDomain)
     {
-        throw new Server_Exception('Server manager "Imscp" error: Action not allowed');
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
     }
 
     /**
@@ -355,7 +355,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountIp(Server_Account $serverAccount, $newIpAddress)
     {
-        throw new Server_Exception('Server manager "Imscp" error: Action not allowed');
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
     }
 
     /**
@@ -368,7 +368,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountPackage(Server_Account $serverAccount, Server_Package $serverPackage)
     {
-        throw new Server_Exception('Server manager "Imscp" error: Action not allowed');
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
     }
 
     /**
