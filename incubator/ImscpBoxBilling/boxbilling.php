@@ -179,7 +179,7 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
                 $state = (isset($_POST['state'])) ? clean_input($_POST['state']) : '';
                 $country = (isset($_POST['country'])) ? clean_input($_POST['country']) : '';
                 $phone = (isset($_POST['phone'])) ? clean_input($_POST['phone']) : '';
-                $fax = (isset($_POST['fax'])) ? clean_input($_POST['fax']) : '';;
+                $fax = (isset($_POST['fax'])) ? clean_input($_POST['fax']) : '';
                 $street1 = (isset($_POST['street1'])) ? clean_input($_POST['street1']) : '';
                 $street2 = (isset($_POST['street2'])) ? clean_input($_POST['street2']) : '';
 
