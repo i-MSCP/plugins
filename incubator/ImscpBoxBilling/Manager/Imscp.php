@@ -213,7 +213,7 @@ class Server_Manager_Imscp extends Server_Manager
                 'action' => 'suspend',
                 'reseller_name' => $this->_config['username'],
                 'reseller_pass' => $this->_config['password'],
-                'domain' => $params['domain']
+                'domain' => $serverAccount->getDomain()
             )
         );
 
@@ -481,7 +481,7 @@ class Server_Manager_Imscp extends Server_Manager
         }
 
         try {
-            $responseArr = _imscp_parseResponseFromString($response);
+            $responseArr = $this->parseResponseFromString($response);
         } catch (\Exception $e) {
             return sprintf('ImscpBoxBilling: Unable to parse response: %s', $e->getMessage());
         }
@@ -609,7 +609,7 @@ class Server_Manager_Imscp extends Server_Manager
         }
 
         try {
-            $response = _imscp_parseResponseFromString($response);
+            $response = $this->parseResponseFromString($response);
             return $response['body'];
         } catch (\Exception $e) {
             return sprintf('ImscpBoxBilling: Unable to parse response; %s', $e->getMessage());
