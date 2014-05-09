@@ -22,7 +22,7 @@ billing software. It allow server provisioning through BoxBilling.
 #### WHMCS side
 
 1. Copy the Manager/Imscp.php file from the plugin archive into the BoxBilling **bb-library/Server/Manager** directory
-2. Setup a new server, an hosting plan (see below) and a product/rservice using the imscp server manager
+2. Setup a new server, an hosting plan (see below) and a product/service using the imscp server manager
 
 **Note:** Only the hosting plan name is relevant. The hosting plan must match with one that has been created in the
 i-MSCP control panel, and that is owned either by an administrator (admin level hosting plan) or by the reseller
