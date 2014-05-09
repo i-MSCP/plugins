@@ -94,7 +94,7 @@ class Server_Manager_Imscp extends Server_Manager
     public static function getForm()
     {
         return array(
-            'label' => 'i-MSCP Server Manager',
+            'label' => 'i-MSCP Server Manager'
         );
     }
 
@@ -206,7 +206,7 @@ class Server_Manager_Imscp extends Server_Manager
             sprintf('Suspending account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
         );
 
-        $ret = doRequest(
+        $ret = $this->doRequest(
             $this->_config['host'],
             $this->_config['secure'],
             array(
@@ -237,7 +237,7 @@ class Server_Manager_Imscp extends Server_Manager
             sprintf('Unsuspending account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
         );
 
-        $ret = doRequest(
+        $ret = $this->doRequest(
             $this->_config['host'],
             $this->_config['secure'],
             array(
@@ -268,7 +268,7 @@ class Server_Manager_Imscp extends Server_Manager
             sprintf('Cancelling account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
         );
 
-        $ret = doRequest(
+        $ret = $this->doRequest(
             $this->_config['host'],
             $this->_config['secure'],
             array(
@@ -300,7 +300,7 @@ class Server_Manager_Imscp extends Server_Manager
             sprintf('Changing account password %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
         );
 
-        $ret = doRequest(
+        $ret = $this->doRequest(
             $this->_config['host'],
             $this->_config['secure'],
             array(

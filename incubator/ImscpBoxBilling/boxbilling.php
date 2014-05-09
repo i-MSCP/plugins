@@ -354,7 +354,11 @@ function imscpboxbilling_suspendAccount($domainName)
 
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("ImscpBoxBilling: Unable to suspend the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(
+                sprintf(
+                    "ImscpBoxBilling: Unable to suspend the '%s' customer account: %s", $domainName, $e->getMessage()
+                )
+            );
         }
     }
 
