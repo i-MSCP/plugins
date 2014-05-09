@@ -528,7 +528,7 @@ function kaziwhmcs_usageUpdate()
         exit(serialize($usageUpdateData));
     }
 
-    return exit('success');
+    exit('success');
 }
 
 /***********************************************************************************************************************

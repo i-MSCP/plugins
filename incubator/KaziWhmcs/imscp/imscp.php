@@ -296,7 +296,6 @@ EOT;
  *
  * @param string $host i-MSCP server host name
  * @param bool $ssl Does the connection should be secured through SSL
- * @param array $serverData Server data
  * @param array $postData POST data
  * @return string String indicating if the request is successful
  */
