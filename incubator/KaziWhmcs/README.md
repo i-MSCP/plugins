@@ -36,7 +36,7 @@ The **LoginLink** function is used to show a control panel link on the product m
 
 #### ClientArea
 
-The **ClientArea** function is used to show i-MSCP login button in client area.
+The **ClientArea** function is used to show an i-MSCP login button in client area.
 
 #### CreateAccount
 
