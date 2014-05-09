@@ -25,5 +25,5 @@ return array(
     'date' => '2014-05-09',
     'name' => 'KaziWhmcs',
     'desc' => 'Plugin allowing server provisioning through the WHMCS billing software.',
-    'url' => 'https://github.com/c0urier/plugins/tree/master/incubator/KaziWhmcs'
+    'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/KaziWhmcs'
 );
