@@ -135,7 +135,7 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
         $cfg = iMSCP_Registry::get('config');
 
-        $cfg['PASSWD_STRONG'] = 0; // WHMCS must manage this
+        $cfg['PASSWD_STRONG'] = 0; // BoxBilling must manage this
 
         if (!checkPasswordSyntax($adminPassword)) {
             die(sprintf("ImscpBoxBilling: '%s' is not a valid password", $adminPassword));
@@ -460,7 +460,7 @@ function imscpboxbilling_changePassword($customerName, $newPassword)
 
     $cfg = iMSCP_Registry::get('config');
 
-    $cfg['PASSWD_STRONG'] = 0; // WHMCS must manage this
+    $cfg['PASSWD_STRONG'] = 0; // BoxBilling must manage this
 
     if (!checkPasswordSyntax($newPassword)) {
         die(sprintf("ImscpBoxBilling: '%s' is not a valid password", $newPassword));
