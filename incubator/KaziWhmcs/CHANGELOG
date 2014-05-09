@@ -12,5 +12,11 @@ Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
     - CS fixes
-    - Implemented ChangePassword module function
-    - Implemented UsageUpdate module function
+    - Implemented: ChangePassword module function
+    - Implemented: UsageUpdate module function
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+    - Fixed: Unset identity data on shutdown

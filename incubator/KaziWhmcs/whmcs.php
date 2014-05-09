@@ -52,6 +52,8 @@ function kaziwhmcs_login($username, $password)
         die('KaziWhmcs: Wrong user type. Only resellers can use the KaziWhmcs API');
     }
 
+    register_shutdown_function(function() { iMSCP_Authentication::getInstance()->unsetIdentity(); });
+
     return $authResult->getIdentity()->admin_id;
 }
 
