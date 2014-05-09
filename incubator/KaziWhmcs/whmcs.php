@@ -29,7 +29,7 @@
  * @param string $password Password
  * @return int Reseller user unique identifier
  */
-function whmcs_login($username, $password)
+function kaziwhmcs_login($username, $password)
 {
     do_session_timeout();
 
@@ -52,18 +52,19 @@ function whmcs_login($username, $password)
         die('KaziWhmcs: Wrong user type. Only resellers can use the KaziWhmcs API');
     }
 
-    return $_SESSION['user_id'];
+    return $authResult->getIdentity()->admin_id;
 }
 
 /**
  * Get hosting plan properties
  *
- * @param int $resellerId Reseller unique identifier
  * @param string $hpName Hosting plan name
  * @return array Hosting plan properties
  */
-function whmcs_getHostingPlanProps($resellerId, $hpName)
+function kaziwhmcs_getHostingPlanProps($hpName)
 {
+    $resellerId = iMSCP_Authentication::getInstance()->getIdentity()->admin_id;
+
     $cfg = iMSCP_Registry::get('config');
 
     if ($cfg['HOSTING_PLANS_LEVEL'] == 'admin') {
@@ -87,11 +88,12 @@ function whmcs_getHostingPlanProps($resellerId, $hpName)
 /**
  * Get first IP address of the given reseller
  *
- * @param int $resellerId Reseller unique identifier
  * @return string
  */
-function whmcs_getResellerIP($resellerId)
+function kaziwhmcs_getResellerIP()
 {
+    $resellerId = iMSCP_Authentication::getInstance()->getIdentity()->admin_id;
+
     $stmt = exec_query('SELECT reseller_ips FROM reseller_props WHERE reseller_id = ?', $resellerId);
 
     if ($stmt->rowCount()) {
@@ -112,18 +114,19 @@ function whmcs_getResellerIP($resellerId)
 /**
  * Create new customer account
  *
- * @param int $resellerId Reseller unique identifier
  * @param array $hostingPlanProperties Hosting plan properties
  * @param string $resellerIp Reseller IP address
  * @return void
  */
-function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
+function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
 {
+    $resellerId = iMSCP_Authentication::getInstance()->getIdentity()->admin_id;
+
     if (isset($_POST['admin_name']) && isset($_POST['admin_pass']) && isset($_POST['domain']) && isset($_POST['email'])) {
         $email = clean_input($_POST['email']);
 
         if (!chk_email($email)) {
-            die(sprintf("KaziWhmcs: '%s' is not a valid email", $email));
+            die(sprintf("KaziWhmcs: '%s' is not a valid email address", $email));
         }
 
         $adminPassword = clean_input($_POST['admin_pass']);
@@ -143,7 +146,6 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                 $domainExpire = 0;
                 $adminUsername = encode_idna(strtolower(clean_input($_POST['admin_name'])));
                 $adminPassword = clean_input($_POST['admin_pass']);
-                $encryptedAdminPassword = cryptPasswordWithSalt($adminPassword);
 
                 // Features and limits
                 list(
@@ -152,7 +154,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                     $softwareInstallerFeature, $phpEditorFeature, $phpiniAllowUrlFopen, $phpiniDisplayErrors,
                     $phpiniDisableFunctions, $phpiniPostMaxSize, $phpiniUploadMaxFileSize, $phpiniMaxExecutionTime,
                     $phpiniMaxInputTime, $phpiniMemoryLimit, $extMailServer, $webFolderProtection, $mailQuota
-                    ) = explode(
+                ) = explode(
                     ';', $hostingPlanProperties
                 );
                 $phpFeature = str_replace('_', '', $phpFeature);
@@ -172,7 +174,6 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                 $city = (isset($_POST['city'])) ? clean_input($_POST['city']) : '';
                 $state = (isset($_POST['state'])) ? clean_input($_POST['state']) : '';
                 $country = (isset($_POST['country'])) ? clean_input($_POST['country']) : '';
-
                 $phone = (isset($_POST['phone'])) ? clean_input($_POST['phone']) : '';
                 $fax = '';
                 $street1 = (isset($_POST['street1'])) ? clean_input($_POST['street1']) : '';
@@ -200,15 +201,16 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                     exec_query(
                         "
                           INSERT INTO admin (
-                            admin_name, admin_pass, admin_type, domain_created, created_by, fname, lname, firm, zip, city,
-                            state, country, email, phone, fax, street1, street2, customer_id, gender, admin_status
+                            admin_name, admin_pass, admin_type, domain_created, created_by, fname, lname, firm, zip,
+                            city, state, country, email, phone, fax, street1, street2, customer_id, gender, admin_status
                           ) VALUES (
                             ?, ?, 'user', unix_timestamp(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                          )
                         ",
                         array(
-                            $adminUsername, $encryptedAdminPassword, $resellerId, $firstName, $lastName, $firm, $zip,
-                            $city, $state, $country, $email, $phone, $fax, $street1, $street2, $customerId, 'U', 'toadd'
+                            $adminUsername, cryptPasswordWithSalt($adminPassword), $resellerId, $firstName, $lastName,
+                            $firm, $zip, $city, $state, $country, $email, $phone, $fax, $street1, $street2, $customerId,
+                            'U', 'toadd'
                         )
                     );
 
@@ -238,12 +240,12 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
 
                     $domainId = $db->insertId();
 
-                    // save php.ini if exist
+                    // Save php.ini if exist
                     if ($phpEditorFeature == 'yes') {
                         /* @var $phpini iMSCP_PHPini */
                         $phpini = iMSCP_PHPini::getInstance();
 
-                        // fill it with the custom values - other take from default
+                        // Fill it with the custom values - other take from default
                         $phpini->setData('phpiniSystem', 'yes');
                         $phpini->setData('phpiniPostMaxSize', $phpiniPostMaxSize);
                         $phpini->setData('phpiniUploadMaxFileSize', $phpiniUploadMaxFileSize);
@@ -256,7 +258,10 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
 
                     exec_query(
                         'INSERT INTO htaccess_users (dmn_id, uname, upass, status) VALUES (?, ?, ?, ?)',
-                        array($domainId, $domainNameAscii, $encryptedAdminPassword, 'toadd')
+                        array(
+                            $domainId, $domainNameAscii, cryptPasswordWithSalt($adminPassword,
+                            generateRandomSalt(true)), 'toadd'
+                        )
                     );
 
                     $htuserId = $db->insertId();
@@ -271,7 +276,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                         client_mail_add_default_accounts($domainId, $email, $domainNameAscii);
                     }
 
-                    // Let's send mail to user
+                    // Send welcome mail to user
                     send_add_user_auto_msg(
                         $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName, tr('Customer', true)
                     );
@@ -306,7 +311,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
                     exit('success');
                 } catch (Exception $e) {
                     $db->rollBack();
-                    die(sprintf("KaziWhmcs: Unable to create the '%s' customer account: %s", $e->getMessage()));
+                    die(sprintf("KaziWhmcs: Unable to create the '%s' customer account; %s", $e->getMessage()));
                 }
             } else {
                 die(sprintf("KaziWhmcs: Domain '%s' already exists or is not allowed", $domainNameUtf8));
@@ -323,7 +328,7 @@ function whmcs_CreateAccount($resellerId, $hostingPlanProperties, $resellerIp)
  * @param string $domainName Customer's main domain name
  * @return void
  */
-function whmcs_SuspendAccount($domainName)
+function kaziwhmcs_suspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
@@ -355,7 +360,7 @@ function whmcs_SuspendAccount($domainName)
  * @param string $domainName Customer's main domain name
  * @return void
  */
-function whmcs_UnsuspendAccount($domainName)
+function kaziwhmcs_unsuspendAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
@@ -374,7 +379,7 @@ function whmcs_UnsuspendAccount($domainName)
 
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("KaziWhmcs: Unable to unsuspend the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(sprintf("KaziWhmcs: Unable to unsuspend the '%s' customer account; %s", $domainName, $e->getMessage()));
         }
     }
 
@@ -387,7 +392,7 @@ function whmcs_UnsuspendAccount($domainName)
  * @param string $domainName Customer's main domain name
  * @return void
  */
-function whmcs_TerminateAccount($domainName)
+function kaziwhmcs_terminateAccount($domainName)
 {
     $domainNameAscii = encode_idna($domainName);
 
@@ -406,11 +411,123 @@ function whmcs_TerminateAccount($domainName)
 
             exit('success');
         } catch (Exception $e) {
-            die(sprintf("KaziWhmcs: Unable to terminate the '%s' customer account: %s", $domainName, $e->getMessage()));
+            die(sprintf("KaziWhmcs: Unable to terminate the '%s' customer account; %s", $domainName, $e->getMessage()));
         }
     }
 
     die(sprintf("KaziWhmcs: The '%s' customer account doesn't exists", $domainName));
+}
+
+/**
+ * Update the password of the given customer account
+ *
+ * @param string $customerName Customer name
+ * @param string $newPassword New password
+ * @return void
+ */
+function kaziwhmcs_changePassword($customerName, $newPassword)
+{
+    $customerNameAscii = encode_idna($customerName);
+
+    if (!checkPasswordSyntax($newPassword)) {
+        die(sprintf("KaziWhmcs: '%s' is not a valid password", $newPassword));
+    }
+
+    $stmt = exec_query(
+        'SELECT admin_id FROM admin WHERE admin_name = ? AND created_by = ?',
+        array($customerNameAscii, iMSCP_Authentication::getInstance()->getIdentity()->admin_id)
+    );
+
+    if ($stmt->rowCount()) {
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+        $adminId = $row['admin_id'];
+
+        $db = iMSCP_Database::getInstance();
+
+        try {
+            $db->beginTransaction();
+
+            iMSCP_Events_Aggregator::getInstance()->dispatch(
+                iMSCP_Events::onBeforeEditUser, array('userId' => $adminId)
+            );
+
+            exec_query(
+                'UPDATE admin SET admin_pass = ? WHERE admin_id = ?',
+                array(cryptPasswordWithSalt($newPassword), $adminId)
+            );
+
+            exec_query(
+                'UPDATE htaccess_users SET upass = ?, status = ? WHERE dmn_id = ? AND uname = ?)',
+                array(
+                    cryptPasswordWithSalt($newPassword, generateRandomSalt(true)), get_user_domain_id($adminId),
+                    'tochange', $customerNameAscii
+                )
+            );
+
+            iMSCP_Events_Aggregator::getInstance()->dispatch(
+                iMSCP_Events::onAfterEditUser, array('userId' => $adminId)
+            );
+
+            $db->commit();
+
+            send_request();
+
+            write_log(
+                sprintf(
+                    "KaziWhmcs: Password of the '%s' customer account has been updated through WHMCS",
+                    $customerName
+                ),
+                E_USER_NOTICE
+            );
+
+            exit('success');
+        } catch (Exception $e) {
+            $db->rollBack();
+
+            die(
+                sprintf(
+                    "KaziWhmcs: Unable to update password of the '%s' customer account; %s", $customerName,
+                    $e->getMessage()
+                )
+            );
+        }
+    }
+
+    die(sprintf("KaziWhmcs: The '%s' customer account doesn't exists", $customerName));
+}
+
+/**
+ * Collect and output usage stats for each domain ownded by the logged-in reseller
+ *
+ * @return void
+ */
+function kaziwhmcs_usageUpdate()
+{
+    $resellerId = iMSCP_Authentication::getInstance()->getIdentity()->admin_id;
+
+    $stmt = exec_query(
+        'SELECT domain_id FROM domain INNER JOIN admin ON(admin_id = domain_admin_id) WHERE created_by = ?',
+        $resellerId
+    );
+
+    if ($stmt->rowCount()) {
+        $usageUpdateData = array();
+
+        while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+            $stats = generate_user_traffic($row['domain_id']);
+            $usageUpdateData[] = array(
+                'domain' => decode_idna($stats[0]),
+                'diskusage' => intval(bytesHuman($stats['7'], 'MB', 0, 1000)),
+                'disklimit' => $stats['9'],
+                'bwusage' => intval(bytesHuman($stats['6'], 'MB', 0, 1000)),
+                'bwlimit' => $stats['8']
+            );
+        }
+
+        exit(serialize($usageUpdateData));
+    }
+
+    return exit('success');
 }
 
 /***********************************************************************************************************************
@@ -429,32 +546,38 @@ try {
         $action = clean_input($_POST['action']);
 
         if (isset($_POST['reseller_name']) && isset($_POST['reseller_pass'])) {
-            $resellerId = whmcs_login(clean_input($_POST['reseller_name']), clean_input($_POST['reseller_pass']));
+            $resellerId = kaziwhmcs_login(clean_input($_POST['reseller_name']), clean_input($_POST['reseller_pass']));
 
             switch ($action) {
                 case 'create':
                     if (isset($_POST['hp_name'])) {
-                        whmcs_CreateAccount(
-                            $resellerId,
-                            whmcs_getHostingPlanProps($resellerId, clean_input($_POST['hp_name'])),
-                            whmcs_getResellerIP($resellerId)
+                        kaziwhmcs_createAccount(
+                            kaziwhmcs_getHostingPlanProps(clean_input($_POST['hp_name'])), kaziwhmcs_getResellerIP()
                         );
                     }
                     break;
                 case 'suspend':
                     if (isset($_POST['domain'])) {
-                        whmcs_SuspendAccount(clean_input($_POST['domain']));
+                        kaziwhmcs_suspendAccount(clean_input($_POST['domain']));
                     }
                     break;
                 case 'unsuspend':
                     if (isset($_POST['domain'])) {
-                        whmcs_UnsuspendAccount(clean_input($_POST['domain']));
+                        kaziwhmcs_unsuspendAccount(clean_input($_POST['domain']));
                     }
                     break;
                 case 'terminate':
                     if (isset($_POST['domain'])) {
-                        whmcs_TerminateAccount(clean_input($_POST['domain']));
+                        kaziwhmcs_terminateAccount(clean_input($_POST['domain']));
                     }
+                    break;
+                case 'changepw':
+                    if (isset($_POST['admin_name']) && isset($_POST['admin_pass'])) {
+                        kaziwhmcs_changePassword(clean_input($_POST['admin_name']), clean_input($_POST['admin_pass']));
+                    }
+                    break;
+                case 'usageupdate':
+                    kaziwhmcs_usageUpdate();
             }
         }
     }

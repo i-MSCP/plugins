@@ -38,38 +38,38 @@ function imscp_ConfigOptions()
 /**
  * Create the given customer account
  *
- * @param array $data Provisioning data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_CreateAccount($data)
+function imscp_CreateAccount($params)
 {
-    if (empty($data['clientsdetails']['email'])) {
+    if (empty($params['clientsdetails']['email'])) {
         return 'KaziWhmcs: Customer email is not set in WHMCS';
     }
 
     $ret = _imscp_sendRequest(
-        $data['serverhostname'],
-        ($data['serversecure'] == 'on') ? true : false,
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
         array(
-            'reseller_name' => $data['serverusername'],
-            'reseller_pass' => $data['serverpassword'],
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
             'action' => 'create',
-            'domain' => $data['domain'],
-            'hp_name' => $data['configoption1'],
-            'admin_name' => $data['domain'],
-            'admin_pass' => $data['password'],
-            'customer_id' => 'whmcs_' . $data['clientsdetails']['userid'],
-            'fname' => $data['clientsdetails']['firstname'],
-            'lname' => $data['clientsdetails']['lastname'],
-            'firm' => $data['clientsdetails']['companyname'],
-            'zip' => $data['clientsdetails']['postcode'],
-            'city' => $data['clientsdetails']['city'],
-            'state' => $data['clientsdetails']['state'],
-            'country' => $data['clientsdetails']['countryname'],
-            'email' => $data['clientsdetails']['email'],
-            'phone' => $data['clientsdetails']['phonenumber'],
-            'street1' => $data['clientsdetails']['address1'],
-            'street2' => $data['clientsdetails']['address2']
+            'domain' => $params['domain'],
+            'hp_name' => $params['configoption1'],
+            'admin_name' => $params['domain'],
+            'admin_pass' => $params['password'],
+            'customer_id' => 'whmcs_' . $params['clientsdetails']['userid'],
+            'fname' => $params['clientsdetails']['firstname'],
+            'lname' => $params['clientsdetails']['lastname'],
+            'firm' => $params['clientsdetails']['companyname'],
+            'zip' => $params['clientsdetails']['postcode'],
+            'city' => $params['clientsdetails']['city'],
+            'state' => $params['clientsdetails']['state'],
+            'country' => $params['clientsdetails']['countryname'],
+            'email' => $params['clientsdetails']['email'],
+            'phone' => $params['clientsdetails']['phonenumber'],
+            'street1' => $params['clientsdetails']['address1'],
+            'street2' => $params['clientsdetails']['address2']
         )
     );
 
@@ -78,11 +78,11 @@ function imscp_CreateAccount($data)
         update_query(
             'tblhosting',
             array(
-                'username' => $data['domain'],
+                'username' => $params['domain'],
                 'lastupdate' => 'now()'
             ),
             array(
-                'id' => $data['serviceid']
+                'id' => $params['serviceid']
             )
         );
     }
@@ -93,19 +93,19 @@ function imscp_CreateAccount($data)
 /**
  * Suspend the given customer account
  *
- * @param array $data Provisioning data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_SuspendAccount($data)
+function imscp_SuspendAccount($params)
 {
     return _imscp_sendRequest(
-        $data['serverhostname'],
-        ($data['serversecure'] == 'on') ? true : false,
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'suspend',
-            'reseller_name' => $data['serverusername'],
-            'reseller_pass' => $data['serverpassword'],
-            'domain' => $data['domain']
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
+            'domain' => $params['domain']
         )
     );
 }
@@ -113,19 +113,19 @@ function imscp_SuspendAccount($data)
 /**
  * Unsuspend the given customer account
  *
- * @param array $data Provisioning data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_UnsuspendAccount($data)
+function imscp_UnsuspendAccount($params)
 {
     return _imscp_sendRequest(
-        $data['serverhostname'],
-        ($data['serversecure'] == 'on') ? true : false,
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'unsuspend',
-            'reseller_name' => $data['serverusername'],
-            'reseller_pass' => $data['serverpassword'],
-            'domain' => $data['domain']
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
+            'domain' => $params['domain']
         )
     );
 }
@@ -133,47 +133,110 @@ function imscp_UnsuspendAccount($data)
 /**
  * Terminate the given customer account
  *
- * @param array $data Provisioning data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_TerminateAccount($data)
+function imscp_TerminateAccount($params)
 {
     return _imscp_sendRequest(
-        $data['serverhostname'],
-        ($data['serversecure'] == 'on') ? true : false,
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
         array(
             'action' => 'terminate',
-            'reseller_name' => $data['serverusername'],
-            'reseller_pass' => $data['serverpassword'],
-            'domain' => $data['domain']
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
+            'domain' => $params['domain']
         )
     );
 }
 
 /**
- * Return admin form
+ * Update password of the given customer account
  *
- * @param array $serverData Server data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_AdminLink($serverData)
+function imscp_ChangePassword($params)
 {
-    if ($serverData['serversecure'] == 'on') {
+    return _imscp_sendRequest(
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
+        array(
+            'action' => 'changepw',
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
+            'admin_name' => $params['username'],
+            'admin_pass' => $params['password']
+        )
+    );
+}
+
+/**
+ * Update usage stats
+ *
+ * @param array $params Module parameters
+ * @return string
+ */
+function imscp_UsageUpdate($params)
+{
+    $response = _imscp_sendRequest(
+        $params['serverhostname'],
+        ($params['serversecure'] == 'on') ? true : false,
+        array(
+            'action' => 'usageupdate',
+            'reseller_name' => $params['serverusername'],
+            'reseller_pass' => $params['serverpassword'],
+        )
+    );
+
+    if (($usageUpdateData = unserialize($response)) !== false) {
+        foreach ($usageUpdateData as $data) {
+            update_query(
+                'tblhosting',
+                array(
+                    'diskusage' => $data['diskusage'],
+                    'disklimit' => $data['disklimit'],
+                    'bwusage' => $data['bwusage'],
+                    'bwlimit' => $data['bwlimit'],
+                    'lastupdate' => 'now()'
+                ),
+                array(
+                    'server' => $params['serverid'],
+                    'domain' => $data['domain']
+                )
+            );
+        }
+
+        return 'success';
+    }
+
+    return $response;
+}
+
+/**
+ * Return admin form
+ *
+ * @param array $params Module parameters
+ * @return string
+ */
+function imscp_AdminLink($params)
+{
+    if ($params['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
     }
 
-    $host = $serverData['serverhostname'];
-    $username = htmlentities($serverData['serverusername'], ENT_QUOTES, 'UTF-8', false);
-    $password = htmlentities($serverData['serverpassword'], ENT_QUOTES, 'UTF-8', false);
+    $host = $params['serverhostname'];
+    $username = htmlentities($params['serverusername'], ENT_QUOTES, 'UTF-8', false);
+    $password = htmlentities($params['serverpassword'], ENT_QUOTES, 'UTF-8', false);
 
     return <<<EOT
 <form action="$scheme$host" method="post" target="_blank">
     <input type="hidden" name="uname" value="$username" />
     <input type="hidden" name="upass" value="$password" />
     <input type="hidden" name="action" value="login">
-    <input type="submit" value="Login to i-MSCP" />
+    <input type="submit" value="Login to control panel" />
 </form>
 EOT;
 }
@@ -181,45 +244,46 @@ EOT;
 /**
  * Login link
  *
- * @param array $serverData Server data
+ * @param array $params Module parameters
+ * @return string
  */
-function imscp_LoginLink($serverData)
+function imscp_LoginLink($params)
 {
-    if ($serverData['serversecure'] == 'on') {
+    if ($params['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
     }
 
     echo <<<EOT
-<a href="$scheme{$serverData['serverhostname']}" target="_blank">Login to i-MSCP</a>';
+<a href="$scheme{$params['serverhostname']}" target="_blank">Go to control panel</a>';
 EOT;
 }
 
 /**
  * Client login and link
  *
- * @param array $serverData Server data
+ * @param array $params Module parameters
  * @return string
  */
-function imscp_ClientArea($serverData)
+function imscp_ClientArea($params)
 {
-    if ($serverData['serversecure'] == 'on') {
+    if ($params['serversecure'] == 'on') {
         $scheme = 'https://';
     } else {
         $scheme = 'http://';
     }
 
-    $host = $serverData['serverhostname'];
-    $username = htmlentities($serverData['domain'], ENT_QUOTES, 'UTF-8', false);
-    $password = htmlentities($serverData['serverpassword'], ENT_QUOTES, 'UTF-8', false);
+    $host = $params['serverhostname'];
+    $username = htmlentities($params['domain'], ENT_QUOTES, 'UTF-8', false);
+    $password = htmlentities($params['serverpassword'], ENT_QUOTES, 'UTF-8', false);
 
     return <<<EOT
 <form action="$scheme$host" method="post" target="_blank">
     <input type="hidden" name="uname" value="$username" />
     <input type="hidden" name="upass" value="$password" />
     <input type="hidden" name="action" value="login">
-    <input type="submit" value="Login to i-MSCP CP" />
+    <input type="submit" value="Login to control panel" />
     <input type="button" value="Login to Webmail" onClick="window.open('$scheme$host/webmail')" />
 </form>
 EOT;
@@ -497,6 +561,8 @@ function _imscp_parseResponseFromString($string)
     $response['version'] = $matches['version'];
     $response['status'] = $matches['status'];
     $response['reason_phrase'] = (isset($matches['reason']) ? $matches['reason'] : '');
+    $response['headers'] = array();
+    $response['body'] = '';
 
     if (count($lines) == 0) {
         return $response;
@@ -520,16 +586,12 @@ function _imscp_parseResponseFromString($string)
         }
     }
 
-    $response['headers'] = array();
-
     if ($headers) {
         foreach ($headers as $header) {
             $header = explode(':', $header);
             $response['headers'][strtolower($header[0])] = $header[1];
         }
     }
-
-    $response['body'] = '';
 
     if ($body) {
         $body = implode("\r\n", $body);

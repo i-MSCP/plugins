@@ -11,7 +11,7 @@ billing software. It allow server provisioning through WHMCS.
 
   i-MSCP >= 1.1.5 (plugin API >= 0.2.8)
 
-### Installation and Update
+### Installation and update
 
 #### i-MSCP side
 
