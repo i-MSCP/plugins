@@ -457,7 +457,7 @@ function kaziwhmcs_changePassword($customerName, $newPassword)
             );
 
             exec_query(
-                'UPDATE htaccess_users SET upass = ?, status = ? WHERE dmn_id = ? AND uname = ?)',
+                'UPDATE htaccess_users SET upass = ?, status = ? WHERE dmn_id = ? AND uname = ?',
                 array(
                     cryptPasswordWithSalt($newPassword, generateRandomSalt(true)), get_user_domain_id($adminId),
                     'tochange', $customerNameAscii
@@ -486,7 +486,8 @@ function kaziwhmcs_changePassword($customerName, $newPassword)
 
             die(
                 sprintf(
-                    "KaziWhmcs: Unable to update password of the '%s' customer account; %s", $customerName,
+                    "KaziWhmcs: Unable to update password of the '%s' customer account; %s",
+                    $customerName,
                     $e->getMessage()
                 )
             );
