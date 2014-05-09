@@ -11,6 +11,6 @@ Version 0.0.1
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-    - Implemented UsageUpdate module function
-    - Implemented ChangePassword module function
     - CS fixes
+    - Implemented ChangePassword module function
+    - Implemented UsageUpdate module function
