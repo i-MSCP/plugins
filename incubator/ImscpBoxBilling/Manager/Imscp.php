@@ -40,15 +40,15 @@ class Server_Manager_Imscp extends Server_Manager
         //ini_set('display_errors', 1);
 
         if (empty($this->_config['host'])) {
-            throw new Server_Exception('ImscpBoxBilling: Hostname is not set');
+            throw new Server_Exception('ImscpBoxBilling: Server hostname is not set');
         }
 
         if (empty($this->_config['username'])) {
-            throw new Server_Exception('ImscpBoxBilling: Username is not set');
+            throw new Server_Exception('ImscpBoxBilling: Server username is not set');
         }
 
         if (empty($this->_config['password'])) {
-            throw new Server_Exception('ImscpBoxBilling: Authentication is not set');
+            throw new Server_Exception('ImscpBoxBilling: Server password is not set');
         }
     }
 
@@ -128,16 +128,18 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function createAccount(Server_Account $serverAccount)
     {
-        $this->getLog()->info(
-            sprintf('Creating account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Creating account %s', $serverAccount->getDomain()));
 
         if ($serverAccount->getReseller()) {
-            throw new Server_Exception('ImscpBoxBilling: Only customer accounts can be created', 403);
+            throw new Server_Exception('ImscpBoxBilling: Only customer accounts can be created');
         }
 
         $client = $serverAccount->getClient();
         $package = $serverAccount->getPackage();
+
+        // Override service username (i-MSCP is using domain as username)
+        $this->overrideServiceUsername($client, $serverAccount->getDomain());
+        $serverAccount->setUsername($serverAccount->getDomain());
 
         $ret = $this->doRequest(
             array(
@@ -146,10 +148,10 @@ class Server_Manager_Imscp extends Server_Manager
                 'action' => 'create',
                 'domain' => $serverAccount->getDomain(),
                 'hp_name' => $package->getName(),
-                'admin_name' => $serverAccount->getDomain(),
+                'admin_name' => $serverAccount->getUsername(),
                 'admin_pass' => $serverAccount->getPassword(),
                 'email' => $client->getEmail(),
-                'customer_id' => '',
+                'customer_id' => ($client->getId() != '') ? 'boxbilling_' . $client->getId() : '',
                 'fname' => $client->getFullName(),
                 'lname' => '',
                 'firm' => $client->getCompany(),
@@ -180,9 +182,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function synchronizeAccount(Server_Account $serverAccount)
     {
-        $this->getLog()->info(
-            sprintf('Synchronizing account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Synchronizing account %s', $serverAccount->getDomain()));
 
         return clone $serverAccount;
     }
@@ -196,9 +196,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function suspendAccount(Server_Account $serverAccount)
     {
-        $this->getLog()->info(
-            sprintf('Suspending account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Suspending account %s', $serverAccount->getDomain()));
 
         $ret = $this->doRequest(
             array(
@@ -225,9 +223,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function unsuspendAccount(Server_Account $serverAccount)
     {
-        $this->getLog()->info(
-            sprintf('Unsuspending account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Unsuspending account %s', $serverAccount->getDomain()));
 
         $ret = $this->doRequest(
             array(
@@ -254,9 +250,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function cancelAccount(Server_Account $serverAccount)
     {
-        $this->getLog()->info(
-            sprintf('Cancelling account %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Cancelling account %s', $serverAccount->getDomain()));
 
         $ret = $this->doRequest(
             array(
@@ -284,9 +278,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountPassword(Server_Account $serverAccount, $newPassword)
     {
-        $this->getLog()->info(
-            sprintf('Changing account password %s - %s', $serverAccount->getUsername(), $serverAccount->getDomain())
-        );
+        $this->getLog()->info(sprintf('Changing account password %s', $serverAccount->getDomain()));
 
         $ret = $this->doRequest(
             array(
@@ -315,7 +307,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountUsername(Server_Account $serverAccount, $newUsername)
     {
-        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed');
     }
 
     /**
@@ -328,7 +320,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountDomain(Server_Account $serverAccount, $newDomain)
     {
-        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed');
     }
 
     /**
@@ -341,7 +333,7 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountIp(Server_Account $serverAccount, $newIpAddress)
     {
-        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed');
     }
 
     /**
@@ -354,7 +346,61 @@ class Server_Manager_Imscp extends Server_Manager
      */
     public function changeAccountPackage(Server_Account $serverAccount, Server_Package $serverPackage)
     {
-        throw new Server_Exception('ImscpBoxBilling: Action not allowed', 403);
+        throw new Server_Exception('ImscpBoxBilling: Action not allowed');
+    }
+
+    /**
+     * Override service username
+     *
+     * @throws Server_Exception
+     * @param Server_Client $client Server_Client
+     * @param string $newUsername New username
+     * @return void
+     */
+    protected function overrideServiceUsername(Server_Client $client, $newUsername)
+    {
+        /** @var PDO $pdo */
+        $pdo = Box_Db::getPdo();
+
+        try {
+            $stmt = $pdo->prepare(
+                '
+                  SELECT
+                    co.client_id, co.config
+                  FROM
+                    client_order AS co
+                  INNER JOIN
+                    client AS c ON(c.id = co.client_id)
+                  WHERE
+                    c.email = :email
+                '
+            );
+            $stmt->execute(array('email' => $client->getEmail()));
+
+            if (!$stmt->rowCount()) {
+                throw new Server_Exception('ImscpBoxBilling: Unable to retrieve order config');
+            }
+
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $config = json_decode($row['config'], true);
+            $config['username'] = $newUsername;
+            $config = json_encode($config);
+
+            $stmt = $pdo->prepare(
+                '
+                  UPDATE
+                    client_order AS co, service_hosting AS sh
+                  SET
+                    co.config = :config, sh.username = :username
+                  WHERE
+                    (co.client_id = :client_id OR sh.client_id = :client_id)
+                  '
+            );
+            $stmt->execute(array('config' => $config, 'username' => $newUsername, 'client_id' => $row['client_id']));
+        } catch (PDOException $e) {
+            throw new Server_Exception('ImscpBoxBilling: Unable to override service username');
+        }
     }
 
     /**

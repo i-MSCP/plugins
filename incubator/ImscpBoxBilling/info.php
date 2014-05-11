@@ -22,7 +22,7 @@ return array(
     'author' => 'Laurent Declercq',
     'email' => 'l.declercq@nuxwin.com',
     'version' => '0.0.2',
-    'date' => '2014-05-09',
+    'date' => '2014-05-11',
     'name' => 'ImscpBoxBilling',
     'desc' => 'Plugin allowing server provisioning through the BoxBilling software.',
     'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/ImscpBoxBilling'

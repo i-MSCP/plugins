@@ -33,6 +33,10 @@ i-MSCP control panel, and be owned either by an administrator (admin level hosti
 The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
 license in [LICENSE.txt](LICENSE.txt).
 
+### KNOWN ISSUE
+
+* The FTP account as shown in service details (client interface) is inoperant
+
 ### Author
 
  * Laurent Declercq <l.declercq@nuxwin.com>
