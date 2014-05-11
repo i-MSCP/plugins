@@ -395,7 +395,7 @@ class Server_Manager_Imscp extends Server_Manager
                     co.config = :config, sh.username = :username
                   WHERE
                     (co.client_id = :client_id OR sh.client_id = :client_id)
-                  '
+                '
             );
             $stmt->execute(array('config' => $config, 'username' => $newUsername, 'client_id' => $row['client_id']));
         } catch (PDOException $e) {
