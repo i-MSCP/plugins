@@ -1,33 +1,5 @@
 #!/usr/bin/perl
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) Sascha Bay <info@space2place.de>
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-#
-# @category    iMSCP
-# @package     iMSCP_Plugin
-# @subpackage  JailKit
-# @copyright   Laurent Declercq <l.declercq@nuxwin.com>
-# @copyright   Sascha Bay <info@space2place.de>
-# @author      Laurent Declercq <l.declercq@nuxwin.com>
-# @author      Sascha Bay <info@space2place.de>
-# @link        http://www.i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
-
 package Plugin::JailKit;
 
 use strict;
@@ -65,7 +37,7 @@ local $Params::Check::STRICT_TYPE = 1;
 
 sub install
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_installJailKit();
 	return $rs if $rs;
@@ -86,7 +58,7 @@ sub install
 
 sub update
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->install();
 	return $rs if $rs;
@@ -104,7 +76,7 @@ sub update
 
 sub change
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	if (defined $main::execmode && $main::execmode eq 'setup') {
 		# Event listener which is responsible to update SSH users' group name in jails
@@ -148,7 +120,7 @@ sub change
 			0;
 		});
 	} else {
-		# Plugin configuration has been changed. All jails must be updated
+		# Plugin configuration has changed. All jails must be updated
 		$self->_updateJails();
 	}
 }
@@ -163,7 +135,7 @@ sub change
 
 sub enable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_changeSshUsers('unlock');
 	return $rs if $rs;
@@ -183,7 +155,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->_changeSshUsers('lock');
 	return $rs if $rs;
@@ -201,7 +173,7 @@ sub disable
 
 sub run
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Processing jailkit items - Add/change/Remove jails
 
@@ -363,7 +335,7 @@ sub run
 
 sub uninstall
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Stopping the jailkit daemon
 	my $rs = _stopDaemon();
@@ -524,7 +496,7 @@ sub processHostHomeDirs($$;$)
 
 sub _init()
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Get database connection
 	$self->{'db'} = iMSCP::Database->factory();
@@ -607,7 +579,7 @@ sub _addJail($$)
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 
-		# Installing additional apps inside the jail
+		# Install additional apps inside the jail
 		if($self->{'config'}->{'jail_additional_apps'}) {
 			$rs = execute(
 				"umask 022; jk_cp -f -k -i -j $rootJailDir/$customerName @{$self->{'config'}->{'jail_additional_apps'}}",
@@ -628,7 +600,7 @@ sub _addJail($$)
 		);
 		return $rs if $rs;
 
-		# Creating /opt directory inside the jail or set its permissions if it already exists
+		# Create /opt directory inside the jail or set its permissions if it already exists
 		$rs = iMSCP::Dir->new(
 			'dirname' => "$rootJailDir/$customerName/opt"
 		)->make(
@@ -636,7 +608,7 @@ sub _addJail($$)
 		);
 		return $rs if $rs;
 
-		# Creating /tmp directory inside the jail or set its permissions if it already exist
+		# Create /tmp directory inside the jail or set its permissions if it already exist
 		$rs = iMSCP::Dir->new(
 			'dirname' => "$rootJailDir/$customerName/tmp"
 		)->make(
@@ -644,7 +616,7 @@ sub _addJail($$)
 		);
 		return $rs if $rs;
 
-		# Mounting host directories into jails
+		# Mount host directories into jails
 		$self->processHostDirectories('mount', "$rootJailDir/$customerName");
 	} else {
 		error("Parent user doesn't exist."); # Should never occurs
@@ -1289,7 +1261,7 @@ sub _installJailKit
 	my $umask = umask(022);
 	my $curDir = getcwd();
 
-	# We build Jailkit into a temporary directory
+	# Build Jailkit into a temporary directory
 	my $buildDir = File::Temp->newdir();
 
 	# Change dir to build directory
@@ -1533,7 +1505,6 @@ END
 =head1 AUTHORS
 
  Laurent Declercq <l.declercq@nuxwin.com>
- Sascha Bay <info@space2place.de>
 
 =cut
 

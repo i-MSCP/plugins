@@ -1,32 +1,21 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) Sascha Bay <info@space2place.de>
+ * i-MSCP JailKit plugin
+ * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  JailKit
- * @copyright   Laurent Declercq <l.declercq@nuxwin.com>
- * @copyright   Sascha Bay <info@space2place.de>
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /***********************************************************************************************************************
@@ -46,7 +35,7 @@ function jailkit_activateSsh($customerId)
 		$stmt = exec_query(
 			'
 				INSERT IGNORE INTO
-					jailkit (admin_id, max_logins, jailkit_status)
+					jailkit_jails (jail_owner_id, jail_max_logins, jail_status)
 				SELECT
 					admin_id, ?, ?
 				FROM
@@ -86,11 +75,11 @@ function jailkit_deactivateSsh($customerId)
 		$stmt = exec_query(
 			'
 				UPDATE
-					jailkit
+					jailkit_jails
 				INNER JOIN
-					admin USING(admin_id)
+					admin ON(admin_id = jail_owner_id)
 				SET
-					jailkit_status = ?
+					jail_status = ?
 				WHERE
 					admin_id = ?
 				AND
@@ -129,13 +118,13 @@ function jailkit_editCustomerJail($tpl, $customerId)
 		$stmt = exec_query(
 			'
 				SELECT
-					jailkit_id, count(jailkit_login_id) as login_cnt
+					jail_id, count(jail_login_id) as login_cnt
 				FROM
-					jailkit
+					jailkit_jails
 				INNER JOIN
-					admin USING(admin_id)
+					admin ON(admin_id = jail_owner_id)
 				LEFT JOIN
-					jailkit_login USING(jailkit_id)
+					jailkit_login USING(jail_id)
 				WHERE
 					admin_id = ?
 				AND
@@ -145,7 +134,7 @@ function jailkit_editCustomerJail($tpl, $customerId)
 		);
 		$row = $stmt->fetchRow();
 
-		if (!is_null($row['jailkit_id'])) {
+		if (!is_null($row['jail_id'])) {
 			$error = false;
 
 			if (!is_number($_POST['max_logins'])) {
@@ -157,7 +146,10 @@ function jailkit_editCustomerJail($tpl, $customerId)
 			}
 
 			if (!$error) {
-				exec_query('UPDATE jailkit SET max_logins = ? WHERE admin_id = ?', array($maxLogins, $customerId));
+				exec_query(
+                    'UPDATE jailkit_jails SET jail_max_logins = ? WHERE jail_owner_id = ?',
+                    array($maxLogins, $customerId)
+                );
 				write_log(
 					"{$_SESSION['user_logged']} edited SSH user limit for customer with ID $customerId", E_USER_NOTICE
 				);
@@ -200,13 +192,13 @@ function jailkit_changeCustomerJail($customerId, $action)
 		$stmt = exec_query(
 			'
 				UPDATE
-					jailkit
+					jailkit_jails
 				LEFT JOIN
-					jailkit_login USING(jailkit_id)
+					jailkit_ssh_logins USING(jail_id)
 				SET
-					jailkit_status = ?, ssh_login_locked = ?, jailkit_login_status = ?
+					jail_status = ?, ssh_login_locked = ?, ssh_login_status = ?
 				WHERE
-					admin_id = ?
+					jail_owner_id = ?
 			',
 			$bindParams
 		);
@@ -244,13 +236,13 @@ function get_jailkitLoginLimit($customerId)
 	$stmt = exec_query(
 		'
 			SELECT
-				max_logins, count(jailkit_login_id) AS login_cnt
+				jail_max_logins, COUNT(ssh_login_id) AS login_cnt
 			FROM
-				jailkit
+				jailkit_jails
 			LEFT JOIN
-				jailkit_login using(jailkit_id)
+				jailkit_ssh_logins USING(jail_id)
 			WHERE
-				admin_id = ?
+				jail_owner_id = ?
 		',
 		$customerId
 	);
@@ -279,7 +271,7 @@ function jailkit_generatePage($tpl)
 			AND
 				admin_status = ?
 			AND
-				admin_id NOT IN(SELECT admin_id FROM jailkit)
+				admin_id NOT IN(SELECT jail_owner_id FROM jailkit_jails)
 			ORDER BY
 				admin_name ASC
 		',
@@ -304,15 +296,15 @@ function jailkit_generatePage($tpl)
 	$stmt = exec_query(
 		'
 			SELECT
-				jailkit_status, admin_id, admin_name
+				jail_status, jail_owner_id, admin_name AS jail_owner_name
 			FROM
-				jailkit
+				jailkit_jails
 			INNER JOIN
-				admin USING(admin_id)
+				admin ON(admin_id = jail_owner_id)
 			WHERE
 				created_by = ?
 			ORDER BY
-				admin_name ASC
+				jail_owner_name ASC
 		',
 		$_SESSION['user_id']
 	);
@@ -321,31 +313,26 @@ function jailkit_generatePage($tpl)
 		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 		foreach ($rows as $row) {
-			if ($row['jailkit_status'] == 'ok') {
+			if ($row['jail_status'] == 'ok') {
 				$statusIcon = 'ok';
 				$tpl->assign(
 					array(
 						'TR_CHANGE_ACTION_TOOLTIP' => tr('Suspend SSH feature for this customer'),
-						'TR_CHANGE_ALERT' => tr(
-							'Are you sure you want to suspend SSH feature for this customer?'
-						),
+						'TR_CHANGE_ALERT' => tr('Are you sure you want to suspend SSH feature for this customer?'),
 						'CHANGE_ACTION' => 'suspend'
 					)
 				);
-			} elseif ($row['jailkit_status'] == 'disabled') {
+			} elseif ($row['jail_status'] == 'disabled') {
 				$statusIcon = 'disabled';
 				$tpl->assign(
 					array(
 						'TR_CHANGE_ACTION_TOOLTIP' => tr('Unsuspend SSH feature for this customer'),
-						'TR_CHANGE_ALERT' => tr(
-							'Are you sure you want to unsuspend SSH feature for this customer?'
-						),
+						'TR_CHANGE_ALERT' => tr('Are you sure you want to unsuspend SSH feature for this customer?'),
 						'CHANGE_ACTION' => 'unsuspend'
 					)
 				);
 			} elseif (
-				$row['jailkit_status'] == 'toadd' || $row['jailkit_status'] == 'tochange' ||
-				$row['jailkit_status'] == 'todelete'
+				$row['jail_status'] == 'toadd' || $row['jail_status'] == 'tochange' || $row['jail_status'] == 'todelete'
 			) {
 
 				$statusIcon = 'reload';
@@ -355,10 +342,10 @@ function jailkit_generatePage($tpl)
 
 			$tpl->assign(
 				array(
-					'JAILKIT_CUSTOMER_NAME' => tohtml(decode_idna($row['admin_name'])),
-					'JAILKIT_STATUS' => translate_dmn_status($row['jailkit_status']),
-					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($row['admin_id']),
-					'JAILKIT_ADMIN_ID' => $row['admin_id'],
+					'JAILKIT_CUSTOMER_NAME' => tohtml(decode_idna($row['jail_owner_name'])),
+					'JAILKIT_STATUS' => translate_dmn_status($row['jail_status']),
+					'JAILKIT_LOGIN_LIMIT' => get_jailkitLoginLimit($row['jail_owner_name']),
+					'JAILKIT_ADMIN_ID' => $row['jail_owner_name'],
 					'STATUS_ICON' => $statusIcon
 				)
 			);
