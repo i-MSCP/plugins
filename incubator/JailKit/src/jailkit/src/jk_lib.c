@@ -195,7 +195,7 @@ int getjaildir(const char *oldhomedir, char **jaildir, char **newhomedir) {
 		}
 		i--;
 	}
-	return 1;
+	return 0;
 }
 
 char *strip_string(char * string) {

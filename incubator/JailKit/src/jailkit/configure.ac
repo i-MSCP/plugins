@@ -1,7 +1,7 @@
 # Jailkit
 # configure.ac - the autoconf file
 #
-#Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013 Olivier Sessink
+#Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013, 2014 Olivier Sessink
 #All rights reserved.
 #
 #Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 #
 #
 
-AC_INIT([jailkit],[2.16],[https://savannah.nongnu.org/bugs/?group=jailkit])
+AC_INIT([jailkit],[2.17],[https://savannah.nongnu.org/bugs/?group=jailkit])
 
 AC_SUBST([PACKAGE], AC_PACKAGE_NAME)
 AC_DEFINE_UNQUOTED([PACKAGE], "AC_PACKAGE_NAME", [The package name.])

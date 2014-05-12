@@ -3,29 +3,29 @@ Copyright (c) 2003, 2004, 2005, 2006, 2007, 2008 Olivier Sessink
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions 
+modification, are permitted provided that the following conditions
 are met:
-  * Redistributions of source code must retain the above copyright 
+  * Redistributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above 
-    copyright notice, this list of conditions and the following 
-    disclaimer in the documentation and/or other materials provided 
+  * Redistributions in binary form must reproduce the above
+    copyright notice, this list of conditions and the following
+    disclaimer in the documentation and/or other materials provided
     with the distribution.
-  * The names of its contributors may not be used to endorse or 
-    promote products derived from this software without specific 
+  * The names of its contributors may not be used to endorse or
+    promote products derived from this software without specific
     prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
  */
 /* #define DEBUG */
@@ -129,10 +129,10 @@ static Tsocketlink *new_socketlink(int outsocket, char *inpath, int normrate, in
 		close_socketlink(sl);
 		return NULL;
 	}
-	
+
 /*	flags = fcntl(sl->insocket, F_GETFL, 0);
 	fcntl(sl->insocket, F_SETFL, O_NONBLOCK|flags);*/
-	
+
 	gettimeofday(&sl->lastreset,NULL);
 	return sl;
 }
@@ -142,7 +142,7 @@ static void sleepround(long microseconds, int debug) {
 		struct timespec sleeptime;
 		sleeptime.tv_sec = microseconds / FULLSECOND;
 		sleeptime.tv_nsec = (microseconds % FULLSECOND)*1000;
-		
+
 		DEBUG_MSG("sleepround, sleeping %d milliseconds\n", (int)(microseconds / MILLISECOND));
 		nanosleep(&sleeptime, NULL);
 		/*pthread_delay_np(&sleeptime);*/
@@ -165,8 +165,12 @@ static void socketlink_handle(Tsocketlink *sl) {
 		if (numbytes < 0) {
 			DEBUG_MSG("recvfrom error %d: %s\n", errno, strerror(errno));
 		} else if (numbytes > 0) {
-			if (send(sl->outsocket, &buf, numbytes, 0) != numbytes) {
+			int ret = send(sl->outsocket, &buf, numbytes, 0);
+			if (ret == -1) {
 				DEBUG_MSG("send error %d: %s\n", errno, strerror(errno));
+				syslog(LOG_CRIT, "failed to write log message, error %d: %s",errno,strerror(errno));
+			} else if (ret != numbytes) {
+				syslog(LOG_WARNING, "failed to write complete log message, message was %d bytes, delivered %d bytes",numbytes, ret);
 			}
 			/* write(sl->outsocket, &buf, numbytes); */
 			gettimeofday(&sl->lasttime,NULL);
@@ -248,7 +252,7 @@ static unsigned short int have_socket(char *path, Tsocketlink **sl, unsigned int
 
 int main(int argc, char**argv) {
 	Tsocketlink *sl[MAX_SOCKETS];
-	
+
 /*	struct timeval startround, endround;*/
 	unsigned int numsockets = 0;
 	int outsocket;
@@ -322,7 +326,7 @@ int main(int argc, char**argv) {
 		}
 	}
 	openlog(PROGRAMNAME, LOG_PID, LOG_DAEMON);
-	
+
 	outsocket = socket(AF_UNIX, SOCK_DGRAM, 0);
 	DEBUG_MSG("outsocket at %d\n", outsocket);
 	{
@@ -340,7 +344,7 @@ int main(int argc, char**argv) {
 		}
 		if (nodetach) printf("opened /dev/log\n");
 	}
-	
+
 	if (!m_socket)
 	{
 		char buf[1024], *tmp;
@@ -355,13 +359,13 @@ int main(int argc, char**argv) {
 				unsigned int base=511, peak=2048;
 				float interval=5.0;
 				long prevpos, secpos;
-				
+
 				if (numsockets == MAX_SOCKETS) {
 					syslog(LOG_NOTICE, "Warning: jk_socketd is compiled to support maximum %d sockets and more sockets are requested, not all sockets are opened!",MAX_SOCKETS);
 					if (nodetach) printf("Warning: jk_socketd is compiled to support maximum %d sockets and more sockets are requested, not all sockets are opened!\n",MAX_SOCKETS);
 					break;
 				}
-				
+
 				prevpos = iniparser_get_position(ip);
 				secpos = prevpos - strlen(tmp)-4;
 				DEBUG_MSG("secpos=%ld, prevpos=%ld\n",secpos,prevpos);
@@ -392,7 +396,7 @@ int main(int argc, char**argv) {
 				syslog(LOG_NOTICE, "version "VERSION", socket %s is mentioned multiple times in config file",tmp);
 				if (nodetach) printf("version "VERSION", socket %s is mentioned multiple times in config file\n",tmp);
 			}
-			
+
 		}
 	}
 	else
@@ -411,7 +415,7 @@ int main(int argc, char**argv) {
 			if (nodetach) printf("version "VERSION",failed to create socket %s\n",m_socket);
 		}
 	}
-	
+
 	if (numsockets == 0) {
 		printf("version "VERSION", no sockets specified in configfile "CONFIGFILE" or on commandline, nothing to do, exiting...\n");
 		syslog(LOG_ERR,"version "VERSION", no sockets specified in configfile "CONFIGFILE" or on commandline, nothing to do, exiting...");
@@ -421,7 +425,7 @@ int main(int argc, char**argv) {
 	if (pidfile) pidfilefd = fopen(pidfile, "w");
 
 	/* now chroot() to some root:root dir without binaries, and change to nobody:nogroup */
-	
+
 	{
 		struct passwd *pw = getpwnam("nobody");
 		int ret;
@@ -433,9 +437,9 @@ int main(int argc, char**argv) {
 		ret = testsafepath(path, 0,0);
 		if (ret != 0) {
 			syslog(LOG_ERR, "abort, path %s is not owned root:root or does not have 0644 permissions\n",path);
-			exit(53);		
+			exit(53);
 		}
-		
+
 		if (!(chdir(path)==0 && chroot(path)==0)) {
 			syslog(LOG_ERR, "failed to chroot to "INIPREFIX);
 			if (nodetach) printf("failed to chroot to "INIPREFIX);
@@ -468,7 +472,7 @@ int main(int argc, char**argv) {
 		} else {
 			syslog(LOG_NOTICE, "failed to write pid to %s", pidfile);
 		}
-	}	
+	}
 	/* use sl[0] for the main process */
 	for (i=1;i<numsockets;i++) {
 		pthread_create(&sl[i]->thread, NULL,(void*)&socketlink_handle, (void*) sl[i]);

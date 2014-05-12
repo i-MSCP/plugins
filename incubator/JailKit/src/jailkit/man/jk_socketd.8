@@ -48,7 +48,9 @@ interval = 5.0
 The title of the section is the socket to be created. The directory to create the socket in should exist.
 
 .SS "Security"
-The jailkit socket daemon will change to user nobody and will chroot() into an empty dir once all sockets are opened. If the /dev/log socket is closed by the syslog daemon (for example during log rotation), jk_socketd needs a restart to open it again.
+The jailkit socket daemon will change to user nobody and will chroot() into an empty dir once all sockets are opened. If the /dev/log socket is closed by the syslog daemon (for example during log rotation), 
+.B jk_socketd needs a restart 
+to open it again.
 
 .SH OPTIONS
 .TP

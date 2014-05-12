@@ -1,3 +1,13 @@
+jailkit (2.17-1) precise; urgency=low
+
+  * fix compiling with -lcap for some newer linux distributions
+  * improve some argument checking and error messages
+  * do not abort when called as -su
+  * improve jk_socketd man page
+  * make jk_cp honor option -j again
+
+ -- Olivier <olivier@cort.fakenet>  Fri, 03 Jan 2014 23:43:26 +0100
+
 jailkit (2.16-1) precise; urgency=low
 
   * fix compiling if -pthread and -lcap are both needed
