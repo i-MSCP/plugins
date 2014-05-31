@@ -42,7 +42,6 @@ use iMSCP::Database;
 use JSON;
 
 use parent 'Common::SingletonClass';
-use parent 'Modules::Domain';
 
 =head1 DESCRIPTION
 
@@ -74,7 +73,7 @@ sub install
 		return 1;
 	}
 
-	if(! -d '/etc/opendkim/keys/') {
+	unless(-d '/etc/opendkim/keys') {
 		my $rs = $self->_createOpendkimFolder();
 		return $rs if $rs;
 	} else {
@@ -193,10 +192,7 @@ sub uninstall
 	$rs = $self->_restartDaemonOpendkim();
 	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new('dirname' => '/etc/opendkim/')->remove() if -d '/etc/opendkim/';
-	return $rs if $rs;
-
-	0;
+	iMSCP::Dir->new('dirname' => '/etc/opendkim')->remove();
 }
 
 =item run()
@@ -218,13 +214,13 @@ sub run
 		'opendkim_id', 
 		"
 			SELECT
-				`opendkim_id`, `domain_id`, `alias_id`, `domain_name`, `customer_dns_previous_status`, `opendkim_status`
+				opendkim_id, domain_id, alias_id, domain_name, customer_dns_previous_status, opendkim_status
 			FROM
-				`opendkim`
+				opendkim
 			WHERE
-				`opendkim_status` IN('toadd', 'todelete')
+				opendkim_status IN('toadd', 'todelete')
 			ORDER BY
-				`domain_id` ASC
+				domain_id ASC
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -242,8 +238,8 @@ sub run
 				);
 
 				@sql = (
-					'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `opendkim_id` = ?',
-					($rs ? scalar getMessageByType('error') : 'ok'), $rdata->{$_}->{'opendkim_id'}
+					'UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?',
+					($rs ? scalar getMessageByType('error') : 'ok'), $_
 				);
 			} elsif($rdata->{$_}->{'opendkim_status'} eq 'todelete') {
 				$rs = $self->_deleteOpendkimDomainKey(
@@ -256,11 +252,11 @@ sub run
 
 				if($rs) {
 					@sql = (
-						'UPDATE `opendkim` SET `opendkim_status` = ? WHERE `opendkim_id` = ?',
-						scalar getMessageByType('error'), $rdata->{$_}->{'opendkim_id'}
+						'UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?',
+						scalar getMessageByType('error'), $_
 					);
 				} else {
-					@sql = ('DELETE FROM `opendkim` WHERE `opendkim_id` = ?', $rdata->{$_}->{'opendkim_id'});
+					@sql = ('DELETE FROM opendkim WHERE opendkim_id = ?', $_);
 				}
 			}
 
@@ -315,7 +311,7 @@ sub _init
 
 =item _addOpendkimDomainKey($domainId, $aliasId, $domain)
 
- Adds the new domain key for OpenDKIM support
+ Adds domain key for OpenDKIM support
 
  Return int 0
 
@@ -325,7 +321,7 @@ sub _addOpendkimDomainKey($$$$)
 {
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
-	if(! -d "/etc/opendkim/keys/$domain") {
+	unless(-d "/etc/opendkim/keys/$domain") {
 		my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->make(
 			{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
 		);
@@ -346,7 +342,7 @@ sub _addOpendkimDomainKey($$$$)
 
 		my $fileContent = $file->get();
 		unless (defined $fileContent) {
-			error("Unable to read /etc/opendkim/keys/$domain/mail.txt");
+			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
 
@@ -360,7 +356,7 @@ sub _addOpendkimDomainKey($$$$)
 
 		$fileContent = $file->get();
 		unless (defined $fileContent) {
-			error("Unable to read /etc/opendkim/KeyTable");
+			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
 
@@ -377,7 +373,7 @@ sub _addOpendkimDomainKey($$$$)
 
 		$fileContent = $file->get();
 		unless (defined $fileContent) {
-			error("Unable to read /etc/opendkim/SigningTable");
+			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
 
@@ -395,13 +391,19 @@ sub _addOpendkimDomainKey($$$$)
 		my $rdata = $db->doQuery(
 			'domain_id', 
 			"
-				INSERT INTO `domain_dns` (
-					`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`, `owned_by`
+				INSERT INTO domain_dns (
+					domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
 				) VALUES (
-					?, ?, ?, 'IN', 'TXT', ?, 'opendkim_feature'
+					?, ?, ?, ?, ?, ?, ?
 				)
 			",
-			$domainId, $aliasId, 'mail._domainkey', $txtRecord
+			$domainId,
+			$aliasId,
+			'mail._domainkey',
+			'IN',
+			'TXT',
+			$txtRecord,
+			'opendkim_feature'
 		);
 		unless(ref $rdata eq 'HASH') {
 			error($rdata);
@@ -411,14 +413,14 @@ sub _addOpendkimDomainKey($$$$)
 		if($aliasId eq '0') {
 			$rdata = $db->doQuery(
 				'dummy',
-				"UPDATE `domain` SET `domain_status` = 'tochange', `domain_dns` = 'yes' WHERE `domain_id` = ?",
+				'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ?',
+				'tochange'
+				'yes',
 				$domainId
 			);
 		} else {
 			$rdata = $db->doQuery(
-				'dummy', 
-				"UPDATE `domain_aliasses` SET `alias_status` = 'tochange' WHERE `alias_id` = ?", 
-				$aliasId
+				'dummy', 'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?', 'tochange', $aliasId
 			);
 		}
 		unless(ref $rdata eq 'HASH') {
@@ -444,13 +446,13 @@ sub _removeOpendkimDnsEntries
 
 	my $db = iMSCP::Database->factory();
 
-	my $rdata = $db->doQuery('dummy', 'DELETE FROM `domain_dns` WHERE `owned_by` = ?', 'opendkim_feature');
+	my $rdata = $db->doQuery('dummy', 'DELETE FROM domain_dns WHERE owned_by = ?', 'opendkim_feature');
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
 	}
 
-	$rdata = $db->doQuery('opendkim_id', 'SELECT * FROM `opendkim`');
+	$rdata = $db->doQuery('opendkim_id', 'SELECT * FROM opendkim');
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
@@ -460,14 +462,12 @@ sub _removeOpendkimDnsEntries
 		for(keys %{$rdata}) {
 			my $domainId = $rdata->{$_}->{'domain_id'};
 			my $aliasId = $rdata->{$_}->{'alias_id'};
-			my $domain_dns = $rdata->{$_}->{'customer_dns_previous_status'};
+			my $domainDns = $rdata->{$_}->{'customer_dns_previous_status'};
 			my $rdata2;
 			
 			if($aliasId eq '0') {
 				$rdata2 = $db->doQuery(
-					'domain_dns_id', 
-					"SELECT `domain_dns_id` FROM `domain_dns` WHERE `domain_id` = ? LIMIT 1",
-					$domainId
+					'domain_dns_id', 'SELECT domain_dns_id FROM domain_dns WHERE domain_id = ? LIMIT 1', $domainId
 				);
 				unless(ref $rdata2 eq 'HASH') {
 					error($rdata2);
@@ -476,9 +476,7 @@ sub _removeOpendkimDnsEntries
 
 				if(%{$rdata2}) {
 					$rdata2 = $db->doQuery(
-						'dummy', 
-						"UPDATE `domain` SET `domain_status` = 'tochange' WHERE `domain_id` = ?",
-						$domainId
+						'dummy',  'UPDATE domain SET domain_status = ? WHERE domain_id = ?', 'tochange', $domainId
 					);
 					unless(ref $rdata2 eq 'HASH') {
 						error($rdata2);
@@ -487,8 +485,10 @@ sub _removeOpendkimDnsEntries
 				} else {
 					$rdata2 = $db->doQuery(
 						'dummy',
-						"UPDATE `domain` SET `domain_status` = 'tochange', `domain_dns` = ? WHERE `domain_id` = ?",
-						$domain_dns, $domainId
+						'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ?',
+						'tochange',
+						$domainDns,
+						$domainId
 					);
 					unless(ref $rdata2 eq 'HASH') {
 						error($rdata2);
@@ -498,7 +498,8 @@ sub _removeOpendkimDnsEntries
 			} else {
 				$rdata2 = $db->doQuery(
 					'dummy',
-					"UPDATE `domain_aliasses` SET `alias_status` = 'tochange' WHERE `alias_id` = ?",
+					'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
+					'tochange',
 					$aliasId
 				);
 				unless(ref $rdata2 eq 'HASH') {
@@ -528,16 +529,17 @@ sub _recoverOpendkimDnsEntries
 
 	my $rdata = $db->doQuery(
 		'opendkim_id', 
-		"
+		'
 			SELECT
-				`opendkim_id`, `domain_id`, `alias_id`, `domain_name`
+				opendkim_id, domain_id, alias_id, domain_name
 			FROM
-				`opendkim`
+				opendkim
 			WHERE
-				`opendkim_status` = 'ok'
+				opendkim_status = ?
 			ORDER BY
-				`domain_id` ASC, `alias_id` ASC
-		"
+				domain_id ASC, alias_id ASC
+		',
+		'ok'
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -555,7 +557,7 @@ sub _recoverOpendkimDnsEntries
 
 				my $fileContent = $file->get();
 				unless (defined $fileContent) {
-					error("Unable to read /etc/opendkim/keys/$domain/mail.txt");
+					error("Unable to read $file->{'filename'}");
 					return 1;
 				}
 
@@ -565,13 +567,19 @@ sub _recoverOpendkimDnsEntries
 				my $rdata2 = $db->doQuery(
 					'domain_id', 
 					"
-						INSERT INTO `domain_dns` (
-							`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`, `owned_by`
+						INSERT INTO domain_dns (
+							domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
 						) VALUES (
-							?, ?, ?, 'IN', 'TXT', ?, 'opendkim_feature'
+							?, ?, ?, ?, ?, ?, ?
 						)
 					",
-					$domainId, $aliasId, 'mail._domainkey', $txtRecord
+					$domainId,
+					$aliasId,
+					'mail._domainkey',
+					'IN',
+					'TXT',
+					$txtRecord,
+					'opendkim_feature'
 				);
 				unless(ref $rdata2 eq 'HASH') {
 					error($rdata2);
@@ -581,13 +589,15 @@ sub _recoverOpendkimDnsEntries
 				if($aliasId eq '0') {
 					$rdata2 = $db->doQuery(
 						'dummy', 
-						"UPDATE `domain` SET `domain_status` = 'tochange', `domain_dns` = 'yes' WHERE `domain_id` = ?", 
+						'UPDATE domain SET domain_status = ?', domain_dns = 'yes' WHERE domain_id = ?',
+						'tochange,
 						$domainId
 					);
 				} else {
 					$rdata2 = $db->doQuery(
 						'dummy', 
-						"UPDATE `domain_aliasses` SET `alias_status` = 'tochange' WHERE `alias_id` = ?", 
+						'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
+						'tochange',
 						$aliasId
 					);
 				}
@@ -596,7 +606,7 @@ sub _recoverOpendkimDnsEntries
 					return 1;
 				}
 			} else {
-				error("The OpenDKIM folder for the domain $rdata->{$_}->{'domain_name'} does not exist!");
+				error("OpenDKIM directory for the domain $rdata->{$_}->{'domain_name'} doesn't exist.");
 			}
 		}
 	}
@@ -616,7 +626,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 {
 	my ($self, $domainId, $aliasId, $domain, $customerDnsPreviousStatus) = @_;
 
-	my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->remove() if -d "/etc/opendkim/keys/$domain";
+	my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->remove();
 	return $rs if $rs;
 
 	# Remove domain from KeyTable file
@@ -624,7 +634,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read /etc/opendkim/KeyTable");
+		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
 
@@ -641,7 +651,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 	$fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read /etc/opendkim/SigningTable");
+		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
 
@@ -657,8 +667,10 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 	my $rdata = $db->doQuery(
 		'dummy',
-		'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `alias_id` = ? AND `domain_dns` = ?',
-		$domainId, $aliasId, 'mail._domainkey'
+		'DELETE FROM domain_dns WHERE domain_id = ? AND alias_id = ? AND domain_dns = ?',
+		$domainId,
+		$aliasId,
+		'mail._domainkey'
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -667,7 +679,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 	if($aliasId eq '0') {
 		$rdata = $db->doQuery(
-			'domain_dns_id', "SELECT `domain_dns_id` FROM `domain_dns` WHERE `domain_id` = ? LIMIT 1", $domainId
+			'domain_dns_id', 'SELECT domain_dns_id FROM domain_dns WHERE domain_id = ? LIMIT 1', $domainId
 		);
 		unless(ref $rdata eq 'HASH') {
 			error($rdata);
@@ -678,7 +690,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 		if(%{$rdata}) {
 			$rdata2 = $db->doQuery(
-				'dummy', "UPDATE `domain` SET `domain_status` = 'tochange' WHERE `domain_id` = ?", $domainId
+				'dummy', 'UPDATE domain SET domain_status = ? WHERE domain_id = ?', 'tochange', $domainId
 			);
 			unless(ref $rdata2 eq 'HASH') {
 				error($rdata2);
@@ -687,8 +699,9 @@ sub _deleteOpendkimDomainKey($$$$$)
 		} else {
 			$rdata2 = $db->doQuery(
 				'dummy',
-				"UPDATE `domain` SET `domain_status` = 'tochange', `domain_dns` = ? WHERE `domain_id` = ?",
-				$customerDnsPreviousStatus, $domainId
+				"UPDATE domain SET domain_status = 'tochange', domain_dns = ? WHERE domain_id = ?",
+				$customerDnsPreviousStatus,
+				$domainId
 			);
 			unless(ref $rdata2 eq 'HASH') {
 				error($rdata2);
@@ -698,7 +711,8 @@ sub _deleteOpendkimDomainKey($$$$$)
 	} else {
 		$rdata = $db->doQuery(
 			'dummy', 
-			"UPDATE `domain_aliasses` SET `alias_status` = 'tochange' WHERE `alias_id` = ?", 
+			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
+			'tochange',
 			$aliasId
 		);
 		unless(ref $rdata eq 'HASH') {
@@ -726,7 +740,7 @@ sub _modifyOpendkimConfig($$)
 
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read /etc/opendkim.conf");
+		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
 
@@ -770,11 +784,11 @@ sub _modifyOpendkimDefaultConfig($$)
 
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read /etc/default/opendkim");
+		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
 
-	if($action eq 'add') {	
+	if($action eq 'add') {
 		my $opendkimSocketConfig;
 
 		# Check the port is numeric and has min. 4 and max. 5 digits
@@ -819,7 +833,7 @@ sub _modifyPostfixMainConfig($$)
 
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read /etc/postfix/main.cf");
+		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
 
@@ -969,9 +983,8 @@ sub _restartDaemonOpendkim
 	my $rs = execute('service opendkim restart', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
 
-	0;
+	$rs;
 }
 
 =item _restartDaemonPostfix()

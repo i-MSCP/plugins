@@ -39,66 +39,63 @@
  */
 function opendkim_generateActivatedDomains($tpl, $userId)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
-
-	$query = "
-		SELECT
-			`t2`.*
-		FROM
-			`admin` AS `t1`
-		LEFT JOIN
-			`opendkim` AS `t2` ON(`t1`.`admin_id` = `t2`.`admin_id`)
-		WHERE
-			`t1`.`admin_id` = ?
-		AND
-			`t2`.`alias_id` = '0'
-		ORDER BY
-			`domain_name` ASC
-	";
-	$stmt = exec_query($query, $userId);
+	$stmt = exec_query(
+		'
+			SELECT
+				t2.*
+			FROM
+				admin AS t1
+			LEFT JOIN
+				opendkim AS t2 ON(t1.admin_id = t2.admin_id)
+			WHERE
+				t1.admin_id = ?
+			AND
+				t2.alias_id = ?
+			ORDER BY
+				domain_name ASC
+			'
+		,
+		array($userId, 0)
+	);
 
 	if ($stmt->rowCount()) {
-		while ($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-			$query = "
-				SELECT
-					`t1`.*, `t2`.*
-				FROM
-					`opendkim` AS `t1`
-				LEFT JOIN
-					`domain_dns` AS `t2` ON(
-						`t1`.`domain_id` = `t2`.`domain_id`
-					AND
-						`t1`.`alias_id` = `t2`.`alias_id`
-					AND
-						`t2`.`domain_dns` = 'mail._domainkey'
-				)
-				WHERE
-					`t1`.`domain_id` = ?
-				ORDER BY
-					`t1`.`domain_id` ASC, `t1`.`alias_id` ASC
-			";
-			$stmt2 = exec_query($query, $data['domain_id']);
+		while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+			$stmt2 = exec_query(
+				'
+					SELECT
+						t1.*, t2.*
+					FROM
+						opendkim AS t1
+					LEFT JOIN
+						domain_dns AS t2 ON(
+							t1.domain_id = t2.domain_id
+						AND
+							t1.alias_id = t2.alias_id
+						AND
+							t2.domain_dns = ?
+					)
+					WHERE
+						t1.domain_id = ?
+					ORDER BY
+						t1.domain_id ASC, t1.alias_id ASC
+					'
+				,
+				array('mail._domainkey', $row['domain_id'])
+			);
 
 			if ($stmt2->rowCount()) {
-				while ($data2 = $stmt2->fetchRow(PDO::FETCH_ASSOC)) {
-					if ($data2['opendkim_status'] == $cfg->ITEM_OK_STATUS) {
+				while ($row2 = $stmt2->fetchRow(PDO::FETCH_ASSOC)) {
+					if ($row2['opendkim_status'] == 'ok') {
 						$statusIcon = 'ok';
-					} elseif ($data2['opendkim_status'] == $cfg->ITEM_DISABLED_STATUS) {
+					} elseif ($row2['opendkim_status'] == 'disabled') {
 						$statusIcon = 'disabled';
 					} elseif (
-						(
-							$data2['opendkim_status'] == $cfg->ITEM_TOADD_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TODELETE_STATUS
-						) ||
-						(
-							$data2['opendkim_status'] == $cfg->ITEM_TOADD_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TORESTORE_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TOCHANGE_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TOENABLE_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TODISABLE_STATUS ||
-							$data2['opendkim_status'] == $cfg->ITEM_TODELETE_STATUS
+						in_array(
+							$row2['opendkim_status'],
+							array(
+								'toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable',
+								'todelete'
+							)
 						)
 					) {
 						$statusIcon = 'reload';
@@ -108,13 +105,13 @@ function opendkim_generateActivatedDomains($tpl, $userId)
 
 					$tpl->assign(
 						array(
-							'OPENDKIM_DOMAIN_NAME' => decode_idna($data2['domain_name']),
-							'OPENDKIM_DOMAIN_KEY' => ($data2['domain_text'])
-								? $data2['domain_text']
+							'OPENDKIM_DOMAIN_NAME' => decode_idna($row2['domain_name']),
+							'OPENDKIM_DOMAIN_KEY' => ($row2['domain_text'])
+								? $row2['domain_text']
 								: tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
-							'OPENDKIM_ID' => $data2['opendkim_id'],
-							'OPENDKIM_DNS_NAME' => decode_idna($data2['domain_dns']),
-							'OPENDKIM_KEY_STATUS' => translate_dmn_status($data2['opendkim_status']),
+							'OPENDKIM_ID' => $row2['opendkim_id'],
+							'OPENDKIM_DNS_NAME' => decode_idna($row2['domain_dns']),
+							'OPENDKIM_KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
 							'STATUS_ICON' => $statusIcon
 						)
 					);
@@ -149,7 +146,7 @@ function opendkim_generateActivatedDomains($tpl, $userId)
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
@@ -191,6 +188,6 @@ generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();

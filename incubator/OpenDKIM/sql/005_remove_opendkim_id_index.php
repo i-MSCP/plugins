@@ -22,21 +22,17 @@
  * @subpackage  OpenDKIM
  * @copyright   Sascha Bay <info@space2place.de>
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de> 
+ * @author      Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => array(
-		'Sascha Bay',
-		'Rene Schuster'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.2',
-	'date' => '2014-05-31',
-	'name' => 'OpenDKIM',
-	'desc' => 'Plugin providing an OpenDKIM implementation for i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
+	'up' => '
+		ALTER TABLE opendkim DROP KEY opendkim_id
+	',
+	'down' => '
+		ALTER TABLE opendkim ADD KEY opendkim_id (opendkim_id)
+	'
 );

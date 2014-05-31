@@ -34,7 +34,7 @@ return array(
 
 	/* Select the canonicalization method(s) to be used when signing messages. When verifying, 
 	 * the message's DKIM-Signature: header field specifies the canonicalization method. 
-	 * The recognized values are relaxed and simple as defined by the DKIM specification. 	
+	 * The recognized values are relaxed and simple as defined by the DKIM specification.
 	 * The value may include two different canonicalizations separated by a slash ("/") character, 
 	 * in which case the first will be applied to the header and the second to the body.
 	 * allowed values: simple (default), relaxed, simple/relaxed, relaxed/simple  */

@@ -23,7 +23,10 @@
 		</td>
 		<td><label for="keyid_{OPENDKIM_ID}">{OPENDKIM_DOMAIN_NAME}</label></td>
 		<td>{OPENDKIM_DNS_NAME}</td>
-		<td><textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key" style="width: 98%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea></td>
+		<td>
+			<textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key"
+					  style="width: 98%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea>
+		</td>
 	</tr>
 	<!-- EDP: opendkim_domainkey_item -->
 	</tbody>
@@ -48,7 +51,9 @@
 	</tfoot>
 	<tbody>
 	<tr>
-		<td colspan="4"><div class="message info">{OPENDKIM_NO_DOMAIN}</div></td>
+		<td colspan="4">
+			<div class="message info">{OPENDKIM_NO_DOMAIN}</div>
+		</td>
 	</tr>
 	</tbody>
 </table>
