@@ -7,7 +7,8 @@ Version 0.0.2
 
 	- CS fixes + cleanup
 	- Changed: Plugin now use the database migration API provided by i-MSCP
-	- Fixed db schema (foreign key, useless index)
+	- Fixed db schema (wrong foreign keys and useless opendkim_id index)
+	- Fixed: Domain data are not removed properly on deletion when OpenDKIM support is enabled
 	- Fixed many i18n issues
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -268,11 +268,11 @@ sub run
 		}
 
 		# OpenDKIM daemon must be restarted
-		$rs = $self->_restartDaemonOpendkim();
+		$rs |= $self->_restartDaemonOpendkim();
 		return $rs if $rs;
 	}
 
-	0;
+	$rs;
 }
 
 =back
@@ -292,6 +292,9 @@ sub run
 sub _init
 {
 	my $self = $_[0];
+
+	# Force plugin manager to handle retval
+	$self->{'FORCE_RETVAL'} = 'yes';
 
     if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
 		# Loading plugin configuration
@@ -691,7 +694,10 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 		if(%{$rdata}) {
 			$rdata2 = $db->doQuery(
-				'dummy', 'UPDATE domain SET domain_status = ? WHERE domain_id = ?', 'tochange', $domainId
+				'dummy', 'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status <> ?',
+				'tochange',
+				$domainId,
+				'todelete'
 			);
 			unless(ref $rdata2 eq 'HASH') {
 				error($rdata2);
@@ -700,9 +706,11 @@ sub _deleteOpendkimDomainKey($$$$$)
 		} else {
 			$rdata2 = $db->doQuery(
 				'dummy',
-				"UPDATE domain SET domain_status = 'tochange', domain_dns = ? WHERE domain_id = ?",
+				'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ? AND domain_status <> ?',
+				'tochange',
 				$customerDnsPreviousStatus,
-				$domainId
+				$domainId,
+				'todelete'
 			);
 			unless(ref $rdata2 eq 'HASH') {
 				error($rdata2);
@@ -712,9 +720,10 @@ sub _deleteOpendkimDomainKey($$$$$)
 	} else {
 		$rdata = $db->doQuery(
 			'dummy', 
-			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
+			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? WHERE alias_status <> ?',
 			'tochange',
-			$aliasId
+			$aliasId,
+			'todelete'
 		);
 		unless(ref $rdata eq 'HASH') {
 			error($rdata);

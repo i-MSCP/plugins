@@ -111,7 +111,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 	$recordsCount = $row['cnt'];
 
 	$stmt = exec_query(
-		'
+		"
 			SELECT
 				t1.admin_name, t1.admin_id, t2.*
 			FROM
@@ -128,7 +128,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 				t1.admin_id ASC
 			LIMIT
 				$startIndex, $rowsPerPage
-		'
+		"
 		,
 		array($resellerId, 0)
 	);
@@ -162,20 +162,20 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 
 		while ($row = $stmt->fetchRow()) {
 			$stmt2 = exec_query(
-				"
+				'
 					SELECT
 						t1.*, t2.*
 					FROM
 						opendkim AS t1
 					LEFT JOIN
 						domain_dns AS t2 ON(
-							t2.domain_id = t1.domain_id AND t2.alias_id = t1.alias_id AND t2.domain_dns = ?
+							t2.domain_id = t1.domain_id AND t2.alias_id = t1.alias_id AND t2.domain_dns = ?
 						)
 					WHERE
 						t1.admin_id = ?
 					ORDER BY
 						t1.domain_id ASC, t1.alias_id ASC
-				",
+				',
 				array('mail._domainkey', $row['admin_id'])
 			);
 
@@ -204,7 +204,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 							'OPENDKIM_DOMAIN_NAME' => decode_idna($row2['domain_name']),
 							'OPENDKIM_DOMAIN_KEY' => ($row2['domain_text'])
 								? $row2['domain_text']
-								: tr('No OpenDKIM domain key in your dns table available. Please refresh this site'),
+								: tr('No OpenDKIM domain key has been found. Please reload the page'),
 							'OPENDKIM_ID' => $row2['opendkim_id'],
 							'OPENDKIM_DNS_NAME' => decode_idna($row2['domain_dns']),
 							'OPENDKIM_KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
@@ -318,7 +318,7 @@ function opendkim_activateDomain($customerAdminId, $resellerId)
 
 		send_request();
 
-		set_page_message(tr('Customer activated for OpenDKIM support. This can take few seconds.'), 'success');
+		set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds.'), 'success');
 	} else {
 		showBadRequestErrorPage();
 	}
@@ -403,15 +403,15 @@ $tpl->assign(
 		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'DOMAIN_NOT_SELECTED' => tr('No domain selected.'),
-		'TR_OPENDKIM_SELECT_NAME_NONE' => tr('Select a customer'),
-		'TR_SHOW' => tr('Activate OpenDKIM for this customer'),
+		'TR_OPENDKIM_SELECT_NAME_NONE' => tr('Select a domain'),
+		'TR_SHOW' => tr('Activate OpenDKIM for this domain'),
 		'TR_OPENDKIM_DOMAIN_NAME' => tr('Domain'),
 		'TR_OPENDKIM_NO_DOMAIN' => tr('OpenDKIM domain entries'),
 		'OPENDKIM_NO_DOMAIN' => tr('No domain with OpenDKIM support has been found'),
 		'TR_OPENDKIM_DOMAIN_KEY' => tr('OpenDKIM domain key'),
 		'TR_OPENDKIM_KEY_STATUS' => tr('Status'),
 		'TR_OPENDKIM_DNS_NAME' => tr('Name'),
-		'DEACTIVATE_DOMAIN_ALERT' => tr('Are you sure you want to deactivate OpenDKIM for this customer?'),
+		'DEACTIVATE_DOMAIN_ALERT' => tr('Are you sure you want to deactivate OpenDKIM for this domain?'),
 		'TR_PREVIOUS' => tr('Previous'),
 		'TR_NEXT' => tr('Next')
 	)
