@@ -19,7 +19,7 @@ Plugin providing an OpenDKIM implementation for i-MSCP.
   # aptitude update
   # aptitude install opendkim opendkim-tools
   
-**Debian Squeeze**
+**Debian Squeeze only**
 
 Add the backports of Debian Squeeze to your /etc/apt/sources.list:
 
@@ -30,7 +30,7 @@ Installation of the opendkim packages:
   # aptitude update
   # aptitude -t squeeze-backports install opendkim opendkim-tools
 
-**Ubuntu Lucid**
+**Ubuntu Lucid only**
 
 Add the backports of Ubuntu Lucid to your /etc/apt/sources.list:
 
@@ -41,7 +41,7 @@ Installation of the opendkim packages:
   # aptitude update
   # aptitude -t lucid-backports install opendkim opendkim-tools
   
-**Ubuntu Precise**
+**Ubuntu Precise only**
 
 Add the backports of Ubuntu Precise to your /etc/apt/sources.list:
 
@@ -51,7 +51,7 @@ Installation of the opendkim packages:
 
   # aptitude update
   # aptitude -t precise-backports install opendkim opendkim-tools
-	
+
 **2. Get the plugin from Plugin Store**
 
 http://i-mscp.net/filebase/index.php/Filebase/
