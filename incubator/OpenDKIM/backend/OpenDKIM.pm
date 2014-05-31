@@ -313,7 +313,7 @@ sub _init
 
  Adds domain key for OpenDKIM support
 
- Return int 0
+ Return int 0 on success, other on failure
 
 =cut
  
@@ -390,13 +390,13 @@ sub _addOpendkimDomainKey($$$$)
 
 		my $rdata = $db->doQuery(
 			'domain_id', 
-			"
+			'
 				INSERT INTO domain_dns (
 					domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
 				) VALUES (
 					?, ?, ?, ?, ?, ?, ?
 				)
-			",
+			',
 			$domainId,
 			$aliasId,
 			'mail._domainkey',
@@ -414,7 +414,7 @@ sub _addOpendkimDomainKey($$$$)
 			$rdata = $db->doQuery(
 				'dummy',
 				'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ?',
-				'tochange'
+				'tochange',
 				'yes',
 				$domainId
 			);
@@ -436,7 +436,7 @@ sub _addOpendkimDomainKey($$$$)
  
  Remove all OpenDKIM DNS entries
  
- Return int 0
+ Return int 0 on success, other on failure
  
 =cut
 
@@ -517,7 +517,7 @@ sub _removeOpendkimDnsEntries
  
  Recover all OpenDKIM DNS entries
  
- Return int 0
+ Return int 0 on success, other on failure
  
 =cut
 
@@ -566,13 +566,13 @@ sub _recoverOpendkimDnsEntries
 				# Save the DNS TXT record to database
 				my $rdata2 = $db->doQuery(
 					'domain_id', 
-					"
+					'
 						INSERT INTO domain_dns (
 							domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
 						) VALUES (
 							?, ?, ?, ?, ?, ?, ?
 						)
-					",
+					',
 					$domainId,
 					$aliasId,
 					'mail._domainkey',
@@ -589,8 +589,9 @@ sub _recoverOpendkimDnsEntries
 				if($aliasId eq '0') {
 					$rdata2 = $db->doQuery(
 						'dummy', 
-						'UPDATE domain SET domain_status = ?', domain_dns = 'yes' WHERE domain_id = ?',
-						'tochange,
+						'UPDATE domain SET domain_status = ?, domain_dns = ? WHERE domain_id = ?',
+						'tochange',
+						'yes',
 						$domainId
 					);
 				} else {
@@ -618,7 +619,7 @@ sub _recoverOpendkimDnsEntries
  
  Deletes domain key from OpenDKIM support
  
- Return int 0
+ Return int 0 on success, other on failure
  
 =cut
  
