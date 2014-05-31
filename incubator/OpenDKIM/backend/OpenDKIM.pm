@@ -720,7 +720,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 	} else {
 		$rdata = $db->doQuery(
 			'dummy', 
-			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? WHERE alias_status <> ?',
+			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? AND alias_status <> ?',
 			'tochange',
 			$aliasId,
 			'todelete'
