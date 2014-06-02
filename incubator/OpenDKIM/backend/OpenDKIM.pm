@@ -214,7 +214,7 @@ sub run
 		'opendkim_id', 
 		"
 			SELECT
-				opendkim_id, domain_id, alias_id, domain_name, opendkim_status
+				opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id, domain_name, opendkim_status
 			FROM
 				opendkim
 			WHERE
@@ -536,7 +536,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 
 =item _addOpendkimDnsEntries()
 
- Recover all OpenDKIM DNS entries
+ Add OpenDKIM DNS entries
 
  Return int 0 on success, other on failure
 
@@ -552,7 +552,7 @@ sub _addOpendkimDnsEntries
 		'opendkim_id',
 		'
 			SELECT
-				opendkim_id, domain_id, alias_id, domain_name
+				opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id, domain_name
 			FROM
 				opendkim
 			WHERE
@@ -640,7 +640,7 @@ sub _addOpendkimDnsEntries
 
 =item _removeOpendkimDnsEntries()
  
- Remove all OpenDKIM DNS entries
+ Remove OpenDKIM DNS entries
  
  Return int 0 on success, other on failure
  
@@ -658,7 +658,9 @@ sub _removeOpendkimDnsEntries
 		return 1;
 	}
 
-	$rdata = $db->doQuery('opendkim_id', 'SELECT * FROM opendkim');
+	$rdata = $db->doQuery(
+		'opendkim_id', 'SELECT opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id FROM opendkim'
+	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
@@ -668,6 +670,7 @@ sub _removeOpendkimDnsEntries
 		for(keys %{$rdata}) {
 			my $domainId = $rdata->{$_}->{'domain_id'};
 			my $aliasId = $rdata->{$_}->{'alias_id'};
+
 			my $rdata2;
 			
 			if($aliasId eq '0') {

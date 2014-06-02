@@ -65,12 +65,12 @@ function opendkim_activate($customerId)
 			exec_query(
 				'
 					INSERT INTO opendkim (
-						admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status, opendkim_status
+						admin_id, domain_id, domain_name, customer_dns_previous_status, opendkim_status
 					) VALUES (
 						?, ?, ?, ?, ?, ?
 					)
 				',
-				array($customerId, $row['domain_id'], '0', $row['domain_name'], $row['domain_dns'], 'toadd')
+				array($customerId, $row['domain_id'], $row['domain_name'], $row['domain_dns'], 'toadd')
 			);
 
 			$stmt = exec_query(
@@ -204,9 +204,9 @@ function opendkim_generatePage($tpl)
 			WHERE
 				created_by = ?
 			AND
-				alias_id = ?
+				alias_id IS NULL
 		',
-		array($_SESSION['user_id'], 0)
+		array($_SESSION['user_id'])
 	);
 	$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 	$rowCount = $row['cnt'];
@@ -223,13 +223,13 @@ function opendkim_generatePage($tpl)
 				WHERE
 					created_by = ?
 				AND
-					alias_id = ?
+					alias_id = IS NULL
 				ORDER BY
 					admin_id ASC
 				LIMIT
 					$startIndex, $rowsPerPage
 			",
-			array($_SESSION['user_id'], 0)
+			array($_SESSION['user_id'])
 		);
 
 		while ($row = $stmt->fetchRow()) {

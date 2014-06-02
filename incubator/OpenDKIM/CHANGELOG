@@ -8,7 +8,7 @@ Version 0.0.2
 	- Changed: Plugin DNS record owner name from 'opendkim_feature' to 'OpenDKIM_Plugin'
 	- Changed: Plugin now use the database migration API provided by i-MSCP
 	- Fixed: Backend action must be idempotent
-	- Fixed: Database schema (wrong foreign keys, useless opendkim_id index, useless column)
+	- Fixed: Database schema (wrong foreign keys, useless opendkim_id index, useless column, missing fk constraints)
 	- Fixed: Domain data are not removed properly on deletion when OpenDKIM support is enabled
 	- Fixed: Many i18n issues
 	- Fixed: Customers list must be displayed only if one customer is candidate for OpenDKIM feature (reseller level)
