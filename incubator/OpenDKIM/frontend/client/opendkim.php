@@ -44,14 +44,13 @@ function opendkim_generatePage($tpl)
 				opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
 			FROM
 				opendkim
-			LEFT JOIN
-				domain_dns USING(domain_id, alias_id)
+			LEFT JOIN domain_dns ON(
+				domain_dns.domain_id = opendkim.domain_id AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0)
+			)
 			WHERE
 				admin_id = ?
 			AND
 				(owned_by = ? OR owned_by IS NULL)
-			ORDER BY
-				domain_id ASC, alias_id ASC
 		',
 		array($_SESSION['user_id'], 'OpenDKIM_Plugin')
 	);

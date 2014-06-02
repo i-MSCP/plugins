@@ -41,7 +41,7 @@ function opendkim_activate($customerId)
 	$stmt = exec_query(
 		'
 			SELECT
-				domain_id, domain_name, domain_dns
+				domain_id, domain_name
 			FROM
 				domain
 			INNER JOIN
@@ -63,14 +63,8 @@ function opendkim_activate($customerId)
 		try {
 			$db->beginTransaction();
 			exec_query(
-				'
-					INSERT INTO opendkim (
-						admin_id, domain_id, domain_name, customer_dns_previous_status, opendkim_status
-					) VALUES (
-						?, ?, ?, ?, ?, ?
-					)
-				',
-				array($customerId, $row['domain_id'], $row['domain_name'], $row['domain_dns'], 'toadd')
+				'INSERT INTO opendkim (admin_id, domain_id, domain_name, opendkim_status) VALUES (?, ?, ?, ?)',
+				array($customerId, $row['domain_id'], $row['domain_name'], 'toadd')
 			);
 
 			$stmt = exec_query(
@@ -83,13 +77,12 @@ function opendkim_activate($customerId)
 					exec_query(
 						'
 							INSERT INTO  opendkim (
-								admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status,
-								opendkim_status
+								admin_id, domain_id, alias_id, domain_name, opendkim_status
 							) VALUES (
-								?, ?, ?, ?, ?, ?
+								?, ?, ?, ?, ?
 							)
 						',
-						array($customerId, $row['domain_id'], $row2['alias_id'], $row2['alias_name'], '', 'toadd')
+						array($customerId, $row['domain_id'], $row2['alias_id'], $row2['alias_name'], 'toadd')
 					);
 				}
 			}
@@ -117,10 +110,12 @@ function opendkim_activate($customerId)
 function opendkim_deactivate($customerId)
 {
 	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerId, $_SESSION['user_id'], 'ok'));
+		'SELECT COUNT(admin_id) AS cnt FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
+		array($customerId, $_SESSION['user_id'], 'ok')
+	);
+	$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-	if ($stmt->rowCount()) {
+	if ($row['cnt']) {
 		exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array('todelete', $customerId));
 
 		send_request();
@@ -223,7 +218,7 @@ function opendkim_generatePage($tpl)
 				WHERE
 					created_by = ?
 				AND
-					alias_id = IS NULL
+					alias_id IS NULL
 				ORDER BY
 					admin_id ASC
 				LIMIT
@@ -239,14 +234,13 @@ function opendkim_generatePage($tpl)
 						opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
 					FROM
 						opendkim
-					LEFT JOIN
-						domain_dns USING(domain_id, alias_id)
+					LEFT JOIN domain_dns ON(
+						domain_dns.domain_id = opendkim.domain_id AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0)
+					)
 					WHERE
 						admin_id = ?
 					AND
 						(owned_by = ? OR owned_by IS NULL)
-					ORDER BY
-						domain_id ASC, alias_id ASC
 				',
 				array($row['admin_id'], 'OpenDKIM_Plugin')
 			);

@@ -13,7 +13,7 @@ Version 0.0.2
 	- Fixed: Many i18n issues
 	- Fixed: Customers list must be displayed only if one customer is candidate for OpenDKIM feature (reseller level)
 	- Fixed: OpenDKIM must not force activation of the custom DNS record feature, it must stay independant
-	- Fixed: Status 'tochange'  for OpenDKIM items is not handled
+	- Fixed: Status 'tochange' for OpenDKIM items is not handled
 	- Fixed: TTL for OpenDKIM TXT DNS record must be set to a low value to allow faster key renewal
 	- Fixed: When a reseller has no customer, the OpenDKIM management interface must not be reachable (reseller level)
 
