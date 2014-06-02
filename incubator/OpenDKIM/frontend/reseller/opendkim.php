@@ -31,13 +31,112 @@
  */
 
 /**
- * Generate page
+ * Activate OpenDKIM for the given customer
  *
- * @param $tpl iMSCP_pTemplate
- * @param int $resellerId
+ * @param int $customerId Customer unique identifier
  * @return void
  */
-function opendkim_generateSelect($tpl, $resellerId)
+function opendkim_activate($customerId)
+{
+	$stmt = exec_query(
+		'
+			SELECT
+				domain_id, domain_name, domain_dns
+			FROM
+				domain
+			INNER JOIN
+				admin ON(admin_id = domain_admin_id)
+			WHERE
+				admin_id = ?
+			AND
+				created_by = ?
+			AND
+				admin_status = ?
+		',
+		array($customerId, $_SESSION['user_id'], 'ok')
+	);
+
+	if ($stmt->rowCount()) {
+		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+		$db = iMSCP_Database::getInstance();
+
+		try {
+			$db->beginTransaction();
+			exec_query(
+				'
+					INSERT INTO opendkim (
+						admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status, opendkim_status
+					) VALUES (
+						?, ?, ?, ?, ?, ?
+					)
+				',
+				array($customerId, $row['domain_id'], '0', $row['domain_name'], $row['domain_dns'], 'toadd')
+			);
+
+			$stmt = exec_query(
+				'SELECT alias_id, alias_name FROM domain_aliasses WHERE domain_id = ? AND alias_status = ?',
+				array($row['domain_id'], 'ok')
+			);
+
+			if ($stmt->rowCount()) {
+				while ($row2 = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+					exec_query(
+						'
+							INSERT INTO  opendkim (
+								admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status,
+								opendkim_status
+							) VALUES (
+								?, ?, ?, ?, ?, ?
+							)
+						',
+						array($customerId, $row['domain_id'], $row2['alias_id'], $row2['alias_name'], '', 'toadd')
+					);
+				}
+			}
+
+			$db->commit();
+
+			send_request();
+
+			set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds...'), 'success');
+		} catch (iMSCP_Exception_Database $e) {
+			$db->rollBack();
+			throw $e;
+		}
+	} else {
+		showBadRequestErrorPage();
+	}
+}
+
+/**
+ * Deactivate OpenDKIM for the given customer
+ *
+ * @param int $customerId Customer unique identifier
+ * @return void
+ */
+function opendkim_deactivate($customerId)
+{
+	$stmt = exec_query(
+		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
+		array($customerId, $_SESSION['user_id'], 'ok'));
+
+	if ($stmt->rowCount()) {
+		exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array('todelete', $customerId));
+
+		send_request();
+		set_page_message(tr('OpenDKIM support scheduled for deactivation. This can take few seconds.'), 'success');
+	} else {
+		showBadRequestErrorPage();
+	}
+}
+
+/**
+ * Generate customer list for which OpenDKIM can be activated
+ *
+ * @param $tpl iMSCP_pTemplate
+ * @return void
+ */
+function _opendkim_generateCustomerList($tpl)
 {
 	$stmt = exec_query(
 		'
@@ -54,33 +153,35 @@ function opendkim_generateSelect($tpl, $resellerId)
 			ORDER BY
 				admin_name ASC
 		',
-		array($resellerId, 'ok')
+		array($_SESSION['user_id'], 'ok')
 	);
 
 	if ($stmt->rowCount()) {
 		while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
 			$tpl->assign(
 				array(
-					'TR_OPENDKIM_SELECT_VALUE' => $row['admin_id'],
-					'TR_OPENDKIM_SELECT_NAME' => decode_idna($row['admin_name']),
+					'SELECT_VALUE' => $row['admin_id'],
+					'SELECT_NAME' => tohtml(decode_idna($row['admin_name'])),
 				)
 			);
 
-			$tpl->parse('OPENDKIM_SELECT_ITEM', '.opendkim_select_item');
+			$tpl->parse('SELECT_ITEM', '.select_item');
 		}
 	} else {
-		$tpl->assign('OPENDKIM_SELECT_ITEM', '');
+		$tpl->assign('SELECT_LIST', '');
 	}
 }
 
 /**
- * Generate activated domains
+ * Generate page
  *
  * @param iMSCP_pTemplate $tpl
- * @param $resellerId
+ * @return void
  */
-function opendkim_generateActivatedDomains($tpl, $resellerId)
+function opendkim_generatePage($tpl)
 {
+	_opendkim_generateCustomerList($tpl, $_SESSION['user_id']);
+
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
 
@@ -95,45 +196,108 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 	$stmt = exec_query(
 		'
 			SELECT
-				COUNT(t1.admin_id) AS cnt
+				COUNT(admin_id) AS cnt
 			FROM
-				admin AS t1
-			LEFT JOIN
-				opendkim AS t2 ON(t2.admin_id = t1.admin_id)
+				admin
+			INNER JOIN
+				opendkim USING(admin_id)
 			WHERE
-				t1.created_by = ?
+				created_by = ?
 			AND
-				t2.alias_id = ?
+				alias_id = ?
 		',
-		array($resellerId, 0)
+		array($_SESSION['user_id'], 0)
 	);
 	$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-	$recordsCount = $row['cnt'];
+	$rowCount = $row['cnt'];
 
-	$stmt = exec_query(
-		"
-			SELECT
-				t1.admin_name, t1.admin_id, t2.*
-			FROM
-				admin AS t1
-			LEFT JOIN
-				opendkim AS t2 ON(t2.admin_id = t1.admin_id)
-			WHERE
-				t1.created_by = ?
-			AND
-				t1.admin_id IN (SELECT admin_id FROM opendkim)
-			AND
-				t2.alias_id = ?
-			ORDER BY
-				t1.admin_id ASC
-			LIMIT
-				$startIndex, $rowsPerPage
-		"
-		,
-		array($resellerId, 0)
-	);
+	if ($rowCount) {
+		$stmt = exec_query(
+			"
+				SELECT
+					admin_name, admin_id
+				FROM
+					admin
+				INNER JOIN
+					opendkim USING(admin_id)
+				WHERE
+					created_by = ?
+				AND
+					alias_id = ?
+				ORDER BY
+					admin_id ASC
+				LIMIT
+					$startIndex, $rowsPerPage
+			",
+			array($_SESSION['user_id'], 0)
+		);
 
-	if ($recordsCount) {
+		while ($row = $stmt->fetchRow()) {
+			$stmt2 = exec_query(
+				'
+					SELECT
+						opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
+					FROM
+						opendkim
+					LEFT JOIN
+						domain_dns USING(domain_id, alias_id)
+					WHERE
+						admin_id = ?
+					AND
+						(owned_by = ? OR owned_by IS NULL)
+					ORDER BY
+						domain_id ASC, alias_id ASC
+				',
+				array($row['admin_id'], 'OpenDKIM_Plugin')
+			);
+
+			if ($stmt2->rowCount()) {
+				while ($row2 = $stmt2->fetchRow()) {
+					if ($row2['opendkim_status'] == 'ok') {
+						$statusIcon = 'ok';
+					} elseif ($row2['opendkim_status'] == 'disabled') {
+						$statusIcon = 'disabled';
+					} elseif (in_array($row2['opendkim_status'], array(
+						'toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable',
+						'todelete'))
+					) {
+						$statusIcon = 'reload';
+					} else {
+						$statusIcon = 'error';
+					}
+
+					$tpl->assign(
+						array(
+							'KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
+							'STATUS_ICON' => $statusIcon,
+							'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
+							'DOMAIN_KEY' => ($row2['domain_text'])
+								? tohtml($row2['domain_text']) : tr('Generation in progress...'),
+							'DNS_NAME' => ($row2['domain_dns'])
+								? tohtml(decode_idna($row2['domain_dns'])) . '.' .
+									tohtml(decode_idna($row2['domain_name'])) . '.'
+								: tr('n/a'),
+							'OPENDKIM_ID' => tohtml($row2['opendkim_id']),
+
+						)
+					);
+
+					$tpl->parse('KEY_ITEM', '.key_item');
+				}
+			}
+
+			$tpl->assign(
+				array(
+					'TR_CUSTOMER' => tr('OpenDKIM entries for customer: %s', decode_idna($row['admin_name'])),
+					'TR_DEACTIVATE' => tr('Deactivate OpenDKIM'),
+					'CUSTOMER_ID' => tohtml($row['admin_id'])
+				)
+			);
+
+			$tpl->parse('CUSTOMER_ITEM', '.customer_item');
+			$tpl->assign('KEY_ITEM', '');
+		}
+
 		$prevSi = $startIndex - $rowsPerPage;
 
 		if ($startIndex == 0) {
@@ -149,7 +313,7 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 
 		$nextSi = $startIndex + $rowsPerPage;
 
-		if ($nextSi + 1 > $recordsCount) {
+		if ($nextSi + 1 > $rowCount) {
 			$tpl->assign('SCROLL_NEXT', '');
 		} else {
 			$tpl->assign(
@@ -159,195 +323,10 @@ function opendkim_generateActivatedDomains($tpl, $resellerId)
 				)
 			);
 		}
-
-		while ($row = $stmt->fetchRow()) {
-			$stmt2 = exec_query(
-				'
-					SELECT
-						t1.*, t2.*
-					FROM
-						opendkim AS t1
-					LEFT JOIN
-						domain_dns AS t2 ON(
-							t2.domain_id = t1.domain_id AND t2.alias_id = t1.alias_id AND t2.domain_dns = ?
-						)
-					WHERE
-						t1.admin_id = ?
-					ORDER BY
-						t1.domain_id ASC, t1.alias_id ASC
-				',
-				array('mail._domainkey', $row['admin_id'])
-			);
-
-			if ($stmt2->rowCount()) {
-				while ($row2 = $stmt2->fetchRow()) {
-					if ($row2['opendkim_status'] == 'ok') {
-						$statusIcon = 'ok';
-					} elseif ($row2['opendkim_status'] == 'disabled') {
-						$statusIcon = 'disabled';
-					} elseif (
-						in_array(
-							$row2['opendkim_status'],
-							array(
-								'toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable',
-								'todelete'
-							)
-						)
-					) {
-						$statusIcon = 'reload';
-					} else {
-						$statusIcon = 'error';
-					}
-
-					$tpl->assign(
-						array(
-							'OPENDKIM_DOMAIN_NAME' => decode_idna($row2['domain_name']),
-							'OPENDKIM_DOMAIN_KEY' => ($row2['domain_text'])
-								? $row2['domain_text']
-								: tr('No OpenDKIM domain key has been found. Please reload the page'),
-							'OPENDKIM_ID' => $row2['opendkim_id'],
-							'OPENDKIM_DNS_NAME' => decode_idna($row2['domain_dns']),
-							'OPENDKIM_KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
-							'STATUS_ICON' => $statusIcon
-						)
-					);
-
-					$tpl->parse('OPENDKIM_DOMAINKEY_ITEM', '.opendkim_domainkey_item');
-				}
-			} else {
-				$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
-			}
-
-			$tpl->assign(
-				array(
-					'TR_OPENDKIM_CUSTOMER' => tr(
-						'OpenDKIM domain entries for customer: %s', decode_idna($row['admin_name'])
-					),
-					'TR_OPENDKIM_DEACTIVATE_CUSTOMER' => tr(
-						'Deactivate OpenDKIM for customer: %s', decode_idna($row['admin_name'])
-					),
-					'TR_DEACTIVATE_CUSTOMER_TOOLTIP' => tr(
-						'This will deactivate OpenDKIM for the customer %s.', decode_idna($row['admin_name'])
-					),
-					'OPENDKIM_CUSTOMER_ID' => $row['admin_id']
-				)
-			);
-
-			$tpl->parse('OPENDKIM_CUSTOMER_ITEM', '.opendkim_customer_item');
-			$tpl->assign('OPENDKIM_DOMAINKEY_ITEM', '');
-		}
-
-		$tpl->assign('OPENDKIM_NO_CUSTOMER_ITEM', '');
 	} else {
-		$tpl->assign(
-			array(
-				'OPENDKIM_CUSTOMER_LIST' => '',
-				'SCROLL_PREV' => '',
-				'SCROLL_PREV_GRAY' => '',
-				'SCROLL_NEXT' => '',
-				'SCROLL_NEXT_GRAY' => ''
-			)
-		);
+		$tpl->assign('CUSTOMER_LIST', '');
+		set_page_message(tr('No customer with OpenDKIM support has been found.'), 'info');
 	}
-}
-
-/**
- * Activate OpenDKIM for the given customer
- *
- * @param int $customerAdminId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- */
-function opendkim_activateDomain($customerAdminId, $resellerId)
-{
-	$stmt = exec_query(
-		'
-			SELECT
-				t2.domain_id, t2.domain_name, t2.domain_dns
-			FROM
-				admin AS t1
-			LEFT JOIN
-				domain AS t2 ON(t2.domain_admin_id = t1.admin_id)
-			WHERE
-				t1.admin_id = ?
-			AND
-				t1.created_by = ?
-			AND
-				t1.admin_status = ?
-		',
-		array($customerAdminId, $resellerId, 'ok')
-	);
-
-	if ($stmt->rowCount()) {
-		while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-			exec_query(
-				'
-					INSERT INTO opendkim (
-						admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status, opendkim_status
-					) VALUES (
-						?, ?, ?, ?, ?, ?
-					)
-				',
-				array(
-					$customerAdminId, $row['domain_id'], '0', $row['domain_name'], $row['domain_dns'],
-					'toadd'
-				)
-			);
-
-			$stmt2 = exec_query(
-				'SELECT alias_id, alias_name FROM domain_aliasses WHERE domain_id = ? AND alias_status = ?',
-				array($row['domain_id'], 'ok')
-			);
-
-			if ($stmt2->rowCount()) {
-				while ($row2 = $stmt2->fetchRow(PDO::FETCH_ASSOC)) {
-					exec_query(
-						'
-							INSERT INTO  opendkim (
-								admin_id, domain_id, alias_id, domain_name, customer_dns_previous_status, opendkim_status
-							) VALUES (
-								?, ?, ?, ?, ?, ?
-							)
-						',
-						array(
-							$customerAdminId, $row['domain_id'], $row2['alias_id'], $row2['alias_name'], '', 'toadd'
-						)
-					);
-				}
-			}
-		}
-
-		send_request();
-
-		set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds.'), 'success');
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	redirectTo('opendkim.php');
-}
-
-/**
- * Deactivate OpenDKIM for the given customer
- *
- * @param int $customerAdminId Customer unique identifier
- * @param int $resellerId Reseller unique identifier
- */
-function opendkim_deactivateDomain($customerAdminId, $resellerId)
-{
-	$stmt = exec_query(
-		'SELECT admin_id, admin_name FROM admin WHERE admin_id = ? AND created_by = ? AND admin_status = ?',
-		array($customerAdminId, $resellerId, 'ok'));
-
-	if ($stmt->rowCount()) {
-		exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array('todelete', $customerAdminId));
-
-		send_request();
-		set_page_message(tr('OpenDKIM support scheduled for deactivation. This can take few seconds.'), 'success');
-	} else {
-		showBadRequestErrorPage();
-	}
-
-	redirectTo('opendkim.php');
 }
 
 /***********************************************************************************************************************
@@ -361,69 +340,74 @@ check_login('reseller');
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
-$tpl = new iMSCP_pTemplate();
-$tpl->define_dynamic(
-	array(
-		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/OpenDKIM/frontend/reseller/opendkim.tpl',
-		'page_message' => 'layout',
-		'opendkim_select_item' => 'page',
-		'opendkim_customer_list' => 'page',
-		'opendkim_customer_item' => 'page',
-		'opendkim_domainkey_item' => 'page',
-		'opendkim_no_customer_item' => 'page',
-		'scroll_prev_gray' => 'opendkim_customer_list',
-		'scroll_prev' => 'opendkim_customer_list',
-		'scroll_next_gray', 'opendkim_customer_list',
-		'scroll_next' => 'opendkim_customer_list'
-	)
-);
+if (resellerHasCustomers()) {
+	if (isset($_REQUEST['action'])) {
+		$action = clean_input($_REQUEST['action']);
 
-if (isset($_GET['action']) && $_GET['action'] == 'deactivate') {
-	$customerAdminId = (isset($_GET['admin_id']) && $_GET['admin_id'] !== '')
-		? (int)clean_input($_GET['admin_id']) : '';
+		if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id'] != '') {
+			$customerId = clean_input($_REQUEST['admin_id']);
 
-	if ($customerAdminId != '') {
-		opendkim_deactivateDomain($customerAdminId, $_SESSION['user_id']);
+			switch ($action) {
+				case 'activate':
+					opendkim_activate($customerId);
+					break;
+				case 'deactivate';
+					opendkim_deactivate($customerId);
+					break;
+				default:
+					showBadRequestErrorPage();
+			}
+
+			redirectTo('opendkim.php');
+		} else {
+			showBadRequestErrorPage();
+		}
 	}
+
+	$tpl = new iMSCP_pTemplate();
+	$tpl->define_dynamic(
+		array(
+			'layout' => 'shared/layouts/ui.tpl',
+			'page' => '../../plugins/OpenDKIM/frontend/reseller/opendkim.tpl',
+			'page_message' => 'layout',
+			'select_list' => 'page',
+			'select_item' => 'select_list',
+			'customer_list' => 'page',
+			'customer_item' => 'customer_list',
+			'key_item' => 'customer_item',
+			'scroll_prev_gray' => 'customer_list',
+			'scroll_prev' => 'customer_list',
+			'scroll_next_gray', 'customer_list',
+			'scroll_next' => 'customer_list'
+		)
+	);
+
+	$tpl->assign(
+		array(
+			'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
+			'THEME_CHARSET' => tr('encoding'),
+			'ISP_LOGO' => layout_getUserLogo(),
+			'TR_SELECT_NAME' => tr('Select a customer'),
+			'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),
+			'TR_DOMAIN_NAME' => tr('Domain Name'),
+			'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
+			'TR_STATUS' => tr('Status'),
+			'TR_DNS_NAME' => tr('Name'),
+			'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?', true)),
+			'TR_PREVIOUS' => tr('Previous'),
+			'TR_NEXT' => tr('Next')
+		)
+	);
+
+	generateNavigation($tpl);
+	opendkim_generatePage($tpl);
+	generatePageMessage($tpl);
+
+	$tpl->parse('LAYOUT_CONTENT', 'page');
+
+	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptEnd, array('templateEngine' => $tpl));
+
+	$tpl->prnt();
+} else {
+	showBadRequestErrorPage();
 }
-
-if (isset($_POST['action']) && $_POST['action'] == 'activate') {
-	$customerAdminId = (isset($_POST['admin_id']) && $_POST['admin_id'] !== '-1')
-		? clean_input($_POST['admin_id']) : '';
-
-	if ($customerAdminId != '') {
-		opendkim_activateDomain($customerAdminId, $_SESSION['user_id']);
-	}
-}
-
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-		'THEME_CHARSET' => tr('encoding'),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'DOMAIN_NOT_SELECTED' => tr('No domain selected.'),
-		'TR_OPENDKIM_SELECT_NAME_NONE' => tr('Select a domain'),
-		'TR_SHOW' => tr('Activate OpenDKIM for this domain'),
-		'TR_OPENDKIM_DOMAIN_NAME' => tr('Domain'),
-		'TR_OPENDKIM_NO_DOMAIN' => tr('OpenDKIM domain entries'),
-		'OPENDKIM_NO_DOMAIN' => tr('No domain with OpenDKIM support has been found'),
-		'TR_OPENDKIM_DOMAIN_KEY' => tr('OpenDKIM domain key'),
-		'TR_OPENDKIM_KEY_STATUS' => tr('Status'),
-		'TR_OPENDKIM_DNS_NAME' => tr('Name'),
-		'DEACTIVATE_DOMAIN_ALERT' => tr('Are you sure you want to deactivate OpenDKIM for this domain?'),
-		'TR_PREVIOUS' => tr('Previous'),
-		'TR_NEXT' => tr('Next')
-	)
-);
-
-generateNavigation($tpl);
-opendkim_generateSelect($tpl, $_SESSION['user_id']);
-opendkim_generateActivatedDomains($tpl, $_SESSION['user_id']);
-generatePageMessage($tpl);
-
-$tpl->parse('LAYOUT_CONTENT', 'page');
-
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptEnd, array('templateEngine' => $tpl));
-
-$tpl->prnt();

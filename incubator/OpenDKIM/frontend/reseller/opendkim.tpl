@@ -1,60 +1,59 @@
-
-<form action="opendkim.php" method="post" name="activate_customer" id="activate_customer">
+<!-- BDP: select_list -->
+<form name="activate_customer" action="opendkim.php" method="post">
 	<label>
 		<select name="admin_id">
-			<option value="-1">{TR_OPENDKIM_SELECT_NAME_NONE}</option>
-			<!-- BDP: opendkim_select_item -->
-			<option value="{TR_OPENDKIM_SELECT_VALUE}">{TR_OPENDKIM_SELECT_NAME}</option>
-			<!-- EDP: opendkim_select_item -->
+			<option value="-1">{TR_SELECT_NAME}</option>
+			<!-- BDP: select_item -->
+			<option value="{SELECT_VALUE}">{SELECT_NAME}</option>
+			<!-- EDP: select_item -->
 		</select>
 	</label>
-	<input type="hidden" name="action" value="activate"/>
-
 	<div class="buttons" style="display:inline">
-		<input name="Submit" type="submit" value="{TR_SHOW}"/>
+		<input type="hidden" name="action" value="activate"/>
+		<input name="submit" type="submit" value="{TR_ACTIVATE_ACTION}"/>
 	</div>
 </form>
-<!-- BDP: opendkim_customer_list -->
-<!-- BDP: opendkim_customer_item -->
+<!-- EDP: select_list -->
+
+<!-- BDP: customer_list -->
+<!-- BDP: customer_item -->
 <table>
 	<thead>
 	<tr>
-		<th>{TR_OPENDKIM_KEY_STATUS}</th>
-		<th>{TR_OPENDKIM_DOMAIN_NAME}</th>
-		<th>{TR_OPENDKIM_DNS_NAME}</th>
-		<th>{TR_OPENDKIM_DOMAIN_KEY}</th>
+		<th>{TR_STATUS}</th>
+		<th>{TR_DOMAIN_NAME}</th>
+		<th>{TR_DNS_NAME}</th>
+		<th>{TR_DOMAIN_KEY}</th>
 	</tr>
 	</thead>
 	<tfoot>
 	<tr>
-		<td colspan="4">{TR_OPENDKIM_CUSTOMER}</td>
+		<td colspan="4">{TR_CUSTOMER}</td>
 	</tr>
 	</tfoot>
 	<tbody>
-	<!-- BDP: opendkim_domainkey_item -->
+	<!-- BDP: key_item -->
 	<tr>
+		<td><div class="icon i_{STATUS_ICON}">{KEY_STATUS}<div></td>
+		<td><label for="keyid_{OPENDKIM_ID}">{DOMAIN_NAME}</label></td>
+		<td>{DNS_NAME}</td>
 		<td>
-			<div class="icon i_{STATUS_ICON}">{OPENDKIM_KEY_STATUS}
-				<div>
+			<textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key"
+					  style="width: 95%;height: 80px; resize: none;">{DOMAIN_KEY}</textarea>
 		</td>
-		<td><label for="keyid_{OPENDKIM_ID}">{OPENDKIM_DOMAIN_NAME}</label></td>
-		<td>{OPENDKIM_DNS_NAME}</td>
-		<td><textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key"
-					  style="width: 95%;height: 80px; resize: none;">{OPENDKIM_DOMAIN_KEY}</textarea></td>
 	</tr>
-	<!-- EDP: opendkim_domainkey_item -->
+	<!-- EDP: key_item -->
 	</tbody>
 </table>
 
 <div class="buttons">
 	<a style="color:#fff" class="deactivate_opendkim"
-	   href="opendkim.php?action=deactivate&amp;admin_id={OPENDKIM_CUSTOMER_ID}"
-	   title="{TR_DEACTIVATE_CUSTOMER_TOOLTIP}">
-		{TR_OPENDKIM_DEACTIVATE_CUSTOMER}
+	   href="opendkim.php?action=deactivate&amp;admin_id={CUSTOMER_ID}">
+		{TR_DEACTIVATE}
 	</a>
 </div>
 <br/>
-<!-- EDP: opendkim_customer_item -->
+<!-- EDP: customer_item -->
 
 <div class="paginator">
 	<!-- BDP: scroll_prev -->
@@ -72,40 +71,12 @@
 </div>
 
 <script>
-	/*<![CDATA[*/
 	$(document).ready(function () {
-		$(".deactivate_opendkim").click(function () {
+		var b = $(".deactivate_opendkim");
+		b.button();
+		b.on('click', function () {
 			return confirm("{DEACTIVATE_DOMAIN_ALERT}");
 		});
 	});
-
-	$(function () {
-		$(".deactivate_opendkim").button();
-	});
-	/*]]>*/
 </script>
-<!-- EDP: opendkim_customer_list -->
-<!-- BDP: opendkim_no_customer_item -->
-<table>
-	<thead>
-	<tr>
-		<th>{TR_OPENDKIM_KEY_STATUS}</th>
-		<th>{TR_OPENDKIM_DOMAIN_NAME}</th>
-		<th>{TR_OPENDKIM_DNS_NAME}</th>
-		<th>{TR_OPENDKIM_DOMAIN_KEY}</th>
-	</tr>
-	</thead>
-	<tfoot>
-	<tr>
-		<td colspan="4">{TR_OPENDKIM_NO_DOMAIN}</td>
-	</tr>
-	</tfoot>
-	<tbody>
-	<tr>
-		<td colspan="4">
-			<div class="message info">{OPENDKIM_NO_DOMAIN}</div>
-		</td>
-	</tr>
-	</tbody>
-</table>
-<!-- EDP: opendkim_no_customer_item -->
+<!-- EDP: customer_list -->

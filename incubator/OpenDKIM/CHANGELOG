@@ -5,11 +5,17 @@ i-MSCP OpenDKIM plugin ChangeLog
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	- CS fixes + cleanup
+	- Changed: Plugin DNS record owner name from 'opendkim_feature' to 'OpenDKIM_Plugin'
 	- Changed: Plugin now use the database migration API provided by i-MSCP
-	- Fixed db schema (wrong foreign keys and useless opendkim_id index)
+	- Fixed: Backend action must be idempotent
+	- Fixed: Database schema (wrong foreign keys, useless opendkim_id index, useless column)
 	- Fixed: Domain data are not removed properly on deletion when OpenDKIM support is enabled
-	- Fixed many i18n issues
+	- Fixed: Many i18n issues
+	- Fixed: Customers list must be displayed only if one customer is candidate for OpenDKIM feature (reseller level)
+	- Fixed: OpenDKIM must not force activation of the custom DNS record feature, it must stay independant
+	- Fixed: Status 'tochange'  for OpenDKIM items is not handled
+	- Fixed: TTL for OpenDKIM TXT DNS record must be set to a low value to allow faster key renewal
+	- Fixed: When a reseller has no customer, the OpenDKIM management interface must not be reachable (reseller level)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
