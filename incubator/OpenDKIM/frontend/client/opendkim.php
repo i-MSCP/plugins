@@ -50,7 +50,7 @@ function opendkim_generatePage($tpl)
 					domain_dns.alias_id = IFNULL(opendkim.alias_id, 0)
 				AND
 					owned_by = ?
-				)
+			)
 			WHERE
 				admin_id = ?
 		',

@@ -219,8 +219,6 @@ sub run
 				opendkim
 			WHERE
 				opendkim_status IN('toadd', 'tochange', 'todelete')
-			ORDER BY
-				domain_id ASC
 		"
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -326,7 +324,7 @@ sub _addOpendkimDomainKey($$$$)
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
 	# This action must be idempotent (this allow to handle 'tochange' status which include key renewal)
-	my $rs = _deleteOpendkimDomainKey($domainId, $aliasId, $domain);
+	my $rs = $self->_deleteOpendkimDomainKey($domainId, $aliasId, $domain);
 	return $rs if $rs;
 
 	my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->make(
@@ -390,7 +388,7 @@ sub _addOpendkimDomainKey($$$$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	# Add the domain entry to the OpenDKIM SigningTable file
+	# Add the domain entry into the OpenDKIM SigningTable file
 
 	$file = iMSCP::File->new('filename' => '/etc/opendkim/SigningTable');
 
@@ -450,7 +448,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 {
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
-	# Remove the the domain private key and the DNS TXT record
+	# Remove the directory which host the domain private key and the DNS TXT record files
 	my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->remove();
 	return $rs if $rs;
 
@@ -472,7 +470,7 @@ sub _deleteOpendkimDomainKey($$$$$)
 	$rs = $file->save();
 	return $rs if $rs;
 
-	# Remove domain entry from the OpenDKIM SigningTable file if any
+	# Remove the domain entry from the OpenDKIM SigningTable file if any
 
 	$file = iMSCP::File->new('filename' => '/etc/opendkim/SigningTable');
 
@@ -557,8 +555,6 @@ sub _addOpendkimDnsEntries
 				opendkim
 			WHERE
 				opendkim_status = ?
-			ORDER BY
-				domain_id ASC, alias_id ASC
 		',
 		'ok'
 	);
@@ -610,7 +606,7 @@ sub _addOpendkimDnsEntries
 				if($aliasId eq '0') {
 					$rdata2 = $db->doQuery(
 						'dummy',
-						'UPDATE domain SET domain_status = ?, WHERE domain_id = ? AND domain_status = ?',
+						'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status = ?',
 						'tochange',
 						$domainId,
 						'ok'
