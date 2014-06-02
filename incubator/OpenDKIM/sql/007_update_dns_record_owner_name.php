@@ -29,9 +29,9 @@
  */
 return array(
 	'up' => "
-		UPDATE domain_dns SET owned_by = 'OpenDKIM_Plugin' WHERE owned_by 'opendkim_feature'
+		UPDATE domain_dns SET owned_by = 'OpenDKIM_Plugin' WHERE owned_by = 'opendkim_feature'
 	",
 	'down' => "
-		UPDATE domain_dns set owned_by = 'opendkim_feature' WHERE owned_by 'OpenDKIM_Plugin'
+		UPDATE domain_dns set owned_by = 'opendkim_feature' WHERE owned_by = 'OpenDKIM_Plugin'
 	"
 );
