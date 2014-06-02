@@ -33,8 +33,7 @@ return array(
 		ALTER TABLE opendkim ADD CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id)
 		ON DELETE CASCADE;
 
-		ALTER TABLE
-			opendkim ADD CONSTRAINT domain_id FOREIGN KEY (domain_id) REFERENCES domain (domain_id)
+		ALTER TABLE opendkim ADD CONSTRAINT domain_id FOREIGN KEY (domain_id) REFERENCES domain (domain_id)
 		ON DELETE CASCADE;
 
 		ALTER TABLE opendkim ADD CONSTRAINT alias_id FOREIGN KEY (alias_id) REFERENCES domain_aliasses (alias_id)
