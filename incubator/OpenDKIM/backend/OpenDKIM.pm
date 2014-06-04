@@ -505,6 +505,11 @@ sub _deleteOpendkimDomainKey($$$$$)
 	}
 
 	# Schedule domain change if needed
+	#
+	# Even if the OpenDKIM feature is being deactivated for a particular domain, we must not force rebuild of related
+	# configuration file when the domain has a status other than 'ok'. For instance, a domain which is disbaled
+	# should stay disabled. In such a case, the OpenDNS entry (TXT DNS resource record) will be removed when the
+	# domain will be re-activated.
 
 	if($aliasId eq '0') {
 		$rdata = $db->doQuery(
