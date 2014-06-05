@@ -423,7 +423,7 @@ sub _addOpendkimDomainKey($$$$)
 		'mail._domainkey 60',
 		'IN',
 		'TXT',
-		"$txtRecord",
+		$txtRecord,
 		'OpenDKIM_Plugin'
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -666,6 +666,13 @@ sub _removeOpendkimDnsEntries
 		error($rdata);
 		return 1;
 	}
+
+	# Schedule domain change if needed
+	#
+	# Even if the OpenDKIM feature is being deactivated for a particular domain, we must not force rebuild of related
+	# configuration file when the domain has a status other than 'ok'. For instance, a domain which is disbaled
+	# should stay disabled. In such a case, the OpenDNS entry (TXT DNS resource record) will be removed when the
+	# domain will be re-activated.
 
 	if(%{$rdata}) {
 		for(keys %{$rdata}) {
@@ -926,9 +933,11 @@ sub _createOpendkimFile($$)
 
 	my $file = iMSCP::File->new('filename' => "/etc/opendkim/$fileName");
 
-	my ($rs , $fileContent) = (0, '');
+	my $rs = 0;
 
 	if($fileName eq 'TrustedHosts') {
+		my $fileContent = '';
+
 		for(@{$self->{'config'}->{'opendkim_trusted_hosts'}}) {
 			$fileContent .= "$_\n";
 		}
