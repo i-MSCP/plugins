@@ -262,6 +262,17 @@ function opendkim_generatePage($tpl)
 						$statusIcon = 'error';
 					}
 
+					if($row2['domain_text']) {
+						if(strpos($row2['domain_dns'], ' ') !== false) {
+							$dnsName = explode(' ', $row2['domain_dns']);
+							$dnsName = $dnsName[0];
+						} else {
+							$dnsName = $row2['domain_dns'];
+						}
+					} else {
+						$dnsName = '';
+					}
+
 					$tpl->assign(
 						array(
 							'KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
@@ -269,12 +280,8 @@ function opendkim_generatePage($tpl)
 							'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
 							'DOMAIN_KEY' => ($row2['domain_text'])
 								? tohtml($row2['domain_text']) : tr('Generation in progress...'),
-							'DNS_NAME' => ($row2['domain_dns'])
-								? tohtml(decode_idna($row2['domain_dns'])) . '.' .
-									tohtml(decode_idna($row2['domain_name'])) . '.'
-								: tr('n/a'),
-							'OPENDKIM_ID' => tohtml($row2['opendkim_id']),
-
+							'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
+							'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
 						)
 					);
 
