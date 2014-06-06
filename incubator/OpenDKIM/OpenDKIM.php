@@ -115,7 +115,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception(sprintf('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
