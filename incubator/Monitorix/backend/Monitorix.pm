@@ -59,7 +59,7 @@ sub install
 	my $self = $_[0];
 
 	if(! -x '/usr/bin/monitorix') {
-		error('Unable to find monitorix daemon. Please take a look on the README.md and install the monitorix package first.');
+		error('Unable to find monitorix daemon. Please take a look at the README.md file.');
 		return 1;
 	}
 
@@ -159,7 +159,7 @@ sub buildMonitorixGraphics
 	my $monitorixGraphColor;
 
 	my $rdata = iMSCP::Database->factory()->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
+		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Monitorix'
 	);
 
 	unless(ref $rdata eq 'HASH') {
@@ -206,9 +206,12 @@ sub _createMonitorixGraphics
 {
 	my ($self, $graph, $graphColor) = @_;
 
+	my $monitorixCgiPath = '/var/lib/monitorix/www/cgi/monitorix.cgi';
+
 	my ($stdout, $stderr);
 	my $rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1day color=' . $graphColor . ' silent=imagetag',
+		"$main::imscpConfig{'CMD_PERL'} $monitorixCgiPath" . ' mode=localhost graph=_' . $graph .
+			'1 when=1day color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -216,7 +219,8 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1week color=' . $graphColor . ' silent=imagetag',
+		"$main::imscpConfig{'CMD_PERL'} $monitorixCgiPath" . ' mode=localhost graph=_' . $graph .
+			'1 when=1week color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -224,7 +228,8 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1month color=' . $graphColor . ' silent=imagetag',
+		"$main::imscpConfig{'CMD_PERL'} $monitorixCgiPath" . ' mode=localhost graph=_' . $graph .
+			'1 when=1month color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -232,7 +237,8 @@ sub _createMonitorixGraphics
 	return $rs if $rs;
 
 	$rs = execute(
-		'/var/lib/monitorix/www/cgi/monitorix.cgi mode=localhost graph=_' . $graph . '1 when=1year color=' . $graphColor . ' silent=imagetag',
+		"$main::imscpConfig{'CMD_PERL'} $monitorixCgiPath" . ' mode=localhost graph=_' . $graph .
+			'1 when=1year color=' . $graphColor . ' silent=imagetag',
 		\$stdout,
 		\$stderr
 	);
@@ -322,25 +328,24 @@ sub _modifyMonitorixSystemConfig
 	$monitorixImgDirConfig .= "# Added by Plugins::Monitorix End_ImgDir\n";
 	
 	if($action eq 'add') {
-		if ($fileContent =~ /^base_dir = \/var\/lib\/monitorix\/www\//gm) {
-			$fileContent =~ s/^base_dir = \/var\/lib\/monitorix\/www\//$monitorixBaseDirConfig/gm;
+		if ($fileContent =~ m%^base_dir = /var/lib/monitorix/www/%gm) {
+			$fileContent =~ s%^base_dir = /var/lib/monitorix/www/%$monitorixBaseDirConfig%gm;
 		}
 
-		if ($fileContent =~ /^# Start_BaseDir Added by Plugins.*End_BaseDir\n/sgm) {
-			$fileContent =~ s/^# Start BaseDir added by Plugins.*End_BaseDir\n/$monitorixBaseDirConfig/sgm;
+		if ($fileContent =~ m%^# Start_BaseDir Added by Plugins.*End_BaseDir\n%sgm) {
+			$fileContent =~ s%^# Start BaseDir added by Plugins.*End_BaseDir\n%$monitorixBaseDirConfig%sgm;
 		}
 
-		if ($fileContent =~ /^imgs_dir = imgs\//gm) {
-			$fileContent =~ s/^imgs_dir = imgs\//$monitorixImgDirConfig/gm;
+		if ($fileContent =~ m%^imgs_dir = imgs/%gm) {
+			$fileContent =~ s%^imgs_dir = imgs/%$monitorixImgDirConfig%gm;
 		}
 
-		if ($fileContent =~ /^# Start_ImgDir Added by Plugins.*End_ImgDir\n/sgm) {
-			$fileContent =~ s/^# Start ImgDir added by Plugins.*End_ImgDir\n/$monitorixImgDirConfig/sgm;
+		if ($fileContent =~ m%^# Start_ImgDir Added by Plugins.*End_ImgDir\n%sgm) {
+			$fileContent =~ s%^# Start ImgDir added by Plugins.*End_ImgDir\n%$monitorixImgDirConfig%sgm;
 		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^# Start_BaseDir Added by Plugins.*End_BaseDir\n/base_dir = \/var\/lib\/monitorix\/www\//sgm;
-
-		$fileContent =~ s/^# Start_ImgDir Added by Plugins.*End_ImgDir\n/imgs_dir = imgs\//sgm;
+		$fileContent =~ s%^# Start_BaseDir Added by Plugins.*End_BaseDir\n%base_dir = /var/lib/monitorix/www/%sgm;
+		$fileContent =~ s%^# Start_ImgDir Added by Plugins.*End_ImgDir\n%imgs_dir = imgs/%sgm;
 	}
 
 	my $rs = $file->set($fileContent);
@@ -375,7 +380,7 @@ sub _modifyMonitorixSystemConfigEnabledGraphics
 	}
 
 	my $rdata = iMSCP::Database->factory()->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
+		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Monitorix'
 	);
 
 	unless(ref $rdata eq 'HASH') {
@@ -477,7 +482,7 @@ sub _modifyDefaultMonitorixApacheConfig
 sub _restartDaemonMonitorix
 {
 	my ($stdout, $stderr);
-	my $rs = execute('/usr/sbin/service monitorix restart', \$stdout, \$stderr);
+	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} monitorix restart", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -516,7 +521,7 @@ sub _registerCronjob
 	require iMSCP::Database;
 
 	my $rdata = iMSCP::Database->factory()->doQuery(
-		'plugin_name', 'SELECT `plugin_name`, `plugin_config` FROM `plugin` WHERE `plugin_name` = ?', 'Monitorix'
+		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Monitorix'
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
