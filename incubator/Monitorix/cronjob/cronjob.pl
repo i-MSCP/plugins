@@ -45,12 +45,11 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	{
 		'norequirements' => 'yes',
 		'config_readonly' => 'yes',
-		'nokeys' => 'yes',
 		'nolock' => 'yes'
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/Monitorix.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/Monitorix/backend/Monitorix.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

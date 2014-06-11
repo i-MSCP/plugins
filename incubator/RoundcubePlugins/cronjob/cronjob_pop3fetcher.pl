@@ -53,7 +53,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/RoundcubePlugins.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/backend/RoundcubePlugins.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

@@ -47,12 +47,11 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	{
 		'norequirements' => 'yes',
 		'config_readonly' => 'yes',
-		'nokeys' => 'yes',
 		'nolock' => 'yes'
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/SpamAssassin.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/backend/SpamAssassin.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

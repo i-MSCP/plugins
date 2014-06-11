@@ -51,7 +51,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/SpamAssassin.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/backend/SpamAssassin.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

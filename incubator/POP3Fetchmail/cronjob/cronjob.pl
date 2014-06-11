@@ -51,7 +51,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/POP3Fetchmail.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/POP3Fetchmail/backend/POP3Fetchmail.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };
