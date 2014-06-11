@@ -42,10 +42,16 @@ newDebug('mailgraph-plugin-cronjob.log');
 silent(1);
 
 iMSCP::Bootstrapper->getInstance()->boot(
-	{ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'nolock' => 'yes' }
+	{
+		'norequirements' => 'yes',
+		'config_readonly' => 'yes',
+		'nokeys' => 'yes',
+		'nodatabase' => 'yes',
+		'nolock' => 'yes'
+	}
 );
 
-my $pluginFile = "$main::imscpConfig{'ENGINE_ROOT_DIR'}/Plugins/Mailgraph.pm";
+my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/Plugins/Mailgraph.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

@@ -47,7 +47,12 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+		$eventsManager->registerListener(
+			iMSCP_Events::onBeforeInstallPlugin,
+			iMSCP_Events::onBeforeUpdatePlugin,
+			iMSCP_Events::onBeforeEnablePlugin,
+			$this
+		);
 	}
 
 	/**
@@ -57,15 +62,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.4', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-				
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -105,6 +102,28 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeInstallPlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
+	 * onBeforeEnablePlugin listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeEnablePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
 	 * Plugin enable
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -133,6 +152,24 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 			$this->removeDovecotSieveServicePort();
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	protected function checkCompat($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			}
 		}
 	}
 

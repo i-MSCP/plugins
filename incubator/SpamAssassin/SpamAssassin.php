@@ -47,7 +47,12 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+		$eventsManager->registerListener(
+			iMSCP_Events::onBeforeInstallPlugin,
+			iMSCP_Events::onBeforeUpdatePlugin,
+			iMSCP_Events::onBeforeEnablePlugin,
+			$this
+		);
 	}
 
 	/**
@@ -57,15 +62,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.5', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-				
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -115,6 +112,28 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeInstallPlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
+	 * onBeforeEnablePlugin listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeEnablePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
 	 * Plugin disable
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -147,7 +166,25 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
-	
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	protected function checkCompat($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			}
+		}
+	}
+
 	/**
 	 * Migrate database
 	 *
@@ -157,10 +194,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	 * @return void
 	 */
 	protected function dbMigrate(iMSCP_Plugin_Manager $pluginManager, $migrationMode = 'up')
-	{	
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-		
+	{
 		$pluginName = $this->getName();
 		$pluginInfo = $pluginManager->getPluginInfo($pluginName);
 		$dbSchemaVersion = (isset($pluginInfo['db_schema_version'])) ? $pluginInfo['db_schema_version'] : '000';
@@ -180,8 +214,6 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 		}
 
 		try {
-			$spamAssassinDbName = $cfg->DATABASE_NAME . '_spamassassin';
-
 			foreach ($migrationFiles as $migrationFile) {
 				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
 					if(
@@ -211,7 +243,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	 *
 	 * @return void
 	 */
-	protected function addSpamAssassinServicePort($pluginManager)
+	protected function addSpamAssassinServicePort()
 	{
 		$dbConfig = iMSCP_Registry::get('dbConfig');
 		$pluginConfig = $this->getConfig();

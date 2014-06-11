@@ -1,4 +1,4 @@
-## i-MSCP RoundcubePlugins plugin v0.0.4
+## i-MSCP RoundcubePlugins plugin v0.0.5
 
 Plugin allows to use Roundcube Plugins with i-MSCP.
 
@@ -90,7 +90,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 	
 ### REQUIREMENTS
 
-	- i-MSCP versions >= 1.1.0
+	- i-MSCP versions >= 1.1.11
 	- Dovecot
 	- Roundcube 0.9.x
 	- See installation section for required software packages.

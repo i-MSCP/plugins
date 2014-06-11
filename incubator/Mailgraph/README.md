@@ -1,4 +1,4 @@
-## i-MSCP Mailgraph plugin v0.0.3
+## i-MSCP Mailgraph plugin v0.0.4
 
 Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail)
 
@@ -22,14 +22,14 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
- - i-MSCP versions >= 1.1.0
+ - i-MSCP versions >= 1.1.11
  - mailgraph Debian package
 
 ### INSTALLATION AND UPDATE
 
 ### REQUIREMENTS
 
-Plugin compatible with i-MSCP versions >= 1.1.0
+Plugin compatible with i-MSCP versions >= 1.1.11
 
 ### INSTALLATION
 

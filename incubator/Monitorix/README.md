@@ -1,4 +1,4 @@
-## i-MSCP Monitorix plugin v0.0.6
+## i-MSCP Monitorix plugin v0.0.7
 
 Plugin providing lightweight system monitoring tool for Linux/UNIX servers.
 
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	Plugin compatible with i-MSCP versions >= 1.1.0
+	Plugin compatible with i-MSCP versions >= 1.1.11
 
 ### INSTALLATION
 
