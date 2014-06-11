@@ -51,7 +51,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin,
+				iMSCP_Events::onBeforeEnablePlugin
 			),
 			$this
 		);
