@@ -2,6 +2,13 @@ i-MSCP SpamAssassin plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.6
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Missing array on listener
+	Fixed: Use DATABASE_USER_HOST for the SpamAssassin database
+	
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -11,23 +18,23 @@ Version 0.0.5
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Bug in combination with OpenDKIM plugin while creating the main.cf entry.
+	Fixed: Bug in combination with OpenDKIM plugin while creating the main.cf entry.
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: The permissions were not set if the spamassassin library folder was already present.
-	- Added: Option to change the cronjob for sa-learn and also changed the cron interval.
+	Fixed: The permissions were not set if the spamassassin library folder was already present.
+	Added: Option to change the cronjob for sa-learn and also changed the cron interval.
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Database table bayes_vars was not created
+	Fixed: Database table bayes_vars was not created
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- First release
+	First release

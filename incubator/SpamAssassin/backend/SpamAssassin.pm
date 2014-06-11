@@ -376,11 +376,7 @@ sub _init
 	$self->{'SA_DATABASE_USER'} ='sa_user';
 
 	# Set SpamAssassin host
-	if($main::imscpConfig{'DATABASE_HOST'} eq 'localhost') {
-		$self->{'SA_HOST'} = 'localhost'
-	} else {
-		$self->{'SA_HOST'} = $main::imscpConfig{'BASE_SERVER_IP'};
-	}
+	$self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
 
 	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
 		# Loading plugin configuration

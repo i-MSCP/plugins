@@ -48,9 +48,11 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
 		$eventsManager->registerListener(
-			iMSCP_Events::onBeforeInstallPlugin,
-			iMSCP_Events::onBeforeUpdatePlugin,
-			iMSCP_Events::onBeforeEnablePlugin,
+			array(
+				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeUpdatePlugin,
+				iMSCP_Events::onBeforeEnablePlugin,
+			),
 			$this
 		);
 	}
@@ -112,7 +114,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
+	 * onBeforeUpdatePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
