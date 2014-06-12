@@ -34,7 +34,8 @@ return array(
 	 * 
 	 * For more information about the different configuration 
 	 * options please check the SpamAssassin documentation at:
-	 * http://spamassassin.apache.org/full/3.3.x/doc/
+	 * http://spamassassin.apache.org/full/3.3.x/doc/ or
+	 * http://spamassassin.apache.org/full/3.4.x/doc/
 	 * 
 	 * ATTENTION:
 	 * - Don't change anything, if you don't know what you are doing!

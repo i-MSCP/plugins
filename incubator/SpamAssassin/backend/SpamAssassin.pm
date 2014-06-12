@@ -835,6 +835,12 @@ sub _setSpamassassinConfig($$)
 		} else {
 			$fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::TextCat/#loadplugin Mail::SpamAssassin::Plugin::TextCat/gm;
 		}
+
+		if($self->{'config'}->{'use_dcc'} eq 'yes') {
+			$fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::DCC/loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
+		} else {
+			$fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::DCC/#loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
+		}
 	}
 
 	$rs = $file->set($fileContent);
@@ -1484,27 +1490,6 @@ sub _checkSaUser
 sub _checkVersion
 {
 	my $self = $_[0];
-
-	# Check the SpamAssassin version
-	my ($stdout, $stderr);
-	my $rs = execute('/usr/sbin/spamd --version', \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr;
-	error('Unable to get SpamAssassin version') if $rs && ! $stderr;
-	return $rs if $rs;
-
-	chomp($stdout);
-	$stdout =~ m/^SpamAssassin\s*Server\s*version\s*([0-9\.]+)\s*/;
-
-	if($1) {
-		if(version->new($1) > version->new('3.3.2')) {
-			error("Your SpamAssassin version $1 is not compatible with this plugin version. Please check the documentation.");
-			return 1;
-		}
-	} else {
-		error("Unable to find SpamAssassin version.");
-		return 1;
-	}
 
 	# Check the Roundcube version
 	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";

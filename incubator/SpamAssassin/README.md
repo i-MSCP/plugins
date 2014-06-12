@@ -1,4 +1,4 @@
-## i-MSCP SpamAssassin plugin v0.0.7
+## i-MSCP SpamAssassin plugin v0.0.8
 
 Plugin allows to use SpamAssassin with i-MSCP.
 
@@ -20,7 +20,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 ### REQUIREMENTS
 
 	- i-MSCP versions >= 1.1.11
-	- SpamAssassin 3.3.x
+	- SpamAssassin 3.3.x or 3.4.x
 	- Roundcube 0.9.x
 	- See installation section for required software packages.
 

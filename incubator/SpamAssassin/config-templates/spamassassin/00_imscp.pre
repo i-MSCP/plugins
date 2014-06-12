@@ -28,7 +28,7 @@
 loadplugin Mail::SpamAssassin::Plugin::AWL
 
 # DCC plugin (Distributed Checksum Clearinghouse)
-loadplugin Mail::SpamAssassin::Plugin::DCC
+#loadplugin Mail::SpamAssassin::Plugin::DCC
 
 # TextCat language guesser plugin
 #loadplugin Mail::SpamAssassin::Plugin::TextCat
