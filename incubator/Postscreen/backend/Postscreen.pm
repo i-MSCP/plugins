@@ -206,7 +206,7 @@ sub _modifyPostfixMainConfig($$)
 	my ($self, $action) = @_;
 
 	my $rs = 0;
-	my $policyService;
+	my $policyService = '';
 	my $postscreenDnsblSites;
 	my $postscreenAccessList;
 
