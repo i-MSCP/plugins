@@ -2,17 +2,23 @@ i-MSCP ImscpBoxBilling plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Configuration variable `WEB_FOLDER_PROTECTION` is missing
+
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-    - Fixed: changeAccountPassword server manager command doesn't work
-    - Fixed: Do not force strong password - Lets BoxBilling manage this
-    - Fixed: Service username must be overridden with domain name
-    - Small fixes
+	Fixed: changeAccountPassword server manager command doesn't work
+	Fixed: Do not force strong password - Lets BoxBilling manage this
+	Fixed: Service username must be overridden with domain name
+	Small fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-    - First release
+	First release
 

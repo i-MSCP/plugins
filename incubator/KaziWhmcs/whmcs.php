@@ -183,10 +183,6 @@ function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
                 $street1 = (isset($_POST['street1'])) ? clean_input($_POST['street1']) : '';
                 $street2 = (isset($_POST['street2'])) ? clean_input($_POST['street2']) : '';
 
-                if (!$cfg['WEB_FOLDER_PROTECTION']) {
-                    $webFolderProtection = 'no';
-                }
-
                 $db = iMSCP_Database::getInstance();
 
                 try {

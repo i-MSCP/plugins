@@ -1,4 +1,4 @@
-## i-MSCP ImscpBoxBilling plugin v0.0.2
+## i-MSCP ImscpBoxBilling plugin v0.0.3
 
 Plugin allowing server provisioning through the BoxBilling software.
 
@@ -9,7 +9,7 @@ billing software. It allow server provisioning through BoxBilling.
 
 ### Requirements
 
-  i-MSCP >= 1.1.5 (plugin API >= 0.2.8)
+  i-MSCP >= 1.1.11 (plugin API >= 0.2.10)
 
 ### Installation and update
 

@@ -1,4 +1,4 @@
-## i-MSCP KaziWhmcs plugin v0.0.4
+## i-MSCP KaziWhmcs plugin v0.0.5
 
 Plugin allowing server provisioning through the WHMCS billing software.
 
@@ -9,7 +9,7 @@ billing software. It allow server provisioning through WHMCS.
 
 ### Requirements
 
-  i-MSCP >= 1.1.5 (plugin API >= 0.2.8)
+  i-MSCP >= 1.1.11 (plugin API >= 0.2.10)
 
 ### Installation and update
 
