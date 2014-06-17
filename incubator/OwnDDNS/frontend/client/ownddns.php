@@ -376,6 +376,9 @@ function ownddns_AddAccount($tpl, $pluginManager, $userId)
 		} elseif(count($selectedDomainArray) !== 2 || !is_numeric($selectedDomainArray[0]) || !is_numeric($selectedDomainArray[1])) {
 			set_page_message(tr("Wrong values in selected domain."), 'error');
 			$error = true;
+		} elseif(in_array(clean_input($_POST['ownddns_account_name']), $pluginConfig['account_name_blacklist'])) {
+			set_page_message(tr("The account name '%s' is blacklisted on this system)", clean_input($_POST['ownddns_account_name'])), 'error');
+			$error = true;
 		} elseif($maxAccounts != '0' && $activatedAccounts >= $maxAccounts) {
 			set_page_message(tr("Max. allowed OwnDDNS accounts reached."), 'error');
 			$error = true;
@@ -474,8 +477,8 @@ function ownddns_AddAccount($tpl, $pluginManager, $userId)
 				
 				exec_query(
 					$query2, array(
-						$selectedDomainArray[0], $selectedDomainArray[1], $accountName, 
-						'IN', 'A', $_SERVER['REMOTE_ADDR'], 'ownddns_feature')
+						$selectedDomainArray[0], $selectedDomainArray[1], $accountName . ' ' . $pluginConfig['update_ttl_time'], 
+						'IN', 'A', $_SERVER['REMOTE_ADDR'], 'OwnDDNS_Plugin')
 				);
 			} catch(iMSCP_Exception_Database $e) {
 				if($e->getCode() == 23000) { // Duplicate entries
@@ -599,7 +602,7 @@ function ownddns_DeleteAccount($tpl, $userId, $accountID)
 					`domain_dns` = ?
 				AND 
 					`owned_by` = ?
-			', array($stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'ownddns_feature')
+			', array($stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'OwnDDNS_Plugin')
 		);
 			
 		exec_query('DELETE FROM `ownddns_accounts` WHERE `ownddns_account_id` = ?', $accountID);
@@ -652,124 +655,128 @@ function get_ownddnsAccountLimit($tpl, $userId)
 
 iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
-check_login('user');
-
-if(iMSCP_Registry::isRegistered('pluginManager')) {
-	/** @var iMSCP_Plugin_Manager $pluginManager */
-	$pluginManager = iMSCP_Registry::get('pluginManager');
-} else {
-	throw new iMSCP_Plugin_Exception('An unexpected error occured');
-}
-
 /** @var $cfg iMSCP_Config_Handler_File */
 $cfg = iMSCP_Registry::get('config');
 
-$tpl = new iMSCP_pTemplate();
-$tpl->define_dynamic(
-	array(
-		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/OwnDDNS/frontend/client/ownddns.tpl',
-		'page_message' => 'layout',
-		'ownddns_select_item' => 'page',
-		'ownddns_account_list' => 'page',
-		'ownddns_account_item' => 'page',
-		'ownddns_no_account_item' => 'page',
-		'ownddns_edit_login' => 'page',
-		'ownddns_add_dialog' => 'page',
-		'ownddns_add_button' => 'page',
-		'scroll_prev_gray' => 'ownddns_account_list',
-		'scroll_prev' => 'ownddns_account_list',
-		'scroll_next_gray', 'ownddns_account_list',
-		'scroll_next' => 'ownddns_account_list',
-	)
-);
+check_login('user');
 
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => tr('Domains / OwnDDNS'),
-		'TR_PAGE_TITLE_OWNDDNS_ADD' => tr('OwnDDNS - Account'),
-		'THEME_CHARSET' => tr('encoding'),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'OWNDDNS_NO_ACCOUNT' => tr('No account for OwnDDNS activated'),
-		'TR_OWNDDNS_ACCOUNT_NAME' => tr('OwnDDNS account name'),
-		'TR_OWNDDNS_ACCOUNT_FQDN' => tr('OwnDDNS FQDN'),
-		'TR_POPUP_OWNDDNS_ACCOUNT_NAME' => tr('OwnDDNS account name:'),
-		'TR_POPUP_OWNDDNS_KEY' => tr('OwnDDNS access key:'),
-		'TR_OWNDDNS_ACCOUNT_STATUS' => tr('Status'),
-		'TR_OWNDDNS_ACCOUNT_ACTIONS' => tr('Actions'),
-		'TR_ADD_OWNDDNS_ACCOUNT' => tr('Add new OwnDDNS account'),
-		'DELETE_ACCOUNT_ALERT' => tr('Are you sure, You want to delete this OwnDDNS account?'),
-		'TR_EDIT_ACCOUNT' => tr('Edit account'),
-		'TR_DELETE_ACCOUNT' => tr('Delete account'),
-		'TR_PREVIOUS' => tr('Previous'),
-		'TR_NEXT' => tr('Next'),
-		'TR_ADD' => tr('Add'),
-		'TR_CANCEL' => tr('Cancel'),
-		'OWNDDNS_DIALOG_OPEN' => 0,
-		'OWNDDNS_ACCOUNT_NAME' => '',
-		'OWNDDNS_ACCOUNT_FQDN' => '',
-		'OWNDDNS_PASSWORD' => '',
-		'TR_UPDATE' => tr('Update'),
-		'TR_CANCEL' => tr('Cancel'),
-		'OWNDDNS_KEY_READONLY' => $cfg->HTML_READONLY,
-		'OWNDDNS_KEY_ADD' => '',
-		'OWNDDNS_KEY_EDIT' => '',
-		'OWNDDNS_ACCOUNT_NAME_ADD' => '',
-		'OWNDDNS_ACCOUNT_NAME_EDIT' => '',
-		'OWNDDNS_ACCOUNT_FQDN_EDIT' => '',
-		'TR_GENERATE_OWNDDNSKEY' => tr('Generate account key'),
-		'TR_OWNDDNS_SELECT_NAME_NONE' => tr('Select a domain'),
-		'TR_OWNDDNS_LAST_IP' => tr('Last ipaddress'),
-		'TR_OWNDDNS_LAST_UPDATE' => tr('Last update'),
-		'ACCOUNT_NAME_SELECTED' => ''
-	)
-);
-
-if (isset($_REQUEST['action'])) {
-	$action = clean_input($_REQUEST['action']);
-
-	if ($action === 'add') {
-		if (ownddns_AddAccount($tpl, $pluginManager, $_SESSION['user_id'])) {
-			set_page_message(tr('New OwnDDNS account successfully scheduled for addition'), 'success');
-			redirectTo('ownddns.php');
-		}
-	} elseif($action === 'edit') {
-		$accountID = (isset($_GET['ownddns_account_id'])) ? clean_input($_GET['ownddns_account_id']) : '';
-		
-		if($accountID != '') {
-			if (ownddns_EditAccount($tpl, $_SESSION['user_id'], $accountID)) {
-				set_page_message(tr('OwnDDNS account successfully scheduled for update'), 'success');
-				redirectTo('ownddns.php');
-			}
-		}
-	} elseif ($action === 'delete') {
-		$accountID = (isset($_GET['ownddns_account_id'])) ? clean_input($_GET['ownddns_account_id']) : '';
-		
-		if($accountID != '') {
-			if (ownddns_DeleteAccount($tpl, $_SESSION['user_id'], $accountID)) {
-				set_page_message(tr('OwnDDNS account successfully scheduled for deletion'), 'success');
-				redirectTo('ownddns.php');
-			}
-		}
+if (iMSCP_Plugin_OwnDDNS::customerHasOwnDDNS($_SESSION['user_id'])) {
+	if(iMSCP_Registry::isRegistered('pluginManager')) {
+		/** @var iMSCP_Plugin_Manager $pluginManager */
+		$pluginManager = iMSCP_Registry::get('pluginManager');
 	} else {
-		showBadRequestErrorPage();
+		throw new iMSCP_Plugin_Exception('An unexpected error occured');
 	}
+
+	$tpl = new iMSCP_pTemplate();
+	$tpl->define_dynamic(
+		array(
+			'layout' => 'shared/layouts/ui.tpl',
+			'page' => '../../plugins/OwnDDNS/frontend/client/ownddns.tpl',
+			'page_message' => 'layout',
+			'ownddns_select_item' => 'page',
+			'ownddns_account_list' => 'page',
+			'ownddns_account_item' => 'page',
+			'ownddns_no_account_item' => 'page',
+			'ownddns_edit_login' => 'page',
+			'ownddns_add_dialog' => 'page',
+			'ownddns_add_button' => 'page',
+			'scroll_prev_gray' => 'ownddns_account_list',
+			'scroll_prev' => 'ownddns_account_list',
+			'scroll_next_gray', 'ownddns_account_list',
+			'scroll_next' => 'ownddns_account_list',
+		)
+	);
+
+	$tpl->assign(
+		array(
+			'TR_PAGE_TITLE' => tr('Domains / OwnDDNS'),
+			'TR_PAGE_TITLE_OWNDDNS_ADD' => tr('OwnDDNS - Account'),
+			'THEME_CHARSET' => tr('encoding'),
+			'ISP_LOGO' => layout_getUserLogo(),
+			'OWNDDNS_NO_ACCOUNT' => tr('No account for OwnDDNS activated'),
+			'TR_OWNDDNS_ACCOUNT_NAME' => tr('OwnDDNS account name'),
+			'TR_OWNDDNS_ACCOUNT_FQDN' => tr('OwnDDNS FQDN'),
+			'TR_POPUP_OWNDDNS_ACCOUNT_NAME' => tr('OwnDDNS account name:'),
+			'TR_POPUP_OWNDDNS_KEY' => tr('OwnDDNS access key:'),
+			'TR_OWNDDNS_ACCOUNT_STATUS' => tr('Status'),
+			'TR_OWNDDNS_ACCOUNT_ACTIONS' => tr('Actions'),
+			'TR_ADD_OWNDDNS_ACCOUNT' => tr('Add new OwnDDNS account'),
+			'DELETE_ACCOUNT_ALERT' => tr('Are you sure, You want to delete this OwnDDNS account?'),
+			'TR_EDIT_ACCOUNT' => tr('Edit account'),
+			'TR_DELETE_ACCOUNT' => tr('Delete account'),
+			'TR_PREVIOUS' => tr('Previous'),
+			'TR_NEXT' => tr('Next'),
+			'TR_ADD' => tr('Add'),
+			'TR_CANCEL' => tr('Cancel'),
+			'OWNDDNS_DIALOG_OPEN' => 0,
+			'OWNDDNS_ACCOUNT_NAME' => '',
+			'OWNDDNS_ACCOUNT_FQDN' => '',
+			'OWNDDNS_PASSWORD' => '',
+			'TR_UPDATE' => tr('Update'),
+			'TR_CANCEL' => tr('Cancel'),
+			'OWNDDNS_KEY_READONLY' => $cfg->HTML_READONLY,
+			'OWNDDNS_KEY_ADD' => '',
+			'OWNDDNS_KEY_EDIT' => '',
+			'OWNDDNS_ACCOUNT_NAME_ADD' => '',
+			'OWNDDNS_ACCOUNT_NAME_EDIT' => '',
+			'OWNDDNS_ACCOUNT_FQDN_EDIT' => '',
+			'TR_GENERATE_OWNDDNSKEY' => tr('Generate account key'),
+			'TR_OWNDDNS_SELECT_NAME_NONE' => tr('Select a domain'),
+			'TR_OWNDDNS_LAST_IP' => tr('Last ipaddress'),
+			'TR_OWNDDNS_LAST_UPDATE' => tr('Last update'),
+			'ACCOUNT_NAME_SELECTED' => ''
+		)
+	);
+
+	if (isset($_REQUEST['action'])) {
+		$action = clean_input($_REQUEST['action']);
+
+		if ($action === 'add') {
+			if (ownddns_AddAccount($tpl, $pluginManager, $_SESSION['user_id'])) {
+				set_page_message(tr('New OwnDDNS account successfully scheduled for addition'), 'success');
+				redirectTo('ownddns.php');
+			}
+		} elseif($action === 'edit') {
+			$accountID = (isset($_GET['ownddns_account_id'])) ? clean_input($_GET['ownddns_account_id']) : '';
+			
+			if($accountID != '') {
+				if (ownddns_EditAccount($tpl, $_SESSION['user_id'], $accountID)) {
+					set_page_message(tr('OwnDDNS account successfully scheduled for update'), 'success');
+					redirectTo('ownddns.php');
+				}
+			}
+		} elseif ($action === 'delete') {
+			$accountID = (isset($_GET['ownddns_account_id'])) ? clean_input($_GET['ownddns_account_id']) : '';
+			
+			if($accountID != '') {
+				if (ownddns_DeleteAccount($tpl, $_SESSION['user_id'], $accountID)) {
+					set_page_message(tr('OwnDDNS account successfully scheduled for deletion'), 'success');
+					redirectTo('ownddns.php');
+				}
+			}
+		} else {
+			showBadRequestErrorPage();
+		}
+	}
+
+
+	generateNavigation($tpl);
+
+	get_ownddnsAccountLimit($tpl, $_SESSION['user_id']);
+	ownddns_generateSelect($tpl, $_SESSION['user_id']);
+
+	if(!isset($_REQUEST['action']) || isset($_REQUEST['action']) && clean_input($_REQUEST['action']) !== 'edit') {
+		ownddns_generateAccountsList($tpl, $pluginManager, $_SESSION['user_id']);
+	}
+
+	generatePageMessage($tpl);
+
+	$tpl->parse('LAYOUT_CONTENT', 'page');
+
+	iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+
+	$tpl->prnt();
+} else {
+	showBadRequestErrorPage();
 }
-
-
-generateNavigation($tpl);
-
-get_ownddnsAccountLimit($tpl, $_SESSION['user_id']);
-ownddns_generateSelect($tpl, $_SESSION['user_id']);
-
-if(!isset($_REQUEST['action']) || isset($_REQUEST['action']) && clean_input($_REQUEST['action']) !== 'edit') {
-	ownddns_generateAccountsList($tpl, $pluginManager, $_SESSION['user_id']);
-}
-
-generatePageMessage($tpl);
-
-$tpl->parse('LAYOUT_CONTENT', 'page');
-
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
-
-$tpl->prnt();

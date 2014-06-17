@@ -40,11 +40,26 @@
 		<td><label for="update_repeat_time">{TR_UPDATE_REPEAT_TIME}</label></td>
 		<td><input type="text" name="update_repeat_time" id="update_repeat_time" value="{MAX_UPDATE_REPEAT_TIME}"/></td>
 	</tr>
+	<tr>
+		<td>
+			<label for="update_ttl_time">{TR_UPDATE_TTL_TIME}</label>
+			<span class="tips icon i_help" title={TR_UPDATE_TTL_TIME_TOOLTIP}></span>
+		</td>
+		<td><input type="text" name="update_ttl_time" id="update_ttl_time" value="{MAX_UPDATE_TTL_TIME}"/></td>
+	</tr>
+	<tr>
+		<td>
+			<label for="account_name_blacklist">{TR_ACCOUNT_NAME_BLACKLIST}</label>
+			<span class="tips icon i_help" title={TR_ACCOUNT_NAME_BLACKLIST_TOOLTIP}></span>
+		</td>
+		<td><input type="text" name="account_name_blacklist" id="account_name_blacklist" value="{ACCOUNT_NAME_BLACKLIST}"/></td>
+	</tr>
 	</tbody>
 </table>
 
 <div class="buttons">
 	<input name="submit" type="submit" value="{TR_UPDATE}"/>
 	<a class ="link_as_button" href="ownddns.php">{TR_CANCEL}</a>
+	<input type="hidden" name="current_update_ttl_time" value="{MAX_UPDATE_TTL_TIME}"/>
 </div>
 </form>

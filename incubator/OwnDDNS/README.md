@@ -1,4 +1,4 @@
-## i-MSCP OwnDDNS plugin v0.0.1
+## i-MSCP OwnDDNS plugin v0.0.2
 
 Plugin allowing to manage your own DDNS service with i-MSCP.
 
@@ -22,7 +22,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	- i-MSCP versions >= 1.1.0
+	- i-MSCP versions >= 1.1.11
 	- Bind must be activated on i-MSCP
 	- Domain for your OwnDDNS must use the nameserver of your i-MSCP installation
 

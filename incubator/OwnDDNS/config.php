@@ -35,5 +35,9 @@ return array(
 
 	'max_accounts_lenght' => '30', // Max. lenght of the subdomain name
 
-	'update_repeat_time' => '5' // Minutes between updates
+	'update_repeat_time' => '5', // Minutes between updates
+	
+	'update_ttl_time' => '60', // Seconds for TTL DNS updates
+	
+	'account_name_blacklist' => array('ftp', 'imap', 'mail', 'ns1', 'pop', 'pop3', 'relay', 'smtp', 'www') // Blacklist for account names
 );

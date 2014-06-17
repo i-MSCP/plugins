@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,18 +20,31 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  OwnDDNS
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '0.0.2',
-	'date' => '2014-06-16',
-	'name' => 'OwnDDNS',
-	'desc' => 'Plugin allowing to manage your own DDNS service with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:ownddns'
+	'up' => '
+		CREATE TABLE IF NOT EXISTS ownddns_accounts (
+			ownddns_account_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+			admin_id int(11) unsigned NOT NULL,
+			domain_id int(11) unsigned NOT NULL,
+			alias_id int(11) unsigned NOT NULL,
+			ownddns_account_name varchar(50) collate utf8_unicode_ci default NULL,
+			ownddns_account_fqdn varchar(255) collate utf8_unicode_ci default NULL,
+			ownddns_key varchar(255) collate utf8_unicode_ci default NULL,
+			ownddns_last_ip varchar(40) collate utf8_unicode_ci default NULL,
+			ownddns_last_update DATETIME NOT NULL,
+			ownddns_account_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+			PRIMARY KEY (ownddns_account_id),
+			UNIQUE KEY ownddns_account_fqdn (ownddns_account_fqdn),
+			KEY ownddns_account_id (ownddns_account_id)
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+	',
+	'down' => '
+		DROP TABLE IF EXISTS ownddns_accounts
+	'
 );

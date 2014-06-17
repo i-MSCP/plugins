@@ -48,8 +48,6 @@ if (($plugin = $pluginManager->loadPlugin('OwnDDNS', false, false)) !== null) {
 }
 
 if(isset($_GET['action']) && isset($_GET['data'])) {
-	checkiMSCP_Version($pluginConfig);
-	
 	if($pluginConfig['use_base64_encoding'] === TRUE && !base64_decode($_GET['data'], FALSE)) {
 		if($pluginConfig['debug'] === TRUE) write_log(sprintf('Plugin OwnDDNS => Error: Sent data is not base64 encoded! IP address: %s', $_SERVER['REMOTE_ADDR']));
 		exit('Error: Invalid data sent!');
@@ -91,16 +89,6 @@ function decryptUpdateData($pluginConfig, $sendetData, $base64Encoded=FALSE) {
 	}
 	
 	return $decryptedDataArray;
-}
-
-function checkiMSCP_Version($pluginConfig) {
-	/** @var iMSCP_Config_Handler_File $cfg */
-	$cfg = iMSCP_Registry::get('config');
-	
-	if($cfg->Version != 'Git Master' && $cfg->BuildDate <= 20131121){
-		if($pluginConfig['debug'] === TRUE) write_log(sprintf('Error: OwnDDNS plugin is not compatible with installed i-MSCP version %s. Check www.i-mscp.net for updates! IP address: %s', $cfg->Version, $_SERVER['REMOTE_ADDR']));
-		exit(sprintf('Error: i-MSCP version %s mismatch!', $cfg->Version));
-	}
 }
 
 function updateOwnDDNSAccount($pluginConfig, $username, $authKey, $updateDomain) {
@@ -151,7 +139,7 @@ function updateOwnDDNSAccount($pluginConfig, $username, $authKey, $updateDomain)
 					`domain_dns` = ?
 				AND
 					`owned_by` = ?
-			', array($_SERVER['REMOTE_ADDR'], $stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'ownddns_feature'));
+			', array($_SERVER['REMOTE_ADDR'], $stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'OwnDDNS_Plugin'));
 			
 		if($stmt->fields['alias_id'] == '0') {
 			exec_query('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $stmt->fields['domain_id']));

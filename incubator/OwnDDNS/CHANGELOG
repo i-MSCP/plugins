@@ -2,6 +2,15 @@ i-MSCP OwnDDNS plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.2
+------------------------------------------------------------------------------------------------------------------------
+
+	- Changed: Plugin DNS record owner name from 'ownddns_feature' to 'OwnDDNS_Plugin'
+	- Changed: Plugin now use the database migration API provided by i-MSCP
+	- Changed: Plugin now using account name blacklist which can be defined in the config.php
+	- Fixed: TTL for OwnDDNS TXT DNS record must be set to a low value to allow faster key renewal (time [default: 60] can be changed in config.php)
+	
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 

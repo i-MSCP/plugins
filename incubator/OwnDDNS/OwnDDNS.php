@@ -26,8 +26,8 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
- /**
- * OwnDDNS Plugin.
+/**
+ * Class iMSCP_Plugin_OwnDDNS
  *
  * @category    iMSCP
  * @package     iMSCP_Plugin
@@ -46,9 +46,13 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 		$eventsManager->registerListener(
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeUpdatePlugin,
+				iMSCP_Events::onBeforeEnablePlugin,
+				
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
+				
 				iMSCP_Events::onAfterDeleteUser,
 				iMSCP_Events::onAfterDeleteDomainAlias,
 				iMSCP_Events::onAfterEditDomain,
@@ -64,18 +68,11 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.3', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-				
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 	
 	/**
@@ -88,9 +85,38 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->createDbTable();
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+			$this->migrateDb('up');
+		} catch (iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+		}
+	}
+	
+	/**
+	 * onBeforeUpdatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+	
+	/**
+	 * Plugin update
+	 *
+	 * @throws iMSCP_Plugin_Exception When update fail
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @param string $fromVersion Version from which plugin update is initiated
+	 * @param string $toVersion Version to which plugin is updated
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	{
+		try {
+			$this->migrateDb('up');
+		} catch (iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception(sprintf('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 	
@@ -102,12 +128,23 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 * @return void
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{		
+	{
 		try {
-			$this->dropDbTable();
-		} catch(iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+			$this->migrateDb('down');
+		} catch (iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
 		}
+	}
+	
+	/**
+	 * onBeforeEnablePlugin listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeEnablePlugin($event)
+	{
+		$this->checkCompat($event);
 	}
 	
 	/**
@@ -143,6 +180,24 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	}
 	
 	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	protected function checkCompat($event)
+	{
+		if ($event->getParam('pluginName') == $this->getName()) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			}
+		}
+	}
+	
+	/**
 	 * Get routes
 	 *
 	 * @return array
@@ -166,7 +221,7 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onAdminScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('admin');
 	}
 	
 	/**
@@ -176,7 +231,7 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onResellerScriptStart()
 	{
-		$this->setupNavigation();
+		$this->setupNavigation('reseller');
 	}
 	
 	/**
@@ -186,26 +241,8 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	 */
 	public function onClientScriptStart()
 	{
-		/** @var iMSCP_Config_Handler_File $cfg */
-		$cfg = iMSCP_Registry::get('config');
-
-		$query = "
-			SELECT
-				`admin_id`
-			FROM
-				`admin`
-			WHERE
-				`admin_id` = ?
-			AND
-				`admin_status` = ?
-			AND
-				`admin_id` IN (SELECT `admin_id` FROM `ownddns`)
-		";
-
-		$stmt = exec_query($query, array($_SESSION['user_id'], $cfg->ITEM_OK_STATUS));
-		
-		if ($stmt->rowCount()) {
-			$this->setupNavigation();
+		if (self::customerHasOwnDDNS($_SESSION['user_id'])) {
+			$this->setupNavigation('client');
 		}
 	}
 	
@@ -338,84 +375,51 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Inject OwnDDNS links into the navigation object
+	 * Inject OpenDKIM links into the navigation object
+	 *
+	 * @param string $level UI level
 	 */
-	protected function setupNavigation()
+	protected function setupNavigation($level)
 	{
 		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if (($page = $navigation->findOneBy('uri', '/admin/index.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('OwnDDNS')),
-						'uri' => '/admin/ownddns.php',
-						'title_class' => 'adminlog'
-					)
-				);
-			}
-			
-			if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('OwnDDNS')),
-						'uri' => '/reseller/ownddns.php',
-						'title_class' => 'users'
-					)
-				);
-			}
-			
-			if (($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
-				$page->addPage(
-					array(
-						'label' => tohtml(tr('OwnDDNS')),
-						'uri' => '/client/ownddns.php',
-						'title_class' => 'domains'
-					)
-				);
+			if ($level == 'admin') {
+				if (($page = $navigation->findOneBy('uri', '/admin/index.php'))) {
+					$page->addPage(
+						array(
+							'label' => tohtml(tr('OwnDDNS')),
+							'uri' => '/admin/ownddns.php',
+							'title_class' => 'adminlog'
+						)
+					);
+				}
+			} elseif ($level == 'reseller') {
+				if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
+					$page->addPage(
+						array(
+							'label' => tr('OwnDDNS'),
+							'uri' => '/reseller/ownddns.php',
+							'title_class' => 'users',
+							'privilege_callback' => array(
+								'name' => 'resellerHasCustomers'
+							)
+						)
+					);
+				}
+			} elseif ($level == 'client') {
+				if (($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
+					$page->addPage(
+						array(
+							'label' => tr('OwnDDNS'),
+							'uri' => '/client/ownddns.php',
+							'title_class' => 'domains'
+						)
+					);
+				}
 			}
 		}
-	}
-	
-	/**
-	 * Create OwnDDNS database table
-	 *
-	 * @return void
-	 */
-	protected function createDbTable()
-	{
-		execute_query(
-			'
-				CREATE TABLE IF NOT EXISTS `ownddns` (
-					`ownddns_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`admin_id` int(11) unsigned NOT NULL,
-					`domain_id` int(11) unsigned NOT NULL,
-					`admin_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`max_ownddns_accounts` int(11) default NULL,
-					`customer_dns_previous_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					`ownddns_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					PRIMARY KEY (`OwnDDNS_id`),
-					KEY `ownddns_id` (`ownddns_id`)
-				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-				
-				CREATE TABLE IF NOT EXISTS `ownddns_accounts` (
-					`ownddns_account_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`admin_id` int(11) unsigned NOT NULL,
-					`domain_id` int(11) unsigned NOT NULL,
-					`alias_id` int(11) unsigned NOT NULL,
-					`ownddns_account_name` varchar(50) collate utf8_unicode_ci default NULL,
-					`ownddns_account_fqdn` varchar(255) collate utf8_unicode_ci default NULL,
-					`ownddns_key` varchar(255) collate utf8_unicode_ci default NULL,
-					`ownddns_last_ip` varchar(40) collate utf8_unicode_ci default NULL,
-					`ownddns_last_update` DATETIME NOT NULL,
-					`ownddns_account_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-					PRIMARY KEY (`ownddns_account_id`),
-					UNIQUE KEY `ownddns_account_fqdn` (`ownddns_account_fqdn`),
-					KEY `ownddns_account_id` (`ownddns_account_id`)
-				) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			'
-		);
 	}
 	
 	/**
@@ -431,7 +435,7 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 		$stmt = exec_query("SELECT * FROM `ownddns_accounts`");
 		if ($stmt->rowCount()) {
 			while ($data = $stmt->fetchRow()) {
-				exec_query('DELETE FROM `domain_dns` WHERE `owned_by` = ?', 'ownddns_feature');
+				exec_query('DELETE FROM `domain_dns` WHERE `owned_by` = ?', 'OwnDDNS_Plugin');
 				
 				if($data['alias_id'] == '0') {
 					$stmt2 = exec_query('SELECT * FROM `domain_dns` WHERE `domain_id` = ?', $data['domain_id']);
@@ -462,6 +466,8 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 		
+		$ttlUpdateTime = $this->getConfigParam('update_ttl_time', '60');
+		
 		$stmt = exec_query('SELECT * FROM `ownddns_accounts` WHERE `ownddns_account_status` = ?', $cfg->ITEM_OK_STATUS);
 		if ($stmt->rowCount()) {
 			while ($data = $stmt->fetchRow()) {
@@ -479,9 +485,9 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 				
 				exec_query(
 					$query, array(
-						$data['domain_id'], $data['alias_id'], $data['ownddns_account_name'], 
+						$data['domain_id'], $data['alias_id'], $data['ownddns_account_name'] . ' ' . $ttlUpdateTime, 
 						'IN', 'A', (($data['ownddns_last_ip'] == '') ? $_SERVER['REMOTE_ADDR'] : $data['ownddns_last_ip']),
-						'ownddns_feature')
+						'OwnDDNS_Plugin')
 				);
 				
 				if($data['alias_id'] == '0') {
@@ -493,22 +499,6 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 			
 			send_request();
 		}
-	}
-	
-	/**
-	 * Drop OwnDDNS database table
-	 *
-	 * @return void
-	 */
-	protected function dropDbTable()
-	{
-		execute_query(
-			'
-				DROP TABLE IF EXISTS `ownddns`;
-				
-				DROP TABLE IF EXISTS `ownddns_accounts`;
-			'
-		);
 	}
 	
 	/**
@@ -622,5 +612,42 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 		);
 
 		return $stmt->fields['count'];
-	} 
+	}
+	
+	/**
+	 * Does the given customer has OwnDDNS feature activated?
+	 *
+	 * @param int $customerId Customer unique identifier
+	 * @return bool
+	 */
+	public static function customerHasOwnDDNS($customerId)
+	{
+		static $hasAccess = null;
+		
+		/** @var $cfg iMSCP_Config_Handler_File */
+		$cfg = iMSCP_Registry::get('config');
+
+		if(null === $hasAccess) {
+			$stmt = exec_query(
+				'
+					SELECT
+						COUNT(admin_id) as cnt
+					FROM
+						ownddns
+					INNER JOIN
+						admin USING(admin_id)
+					WHERE
+						admin_id = ?
+					AND
+						admin_status = ?
+				',
+				array($customerId, $cfg->ITEM_OK_STATUS)
+			);
+
+			$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+			$hasAccess = (bool) $row['cnt'];
+		}
+
+		return $hasAccess;
+	}
 }
