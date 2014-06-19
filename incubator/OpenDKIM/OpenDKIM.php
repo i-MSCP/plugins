@@ -232,8 +232,8 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 			// In case OpenDKIM is activated for the parent domain, we must activate it also for the domain alias which
 			// is being added
 			$stmt = exec_query(
-				'SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id = ? AND opendkim_status = ?',
-				array($event->getParam('domainId'), 0, 'ok')
+				'SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = ?',
+				array($event->getParam('domainId'), 'ok')
 			);
 
 			if ($stmt->rowCount()) {
