@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  OwnDDNS
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -139,7 +139,7 @@ function updateOwnDDNSAccount($pluginConfig, $username, $authKey, $updateDomain)
 					`domain_dns` = ?
 				AND
 					`owned_by` = ?
-			', array($_SERVER['REMOTE_ADDR'], $stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'OwnDDNS_Plugin'));
+			', array($_SERVER['REMOTE_ADDR'], $stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'] . ' ' . $pluginConfig['update_ttl_time'], 'OwnDDNS_Plugin'));
 			
 		if($stmt->fields['alias_id'] == '0') {
 			exec_query('UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', array($cfg->ITEM_TOCHANGE_STATUS, $stmt->fields['domain_id']));

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  OwnDDNS
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.2',
-	'date' => '2014-06-16',
+	'version' => '0.0.3',
+	'date' => '2014-06-24',
 	'name' => 'OwnDDNS',
 	'desc' => 'Plugin allowing to manage your own DDNS service with i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:ownddns'

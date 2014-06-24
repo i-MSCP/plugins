@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by Sascha Bay
+# Copyright (C) 2010-2014 by Sascha Bay
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 # @category    i-MSCP
 # @package     iMSCP_Plugin
 # @subpackage  OwnDDNS
-# @copyright   2010-2013 by Sascha Bay
+# @copyright   Sascha Bay <info@space2place.de>
 # @author      Sascha Bay <info@space2place.de>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
