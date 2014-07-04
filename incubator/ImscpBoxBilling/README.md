@@ -19,7 +19,7 @@ billing software. It allow server provisioning through BoxBilling.
 2. Upload the **ImscpBoxBilling** plugin archive
 3. Activate the plugin
 
-#### WHMCS side
+#### BoxBilling side
 
 1. Copy the Manager/Imscp.php file from the plugin archive into the BoxBilling **bb-library/Server/Manager** directory
 2. Setup a new server, an hosting plan (see below) and a product/service using the imscp server manager
