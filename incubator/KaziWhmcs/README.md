@@ -23,7 +23,8 @@ accounts will be implemented in near future.
 3. Activate the plugin
 4. Go to the settings page and disable the "prevent external login..." option for both resellers and clients
 
-**Note:** Before updating, don't forget to backup the plugin configuration file and to restore it once the update is done.
+**Note:** Before updating, don't forget to backup your plugin configuration file and to restore it once the update is done.
+Don't forget also to read the [ERRATA.md](ERRATA.md) file for additional steps which can be required after update.
 
 #### WHMCS side
 
