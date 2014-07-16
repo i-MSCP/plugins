@@ -20,7 +20,7 @@ accounts will be implemented in near future.
 
 1. Login into the panel as admin and go to the plugin management interface
 2. Upload the **KaziWhmcs** plugin archive
-3. Activate the plugin *(Update only)*
+3. Activate the plugin *(update only)*
 4. Go to the settings page and disable the "prevent external login..." option for both resellers and clients *(install only)*
 
 **Note:** Before updating, don't forget to backup your plugin configuration file and to restore it once the update is done.
@@ -82,12 +82,12 @@ also in disk and bandwidth overage billing calculations if enabled for a product
 
 ### TODO
 
-See the TODO file inside the plugin archive.
+See the **[TODO](TODO)** file inside the plugin archive.
 
 ### License
 
 The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
-license in [LICENSE.txt](LICENSE.txt).
+license in **[LICENSE.txt](LICENSE.txt)**.
 
 ### Author
 
