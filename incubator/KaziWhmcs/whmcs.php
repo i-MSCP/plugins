@@ -259,8 +259,8 @@ function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
                     exec_query(
                         'INSERT INTO htaccess_users (dmn_id, uname, upass, status) VALUES (?, ?, ?, ?)',
                         array(
-                            $domainId, $domainNameAscii, cryptPasswordWithSalt($adminPassword,
-                            generateRandomSalt(true)), 'toadd'
+                            $domainId, $domainNameAscii, cryptPasswordWithSalt($adminPassword, generateRandomSalt(true)),
+                            'toadd'
                         )
                     );
 
@@ -281,7 +281,7 @@ function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
                     /** @var iMSCP_Plugin_Manager $pluginManager */
                     $pluginManager = iMSCP_Registry::get('pluginManager');
 
-                    if($pluginManager->getPlugin('KaziWhmcs')->getConfigParam('imscp_welcome_msg', true)) {
+                    if($pluginManager->getPlugin('KaziWhmcs')->getConfigParam('imscp_welcome_msg', false)) {
                         send_add_user_auto_msg(
                             $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName,
                             tr('Customer', true)

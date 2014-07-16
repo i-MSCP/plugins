@@ -9,7 +9,7 @@ Version 0.0.6
     Added: Option allowing to enable/disable sending of the i-MSCP welcome message
     Fixed: i-MSCP login button in client area doesn't work
     Fixed: Plugin doesn't work with non-standard ports
-    Fixed: The generate_user_props() function has been renamed to shared_getCustomerStats() in latest i-MSCP code
+    Fixed: The generate_user_traffic() function has been renamed to shared_getCustomerStats() in latest i-MSCP code
     Fixed: Wrong (truncated) username in pending orders
 
 ------------------------------------------------------------------------------------------------------------------------
