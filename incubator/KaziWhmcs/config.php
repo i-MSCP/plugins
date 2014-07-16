@@ -30,17 +30,5 @@ return array(
     /**
      * Disable/Enable welcome email sent by i-MSCP to customer when a new account is created (default is disabled)
      */
-    'imscp_welcome_msg' => false,
-
-    /**
-     * Does the i-MSCP customer account must be scheduled for deletion when the order which belongs to it in WHMCS is
-     * being deleted?
-     */
-    //'sync_data_on_whmcs_order_deletion' => true,
-
-    /**
-     * Does the i-MSCP customer account must be scheduled for deletion when the client account which belongs to it in
-     * WHMCS is being deleted?
-     */
-    //'sync_data_on_whmcs_client_deletion' => true
+    'imscp_welcome_msg' => false
 );
