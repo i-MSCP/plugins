@@ -3,7 +3,7 @@
 ### Update
 
 In this new version, a hook function has been implemented to fix a problem about wrong usernames generated in pending
-orders . This hook function which is defined in the imscp/hooks.php file need a specific action from your side to be
+orders. This hook function, which is defined in the imscp/hooks.php file, need a specific action from your side to be
 fully operational. Indeed, as stated in the WHMCS documentation:
 
     Hook files in module folders are only called for active modules. And active modules that contain hooks are cached.
@@ -12,7 +12,7 @@ fully operational. Indeed, as stated in the WHMCS documentation:
     configuration or domain registrar configuration for the respective module for it to be detected.
 
 This essentially mean that after uploading the new imscp directory from the plugin archive into the module/servers
-directory of you WHMCS installation, you must, edit and resave each product/addon which uses the imscp module. If you
+directory of you WHMCS installation, you must edit and resave each product/addon which uses the imscp module. If you
 skip that step, the hook function defined in the imscp/hooks.php file will be silently ignored and thus, the module will
 not work properly.
 
