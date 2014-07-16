@@ -1,6 +1,6 @@
 ## KaziWhmcs plugin version 0.0.6 - Errata
 
-### Updates
+### Update
 
 In this new version, a hook function has been implemented to fix a problem about wrong usernames generated in pending
 orders . This hook function which is defined in the imscp/hooks.php file need a specific action from your side to be
