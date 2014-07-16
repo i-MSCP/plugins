@@ -34,6 +34,7 @@ use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
 $ENV{'LC_MESSAGES'} = 'C';
+$ENV{'IMSCP_CLEAR_SCREEN'} = 0;
 
 umask(027);
 
