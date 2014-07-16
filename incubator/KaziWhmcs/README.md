@@ -20,16 +20,15 @@ accounts will be implemented in near future.
 
 1. Login into the panel as admin and go to the plugin management interface
 2. Upload the **KaziWhmcs** plugin archive
-3. Activate the plugin (Update only)
-4. Go to the settings page and disable the "prevent external login..." option for both resellers and clients (install only)
+3. Activate the plugin *(Update only)*
+4. Go to the settings page and disable the "prevent external login..." option for both resellers and clients *(install only)*
 
 **Note:** Before updating, don't forget to backup your plugin configuration file and to restore it once the update is done.
-Don't forget also to read the **[ERRATA.md](ERRATA.md)** file for additional steps which can be required after update.
 
 #### WHMCS side
 
 1. Copy the imscp directory from the plugin archive into the WHMCS server module directory (module/servers)
-2. Setup a new server and products/services using imscp server provisioning module (install only)
+2. Setup a new server and products/services using imscp server provisioning module *(install only)*
 
 **Note:** If you are using a non-standard port (80/443) for access to i-MSCP control panel, add it after the IP/Hostname
 through the server page.
