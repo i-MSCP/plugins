@@ -1,11 +1,14 @@
-## i-MSCP KaziWhmcs plugin v0.0.5
+## i-MSCP KaziWhmcs plugin v0.0.6
 
-Plugin allowing server provisioning through the WHMCS billing software.
+Plugin allowing i-MSCP server provisioning through the WHMCS billing software.
 
 ### Introduction
 
-This plugin provide a bridge between the i-MSCP control panel and the WHMCS
-billing software. It allow server provisioning through WHMCS.
+This plugin provide a bridge between the i-MSCP control panel and the WHMCS billing software. It allow i-MSCP server
+provisioning through WHMCS.
+
+**Note:** At this time, only the hosting accounts can be provisioned through this plugin. The provisioning of reseller
+accounts will be implemented in near future.
 
 ### Requirements
 
@@ -18,30 +21,40 @@ billing software. It allow server provisioning through WHMCS.
 1. Login into the panel as admin and go to the plugin management interface
 2. Upload the **KaziWhmcs** plugin archive
 3. Activate the plugin
+4. Go to the settings page and disable the "prevent external login..." option for both resellers and clients
+
+**Note:** Before updating, don't forget to backup the plugin configuration file and to restore it once the update is done.
 
 #### WHMCS side
 
 1. Copy the imscp directory from the plugin archive into the WHMCS server module directory (module/servers)
 2. Setup a new server and products/services using imscp server provisioning module
 
+**Note:** If you are using a non-standard port (80/443) for access to i-MSCP control panel, add it after the IP/Hostname.
+
+For instance:
+
+    Hostname: panel.domain.tld:4433
+    IP Address: 192.168.5.5:4433
+
 ### Implemented WHMCS module commands (functions)
 
 #### AdminLink
 
-The **AdminLink** function is used to show an i-MSCP login button in the admin area server configuration page.
+The **AdminLink** function is used to show the i-MSCP login button in the admin area server configuration page.
 
 #### LoginLink
 
-The **LoginLink** function is used to show a control panel link on the product management page.
+The **LoginLink** function is used to show the control panel link on the product management page.
 
 #### ClientArea
 
-The **ClientArea** function is used to show an i-MSCP login button in client area.
+The **ClientArea** function is used to show the i-MSCP login and tools buttons in client area.
 
 #### CreateAccount
 
 The **CreateAccount** function is called when a new product is due to be provisionned. This can be invoked
-automatically by WHMCS upon checkout or payment, or  manually by administrator.
+automatically by WHMCS upon checkout or payment, or manually by administrator.
 
 #### SuspendAccount
 
@@ -64,11 +77,9 @@ The **UsageUpdate** function is used to perform a daily import of the disk and b
 server. The data imported is then used to display the usage stats both within the client and admin areas of WHMCS, and
 also in disk and bandwidth overage billing calculations if enabled for a product.
 
-
 ### TODO
 
-* Renew command
-* ChangePackage command
+See the TODO file inside the plugin archive.
 
 ### License
 

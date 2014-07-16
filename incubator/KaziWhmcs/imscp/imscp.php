@@ -47,7 +47,7 @@ function imscp_CreateAccount($params)
         return 'KaziWhmcs: Customer email is not set in WHMCS';
     }
 
-    $ret = _imscp_sendRequest(
+    return _imscp_sendRequest(
         $params['serverhostname'],
         ($params['serversecure'] == 'on') ? true : false,
         array(
@@ -72,22 +72,6 @@ function imscp_CreateAccount($params)
             'street2' => $params['clientsdetails']['address2']
         )
     );
-
-    if ($ret === 'success') {
-        // Override login name (i-MSCP is using domain name as login name)
-        update_query(
-            'tblhosting',
-            array(
-                'username' => $params['domain'],
-                'lastupdate' => 'now()'
-            ),
-            array(
-                'id' => $params['serviceid']
-            )
-        );
-    }
-
-    return $ret;
 }
 
 /**
@@ -276,15 +260,17 @@ function imscp_ClientArea($params)
 
     $host = $params['serverhostname'];
     $username = htmlentities($params['domain'], ENT_QUOTES, 'UTF-8', false);
-    $password = htmlentities($params['serverpassword'], ENT_QUOTES, 'UTF-8', false);
+    $password = htmlentities($params['password'], ENT_QUOTES, 'UTF-8', false);
 
     return <<<EOT
 <form action="$scheme$host" method="post" target="_blank">
     <input type="hidden" name="uname" value="$username" />
     <input type="hidden" name="upass" value="$password" />
     <input type="hidden" name="action" value="login">
-    <input type="submit" value="Login to control panel" />
-    <input type="button" value="Login to Webmail" onClick="window.open('$scheme$host/webmail')" />
+    <input type="submit" value="Control Panel" class="btn" />
+    <input type="button" value="Filemanager" onClick="window.open('$scheme$host/ftp')" class="btn" />
+    <input type="button" value="PhpMyAdmin" onClick="window.open('$scheme$host/pma')" class="btn" />
+    <input type="button" value="Webmail" onClick="window.open('$scheme$host/webmail')" class="btn" />
 </form>
 EOT;
 }
@@ -314,19 +300,21 @@ function _imscp_sendRequest($host, $ssl, array $postData)
             return 'KaziWhmcs: Unable to set sslallowselfsigned option';
         }
 
-        $port = 443;
-    } else {
-        $port = 80;
+        if(strpos($host, ':') === false) {
+            $host .= ':443';
+        }
+    } elseif(strpos($host, ':') === false) {
+        $host .= ':80';
     }
 
     // Open socket connection
     $socket = @stream_socket_client(
-        "$host:$port", $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context
+        $host, $errno, $errstr, KAZIWHMCS_CONNECTION_TIMEOUT, STREAM_CLIENT_CONNECT, $context
     );
 
     if (!$socket) {
         @fclose($socket);
-        return sprintf("KaziWhmcs: Unable to connect to server (%s:%s); %s - %s", $host, $port, $errno, $errstr);
+        return sprintf("KaziWhmcs: Unable to connect to server (%s); %s - %s", $host, $errno, $errstr);
     }
 
     // Set the stream timeout

@@ -2,10 +2,21 @@ i-MSCP KaziWhmcs plugin
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.6
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: Filemanager and PhpMyAdmin buttons in client area
+    Added: Option allowing to enable/disable sending of the i-MSCP welcome message
+    Fixed: i-MSCP login button in client area doesn't work
+    Fixed: Plugin doesn't work with non-standard ports
+    Fixed: The generate_user_props() function has been renamed to shared_getCustomerStats() in latest i-MSCP code
+    Fixed: Wrong (truncated) username in pending orders
+
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Configuration variable `WEB_FOLDER_PROTECTION` is missing
+    Fixed: Configuration variable `WEB_FOLDER_PROTECTION` is missing
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
@@ -13,7 +24,6 @@ Version 0.0.4
 
     Fixed: ChangePassword module command doesn't work
     Fixed: Do not force strong password - Lets WHMCS manage this
-    Small fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
@@ -25,7 +35,6 @@ Version 0.0.3
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-    CS fixes
     Implemented: ChangePassword module command
     Implemented: UsageUpdate module command
 

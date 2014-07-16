@@ -1,0 +1,5 @@
+Account deletion (i-MSCP side) when a client is being deleted from WHMCS
+Account deletion (i-MSCP side) when an active order is being deleted from WHMCS
+ChangePackage command
+Configurable options (WHMCS side) eg. for dedicated IP...
+Renew command

@@ -277,9 +277,16 @@ function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
                     }
 
                     // Send welcome mail to user
-                    send_add_user_auto_msg(
-                        $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName, tr('Customer', true)
-                    );
+
+                    /** @var iMSCP_Plugin_Manager $pluginManager */
+                    $pluginManager = iMSCP_Registry::get('pluginManager');
+
+                    if($pluginManager->getPlugin('KaziWhmcs')->getConfigParam('imscp_welcome_msg', true)) {
+                        send_add_user_auto_msg(
+                            $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName,
+                            tr('Customer', true)
+                        );
+                    }
 
                     exec_query(
                         'INSERT INTO user_gui_props (user_id, lang, layout) VALUES (?, ?, ?)',
@@ -519,7 +526,12 @@ function kaziwhmcs_usageUpdate()
         $usageUpdateData = array();
 
         while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            $stats = generate_user_traffic($row['domain_id']);
+            if(function_exists('generate_user_traffic')) {
+                $stats = generate_user_traffic($row['domain_id']);
+            } else {
+                $stats = shared_getCustomerStats($row['domain_id']);
+            }
+
             $usageUpdateData[] = array(
                 'domain' => decode_idna($stats[0]),
                 'diskusage' => intval(bytesHuman($stats['7'], 'MB', 0, 1000)),
