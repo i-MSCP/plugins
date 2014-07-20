@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.9',
-	'date' => '2014-06-11',
+	'version' => '1.0.0',
+	'date' => '2014-07-20',
 	'name' => 'Monitorix',
 	'desc' => 'Plugin providing lightweight system monitoring tool for Linux/UNIX servers',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'

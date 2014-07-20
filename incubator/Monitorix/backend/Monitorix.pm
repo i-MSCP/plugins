@@ -318,6 +318,8 @@ sub _modifyMonitorixSystemConfig
 		error('Unable to read $monitorixSystemConfig.');
 		return 1;
 	}
+	
+	my $monitorixHttpdConfig = "<httpd_builtin>\n\tenabled = n\n";
 
 	my $monitorixBaseDirConfig = "# Start_BaseDir Added by Plugins::Monitorix\n";
 	$monitorixBaseDirConfig .= "base_dir = /var/www/imscp/gui/plugins/Monitorix/\n";
@@ -328,6 +330,10 @@ sub _modifyMonitorixSystemConfig
 	$monitorixImgDirConfig .= "# Added by Plugins::Monitorix End_ImgDir\n";
 	
 	if($action eq 'add') {
+		if ($fileContent =~ m%^<httpd_builtin.*enabled = y\n%sgm) {
+			$fileContent =~ s%^<httpd_builtin>.*enabled = y\n%$monitorixHttpdConfig%sgm;
+		}
+		
 		if ($fileContent =~ m%^base_dir = /var/lib/monitorix/www/%gm) {
 			$fileContent =~ s%^base_dir = /var/lib/monitorix/www/%$monitorixBaseDirConfig%gm;
 		}

@@ -1,4 +1,4 @@
-## i-MSCP Monitorix plugin v0.0.9
+## i-MSCP Monitorix plugin v1.0.0
 
 Plugin providing lightweight system monitoring tool for Linux/UNIX servers.
 
