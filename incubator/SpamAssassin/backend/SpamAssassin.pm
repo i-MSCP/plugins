@@ -172,6 +172,10 @@ sub enable
 	# Add Postfix configuration
 	$rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
+	
+	# Activate Roundcube Plugins
+	$rs = $self->_setRoundcubePlugin('add');
+	return $rs if $rs;
 
 	$self->_restartDaemonPostfix();
 }
@@ -202,10 +206,7 @@ sub disable
 	return $rs if $rs;
 
 	# Deactivate Roundcube Plugins
-	$rs = $self->_setRoundcubePlugin('sauserprefs', 'remove');
-	return $rs if $rs;
-
-	$rs = $self->_setRoundcubePlugin('markasjunk2', 'remove');
+	$rs = $self->_setRoundcubePlugin('remove');
 	return $rs if $rs;
 
 	# Remove Postfix configuration
@@ -922,7 +923,7 @@ sub _removeRoundcubePlugins()
 	0;
 }
 
-=item _setRoundcubePlugin($plugin, $action)
+=item _setRoundcubePlugin($action)
 
  Activate or deactivate the Roundcube Plugin.
 
@@ -930,9 +931,12 @@ sub _removeRoundcubePlugins()
 
 =cut
 
-sub _setRoundcubePlugin($$$)
+sub _setRoundcubePlugin($$)
 {
-	my ($self, $plugin, $action) = @_;
+	my ($self, $action) = @_;
+	
+	my $spamassassinPlugins = "";
+	my $roundcubePluginConfig = "";
 
 	# Modify the roundcube main.inc.php
 	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
@@ -944,21 +948,25 @@ sub _setRoundcubePlugin($$$)
 		return 1;
 	}
 
-	if($action eq 'add') {
-		if ($fileContent =~ /$plugin/sgm) {
-			$fileContent =~ s/,\s+'$plugin'//g;
+	if($action eq 'add') {		
+		if($self->{'config'}->{'sauserprefs'} eq 'yes') {
+			$spamassassinPlugins = "'sauserprefs'";
 		}
-
-		if ($fileContent =~ /imscp_pw_changer/sgm) {
-			$fileContent =~ s/,\s+'$plugin'//g;
-			$fileContent =~ s/imscp_pw_changer/imscp_pw_changer', '$plugin/g;
+		if($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
+			$spamassassinPlugins .= ($spamassassinPlugins eq '') ? "'markasjunk2'" : ", 'markasjunk2'";
 		}
+		
+		$fileContent =~ s/^\n# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
+		
+		$roundcubePluginConfig = "\n# Begin Plugin::SpamAssassin\n";
+		$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $spamassassinPlugins . "));\n";
+		$roundcubePluginConfig .= "# Ending Plugin::SpamAssassin\n";
+		
+		$fileContent .= $roundcubePluginConfig;
 	} elsif($action eq 'remove') {
-		if ($fileContent =~ /$plugin/sgm) {
-			$fileContent =~ s/,\s+'$plugin'//g;
-		}
+		$fileContent =~ s/^\n# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 	}
-
+	
 	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
@@ -1109,30 +1117,19 @@ sub _checkRoundcubePlugins
 
 	my $rs = 0;
 
-	if($self->{'config'}->{'sauserprefs'} eq 'yes') {
-		$rs = $self->_setRoundcubePlugin('sauserprefs', 'add');
-		return $rs if $rs;
-	} else {
-		$rs = $self->_setRoundcubePlugin('sauserprefs', 'remove');
-		return $rs if $rs;
-	}
-
 	if($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
-		$rs = $self->_setRoundcubePlugin('markasjunk2', 'add');
-		return $rs if $rs;
-
 		$rs = $self->_registerCronjob('bayes_sa-learn');
 		return $rs if $rs;
 	} else {
-		$rs = $self->_setRoundcubePlugin('markasjunk2', 'remove');
-		return $rs if $rs;
-
 		$rs = $self->_unregisterCronjob('bayes_sa-learn');
 		return $rs if $rs;
 
 		$rs = $self->bayesSaLearn();
 		return $rs if $rs;
 	}
+	
+	$rs = $self->_setRoundcubePlugin('add');
+	return $rs if $rs;
 
 	0;
 }
@@ -1225,7 +1222,7 @@ sub _setRoundcubePluginConfig($$)
 		$fileContent =~ s/\{GUI_ROOT_DIR\}/$guiRootDir/g;
 	}
 
-	my $rs = $file->set($fileContent);
+	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$rs = $file->save();
@@ -1311,10 +1308,10 @@ sub _setupDatabase
 	}
 
 	# Create the SpamAssassin database user with the necessary privileges
-	my $rs = $self->_getSaDbPassword();
+	$rs = $self->_getSaDbPassword();
 	return $rs if $rs;
 
-	my $rs = $db->doQuery(
+	$rs = $db->doQuery(
 		'dummy', "GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@? IDENTIFIED BY ?;",  $self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}, $self->{'SA_DATABASE_PASSWORD'}
 	);
 	unless(ref $rs eq 'HASH') {
