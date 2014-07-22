@@ -288,7 +288,7 @@ sub _modifyPostfixMainConfig($$)
 
 	$fileContent =~ s/(\s*reject_unlisted_recipient,\n)/$1$policyService/gm;
 
-	my $rs = $file->set($fileContent);
+	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$rs = $file->save();
@@ -413,7 +413,7 @@ sub _servicePorts($$$)
 	}
 
 	my @sql = ('UPDATE `config` SET `value` = ? WHERE `name` = ?', $newValue, $service);
-	my $rdata = iMSCP::Database->factory->doQuery('dummy', @sql);
+	$rdata = iMSCP::Database->factory->doQuery('dummy', @sql);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
