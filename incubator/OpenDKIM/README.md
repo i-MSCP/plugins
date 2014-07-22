@@ -1,4 +1,4 @@
-## i-MSCP OpenDKIM plugin v0.0.3
+## i-MSCP OpenDKIM plugin v0.0.4
 
 Plugin providing an OpenDKIM implementation for i-MSCP.
 

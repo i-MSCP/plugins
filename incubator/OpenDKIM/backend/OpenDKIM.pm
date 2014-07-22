@@ -327,7 +327,7 @@ sub _addOpendkimDomainKey($$$$)
 	my $rs = $self->_deleteOpendkimDomainKey($domainId, $aliasId, $domain);
 	return $rs if $rs;
 
-	my $rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->make(
+	$rs = iMSCP::Dir->new('dirname' => "/etc/opendkim/keys/$domain")->make(
 		{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
 	);
 	return $rs if $rs;
