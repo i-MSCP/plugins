@@ -1,4 +1,4 @@
-## i-MSCP AdminerSQL plugin v0.0.3
+## i-MSCP AdminerSQL plugin v0.0.4
 
 Plugin allowing to manage i-MSCP databases through Adminer.
 

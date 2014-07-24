@@ -57,6 +57,8 @@ use parent 'Common::SingletonClass';
 
 sub enable()
 {
+	my $rs = 0;
+	
 	# Load plugin configuration
 	my $rdata = iMSCP::Database->factory()->doQuery(
 		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
@@ -80,11 +82,11 @@ sub enable()
 	# Copy needed css file
 	unless($config->{'theme'} eq 'default') {
 		my $file = iMSCP::File->new('filename' => "$sourcesPath/designs/$config->{'theme'}/adminer.css");
-		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
+		$rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
 		return $rs if $rs;
 	} else {
 		my $file = iMSCP::File->new('filename' => "$sourcesPath/adminer/static/default_sik.css");
-		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
+		$rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
 		return $rs if $rs;
 	}
 
@@ -93,13 +95,13 @@ sub enable()
 
 	# Compile Adminer PHP file
 	my ($stdout, $stderr);
-	my $rs = execute("$compileCmd $driver $language", \$stdout, \$stderr);
+	$rs = execute("$compileCmd $driver $language", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Compile Adminer Editor PHP file
-	my $rs = execute("$compileCmd editor $driver $language", \$stdout, \$stderr);
+	$rs = execute("$compileCmd editor $driver $language", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
