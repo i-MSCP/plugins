@@ -1,50 +1,3 @@
-<script type="text/javascript">
-	/*<![CDATA[*/
-	$(document).ready(function () {
-		$('.datatable').dataTable({ "oLanguage": {DATATABLE_TRANSLATIONS}, "iDisplayLength": 5 });
-
-		$('#list_dialog').dialog({
-			bgiframe: true,
-			title: '{TR_MAIL_LIST}',
-			hide: 'blind',
-			show: 'slide',
-			focus: false,
-			autoOpen: {LIST_DIALOG_OPEN},
-			width: '650',
-			modal: true,
-			dialogClass: 'body',
-			buttons: {
-				"{TR_APPLY}": function () {
-					$('#list_frm').submit();
-				},
-				"{TR_CANCEL}": function () {
-					$('#list_frm').find("input[type=text], input[type=password]").val("");
-					$("#list_name").attr("readonly", false);
-					$(this).dialog("close");
-				}
-			}
-		});
-
-		$(window).scroll(function () {
-			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
-		});
-
-		$(window).resize(function () {
-			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
-		});
-
-		// PHP Editor settings button
-		$('#add_list').button({ icons: { primary: 'ui-icon-gear'}}).click(function (e) {
-			$('#list_dialog').dialog('open');
-			return false;
-		});
-	});
-
-	function confirm_deletion(list_name) {
-		return confirm(sprintf('{TR_CONFIRM_DELETION}', list_name));
-	}
-	/*]]>*/
-</script>
 
 <!-- BDP: email_lists -->
 <table class="datatable">
@@ -105,3 +58,49 @@
 		<input type="hidden" name="action" value="{ACTION}"/>
 	</form>
 </div>
+
+<script>
+	$(document).ready(function () {
+		$('.datatable').dataTable({ "oLanguage": {DATATABLE_TRANSLATIONS}, "iDisplayLength": 5 });
+
+		$('#list_dialog').dialog({
+			bgiframe: true,
+			title: '{TR_MAIL_LIST}',
+			hide: 'blind',
+			show: 'slide',
+			focus: false,
+			autoOpen: {LIST_DIALOG_OPEN},
+			width: '650',
+			modal: true,
+			dialogClass: 'body',
+			buttons: {
+				"{TR_APPLY}": function () {
+					$('#list_frm').submit();
+				},
+				"{TR_CANCEL}": function () {
+					$('#list_frm').find("input[type=text], input[type=password]").val("");
+					$("#list_name").attr("readonly", false);
+					$(this).dialog("close");
+				}
+			}
+		});
+
+		$(window).scroll(function () {
+			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
+		});
+
+		$(window).resize(function () {
+			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
+		});
+
+		// PHP Editor settings button
+		$('#add_list').button({ icons: { primary: 'ui-icon-gear'}}).click(function (e) {
+			$('#list_dialog').dialog('open');
+			return false;
+		});
+	});
+
+	function confirm_deletion(list_name) {
+		return confirm(sprintf('{TR_CONFIRM_DELETION}', list_name));
+	}
+</script>

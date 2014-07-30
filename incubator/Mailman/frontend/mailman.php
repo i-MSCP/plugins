@@ -1,29 +1,21 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by Laurent Declercq
+ * i-MSCP Mailman plugin
+ * Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  HelloWorld
- * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /***********************************************************************************************************************
@@ -49,7 +41,7 @@ function mailman_manageList()
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
 		if (!preg_match('/[-_a-z0-9+]/i', $listName)) {
-			set_page_message(tr("List name is not valid"), 'error');
+			set_page_message(tr('List name is not valid'), 'error');
 			$error = true;
 		}
 
@@ -66,28 +58,21 @@ function mailman_manageList()
 		}
 
 		if (!$error) {
-			/** @var iMSCP_Config_Handler_File $cfg */
-			$cfg = iMSCP_Registry::get('config');
-
 			if ($listId === '-1') { // New email list
 				try {
 					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
 					# Add email list data into the mailman table
-					$query = '
-						INSERT INTO `mailman` (
-							`mailman_admin_id`, `mailman_admin_email`, `mailman_admin_password`, `mailman_list_name`,
-							`mailman_status`
-						) VALUES(
-							?, ?, ?, ?, ?
-						)
-					';
 					exec_query(
-						$query,
-						array(
-							$mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName,
-							$cfg['ITEM_TOADD_STATUS']
-						)
+						'
+							INSERT INTO mailman (
+								mailman_admin_id, mailman_admin_email, mailman_admin_password, mailman_list_name,
+								mailman_status
+							) VALUES(
+								?, ?, ?, ?, ?
+							)
+						',
+						array($mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName, 'toadd')
 					);
 				} catch (iMSCP_Exception_Database $e) {
 					if ($e->getCode() == 23000) { // Duplicate entries
@@ -99,24 +84,20 @@ function mailman_manageList()
 					}
 				}
 			} else { // List update
-				$query = '
-					UPDATE
-						`mailman`
-					SET
-						`mailman_admin_email` = ?, `mailman_admin_password` = ?, `mailman_status` = ?
-					WHERE
-						`mailman_id` = ?
-					AND
-						`mailman_admin_id` = ?
-					AND
-						`mailman_status` = ?
-				';
 				$stmt = exec_query(
-					$query,
-					array(
-						$adminEmail, $adminPassword, $cfg->ITEM_TOCHANGE_STATUS, $listId, $_SESSION['user_id'],
-						$cfg['ITEM_OK_STATUS']
-					)
+					'
+						UPDATE
+							mailman
+						SET
+							mailman_admin_email = ?, mailman_admin_password = ?, mailman_status = ?
+						WHERE
+							mailman_id = ?
+						AND
+							mailman_admin_id = ?
+						AND
+							mailman_status = ?
+					',
+					array($adminEmail, $adminPassword, 'tochange', $listId, $_SESSION['user_id'], 'ok')
 				);
 
 				if (!$stmt->rowCount()) {
@@ -146,13 +127,12 @@ function mailman_manageList()
  */
 function mailman_deleteList($listId)
 {
-	/** @var iMSCP_Config_Handler_File $cfg */
-	$cfg = iMSCP_Registry::get('config');
-
 	$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
-	$query = 'UPDATE`mailman` SET `mailman_status` = ? WHERE `mailman_id` = ? AND `mailman_admin_id` = ?';
-	$stmt = exec_query($query, array($cfg['ITEM_TODELETE_STATUS'], $listId, $mainDmnProps['domain_admin_id']));
+	$stmt = exec_query(
+		'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ? AND mailman_admin_id = ?',
+		array('todelete', $listId, $mainDmnProps['domain_admin_id'])
+    );
 
 	if (!$stmt->rowCount()) {
 		showBadRequestErrorPage();
@@ -170,22 +150,22 @@ function mailman_deleteList($listId)
  */
 function mailman_generatePage($tpl)
 {
-	/** @var iMSCP_Config_Handler_File $cfg */
-	$cfg = iMSCP_Registry::get('config');
 
-	$query = '
-		SELECT
-			`t1`.*, `t2`.`domain_name`
-		FROM
-			`mailman` AS `t1`
-		INNER JOIN
-			`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
-		WHERE
-			`t1`.`mailman_admin_id` = ?
-		ORDER BY
-			`t1`.`mailman_list_name`
-	';
-	$stmt = exec_query($query, $_SESSION['user_id']);
+	$stmt = exec_query(
+		'
+			SELECT
+				t1.*, t2.domain_name
+			FROM
+				mailman AS t1
+			INNER JOIN
+				domain AS t2 ON (t2.domain_admin_id = t1.mailman_admin_id)
+			WHERE
+				t1.mailman_admin_id = ?
+			ORDER BY
+				t1.mailman_list_name
+		',
+		$_SESSION['user_id']
+	);
 	$lists = $stmt->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
 
 	if ($stmt->rowCount()) {
@@ -200,7 +180,7 @@ function mailman_generatePage($tpl)
 				)
 			);
 
-			if ($listData['mailman_status'] == $cfg['ITEM_OK_STATUS']) {
+			if ($listData['mailman_status'] == 'ok') {
 				$tpl->assign(
 					array(
 						'EDIT_LINK' => "mailman.php?action=edit&list_id=$listId",
@@ -241,7 +221,7 @@ function mailman_generatePage($tpl)
 				array(
 					'LIST_DIALOG_OPEN' => 1,
 					'LIST_NAME' => tohtml($listData['mailman_list_name']),
-					'LIST_NAME_READONLY' => $cfg['HTML_READONLY'],
+					'LIST_NAME_READONLY' => ' readonly="readonly"',
 					'ADMIN_EMAIL' => tohtml($listData['mailman_admin_email']),
 					'ADMIN_PASSWORD' => '',
 					'ADMIN_PASSWORD_CONFIRM' => '',
@@ -272,7 +252,7 @@ function mailman_generatePage($tpl)
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
 check_login('user');
 
@@ -328,7 +308,7 @@ $tpl->assign(
 		'TR_ADMIN_PASSWORD' => tr('Password'),
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
 		'TR_URL' => tr('Url'),
-		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s mailing list.', false, '%s'),
+		'TR_CONFIRM_DELETION' => tr('Please, confirm the deletion of the %s mailing list.', false, '%s'),
 		'TR_APPLY' => tojs(tr('Apply', false)),
 		'TR_CANCEL' => tojs(tr('Cancel', false))
 	)
@@ -340,7 +320,7 @@ generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();
 

@@ -6,28 +6,22 @@
 
 =cut
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by Laurent Declercq
+# i-MSCP Mailman plugin
+# Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @category    i-MSCP
-# @copyright   Copyright (C) 2010-2013 by Laurent Declercq
-# @author      Laurent Declercq <l.declercq@nuxwin.com>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 package Plugin::Mailman;
 
@@ -70,7 +64,7 @@ my $disabledListsDir = '/var/cache/imscp/mailman/suspended.lists';
 
 sub install
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	# Check plugin requirements
 	my $rs = _checkRequirements();
@@ -86,7 +80,7 @@ sub install
 		}
 
 		my $fileContent = $file->get();
-		return 1 if ! defined $fileContent;
+		return 1 unless defined $fileContent;
 
 		$fileContent =~ s#^(DEFAULT_URL_PATTERN\s*=\s*).*$#$1'http://%s/'#gm;
 		$fileContent =~ s/^#\s*(MTA\s*=\s*None)/$1/im;
@@ -145,18 +139,16 @@ sub install
 
 sub change
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	my $db = iMSCP::Database->factory();
-
-	my $rdata = $db->doQuery(
-		'dummy', "UPDATE `mailman` SET `mailman_status` = 'tochange' WHERE `mailman_status` = 'ok'"
+	$rs = iMSCP::Database->factory()->doQuery(
+		'dummy', 'UPDATE mailman SET mailman_status = ? WHERE mailman_status = ?',' tochange', 'ok'
 	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
+	unless(ref $rs eq 'HASH') {
+		error($rs);
 		return 1;
 	}
 
@@ -173,9 +165,7 @@ sub change
 
 sub update
 {
-	my $self = shift;
-
-	$self->change();
+	$_[0]->change();
 }
 
 =item uninstall()
@@ -188,17 +178,17 @@ sub update
 
 sub uninstall
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $db = iMSCP::Database->factory();
 
-	my $rdata = $db->doQuery('dummy', "UPDATE `mailman` SET `mailman_status` = 'todelete'");
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
+	my $rs = $db->doQuery('dummy', "UPDATE `mailman` SET `mailman_status` = 'todelete'");
+	unless(ref $rs eq 'HASH') {
+		error($rs);
 		return 1;
 	}
 
-	my $rs = $self->run();
+	$rs = $self->run();
 	return $rs if $rs;
 
 	# TODO Remove mailman conf from main.cf file
@@ -301,13 +291,13 @@ sub run
 		'mailman_id',
 		"
 			SELECT
-				`t1`.*, `t2`.`domain_name`, `t2`.`domain_id`
+				t1.*, t`.domain_name, t2.domain_id
 			FROM
-				`mailman` AS `t1`
+				mailman AS t1
 			INNER JOIN
-				`domain` AS `t2` ON (`t2`.`domain_admin_id` = `t1`.`mailman_admin_id`)
+				domain AS t2 ON (t2.domain_admin_id = t1.mailman_admin_id)
 			WHERE
-				`mailman_status` IN('toadd', 'tochange', 'todelete', 'toenable', 'todisable')
+				mailman_status IN('toadd', 'tochange', 'todelete', 'toenable', 'todisable')
 		"
 	);
 	unless(ref $listData eq 'HASH') {
@@ -324,25 +314,25 @@ sub run
 			if($status eq 'toadd') {
 				$rs = $self->_addList($data);
 				@sql = (
-					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+					'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $data->{'mailman_id'}
 				);
 			} elsif($status eq 'tochange') {
 				$rs = $self->_updateList($data);
 				@sql = (
-					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+					'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $data->{'mailman_id'}
 				);
 			} elsif($status eq 'toenable') {
 				$rs = $self->_enableList($data);
 				@sql = (
-					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+					'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'), $data->{'mailman_id'}
 				);
 			} elsif($status eq 'todisable') {
 				$rs = $self->_disableList($data);
 				@sql = (
-					'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+					'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ?',
 					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'disabled'), $data->{'mailman_id'}
 				);
 			} elsif($status eq 'todelete') {
@@ -350,11 +340,11 @@ sub run
 
 				if($rs) {
 					@sql = (
-						'UPDATE `mailman` SET `mailman_status` = ? WHERE `mailman_id` = ?',
+						'UPDATE mailman SET mailman_status = ? WHERE mailman_id = ?',
 						scalar getMessageByType('error') || 'Unknown error', $data->{'mailman_id'}
 					);
 				} else {
-					@sql = ('DELETE FROM `mailman` WHERE `mailman_id` = ?', $data->{'mailman_id'});
+					@sql = ('DELETE FROM mailman WHERE mailman_id = ?', $data->{'mailman_id'});
 				}
 			}
 
@@ -385,8 +375,7 @@ sub run
 
 sub _addList($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my ($rs, $stdout, $stderr);
 
@@ -521,7 +510,7 @@ sub _addList($$)
 
 =item _updateList(\%data)
 
- Update list (admin email and password)
+ Update the given mailing list (admin email and password)
 
  Return int 0 on success, other on failure
 
@@ -529,8 +518,7 @@ sub _addList($$)
 
 sub _updateList($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my ($rs, $stdout, $stderr);
 
@@ -562,7 +550,7 @@ sub _updateList($$)
 
 =item _enableList(\%data)
 
- Enable list
+ Enable the given mailing list
 
  Return int 0 on success, other on failure
 
@@ -570,8 +558,7 @@ sub _updateList($$)
 
 sub _enableList($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	if(-d "$disabledListsDir/$data->{'domain_name'}/$data->{'mailman_list_name'}") {
 		iMSCP::Dir->new(
@@ -586,7 +573,7 @@ sub _enableList($$)
 
 =item _disableList(\%data)
 
- Disable mailing list
+ Disable the given mailing list
 
  Return int 0 on success, other on failure
 
@@ -594,8 +581,7 @@ sub _enableList($$)
 
 sub _disableList($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	if(-d "$enabledListsDir/$data->{'domain_name'}/$data->{'mailman_list_name'}") {
 		iMSCP::Dir->new(
@@ -610,7 +596,7 @@ sub _disableList($$)
 
 =item _deleteList(\%data)
 
- Delete mailing list
+ Delete the given mailing list
 
  Return int 0 on success, other on failure
 
@@ -618,8 +604,7 @@ sub _disableList($$)
 
 sub _deleteList($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my @cmdArgs = ('-a', escapeShell($data->{'mailman_list_name'}));
 	my ($stdout, $stderr);
@@ -743,7 +728,6 @@ sub _deleteList($$)
 	0;
 }
 
-
 =item _addlListsVhost(\%data)
 
  Add vhost for mailing list
@@ -754,8 +738,7 @@ sub _deleteList($$)
 
 sub _addlListsVhost($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my $userName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
 		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'mailman_admin_id'});
@@ -767,7 +750,7 @@ sub _addlListsVhost($$)
 	};
 
 	my $vhost = iMSCP::TemplateParser::process($variables, $self->_getListVhostTemplate());
-	return 1 if ! $vhost;
+	return 1 unless defined $vhost;
 
 	my $httpd = Servers::httpd->factory();
 
@@ -803,8 +786,7 @@ sub _addlListsVhost($$)
 
 sub _deleteListsVhost($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my $httpd = Servers::httpd->factory();
 	my $vhostFilePath = "$httpd->{'config'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf";
@@ -834,8 +816,7 @@ sub _deleteListsVhost($$)
 
 sub _addListsDnsRecord($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my $db = iMSCP::Database->factory();
 	my $rawDb = $db->startTransaction();
@@ -843,8 +824,8 @@ sub _addListsDnsRecord($$)
 	eval{
 		$rawDb->do(
 			'
-				INSERT IGNORE INTO `domain_dns` (
-					`domain_id`, `alias_id`, `domain_dns`, `domain_class`, `domain_type`, `domain_text`, `owned_by`
+				INSERT IGNORE INTO domain_dns (
+					domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
 				) VALUES(
 					?, ?, ?, ?, ?, ?, ?
 				)
@@ -855,7 +836,7 @@ sub _addListsDnsRecord($$)
 
 		# TODO Only that status should be updated? What about subdomain...
 		$rawDb->do(
-			'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ?', undef, 'tochange', $data->{'domain_id'}
+			'UPDATE domain SET domain_status = ? WHERE domain_id = ?', undef, 'tochange', $data->{'domain_id'}
 		);
 
 		$rawDb->commit();
@@ -883,8 +864,7 @@ sub _addListsDnsRecord($$)
 
 sub _deleteListsDnsRecord($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my $db = iMSCP::Database->factory();
 	my $rawDb = $db->startTransaction();
@@ -897,7 +877,7 @@ sub _deleteListsDnsRecord($$)
 
 		# TODO Only that status should be updated? What about subdomain...
 		$rawDb->do(
-			'UPDATE `domain` SET `domain_status` = ? WHERE `domain_id` = ? AND `domain_status` = ?',
+			'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status = ?',
 			undef, 'tochange', $data->{'domain_id'}, 'ok'
 		);
 
@@ -965,8 +945,7 @@ EOF
 
 sub _listExists($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	my($stdout, $stderr);
 	my $rs = execute("/usr/lib/mailman/bin/list_lists -b", \$stdout, \$stderr);
@@ -992,7 +971,7 @@ sub _listExists($$)
 
 sub _checkRequirements
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my($rs, $stdout, $stderr);
 

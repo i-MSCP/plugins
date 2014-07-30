@@ -1,38 +1,25 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by Laurent Declercq
+ * i-MSCP Mailman plugin
+ * Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Mailman
- * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /**
- * Mailman Plugin.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Mailman
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * Mailman Plugin
  */
 class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 {
@@ -216,8 +203,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function getItemWithErrorStatus()
 	{
-		$cfg = iMSCP_Registry::get('config');
-
 		$stmt = exec_query(
 			"
 				SELECT
@@ -228,12 +213,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				WHERE
 					mailman_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 			",
-			array(
-				$cfg['ITEM_OK_STATUS'], $cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'],
-				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
-				$cfg['ITEM_TODELETE_STATUS']
-			)
-		);
+			array('ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete'));
 
 		if ($stmt->rowCount()) {
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -252,12 +232,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function changeItemStatus($table, $field, $itemId)
 	{
-		$cfg = iMSCP_Registry::get('config');
 		if ($table == 'mailman' && $field == 'mailman_status') {
-			exec_query(
-				'UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?',
-				array($cfg['ITEM_TOCHANGE_STATUS'], $itemId)
-			);
+			exec_query('UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?', array('tochange', $itemId));
 		}
 	}
 
@@ -268,17 +244,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function getCountRequests()
 	{
-		/** @var $cfg iMSCP_Config_Handler_File */
-		$cfg = iMSCP_Registry::get('config');
-
 		$query = 'SELECT COUNT(mailman_id) AS cnt FROM mailman WHERE mailman_status IN (?, ?, ?, ?, ?, ?)';
-		$stmt = exec_query(
-			$query,
-			array(
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
-			)
-		);
+		$stmt = exec_query($query, array('disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete'));
 
 		return $stmt->fields['cnt'];
 	}
