@@ -35,9 +35,9 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **1.** Plugin upload and update
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the Mailman plugin archive
-	- Activate the plugin
+ - Login into the panel as admin and go to the plugin management interface
+ - Upload the Mailman plugin archive
+ - Activate the plugin
 
 ### Known bugs
 
@@ -52,8 +52,8 @@ license in **[LICENSE.txt](LICENSE.txt)**.
 
 Development of this plugin has been sponsored by
 
- - [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
  - [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
+ - [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
 
 ### Author
 
