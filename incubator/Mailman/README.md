@@ -4,10 +4,10 @@ Plugin allowing to manage mailing-lists through i-MSCP using Mailman.
 
 ### Requirements
 
- i-MSCP versions >= 1.1.11 (plugin API >= 0.2.10)
- Mailman
+ - i-MSCP versions >= 1.1.11 (plugin API >= 0.2.10)
+ - Mailman
 
-Note It's assumed that you are using Mailman as provided by the Debian/Ubuntu mailman package.
+**Note:** It's assumed that you are using Mailman as provided by the Debian/Ubuntu mailman package.
 
 ### Installation
 
@@ -27,11 +27,11 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **5.** Plugin upload and installation
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the Mailman plugin archive
-	- Activate the plugin
+ - Login into the panel as admin and go to the plugin management interface
+ - Upload the Mailman plugin archive
+ - Activate the plugin
 
-### UPDATE
+### Update
 
 **1.** Plugin upload and update
 
@@ -39,7 +39,7 @@ This is really needed. Without this list, mailman will refuse to start.
 	- Upload the Mailman plugin archive
 	- Activate the plugin
 
-### KNOWN BUGS
+### Known bugs
 
  - [Debian Related - wrong permissions, causes archiving to fail](http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=603904 "Wrong permissions, causes archiving to fail")
 
@@ -52,8 +52,8 @@ license in **[LICENSE.txt](LICENSE.txt)**.
 
 Development of this plugin has been sponsored by
 
- [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
- [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
+ - [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
+ - [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
 
 ### Author
 
