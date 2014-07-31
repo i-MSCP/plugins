@@ -197,7 +197,7 @@ sub uninstall
 		return 1;
 	}
 
-	# Process mailing list deletion
+	# Process mailing lists deletion
 	$rs = $self->run();
 	return $rs if $rs;
 
@@ -272,8 +272,6 @@ sub enable
 	}
 
 	$self->run();
-
-	0;
 }
 
 =item disable()
@@ -297,8 +295,6 @@ sub disable
 	}
 
 	$self->run();
-
-	0;
 }
 
 =item run()
@@ -407,6 +403,8 @@ sub _init
 {
 	my $self = $_[0];
 
+	$self->{'FORCE_RETVAL'} = 'yes';
+
 	$self->{'db'} = iMSCP::Database->factory();
 
 	$self;
@@ -421,7 +419,7 @@ sub _init
 
 =cut
 
-sub _addList()
+sub _addList
 {
 	my ($self, $data) = @_;
 
@@ -553,7 +551,7 @@ sub _addList()
 
 =cut
 
-sub _updateList()
+sub _updateList
 {
 	my ($self, $data) = @_;
 
@@ -593,7 +591,7 @@ sub _updateList()
 
 =cut
 
-sub _enableList()
+sub _enableList
 {
 	my ($self, $data) = @_;
 
@@ -624,7 +622,7 @@ sub _enableList()
 
 =cut
 
-sub _disableList()
+sub _disableList
 {
 	my ($self, $data) = @_;
 
@@ -652,7 +650,7 @@ sub _disableList()
 
 =cut
 
-sub _deleteList()
+sub _deleteList
 {
 	my ($self, $data) = @_;
 
@@ -771,7 +769,7 @@ sub _deleteList()
 
 =cut
 
-sub _addListsVhost()
+sub _addListsVhost
 {
 	my ($self, $data) = @_;
 
@@ -825,7 +823,7 @@ sub _addListsVhost()
 
 =cut
 
-sub _deleteListsVhost($$)
+sub _deleteListsVhost
 {
 	my ($self, $data) = @_;
 
@@ -860,7 +858,7 @@ sub _deleteListsVhost($$)
 
 =cut
 
-sub _addListsDnsRecord($$)
+sub _addListsDnsRecord
 {
 	my ($self, $data) = @_;
 
@@ -903,7 +901,7 @@ sub _addListsDnsRecord($$)
 
 =cut
 
-sub _deleteListsDnsRecord($$)
+sub _deleteListsDnsRecord
 {
 	my ($self, $data) = @_;
 
@@ -981,7 +979,7 @@ EOF
 
 =cut
 
-sub _listExists($$)
+sub _listExists
 {
 	my ($self, $data) = @_;
 
