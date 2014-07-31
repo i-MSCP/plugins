@@ -215,12 +215,12 @@ sub uninstall
 	my $beginTag = "# Mailman plugin - Begin";
 	my $endingTag = "# Mailman plugin - Ending";
 
-	$fileContent = replaceBloc("$beginTag\n", "$endingTag\n", '');
+	$fileContent = replaceBloc("$beginTag\n", "$endingTag\n", '', $fileContent);
 
 	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$rs = $file->save(),
+	$rs = $file->save();
 	return $rs if $rs;
 
 	# Install postfix main.cf file in production directory
@@ -246,7 +246,34 @@ sub uninstall
 	}
 
 	# Drop mailman table if any
-	$db->doQuery('dummy', 'DROP TABLE IF EXISTS mailman');
+	$rs = $db->doQuery('dummy', 'DROP TABLE IF EXISTS mailman');
+	unless(ref $rs eq 'HASH') {
+		error($rs);
+		return 1;
+	}
+
+	require JSON;
+	JSON->import();
+
+	$rs = iMSCP::Database->factory()->doQuery(
+		'plugin_name', 'SELECT plugin_name, plugin_info FROM plugin WHERE plugin_name = ?', 'Mailman'
+	);
+	unless(ref $rs eq 'HASH') {
+		error($rs);
+		return 1;
+	}
+
+	# Workaround to reset db schema version after uninstallation (will be fixed soon)
+	my $pluginInfo = decode_json($rs->{'Mailman'}->{'plugin_info'});
+	$pluginInfo->{'db_schema_version'} = '000';
+
+	$rs = $db->doQuery(
+		'dummy', 'UPDATE plugin SET plugin_info = ? WHERE plugin_name = ?', encode_json($pluginInfo), 'Mailman'
+	);
+	unless(ref $rs eq 'HASH') {
+		error($rs);
+		return 1;
+	}
 
 	0;
 }
@@ -983,18 +1010,9 @@ sub _listExists
 {
 	my ($self, $data) = @_;
 
-	my($stdout, $stderr);
-	my $rs = execute('/usr/lib/mailman/bin/list_lists -b', \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+	my @cmd = ('/usr/lib/mailman/bin/list_lists -b | grep -q', escapeShell("^$data->{'mailman_list_name'}\$"));
 
-	if(defined $stdout) {
-		my @lists = split "\n", $stdout;
-		return ($data->{'mailman_list_name'} ~~ @lists);
-	}
-
-	0;
+	execute("@cmd") ? 0 : 1;
 }
 
 =item _checkRequirements
@@ -1008,8 +1026,6 @@ sub _listExists
 sub _checkRequirements
 {
 	my $self = $_[0];
-
-	my($rs, $stdout, $stderr);
 
 	if(! -d '/usr/lib/mailman') {
 		error('Unable to find mailman library directory. Please, install mailman first.');
