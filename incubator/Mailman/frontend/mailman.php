@@ -208,7 +208,7 @@ function mailman_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You do not have created any mailing list.'), 'info');
+		set_page_message(tr('You do not have created any mailing list yet.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
@@ -261,7 +261,7 @@ if (isset($_REQUEST['action'])) {
 
 	if ($action == 'add') {
 		if (mailman_manageList()) {
-			set_page_message(tr('Mailing list successfully scheduled for addition'), 'success');
+			set_page_message(tr('Mailing list successfully scheduled for creation'), 'success');
 			redirectTo('mailman.php');
 		}
 	} elseif ($action == 'edit') {

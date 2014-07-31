@@ -48,7 +48,7 @@ my $disabledListsDir = '/var/cache/imscp/mailman/suspended.lists';
 
 =head1 DESCRIPTION
 
- This package provides backend part for the i-MSCP Mailman plugin.
+ This package provides the backend side of the i-MSCP Mailman plugin.
 
 =head1 PUBLIC METHODS
 
@@ -66,7 +66,7 @@ sub install
 {
 	my $self = $_[0];
 
-	# Check plugin requirements
+	# Check for requirements
 	my $rs = _checkRequirements();
 	return $rs if $rs;
 
@@ -131,7 +131,7 @@ sub install
 
  Update mailman plugin
 
- TODO on change, every DNS record should be updated to ensure that the IP still valid (in case of IP update)
+ TODO on change, every DNS record should be updated to ensure that the IP is still valid (in case of IP update)
 
  Return int 0 on success, other on failure
 
@@ -144,6 +144,7 @@ sub change
 	my $rs = $self->install();
 	return $rs if $rs;
 
+	# Schedule change of any mailing list
 	$rs = iMSCP::Database->factory()->doQuery(
 		'dummy', 'UPDATE mailman SET mailman_status = ? WHERE mailman_status = ?',' tochange', 'ok'
 	);
@@ -153,19 +154,6 @@ sub change
 	}
 
 	$self->run();
-}
-
-=item update()
-
- Update mailman plugin
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	$_[0]->change();
 }
 
 =item uninstall()
@@ -182,7 +170,8 @@ sub uninstall
 
 	my $db = iMSCP::Database->factory();
 
-	my $rs = $db->doQuery('dummy', "UPDATE `mailman` SET `mailman_status` = 'todelete'");
+	# Schedule deletion of any mailing list
+	my $rs = $db->doQuery('dummy', "UPDATE mailman SET mailman_status = 'todelete'");
 	unless(ref $rs eq 'HASH') {
 		error($rs);
 		return 1;
@@ -198,7 +187,7 @@ sub uninstall
 	#my $rs = iMSCP::Dir->new('dirname' => $dir) if -d $dir;
 	#return $rs if $rs;
 
-	# Restore original /etc/mailman/mm_cfg.py file
+	# Restore original /etc/mailman/mm_cfg.py file if any
 	if( -f '/etc/mailman/mm_cfg.py.dist') {
 		$rs = iMSCP::File->new(
 			'filename' => '/etc/mailman/mm_cfg.py.dist'
@@ -208,8 +197,8 @@ sub uninstall
 		return $rs if $rs;
 	}
 
-	# Drop mailman table
-	$db->doQuery('dummy', 'DROP TABLE IF EXISTS `mailman`');
+	# Drop mailman table if any
+	$db->doQuery('dummy', 'DROP TABLE IF EXISTS mailman');
 
 	0;
 }
@@ -224,7 +213,7 @@ sub uninstall
 
 sub enable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	#	try {
 	#		exec_query('UPDATE `mailman` SET `mailman_status` = ?', $cfg->ITEM_TOENABLE_STATUS);
@@ -247,7 +236,7 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+	my $self = $_[0];
 
 		#try {
 		#	exec_query(
@@ -273,7 +262,7 @@ sub disable
 
 =item run()
 
- Run all scheduled actions according lists status
+ Run all scheduled actions according status of mailing lists
 
  Return int 0 on success, other on failure
 
@@ -281,7 +270,7 @@ sub disable
 
 sub run
 {
-	my $self = shift;
+	my $self = $_[0];
 
 	my $db = iMSCP::Database->factory();
 	my $rs = 0;
@@ -291,7 +280,7 @@ sub run
 		'mailman_id',
 		"
 			SELECT
-				t1.*, t`.domain_name, t2.domain_id
+				t1.*, t2.domain_name, t2.domain_id
 			FROM
 				mailman AS t1
 			INNER JOIN
@@ -305,9 +294,9 @@ sub run
 		return 1;
 	}
 
-	# Process action acording mailing list status
+	# Process action acording list status
 	if(%{$listData}) {
-		for my $data(values %{$listData}) {
+		for my $data (values %{$listData}) {
 			my $status = $data->{'mailman_status'};
 			my @sql;
 
@@ -367,19 +356,20 @@ sub run
 
 =item _addList(\%data)
 
- Add list
+ Add a mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _addList($$)
+sub _addList()
 {
 	my ($self, $data) = @_;
 
 	my ($rs, $stdout, $stderr);
 
-	if(!$self->_listExists($data)) {
+	unless($self->_listExists($data)) {
 		my @cmdArgs = (
 			'-q',
 			'-u', escapeShell("lists.$data->{'domain_name'}"),
@@ -404,17 +394,18 @@ sub _addList($$)
 	);
 
 	# Backup current working transport table if any
-	$rs = iMSCP::File->new(
-		'filename' => "$mta->{'wrkDir'}/transport"
-	)->copyFile(
-		"$mta->{'bkpDir'}/transport." . time
-	) if -f "$mta->{'wrkDir'}/transport";
-	return $rs if $rs;
+	if(-f "$mta->{'wrkDir'}/transport") {
+		$rs = iMSCP::File->new(
+			'filename' => "$mta->{'wrkDir'}/transport"
+		)->copyFile(
+			"$mta->{'bkpDir'}/transport." . time
+		);
+		return $rs if $rs;
+	}
 
 	my $file = iMSCP::File->new('filename' => "$mta->{'wrkDir'}/transport");
 	my $content = $file->get();
-
-	if(! defined $content) {
+	unless(defined $content) {
 		error("Unable to read $mta->{'wrkDir'}/transport file");
 		return 1;
 	}
@@ -442,17 +433,18 @@ sub _addList($$)
 	# Add mailboxes entries - Begin
 
 	# Backup current wokring mailboxes table if any
-	$rs = iMSCP::File->new(
-		'filename' => "$mta->{'wrkDir'}/mailboxes"
-	)->copyFile(
-		"$mta->{'bkpDir'}/transport." . time
-	) if -f "$mta->{'wrkDir'}/mailboxes";
-	return $rs if $rs;
+	if(-f "$mta->{'wrkDir'}/mailboxes") {
+		$rs = iMSCP::File->new(
+			'filename' => "$mta->{'wrkDir'}/mailboxes"
+		)->copyFile(
+			"$mta->{'bkpDir'}/transport." . time
+		);
+		return $rs if $rs;
+	}
 
 	$file = iMSCP::File->new('filename' => "$mta->{'wrkDir'}/mailboxes");
 	$content = $file->get();
-
-	if(! defined $content){
+	unless(defined $content){
 		error("Unable to read $mta->{'wrkDir'}/mailboxes");
 		return 1;
 	}
@@ -487,7 +479,7 @@ sub _addList($$)
 
 	my $rdata = $db->doQuery(
 		'mailman_id',
-		'SELECT `mailman_id` FROM `mailman` WHERE `mailman_admin_id` = ? LIMIT 2',
+		'SELECT mailman_id FROM mailman WHERE mailman_admin_id = ? LIMIT 2',
 		$data->{'mailman_admin_id'}
 	);
 	unless(ref $rdata eq 'HASH') {
@@ -510,13 +502,14 @@ sub _addList($$)
 
 =item _updateList(\%data)
 
- Update the given mailing list (admin email and password)
+ Update a mailing list (admin email and password)
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _updateList($$)
+sub _updateList()
 {
 	my ($self, $data) = @_;
 
@@ -550,13 +543,14 @@ sub _updateList($$)
 
 =item _enableList(\%data)
 
- Enable the given mailing list
+ Enable a mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _enableList($$)
+sub _enableList()
 {
 	my ($self, $data) = @_;
 
@@ -573,13 +567,14 @@ sub _enableList($$)
 
 =item _disableList(\%data)
 
- Disable the given mailing list
+ Disable ta mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _disableList($$)
+sub _disableList()
 {
 	my ($self, $data) = @_;
 
@@ -596,13 +591,14 @@ sub _disableList($$)
 
 =item _deleteList(\%data)
 
- Delete the given mailing list
+ Delete a mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _deleteList($$)
+sub _deleteList()
 {
 	my ($self, $data) = @_;
 
@@ -625,17 +621,18 @@ sub _deleteList($$)
 	# Delete transport entries - Begin
 
 	# Backup current working transport table if any
-	$rs = iMSCP::File->new(
-		'filename' => "$mta->{'wrkDir'}/transport"
-	)->copyFile(
-		"$mta->{'bkpDir'}/transport." . time
-	) if -f "$mta->{'wrkDir'}/transport";
-	return $rs if $rs;
+	if (-f "$mta->{'wrkDir'}/transport") {
+		$rs = iMSCP::File->new(
+			'filename' => "$mta->{'wrkDir'}/transport"
+		)->copyFile(
+			"$mta->{'bkpDir'}/transport." . time
+		);
+		return $rs if $rs;
+	}
 
 	my $file = iMSCP::File->new('filename' => "$mta->{'wrkDir'}/transport");
 	my $content = $file->get();
-
-	if(! defined $content){
+	unless(defined $content){
 		error("Unable to read $mta->{'wrkDir'}/transport");
 		return 1;
 	}
@@ -671,8 +668,7 @@ sub _deleteList($$)
 
 	$file = iMSCP::File->new('filename' => "$mta->{'wrkDir'}/mailboxes");
 	$content = $file->get();
-
-	if(! defined $content){
+	unless(defined $content){
 		error("Unable to read $mta->{'wrkDir'}/mailboxes");
 		return 1;
 	}
@@ -732,11 +728,12 @@ sub _deleteList($$)
 
  Add vhost for mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _addlListsVhost($$)
+sub _addlListsVhost()
 {
 	my ($self, $data) = @_;
 
@@ -744,9 +741,9 @@ sub _addlListsVhost($$)
 		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'mailman_admin_id'});
 
 	my $variables = {
-		BASE_SERVER_IP => $main::imscpConfig{'BASE_SERVER_IP'},
-		DOMAIN_NAME => $data->{'domain_name'},
-		USER => $userName
+		'BASE_SERVER_IP' => $main::imscpConfig{'BASE_SERVER_IP'},
+		'DOMAIN_NAME' => $data->{'domain_name'},
+		'USER' => $userName
 	};
 
 	my $vhost = iMSCP::TemplateParser::process($variables, $self->_getListVhostTemplate());
@@ -754,9 +751,10 @@ sub _addlListsVhost($$)
 
 	my $httpd = Servers::httpd->factory();
 
-	my $file = iMSCP::File->new(
-		'filename' => "$httpd->{'config'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf"
-	);
+	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Andromeda')
+		? $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'} : $httpd->{'config'}->{'APACHE_SITES_DIR'};
+
+	my $file = iMSCP::File->new('filename' => "$apacheSitesDir/lists.$data->{'domain_name'}.conf");
 
 	my $rs = $file->set($vhost);
 	return $rs if $rs;
@@ -780,6 +778,7 @@ sub _addlListsVhost($$)
 
  Delete mailing list vhost
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
@@ -789,7 +788,11 @@ sub _deleteListsVhost($$)
 	my ($self, $data) = @_;
 
 	my $httpd = Servers::httpd->factory();
-	my $vhostFilePath = "$httpd->{'config'}->{'APACHE_SITES_DIR'}/lists.$data->{'domain_name'}.conf";
+
+	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Andromeda')
+		? $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'} : $httpd->{'config'}->{'APACHE_SITES_DIR'};
+
+	my $vhostFilePath = "$apacheSitesDir/lists.$data->{'domain_name'}.conf";
 
 	if(-f $vhostFilePath) {
 		my $rs = $httpd->disableSite("lists.$data->{'domain_name'}.conf");
@@ -799,7 +802,7 @@ sub _deleteListsVhost($$)
 		$rs = $file->delFile();
 		return $rs if $rs;
 
-		# Schedule Apache reload
+		# Schedule Apache restart
 		$httpd->{'restart'} = 'yes';
 	}
 
@@ -810,6 +813,7 @@ sub _deleteListsVhost($$)
 
  Add DNS record for mailing list
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
@@ -858,6 +862,7 @@ sub _addListsDnsRecord($$)
 
  Delete mailing list DNS record
 
+ Param hash $data Mailing list data
  Return int 0 on success, other on failure
 
 =cut
@@ -871,8 +876,7 @@ sub _deleteListsDnsRecord($$)
 
 	eval {
 		$rawDb->do(
-			'DELETE FROM `domain_dns` WHERE `domain_id` = ? AND `owned_by` = ?',
-			undef, $data->{'domain_id'}, 'plugin_mailman'
+			'DELETE FROM domain_dns WHERE domain_id = ? AND owned_by = ?', undef, $data->{'domain_id'}, 'plugin_mailman'
 		);
 
 		# TODO Only that status should be updated? What about subdomain...
@@ -920,8 +924,7 @@ sub _getListVhostTemplate
     Include /etc/mailman/apache.conf
     ScriptAlias / /usr/lib/cgi-bin/mailman/
 
-    # Disable mailman web-based list creation and destruction..
-    # i-MSCP manages this!
+    # Disable mailman web-based list creation and destruction... i-MSCP manages this!
     Redirect /mailman/create /mailman/admin
     Redirect /mailman/rmlist /mailman/admin
     Redirect /mailman/edithtml /mailman/admin
@@ -954,7 +957,7 @@ sub _listExists($$)
 	return $rs if $rs;
 
 	if(defined $stdout) {
-		my @lists = split("\n", $stdout);
+		my @lists = split "\n", $stdout;
 		return ($data->{'mailman_list_name'} ~~ @lists);
 	}
 

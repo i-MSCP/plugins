@@ -27,6 +27,7 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **5.** Plugin upload and installation
 
+ - Download the Mailman plugin archive through the plugin store
  - Login into the panel as admin and go to the plugin management interface
  - Upload the Mailman plugin archive
  - Activate the plugin
@@ -35,6 +36,7 @@ This is really needed. Without this list, mailman will refuse to start.
 
 **1.** Plugin upload and update
 
+ - Download the Mailman plugin archive through the plugin store
  - Login into the panel as admin and go to the plugin management interface
  - Upload the Mailman plugin archive
  - Activate the plugin
