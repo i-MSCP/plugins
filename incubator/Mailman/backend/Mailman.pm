@@ -215,7 +215,7 @@ sub uninstall
 	my $beginTag = "# Mailman plugin - Begin";
 	my $endingTag = "# Mailman plugin - Ending";
 
-	$fileContent = replaceBloc("$beginTag\n", "$endingTag\n", '', $fileContent);
+	$fileContent = replaceBloc("\n$beginTag\n", "$endingTag\n", '', $fileContent);
 
 	$rs = $file->set($fileContent);
 	return $rs if $rs;
