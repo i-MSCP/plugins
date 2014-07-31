@@ -832,8 +832,13 @@ sub _addListsVhost
 	$rs = $file->mode(0644);
 	return $rs if $rs;
 
-	$rs = $httpd->enableSite("lists.$data->{'domain_name'}.conf");
-	return $rs if $rs;
+	if($httpd->can('enableSite')) {
+		$rs = $httpd->enableSite("lists.$data->{'domain_name'}.conf");
+		return $rs if $rs;
+	} else {
+		$rs = $httpd->enableSites("lists.$data->{'domain_name'}.conf");
+		return $rs if $rs;
+	}
 
 	# Schedule Apache restart
 	$httpd->{'restart'} = 'yes';
@@ -862,11 +867,16 @@ sub _deleteListsVhost
 	my $vhostFilePath = "$apacheSitesDir/lists.$data->{'domain_name'}.conf";
 
 	if(-f $vhostFilePath) {
-		my $rs = $httpd->disableSite("lists.$data->{'domain_name'}.conf");
-		return $rs if $rs;
+		if($httpd->can('disableSite')) {
+			my $rs = $httpd->disableSite("lists.$data->{'domain_name'}.conf");
+			return $rs if $rs;
+		} else {
+			my $rs = $httpd->disableSites("lists.$data->{'domain_name'}.conf");
+			return $rs if $rs;
+		}
 
 		my $file = iMSCP::File->new('filename' => $vhostFilePath);
-		$rs = $file->delFile();
+		my $rs = $file->delFile();
 		return $rs if $rs;
 
 		# Schedule Apache restart
