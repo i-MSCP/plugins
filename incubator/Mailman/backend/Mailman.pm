@@ -109,15 +109,6 @@ sub install
 
 	my $mta = Servers::mta->factory();
 
-	#my ($stdout, $stderr);
-	#$rs = execute(
-	#	"$mta->{'config'}->{'CMD_POSTCONF'} -c $mta->{'wrkDir'} -e mailman_destination_recipient_limit=1",
-	#	\$stdout, \$stderr
-	#);
-	#debug($stdout) if $stdout;
-	#error($stderr) if $stderr && $rs;
-	#return $rs if $rs;
-
 	my $file = iMSCP::File->new('filename' => "$mta->{'wrkDir'}/main.cf");
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
@@ -203,7 +194,7 @@ sub uninstall
 	my $db = $self->{'db'};
 
 	# Schedule deletion of any mailing list
-	my $rs = $db->doQuery('dummy', "UPDATE mailman SET mailman_status = 'todelete'");
+	my $rs = $db->doQuery('dummy', 'UPDATE mailman SET mailman_status = ?', 'todelete');
 	unless(ref $rs eq 'HASH') {
 		error($rs);
 		return 1;
@@ -843,8 +834,8 @@ sub _deleteListsVhost($$)
 
 	my $httpd = Servers::httpd->factory();
 
-	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Andromeda')
-		? $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'} : $httpd->{'config'}->{'APACHE_SITES_DIR'};
+	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Eagle')
+		? $httpd->{'config'}->{'APACHE_SITES_DIR'} : $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'};
 
 	my $vhostFilePath = "$apacheSitesDir/lists.$data->{'domain_name'}.conf";
 
