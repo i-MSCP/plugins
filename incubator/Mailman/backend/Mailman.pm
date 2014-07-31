@@ -2,7 +2,7 @@
 
 =head1 NAME
 
- Plugin::Mailman - i-MSCP Mailman plugin (backend)
+ Plugin::Mailman - i-MSCP Mailman plugin (backend side)
 
 =cut
 
@@ -36,16 +36,14 @@ use iMSCP::TemplateParser;
 use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Net;
-
 use Servers::httpd;
 use Servers::mta;
-
 use File::Temp;
 
 use parent 'Common::SingletonClass';
 
 my $enabledListsDir = '/var/lib/mailman/lists';
-my $disabledListsDir = '/var/cache/imscp/mailman/suspended.lists';
+my $disabledListsDir = '/var/cache/imscp/mailman/disabled.lists';
 
 =head1 DESCRIPTION
 
@@ -97,11 +95,10 @@ sub install
 	}
 
 	# Create directory for disabled lists or set it permissions if it already exist
-	my $dir = iMSCP::Dir->new('dirname', $disabledListsDir);
-	$rs = $dir->make(
+	$rs = iMSCP::Dir->new('dirname', $disabledListsDir)->make(
 		'user' => $main::imscpConfig{'ROOT_USER'},
 		'group' => $main::imscpConfig{'ROOT_GROUP'},
-		'mode' => '0640'
+		'mode' => '0750'
 	);
 	return $rs if $rs;
 
