@@ -77,7 +77,7 @@ function mailman_manageList()
 				} catch (iMSCP_Exception_Database $e) {
 					if ($e->getCode() == 23000) { // Duplicate entries
 						set_page_message(
-							tr("List %s already exists. Please choose other name.", $listName), 'warning'
+							tr("This list already exist. Please, choose other name.", $listName), 'warning'
 						);
 
 						return false;

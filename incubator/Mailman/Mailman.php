@@ -123,11 +123,16 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeAddSubdomain($event)
 	{
-		if ($event->getParam('subdomainName') == 'lists' && $event->getParam('subdomainType') == 'dmn') {
-			set_page_message(tr('This subdomain is reserved for mailing list usage.'), 'error');
-		}
+		if ($event->getParam('subdomainType') == 'dmn') {
+			$subdomain = $event->getParam('subdomainName');
+			$stmt = exec_query('SELECT domain_name FROM domain WHERE domain_id = ?', $event->getParam('parentDomainId'));
+			$row = $stmt->fetchRow();
 
-		redirectTo('subdomain_add.php');
+			if($subdomain === 'lists.' . decode_idna($row['domain_name'])) {
+				set_page_message(tr('This subdomain is reserved for mailing list usage.'), 'error');
+				redirectTo('subdomain_add.php');
+			}
+		}
 	}
 
 	/**
@@ -222,7 +227,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
 				$page->addPage(
 					array(
-						'label' => tohtml(tr('Mailing List management')),
+						'label' => tohtml(tr('Mailing Lists')),
 						'uri' => '/client/mailman.php',
 						'title_class' => 'email',
 						'order' => 3
@@ -245,7 +250,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		if (!isset($cfg['MTA_SERVER']) || $cfg['MTA_SERVER'] != 'postfix') {
 			set_page_message(tr('Mailman plugin require i-MSCP Postfix server implementation'), 'error');
 			return false;
-		} elseif (!isset($cfg['HTTPD_SERVER']) || strpos($cfg['HTTPD_SERVER'], 'apache_') !== 0) {
+		} elseif (!isset($cfg['HTTPD_SERVER']) || strpos($cfg['HTTPD_SERVER'], 'apache_') === false) {
 			set_page_message(tr('Mailman plugin require i-MSCP Apache server implementation'), 'error');
 			return false;
 		} elseif (!isset($cfg['NAMED_SERVER']) || $cfg['NAMED_SERVER'] != 'bind') {

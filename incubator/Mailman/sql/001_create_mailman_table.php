@@ -12,7 +12,7 @@ return array(
 			PRIMARY KEY (mailman_id),
 			UNIQUE KEY mailman_list_name (mailman_list_name),
 			KEY mailman_admin_id (mailman_admin_id)
-		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 	",
 	'down' => '
 		DROP TABLE IF EXISTS mailman
