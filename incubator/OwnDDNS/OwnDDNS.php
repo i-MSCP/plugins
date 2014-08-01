@@ -588,7 +588,7 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 					FROM
 						`ownddns`
 					WHERE
-						`ownddns_status` IN (?, ?, ?, ?, ?, ?)
+						`ownddns_status` IN (?, ?, ?, ?, ?)
 				)
 				+
 				(
@@ -597,17 +597,17 @@ class iMSCP_Plugin_OwnDDNS extends iMSCP_Plugin_Action
 					FROM
 						`ownddns_accounts`
 					WHERE
-						`ownddns_account_status` IN (?, ?, ?, ?, ?, ?)
+						`ownddns_account_status` IN (?, ?, ?, ?, ?)
 				)
 			) AS `count`
 		';
 		$stmt = exec_query(
 			$query,
 			array(
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'],
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+				$cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'],
+				$cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS']
 			)
 		);
 

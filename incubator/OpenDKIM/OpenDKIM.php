@@ -335,8 +335,8 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	public function getCountRequests()
 	{
 		$stmt = exec_query(
-			'SELECT COUNT(opendkim_id) AS cnt FROM opendkim WHERE opendkim_status IN (?, ?, ?, ?, ?, ?)',
-			array('disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+			'SELECT COUNT(opendkim_id) AS cnt FROM opendkim WHERE opendkim_status IN (?, ?, ?, ?, ?)',
+			array('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 		);
 
 		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);

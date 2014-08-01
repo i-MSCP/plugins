@@ -414,7 +414,7 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 			'
 				SELECT
 				(
-					(SELECT COUNT(`jailkit_id`) FROM `jailkit` WHERE `jailkit_status` IN (?, ?, ?, ?, ?, ?))
+					(SELECT COUNT(`jailkit_id`) FROM `jailkit` WHERE `jailkit_status` IN (?, ?, ?, ?, ?))
 					+
 					(
 						SELECT
@@ -422,15 +422,15 @@ class iMSCP_Plugin_JailKit extends iMSCP_Plugin_Action
 						FROM
 							`jailkit_login`
 						WHERE
-							`jailkit_login_status` IN (?, ?, ?, ?, ?, ?)
+							`jailkit_login_status` IN (?, ?, ?, ?, ?)
 					)
 				) AS `count`
 			',
 			array(
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'],
-				$cfg['ITEM_DISABLED_STATUS'], $cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'],
-				$cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS']
+				$cfg['ITEM_TOADD_STATUS'], $cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'],
+				$cfg['ITEM_TODISABLE_STATUS'], $cfg['ITEM_TODELETE_STATUS'], $cfg['ITEM_TOADD_STATUS'],
+				$cfg['ITEM_TOCHANGE_STATUS'], $cfg['ITEM_TOENABLE_STATUS'], $cfg['ITEM_TODISABLE_STATUS'],
+				$cfg['ITEM_TODELETE_STATUS']
 			)
 		);
 
