@@ -163,8 +163,8 @@ sub change
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	# Schedule change of any mailing list (here we are using the 'toadd' in place because the 'tochange' status is used
-	# for email and password update only).
+	# Schedule change of any mailing list (# We are using the 'toadd' status because the 'tochange' status is used for
+	# email and password update only)).
 	$rs = $self->{'db'}->doQuery(
 		'dummy', 'UPDATE mailman SET mailman_status = ? WHERE mailman_status = ?',' toadd', 'ok'
 	);

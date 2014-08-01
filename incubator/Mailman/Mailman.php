@@ -194,7 +194,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function changeItemStatus($table, $field, $itemId)
 	{
 		if ($table == 'mailman' && $field == 'mailman_status') {
-			exec_query('UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?', array('tochange', $itemId));
+			# We are using the 'toadd' status because the 'tochange' status is used for email and password update only)
+			exec_query('UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?', array('toadd', $itemId));
 		}
 	}
 
@@ -206,8 +207,8 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function getCountRequests()
 	{
 		$stmt = exec_query(
-			'SELECT COUNT(mailman_id) AS cnt FROM mailman WHERE mailman_status IN (?, ?, ?, ?, ?, ?)',
-			array('disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+			'SELECT COUNT(mailman_id) AS cnt FROM mailman WHERE mailman_status IN (?, ?, ?, ?, ?)',
+			array('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 		);
 
 		$row = $stmt->fetchRow();
