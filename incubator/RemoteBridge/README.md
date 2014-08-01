@@ -1,4 +1,4 @@
-## i-MSCP RemoteBridge plugin v0.0.3
+## i-MSCP RemoteBridge plugin v0.0.4
 
 Plugin providing an API which allows to manage i-MSCP accounts.
 
