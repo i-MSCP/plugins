@@ -1,4 +1,4 @@
-## i-MSCP OwnDDNS plugin v0.0.3
+## i-MSCP OwnDDNS plugin v0.0.4
 
 Plugin allowing to manage your own DDNS service with i-MSCP.
 

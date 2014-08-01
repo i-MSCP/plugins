@@ -569,10 +569,20 @@ function ownddns_EditAccount($tpl, $userId, $accountID)
 	}
 }
 
-function ownddns_DeleteAccount($tpl, $userId, $accountID)
+function ownddns_DeleteAccount($tpl, $pluginManager, $userId, $accountID)
 {
 	/** @var $cfg iMSCP_Config_Handler_File */
 	$cfg = iMSCP_Registry::get('config');
+	
+	if (($plugin = $pluginManager->loadPlugin('OwnDDNS', false, false)) !== null) 
+	{
+		$pluginConfig = $plugin->getConfig();
+	} else {
+		set_page_message(
+			tr("Can't load plugin configuration!"), 'error'
+		);
+		redirectTo('ownddns.php');
+	}
 	
 	$query = "
 		SELECT
@@ -602,7 +612,7 @@ function ownddns_DeleteAccount($tpl, $userId, $accountID)
 					`domain_dns` = ?
 				AND 
 					`owned_by` = ?
-			', array($stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'], 'OwnDDNS_Plugin')
+			', array($stmt->fields['domain_id'], $stmt->fields['alias_id'], $stmt->fields['ownddns_account_name'] . ' ' . $pluginConfig['update_ttl_time'], 'OwnDDNS_Plugin')
 		);
 			
 		exec_query('DELETE FROM `ownddns_accounts` WHERE `ownddns_account_id` = ?', $accountID);
@@ -750,7 +760,7 @@ if (iMSCP_Plugin_OwnDDNS::customerHasOwnDDNS($_SESSION['user_id'])) {
 			$accountID = (isset($_GET['ownddns_account_id'])) ? clean_input($_GET['ownddns_account_id']) : '';
 			
 			if($accountID != '') {
-				if (ownddns_DeleteAccount($tpl, $_SESSION['user_id'], $accountID)) {
+				if (ownddns_DeleteAccount($tpl, $pluginManager, $_SESSION['user_id'], $accountID)) {
 					set_page_message(tr('OwnDDNS account successfully scheduled for deletion'), 'success');
 					redirectTo('ownddns.php');
 				}
