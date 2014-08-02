@@ -163,8 +163,8 @@ sub change
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	# Schedule change of any mailing list (# We are using the 'toadd' status because the 'tochange' status is used for
-	# email and password update only)).
+	# Schedule change of any mailing list
+	# We are using the 'toadd' status because the 'tochange' status is used for email and password update only.
 	$rs = $self->{'db'}->doQuery(
 		'dummy', 'UPDATE mailman SET mailman_status = ? WHERE mailman_status = ?',' toadd', 'ok'
 	);
@@ -344,11 +344,13 @@ sub run
 		'mailman_id',
 		"
 			SELECT
-				t1.*, t2.domain_name, t2.domain_id
+				t1.*, t2.domain_name, t2.domain_id, t3.ip_number AS ip_addr
 			FROM
 				mailman AS t1
 			INNER JOIN
 				domain AS t2 ON (t2.domain_admin_id = t1.mailman_admin_id)
+			INNER JOIN
+				server_ips AS t3 on(t3.ip_id = t2.domain_ip_id)
 			WHERE
 				mailman_status IN('toadd', 'tochange', 'todelete', 'toenable', 'todisable')
 		"
@@ -803,9 +805,12 @@ sub _addListsVhost
 	my $userName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
 		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'mailman_admin_id'});
 
+	my $ipAddr = $data->{'ip_addr'};
+	my $ipMngr = iMSCP::Net->getInstance();
+
 	my $vhost = iMSCP::TemplateParser::process(
 		{
-			'BASE_SERVER_IP' => $main::imscpConfig{'BASE_SERVER_IP'},
+			'DOMAIN_IP_ADDR' => ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? $ipAddr : '[' . $ipAddr . ']',
 			'DOMAIN_NAME' => $data->{'domain_name'},
 			'USER' => $userName
         },
@@ -840,7 +845,7 @@ sub _addListsVhost
 		return $rs if $rs;
 	}
 
-	# Schedule Apache restart
+	# Schedule Apache restart (reload)
 	$httpd->{'restart'} = 'yes';
 
 	0;
@@ -879,7 +884,7 @@ sub _deleteListsVhost
 		my $rs = $file->delFile();
 		return $rs if $rs;
 
-		# Schedule Apache restart
+		# Schedule Apache restart (reload)
 		$httpd->{'restart'} = 'yes';
 	}
 
@@ -902,12 +907,13 @@ sub _addListsDnsRecord
 	my $rs = $self->_deleteListsDnsRecord($data);
 	return $rs if $rs;
 
-	my $ipAddr = $main::imscpConfig{'BASE_SERVER_IP'};
-
+	my $ipAddr = $data->{'ip_addr'};
 	my $ipMngr = iMSCP::Net->getInstance();
 
 	if($ipMngr->can('getAddrType')) {
-		$ipAddr = $main::imscpConfig{'BASE_SERVER_PUBLIC_IP'} unless $ipMngr->getAddrType($ipAddr) eq 'PUBLIC';
+		$ipAddr = ($ipMngr->getAddrType($data->{'ip_addr'}) eq 'PUBLIC')
+			? $data->{'ip_addr'}
+			: $main::imscpConfig{'BASE_SERVER_PUBLIC_IP'};
 	}
 
 	$rs = $self->{'db'}->doQuery(
@@ -919,7 +925,13 @@ sub _addListsDnsRecord
 				?, ?, ?, ?, ?, ?, ?
 			)
 		',
-		$data->{'domain_id'}, '0', "lists.$data->{'domain_name'}.", 'IN', 'A', $ipAddr, 'plugin_mailman'
+		$data->{'domain_id'},
+		'0',
+		"lists.$data->{'domain_name'}.",
+		'IN',
+		($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? 'A' : 'AAAA',
+		$ipAddr,
+		'plugin_mailman'
 	);
 	unless(ref $rs eq 'HASH') {
 		error($rs);
@@ -981,7 +993,7 @@ sub _deleteListsDnsRecord
 sub _getListVhostTemplate
 {
 	<<EOF;
-<VirtualHost {BASE_SERVER_IP}:80>
+<VirtualHost {DOMAIN_IP_ADDR}:80>
     ServerAdmin webmaster\@{DOMAIN_NAME}
     ServerName lists.{DOMAIN_NAME}
 
@@ -1020,9 +1032,9 @@ sub _listExists
 {
 	my ($self, $data) = @_;
 
-	my @cmd = ('/usr/lib/mailman/bin/list_lists -b | grep -q', escapeShell("^$data->{'mailman_list_name'}\$"));
+	my @cmdArgs = (escapeShell("^$data->{'mailman_list_name'}\$"));
 
-	execute("@cmd") ? 0 : 1;
+	(execute("/usr/lib/mailman/bin/list_lists -b | grep -q @cmdArgs")) ? 0 : 1;
 }
 
 =item _checkRequirements
@@ -1037,7 +1049,7 @@ sub _checkRequirements
 {
 	my $self = $_[0];
 
-	if(! -d '/usr/lib/mailman') {
+	unless(-d '/usr/lib/mailman') {
 		error('Unable to find mailman library directory. Please, install mailman first.');
 		return 1;
 	}

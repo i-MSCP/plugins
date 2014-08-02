@@ -150,7 +150,6 @@ function mailman_deleteList($listId)
  */
 function mailman_generatePage($tpl)
 {
-
 	$stmt = exec_query(
 		'
 			SELECT
