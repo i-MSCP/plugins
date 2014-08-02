@@ -21,22 +21,21 @@
  * @package     iMSCP_Plugin
  * @subpackage  RoundcubePlugins
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de> 
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+$sqlUserHost = iMSCP_Registry::get('config')->DATABASE_USER_HOST;
+$roundcubeConfig = new iMSCP_Config_Handler_File(iMSCP_Registry::get('config')->CONF_DIR . '/roundcube/roundcube.data');
+
 return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.8',
-	'date' => '2014-08-02',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+	'up' => "
+		GRANT SELECT (`mail_addr`), UPDATE (`mail_pass`, `status`) ON `imscp`.`mail_users` TO '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
+	",
+	'down' => "
+		REVOKE ALL PRIVILEGES ON `mail_users` FROM '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
+	"
 );

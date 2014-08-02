@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2011 by i-MSCP team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,25 +18,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  RoundcubePlugins
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de> 
- * @author      Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
+ * @package     iMSCP Roundcube password changer
+ * @copyright   2010-2011 by i-MSCP team
+ * @author 		Sascha Bay
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
+ 
+$labels = array();
+$labels['changepasswd']  = 'Passwort Ändern';
+$labels['newpasswd']  = 'Neues Passwort';
+$labels['confpasswd']  = 'Passwort Wiederholung';
 
-return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.8',
-	'date' => '2014-08-02',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
-);
+$messages = array();
+$messages['nopassword'] = 'Bitte geben Sie ein neues Passwort ein';
+$messages['passwordinconsistency'] = 'Das neue Passwort und dessen Wiederholung stimmen nicht überein';
+$messages['connecterror'] = 'Neues Passwort nicht gespeichert: Verbindungsfehler';
+$messages['internalerror'] = 'Neues Passwort nicht gespeichert';
+$messages['passwordlenght'] = 'Password hat zu wenig Zeichen! Vorgabe sind: ';
+?>

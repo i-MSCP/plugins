@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2013 by i-MSCP team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,26 +17,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  RoundcubePlugins
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de> 
- * @author      Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * @category  iMSCP
+ * @package   iMSCP Roundcube password changer
+ * @copyright 2010-2013 by i-MSCP team
+ * @author    Sascha Bay
+ * @link      http://www.i-mscp.net i-MSCP Home Site
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.8',
-	'date' => '2014-08-02',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
-);
+// Password Plugin options
+// -----------------------
+// A driver to use for password change. Default: "sql".
+$rcmail_config['password_driver'] = 'sql';
+
+// SQL Driver options
+// ------------------
+// PEAR database DSN for performing the query. By default
+// Roundcube DB settings are used.
+$rcmail_config['password_db_dsn'] = 'mysqli://{ROUNDCUBE_USERNAME}:{ROUNDCUBE_PASSWORD}@{DATABASE_HOST}/{IMSCP_DATABASE}';
+
+$rcmail_config['password_length'] = 6;
+
+?>

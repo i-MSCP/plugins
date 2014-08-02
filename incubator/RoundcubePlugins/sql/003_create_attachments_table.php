@@ -21,22 +21,30 @@
  * @package     iMSCP_Plugin
  * @subpackage  RoundcubePlugins
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de> 
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+
 return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.8',
-	'date' => '2014-08-02',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+	'up' => "
+		CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`attachments` (
+			`attachment_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+			`event_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
+			`filename` varchar(255) NOT NULL DEFAULT '',
+			`mimetype` varchar(255) NOT NULL DEFAULT '',
+			`size` int(11) NOT NULL DEFAULT '0',
+			`data` longtext NOT NULL DEFAULT '',
+			PRIMARY KEY(`attachment_id`),
+			CONSTRAINT `fk_attachments_event_id` FOREIGN KEY (`event_id`)
+			REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
+		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+	",
+	'down' => "
+		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`attachments`;
+	"
 );

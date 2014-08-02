@@ -21,22 +21,37 @@
  * @package     iMSCP_Plugin
  * @subpackage  RoundcubePlugins
  * @copyright   Rene Schuster <mail@reneschuster.de>
- * @copyright   Sascha Bay <info@space2place.de> 
+ * @copyright   Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+
 return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '0.0.8',
-	'date' => '2014-08-02',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+	'up' => "
+		CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`pop3fetcher_accounts` (
+			`pop3fetcher_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+			`pop3fetcher_email` varchar(128) NOT NULL,
+			`pop3fetcher_username` varchar(128) NOT NULL,
+			`pop3fetcher_password` varchar(128) NOT NULL,
+			`pop3fetcher_serveraddress` varchar(128) NOT NULL,
+			`pop3fetcher_serverport` varchar(128) NOT NULL,
+			`pop3fetcher_ssl` varchar(10) DEFAULT '0',
+			`pop3fetcher_leaveacopyonserver` tinyint(1) DEFAULT '0',
+			`user_id` int(10) unsigned NOT NULL DEFAULT '0',
+			`last_check` int(10) unsigned NOT NULL DEFAULT '0',
+			`last_uidl` varchar(70) DEFAULT NULL,
+			`update_lock` tinyint(1) NOT NULL DEFAULT '0',
+			`pop3fetcher_provider` varchar(128) DEFAULT NULL,
+			`default_folder` varchar(128) DEFAULT NULL,
+			PRIMARY KEY (`pop3fetcher_id`),
+			KEY `user_id_fk_accounts` (`user_id`)
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+	",
+	'down' => "
+		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`pop3fetcher_accounts`;
+	"
 );
