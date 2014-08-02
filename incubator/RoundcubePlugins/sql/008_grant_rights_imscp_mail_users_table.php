@@ -33,7 +33,7 @@ $roundcubeConfig = new iMSCP_Config_Handler_File(iMSCP_Registry::get('config')->
 
 return array(
 	'up' => "
-		GRANT SELECT (`mail_addr`), UPDATE (`mail_pass`, `status`) ON `imscp`.`mail_users` TO '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
+		GRANT SELECT (`mail_addr`), UPDATE (`mail_pass`, `status`) ON `mail_users` TO '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
 	",
 	'down' => "
 		REVOKE ALL PRIVILEGES ON `mail_users` FROM '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
