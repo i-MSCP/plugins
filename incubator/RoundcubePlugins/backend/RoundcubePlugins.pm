@@ -419,7 +419,7 @@ sub _setRoundcubePlugin($$)
 		$fileContent =~ s/^\n# Begin Plugin::RoundcubePlugins.*Ending Plugin::RoundcubePlugins\n//sgm;
 	}
 
-	my $rs = $file->set($fileContent);
+	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$file->save();
