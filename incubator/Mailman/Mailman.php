@@ -34,12 +34,12 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterDeleteCustomer,
+				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
 		);
 
-		$eventsManager->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -999);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -50);
 	}
 
 	/**
@@ -171,7 +171,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				WHERE
 					mailman_status NOT IN(?, ?, ?, ?, ?, ?, ?)
 			",
-			array('ok', 'disabled', 'toadd', 'torestore', 'toenable', 'todisable', 'todelete'));
+			array('ok', 'toadd', 'torestore', 'toenable', 'todisable', 'todelete'));
 
 		if ($stmt->rowCount()) {
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -181,9 +181,9 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Set status of the given plugin item to 'tochange'
+	 * Set status of the given plugin entity to 'tochange'
 	 *
-	 * This method is automatically called by i-MSCP when the admin set the status of the mailman entity to 'tochange'
+	 * This method is automatically called by i-MSCP when the admin set the status of a mailman entity to 'tochange'
 	 * through the debugger.
 	 *
 	 * @param string $table Table name
@@ -194,7 +194,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function changeItemStatus($table, $field, $itemId)
 	{
 		if ($table == 'mailman' && $field == 'mailman_status') {
-			# We are using the 'toadd' status because the 'tochange' status is used for email and password update only)
+			# We are using the 'toadd' status because the 'tochange' status is used for email and password update only
 			exec_query('UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?', array('toadd', $itemId));
 		}
 	}

@@ -1,4 +1,4 @@
-## i-MSCP Mailman plugin v0.0.1
+## i-MSCP Mailman plugin v0.0.2
 
 Plugin allowing to manage mailing-lists through i-MSCP using Mailman.
 
