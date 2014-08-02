@@ -169,7 +169,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				FROM
 					mailman
 				WHERE
-					mailman_status NOT IN(?, ?, ?, ?, ?, ?, ?)
+					mailman_status NOT IN(?, ?, ?, ?, ?, ?)
 			",
 			array('ok', 'toadd', 'torestore', 'toenable', 'todisable', 'todelete'));
 
