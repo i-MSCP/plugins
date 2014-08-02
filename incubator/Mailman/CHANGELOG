@@ -5,9 +5,9 @@ i-MSCP Mailman plugin ChangeLog
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Entity with status set to 'disabled' must not be counted by the getItemWithErrorStatus() plugin method
-	Fixed: The IP address used in the Apache vhost must match the IP address of the domain
-	Fixed: The IPv6 addresses in the Apache vhosts must be enclosed in square brackets
+	Fixed: Entityies with status set to 'disabled' must not be counted by the getItemWithErrorStatus() plugin method
+	Fixed: IP address used in the Apache vhost must match the IP address of the domain
+	Fixed: IPv6 addresses in the Apache vhosts must be enclosed in square brackets
 	Fixed: Wrong DNS resources record added when an IPv6 address is used
 
 ------------------------------------------------------------------------------------------------------------------------
