@@ -39,7 +39,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			$this
 		);
 
-		$eventsManager->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, -50);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeAddSubdomain, $this, 99);
 	}
 
 	/**

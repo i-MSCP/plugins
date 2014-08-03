@@ -6,6 +6,7 @@ Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
 	Fixed: 'mailman' list name must be disallowed
+	Fixed: The 'onBeforeAddSubdomain' listener must be registered with a high priority
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
