@@ -2,57 +2,66 @@ i-MSCP DomainAutoApproval plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.0.1
+------------------------------------------------------------------------------------------------------------------------
+
+	Added: 'disallowed_domains' configuration parameter which allow to set a list of disallowed domains
+	Changed: 'domains' configuration parameter has been renamed to 'user_accounts'
+	Fixed: Plugin is broken (Entities status are now hard-coded in i-MSCP)
+	Updated: License (plugin is now released under the LGPL v2.1 license)
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Update according new plugin API (0.2.4)
+	Updated: Whole code to fit with the new plugin API version (0.2.4)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Update according new plugin API (0.2.0)
-	- Updated license header
+	Updated: Whole code to fit with the new plugin API version (0.2.0)
+	Updated: License header
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Small fixes
+	Fixed: CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added: i-MSCP compatibility version check
+	Added: i-MSCP compatibility version check
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Default value for approval rule is now set to FALSE in configuration file
-	- Fixed: #843: Bug - Plugin - DomainAutoApproval: Configuration variable `ITEM_ADD_STATUS` is missing
+	Changed: Default value for approval rule is now set to FALSE in configuration file
+	Fixed: #843: Bug - Plugin - DomainAutoApproval: Configuration variable `ITEM_ADD_STATUS` is missing
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added 'approval_rule' config parameter in config.php file
+	Added: 'approval_rule' configuration parameter
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Improved the whole code by removing useless queries
+	Improved: Whole code by removing useless queries
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Domain aliases are not automatically approved
+	Fixed: Domain aliases are not automatically approved
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- First version available on github
+	Release: First released version (through github)

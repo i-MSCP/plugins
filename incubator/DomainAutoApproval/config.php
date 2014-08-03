@@ -1,38 +1,37 @@
 <?php
 /**
- * i-MSCP - Domain Auto-Approval plugin
- * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * i-MSCP DomainAutoApproval plugin
+ * Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugins
- * @subpackage  DomainAutoApproval
- * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 return array(
-	// If set to TRUE, any domain alias created by domain accounts listed in the 'domains' parameter will be
-	// auto-approved
-	// If set to FALSE, any domain alias created by domain accounts not listed in the 'domains' parameter will be
-	// auto approved
+	# If set to TRUE, any domain alias created by user accounts listed in the 'user_accounts' parameter will be
+	# auto-approved
+	#
+	## If set to FALSE, any domain alias created by user accounts not listed in the 'user_accounts' parameter will be
+	# auto approved
 	'approval_rule' => false,
-	'domains' => array(
+
+	# Here, you can provide the list of user accounts (see above to known how the list is used)
+	'user_accounts' => array(
 		'test.com' // Sample entry - Replace it by your own domain entries
-	)
+	),
+
+	# List of disallowed domains
+	# Any domain listed here will never be auto-approved, whatever the value of the approval rule above
+	'disalowed_domains' => array()
 );
