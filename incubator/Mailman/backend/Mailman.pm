@@ -73,7 +73,7 @@ sub install
 	if(-f '/etc/mailman/mm_cfg.py') {
 		my $file = iMSCP::File->new('filename' => '/etc/mailman/mm_cfg.py');
 
-		if(! -f '/etc/mailman/mm_cfg.py.dist') {
+		unless(-f '/etc/mailman/mm_cfg.py.dist') {
 			$rs = $file->copyFile('/etc/mailman/mm_cfg.py.dist');
 			return $rs if $rs;
 		}
