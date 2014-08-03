@@ -823,8 +823,8 @@ sub _addListsVhost
 
 	my $httpd = Servers::httpd->factory();
 
-	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Andromeda')
-		? $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'} : $httpd->{'config'}->{'APACHE_SITES_DIR'};
+	my $apacheSitesDir = ($main::imscpConfig{'CodeName'} eq 'Eagle')
+		? $httpd->{'config'}->{'APACHE_SITES_DIR'} : $httpd->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'};
 
 	my $file = iMSCP::File->new('filename' => "$apacheSitesDir/lists.$data->{'domain_name'}.conf");
 
