@@ -5,7 +5,7 @@ i-MSCP KaziWhmcs plugin
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-    Fixed: Only usernames which belong to products set through the imscp module must be overriden using domain name
+    Fixed: Only usernames which belong to products set through the imscp module must be overridden using domain name
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
