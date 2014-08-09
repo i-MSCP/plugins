@@ -21,8 +21,8 @@
 return array(
     'author' => 'Laurent Declercq',
     'email' => 'l.declercq@nuxwin.com',
-    'version' => '0.0.6',
-    'date' => '2014-07-16',
+    'version' => '0.0.7',
+    'date' => '2014-08-09',
     'name' => 'KaziWhmcs',
     'desc' => 'Plugin allowing server provisioning through the WHMCS billing software.',
     'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/KaziWhmcs'

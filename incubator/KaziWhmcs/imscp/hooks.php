@@ -30,15 +30,20 @@ function hook_imscp_update_username($vars)
             function ($products) {
                 foreach ($products as $product) {
                     if (isset($product['domain'])) {
-                        update_query(
-                            'tblhosting',
-                            array(
-                                'username' => $product['domain'],
-                                'lastupdate' => 'now()'
-                            ),
-                            array(
-                                'domain' => $product['domain']
-                            )
+                        full_query(
+                            "
+                                UPDATE
+                                    tblhosting AS t1
+                                JOIN
+                                    tblservers AS t2 ON(t2.id = t1.server)
+                                SET
+                                    t1.username = '" . $product['domain'] . "',
+                                    t1.lastupdate = NOW()
+                                WHERE
+                                    t1.domain = '" . $product['domain'] . "'
+                                AND
+                                    t2.type = 'imscp'
+                            "
                         );
                     }
                 }
