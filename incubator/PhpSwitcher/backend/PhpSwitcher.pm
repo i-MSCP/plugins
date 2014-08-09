@@ -230,6 +230,8 @@ sub changeListener($)
 
 	my $adminId = $data->{'DOMAIN_ADMIN_ID'};
 
+	my $phpCgiBinVarname = ($main::imscpConfig{'CodeName'} eq 'Eagle') ? 'PHP5_FASTCGI_BIN' : 'PHP_CGI_BIN';
+
 	if($phpVersionAdmin->{$adminId}) {
 		if($phpVersionAdmin->{$adminId}->{'version_status'} eq 'todelete') { # Customer PHP version will be deleted
 			# Remove Customer's PHP configuration directory
@@ -245,7 +247,7 @@ sub changeListener($)
 			}
 
 			# Reset back Customer's PHP version
-			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $self->{'default_binary_path'};
+			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $self->{'default_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
 		} elsif($phpVersionAdmin->{$adminId}->{'version_status'} eq 'tochange') { # Customer's PHP version is updated
 			# Remove Customer's previous PHP configuration directory
@@ -263,16 +265,16 @@ sub changeListener($)
 			}
 
 			# Set customer PHP paths according its PHP version
-			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
 		} else {
 			# Set customer PHP paths according its PHP version
-			$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
 		}
 	} else {
 		# Set customer PHP paths to default PHP version
-		$self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'} = $self->{'default_binary_path'};
+		$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $self->{'default_binary_path'};
 		$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
 	}
 
@@ -353,7 +355,9 @@ sub _init()
 
 		$self->{'httpd'} = Servers::httpd->factory();
 
-		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP5_FASTCGI_BIN'};
+		my $phpCgiBinVarname = ($main::imscpConfig{'CodeName'} eq 'Eagle') ? 'PHP5_FASTCGI_BIN' : 'PHP_CGI_BIN';
+
+		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{$phpCgiBinVarname};
 		$self->{'default_confdir_path'} = $self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'};
 
 		# Small-haking to avoid too many IO operations and conffile override on failure

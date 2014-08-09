@@ -2,62 +2,68 @@ PhpSwitcher plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 0.0.9
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: The PHP5_FASTCGI_BIN configuration variable has been renamed to PHP_CGI_BIN in i-MSCP 1.2.x serie (Andromeda)
+
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Unable to re-activate - Wrong SQL query
+    Fixed: Unable to re-activate - Wrong SQL query
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Use of undefined constant SORT_NATURAL (PHP < 5.4)
+    Fixed: Use of undefined constant SORT_NATURAL (PHP < 5.4)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: HooksManager is already passed-in to plugin
-	Fixed: Wrong key name in deleteListener (memcached)
-	Fixed: Wrong SQL query in afterDispatchRequest event listener
+    Fixed: HooksManager is already passed-in to plugin
+    Fixed: Wrong key name in deleteListener (memcached)
+    Fixed: Wrong SQL query in afterDispatchRequest event listener
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added: Event logs (admin/client side)
-	- Added: PHP version status to datatable (admin side)
-	- Fixed: Ajax errors are not handled correctly - Error message are not shown (admin side)
-	- Fixed: Plugin must be deactivated while update in case the http server implementation is not supported
-	- Fixed: When a customer is deleted all its PHP configuration directories must be deleted
-	- Fixed: When a PHP version is deleted, configuration directories which belong to this version must be deleted
-	- Fixed: When a PHP version is updated, previous customer's configuration directories must be deleted
+    Added: Event logs (admin/client side)
+    Added: PHP version status to datatable (admin side)
+    Fixed: Ajax errors are not handled correctly - Error message are not shown (admin side)
+    Fixed: Plugin must be deactivated while update in case the http server implementation is not supported
+    Fixed: When a customer is deleted all its PHP configuration directories must be deleted
+    Fixed: When a PHP version is deleted, configuration directories which belong to this version must be deleted
+    Fixed: When a PHP version is updated, previous customer's configuration directories must be deleted
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: PHP versions set by customers must be reset back to the default PHP version when the plugin is deactivated
-	- Fixed: PHP versions set by customers must be set when the plugin is being reactivated
-	- Fixed: PHP versions set by customers must remain persistent when i-MSCP is being updated
+    Fixed: PHP versions set by customers must be reset back to the default PHP version when the plugin is deactivated
+    Fixed: PHP versions set by customers must be set when the plugin is being reactivated
+    Fixed: PHP versions set by customers must remain persistent when i-MSCP is being updated
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: If the memcached server do not work, plugin must work in degraded mode
-	- Fixed: Wrong package name in documentation for memcached support (Perl side)
+    Fixed: If the memcached server do not work, plugin must work in degraded mode
+    Fixed: Wrong package name in documentation for memcached support (Perl side)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added: Binary path and configuration directory path to datatable
-	- Added: Optional but recommended memcached support
-	- Removed: Version ID from datatable
+    Added: Binary path and configuration directory path to datatable
+    Added: Optional but recommended memcached support
+    Removed: Version ID from datatable
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- First release
+    First release
