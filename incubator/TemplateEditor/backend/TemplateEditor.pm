@@ -68,11 +68,11 @@ sub run()
 
 =item dbTemplateLoader($serviceName, $templateName, \$templateContent, \%data)
 
- Loader which is responsible to load a template from the database. This is listener that listen on the onLoadTemplate
+ Loader which is responsible to load a template from the database. This is a listener that listen on the onLoadTemplate
 event which is triggered each time a template is loaded by the i-MSCP backend.
 
-This loader looks in the database to know if a custom template has been defined for the given template. If a template is
-found, it is used in place of the default.
+ This loader looks into the database to know if a custom template has been defined for the given template. If a template
+is found, it is used in place of the default.
 
  Return int 0 on success, other on failure
 
@@ -200,12 +200,12 @@ sub _getTemplateScope
 	if(exists $self->{'config'}->{'service_templates'}->{$serviceName}) {
 		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}) {
 			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}};
-			 $templateScope = 'system' if $templateName ~~ @templateNames;
+			$templateScope = 'system' if $templateName ~~ @templateNames;
 		}
 
 		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}) {
 			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}};
-			$templateScope = 'system' if $templateName ~~ @templateNames;
+			$templateScope = 'site' if $templateName ~~ @templateNames;
 		}
 	}
 
