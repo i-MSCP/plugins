@@ -24,8 +24,7 @@ return array(
 	// Do not change anything if you don't know what you are doing.
 	'service_templates' => array(
 		// Bind9 service templates
-		'bind
-		' => array(
+		'bind' => array(
 			# Templates which operates at system-wide
 			'system' => array(
 					'named.conf' => '/etc/imscp/bind/named.conf',
