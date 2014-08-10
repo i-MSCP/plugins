@@ -28,7 +28,6 @@ return array(
 			template_content text COLLATE utf8_unicode_ci NOT NULL,
 			template_service_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
 			template_scope varchar(15) NOT NULL,
-			template_status varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'ok',
 			PRIMARY KEY template_id (template_id),
 			KEY template_name (template_name)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;

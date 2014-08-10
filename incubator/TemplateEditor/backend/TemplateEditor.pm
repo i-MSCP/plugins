@@ -39,34 +39,13 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package implements the backend for the TemplateEditor plugin.
-
-=head1 PUBLIC METHODS
-
-=over 4
-
-=item run()
-
- Register template loader
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub run()
-{
-	my $self = $_[0];
-
-	$self->{'hooksManager'}->register('onLoadTemplate', sub { $self->dbTemplateLoader(); });
-}
-
-=back
+ This package represent the backend side of the TemplateEditor plugin.
 
 =head1 EVENT LISTENERS
 
 =over 4
 
-=item dbTemplateLoader($serviceName, $templateName, \$templateContent, \%data)
+=item templateLoader($serviceName, $templateName, \$templateContent, \%data)
 
  Loader which is responsible to load a template from the database. This is a listener that listen on the onLoadTemplate
 event which is triggered each time a template is loaded by the i-MSCP backend.
@@ -78,7 +57,7 @@ is found, it is used in place of the default.
 
 =cut
 
-sub dbTemplateLoader
+sub templateLoader
 {
 	my ($self, $serviceName, $templateName, $templateContent, $data) = @_;
 
@@ -166,17 +145,24 @@ sub _init
 {
 	my $self = $_[0];
 
-	$self->{'db'} = iMSCP::Database->factory();
+	if($self->{'action'} ~~ ['run', 'change', 'enable']) {
+		$self->{'db'} = iMSCP::Database->factory();
 
-	my $pluginConfig = $self->{'db'}->doQuery(
-		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'TemplateEditor'
-	);
-	unless(ref $pluginConfig eq 'HASH') {
-		fatal($pluginConfig);
+		# Get plugin config
+		my $pluginConfig = $self->{'db'}->doQuery(
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'TemplateEditor'
+		);
+		unless(ref $pluginConfig eq 'HASH') {
+			fatal($pluginConfig);
+		}
+
+		$self->{'config'} = decode_json($pluginConfig->{'TemplateEditor'}->{'plugin_config'});
+
+		#$self->{'memcached'} = $self->_getMemcached();
+
+		# Register template loader
+		$self->{'hooksManager'}->register('onLoadTemplate', sub { $self->templateLoader(); });
 	}
-
-	$self->{'config'} = decode_json($pluginConfig->{'TemplateEditor'}->{'plugin_config'});
-	#$self->{'memcached'} = $self->_getMemcached();
 
 	$self;
 }
