@@ -20,22 +20,17 @@
 
 return array(
 	'up' => '
-		CREATE TABLE IF NOT EXISTS template_editor_files (
-			id int(10) unsigned AUTO_INCREMENT NOT NULL,
-			parent_id int(10) unsigned DEFAULT NULL,
-			template_id int(10) unsigned NOT NULL,
-			name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-			content text COLLATE utf8_unicode_ci NOT NULL,
-			PRIMARY KEY id (id),
-			KEY name (name),
-			UNIQUE KEY template_id_name (template_id,name),
-			CONSTRAINT files_template_id FOREIGN KEY (template_id)
-				REFERENCES template_editor_templates (id) ON DELETE CASCADE,
- 			CONSTRAINT files_parent_id FOREIGN KEY (parent_id)
- 				REFERENCES template_editor_files (id) ON DELETE CASCADE
+		CREATE TABLE IF NOT EXISTS template_editor_templates_admins (
+ 			admin_id int(10) unsigned NOT NULL,
+ 			template_id int(10) unsigned NOT NULL,
+ 			UNIQUE KEY admin_id_template_id (admin_id, template_id),
+  			CONSTRAINT admins_templates_admin_id FOREIGN KEY (admin_id)
+  				REFERENCES admin (admin_id) ON DELETE CASCADE,
+ 			CONSTRAINT admins_templates_template_id FOREIGN KEY (template_id)
+ 				REFERENCES template_editor_templates (template_id) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	',
 	'down' => '
-		DROP TABLE IF EXISTS template_editor_files
+		DROP TABLE IF EXISTS template_editor_admins_templates
 	'
 );

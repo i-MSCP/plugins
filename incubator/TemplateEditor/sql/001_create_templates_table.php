@@ -21,19 +21,16 @@
 return array(
 	'up' => "
 		CREATE TABLE IF NOT EXISTS template_editor_templates (
- 			id int(10) unsigned AUTO_INCREMENT NOT NULL,
-			parent_id int(10) unsigned DEFAULT NULL,
- 			name varchar(50) NOT NULL,
- 			service_name varchar(50) NOT NULL,
- 			scope varchar(15) NOT NULL,
- 			is_default tinyint NOT NULL,
- 			status varchar(15) NOT NULL DEFAULT 'ok',
- 			PRIMARY KEY id (id),
- 			KEY parent_id (parent_id),
- 			UNIQUE KEY name_service_name (name,service_name),
- 			KEY service_name (service_name),
- 			CONSTRAINT templates_parent_id FOREIGN KEY (parent_id)
- 				REFERENCES template_editor_templates (id) ON DELETE CASCADE
+			template_id int(10) unsigned AUTO_INCREMENT NOT NULL,
+			temmplate_parent_id int(10) unsigned DEFAULT NULL,
+			template_name = varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			template_pretty_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			template_content text COLLATE utf8_unicode_ci NOT NULL,
+			template_service_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			template_scope varchar(15) NOT NULL,
+			template_status varchar(15) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'ok',
+			PRIMARY KEY template_id (template_id),
+			KEY template_name (template_name)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '

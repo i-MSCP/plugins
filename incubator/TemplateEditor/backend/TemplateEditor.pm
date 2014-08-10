@@ -29,6 +29,8 @@ package Plugin::TemplateEditor;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
 use iMSCP::Execute;
 use iMSCP::Database;
@@ -45,7 +47,7 @@ use parent 'Common::SingletonClass';
 
 =item run()
 
- Register event listeners
+ Register template loader
 
  Return int 0 on success, other on failure
 
@@ -53,7 +55,9 @@ use parent 'Common::SingletonClass';
 
 sub run()
 {
-	$_[0]->{'hooksManager'}->register('onLoadTemplate', \&genericTemplateLoader());
+	my $self = $_[0];
+
+	$self->{'hooksManager'}->register('onLoadTemplate', sub { $self->dbTemplateLoader(); });
 }
 
 =back
@@ -62,45 +66,82 @@ sub run()
 
 =over 4
 
-=item genericTemplateLoader($serviceName, $templateFileName, \$templateContent, \%data)
+=item dbTemplateLoader($serviceName, $templateName, \$templateContent, \%data)
 
- Generic template loader which is responsible to load service templates from database
+ Loader which is responsible to load a template from the database. This is listener that listen on the onLoadTemplate
+event which is triggered each time a template is loaded by the i-MSCP backend.
+
+This loader looks in the database to know if a custom template has been defined for the given template. If a template is
+found, it is used in place of the default.
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub genericTemplateLoader($$$$)
+sub dbTemplateLoader
 {
-	my ($serviceName, $templateFileName, $templateContent, $data) = @_;
-	my $self = __PACKAGE__->getInstance();
+	my ($self, $serviceName, $templateName, $templateContent, $data) = @_;
 
-	if(exists $data->{'DOMAIN_ADMIN_ID'}) {
-		my $template = $self->{'db'}->doQuery(
-			'name',
-			'
-				SELECT
-					t1.name, t1.content
-				FROM
-					template_editor_files AS t1
-				INNER JOIN
-					template_editor_templates AS t2 ON(t2.id = t1.template_id)
-				INNER JOIN
-					template_editor_admins_templates AS t3 USING(template_id)
-				WHERE
-					t1.name = ?
-				AND
-					t2.service_name = ?
-				AND
-					t3.admin_id = ?
-			',
-			$templateFileName, lc($serviceName), $data->{'DOMAIN_ADMIN_ID'}
-		);
-		unless(ref $template eq 'HASH') {
-			error($template);
-			return 1;
-		} elsif(%{$template}) {
-			$$templateContent = $template->{$templateFileName}->{'content'};
+	# Retrieve template scope
+	my $templateScope = $self->_getTemplateScope($serviceName, $templateName);
+
+	if($templateScope ne 'unknown') {
+		if($templateScope eq 'system') {
+			my $template = $self->{'db'}->doQuery(
+				'template_name',
+				'
+					SELECT
+						template_name, template_content
+					FROM
+						template_editor_templates
+					WHERE
+						template_name = ?
+					AND
+						template_service_name = ?
+					AND
+						template_scope = ?
+					AND
+						template_parent_id IS NOT NULL
+					LIMIT
+						1
+				',
+				$templateName,
+				$serviceName,
+				'system'
+			);
+			unless(ref $template eq 'HASH') {
+				error($template);
+				return 1;
+			} elsif(%{$template}) {
+				$$templateContent = $template->{$templateName}->{'content'};
+			}
+		} elsif(exists $data->{'DOMAIN_ADMIN_ID'}) {
+			my $template = $self->{'db'}->doQuery(
+				'template_name',
+				'
+					SELECT
+						template_name, template_content
+					FROM
+						template_editor_templates
+					INNER JOIN
+						template_editor_templates_admins USING(template_id)
+					WHERE
+						template_name = ?
+					AND
+						service_name = ?
+					AND
+						admin_id = ?
+					LIMIT
+						1
+				',
+				$templateName, $serviceName, $data->{'DOMAIN_ADMIN_ID'}
+			);
+			unless(ref $template eq 'HASH') {
+				error($template);
+				return 1;
+			} elsif(%{$template}) {
+				$$templateContent = $template->{$templateName}->{'content'};
+			}
 		}
 	}
 
@@ -121,7 +162,7 @@ sub genericTemplateLoader($$$$)
 
 =cut
 
-sub _init()
+sub _init
 {
 	my $self = $_[0];
 
@@ -135,51 +176,82 @@ sub _init()
 	}
 
 	$self->{'config'} = decode_json($pluginConfig->{'TemplateEditor'}->{'plugin_config'});
-	$self->{'memcached'} = $self->_getMemcached();
+	#$self->{'memcached'} = $self->_getMemcached();
 
 	$self;
 }
 
-=item _getMemcached()
+=item _getTemplateScope()
 
- Get memcached instance
+ Get scope of the given template ('system', 'site')
 
- Return Cache::Memcached::Fast or undef in case memcached server is not enabled or not available
+ Param string $templateName
+ Return string ServiceName scope
+ Return string Template scope ('system', 'site') or 'unknown' in case the template is not know by the plugin
 
 =cut
 
-sub _getMemcached
+sub _getTemplateScope
 {
-	my $self = $_[0];
+	my ($self, $serviceName, $templateName) = @_;
 
-	my $memcached;
+	my $templateScope = 'unknown';
 
-	if($self->{'config'}->{'memcached'}->{'enabled'}) {
-		if(eval 'require Cache::Memcached::Fast') {
-			require Digest::SHA;
-			Digest::SHA->import('sha1_hex');
+	if(exists $self->{'config'}->{'service_templates'}->{$serviceName}) {
+		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}) {
+			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}};
+			 $templateScope = 'system' if $templateName ~~ @templateNames;
+		}
 
-			$memcached = new Cache::Memcached::Fast({
-				servers => ["$self->{'config'}->{'memcached'}->{'hostname'}:$self->{'config'}->{'memcached'}->{'port'}"],
-				namespace => substr(sha1_hex('TemplateEditor'), 0 , 8) . '_', # Hashed manually (expected)
-				connect_timeout => 0.5,
-				io_timeout => 0.5,
-				close_on_error => 1,
-				compress_threshold => 100_000,
-				compress_ratio => 0.9,
-				compress_methods => [ \&IO::Compress::Gzip::gzip, \&IO::Uncompress::Gunzip::gunzip ],
-				max_failures => 3,
-				failure_timeout => 2,
-				ketama_points => 150,
-				nowait => 1,
-				serialize_methods => [ \&Storable::freeze, \&Storable::thaw ],
-				utf8 => 1
-			});
+		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}) {
+			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}};
+			$templateScope = 'system' if $templateName ~~ @templateNames;
 		}
 	}
 
-	$memcached;
+	$templateScope;
 }
+
+#=item _getMemcached()
+#
+# Get memcached instance
+#
+# Return Cache::Memcached::Fast or undef in case memcached server is not enabled or not available
+#
+#=cut
+#
+#sub _getMemcached
+#{
+#	my $self = $_[0];
+#
+#	my $memcached;
+#
+#	if($self->{'config'}->{'memcached'}->{'enabled'}) {
+#		if(eval 'require Cache::Memcached::Fast') {
+#			require Digest::SHA;
+#			Digest::SHA->import('sha1_hex');
+#
+#			$memcached = new Cache::Memcached::Fast({
+#				servers => ["$self->{'config'}->{'memcached'}->{'hostname'}:$self->{'config'}->{'memcached'}->{'port'}"],
+#				namespace => substr(sha1_hex('TemplateEditor'), 0 , 8) . '_', # Hashed manually (expected)
+#				connect_timeout => 0.5,
+#				io_timeout => 0.5,
+#				close_on_error => 1,
+#				compress_threshold => 100_000,
+#				compress_ratio => 0.9,
+#				compress_methods => [ \&IO::Compress::Gzip::gzip, \&IO::Uncompress::Gunzip::gunzip ],
+#				max_failures => 3,
+#				failure_timeout => 2,
+#				ketama_points => 150,
+#				nowait => 1,
+#				serialize_methods => [ \&Storable::freeze, \&Storable::thaw ],
+#				utf8 => 1
+#			});
+#		}
+#	}
+#
+#	$memcached;
+#}
 
 =back
 
