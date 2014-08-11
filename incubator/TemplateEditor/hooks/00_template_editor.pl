@@ -32,7 +32,7 @@ use iMSCP::HooksManager;
 =head1 DESCRIPTION
 
  Script which is responsible to register the template loader when i-MSCP is being updated. This is needed for
-system templates which are loaded by servers/packages installers (before any plugin run).
+system templates which are loaded by server/package installers (before any plugin run).
 
 =head1 EVENT LISTENER
 
