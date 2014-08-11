@@ -22,7 +22,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-#
 
 package Plugin::TemplateEditor;
 
@@ -34,12 +33,55 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use iMSCP::Debug;
 use iMSCP::Execute;
 use iMSCP::Database;
+use iMSCP::File;
 use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
  This package represent the backend side of the TemplateEditor plugin.
+
+=head1 PUBLIC METHODS
+
+=over 4
+
+=item enable()
+
+ Process enable tasks
+
+ Return in 0 on success, other on failure
+
+=cut
+
+sub enable
+{
+	iMSCP::File->new(
+		'filename' => "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/TemplateEditor/hooks/00_template_editor.pl"
+	)->copyFile(
+		"$main::imscpConfig{'CONF_DIR'}/hooks.d"
+	);
+}
+
+=item disable()
+
+ Process disable tasks
+
+ Return in 0 on success, other on failure
+
+=cut
+
+sub disable
+{
+	my $hookFile = "$main::imscpConfig{'CONF_DIR'}/hooks.d/00_template_editor.pl";
+
+	if(-f $hookFile) {
+		iMSCP::File->new('filename' => $hookFile)->delFile();
+	} else {
+		0;
+	}
+}
+
+=back
 
 =head1 EVENT LISTENERS
 

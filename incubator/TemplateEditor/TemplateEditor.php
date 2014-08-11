@@ -180,6 +180,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 
 				foreach($templates as $scope => $templateFiles) {
 					$templateScope = $scope;
+
 					try {
 						$db->beginTransaction();
 							foreach($templateFiles as $templateName => $templateFilesPath) {

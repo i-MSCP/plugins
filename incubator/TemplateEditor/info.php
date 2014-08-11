@@ -22,11 +22,10 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.1',
-	'date' => '2014-03-05',
+	'date' => '2014-08-11',
 	'name' => 'TemplateEditor',
 	'desc' => '
 		Plugin allowing to create persistent, and customized versions of service templates.
-		Furthermore, each custom version can be assigned to one or many resellers.
 	',
 	'url' => 'http://i-mscp.net'
 );
