@@ -29,8 +29,10 @@ return array(
 			template_service_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
 			template_scope varchar(15) NOT NULL,
 			template_is_default tinyint(1) NOT NULL DEFAULT '0',
-			PRIMARY KEY template_id (template_id),
-			UNIQUE KEY template_name (template_name, template_service_name, template_scope)
+			PRIMARY KEY (template_id),
+			UNIQUE KEY tpl_unique (template_name, template_service_name, template_scope),
+			INDEX tpl_pretty_name (template_pretty_name),
+			INDEX tpl_service_name_scope (template_service_name, template_scope)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '
