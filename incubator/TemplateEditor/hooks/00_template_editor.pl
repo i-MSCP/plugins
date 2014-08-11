@@ -60,7 +60,7 @@ sub registerTemplateLoader
 
 	eval {
 		$pluginInstance = $pluginClass->getInstance(
-			'hooksManager' => $self->{'hooksManager'}, 'action' => 'change'
+			'hooksManager' => iMSCP::HooksManager->getInstance(), 'action' => 'change'
 		);
 	};
 
