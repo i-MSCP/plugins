@@ -28,6 +28,7 @@ package Hooks::TemplateEditor;
 
 use iMSCP::Debug;
 use iMSCP::HooksManager;
+use iMSCP::File;
 
 =head1 DESCRIPTION
 
