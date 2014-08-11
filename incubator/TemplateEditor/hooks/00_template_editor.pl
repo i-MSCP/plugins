@@ -28,7 +28,6 @@ package Hooks::TemplateEditor;
 
 use iMSCP::Debug;
 use iMSCP::HooksManager;
-use iMSCP::File;
 
 =head1 DESCRIPTION
 
@@ -66,7 +65,6 @@ sub registerTemplateLoader
 	};
 
 	if($@) {
-		iMSCP::File->new('filename' => $backendPluginFile)->delFile();
 		error("An unexpected error occured: $@");
 		return 1;
 	}
