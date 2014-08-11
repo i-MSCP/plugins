@@ -24,7 +24,7 @@
 class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
 	 */
@@ -62,7 +62,6 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-			$this->syncTemplates(true);
 		} catch (iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
 		}
@@ -81,7 +80,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Plugin update
 	 *
-	 * @throws iMSCP_Plugin_Exception When update fail
+	 * @throws iMSCP_Plugin_Exception when update fail
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @param string $fromVersion Version from which plugin update is initiated
 	 * @param string $toVersion Version to which plugin is updated
@@ -91,7 +90,6 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-			$this->syncTemplates();
 		} catch (iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
@@ -111,21 +109,17 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Plugin activation
 	 *
-	 * This method is automatically called by the plugin manager when the plugin is being enabled (activated).
-	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		//if($pluginManager->getPluginStatus($this->getName()) == 'tochange') {
-			try {
-				$this->syncTemplates();
-			} catch (iMSCP_Exception $e) {
-				throw new iMSCP_Plugin_Exception(tr('Unable to change: %s', $e->getMessage()), $e->getCode(), $e);
-			}
-		//}
+		try {
+			$this->syncTemplates();
+		} catch (iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
+		}
 	}
 
 	/**
@@ -171,138 +165,80 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	/**
 	 * Sync default templates with those provided by i-MSCP core
 	 *
-	 * @throw iMSCP_Exception_Database When synchronization fail
+	 * @throw iMSCP_Plugin_Exception
+	 * @throw iMSCP_Exception_Database
 	 * @param bool $force Force template synchronization
 	 * @return void
 	 */
 	public function syncTemplates($force = false)
 	{
 		if ($force || $this->getConfigParam('sync_default_templates', true)) {
-			$db = iMSCP_Database::getRawInstance();
-			$serviceTemplates = $this->getConfigParam('service_templates', array());
-			$serviceNames = array();
+			$db = iMSCP_Database::getInstance();
 
-			if (!empty($serviceTemplates)) {
-				foreach ($serviceTemplates as $serviceName => $templates) {
-					$serviceNames[] = $serviceName;
+			foreach($this->getConfigParam('service_templates', array()) as $templateServiceName => $templates) {
+				$templatePrettyName = ucfirst($templateServiceName) . ' (default)';
 
-					foreach ($templates as $templateName => $templateData) {
-						$templateFiles = $templateData['files'];
-						$templateScope = $templateData['scope'];
+				foreach($templates as $scope => $templateFiles) {
+					$templateScope = $scope;
+					try {
+						$db->beginTransaction();
+							foreach($templateFiles as $templateName => $templateFilesPath) {
+								if(file_exists($templateFilesPath)) {
+									$templateContent = @file_get_contents($templateFilesPath);
 
-						if(preg_match('/^[a-z0-9\s_-]+$/i', $templateName)) {
-							try {
-								$db->beginTransaction();
-
-								// Create/Update template
-								exec_query(
-									'
-										INSERT IGNORE INTO template_editor_templates (
-											name, service_name, is_default, scope
-										) VALUES (
-											?, ?, ?, ?
-										)
-									',
-									array($templateName, $serviceName, 1, $templateScope)
-								);
-
-								if (!($templateId = $db->lastInsertId())) {
-									$stmt = exec_query(
-										'SELECT id FROM template_editor_templates WHERE name = ? AND service_name = ?',
-										array($templateName, $serviceName)
-									);
-
-									$templateId = $stmt->fields('id');
-								}
-
-								// Insert/Update files which belong to the template
-
-								foreach ($templateFiles as $fileName => $filePath) {
-									$fileNames[$serviceName] = $fileName;
-
-									if (is_readable($filePath)) {
-										$fileContent = file_get_contents($filePath);
-
-										$stmt = exec_query(
+									if($templateContent !== false) {
+										exec_query(
 											'
-												INSERT INTO template_editor_files (
-													template_id, name, content
+												INSERT INTO template_editor_templates (
+													template_name,
+													template_pretty_name,
+													template_content,
+													template_service_name,
+													template_scope
 												) VALUES (
-													:template_id, :name, :content
+													:template_name,
+													:template_pretty_name,
+													:template_content,
+													:template_service_name,
+													:template_scope
 												) ON DUPLICATE KEY UPDATE
-													content = :content
+													template_content = :template_content
 											',
 											array(
-												'template_id' => $templateId,
-												'name' => $fileName,
-												'content' => $fileContent
+												'template_name' => $templateName,
+												'template_pretty_name' => $templatePrettyName,
+												'template_content' => $templateContent,
+												'template_service_name' => $templateServiceName,
+												'template_scope' => $templateScope
 											)
 										);
-
-										// New file added to template which have childs?
-										// Then, we add new file for child too
-										if ($stmt->rowCount()) {
-											$stmt = exec_query(
-												'SELECT id FROM template_editor_templates WHERE parent_id = ?',
-												$templateId
-											);
-
-											if ($stmt->rowCount()) {
-												while ($data = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-													exec_query(
-														'
-															INSERT IGNORE template_editor_files (
-																parent_id, template_id, name, content
-															) SELECT
-																parent_id, ?, name, content
-															FROM
-																template_editor_files
-															WHERE
-																template_id = ?
-															AND
-																name = ?
-														',
-														array($data['id'], $templateId, $fileName)
-													);
-												}
-											}
-										}
 									} else {
-										set_page_message(
-											tr("File %s is not readable or doesn't exist.", $filePath), 'warning'
+										$error = error_get_last();
+										throw new iMSCP_Plugin_Exception(
+											tr('Unable to update the %s template: %s', $templateName, $error['message'])
 										);
 									}
+								} else {
+									exec_query(
+										'
+											DELETE FROM
+												template_editor_templates
+											WHERE
+												template_name = ?
+											AND
+												template_service_name = ?
+										',
+										array($templateName, $templateServiceName)
+									);
 								}
-
-								$db->commit();
-							} catch (iMSCP_Exception_Database $e) {
-								$db->rollBack();
-								throw $e;
 							}
-						} else {
-							set_page_message(tr("Template name %s is not valid.", $templateName), 'warning');
-						}
+
+						$db->commit();
+					} catch (iMSCP_Exception $e) {
+						$db->rollBack();
+						throw $e;
 					}
 				}
-			}
-
-			if(!empty($serviceNames)) {
-				// Delete template which are no longer set in configuration file
-				$serviceNames = implode(',', array_map('quoteValue', $serviceNames));
-				exec_query(
-					"
-						DELETE FROM
-							template_editor_templates
-						WHERE
-							parent_id IS NULL
-						AND
-							service_name NOT IN($serviceNames)
-					"
-				);
-
-				// TODO Delete files which are no longer in plugin configuration file
-			} else {
-				exec_query('DELETE FROM template_editor_templates');
 			}
 		}
 	}

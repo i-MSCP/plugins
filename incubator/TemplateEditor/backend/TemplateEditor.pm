@@ -61,66 +61,63 @@ sub templateLoader
 {
 	my ($self, $serviceName, $templateName, $templateContent, $data) = @_;
 
-	# Retrieve template scope
-	my $templateScope = $self->_getTemplateScope($serviceName, $templateName);
-
-	if($templateScope ne 'unknown') {
-		if($templateScope eq 'system') {
-			my $template = $self->{'db'}->doQuery(
-				'template_name',
-				'
-					SELECT
-						template_name, template_content
-					FROM
-						template_editor_templates
-					WHERE
-						template_name = ?
-					AND
-						template_service_name = ?
-					AND
-						template_scope = ?
-					AND
-						template_parent_id IS NOT NULL
-					LIMIT
-						1
-				',
-				$templateName,
-				$serviceName,
-				'system'
-			);
-			unless(ref $template eq 'HASH') {
-				error($template);
-				return 1;
-			} elsif(%{$template}) {
-				$$templateContent = $template->{$templateName}->{'content'};
-			}
-		} elsif(exists $data->{'DOMAIN_ADMIN_ID'}) {
-			my $template = $self->{'db'}->doQuery(
-				'template_name',
-				'
-					SELECT
-						template_name, template_content
-					FROM
-						template_editor_templates
-					INNER JOIN
-						template_editor_templates_admins USING(template_id)
-					WHERE
-						template_name = ?
-					AND
-						service_name = ?
-					AND
-						admin_id = ?
-					LIMIT
-						1
-				',
-				$templateName, $serviceName, $data->{'DOMAIN_ADMIN_ID'}
-			);
-			unless(ref $template eq 'HASH') {
-				error($template);
-				return 1;
-			} elsif(%{$template}) {
-				$$templateContent = $template->{$templateName}->{'content'};
-			}
+	if(exists $data->{'DOMAIN_ADMIN_ID'}) { # Search for a template which operate at site-wide
+		my $template = $self->{'db'}->doQuery(
+			'template_name',
+			'
+				SELECT
+					template_name, template_content
+				FROM
+					template_editor_templates
+				INNER JOIN
+					template_editor_templates_admins USING(template_id)
+				WHERE
+					template_name = ?
+				AND
+					template_service_name = ?
+				AND
+					template_scope = ?
+				AND
+					admin_id = ?
+				LIMIT
+					1
+			',
+			$templateName, $serviceName, 'site', $data->{'DOMAIN_ADMIN_ID'}
+		);
+		unless(ref $template eq 'HASH') {
+			error($template);
+			return 1;
+		} elsif(%{$template}) {
+			$$templateContent = $template->{$templateName}->{'content'};
+		}
+	} else { # Search for a template which operate at system-wide
+		my $template = $self->{'db'}->doQuery(
+			'template_name',
+			'
+				SELECT
+					template_name, template_content
+				FROM
+					template_editor_templates
+				WHERE
+					template_name = ?
+				AND
+					template_service_name = ?
+				AND
+					template_scope = ?
+				AND
+					template_is_default = 1
+				LIMIT
+					1
+			',
+			$templateName,
+			$serviceName,
+			'system'
+		);
+		unless(ref $template eq 'HASH') {
+			error($template);
+			return 1;
+		} elsif(%{$template}) {
+			$$templateContent = $template->{$templateName}->{'content'};
 		}
 	}
 
@@ -165,37 +162,6 @@ sub _init
 	}
 
 	$self;
-}
-
-=item _getTemplateScope()
-
- Get scope of the given template ('system', 'site')
-
- Param string $templateName
- Return string ServiceName scope
- Return string Template scope ('system', 'site') or 'unknown' in case the template is not know by the plugin
-
-=cut
-
-sub _getTemplateScope
-{
-	my ($self, $serviceName, $templateName) = @_;
-
-	my $templateScope = 'unknown';
-
-	if(exists $self->{'config'}->{'service_templates'}->{$serviceName}) {
-		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}) {
-			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'system'}};
-			$templateScope = 'system' if $templateName ~~ @templateNames;
-		}
-
-		if(exists $self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}) {
-			my @templateNames = keys %{$self->{'config'}->{'service_templates'}->{$serviceName}->{'site'}};
-			$templateScope = 'site' if $templateName ~~ @templateNames;
-		}
-	}
-
-	$templateScope;
 }
 
 #=item _getMemcached()
