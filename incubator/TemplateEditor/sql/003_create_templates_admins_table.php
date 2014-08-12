@@ -19,23 +19,16 @@
  */
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS template_editor_templates (
-			template_id int(10) unsigned AUTO_INCREMENT NOT NULL,
-			template_parent_id int(10) unsigned DEFAULT NULL,
-			template_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-			template_pretty_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-			template_content text COLLATE utf8_unicode_ci NOT NULL,
-			template_service_name varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-			template_scope varchar(15) NOT NULL,
-			template_is_default tinyint(1) NOT NULL DEFAULT '0',
-			PRIMARY KEY (template_id),
-			UNIQUE KEY tpl_unique (template_name, template_service_name, template_scope),
-			INDEX tpl_pretty_name (template_pretty_name),
-			INDEX tpl_service_name_scope (template_service_name, template_scope)
+	'up' => '
+		CREATE TABLE IF NOT EXISTS tple_templates_admins (
+ 			admin_id int(10) unsigned NOT NULL,
+ 			tid int(10) unsigned NOT NULL,
+ 			UNIQUE KEY admin_id_tid (admin_id, tid),
+  			CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id) ON DELETE CASCADE,
+ 			CONSTRAINT tid FOREIGN KEY (tid) REFERENCES tple_templates (tid) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-	",
+	',
 	'down' => '
-		DROP TABLE IF EXISTS template_editor_templates
+		DROP TABLE IF EXISTS tple_templates_admins
 	'
 );

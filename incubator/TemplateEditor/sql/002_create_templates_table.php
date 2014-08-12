@@ -19,18 +19,24 @@
  */
 
 return array(
-	'up' => '
-		CREATE TABLE IF NOT EXISTS template_editor_templates_admins (
- 			admin_id int(10) unsigned NOT NULL,
- 			template_id int(10) unsigned NOT NULL,
- 			UNIQUE KEY admin_id_template_id (admin_id, template_id),
-  			CONSTRAINT admins_templates_admin_id FOREIGN KEY (admin_id)
-  				REFERENCES admin (admin_id) ON DELETE CASCADE,
- 			CONSTRAINT admins_templates_template_id FOREIGN KEY (template_id)
- 				REFERENCES template_editor_templates (template_id) ON DELETE CASCADE
+	'up' => "
+		CREATE TABLE IF NOT EXISTS tple_templates (
+			tid int(10) unsigned AUTO_INCREMENT NOT NULL,
+			tpid int(10) unsigned DEFAULT NULL,
+			tgid int(10) unsigned NOT NULL,
+			tname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			tcontent mediumtext COLLATE utf8_unicode_ci NOT NULL,
+			tsname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			tscope varchar(15) NOT NULL,
+			tdefault tinyint(1) NOT NULL DEFAULT '0',
+			PRIMARY KEY (tid),
+			UNIQUE KEY tplu (tname, tsname, tscope),
+			INDEX tpl_tsname_tscope (tsname, tscope),
+			CONSTRAINT tpid FOREIGN KEY (tpid) REFERENCES tple_templates (tid) ON DELETE CASCADE,
+  			CONSTRAINT tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-	',
+	",
 	'down' => '
-		DROP TABLE IF EXISTS template_editor_templates_admins
+		DROP TABLE IF EXISTS tple_templates
 	'
 );
