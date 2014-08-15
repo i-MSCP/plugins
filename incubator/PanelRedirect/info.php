@@ -24,6 +24,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2014-08-15',
 	'name' => 'PanelRedirect',
-	'desc' => 'Plugin which redirects apache2 requests for the i-MSCP control panel to nginx.',
+	'desc' => 'Plugin which redirects apache2 requests of the panel to nginx.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
 );
