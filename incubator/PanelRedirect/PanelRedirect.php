@@ -24,9 +24,10 @@
 class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
+	 * @return void
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
@@ -37,11 +38,15 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+			if (
+				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<') ||
+				strtolower(iMSCP_Registry::get('config')->CodeName) == 'eagle'
+			) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -54,7 +59,6 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	/**
 	 * Plugin installation
 	 *
-	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
@@ -66,7 +70,6 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	/**
 	 * Plugin uninstallation
 	 *
-	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
