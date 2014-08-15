@@ -93,8 +93,8 @@ sub enable
 		$rs = $self->_createConfig('00_PanelRedirect_ssl.conf');
 		return $rs if $rs;
 	} else {
-		 $rs = $self->_removeConfig('00_PanelRedirect_ssl.conf');
-		 return $rs if $rs;
+		$rs = $self->_removeConfig('00_PanelRedirect_ssl.conf');
+		return $rs if $rs;
 	}
 
 	$self->{'httpd'}->{'restart'} = 'yes';
@@ -116,7 +116,7 @@ sub disable
 
 	for('00_PanelRedirect.conf', '00_PanelRedirect_ssl.conf') {
 		my $rs = $self->_removeConfig($_);
-        return $rs if $rs;
+		return $rs if $rs;
 	}
 
 	$self->{'httpd'}->{'restart'} = 'yes';
