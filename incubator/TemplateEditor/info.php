@@ -22,10 +22,8 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.1',
-	'date' => '2014-08-11',
+	'date' => '2014-08-16',
 	'name' => 'TemplateEditor',
-	'desc' => '
-		Plugin allowing to create persistent, and customized versions of service templates.
-	',
+	'desc' => 'Plugin allowing to create persistent and customized versions of i-MSCP templates.',
 	'url' => 'http://i-mscp.net'
 );

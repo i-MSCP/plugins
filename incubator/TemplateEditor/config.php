@@ -24,6 +24,9 @@ return array(
 	// Service template definitions
 	// Warning: imscp unix group must have read access to all file paths defined below.
 	// Do not change anything if you don't know what you are doing.
+	//
+	// Note: The 'template_type' parameter map to the 'mode' parameter from CodeMirror. This is used to tell CodeMirror
+	// which mode to use for Syntax highlighting. The 'none' value mean that no mode is available.
 	'service_templates' => array(
 		'apache_fcgid' => array(
 			'system' => array(
@@ -277,7 +280,7 @@ return array(
 				),
 				'quota-warning' => array(
 					'template_path' => "$confDir/courier/quota-warning",
-					'template_type' => 'http'
+					'template_type' => 'properties'
 				)
 			)
 		),
@@ -293,7 +296,7 @@ return array(
 				),
 				'dovecot-sql.conf' => array(
 					'template_path' => "$confDir/dovecot/dovecot-sql.conf",
-					'template_type' => 'none'
+					'template_type' => 'properties'
 				),
 				'quota-warning.1' => array(
 					'template_path' => "$confDir/dovecot/quota-warning.1",
@@ -375,7 +378,12 @@ return array(
 	// Whether or not default template groups must be synced
 	// Default template groups are those defined in the service_templates configuration parameter (see above).
 	// When set to false, the templates which belong to the default template groups will not be updated (no recommended)
+	// Default: true
 	'sync_default_template_groups' => true,
+
+	// Whether or not configuration files which belong to inactive services must be hidden
+	// Default true
+	'hide_inactive_service_conffiles' => false,
 
 	// Allow to use memcached server for better performances
 	// Default is disabled. See the README.md file for instructions.
