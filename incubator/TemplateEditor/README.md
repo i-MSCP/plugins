@@ -7,7 +7,7 @@ Plugin allowing to create persistent, and customized versions of i-MSCP template
 ### Introduction
 
 This plugin provide an efficient way for edition and persistence of i-MSCP templates. It allow to create new versions of
-template set (merely called template groups). Two type of template groups are managed: the **system template groups**
+template set (merely called template groups). Two types of template groups are managed: the **system template groups**
 and the **site template groups**, where each group defines a set of templates which belong to a specific service managed
 by i-MSCP.
 

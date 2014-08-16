@@ -27,10 +27,11 @@ return array(
 			tname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
 			tcontent mediumtext COLLATE utf8_unicode_ci NOT NULL,
 			tsname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			ttype varchar(50) COLLATE utf8_unicode_ci NOT NULL,
 			tscope varchar(15) NOT NULL,
 			tdefault tinyint(1) NOT NULL DEFAULT '0',
 			PRIMARY KEY (tid),
-			UNIQUE KEY tplu (tname, tsname, tscope),
+			UNIQUE KEY tplu (tgid, tname, tsname, tscope),
 			INDEX tpl_tsname_tscope (tsname, tscope),
 			CONSTRAINT tpid FOREIGN KEY (tpid) REFERENCES tple_templates (tid) ON DELETE CASCADE,
   			CONSTRAINT tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE

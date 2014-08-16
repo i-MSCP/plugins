@@ -31,8 +31,8 @@ use iMSCP::HooksManager;
 
 =head1 DESCRIPTION
 
- Script which is responsible to register the template loader when i-MSCP is being updated. This is needed for
-system templates which are loaded by server/package installers (before any plugin run).
+ Hook file which is responsible to register the template loader when i-MSCP is being updated. This is needed for system
+templates which are loaded by server/package installers (before any plugin run).
 
 =head1 EVENT LISTENER
 
@@ -50,7 +50,7 @@ sub registerTemplateLoader
 {
 	my $backendPluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/TemplateEditor/backend/TemplateEditor.pm";
 
-	# We trap any compile time error(s)
+	# We trap any compile time error
 	eval { require $backendPluginFile; };
 
 	if($@) { # We got an error due to a compile time error or missing file
@@ -59,7 +59,7 @@ sub registerTemplateLoader
 	}
 
 	eval {
-		$pluginInstance = $pluginClass->getInstance(
+		Plugin::TemplateEditor->getInstance(
 			'hooksManager' => iMSCP::HooksManager->getInstance(), 'action' => 'change'
 		);
 	};
@@ -72,7 +72,7 @@ sub registerTemplateLoader
 	0;
 }
 
-iMSCP::HooksManager->getInstance()->register('beforeInstall', \&registerTemplateLoader);
+iMSCP::HooksManager->getInstance()->register('beforeSetupTasks', \&registerTemplateLoader);
 
 =back
 

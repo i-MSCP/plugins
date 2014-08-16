@@ -105,52 +105,38 @@ sub templateLoader
 
 	if(exists $data->{'DOMAIN_ADMIN_ID'}) { # Search for a template which operate at site-wide
 		my $template = $self->{'db'}->doQuery(
-			'template_name',
+			'tname',
 			'
 				SELECT
-					template_name, template_content
+					tname, tcontent
 				FROM
-					template_editor_templates
+					tple_templates
 				INNER JOIN
-					template_editor_templates_admins USING(template_id)
+					tple_templates_admins USING(tid)
 				WHERE
-					template_name = ?
+					tname = ?
 				AND
-					template_service_name = ?
+					tsname = ?
 				AND
-					template_scope = ?
+					tscope = ?
 				AND
 					admin_id = ?
-				LIMIT
-					1
 			',
-			$templateName, $serviceName, 'site', $data->{'DOMAIN_ADMIN_ID'}
+			$templateName,
+			$serviceName,
+			'site',
+			$data->{'DOMAIN_ADMIN_ID'}
 		);
 		unless(ref $template eq 'HASH') {
 			error($template);
 			return 1;
 		} elsif(%{$template}) {
-			$$templateContent = $template->{$templateName}->{'content'};
+			$$templateContent = $template->{$templateName}->{'tcontent'};
 		}
 	} else { # Search for a template which operate at system-wide
 		my $template = $self->{'db'}->doQuery(
-			'template_name',
-			'
-				SELECT
-					template_name, template_content
-				FROM
-					template_editor_templates
-				WHERE
-					template_name = ?
-				AND
-					template_service_name = ?
-				AND
-					template_scope = ?
-				AND
-					template_is_default = 1
-				LIMIT
-					1
-			',
+			'tname',
+			'SELECT tname, tcontent FROM tple_templates WHERE tname = ? AND tsname = ? AND tscope = ? AND tdefault = 1',
 			$templateName,
 			$serviceName,
 			'system'

@@ -116,7 +116,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->syncTemplates();
+			$this->syncDefaultTemplateGroups();
 		} catch (iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
 		}
@@ -163,82 +163,128 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Sync default templates with those provided by i-MSCP core
+	 * Synchronize default template groups
 	 *
 	 * @throw iMSCP_Plugin_Exception
 	 * @throw iMSCP_Exception_Database
 	 * @param bool $force Force template synchronization
 	 * @return void
 	 */
-	public function syncTemplates($force = false)
+	public function syncDefaultTemplateGroups($force = false)
 	{
-		if ($force || $this->getConfigParam('sync_default_templates', true)) {
+		if ($force || $this->getConfigParam('sync_default_template_groups', true)) {
+			$stpls = $this->getConfigParam('service_templates', array());
+
 			$db = iMSCP_Database::getInstance();
 
-			foreach($this->getConfigParam('service_templates', array()) as $templateServiceName => $templates) {
-				$templatePrettyName = ucfirst($templateServiceName) . ' (default)';
+			$tgnames = array_map(
+				function($k) { return quoteValue(ucwords(str_replace('_', ' ', $k))); }, array_keys($stpls)
+			);
 
-				foreach($templates as $scope => $templateFiles) {
-					$templateScope = $scope;
+			exec_query('DELETE FROM tple_tgroups WHERE tgname NOT IN(' . implode(',', $tgnames) . ')');
 
-					try {
+			foreach ($stpls as $tsname => $tg) {
+				$tgname = ucwords(str_replace('_', ' ', $tsname));
+
+				try {
+					foreach ($tg as $tscope => $tpls) {
 						$db->beginTransaction();
-							foreach($templateFiles as $templateName => $templateFilesPath) {
-								if(file_exists($templateFilesPath)) {
-									$templateContent = @file_get_contents($templateFilesPath);
 
-									if($templateContent !== false) {
-										exec_query(
-											'
-												INSERT INTO template_editor_templates (
-													template_name,
-													template_pretty_name,
-													template_content,
-													template_service_name,
-													template_scope
-												) VALUES (
-													:template_name,
-													:template_pretty_name,
-													:template_content,
-													:template_service_name,
-													:template_scope
-												) ON DUPLICATE KEY UPDATE
-													template_content = :template_content
-											',
-											array(
-												'template_name' => $templateName,
-												'template_pretty_name' => $templatePrettyName,
-												'template_content' => $templateContent,
-												'template_service_name' => $templateServiceName,
-												'template_scope' => $templateScope
-											)
-										);
-									} else {
-										$error = error_get_last();
-										throw new iMSCP_Plugin_Exception(
-											tr('Unable to update the %s template: %s', $templateName, $error['message'])
-										);
-									}
-								} else {
+						# Remove any template which is no longer part of template group
+						/*
+						$stmt = exec_query(
+							'
+								SELECT
+									tname
+								FROM
+									tple_templates
+								INNER JOIN
+									tple_tgroups USING(tgid)
+								WHERE
+									tgname = ?
+								AND
+									tscope = ?
+							',
+							array($tgname, $tscope)
+						);
+
+						if($stmt->rowCount()) {
+							exec_query(
+								'
+									DELETE FROM
+										tple_templates
+									WHERE
+										tname NOT IN(' . implode(',', array_diff(array_values($tpls), $stmt->fetchRow(PDO::FETCH_NUM))) . ')'
+							);
+						}
+						*/
+
+						exec_query('INSERT IGNORE INTO tple_tgroups SET tgname = ?', $tgname);
+
+						if (!($tgid = $db->insertId())) {
+							$stmt = exec_query('SELECT tgid FROM tple_tgroups WHERE tgname = ?', $tgname);
+							$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+							$tgid = $row['tgid'];
+						}
+
+						foreach ($tpls as $tname => $tdata) {
+							$tpath = (isset($tdata['template_path'])) ? $tdata['template_path'] : false;
+							$ttype = (isset($tdata['template_type'])) ? $tdata['template_type'] : 'none';
+
+							if ($tpath && file_exists($tpath)) {
+								$tcontent = @file_get_contents($tpath);
+
+								if ($tcontent !== false) {
 									exec_query(
 										'
-											DELETE FROM
-												template_editor_templates
-											WHERE
-												template_name = ?
-											AND
-												template_service_name = ?
+											INSERT INTO tple_templates (
+												tname, tgid, tcontent, tsname, ttype, tscope
+											) VALUES (
+												:tname, :tgid, :tcontent, :tsname, :ttype, :tscope
+											) ON DUPLICATE KEY UPDATE
+												tcontent = :tcontent,
+												ttype = :ttype
+
 										',
-										array($templateName, $templateServiceName)
+										array(
+											'tname' => $tname,
+											'tgid' => $tgid,
+											'tcontent' => $tcontent,
+											'tsname' => $tsname,
+											'tscope' => $tscope,
+											'ttype' => $ttype,
+										)
+									);
+								} else {
+									$error = error_get_last();
+									throw new iMSCP_Plugin_Exception(
+										tr('Unable to update the %s template: %s', $tname, $error['message'])
 									);
 								}
+							} else {
+								exec_query(
+									'
+										DELETE FROM
+											tple_templates
+										WHERE
+											tgid = ?
+										AND
+											tname = ?
+										AND
+											tsname = ?
+										AND
+											tscope = ?
+									',
+									array($tgid, $tname, $tsname, $tscope)
+								);
 							}
+						}
 
 						$db->commit();
-					} catch (iMSCP_Exception $e) {
-						$db->rollBack();
-						throw $e;
 					}
+				} catch (iMSCP_Exception $e) {
+					$db->rollBack();
+					throw $e;
 				}
 			}
 		}
@@ -252,7 +298,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.7', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.11', '<')) {
 				set_page_message(
 					tr('TemplateEditor: Your i-MSCP version is not compatible with this plugin. Try with a newer version.'),
 					'error'
@@ -272,13 +318,12 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if (($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
+			if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
 				$page->addPage(
 					array(
 						'label' => tr('Template Editor'),
 						'uri' => '/admin/template_editor.php',
-						'title_class' => 'settings',
-						'order' => 7
+						'title_class' => 'tools'
 					)
 				);
 			}
