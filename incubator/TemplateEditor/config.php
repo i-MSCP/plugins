@@ -33,14 +33,14 @@ return array(
 	//     '<service_name (as provided by the onLoadTemplate event)>' => array(
 	//         '<scope (either system or site)>' => array(
 	//             '<template name (as provided by the onLoadTemplate event)>' => array(
-	//                 'template_ path => '<template file_path>',
+	//                 'template_ path => '<template file path>',
 	//                 'template_type => '<codemirror mode>'
 	//             )
 	//         ),
 	//         ...
 	//     ),
 	//     ...
-	//  ):
+	//  );
  	//
 	// Note: The 'template_type' parameter map to the 'mode' parameter from CodeMirror. This is used to tell CodeMirror
 	// which mode to use for Syntax highlighting. The 'none' value mean that no mode is available.
