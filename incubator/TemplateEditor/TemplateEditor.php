@@ -173,7 +173,7 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function syncDefaultTemplateGroups($force = false)
 	{
 		if ($force || $this->getConfigParam('sync_default_template_groups', true)) {
-			$stpls = $this->getConfigParam('service_templates', array());
+			$stpls = $this->getConfigParam('default_template_groups', array());
 
 			$db = iMSCP_Database::getInstance();
 

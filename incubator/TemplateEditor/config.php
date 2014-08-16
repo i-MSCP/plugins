@@ -21,13 +21,30 @@
 $confDir = iMSCP_Registry::get('config')->CONF_DIR;
 
 return array(
-	// Service template definitions
+	// Default template group definitions
+	//
 	// Warning: imscp unix group must have read access to all file paths defined below.
+	//
 	// Do not change anything if you don't know what you are doing.
 	//
+	// Structure is as follow:
+	//
+	// default_template_groups => array(
+	//     '<service_name (as provided by the onLoadTemplate event)>' => array(
+	//         '<scope (either system or site)>' => array(
+	//             '<template name (as provided by the onLoadTemplate event)>' => array(
+	//                 'template_ path => '<template file_path>',
+	//                 'template_type => '<codemirror mode>'
+	//             )
+	//         ),
+	//         ...
+	//     ),
+	//     ...
+	//  ):
+ 	//
 	// Note: The 'template_type' parameter map to the 'mode' parameter from CodeMirror. This is used to tell CodeMirror
 	// which mode to use for Syntax highlighting. The 'none' value mean that no mode is available.
-	'service_templates' => array(
+	'default_template_groups' => array(
 		'apache_fcgid' => array(
 			'system' => array(
 				'00_master.conf' => array(
@@ -376,13 +393,13 @@ return array(
 	),
 
 	// Whether or not default template groups must be synced
-	// Default template groups are those defined in the service_templates configuration parameter (see above).
-	// When set to false, the templates which belong to the default template groups will not be updated (no recommended)
+	// Default template groups are those defined in the default_template_groups configuration parameter (see above).
+	// When set to false, the templates which belong to the default template groups will not be updated (not recommended)
 	// Default: true
 	'sync_default_template_groups' => true,
 
 	// Whether or not configuration files which belong to inactive services must be hidden
-	// Default true
+	// Default: true
 	'hide_inactive_service_conffiles' => true,
 
 	// Allow to use memcached server for better performances
