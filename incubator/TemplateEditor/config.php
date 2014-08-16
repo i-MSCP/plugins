@@ -383,7 +383,7 @@ return array(
 
 	// Whether or not configuration files which belong to inactive services must be hidden
 	// Default true
-	'hide_inactive_service_conffiles' => false,
+	'hide_inactive_service_conffiles' => true,
 
 	// Allow to use memcached server for better performances
 	// Default is disabled. See the README.md file for instructions.
