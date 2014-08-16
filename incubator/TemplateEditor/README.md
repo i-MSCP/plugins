@@ -2,54 +2,59 @@
 
 WARNING: THIS PLUGIN IS STILL UNDER DEVELOPMENT AND IS NOT READY TO USE
 
-Plugin allowing to create persistent, and customized versions of service templates. Furthermore, each custom versions
-can be assigned to one or many resellers.
+Plugin allowing to create persistent, and customized versions of i-MSCP templates.
 
-### LICENSE
+### Introduction
 
- i-MSCP TemplateEditor plugin
- Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+This plugin provide an efficient way for edition and persistence of i-MSCP templates. It allow to create new versions of
+template set (merely called template groups). Two type of template groups are managed: the **system template groups**
+and the **site template groups**, where each group defines a set of templates which belong to a specific service managed
+by i-MSCP.
 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
+#### System template groups
 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
+The system template groups define the templates which operate at system-wide level. They are loaded on demand in the
+installation context only. Thus, to make a new version effective, the admin must manually run the imscp-setup after each
+edition. Those template groups are not assignable and only one version can be enabled at time.
 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+**Note:** In near future, it will be possible to synchronize the system configuration through the frontEnd directly.
+See the **[TODO](TODO)** file.
 
- See [GPL v2](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+#### Site template groups
 
-### REQUIREMENTS
+The site template groups define the templates which operate at customer level. Those templates are loaded ondemand, when the
+customers's configuration files are built. Any custom version of those template groups can be assigned to one or many
+customers at once.
 
-Plugin compatible with i-MSCP 1.1.1
+### Warning
 
-### INSTALLATION
+This plugin allow to edit sensible configuration data which are required by i-MSCP. This plugin should be reserved to
+i-MSCP experts only, even if it always possible to switch back to the default configuration easily.
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the TemplateEditor plugin archive
-	- Activate the plugin
+### Requirements
 
-### UPDATE
+ - i-MSCP versions >= 1.1.14 (plugin API >= 0.2.11)
 
-	- Backup your current plugins/TemplateEditor/config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the TemplateEditor plugin archive
-	- Restore your plugins/TemplateEditor/config.php file (check for any change)
-	- Update the plugin list through the plugin interface
+### Installation
 
-### CONFIGURATION
+ - Download the TemplateEditor plugin archive through the plugin store
+ - Login into the panel as admin and go to the plugin management interface
+ - Upload the TemplateEditor plugin archive
+ - Install the plugin
 
-See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+### Update
 
-### AUTHORS AND CONTRIBUTORS
+ - Download the TemplateEditor plugin archive through the plugin store
+ - Login into the panel as admin and go to the plugin management interface
+ - Upload the TemplateEditor plugin archive
 
- * Laurent Declercq <l.declercq@nuxwin.com> (Author)
+### License
+
+The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
+license in **[LICENSE.txt](LICENSE.txt)**.
+
+### Author
+
+Laurent Declercq <l.declercq@nuxwin.com>
 
 **Thank you for using this plugin.**
