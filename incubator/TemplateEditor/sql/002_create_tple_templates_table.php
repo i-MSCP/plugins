@@ -28,13 +28,11 @@ return array(
 			tcontent mediumtext COLLATE utf8_unicode_ci NOT NULL,
 			tsname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
 			ttype varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-			tscope varchar(15) NOT NULL,
 			tdefault tinyint(1) NOT NULL DEFAULT '0',
 			PRIMARY KEY (tid),
-			UNIQUE KEY tplu (tgid, tname, tsname, tscope),
-			INDEX tpl_tsname_tscope (tsname, tscope),
-			CONSTRAINT tpid FOREIGN KEY (tpid) REFERENCES tple_templates (tid) ON DELETE CASCADE,
-  			CONSTRAINT tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
+			UNIQUE KEY u_tgid_tname (tgid, tname),
+			CONSTRAINT ct_tpid FOREIGN KEY (tpid) REFERENCES tple_templates (tid) ON DELETE CASCADE,
+  			CONSTRAINT ct_tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '

@@ -33,7 +33,7 @@ return array(
 	//     '<service_name (as provided by the onLoadTemplate event)>' => array(
 	//         '<scope (either system or site)>' => array(
 	//             '<template name (as provided by the onLoadTemplate event)>' => array(
-	//                 'template_ path => '<template file path>',
+	//                 'template_path => '<template file path>',
 	//                 'template_type => '<codemirror mode>'
 	//             )
 	//         ),

@@ -173,118 +173,85 @@ class iMSCP_Plugin_TemplateEditor extends iMSCP_Plugin_Action
 	public function syncDefaultTemplateGroups($force = false)
 	{
 		if ($force || $this->getConfigParam('sync_default_template_groups', true)) {
-			$stpls = $this->getConfigParam('default_template_groups', array());
+			$dtgs = $this->getConfigParam('default_template_groups', array());
 
 			$db = iMSCP_Database::getInstance();
 
-			$tgnames = array_map(
-				function($k) { return quoteValue(ucwords(str_replace('_', ' ', $k))); }, array_keys($stpls)
-			);
+			//$tgnames = array_map(
+			//	function($k) { return quoteValue(ucwords(str_replace('_', ' ', $k))); }, array_keys($stpls)
+			//);
 
-			exec_query('DELETE FROM tple_tgroups WHERE tgname NOT IN(' . implode(',', $tgnames) . ')');
+			//exec_query('DELETE FROM tple_tgroups WHERE tgname NOT IN(' . implode(',', $tgnames) . ')');
 
-			foreach ($stpls as $tsname => $tg) {
+			foreach ($dtgs as $tgname => $tgdata) {
+				$tsname = $tgname;
 				$tgname = ucwords(str_replace('_', ' ', $tsname));
 
-				try {
-					foreach ($tg as $tscope => $tpls) {
-						$db->beginTransaction();
+				foreach($tgdata as $tgscope => $tdefs) {
+					if($tgscope == 'system' || $tgscope == 'site') {
+						try {
+							$db->beginTransaction();
 
-						# Remove any template which is no longer part of template group
-						/*
-						$stmt = exec_query(
-							'
-								SELECT
-									tname
-								FROM
-									tple_templates
-								INNER JOIN
-									tple_tgroups USING(tgid)
-								WHERE
-									tgname = ?
-								AND
-									tscope = ?
-							',
-							array($tgname, $tscope)
-						);
-
-						if($stmt->rowCount()) {
+							// Create new template group if not already exists
 							exec_query(
-								'
-									DELETE FROM
-										tple_templates
-									WHERE
-										tname NOT IN(' . implode(',', array_diff(array_values($tpls), $stmt->fetchRow(PDO::FETCH_NUM))) . ')'
+								'INSERT IGNORE INTO tple_tgroups SET tgname = ?, tgscope = ?', array($tgname, $tgscope)
 							);
-						}
-						*/
 
-						exec_query('INSERT IGNORE INTO tple_tgroups SET tgname = ?', $tgname);
+							# Get template group id
+							if (!($tgid = $db->insertId())) {
+								$stmt = exec_query(
+									'SELECT tgid FROM tple_tgroups WHERE tgname = ? AND tgscope = ?',
+									array($tgname, $tgscope)
+								);
+								$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+								$tgid = $row['tgid'];
+							}
 
-						if (!($tgid = $db->insertId())) {
-							$stmt = exec_query('SELECT tgid FROM tple_tgroups WHERE tgname = ?', $tgname);
-							$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-							$tgid = $row['tgid'];
-						}
+							foreach($tdefs as $tname => $tdef) {
+								$tpath = (isset($tdef['template_path'])) ? $tdef['template_path'] : false;
+								$ttype = (isset($tdef['template_type'])) ? $tdef['template_type'] : 'none';
 
-						foreach ($tpls as $tname => $tdata) {
-							$tpath = (isset($tdata['template_path'])) ? $tdata['template_path'] : false;
-							$ttype = (isset($tdata['template_type'])) ? $tdata['template_type'] : 'none';
+								if ($tpath && file_exists($tpath)) {
+									$tcontent = @file_get_contents($tpath);
 
-							if ($tpath && file_exists($tpath)) {
-								$tcontent = @file_get_contents($tpath);
-
-								if ($tcontent !== false) {
-									exec_query(
-										'
-											INSERT INTO tple_templates (
-												tname, tgid, tcontent, tsname, ttype, tscope
-											) VALUES (
-												:tname, :tgid, :tcontent, :tsname, :ttype, :tscope
-											) ON DUPLICATE KEY UPDATE
-												tcontent = :tcontent,
-												ttype = :ttype
-
-										',
-										array(
-											'tname' => $tname,
-											'tgid' => $tgid,
-											'tcontent' => $tcontent,
-											'tsname' => $tsname,
-											'tscope' => $tscope,
-											'ttype' => $ttype,
-										)
-									);
+									if ($tcontent !== false) {
+										exec_query(
+											'
+												INSERT INTO tple_templates (
+													tname, tgid, tcontent, tsname, ttype
+												) VALUES (
+													:tname, :tgid, :tcontent, :tsname, :ttype
+												) ON DUPLICATE KEY UPDATE
+													tcontent = :tcontent,
+													ttype = :ttype
+											',
+											array(
+												'tname' => $tname,
+												'tgid' => $tgid,
+												'tcontent' => $tcontent,
+												'tsname' => $tsname,
+												'ttype' => $ttype
+											)
+										);
+									} else {
+										$error = error_get_last();
+										throw new iMSCP_Plugin_Exception(
+											tr('Unable to update the %s template: %s', $tname, $error['message'])
+										);
+									}
 								} else {
-									$error = error_get_last();
-									throw new iMSCP_Plugin_Exception(
-										tr('Unable to update the %s template: %s', $tname, $error['message'])
+									exec_query(
+										'DELETE FROM tple_templates WHERE tgid = ? AND tname = ?', array($tgid, $tname)
 									);
 								}
-							} else {
-								exec_query(
-									'
-										DELETE FROM
-											tple_templates
-										WHERE
-											tgid = ?
-										AND
-											tname = ?
-										AND
-											tsname = ?
-										AND
-											tscope = ?
-									',
-									array($tgid, $tname, $tsname, $tscope)
-								);
 							}
-						}
 
-						$db->commit();
+							$db->commit();
+						} catch(iMSCP_Exception_Database  $e) {
+							$db->rollBack();
+							throw $e;
+						}
 					}
-				} catch (iMSCP_Exception $e) {
-					$db->rollBack();
-					throw $e;
 				}
 			}
 		}

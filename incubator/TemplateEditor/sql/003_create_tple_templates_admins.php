@@ -20,15 +20,15 @@
 
 return array(
 	'up' => '
-		CREATE TABLE IF NOT EXISTS tple_templates_admins (
+		CREATE TABLE IF NOT EXISTS tple_admins_tgroups (
  			admin_id int(10) unsigned NOT NULL,
- 			tid int(10) unsigned NOT NULL,
- 			UNIQUE KEY admin_id_tid (admin_id, tid),
-  			CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id) ON DELETE CASCADE,
- 			CONSTRAINT tid FOREIGN KEY (tid) REFERENCES tple_templates (tid) ON DELETE CASCADE
+ 			tgid int(10) unsigned NOT NULL,
+ 			UNIQUE KEY u_admin_id_tgid (admin_id, tgid),
+  			CONSTRAINT catg_admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id) ON DELETE CASCADE,
+ 			CONSTRAINT catg_tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	',
 	'down' => '
-		DROP TABLE IF EXISTS tple_templates_admins
+		DROP TABLE IF EXISTS tple_admins_tgroups
 	'
 );

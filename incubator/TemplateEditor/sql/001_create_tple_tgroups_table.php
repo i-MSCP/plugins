@@ -24,9 +24,10 @@ return array(
 			tgid int(10) unsigned AUTO_INCREMENT NOT NULL,
 			tpgid int(10) unsigned DEFAULT NULL,
 			tgname varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+			tgscope varchar(15) COLLATE utf8_unicode_ci NOT NULL,
 			PRIMARY KEY (tgid),
-			UNIQUE KEY tgname (tgname),
-			CONSTRAINT tpgid FOREIGN KEY (tpgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
+			UNIQUE KEY u_tg (tgname, tgscope),
+			CONSTRAINT ctg_tpgid FOREIGN KEY (tpgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '
