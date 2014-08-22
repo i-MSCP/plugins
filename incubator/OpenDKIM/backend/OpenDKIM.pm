@@ -360,6 +360,7 @@ sub _addOpendkimDomainKey($$$$)
 		return 1;
 	}
 
+	$fileContent =~ s/"\n(.*)"p=/ p=/sgm; # Fix for Ubuntu 14.04 Trusty Tahr
 	(my $txtRecord) = ($fileContent =~ /(".*")/);
 
 	# Fix permissions on the TXT DNS record file
@@ -583,6 +584,7 @@ sub _addOpendkimDnsEntries
 					return 1;
 				}
 
+				$fileContent =~ s/"\n(.*)"p=/ p=/sgm; # Fix for Ubuntu 14.04 Trusty Tahr
 				(my $txtRecord) = ($fileContent =~ /(\".*\")/);
 
 				# Add the DNS TXT record into the database
