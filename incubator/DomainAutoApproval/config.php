@@ -22,7 +22,7 @@ return array(
 	# If set to TRUE, any domain alias created by user accounts listed in the 'user_accounts' parameter will be
 	# auto-approved
 	#
-	## If set to FALSE, any domain alias created by user accounts not listed in the 'user_accounts' parameter will be
+	# If set to FALSE, any domain alias created by user accounts not listed in the 'user_accounts' parameter will be
 	# auto approved
 	'approval_rule' => false,
 
