@@ -34,7 +34,9 @@ use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Database;
+use iMSCP::TemplateParser;
 use iMSCP::Net;
+use iMSCP::EventManager;
 use Servers::httpd;
 use JSON;
 
@@ -86,14 +88,14 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_createConfig('00_PanelRedirect.conf');
+	my $rs = $self->_createConfig('PanelRedirect.conf');
 	return $rs if $rs;
 
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		$rs = $self->_createConfig('00_PanelRedirect_ssl.conf');
+		$rs = $self->_createConfig('PanelRedirect_ssl.conf');
 		return $rs if $rs;
 	} else {
-		$rs = $self->_removeConfig('00_PanelRedirect_ssl.conf');
+		$rs = $self->_removeConfig('PanelRedirect_ssl.conf');
 		return $rs if $rs;
 	}
 
@@ -114,7 +116,7 @@ sub disable
 {
 	my $self = $_[0];
 
-	for('00_PanelRedirect.conf', '00_PanelRedirect_ssl.conf') {
+	for('PanelRedirect.conf', 'PanelRedirect_ssl.conf') {
 		my $rs = $self->_removeConfig($_);
 		return $rs if $rs;
 	}
@@ -142,6 +144,7 @@ sub _init
 {
 	my $self = $_[0];
 
+	$self->{'eventManager'} = iMSCP::EventManager->getInstance();
 	$self->{'httpd'} = Servers::httpd->factory();
 
 	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
@@ -183,19 +186,39 @@ sub _createConfig
 			'BASE_SERVER_VHOST_PREFIX' => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
 			'BASE_SERVER_VHOST_PORT' => ($main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://')
 				? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
+			'BASE_SERVER_VHOST_HTTP_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
+			'BASE_SERVER_VHOST_HTTPS_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
 			'DEFAULT_ADMIN_ADDRESS' => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
 			'HTTPD_LOG_DIR' => $self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'},
 			'CONF_DIR' => $main::imscpConfig{'CONF_DIR'}
 		}
 	);
 
-	my $rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
+	my $rs = $self->{'eventManager'}->register(
+		'afterHttpdBuildConf',
+		sub {
+			my ($cfgTpl, $tplName) = @_;
+
+			if($tplName eq 'PanelRedirect.conf' || $tplName eq 'PanelRedirect_ssl.conf') {
+				$$cfgTpl = replaceBloc(
+					"# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} BEGIN.\n",
+					"# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} END.\n",
+					'',
+					$$cfgTpl
+				);
+			}
+
+			0;
+		}
+	);
 	return $rs if $rs;
 
-	$rs = $self->{'httpd'}->installConfFile($vhostTplFile);
+	$rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
 	return $rs if $rs;
 
-	$self->{'httpd'}->enableSites($vhostTplFile);
+	$rs = $self->{'httpd'}->installConfFile($vhostTplFile, {
+		destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
+	});
 }
 
 =item _removeConfig($vhostFile)
@@ -211,15 +234,12 @@ sub _removeConfig
 {
 	my ($self, $vhostFile) = @_;
 
-	my $rs = $self->{'httpd'}->disableSites($vhostFile);
-	return $rs if $rs;
-
 	for(
 		"$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
-		"$self->{'httpd'}->{'config'}->{'HTTPD_SITES_AVAILABLE_DIR'}/$vhostFile"
+		"$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
 	) {
 		if(-f $_) {
-			$rs = iMSCP::File->new('filename' => $_)->delFile();
+			my $rs = iMSCP::File->new('filename' => $_)->delFile();
 			return $rs if $rs;
 		}
 	}
