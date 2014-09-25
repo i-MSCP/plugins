@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v1.0.1
+## i-MSCP InstantSSH plugin v1.0.2
 
 Plugin allowing to provide full SSH access to customers.
 
@@ -30,7 +30,7 @@ appearing in the the default authentication string must also be specified in the
 
 ### Requirements
 
-* i-MSCP >= 1.1.5 (plugin API >= 0.2.8)
+* i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
 
 #### Debian / Ubuntu packages

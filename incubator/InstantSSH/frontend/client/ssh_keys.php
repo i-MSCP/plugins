@@ -62,10 +62,8 @@ function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
  * @param string $rsaKey RSA key (Supported formats: PKCS#1, openSSH and XML Signature)
  * @return array|false An array which contain the normalized SSH key and its associated fingerprint or false on failure
  */
-function _instant_getOpenSshKey($rsaKey)
+function _instantssh_getOpenSshKey($rsaKey)
 {
-	require_once 'Crypt/RSA.php';
-
 	$rsa = new Crypt_RSA();
 	$ret = false;
 
@@ -158,7 +156,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 		} elseif (strlen($sshKeyName) > 255) {
 			_instantssh_sendJsonResponse(400, array('message' => tr('SSH key name is too long (Max 255 characters).')));
 		} else {
-			if (($sshKey = _instant_getOpenSshKey($sshKey, $pluginManager)) === false) {
+			if (($sshKey = _instantssh_getOpenSshKey($sshKey)) === false) {
 				_instantssh_sendJsonResponse(400, array('message' => tr('Invalid SSH key.')));
 			}
 
@@ -240,16 +238,7 @@ function instantssh_deleteSshKey()
 
 		try {
 			exec_query(
-				'
-					UPDATE
-						instant_ssh_keys
-					SET
-						ssh_key_status = ?
-					WHERE
-						ssh_key_id = ?
-					AND
-						ssh_key_admin_id = ?
-				',
+				'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_id = ? AND ssh_key_admin_id = ?',
 				array('todelete', $sshKeyId, $_SESSION['user_id'])
 			);
 
@@ -416,7 +405,7 @@ function instantssh_getSshKeys()
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
 
 check_login('user');
 
@@ -461,7 +450,8 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			'page' => '../../plugins/InstantSSH/themes/default/view/client/ssh_keys.tpl',
 			'page_message' => 'layout',
 			'ssh_auth_options_block' => 'page',
-			'ssh_key_save_button_block' => 'page'
+			'ssh_show_action' => 'page',
+			'ssh_edit_action' => 'page'
 		)
 	);
 
@@ -489,7 +479,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 			array(
 				'TR_RESET_BUTTON_LABEL' => tr('Reset'),
 				'SSH_AUTH_OPTIONS_BLOCK' => '',
-				'SSH_KEY_SAVE_BUTTON_BLOCK' => ''
+				'SSH_EDIT_ACTION' => ''
 			)
 		);
 	} else {
@@ -503,7 +493,8 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 					'Allowed authentication options: %s <br />See man authorized_keys for more details',
 					implode(', ', $allowedSshAuthOptions)
 				),
-				'TR_RESET_BUTTON_LABEL' => tr('Cancel')
+				'TR_RESET_BUTTON_LABEL' => tr('Cancel'),
+				'SSH_SHOW_ACTION' => ''
 			)
 		);
 	}
@@ -513,7 +504,7 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 } else {

@@ -2,33 +2,42 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.0.2
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Pagination issues (datatable)
+	Fixed: Unable to add new SSH key when customer is not allowed to edit SSH key options
+	Removed: PHP Secure library which is already included in i-MSCP core
+	Updated: i-MSCP version requirement (>= 1.1.14 - API >= 0.2.11)
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Version 1.0.0 is not compatible with i-MSCP version 1.1.5
+	Fixed: Version 1.0.0 is not compatible with i-MSCP version 1.1.5
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Added: Configuration option allowing to define which SSH authentication options can be overriden by customers
-	- Added: SSH authentication options validator and converter (string to array and vice versa)
-	- Fixed: All keys are shown in datatable whatever the owner
-	- Fixed: SSH users are not logged out when SSH permissions are revoked
-	- Fixed: Unable to delete customer account
-	- Fixed: Unable to update in some contexts
+	Added: Configuration option allowing to define which SSH authentication options can be overriden by customers
+	Added: SSH authentication options validator and converter (string to array and vice versa)
+	Fixed: All keys are shown in datatable whatever the owner
+	Fixed: SSH users are not logged out when SSH permissions are revoked
+	Fixed: Unable to delete customer account
+	Fixed: Unable to update in some contexts
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Fixed: Checkbox remain checked whatever the value from database (ssh permissions UI)
-	- Fixed: Customer shouldn't be able to edit full SSH key. Only key options must be editable
-	- Fixed: Number of bound variables does not match... (ssh permissions UI - edit action)
-	- Fixed: Unregistered data 'navigation'
+	Fixed: Checkbox remain checked whatever the value from database (ssh permissions UI)
+	Fixed: Customer shouldn't be able to edit full SSH key. Only key options must be editable
+	Fixed: Number of bound variables does not match... (ssh permissions UI - edit action)
+	Fixed: Unregistered data 'navigation'
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	- First release
+	First release

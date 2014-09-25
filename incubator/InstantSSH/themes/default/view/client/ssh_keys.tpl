@@ -89,9 +89,7 @@
 			</tr>
 			<tr>
 				<td colspan="2" style="text-align: right;">
-					<!-- BDP: ssh_key_save_button_block -->
-					<button data-action="add_ssh_key">Save</button>
-					<!-- EDP: ssh_key_save_button_block -->
+					<button id="action" data-action="add_ssh_key">Save</button>
 					<input type="hidden" id="ssh_key_id" name="ssh_key_id" value="0">
 					<input type="reset" value="{TR_RESET_BUTTON_LABEL}"/>
 				</td>
@@ -120,7 +118,6 @@
 				"class": 'flash_message ' + type,
 				"text": message,
 				"hide": true
-				//"style": "position:absolute;width:50%;left:50%;margin-left:-25%;z-index:3000"
 			}
 		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function () {
 				$(this).remove();
@@ -143,6 +140,7 @@
 			bServerSide: true,
 			sAjaxSource: "/client/ssh_keys?action=get_ssh_keys",
 			bStateSave: true,
+			pagingType: "simple",
 			aoColumnDefs: [
 				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
 			],
@@ -175,6 +173,7 @@
 			$("#ssh_key_id").val("0");
 			$("#ssh_key_name").prop("readonly", false);
 			$("#ssh_key").prop("readonly", false);
+			$("#action").show();
 		});
 
 		$("#page").on("click", "span[data-action], button", function (e) {
@@ -192,9 +191,17 @@
 						oTable.fnDraw();
 					});
 					break;
+				<!-- BDP: ssh_show_action -->
 				case "show_ssh_key":
+				<!-- EDP: ssh_show_action -->
+				<!-- BDP: ssh_edit_action -->
 				case "edit_ssh_key":
+				<!-- EDP: ssh_edit_action -->
 					doRequest('GET', "get_ssh_key", { ssh_key_id: sshKeyId }).done(function (data) {
+						if(action != 'edit_ssh_key') {
+							$("#action").hide();
+						}
+
 						$("#ssh_key_id").val(data.ssh_key_id);
 						$("#ssh_key_name").val(data.ssh_key_name).prop("readonly", true);
 						$("#ssh_auth_options").val(data.ssh_auth_options);

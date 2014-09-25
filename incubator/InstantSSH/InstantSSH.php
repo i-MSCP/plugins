@@ -294,7 +294,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			array('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 		);
 
-		return $stmt->fields['cnt'];
+		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+
+		return $row['cnt'];
 	}
 
 	/**
@@ -340,7 +342,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.8', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.11', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -392,7 +394,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						if ($sshAuthOptionNew !== $sshAuthOptionsOld) {
 							throw new iMSCP_Plugin_Exception(
 								'Any authentication options appearing in the default_ssh_auth_options parameter must ' .
-								'be specified in the allowed_ssh_auth_options parameter.'
+								'be also specified in the allowed_ssh_auth_options parameter.'
 							);
 						}
 					}

@@ -306,7 +306,7 @@ sub _init
 	$self->{'db'} = iMSCP::Database->factory();
 	$self->{'isListenerRegistered'} = 0;
 
-	$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteDomain);
+	$self->{'eventManager'}->register('beforeHttpdDelDmn', \&deleteDomain);
 
 	$self;
 }
@@ -349,7 +349,7 @@ sub _addSshKey($$)
 			return $rs if $rs;
 
 			unless($self->{'isListenerRegistered'}) {
-				$self->{'hooksManager'}->register( 'onBeforeAddImscpUnixUser', sub {
+				$self->{'eventManager'}->register( 'onBeforeAddImscpUnixUser', sub {
 					 $$_[7] = '/bin/bash' if $_[0] ~~ $Plugin::KassaSSH::seenCustomers; 0;
 				});
 
