@@ -18,12 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+# Add ssh_permission_jailed_shell column in instant_ssh_permissions table
+
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '2.0.0',
-	'date' => '2014-09-25',
-	'name' => 'InstantSSH',
-	'desc' => 'Plugin allowing to provide full or restricted SSH access to your customers.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:instantssh'
+	'up' =>
+		'
+			ALTER TABLE
+				instant_ssh_permissions
+			ADD
+				ssh_permission_jailed_shell tinyint(1) NOT NULL AFTER ssh_permission_auth_options
+		',
+	'down' =>
+		'
+			ALTER TABLE instant_ssh_permissions DROP ssh_permission_jailed_shell
+		'
 );

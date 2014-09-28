@@ -2,10 +2,8 @@
 	  type="text/css"/>
 
 <div id="page">
-	<div class="flash_messagelll" style="display: none;"></div>
-
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
-		This is the list of SSH customers which are allowed to add SSH keys.
+		This is the list of customers which are allowed to add their SSH keys to login on the system using SSH.
 	</p>
 
 	<br/>
@@ -16,6 +14,7 @@
 			<th>Customer Name</th>
 			<th>Max Keys</th>
 			<th>Can Edit Auth Options</th>
+			<th>Jailed Shell</th>
 			<th>Actions</th>
 		</tr>
 		</thead>
@@ -24,6 +23,7 @@
 			<td>Customer Name</td>
 			<td>Max Keys</td>
 			<td>Can Edit Auth Options</td>
+			<td>Jailed Shell</td>
 			<td>Actions</td>
 		</tr>
 		</tfoot>
@@ -52,7 +52,7 @@
 				</tr>
 				<tr>
 					<td>
-						<label for="ssh_permission_max_keys">Max number of keys<br>(
+						<label for="ssh_permission_max_keys">Maximum number of SSH keys<br>(
 							<small>0 for unlimited)</small>
 						</label>
 					</td>
@@ -62,10 +62,27 @@
 					</td>
 				</tr>
 				<tr>
-					<td><label for="ssh_permission_auth_options">Can edit auth options</label></td>
+					<td>
+						<label for="ssh_permission_auth_options">
+							Can edit authentication options
+							<span class="icon i_help" title="Wheither or not the customer must be allowed to edit the authentication options.<br/>See man authorized_keys for further details about authentication options.">&nbsp;</span>
+						</label>
+					</td>
 					<td>
 						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options"
 							   value="1"/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="ssh_permission_jailed_shell">
+							Jailed shell
+							<span class="icon i_help" title="Does the shell access must be provided in restricted environment (recommended)?">&nbsp;</span>
+						</label>
+					</td>
+					<td>
+						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell"
+							   value="1" >
 					</td>
 				</tr>
 				<tr>
@@ -84,14 +101,8 @@
 	var oTable;
 
 	function flashMessage(type, message) {
-		$('<div />',
-			{
-				"class": 'flash_message ' + type,
-				"text": message,
-				"hide": true
-				//"style": "position:absolute;width:50%;left:50%;margin-left:-25%;z-index:3000"
-			}
-		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function() { $(this).remove(); });
+		$('<div />', { "class": 'flash_message ' + type, "text": message, "hide": true }).prependTo("#page")
+			.hide().fadeIn('fast').delay(5000).fadeOut('normal', function() { $(this).remove(); });
 	}
 
 	function doRequest(rType, action, data) {
@@ -121,12 +132,13 @@
 			sAjaxSource: "/admin/ssh_permissions?action=get_ssh_permissions_list",
 			bStateSave: true,
 			aoColumnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 3 ] }
+				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
 			],
 			aoColumns: [
 				{ mData: "admin_name" },
 				{ mData: "ssh_permission_max_keys" },
 				{ mData: "ssh_permission_auth_options" },
+				{ mData: "ssh_permission_jailed_shell" },
 				{ mData: "ssh_permission_actions" }
 			],
 			fnServerData: function (sSource, aoData, fnCallback) {
@@ -148,7 +160,7 @@
 
 		$("#admin_name").autocomplete({
 			source: "/admin/ssh_permissions?action=search_customer",
-			//minLength: 2,
+			minLength: 2,
 			delay: 500,
 			autoFocus: true,
 			change: function (event, ui) {
@@ -163,6 +175,7 @@
 			$("#admin_name").prop('readonly', false);
 			$("#ssh_permission_max_keys").val("0");
 			$("#ssh_permission_auth_options").prop('checked', false);
+			$("#ssh_permission_jailed_shell").prop('checked', false);
 			$("#ssh_permission_id").val("0");
 		});
 
@@ -186,6 +199,7 @@
 							$("#admin_name").val(data.admin_name).prop('readonly', true);
 							$("#ssh_permission_max_keys").val(data.ssh_permission_max_keys);
 							$("#ssh_permission_auth_options").prop('checked', (data.ssh_permission_auth_options != 0));
+							$("#ssh_permission_jailed_shell").prop('checked', (data.ssh_permission_jailed_shell != 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);
 						});
 					break;
@@ -200,7 +214,7 @@
 					}
 					break;
 				default:
-					alert("Unknown Action");
+					flashMessage('error', "Unknown Action");
 			}
 		});
 

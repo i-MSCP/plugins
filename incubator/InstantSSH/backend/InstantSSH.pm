@@ -116,8 +116,8 @@ sub run
 	# When SSH permissions are deleted for a customer, the ssh_permission_id field of all its ssh keys is
 	# automatically set to NULL. Therefore, to avoid useless works (all SSH keys have to be deleted), we are retrieving
 	# only one key that belongs to the customer and we trigger the SSH permissions deletion task for this customer.
-	# This way, we avoid to delete all SSH keys one by one. Instead, we remove the entire .ssh directory and we set the
-	# shell back to /bin/false. Once the process is successfully done, we delete all SSH key entries from the database
+	# By doing this, we avoid to delete all SSH keys one by one. Instead, we remove the entire .ssh directory and we set
+	# the shell back to /bin/false. Once the process is successfully done, we delete all SSH key entries from the database
 	# for this customer.
 
 	my $admins = $self->{'db'}->doQuery(
@@ -241,23 +241,21 @@ sub run
 
 =over 4
 
-=item deleteDomain(\%data)
+=item onDeleteDomain(\%data)
 
- Initialize instance
+ Event listener which is triggered before any domain deletion
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub deleteDomain($)
+sub onDeleteDomain($)
 {
 	my $data = $_[0];
 
 	if($data->{'DOMAIN_TYPE'} eq 'dmn') {
 		my $username = $data->{'USER'};
 		my $homeDir = File::HomeDir->users_home($username);
-		my $isProtectedHomeDir = isImmutable($homeDir);
-		my $rs = 0;
 
 		if(defined $homeDir) {
 			if(-f "$homeDir/.ssh/authorized_keys") {
@@ -265,10 +263,12 @@ sub deleteDomain($)
 				my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($username), 'sshd');
 				execute("@cmd");
 
-				clearImmutable($homeDir);
+				my $isProtectedHomeDir = isImmutable($homeDir);
+
+				clearImmutable($homeDir) if $isProtectedHomeDir;
 				clearImmutable("$homeDir/.ssh/authorized_keys");
 
-				$rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->remove();
+				my $rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->remove();
 				return $rs if $rs;
 
 				setImmutable($homeDir) if $isProtectedHomeDir;
@@ -278,6 +278,24 @@ sub deleteDomain($)
 			return 1;
 		}
 	}
+
+	0;
+}
+
+=item onUnixUserUpdate(\%data)
+
+ Event listener which listen on the onBeforeAddImscpUnixUser event
+
+ When unix users are updated, the shell is automatically set back to the default value (/bin/false). To prevent that,
+ this listener will change the default shell value to /bin/bash (only for customers which have at least one SSH key).
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub onUnixUserUpdate
+{
+	$$_[7] = '/bin/bash' if $_[0] ~~ $Plugin::InstantSSH::seenCustomers;
 
 	0;
 }
@@ -304,16 +322,18 @@ sub _init
 	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Please, read the plugin documentation') if $@;
 
 	$self->{'db'} = iMSCP::Database->factory();
-	$self->{'isListenerRegistered'} = 0;
 
-	$self->{'eventManager'}->register('beforeHttpdDelDmn', \&deleteDomain);
+	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', \&onUnixUserUpdate);
+	$self->{'eventManager'}->register('beforeHttpdDelDmn', \&onDeleteDomain);
 
 	$self;
 }
 
 =item _addSshKey(\%sshKeyData)
 
- Add the given SSH key
+ Adds the given SSH key into the ~/.ssh/authorized_keys file of the customer
+
+ In case the ~/.ssh/authorized_keys file doesn't already exist, it is created.
 
  Return int 0 on success, other on failure
 
@@ -325,13 +345,15 @@ sub _addSshKey($$)
 
 	my $homeDir = File::HomeDir->users_home($sshKeyData->{'admin_sys_name'});
 	my $isProtectedHomeDir = isImmutable($homeDir);
-	my $rs = 0;
 
 	if(defined $homeDir) {
-		clearImmutable($homeDir);
+		my $authorizedKeysFile = iMSCP::File->new('filename' => "$homeDir/.ssh/authorized_keys");
+		my $authorizedKeysFileContent;
 
-		if(not $sshKeyData->{'ssh_key_admin_id'} ~~ $seenCustomers) {
-			$rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->make(
+		unless(-f "$homeDir/.ssh/authorized_keys") {
+			clearImmutable($homeDir) if $isProtectedHomeDir;
+
+			my $rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->make(
 				{
 					'user' => $sshKeyData->{'admin_sys_name'},
 					'group' => $sshKeyData->{'admin_sys_gname'},
@@ -339,39 +361,30 @@ sub _addSshKey($$)
 				}
 			);
 
+			setImmutable($homeDir) if $isProtectedHomeDir;
+
+			# Customer unix user shell must be updated to /bin/bash
 			my @cmd = (
-				"$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/bash', escapeShell($sshKeyData->{'admin_sys_name'})
+				"$main::imscpConfig{'CMD_USERMOD'}",
+				'-s /bin/bash',
+				escapeShell($sshKeyData->{'admin_sys_name'})
 			);
+
 			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			debug($stderr) if $stderr && $rs;
 			return $rs if $rs;
-
-			unless($self->{'isListenerRegistered'}) {
-				$self->{'eventManager'}->register( 'onBeforeAddImscpUnixUser', sub {
-					 $$_[7] = '/bin/bash' if $_[0] ~~ $Plugin::KassaSSH::seenCustomers; 0;
-				});
-
-				$self->{'isListenerRegistered'} = 1;
-			}
-		}
-
-		my $authorizedKeysFile = iMSCP::File->new('filename' => "$homeDir/.ssh/authorized_keys");
-		my $authorizedKeysFileContent;
-
-		if(-f "$homeDir/.ssh/authorized_keys") {
+		} else {
 			clearImmutable("$homeDir/.ssh/authorized_keys");
-			$authorizedKeysFileContent = $authorizedKeysFile->get()
+			$authorizedKeysFileContent = $authorizedKeysFile->get() || '';
 		}
-
-		$authorizedKeysFileContent = '' unless defined $authorizedKeysFileContent;
 
 		my $sshKeyReg = quotemeta($sshKeyData->{'ssh_key'});
-		$authorizedKeysFileContent =~ s/[^\n]*?$sshKeyReg\n//;
+		$authorizedKeysFileContent =~ s/[^\n]*?$sshKeyReg\n//; # Ensure that the key is not already there by removing it
 		$authorizedKeysFileContent .= "$sshKeyData->{'ssh_auth_options'} $sshKeyData->{'ssh_key'}\n";
 
-		$rs = $authorizedKeysFile->set($authorizedKeysFileContent);
+		my $rs = $authorizedKeysFile->set($authorizedKeysFileContent);
 		return $rs if $rs;
 
 		$rs = $authorizedKeysFile->save();
@@ -384,8 +397,6 @@ sub _addSshKey($$)
 		return $rs if $rs;
 
 		setImmutable("$homeDir/.ssh/authorized_keys");
-
-		setImmutable($homeDir) if $isProtectedHomeDir;
 	} else {
 		error("Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
 		return 1;
@@ -396,7 +407,7 @@ sub _addSshKey($$)
 
 =item _deleteSshKey(\%sshKeyData)
 
- Delete the given SSH key
+ Delete the given SSH key from the ~/.ssh/authorized_keys file of the customer
 
  Return int 0 on success, other on failure
 
@@ -453,7 +464,7 @@ sub _deleteSshKey($$)
 
 =item _deleteSshPermissions($adminSysName)
 
- Delete SSH permissions
+ Delete SSH permissions for the given unix user
 
  Return int 0 on success, other on failure
 
@@ -464,8 +475,6 @@ sub _deleteSshPermissions($$)
 	my $adminSysName = $_[1];
 
 	my $homeDir = File::HomeDir->users_home($adminSysName);
-	my $isProtectedHomeDir = isImmutable($homeDir);
-	my $rs = 0;
 
 	if(defined $homeDir) {
 		if(-f "$homeDir/.ssh/authorized_keys") {
@@ -473,16 +482,23 @@ sub _deleteSshPermissions($$)
 			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($adminSysName), 'sshd');
 			execute("@cmd");
 
-			clearImmutable($homeDir);
+			my $isProtectedHomeDir = isImmutable($homeDir);
+
+			clearImmutable($homeDir) if $isProtectedHomeDir;
 			clearImmutable("$homeDir/.ssh/authorized_keys");
 
-			$rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->remove();
+			my $rs = iMSCP::Dir->new('dirname' => "$homeDir/.ssh")->remove();
 			return $rs if $rs;
 
 			setImmutable($homeDir) if $isProtectedHomeDir;
 
 			# Change customer unix user shell to /bin/false
-			@cmd = ("$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($adminSysName));
+			@cmd = (
+				"$main::imscpConfig{'CMD_USERMOD'}",
+				'-s /bin/false',
+				escapeShell($adminSysName)
+			);
+
 			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;

@@ -38,11 +38,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		$pluginDirectory = iMSCP_Registry::get('pluginManager')->getPluginDirectory();
 
 		// Set include path
-		set_include_path(
-			get_include_path() .
-			PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library' .
-			PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library/vendor/phpseclib'
-		);
+		set_include_path(get_include_path() . PATH_SEPARATOR . $pluginDirectory . '/InstantSSH/library');
 	}
 
 	/**
@@ -218,6 +214,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 	/**
 	 * onAfterChangeDomainStatus listener
+	 *
+	 * When a customer account is being activated, we schedule reactivation of SSH feature
+	 * When a customer account is being deactivated, we schedule deactivation of SSH feature
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void

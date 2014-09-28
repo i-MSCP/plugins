@@ -69,7 +69,7 @@ function instantssh_getSshPermissions()
 				'
 					SELECT
 						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_keys,
-						ssh_permission_auth_options, admin_name
+						ssh_permission_auth_options, ssh_permission_jailed_shell, admin_name
 					FROM
 						instant_ssh_permissions
 					INNER JOIN
@@ -86,7 +86,9 @@ function instantssh_getSshPermissions()
 
 			_instantssh_sendJsonResponse(404, array('message' => tr('SSH permissions not found.')));
 		} catch(iMSCP_Exception_Database $e) {
-			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+			_instantssh_sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred %s', true, $e->getMessage()))
+			);
 		}
 	}
 
@@ -105,6 +107,7 @@ function instantssh_addSshPermissions()
 		$adminName = encode_idna(clean_input($_POST['admin_name']));
 		$sshPermissionMaxKey = clean_input($_POST['ssh_permission_max_keys']);
 		$sshPermissionAuthOptions = (isset($_POST['ssh_permission_auth_options'])) ? : 0;
+		$sshPermissionJailedShell = (isset($_POST['ssh_permission_jailed_shell'])) ? : 0;
 
 		if ($adminName == '' || $sshPermissionMaxKey == '') {
 			_instantssh_sendJsonResponse(400, array('message' => tr('All fields are required.')));
@@ -123,20 +126,24 @@ function instantssh_addSshPermissions()
 				$stmt = exec_query(
 					'
 						INSERT INTO instant_ssh_permissions(
-							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options
+							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options,
+							ssh_permission_jailed_shell
 						) SELECT
-							admin_id, ?, ?
+							admin_id, ?, ?, ?
 						FROM
 							admin
 						WHERE
 							admin_name = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $adminName)
+					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, $adminName)
 				);
 
 				if($stmt->rowCount()) {
 					$db->commit();
-					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions added.')));
+
+					write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
+
+					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
 				}
 			} else { // Update SSH permissions
 				exec_query(
@@ -145,10 +152,11 @@ function instantssh_addSshPermissions()
 							instant_ssh_permissions
 						SET
 							ssh_permission_max_keys = ?, ssh_permission_auth_options = ?
+							ssh_permission_jailed_shell = ?
 						WHERE
 							ssh_permission_id = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionId)
+					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, $sshPermissionId)
 				);
 
 				if(!$sshPermissionAuthOptions) {
@@ -174,13 +182,22 @@ function instantssh_addSshPermissions()
 
 				send_request();
 
+				write_log(sprintf('SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
+
 				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions updated.')));
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 
 			if ($e->getCode() != '23000') {
-				_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+				write_log(
+					sprintf('InstantSSH: Unable to update SSH permissions for %s: %s', $adminName, $e->getMessage()),
+					E_USER_ERROR
+				);
+
+				_instantssh_sendJsonResponse(
+					500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				);
 			}
 		}
 	}
@@ -196,17 +213,31 @@ function instantssh_addSshPermissions()
 function instantssh_deleteSshPermissions()
 {
 	if(isset($_POST['ssh_permission_id'])) {
+		$sshPermissionId = intval($_POST['ssh_permission_id']);
+
 		try {
-			$stmt = exec_query(
-				'DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?', intval($_POST['ssh_permission_id'])
-			);
+			$stmt = exec_query('DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?', $sshPermissionId);
 
 			if($stmt->rowCount()) {
 				send_request();
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions revoked.')));
+
+				write_log(
+					sprintf('InstantSSH: SSH permissions with ID %s were revoked', $sshPermissionId), E_USER_NOTICE
+				);
+
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were revoked.')));
 			}
 		} catch(iMSCP_Exception_Database $e) {
-			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+			write_log(
+				sprintf(
+					'InstantSSH: Unable to revoke SSH permissions with ID %s: %s', $sshPermissionId, $e->getMessage()
+				),
+				E_USER_ERROR
+			);
+
+			_instantssh_sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			);
 		}
 	}
 
@@ -255,7 +286,11 @@ function instantssh_searchCustomer()
 
 			_instantssh_sendJsonResponse(200, $responseData);
 		} catch(iMSCP_Exception_Database $e) {
-			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+			write_log(sprintf('InstantSSH: Unable to search customer %s', $e->getMessage()), E_USER_ERROR);
+
+			_instantssh_sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			);
 		}
 	}
 
@@ -272,7 +307,7 @@ function instantssh_getSshPermissionsList()
 	try {
 		$columns = array(
 			'ssh_permission_id', 'ssh_permission_admin_id', 'admin_name', 'ssh_permission_max_keys',
-			'ssh_permission_auth_options'
+			'ssh_permission_auth_options', 'ssh_permission_jailed_shell'
 		);
 
 		$nbColumns = count($columns);
@@ -375,6 +410,8 @@ function instantssh_getSshPermissionsList()
 					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('yes') : tr('no');
 				} elseif($columns[$i] == 'ssh_permission_max_keys') {
 					$row[$columns[$i]] = (!$data[$columns[$i]]) ? tr('unlimited') : $data[$columns[$i]];
+				} elseif($columns[$i] == 'ssh_permission_jailed_shell') {
+					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('yes') : tr('no');
 				} else {
 					$row[$columns[$i]] = tohtml($data[$columns[$i]]);
 				}
@@ -394,8 +431,10 @@ function instantssh_getSshPermissionsList()
 
 		_instantssh_sendJsonResponse(200, $output);
 	} catch (iMSCP_Exception_Database $e) {
+		write_log(sprintf('InstantSSH: Unable to get SSH permissions list: %s', $e->getMessage()), E_USER_ERROR);
+
 		_instantssh_sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred %s - %s', true, $e->getMessage(), $e->getQuery()))
+			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 		);
 	}
 

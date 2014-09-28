@@ -1,13 +1,11 @@
-## i-MSCP InstantSSH plugin v1.0.2
+## i-MSCP InstantSSH plugin v2.0.0
 
-Plugin allowing to provide full SSH access to customers.
+Plugin allowing to provide full or restricted SSH access to your customers.
 
 ### Introduction
 
-This plugin allow to give your customers a full SSH access by allowing them to add their SSH keys in i-MSCP. This plugin
-doesn't provide a secured shell environment such as jailkit. Therefore, customers to which an SSH access is given must
-be trusted even if they are restricted in their actions. For the same reason, no reseller interface is provided at this
-moment. Thus, SSH permissions can be added only through the admin interface.
+This plugin allow to give your customers a full or restriected SSH access (jailed shell). A customer to which SSH
+permissions are given can add it own SSH key through its SSH key interface and then use it to login.
 
 For each customer, you can set the maximum number of allowed SSH keys, and choose if they can override the default
 authentication options. The authentication options are those specified in the documentation of the authorized_keys file
@@ -28,14 +26,27 @@ in the plugin configuration file. In that file, you can also restrict the list o
 customers can add by editing the **allowed_ssh_auth_options** parameter. You must note that any authentication option
 appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** parameter.
 
+#### Jailed shell
+
+Jailed shell allow you to provide SSH access to your customers in a secured and restricted environment from which they
+cannot out. It's the preferable way to give an SSH access to an un-trusted customer.
+
+Several commands can be added into the customers jails by simply adding the needed section into the
+**apps_section configuration parameter**. See the plugin configuration file for further details.
+
 ### Requirements
 
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
+* makejail, libpam-chroot Debian/Ubuntu packages
 
-#### Debian / Ubuntu packages
+#### Debian / Ubuntu packages to install before installing this plugin
 
 * libfile-homedir-perl
+* libpam-chroot
+* makejail
+
+	# aptitude update && aptitude install makejail libpam-chroot libfile-homedir-perl
 
 ### Installation
 
@@ -71,6 +82,12 @@ appearing in the the default authentication string must also be specified in the
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
  See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+
+### Sponsors
+
+The development of this plugin has been sponsored by:
+
+  - [Osna-Solution UG](http://portal.osna-solution.de// "Osna-Solution UG")
 
 ### Author
 
