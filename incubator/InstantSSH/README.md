@@ -21,10 +21,10 @@ which in order:
 * Forbids TCP forwarding
 * Forbids X11 forwarding
 
-You can override default authentication options by editing the **default_ssh_auth_options** parameter which is defined
+You can override default authentication options by editing the **default_ssh_auth_options** option which is defined
 in the plugin configuration file. In that file, you can also restrict the list of authentication options that your
-customers can add by editing the **allowed_ssh_auth_options** parameter. You must note that any authentication option
-appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** parameter.
+customers can add by editing the **allowed_ssh_auth_options** option. You must note that any authentication option
+appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** option.
 
 #### Jailed shell
 
@@ -32,7 +32,7 @@ Jailed shell allow you to provide SSH access to your customers in a secured and 
 cannot out. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the customers jails by simply adding the needed section into the
-**apps_section configuration parameter**. See the plugin configuration file for further details.
+**apps_sections configuration option**. See the plugin configuration file for further details.
 
 ### Requirements
 

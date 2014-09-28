@@ -86,7 +86,7 @@ return array(
 	// This parameter can be also defined in the application sections (see below).
 	//
 	// WARNING: Do not remove the default /home entry if you don't know what you are doing.
-	'preserve_file' => array(
+	'preserve_files' => array(
 		'/home'
 	),
 
@@ -108,8 +108,8 @@ return array(
 	# It's not recommended to change any of these sections without understanding how they are working. Once you know how
 	# they are working, you can define your own sections.
 	#
-	# Important: Any command, file, library or package listed in the application sections must already installed on your
-	# system, else they will be ignored.
+	# Important: Any command, file, library or package listed in the application sections must be already installed on
+	# your system, else it will be ignored.
 
 	// uidbasics section
 	// Provide common files for all jails that need user/group information
