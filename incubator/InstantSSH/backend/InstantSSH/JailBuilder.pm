@@ -2,7 +2,7 @@
 
 =head1 NAME
 
- Plugin::InstantSSH;
+ InstantSSH::JailBuilder;
 
 =cut
 
@@ -56,46 +56,67 @@ my $jailConf = {
 my $makejailConffilePath = '/etc/makejail/instantSSH.py';
 my $buildMakejailConffile = 1;
 
+=head1 DESCRIPTION
+
+ This package is part of the InstantSSH i-MSCP plugin. It provide jail builder which allow to build jailed shell
+environments.
+
+=head1 PUBLIC METHODS
+
+=over 4
+
 =item makeJail(\%config, $user)
 
- Create or update jail for the given user using the give jail configuration options.
+ Create or update jail for the given user using the give jail configuration options
 
  Param hash \%config Hash containing Jail configuration options
- Param string $user i-MSCP user to add into the chroot
+ Param string $user i-MSCP user to add into the jail
  Return int 0 on success, other on failure
 
 =cut
 
-sub makeJail($$$)
+sub makeJail
 {
 	my ($self, $config, $user) = @_;
 
-	# TODO does the user exits? If no, throw error
+	$config = {} unless $config && ref $config eq 'HASH';
+	$user ||= '__unknown__';
 
-	# Override default root jail directory if needed
-	if(exists $config->{'root_jail_dir'}) {
-		$jailConf->{'root_jail_dir'} = $config->{'root_jail_dir'};
-	}
+	if(getpwnam($user)) {
+		# Override default root jail directory if needed
+		if(exists $config->{'root_jail_dir'}) {
+			$jailConf->{'root_jail_dir'} = $config->{'root_jail_dir'};
+		}
 
-	if(exists $config->{'shared_jail'}) {
-		$jailConf->{'shared_jail'} = $config->{'shared_jail'};
-	}
+		if(exists $config->{'shared_jail'}) {
+			$jailConf->{'shared_jail'} = $config->{'shared_jail'};
+		}
 
-	#  Create the jail directory if it doesn't already exists or set it permissions
-	iMSCP::Dir->new(
-		'dirname' => $jailConf->{'root_jail_dir'} . (($jailConf->{'shared_jail'}) ? '/shared_jail' : "/$user")
-	)->make(
-		{ 'user' => 'root', 'group' => 'root' => 'mode' => 0755 }
-	);
+		#  Create the jail directory if it doesn't already exists or set it permissions
+		iMSCP::Dir->new(
+			'dirname' => $jailConf->{'root_jail_dir'} . (($jailConf->{'shared_jail'}) ? '/shared_jail' : "/$user")
+		)->make(
+			{ 'user' => 'root', 'group' => 'root' => 'mode' => 0755 }
+		);
 
-	# Build makejail configuration file if needed
-	if($buildMakejailConffile || ! -f $makejailConffilePath) {
-		my $rs = $self->_buildMakejailConffile($config, $user);
-		return $rs if $rs;
+		# Build makejail configuration file if needed
+		if($buildMakejailConffile || ! -f $makejailConffilePath) {
+			my $rs = $self->_buildMakejailConffile($config, $user);
+			return $rs if $rs;
+		}
+	} else {
+		error(sprintf("InstantSSH: The %s i-MSCP unix user doesn't exists", $user));
+		return 1;
 	}
 
 	0;
 }
+
+=back
+
+=head1 PRIVATE METHODS
+
+=over 4
 
 =item _buildMakejailConffile($config, $user)
 
@@ -119,13 +140,13 @@ sub _buildMakejailConffile
 				if(exists $config->{$appsSection}) {
 					$self->_handleAppsSection($config, $appsSection);
 				} else {
-					error(sprinf("InstantSSH: The %s applications section doesn't exist", $config->{$appsSection}));
+					error(sprinf("InstantSSH: The %s applications section doesn't exists", $config->{$appsSection}));
 					return 1;
 				}
 			}
 
 			push @{$jailConf->{'users'}}, $user;
-			push @{$jailConf->{'groups'}}, $user;
+			push @{$jailConf->{'groups'}}, (getgrgid((getpwnam('vu2004'))[3]))[0];
 		} else {
 			error("InstantSSH: The 'apps_sections' option must be an array");
 			return 1;
@@ -214,7 +235,7 @@ sub _handleAppsSection()
 #	my @lines = <$fh>;
 #	close $fh;
 #
-#	open $fh, '+<', $dest or die ("Unable to open file for writting: $!");
+#	open $fh, '+<', $dest or die ("Unable to open file for writing: $!");
 #	s/(.*?):.*\n/$1/g for (my @outLines = <$fh>);
 #
 #	for my $line(@line) {
@@ -225,5 +246,13 @@ sub _handleAppsSection()
 #
 #	close $fh;
 #}
+
+=back
+
+=head1 AUTHOR
+
+ Laurent Declercq <l.declercq@nuxwin.com>
+
+=cut
 
 1;
