@@ -110,19 +110,30 @@ sub makeJail
 
 		# Set owner/group for user home directory
 		setRights(
-			$jailConf->{'jail_dir'} . "/home/$user",
-			{ 'user' => $user, 'group' => (getgrgid((getpwnam('vu2004'))[3]))[0] }
+			$jailConf->{'jail_dir'} . "/home/$user", { 'user' => $user, 'group' => (getgrgid((getpwnam($user))[3]))[0] }
 		);
 
 		# Build makejail configuration file if needed
 		if($buildMakejailConffile || ! -f $makejailConffilePath) {
 			$rs = $self->_buildMakejailConffile($config, $user);
 			return $rs if $rs;
+
+			$rs = $self->_addPasswdFile('/etc/passwd', $user);
+			return $rs if $rs;
+
+			$rs = $self->_addPasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
+			return $rs if $rs;
+
+			$rs = $self->_removePasswdFile('/etc/passwd', $user);
+			return $rs if $rs;
+
+			$rs = $self->_removePasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
+			return $rs if $rs;
 		} else {
 			$rs = $self->_addPasswdFile('/etc/passwd', $user);
 			return $rs if $rs;
 
-			$rs = $self->_addPasswdFile('/etc/group', (getgrgid((getpwnam('vu2004'))[3]))[0]);
+			$rs = $self->_addPasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
 			return $rs if $rs;
 		}
 	} else {
@@ -161,11 +172,9 @@ sub _buildMakejailConffile
 				if(exists $config->{$appsSection}) {
 					$self->_handleAppsSection($config, $appsSection);
 				} else {
-					error(
-						sprinf(
-							"InstantSSH::JailBuilder: The %s applications section doesn't exists", $config->{$appsSection}
-						)
-					);
+					error(sprinf(
+						"InstantSSH::JailBuilder: The %s applications section doesn't exists", $config->{$appsSection}
+					));
 					return 1;
 				}
 			}
@@ -182,9 +191,9 @@ sub _buildMakejailConffile
 	}
 
 	# TODO write conffile using $makejailConfig content
-	use Data::Dumper;
-	print Dumper($jailConf);
-	exit;
+	#use Data::Dumper;
+	#print Dumper($jailConf);
+	#exit;
 
 	0;
 }
@@ -258,6 +267,7 @@ sub _handleAppsSection()
  Param string $file Path of system passwd/group file
  Param string $what User/group name
  Return int 0 on success, 1 on failure
+
 =cut
 
 sub _addPasswdFile
@@ -272,12 +282,17 @@ sub _addPasswdFile
 			close $fh;
 
 			if(open $fh, '+<', $dest) {
-				s/(.*?):.*\n/$1/g for (my @outLines = <$fh>);
+				s/^(.*?):.*\n/$1/ for (my @outLines = <$fh>);
 
-				for my $line(@lines) {
-					next if index($line, ':') == -1;
-					my $entry = (split ':', $line, 2)[0];
-					print $fh $line if $entry eq $what && not grep $_ eq $what, @outLines;
+				if(not grep $_ eq $what, @outLines) {
+					for my $line(@lines) {
+						next if index($line, ':') == -1;
+
+						if ((split ':', $line, 2)[0] eq $what) {
+							print $fh $line;
+							last;
+						}
+					}
 				}
 
 				close $fh;
@@ -285,6 +300,49 @@ sub _addPasswdFile
 				error("InstantSSH::JailBuilder: Unable to open file for writing: $!");
 				return 1;
 			}
+		} else {
+			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
+			return 1;
+		}
+	} else {
+		error(sprintf("InstantSSH::JailBuilder: File %s doesn't exists", $dest));
+		return 1;
+	}
+
+	0;
+}
+
+=item _removePasswdFile($file, $what)
+
+ Remove the given user/group from the passwd/group file of the Jail if any
+
+ Param string $file Path of system passwd/group file
+ Param string $what User/group name
+ Return int 0 on success, 1 on failure
+
+=cut
+
+sub _removePasswdFile
+{
+	my ($self, $file, $what) = @_;
+
+	my $dest = $jailConf->{'jail_dir'} . $file;
+
+	if(-f $dest) {
+		if(open my $fh, '<', $dest) {
+			my @lines = <$fh>;
+			close $fh;
+
+			if(open $fh, '>', $dest) {
+				$what = quotemeta($what);
+				@lines = grep $_ !~ /^$what:.*\n/, @lines;
+				print $fh "@lines";
+				close $fh;
+			} else {
+				error("InstantSSH::JailBuilder: Unable to open file for writing: $!");
+				return 1;
+			}
+
 		} else {
 			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
 			return 1;
