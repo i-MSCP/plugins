@@ -5,9 +5,9 @@ Plugin allowing to provide full or restricted SSH access to your customers.
 ### Introduction
 
 This plugin allow to give your customers a full or restricted SSH access (jailed shell). A customer to which SSH
-permissions are given can add it own SSH keys through its SSH key interface and then use them to login.
+permissions are given can add its own SSH keys  and use them to authenticate on the server.
 
-For each customer, you can set the maximum number of allowed SSH keys, and choose if they can override the default
+For each customer, you can set the maximum number of allowed SSH keys and choose if they can override the default
 authentication options. The authentication options are those specified in the documentation of the authorized_keys file
 (see man authorized_keys).
 
@@ -21,8 +21,8 @@ which in order:
 * Forbids TCP forwarding
 * Forbids X11 forwarding
 
-You can override default authentication options by editing the **default_ssh_auth_options** option which is defined
-in the plugin configuration file. In that file, you can also restrict the list of authentication options that your
+You can override default authentication options by editing the **default_ssh_auth_options** option which is defined in
+the plugin configuration file. In that file, you can also restrict the list of authentication options that your
 customers can add by editing the **allowed_ssh_auth_options** option. You must note that any authentication option
 appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** option.
 
@@ -45,9 +45,12 @@ Several commands can be added into the customers jails by simply adding the need
 * libpam-chroot
 * makejail
 
-You can install these packages by executing the following command::
+You can install these packages by executing the following commands:
 
-	# aptitude update && aptitude install libfile-homedir-perl libpam-chroot makejail
+	# aptitude update
+	# aptitude install libfile-homedir-perl libpam-chroot makejail
+
+**Note:** If a package is not installed on your system, the plugin will refuse to install.
 
 ### Installation
 
@@ -86,10 +89,8 @@ You can install these packages by executing the following command::
 
 ### Sponsors
 
-The development of this plugin has been sponsored by:
-
   - [Osna-Solution UG](http://portal.osna-solution.de// "Osna-Solution UG")
 
-### Author
+### Author(s)
 
  * Laurent Declercq <l.declercq@nuxwin.com>

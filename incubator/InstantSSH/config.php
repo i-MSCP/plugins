@@ -21,12 +21,12 @@
 require_once 'InstantSSH/Validate/SshAuthOptions.php';
 
 return array(
-	// Default SSH authentication options added for any new customer key.
+	// Default SSH authentication options added for any new customer key
 	//
 	// See man authorized_keys for list of allowed authentication options.
 	// eg. command="dump /home",no-pty,no-port-forwarding
 	//
-	// Note that any option defined here must be specified in the allowed_ssh_auth_options parameter (see below)
+	// WARNING: Any option defined here must be specified in the allowed_ssh_auth_options configuration option.
 	'default_ssh_auth_options' => 'no-agent-forwarding,no-port-forwarding,no-X11-forwarding',
 
 	//
@@ -51,34 +51,34 @@ return array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
 
-	// Shell for SSH users
+	// Shell for SSH users (default: /bin/bash)
 	//
-	// See man shells for further details. Please, do not change this value if you do not know what you are doing
+	// See man shells for further details. Please, do not change this value if you do not know what you are doing.
 	'shell' => '/bin/bash',
 
 	##
 	### Jailed shell configuration options
 	##
 
-	// root jail directory (default /var/chroot/InstantSSH)
+	// Root jail directory (default: /var/chroot/InstantSSH)
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
 	//
-	// IMPORTANT: You must never change this parameter while updating the plugin to a new version.
+	// WARNING: You must never change this parameter while updating the plugin to a new version.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
-	// Shared jail (default true)
+	// Shared jail (default: true)
 	//
-	// When the value is true, only one jail will be created for all customers. A shared jail doesn't mean that a
-	// customer will be able to read, modify or delete files of another customer. This simply mean that only one jail
-	// will be created. Having a jail for each customer is interesting only when you want provide a different set of
-	// commands for them.
+	// When the value is true, only one jail is created for all customers. A shared jail doesn't mean that a customer
+	// will be able to read, modify or delete files of another customer. This simply mean that only one jail will be
+	// created. Having a jail for each customer is interesting only when you want provide a different set of commands
+	// for them.
 	//
 	// Note: Per customer application feature is not yet implemented.
 	'shared_jail' => true,
 
-	// Preserved files (default /home)
+	// Preserved files (default: /home)
 	//
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.
@@ -90,26 +90,26 @@ return array(
 		'/home'
 	),
 
-	# Application section (default imscpbase)
+	# Application section (default: imscpbase)
 	#
 	# This is the list of application sections which are used to create/update the jails (see below).
 	#
 	# By default only the imscpbase application section is added, which allows to build very restricted jailed shell
-	# environments (restricted set of commands)
+	# environments (with limited set of commands).
 	'apps_sections' => array(
 		'imscpbase'
 	),
 
 	# Predefined application sections
 	#
-	# Below, you can find the predefined application sections. Those sections are used to build new jails or update them.
-	# You can select any of the sections below by adding them into the apps_sections configuration options.
+	# Below, you can find the predefined application sections. Those sections are used to create and update jails.
+	# You can select as many sections as you want by adding them into the apps_sections configuration option.
 	#
-	# It's not recommended to change any of these sections without understanding how they are working. Once you know how
-	# they are working, you can define your own sections.
+	# It's not recommended to change a sections without understanding how it's meaning and how it is working. Once you
+	# know how the sections are defined, you can define your own sections.
 	#
-	# Important: Any command, file, library or package listed in the application sections must be already installed on
-	# your system, else it will be ignored.
+	# WARNING: Any of the commands, files, libraries or packages which are listed in the application sections must be
+	# already installed on your system, else they will be ignored.
 
 	// uidbasics section
 	// Provide common files for all jails that need user/group information
