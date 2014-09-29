@@ -45,7 +45,7 @@ Several commands can be added into the customers jails by simply adding the need
 * libpam-chroot
 * makejail
 
-    # aptitude update && aptitude install libfile-homedir-perl libpam-chroot makejail
+	# aptitude update && aptitude install libfile-homedir-perl libpam-chroot makejail
 
 ### Installation
 
