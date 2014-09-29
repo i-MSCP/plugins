@@ -52,8 +52,7 @@ function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
 			header('Status: 200 OK');
 	}
 
-	echo json_encode($data);
-	exit;
+	exit(json_encode($data));
 }
 
 /**
@@ -102,6 +101,7 @@ function instantssh_getSshKey()
 
 			_instantssh_sendJsonResponse(404, array('message' => tr('SSH Key not found.')));
 		} catch (iMSCP_Exception_Database $e) {
+			write_log(sprintf('InstantSSH: Unable to get SSH key: %s', $e->getMessage()), E_USER_ERROR);
 			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
 		}
 	}
@@ -151,7 +151,8 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 			_instantssh_sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		} elseif (!preg_match('/^[[:alnum:] ]+$/i', $sshKeyName)) {
 			_instantssh_sendJsonResponse(
-				400, array('message' => tr('Unallowed SSH key name. Please use alphanumeric and space characters only.'))
+				400,
+				array('message' => tr('Un-allowed SSH key name. Please use alphanumeric and space characters only.'))
 			);
 		} elseif (strlen($sshKeyName) > 255) {
 			_instantssh_sendJsonResponse(400, array('message' => tr('SSH key name is too long (Max 255 characters).')));
@@ -186,6 +187,16 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 					);
 
 					send_request();
+
+					write_log(
+						sprintf(
+							'InstantSSH: %s added new SSH key with fingerprint: %s',
+							decode_idna($_SESSION['user_logged']),
+							$sshKeyFingerprint
+						),
+						E_USER_NOTICE
+					);
+
 					_instantssh_sendJsonResponse(
 						200, array('message' => tr('SSH key scheduled for addition.'))
 					);
@@ -210,6 +221,16 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 				);
 
 				send_request();
+
+				write_log(
+					sprintf(
+						'InstantSSH: %s updated SSH key with fingerprint: %s',
+						decode_idna($_SESSION['user_logged']),
+						$sshKeyFingerprint
+					),
+					E_USER_NOTICE
+				);
+
 				_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for update.')));
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -218,6 +239,7 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 					400, array('message' => tr('SSH key with same name or same fingerprint already exists.'))
 				);
 			} else {
+				write_log(sprintf('InstantSSH: Unable to add or update SSH key: %s', $e->getMessage()), E_USER_ERROR);
 				_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
 			}
 		}
@@ -244,8 +266,14 @@ function instantssh_deleteSshKey()
 
 			send_request();
 
+			write_log(
+				sprintf('InstantSSH: %s deleted SSH key with ID: %s', decode_idna($_SESSION['user_logged']), $sshKeyId),
+				E_USER_NOTICE
+			);
+
 			_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for deletion.')));
 		} catch (iMSCP_Exception_Database $e) {
+			write_log(sprintf('InstantSSH: Unable to delete SSH key: %s', $e->getMessage()), E_USER_ERROR);
 			_instantssh_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
@@ -395,6 +423,7 @@ function instantssh_getSshKeys()
 
 		_instantssh_sendJsonResponse(200, $output);
 	} catch (iMSCP_Exception_Database $e) {
+		write_log(sprintf('InstantSSH: Unable to get SSH keys: %s', $e->getMessage()), E_USER_ERROR);
 		_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred')));
 	}
 
@@ -464,7 +493,6 @@ if ($sshPermissions['ssh_permission_max_keys'] > -1) {
 
 	$tpl->assign(
 		array(
-			'THEME_CHARSET' => tr('encoding'),
 			'TR_PAGE_TITLE' => tr('Client / Profile / SSH Keys'),
 			'ISP_LOGO' => layout_getUserLogo(),
 			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
