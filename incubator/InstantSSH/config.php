@@ -416,7 +416,7 @@ return array(
 			'root', 'www-data'
 		),
 		'include_apps_sections' => array(
-			'extendedshell', 'netutils'
+			'basicshell'
 		)
 	)
 );
