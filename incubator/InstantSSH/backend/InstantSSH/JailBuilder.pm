@@ -29,8 +29,10 @@ use strict;
 use warnings;
 
 use iMSCP::Debug;
+use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Rights;
+use iMSCP::Execute;
 
 use JSON;
 use List::MoreUtils qw(uniq);
@@ -39,7 +41,7 @@ use parent 'Common::Object';
 
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
-my $jailConf = {
+my %jailCfg = (
 	'jail_dir' => '',
 	'paths' => [],
 	'commands' => [],
@@ -51,10 +53,10 @@ my $jailConf = {
 	'devices' => [],
 	'mounts' => [],
 	'need_logsocket' => 0
-};
+);
 
-my $makejailConffilePath = '/etc/makejail/instantSSH.py';
-my $buildMakejailConffile = 1;
+my $makejailCfgDir = '/etc/makejail';
+my $buildMakejailCfgfile = 1;
 
 =head1 DESCRIPTION
 
@@ -77,16 +79,15 @@ environments.
 
 sub makeJail
 {
-	my ($self, $config, $user) = @_;
+	my ($self, $cfg, $user) = @_;
 
-	$config = {} unless $config && ref $config eq 'HASH';
+	$cfg = {} unless $cfg && ref $cfg eq 'HASH';
 	$user ||= '__unknown__';
 
 	if(getpwnam($user)) {
 		# Override default root jail directory if needed
-		if(exists $config->{'root_jail_dir'}) {
-			$jailConf->{'jail_dir'} = $config->{'root_jail_dir'} .
-				((exists $config->{'shared_jail'}) ? '/shared_jail' : "/$user");
+		if(exists $cfg->{'root_jail_dir'}) {
+			$jailCfg{'jail_dir'} = $cfg->{'root_jail_dir'} . (($cfg->{'shared_jail'}) ? '/shared_jail' : "/$user");
 		} else {
 			error("InstantSSH::JailBuilder: The 'root_jail_dir' is missing in jail configuration options");
 			return 1;
@@ -94,40 +95,36 @@ sub makeJail
 
 		#  Create the jail directory if it doesn't already exists or set it permissions
 		my $rs = iMSCP::Dir->new(
-			'dirname' => $jailConf->{'jail_dir'}
+			'dirname' => $jailCfg{'jail_dir'}
 		)->make(
-			{ 'user' => 'root', 'group' => 'root' => 'mode' => 0755 }
+			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'} => 'mode' => 0750 }
 		);
 		return $rs if $rs;
 
-		# Create home directory for the given user if it doesn't already exists or set it permissions
-		$rs = iMSCP::Dir->new(
-			'dirname' => $jailConf->{'jail_dir'} . "/home/$user"
-		)->make(
-			{ 'user' => 'root', 'group' => 'root' => 'mode' => 0750 }
-		);
-		return $rs if $rs;
+		# Create home directory for the given user if it doesn't already exists
+		unless (-d $jailCfg{'jail_dir'} . "/home/$user") {
+			$rs = iMSCP::Dir->new(
+				'dirname' => $jailCfg{'jail_dir'} . "/home/$user"
+			)->make(
+				{
+					'user' => $main::imscpConfig{'ROOT_USER'},
+					'group' => $main::imscpConfig{'ROOT_GROUP'},
+					'mode' => 0750
+				}
+			);
+			return $rs if $rs;
+		}
 
 		# Set owner/group for user home directory
 		setRights(
-			$jailConf->{'jail_dir'} . "/home/$user", { 'user' => $user, 'group' => (getgrgid((getpwnam($user))[3]))[0] }
+			$jailCfg{'jail_dir'} . "/home/$user", { 'user' => $user, 'group' => (getgrgid((getpwnam($user))[3]))[0] }
 		);
 
+		my $makejailCfgfilePath = "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py");
+
 		# Build makejail configuration file if needed
-		if($buildMakejailConffile || ! -f $makejailConffilePath) {
-			$rs = $self->_buildMakejailConffile($config, $user);
-			return $rs if $rs;
-
-			$rs = $self->_addPasswdFile('/etc/passwd', $user);
-			return $rs if $rs;
-
-			$rs = $self->_addPasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
-			return $rs if $rs;
-
-			$rs = $self->_removePasswdFile('/etc/passwd', $user);
-			return $rs if $rs;
-
-			$rs = $self->_removePasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
+		if($buildMakejailCfgfile || ! -f $makejailCfgfilePath) {
+			$rs = $self->_buildMakejailCfgfile($cfg, $user);
 			return $rs if $rs;
 		} else {
 			$rs = $self->_addPasswdFile('/etc/passwd', $user);
@@ -136,6 +133,19 @@ sub makeJail
 			$rs = $self->_addPasswdFile('/etc/group', (getgrgid((getpwnam($user))[3]))[0]);
 			return $rs if $rs;
 		}
+
+		# Build the jail
+		#my ($stdout, $stderr);
+		#$rs = execute("makejail $makejailCfgfilePath", \$stdout, \$stderr);
+		#debug($stdout) if $stdout;
+		#error("InstantSSH::JailBuilder:: $stderr") if $rs && $stderr;
+		#error('InstantSSH::JailBuilder: Unable to build jail for unknown reason') if $rs && !$stderr;
+		#return $rs if $rs;
+
+		# TODO:
+		# Create device if needed
+		# Mount folder if needed
+		# Create log socket if needed
 	} else {
 		error(sprintf("InstantSSH::JailBuilder: The %s i-MSCP unix user doesn't exists", $user));
 		return 1;
@@ -150,37 +160,35 @@ sub makeJail
 
 =over 4
 
-=item _buildMakejailConffile($config, $user)
+=item _buildMakejailCfgfile(\%cfg, $user)
 
  Build makejail configuration file
 
- Param hash \%config Hash containing Jail configuration options
+ Param hash \%cfg Hash containing Jail configuration options
  Return int 0 on success, other on failure
 
 =cut
 
-sub _buildMakejailConffile
+sub _buildMakejailCfgfile
 {
-	my ($self, $config, $user) = @_;
+	my ($self, $cfg, $user) = @_;
 
-	$config = {} unless $config && ref $config eq 'HASH';
+	$cfg = {} unless $cfg && ref $cfg eq 'HASH';
 
-	if(exists $config->{'apps_sections'}) {
+	if(exists $cfg->{'apps_sections'}) {
 		# Process sections as specified in apps_sections configuration options.
-		if(ref $config->{'apps_sections'} eq 'ARRAY') {
-			for my $appsSection(@{$config->{'apps_sections'}}) {
-				if(exists $config->{$appsSection}) {
-					$self->_handleAppsSection($config, $appsSection);
+		if(ref $cfg->{'apps_sections'} eq 'ARRAY') {
+			for my $section(@{$cfg->{'apps_sections'}}) {
+				if(exists $cfg->{$section}) {
+					$self->_handleAppsSection($cfg, $section);
 				} else {
-					error(sprinf(
-						"InstantSSH::JailBuilder: The %s applications section doesn't exists", $config->{$appsSection}
-					));
+					error(sprinf("InstantSSH::JailBuilder: The %s applications section doesn't exists", $cfg->{$section}));
 					return 1;
 				}
 			}
 
-			push @{$jailConf->{'users'}}, $user;
-			push @{$jailConf->{'groups'}}, (getgrgid((getpwnam('vu2004'))[3]))[0];
+			push @{$jailCfg{'users'}}, $user;
+			push @{$jailCfg{'groups'}}, (getgrgid((getpwnam($user))[3]))[0];
 		} else {
 			error("InstantSSH::JailBuilder: The 'apps_sections' option must be an array");
 			return 1;
@@ -190,35 +198,74 @@ sub _buildMakejailConffile
 		return 1;
 	}
 
-	# TODO write conffile using $makejailConfig content
-	#use Data::Dumper;
-	#print Dumper($jailConf);
-	#exit;
+	my $fileContent = "# File auto-generated by i-MSCP InstantSSH plugin\n";
+
+	$fileContent .= "chroot = \"$jailCfg{'jail_dir'}\"\n";
+	$fileContent .= "cleanJailFirst = 1\n";
+
+	if(@{$jailCfg{'preserve_files'}}) {
+		$fileContent .= "preserve = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'preserve_files'}}) . "]\n"
+	}
+
+	if(@{$jailCfg{'paths'}}) {
+		$fileContent .= "forceCopy = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'paths'}}) . "]\n";
+	}
+
+	if(@{$jailCfg{'commands'}}) {
+		$fileContent .= "testCommandsInsideJail = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'commands'}}) . "]\n";
+	}
+
+	if(@{$jailCfg{'packages'}}) {
+		$fileContent .= "packages = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'packages'}}) . "]\n";
+		$fileContent .= "useDepends = $jailCfg{'include_pkg_deps'}\n";
+	}
+
+	if(@{$jailCfg{'users'}}) {
+		$fileContent .= "users = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'users'}}) . "]\n";
+	}
+
+	if(@{$jailCfg{'groups'}}) {
+		$fileContent .= "groups = [" . (join ', ', map { qq/"$_"/ } @{$jailCfg{'groups'}}) . "]\n";
+	}
+
+	$fileContent .= "sleepAfterTest = 0.2\n";
+	$fileContent .= "sleepAfterStartCommand = 0.2\n";
+	$fileContent .= "sleepAfterKillall = 1.0\n"; # Not really needed ATM
+	$fileContent .= "sleepAfterStraceAttachPid = 1.0\n"; # Not really needed ATM
+
+	my $file = iMSCP::File->new(
+		'filename' => "$makejailCfgDir/InstanSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py")
+	);
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$rs = $file->save();
+	return $rs if $rs;
 
 	0;
 }
 
-=item handleAppsSection(\%config, $appsSection)
+=item handleAppsSection(\%config, $section)
 
  Handle applications sections
 
  Param hash \%config Hash containing Jail configuration options
- Param string $appsSection Applications section definition
+ Param string $section Applications section definition
  Return int 0 on success, 1 on failure
 
 =cut
 
 sub _handleAppsSection()
 {
-	my ($self, $config, $appsSection) = @_;
+	my ($self, $cfg, $section) = @_;
 
 	# Handle included application sections
 
-	if(exists $config->{$appsSection}->{'include_apps_sections'}) {
-		if(ref $config->{$appsSection}->{'include_apps_sections'} eq 'ARRAY') {
-			for my $includedAppsSection(@{$config->{$appsSection}->{'include_apps_sections'}}) {
+	if(exists $cfg->{$section}->{'include_apps_sections'}) {
+		if(ref $cfg->{$section}->{'include_apps_sections'} eq 'ARRAY') {
+			for my $includedAppsSection(@{$cfg->{$section}->{'include_apps_sections'}}) {
 				if(not grep $_ eq $includedAppsSection, @{$self->{'_apps_sections'}}) {
-					$self->_handleAppsSection($config, $includedAppsSection);
+					$self->_handleAppsSection($cfg, $includedAppsSection);
 					push @{$self->{'_apps_sections'}}, $includedAppsSection;
 				}
 			}
@@ -231,17 +278,15 @@ sub _handleAppsSection()
 	# Handle list options from application section
 
 	for my $option(qw/paths commands packages devices mounts preserve_files users groups/) {
-		if(exists $config->{$appsSection}->{$option}) {
-			if(ref $config->{$appsSection}->{$option} eq 'ARRAY') {
-				for my $item (@{$config->{$appsSection}->{$option}}) {
-					push @{$jailConf->{$option}}, $item;
+		if(exists $cfg->{$section}->{$option}) {
+			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
+				for my $item (@{$cfg->{$section}->{$option}}) {
+					push @{$jailCfg{$option}}, $item;
 				}
 
-				@{$jailConf->{$option}} = uniq(@{$jailConf->{$option}});
+				@{$jailCfg{$option}} = uniq(@{$jailCfg{$option}});
 			} else {
-				error(
-					sprintf("InstantSSH::JailBuilder: The '%s' applications section option must be an array", $option)
-				);
+				error(sprintf("InstantSSH::JailBuilder: The '%s' applications section option must be an array", $option));
 				return 1;
 			}
 		}
@@ -249,12 +294,12 @@ sub _handleAppsSection()
 
 	# Handle boolean options from application section
 
-	if (exists $config->{$appsSection}->{'include_pkg_deps'}) {
-		$jailConf->{'include_pkg_deps'} = 1;
+	if (exists $cfg->{$section}->{'include_pkg_deps'}) {
+		$jailCfg{'include_pkg_deps'} = 1;
 	}
 
-	if (exists $config->{$appsSection}->{'need_logsocket'}) {
-		$jailConf->{'need_logsocket'} = 1;
+	if (exists $cfg->{$section}->{'need_logsocket'}) {
+		$jailCfg{'need_logsocket'} = 1;
 	}
 
 	0;
@@ -274,7 +319,7 @@ sub _addPasswdFile
 {
 	my ($self, $file, $what) = @_;
 
-	my $dest = $jailConf->{'jail_dir'} . $file;
+	my $dest = $jailCfg{'jail_dir'} . $file;
 
 	if(-f $dest) {
 		if(open my $fh, '<', $file) {
@@ -304,9 +349,6 @@ sub _addPasswdFile
 			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
 			return 1;
 		}
-	} else {
-		error(sprintf("InstantSSH::JailBuilder: File %s doesn't exists", $dest));
-		return 1;
 	}
 
 	0;
@@ -326,7 +368,7 @@ sub _removePasswdFile
 {
 	my ($self, $file, $what) = @_;
 
-	my $dest = $jailConf->{'jail_dir'} . $file;
+	my $dest = $jailCfg{'jail_dir'} . $file;
 
 	if(-f $dest) {
 		if(open my $fh, '<', $dest) {

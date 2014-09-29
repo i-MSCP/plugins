@@ -110,6 +110,8 @@ return array(
 	#
 	# WARNING: Any of the commands, files, libraries or packages which are listed in the application sections must be
 	# already installed on your system, else they will be ignored.
+	#
+	# Note: Some applications sections are still experimental and can require few adjustements
 
 	// uidbasics section
 	// Provide common files for all jails that need user/group information
@@ -194,22 +196,25 @@ return array(
 	// ssh section
 	// Provide ssh secure shell
 	'ssh' => array(
-		'commands' => array(
-			'ssh'
+		'paths' => array(
+			'/usr/bin/ssh'
 		),
 		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		),
-		'devices' => array(
+		'devices' => array( # TODO review
 			'/dev/urandom', '/dev/tty', '/dev/null'
+		),
+		'preserve_files' => array(
+			'/dev'
 		)
 	),
 
 	// rsync section
 	// Provide rsync command
 	'rsync' => array(
-		'commands' => array(
-			'rsync'
+		'path' => array(
+			'/usr/bin/rsync'
 		),
 		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
@@ -219,8 +224,8 @@ return array(
 	// procmail section
 	// Provide procmail mail delivery agent
 	'procmail' => array(
-		'commands' => array(
-			'procmail', 'sh'
+		'path' => array(
+			'/usr/bin/procmail', '/bin/sh'
 		),
 		'devices' => array(
 			'/dev/null'
@@ -231,12 +236,9 @@ return array(
 	// Provide bash based shell with several basic utilities
 	'basicshell' => array(
 		'paths' => array(
+			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cpio', '/bin/egrep', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
+			'/bin/gzip', '/bin/more', '/usr/bin/rgrep', '/bin/sed', '/bin/tar', '/bin/uncompress', '/bin/zcat',
 			'/etc/motd', '/etc/issue', '/etc/bash.bashrc', '/etc/bashrc', '/etc/profile', '/usr/lib/locale/C.UTF-8'
-		),
-		'commands' => array(
-			'sh', 'bash', 'ls', 'cat', 'chmod', 'mkdir', 'cp', 'cpio', 'date', 'dd', 'echo', 'egrep', 'false',
-			'fgrep', 'grep', 'gunzip', 'gzip', 'ln', 'ls', 'mkdir', 'mktemp', 'more', 'mv', 'pwd', 'rgrep', 'rm',
-			'rmdir', 'sed', 'sh', 'sleep', 'sync', 'tar', 'touch', 'true', 'uncompress', 'zcat'
 		),
 		'users' => array(
 			'root'
@@ -248,19 +250,15 @@ return array(
 			'uidbasics'
 		),
 		'packages' => array(
-			'coreutils'
-		),
-		'include_pkg_deps' => true
+			'coreutils' # Package which provide basic file, shell and text manipulation utilities
+		)
 	),
 
 	// midnightcommander section
 	// Midnight Commander
 	'midnightcommander' => array(
 		'paths' => array(
-			'/usr/share/mc'
-		),
-		'commands' => array(
-			'mc', 'mcedit', 'mcview'
+			'/usr/bin/mc', '/usr/bin/mcedit', '/usr/bin/mcview', '/usr/share/mc'
 		),
 		'include_apps_sections' => array(
 			'basicshell', 'terminfo'
@@ -270,9 +268,9 @@ return array(
 	// extendedshell section
 	// Provide bash shell including things like awk, bzip, tail, less
 	'extendedshell' => array(
-		'commands' => array(
-			'awk', 'bzip2', 'bunzip2', 'ldd', 'less', 'clear', 'cut', 'du', 'find', 'head', 'less', 'md5sum', 'nice',
-			'sort', 'tac', 'tail', 'tr', 'sort', 'wc', 'watch', 'whoami'
+		'paths' => array(
+			'/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less', '/usr/bin/clear',
+			'/usr/bin/cut', '/usr/bin/find', '/usr/bin/less', '/usr/bin/watch',
 		),
 		'include_apps_sections' => array(
 			'basicshell', 'midnightcommander', 'editors'
@@ -291,18 +289,17 @@ return array(
 	// Provide vim, joe, nano and pico
 	'editors' => array(
 		'paths' => array(
-			'/etc/vimrc', '/etc/joe', '/usr/share/vim', '/usr/bin/pico'
-		),
-		'commands' => array(
-			'joe', 'nano', 'vi', 'vim', 'pico'
+			'/usr/bin/joe', '/usr/bin/nano', '/usr/bin/vi', '/usr/bin/vim', '/usr/bin/pico', '/etc/vimrc', '/etc/joe',
+			'/usr/share/vim', '/usr/bin/pico'
 		)
 	),
 
 	// netutils section
 	// Provide several internet utilities like wget, ftp, rsync, scp, ssh
 	'netutils' => array(
-		'commands' => array(
-			'wget', 'lynx', 'ftp', 'host', 'rsync', 'smbclient'
+		'paths' => array(
+			'/usr/bin/wget', '/usr/bin/lynx', '/usr/bin/ftp', '/usr/bin/host', '/usr/bin/rsync', '/usr/bin/smbclient',
+			'/usr/bin/dig'
 		),
 		'include_apps_sections' => array(
 			'netbasics', 'ssh', 'sftp', 'scp'
@@ -312,8 +309,8 @@ return array(
 	// apacheutils section
 	// Provide htpasswd utility
 	'apacheutils' => array(
-		'commands' => array(
-			'htpasswd'
+		'paths' => array(
+			'/usr/bin/htpasswd'
 		)
 	),
 
@@ -329,48 +326,15 @@ return array(
 	// Provide the perl interpreter and libraries
 	'perl' => array(
 		'paths' => array(
-			'/usr/lib/perl', '/usr/lib/perl5', '/usr/share/perl', '/usr/share/perl5'
-		),
-		'commands' => array(
-			'perl'
-		)
-	),
-
-	// xauth section
-	// Provide support for X authentication to work
-	'xauth' => array(
-		'paths' => array(
-			'/usr/bin/X11/xauth', '/usr/X11R6/lib/X11/rgb.txt', '/etc/ld.so.conf'
-		)
-	),
-
-	// xclients section
-	// Provide minimal files for X clients
-	'xclients' => array(
-		'paths' => array(
-			'/usr/X11R6/lib/X11/rgb.txt'
-		),
-		'include_apps_sections' => array(
-			'xauth'
-		)
-	),
-
-	// vncserver section
-	// Provide the VNC server program
-	'vncserver' => array(
-		'paths' => array(
-			'Xvnc', 'Xrealvnc', '/usr/X11R6/lib/X11/fonts/'
-		),
-		'include_apps_sections' => array(
-			'xclients'
+			'/usr/bin/perl', '/usr/lib/perl', '/usr/lib/perl5', '/usr/share/perl', '/usr/share/perl5'
 		)
 	),
 
 	// ping section
 	// Provide the ping command
 	'ping' => array(
-		'commands' => array(
-			'ping'
+		'paths' => array(
+			'/bin/ping'
 		)
 	),
 
@@ -380,7 +344,7 @@ return array(
 		'paths' => array(
 			'/usr/bin/X11/xterm', '/usr/share/terminfo', '/etc/terminfo'
 		),
-		'devices' => array(
+		'devices' => array( # TODO REVIEW
 			'/dev/pts/0', '/dev/pts/1', '/dev/pts/2', '/dev/pts/3', '/dev/pts/4', '/dev/ptyb4', '/dev/ptya4',
 			'/dev/tty', '/dev/tty0', '/dev/tty4'
 		)
@@ -389,8 +353,8 @@ return array(
 	// mysqlclient section
 	// Provide MySQL client
 	'mysqlclient' => array(
-		'commands' => array(
-			'mysql'
+		'paths' => array(
+			'/usr/bin/mysql'
 		),
 		'users' => array(
 			'mysql'
