@@ -30,12 +30,18 @@ use warnings;
 
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
+use File::Basename ();
+use Cwd ();
+use lib Cwd::realpath(File::Basename::dirname(__FILE__));
+
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
+use InstantSSH::JailBuilder;
+use JSON;
 
 use parent 'Common::SingletonClass';
 
@@ -49,9 +55,39 @@ our $seenCustomers = [];
 
 =over 4
 
+=item install()
+
+ Process install tasks
+ Return int 0 on success, other on failure
+
+=cut
+
+sub install
+{
+	my $self = $_[0];
+
+	my $rs = $self->_checkRequirements();
+	return $rs if $rs;
+
+	$self->_configurePamChroot();
+}
+
+=item install()
+
+ Process uninstall tasks
+ Return int 0 on success, other on failure
+
+=cut
+
+sub uninstall
+{
+	# TODO
+	0;
+}
+
 =item enable()
 
- Enable plugin
+ Process enable tasks
 
  Return int 0, other on failure
 
@@ -319,9 +355,18 @@ sub _init
 	my $self = $_[0];
 
 	eval { require File::HomeDir };
-	fatal('The InstantSSH plugin require the File::HomeDir Perl module. Please, read the plugin documentation') if $@;
+	die('The InstantSSH plugin require the File::HomeDir Perl module. Please, read the plugin documentation.') if $@;
 
 	$self->{'db'} = iMSCP::Database->factory();
+
+	my $config = $self->{'db'}->doQuery(
+		'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'InstantSSH'"
+	);
+	unless(ref $config eq "HASH") {
+        die($config);
+	} else {
+        $self->{'config'} = decode_json($config->{'InstantSSH'}->{'plugin_config'})
+	}
 
 	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', \&onUnixUserUpdate);
 	$self->{'eventManager'}->register('beforeHttpdDelDmn', \&onDeleteDomain);
@@ -493,11 +538,7 @@ sub _deleteSshPermissions($$)
 			setImmutable($homeDir) if $isProtectedHomeDir;
 
 			# Change customer unix user shell to /bin/false
-			@cmd = (
-				"$main::imscpConfig{'CMD_USERMOD'}",
-				'-s /bin/false',
-				escapeShell($adminSysName)
-			);
+			@cmd = ("$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($adminSysName));
 
 			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
@@ -507,6 +548,64 @@ sub _deleteSshPermissions($$)
 		}
 	} else {
 		error("Unable to retrieve $adminSysName unix user home dir");
+		return 1;
+	}
+
+	0;
+}
+
+=item _checkRequirements()
+
+ Check for requirements
+
+ Return int 0 if all requirements are meet, other otherwise
+
+=cut
+
+sub _checkRequirements
+{
+	my $ret = 0;
+
+	for(qw/libpam-chroot makejail/) {
+		my($stdout, $stderr);
+		my $rs = execute("/usr/bin/dpkg -s $_", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error("InstantSSH: The $_ package is not installed on your system.") if $rs;
+		$ret |= $rs;
+	}
+
+	$ret;
+}
+
+=item _configurePamChroot()
+
+ Configure pam chroot
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _configurePamChroot
+{
+	if(-f '/etc/pam.d/sshd') {
+		my $file = iMSCP::File->new('filename' => '/etc/pam.d/sshd');
+
+		my $fileContent = $file->get();
+		unless(defined $fileContent) {
+			error('InstantSSH: Unable to read file /etc/pam.d/sshd');
+			return 1;
+		}
+
+		$fileContent =~ s/\n# Added by i-MSCP InstantSSH plugin\nsession\s+required\s+pam_chroot.so(?:\s+debug)?\n//;
+		$fileContent .= "\n# Added by i-MSCP InstantSSH plugin\nsession required pam_chroot.so debug\n";
+
+		my $rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$rs = $file->save();
+		return $rs if $rs;
+	} else {
+		error('InstantSSH: Unable to configure pam chroot ; File /etc/pam.d/sshd not found.');
 		return 1;
 	}
 
