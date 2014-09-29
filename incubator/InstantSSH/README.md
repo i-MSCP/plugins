@@ -4,8 +4,8 @@ Plugin allowing to provide full or restricted SSH access to your customers.
 
 ### Introduction
 
-This plugin allow to give your customers a full or restriected SSH access (jailed shell). A customer to which SSH
-permissions are given can add it own SSH key through its SSH key interface and then use it to login.
+This plugin allow to give your customers a full or restricted SSH access (jailed shell). A customer to which SSH
+permissions are given can add it own SSH keys through its SSH key interface and then use them to login.
 
 For each customer, you can set the maximum number of allowed SSH keys, and choose if they can override the default
 authentication options. The authentication options are those specified in the documentation of the authorized_keys file
@@ -31,14 +31,13 @@ appearing in the the default authentication string must also be specified in the
 Jailed shell allow you to provide SSH access to your customers in a secured and restricted environment from which they
 cannot out. It's the preferable way to give an SSH access to an un-trusted customer.
 
-Several commands can be added into the customers jails by simply adding the needed section into the
+Several commands can be added into the customers jails by simply adding the needed sections into the
 **apps_sections configuration option**. See the plugin configuration file for further details.
 
 ### Requirements
 
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
-* makejail, libpam-chroot Debian/Ubuntu packages
 
 #### Debian / Ubuntu packages to install before installing this plugin
 
@@ -46,7 +45,7 @@ Several commands can be added into the customers jails by simply adding the need
 * libpam-chroot
 * makejail
 
-	# aptitude update && aptitude install makejail libpam-chroot libfile-homedir-perl
+    # aptitude update && aptitude install libfile-homedir-perl libpam-chroot makejail
 
 ### Installation
 

@@ -286,8 +286,8 @@ sub onDeleteDomain($)
 
  Event listener which listen on the onBeforeAddImscpUnixUser event
 
- When unix users are updated, the shell is automatically set back to the default value (/bin/false). To prevent that,
- this listener will change the default shell value to /bin/bash (only for customers which have at least one SSH key).
+ When unix users are updated, the shell is automatically set back to the default value (/bin/false). To avoid this, the
+listener will change the default shell value to /bin/bash (only for customers which have at least one SSH key).
 
  Return int 0 on success, other on failure
 

@@ -157,7 +157,7 @@ return array(
 		'commands' => array(
 			'basename', 'uname'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'editors', 'perl'
 		)
 	),
@@ -168,7 +168,7 @@ return array(
 		'commands' => array(
 			'scp'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		),
 		'devices' => array(
@@ -183,7 +183,7 @@ return array(
 			'/usr/lib/sftp-server', '/usr/libexec/openssh/sftp-server', '/usr/lib/misc/sftp-server',
 			'/usr/libexec/sftp-server', '/usr/lib/openssh/sftp-server'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		),
 		'devices' => array(
@@ -197,7 +197,7 @@ return array(
 		'commands' => array(
 			'ssh'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		),
 		'devices' => array(
@@ -211,7 +211,7 @@ return array(
 		'commands' => array(
 			'rsync'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		)
 	),
@@ -244,13 +244,13 @@ return array(
 		'groups' => array(
 			'root'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'uidbasics'
 		),
 		'packages' => array(
 			'coreutils'
 		),
-		'include_packages_dependencies' => true,
+		'include_pkg_deps' => true
 	),
 
 	// midnightcommander section
@@ -262,7 +262,7 @@ return array(
 		'commands' => array(
 			'mc', 'mcedit', 'mcview'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'basicshell', 'terminfo'
 		)
 	),
@@ -274,7 +274,7 @@ return array(
 			'awk', 'bzip2', 'bunzip2', 'ldd', 'less', 'clear', 'cut', 'du', 'find', 'head', 'less', 'md5sum', 'nice',
 			'sort', 'tac', 'tail', 'tr', 'sort', 'wc', 'watch', 'whoami'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'basicshell', 'midnightcommander', 'editors'
 		)
 	),
@@ -304,7 +304,7 @@ return array(
 		'commands' => array(
 			'wget', 'lynx', 'ftp', 'host', 'rsync', 'smbclient'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'ssh', 'sftp', 'scp'
 		)
 	),
@@ -320,7 +320,7 @@ return array(
 	// section extshellplusnet
 	// alias for extendedshell + netutils + apacheutils
 	'extshellplusnet' => array(
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'extendedshell', 'netutils', 'apacheutils'
 		)
 	),
@@ -350,7 +350,7 @@ return array(
 		'paths' => array(
 			'/usr/X11R6/lib/X11/rgb.txt'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'xauth'
 		)
 	),
@@ -361,7 +361,7 @@ return array(
 		'paths' => array(
 			'Xvnc', 'Xrealvnc', '/usr/X11R6/lib/X11/fonts/'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'xclients'
 		)
 	),
@@ -398,10 +398,10 @@ return array(
 		'groups' => array(
 			'mysql'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'netbasics', 'uidbasics'
 		),
-		'mount' => array(
+		'mounts' => array(
 			'/var/run/mysqld' => '/var/run/mysqld'
 		)
 	),
@@ -415,7 +415,7 @@ return array(
 		'groups' => array(
 			'root', 'www-data'
 		),
-		'include_sections' => array(
+		'include_apps_sections' => array(
 			'extendedshell', 'netutils'
 		)
 	)
