@@ -81,8 +81,7 @@ sub install
 
 sub uninstall
 {
-	# TODO
-	0;
+	$_[0]->_configurePamChroot('uninstall');
 }
 
 =item enable()
@@ -101,7 +100,7 @@ sub enable
 		'dummy', 'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id IS NOT NULL', 'toenable'
 	);
 	unless(ref $qrs eq 'HASH') {
-		error($qrs);
+		error("InstantSSH: $qrs");
 		return 1;
 	}
 
@@ -124,7 +123,7 @@ sub disable
 		'dummy', 'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id IS NOT NULL', 'todisable'
 	);
 	unless(ref $qrs eq 'HASH') {
-		error($qrs);
+		error("InstantSSH: $qrs");
 		return 1;
 	}
 
@@ -133,7 +132,7 @@ sub disable
 
 =item run()
 
- Initialize instance
+ Process item tasks
 
  Return int 0
 
@@ -172,7 +171,7 @@ sub run
 		'
 	);
 	unless(ref $admins eq 'HASH') {
-		error($admins);
+		error("InstantSSH: $admins");
 		$ret = 1;
 	} elsif(%{$admins}) {
 		for(keys %{$admins}) {
@@ -184,7 +183,7 @@ sub run
 				);
 
 				unless(ref $qrs eq 'HASH') {
-					error($qrs);
+					error("InstantSSH: $qrs");
 					$rs = 1;
 				};
 			}
@@ -211,7 +210,7 @@ sub run
 		"
 	);
 	unless(ref $sshKeys eq 'HASH') {
-		error($sshKeys);
+		error("InstantSSH: $sshKeys");
 		$ret ||= 1;
 	} elsif(%{$sshKeys}) {
 		for(keys %{$sshKeys}) {
@@ -227,7 +226,7 @@ sub run
 					($rs ? scalar getMessageByType('error') : 'ok'), $_
 				);
 
-				error($qrs) unless ref $qrs eq 'HASH';
+				error("InstantSSH: $qrs") unless ref $qrs eq 'HASH';
 			} elsif($sshKeyStatus eq 'todelete') {
 				$rs = $self->_deleteSshKey($sshKeys->{$_});
 
@@ -240,7 +239,7 @@ sub run
 					);
 				}
 
-				error($qrs) unless ref $qrs eq 'HASH';
+				error("InstantSSH: $qrs") unless ref $qrs eq 'HASH';
 			} elsif($sshKeyStatus eq 'todisable') {
 				if(not $_ ~~ $seenCustomers) {
 					$rs = $self->_deleteSshPermissions($sshKeys->{$_}->{'admin_sys_name'});
@@ -252,13 +251,13 @@ sub run
 						($rs ? scalar getMessageByType('error') : 'disabled'), $_
 					);
 
-					error($qrs) unless ref $qrs eq 'HASH';
+					error("InstantSSH: $qrs") unless ref $qrs eq 'HASH';
 				} else {
 					$qrs = $self->{'db'}->doQuery(
 						'dummy', 'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_id = ?', 'disabled', $_
 					);
 					unless(ref $qrs eq 'HASH') {
-						error($qrs);
+						error("InstantSSH: $qrs");
 						$rs = 1;
 					};
 				}
@@ -281,6 +280,7 @@ sub run
 
  Event listener which is triggered before any domain deletion
 
+ Param hash $data Data
  Return int 0 on success, other on failure
 
 =cut
@@ -310,7 +310,7 @@ sub onDeleteDomain($)
 				setImmutable($homeDir) if $isProtectedHomeDir;
 			}
 		} else {
-			error("Unable to retrieve $username unix user home dir");
+			error("InstantSSH: Unable to retrieve $username unix user home dir");
 			return 1;
 		}
 	}
@@ -380,11 +380,12 @@ sub _init
 
  In case the ~/.ssh/authorized_keys file doesn't already exist, it is created.
 
+ Param hash \%sshKeyData SSH key data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _addSshKey($$)
+sub _addSshKey
 {
 	my($self, $sshKeyData) = @_;
 
@@ -443,7 +444,7 @@ sub _addSshKey($$)
 
 		setImmutable("$homeDir/.ssh/authorized_keys");
 	} else {
-		error("Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
+		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
 		return 1;
 	}
 
@@ -454,11 +455,12 @@ sub _addSshKey($$)
 
  Delete the given SSH key from the ~/.ssh/authorized_keys file of the customer
 
+ Param hash \%sshKeyData SSH key data
  Return int 0 on success, other on failure
 
 =cut
 
-sub _deleteSshKey($$)
+sub _deleteSshKey
 {
 	my($self, $sshKeyData) = @_;
 
@@ -495,12 +497,12 @@ sub _deleteSshKey($$)
 					setImmutable("$homeDir/.ssh/authorized_keys");
 				}
 			} else {
-				error("Unable to read $homeDir/.ssh/authorized_keys");
+				error("InstantSSH: Unable to read $homeDir/.ssh/authorized_keys");
 				return 1;
 			}
 		}
 	} else {
-		error("Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
+		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
 		return 1;
 	}
 
@@ -511,11 +513,12 @@ sub _deleteSshKey($$)
 
  Delete SSH permissions for the given unix user
 
+ Param string $adminSysName Unix username
  Return int 0 on success, other on failure
 
 =cut
 
-sub _deleteSshPermissions($$)
+sub _deleteSshPermissions
 {
 	my $adminSysName = $_[1];
 
@@ -547,7 +550,7 @@ sub _deleteSshPermissions($$)
 			return $rs if $rs;
 		}
 	} else {
-		error("Unable to retrieve $adminSysName unix user home dir");
+		error("InstantSSH: Unable to retrieve $adminSysName unix user home dir");
 		return 1;
 	}
 
@@ -570,7 +573,7 @@ sub _checkRequirements
 		my($stdout, $stderr);
 		my $rs = execute("/usr/bin/dpkg -s $_", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
-		error("InstantSSH: The $_ package is not installed on your system.") if $rs;
+		error("InstantSSH: The $_ package is not installed on your system") if $rs;
 		$ret |= $rs;
 	}
 
@@ -581,12 +584,15 @@ sub _checkRequirements
 
  Configure pam chroot
 
+ Param bool $uninstall OPTIONAL Whether pam chroot configuration must be removed (default: false)
  Return int 0 on success, other on failure
 
 =cut
 
 sub _configurePamChroot
 {
+	my $uninstall = $_[1] // 0;
+
 	if(-f '/etc/pam.d/sshd') {
 		my $file = iMSCP::File->new('filename' => '/etc/pam.d/sshd');
 
@@ -597,7 +603,10 @@ sub _configurePamChroot
 		}
 
 		$fileContent =~ s/\n# Added by i-MSCP InstantSSH plugin\nsession\s+required\s+pam_chroot.so(?:\s+debug)?\n//;
-		$fileContent .= "\n# Added by i-MSCP InstantSSH plugin\nsession required pam_chroot.so debug\n";
+
+		unless($uninstall) {
+			$fileContent .= "\n# Added by i-MSCP InstantSSH plugin\nsession required pam_chroot.so debug\n";
+		}
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -605,7 +614,7 @@ sub _configurePamChroot
 		$rs = $file->save();
 		return $rs if $rs;
 	} else {
-		error('InstantSSH: Unable to configure pam chroot ; File /etc/pam.d/sshd not found.');
+		error('InstantSSH: Unable to configure pam chroot ; File /etc/pam.d/sshd not found');
 		return 1;
 	}
 

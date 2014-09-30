@@ -31,11 +31,12 @@ appearing in the the default authentication string must also be specified in the
 Jailed shell allow you to provide SSH access to your customers in a secured and restricted environment from which they
 cannot out. It's the preferable way to give an SSH access to an un-trusted customer.
 
-Several commands can be added into the customers jails by simply adding the needed sections into the
-**apps_sections configuration option**. See the plugin configuration file for further details.
+Several commands can be added into the customers jails by simply adding the needed application sections into the
+**app_sections configuration option**. See the plugin configuration file for further details.
 
 ### Requirements
 
+* Debian >= Wheezy | Ubuntu >= Precise
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
 
@@ -43,12 +44,13 @@ Several commands can be added into the customers jails by simply adding the need
 
 * libfile-homedir-perl
 * libpam-chroot
+* libunix-mknod-perl
 * makejail
 
 You can install these packages by executing the following commands:
 
 	# aptitude update
-	# aptitude install libfile-homedir-perl libpam-chroot makejail
+	# aptitude install libfile-homedir-perl libpam-chroot libunix-mknod-perl makejail
 
 **Note:** If a package is not installed on your system, the plugin will refuse to install.
 

@@ -70,12 +70,13 @@ return array(
 
 	// Shared jail (default: true)
 	//
-	// When the value is true, only one jail is created for all customers. A shared jail doesn't mean that a customer
-	// will be able to read, modify or delete files of another customer. This simply mean that only one jail will be
-	// created. Having a jail for each customer is interesting only when you want provide a different set of commands
-	// for them.
+	// When the value is true, only one jail is created for all customers. A shared jail doesn't mean that customers
+	// will be able to read, modify or delete files of other customers. This simply mean that the jail will be shared
+	// between customers. The primary purpose of a jailed shell environment is to protect the main system. Having a jail
+	// for each customer is interesting only when you want provide a different set of commands for each of them.
 	//
-	// Note: Per customer application feature is not yet implemented.
+	// Note: The creation of a jail per customer is currently useless because the per customer application feature is
+	// not implemented yet. This will be implemented in near future.
 	'shared_jail' => true,
 
 	// Preserved files (default: /home)
@@ -83,7 +84,7 @@ return array(
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.
 	//
-	// This parameter can be also defined in the application sections (see below).
+	// This option can be also defined in the application sections (see below).
 	//
 	// WARNING: Do not remove the default /home entry if you don't know what you are doing.
 	'preserve_files' => array(
@@ -96,22 +97,35 @@ return array(
 	#
 	# By default only the imscpbase application section is added, which allows to build very restricted jailed shell
 	# environments (with limited set of commands).
-	'apps_sections' => array(
+	'app_sections' => array(
 		'imscpbase'
 	),
 
 	# Predefined application sections
 	#
 	# Below, you can find the predefined application sections. Those sections are used to create and update jails.
-	# You can select as many sections as you want by adding them into the apps_sections configuration option.
+	# You can select as many sections as you want by adding them into the app_sections configuration option.
 	#
-	# It's not recommended to change a sections without understanding how it's meaning and how it is working. Once you
+	# It's not recommended to change a section without understanding its meaning and how it is working. Once you
 	# know how the sections are defined, you can define your own sections.
 	#
-	# WARNING: Any of the commands, files, libraries or packages which are listed in the application sections must be
-	# already installed on your system, else they will be ignored.
+	# Application section options
 	#
-	# Note: Some applications sections are still experimental and can require few adjustements
+	# The following options can be defined in application sections
+	#
+	# path: List of paths which have to be copied inside the jail
+	# packages: List of debian packages. Files from those packages will be copied inside the jail
+	# include_apps_sections: List of applications sections that have to be included
+	# users: List of users that have to be added inside the jail (eg. in passwd/shadow files)
+	# groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
+	# preserve_files: Files that have to be preserved when the jail is being updated
+    # devices: List of devices that have to be created inside the jail
+	# mount: List of keys/values where a key correspond to oldir (system) and the value to newdir (jail) (see man mount)
+	#
+	# WARNING: Any of the paths and packages which are listed in the application sections must be already present on
+	# your system, else they will be ignored.
+	#
+	# WARNING: Some applications sections are still experimental and can require few adjustements.
 
 	// uidbasics section
 	// Provide common files for all jails that need user/group information
@@ -119,14 +133,14 @@ return array(
 		'paths' => array(
 			'/lib/libnsl.so.1', '/lib64/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2',
 			'/lib/i386-linux-gnu/libnsl.so.1', '/lib/i386-linux-gnu/libnss*.so.2', '/lib/x86_64-linux-gnu/libnsl.so.1',
-			'/lib/x86_64-linux-gnu/libnss*.so.2', '/etc/nsswitch.conf', '/etc/ld.so.conf'
+			'/lib/x86_64-linux-gnu/libnss*.so.2', '/etc/nsswitch.conf', '/etc/ld.so.conf', '/etc/passwd', '/etc/group'
 		)
 	),
 
 	// netbasics section
 	// Provide common files for all jails that need any internet connectivity
 	'netbasics' => array(
-		'path' => array(
+		'paths' => array(
 			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
 			'/etc/protocols', '/etc/services'
 		)
@@ -139,106 +153,16 @@ return array(
 		'need_logsocket' => true
 	),
 
-	// cvs section
-	// Provide concurrent Versions System
-	'cvs' => array(
-		'commands' => array(
-			'cvs'
-		),
-		'devices' => array(
-			'/dev/null'
-		)
-	),
-
-	// git section
-	// Provide Git - Distributed revision control and source code management (SCM) system
-	'git' => array(
-		'paths' => array(
-			'/usr/bin/git*', '/usr/lib/git-core'
-		),
-		'commands' => array(
-			'basename', 'uname'
-		),
-		'include_apps_sections' => array(
-			'editors', 'perl'
-		)
-	),
-
-	// scp section
-	// Provide ssh secure copy
-	'scp' => array(
-		'commands' => array(
-			'scp'
-		),
-		'include_apps_sections' => array(
-			'netbasics', 'uidbasics'
-		),
-		'devices' => array(
-			'/dev/urandom'
-		)
-	),
-
-	// sftp section
-	// Provide ssh secure ftp
-	'sftp' => array(
-		'paths' => array(
-			'/usr/lib/sftp-server', '/usr/libexec/openssh/sftp-server', '/usr/lib/misc/sftp-server',
-			'/usr/libexec/sftp-server', '/usr/lib/openssh/sftp-server'
-		),
-		'include_apps_sections' => array(
-			'netbasics', 'uidbasics'
-		),
-		'devices' => array(
-			'/dev/urandom', '/dev/null'
-		)
-	),
-
-	// ssh section
-	// Provide ssh secure shell
-	'ssh' => array(
-		'paths' => array(
-			'/usr/bin/ssh'
-		),
-		'include_apps_sections' => array(
-			'netbasics', 'uidbasics'
-		),
-		'devices' => array( # TODO review
-			'/dev/urandom', '/dev/tty', '/dev/null'
-		),
-		'preserve_files' => array(
-			'/dev'
-		)
-	),
-
-	// rsync section
-	// Provide rsync command
-	'rsync' => array(
-		'path' => array(
-			'/usr/bin/rsync'
-		),
-		'include_apps_sections' => array(
-			'netbasics', 'uidbasics'
-		)
-	),
-
-	// procmail section
-	// Provide procmail mail delivery agent
-	'procmail' => array(
-		'path' => array(
-			'/usr/bin/procmail', '/bin/sh'
-		),
-		'devices' => array(
-			'/dev/null'
-		)
-	),
-
 	// basicshell section
 	// Provide bash based shell with several basic utilities
 	'basicshell' => array(
 		'paths' => array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cpio', '/bin/egrep', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
 			'/bin/gzip', '/bin/more', '/usr/bin/rgrep', '/bin/sed', '/bin/tar', '/bin/uncompress', '/bin/zcat',
-			'/etc/motd', '/etc/issue', '/etc/bash.bashrc', '/etc/bashrc', '/etc/profile', '/usr/lib/locale/C.UTF-8'
+			'/etc/motd', '/etc/issue', '/etc/bash.bashrc', '/etc/bashrc', '/etc/profile', '/usr/lib/locale/C.UTF-8',
+			'/dev/pt*',
+			#'/dev/ttyp[0-9]*',
+			'/dev/tty*'
 		),
 		'users' => array(
 			'root'
@@ -246,22 +170,14 @@ return array(
 		'groups' => array(
 			'root'
 		),
-		'include_apps_sections' => array(
+		'include_app_sections' => array(
 			'uidbasics'
 		),
 		'packages' => array(
 			'coreutils' # Package which provide basic file, shell and text manipulation utilities
-		)
-	),
-
-	// midnightcommander section
-	// Midnight Commander
-	'midnightcommander' => array(
-		'paths' => array(
-			'/usr/bin/mc', '/usr/bin/mcedit', '/usr/bin/mcview', '/usr/share/mc'
 		),
-		'include_apps_sections' => array(
-			'basicshell', 'terminfo'
+		'preserve_files' => array(
+			'/dev/'
 		)
 	),
 
@@ -272,16 +188,8 @@ return array(
 			'/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less', '/usr/bin/clear',
 			'/usr/bin/cut', '/usr/bin/find', '/usr/bin/less', '/usr/bin/watch',
 		),
-		'include_apps_sections' => array(
+		'include_app_sections' => array(
 			'basicshell', 'midnightcommander', 'editors'
-		)
-	),
-
-	// terminfo section
-	// Provide terminfo databases, required for example for ncurses or vim
-	'terminfo' => array(
-		'paths' => array(
-			'/etc/terminfo', '/usr/share/terminfo', '/lib/terminfo'
 		)
 	),
 
@@ -301,8 +209,128 @@ return array(
 			'/usr/bin/wget', '/usr/bin/lynx', '/usr/bin/ftp', '/usr/bin/host', '/usr/bin/rsync', '/usr/bin/smbclient',
 			'/usr/bin/dig'
 		),
-		'include_apps_sections' => array(
+		'include_app_sections' => array(
 			'netbasics', 'ssh', 'sftp', 'scp'
+		)
+	),
+
+	// section extshellplusnet
+	// alias for extendedshell + netutils + apacheutils
+	'extshellplusnet' => array(
+		'include_app_sections' => array(
+			'extendedshell', 'netutils', 'apacheutils'
+		)
+	),
+
+	// midnightcommander section
+	// Midnight Commander
+	'midnightcommander' => array(
+		'paths' => array(
+			'/usr/bin/mc', '/usr/bin/mcedit', '/usr/bin/mcview', '/usr/share/mc'
+		),
+		'include_app_sections' => array(
+			'basicshell', 'terminfo'
+		)
+	),
+
+	// scp section
+	// Provide ssh secure copy
+	'scp' => array(
+		'paths' => array(
+			'/usr/bin/scp'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array(
+			'/dev/urandom'
+		)
+	),
+
+	// sftp section
+	// Provide ssh secure ftp
+	'sftp' => array(
+		'paths' => array(
+			'/usr/lib/sftp-server', '/usr/libexec/openssh/sftp-server', '/usr/lib/misc/sftp-server',
+			'/usr/libexec/sftp-server', '/usr/lib/openssh/sftp-server'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array(
+			'/dev/urandom', '/dev/null'
+		)
+	),
+
+	// ssh section
+	// Provide ssh secure shell
+	'ssh' => array(
+		'paths' => array(
+			'/usr/bin/ssh'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array( # TODO review
+			'/dev/urandom', '/dev/tty', '/dev/null'
+		),
+		'preserve_files' => array(
+			'/dev'
+		)
+	),
+
+	// rsync section
+	// Provide rsync command
+	'rsync' => array(
+		'path' => array(
+			'/usr/bin/rsync'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		)
+	),
+
+	// cvs section
+	// Provide concurrent Versions System
+	'cvs' => array(
+		'paths' => array(
+			'/usr/bin/cvs'
+		),
+		'devices' => array(
+			'/dev/null'
+		)
+	),
+
+	// git section
+	// Provide Git - Distributed revision control and source code management (SCM) system
+	'git' => array(
+		'paths' => array(
+			'/usr/bin/git*', '/usr/lib/git-core'
+		),
+		'commands' => array(
+			'basename', 'uname'
+		),
+		'include_app_sections' => array(
+			'editors', 'perl'
+		)
+	),
+
+	// procmail section
+	// Provide procmail mail delivery agent
+	'procmail' => array(
+		'paths' => array(
+			'/usr/bin/procmail', '/bin/sh'
+		),
+		'devices' => array(
+			'/dev/null'
+		)
+	),
+
+	// terminfo section
+	// Provide terminfo databases, required for example for ncurses or vim
+	'terminfo' => array(
+		'paths' => array(
+			'/etc/terminfo', '/usr/share/terminfo', '/lib/terminfo'
 		)
 	),
 
@@ -311,14 +339,6 @@ return array(
 	'apacheutils' => array(
 		'paths' => array(
 			'/usr/bin/htpasswd'
-		)
-	),
-
-	// section extshellplusnet
-	// alias for extendedshell + netutils + apacheutils
-	'extshellplusnet' => array(
-		'include_apps_sections' => array(
-			'extendedshell', 'netutils', 'apacheutils'
 		)
 	),
 
@@ -362,25 +382,34 @@ return array(
 		'groups' => array(
 			'mysql'
 		),
-		'include_apps_sections' => array(
+		'include_app_sections' => array(
 			'netbasics', 'uidbasics'
 		),
-		'mounts' => array(
+		'mount' => array(
 			'/var/run/mysqld' => '/var/run/mysqld'
 		)
 	),
 
 	// imscpbase section
-	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell
+	// Provide pre-selected commands and application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
+		'paths' => array(
+			'/bin/hostname',
+			'/usr/bin/clear_console',
+			'/usr/bin/id',
+			'/usr/bin/groups',
+			'/usr/bin/lesspipe',
+			'/usr/bin/tput',
+			'/usr/bin/which'
+		),
 		'users' => array(
 			'root', 'www-data'
 		),
 		'groups' => array(
 			'root', 'www-data'
 		),
-		'include_apps_sections' => array(
-			'basicshell'
+		'include_app_sections' => array(
+			'extshellplusnet'
 		)
 	)
 );
