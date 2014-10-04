@@ -33,18 +33,25 @@ $ENV{'IMSCP_CLEAR_SCREEN'} = 0;
 
 my $user = shift || die("Please enter an unix username.\n");
 
-iMSCP::Bootstrapper->getInstance()->boot({ norequirements => "yes", nolock => "yes", config_readonly => "yes" });
+iMSCP::Bootstrapper->getInstance()->boot(
+	{ norequirements => "yes", nolock => "yes", config_readonly => "yes" }
+);
 
 # Load InstantSSH plugin manually
 require '/var/www/imscp/gui/plugins/InstantSSH/backend/InstantSSH.pm';
 
-my $instantSSH = Plugin::InstantSSH->getInstance(eventManager => iMSCP::EventManager->getInstance);
+my $instantSSH = Plugin::InstantSSH->getInstance(
+	eventManager => iMSCP::EventManager->getInstance
+);
 
-# Ensure that the environment is ready to use
-$instantSSH->install();
+# Ensure that the environment is ready to use (requirements, libpam-chroot configuration)
+unless($instantSSH->install()) {
+	# Let create a jailed environment manually for testing purpose
+	my $jailBuilder = InstantSSH::JailBuilder->new(
+		config => $instantSSH->{'config'}, user => $user
+	);
 
-# Let create a jailed environment manually for testing purpose
-my $jailBuilder = InstantSSH::JailBuilder->new(config => $instantSSH->{'config'}, user => $user);
-
-# Create the jailed shell environment
-exit $jailBuilder->makeJail();
+	exit $jailBuilder->makeJail();
+} else {
+	exit 1;
+}
