@@ -110,7 +110,7 @@ sub makeJail
 			eval { copyDevice($jailCfg{'chroot'}, $devicePath); };
 
 			if($@) {
-				error("InstantSSH::JailBuilder: Unable to create device: $@") if $@;
+				error("InstantSSH::JailBuilder: Unable to create device: $@");
 				return 1;
 			}
 		}
