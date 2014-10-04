@@ -36,23 +36,22 @@ Several commands can be added into the customers jails by simply adding the need
 
 ### Requirements
 
-* Debian >= Wheezy | Ubuntu >= Precise
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
 
 #### Debian / Ubuntu packages to install before installing this plugin
 
+* initscripts
 * libfile-homedir-perl
 * libpam-chroot
-* libunix-mknod-perl
 * makejail
 
 You can install these packages by executing the following commands:
 
 	# aptitude update
-	# aptitude install libfile-homedir-perl libpam-chroot libunix-mknod-perl makejail
+	# aptitude install initscripts libfile-homedir-perl libpam-chroot makejail
 
-**Note:** If a package is not installed on your system, the plugin will refuse to install.
+**Note:** If a package is not installed on your system, the plugin will raise an error.
 
 ### Installation
 

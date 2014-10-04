@@ -145,7 +145,7 @@ sub run
 	my ($rs, $ret, $qrs) = (0, 0, undef);
 	$seenCustomers = []; # Reset seen customer stack
 
-	# Remove SSH permissions
+	# Create jailed shell / Remove SSH permissions
 
 	# Workflow for one customer:
 	# When SSH permissions are deleted for a customer, the ssh_permission_id field of all its ssh keys is
@@ -198,11 +198,13 @@ sub run
 		'ssh_key_id',
 		"
 			SELECT
-				t1.*, t2.admin_sys_name, t2.admin_sys_gname
+				t1.*, t2.admin_sys_name, t2.admin_sys_gname, t3.ssh_permission_jailed_shell
 			FROM
 				instant_ssh_keys AS t1
 			INNER JOIN
 				admin AS t2 ON(admin_id = ssh_key_admin_id)
+			INNER JOIN
+				instant_ssh_permissions AS t3 using(ssh_permission_id)
 			WHERE
 				ssh_key_status NOT IN ('ok', 'disabled')
 			AND
@@ -297,7 +299,10 @@ sub onDeleteDomain($)
 			if(-f "$homeDir/.ssh/authorized_keys") {
 				# Force logout of ssh login if any
 				my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($username), 'sshd');
-				execute("@cmd");
+				my ($stdout, $stderr);
+				execute("@cmd", \$stdout, \$stderr);
+				debug($stdout) if $stdout;
+				debug($stderr) if $stderr;
 
 				my $isProtectedHomeDir = isImmutable($homeDir);
 
@@ -310,7 +315,7 @@ sub onDeleteDomain($)
 				setImmutable($homeDir) if $isProtectedHomeDir;
 			}
 		} else {
-			error("InstantSSH: Unable to retrieve $username unix user home dir");
+			error("InstantSSH: Unable to retrieve $username unix user homedir");
 			return 1;
 		}
 	}
@@ -444,7 +449,7 @@ sub _addSshKey
 
 		setImmutable("$homeDir/.ssh/authorized_keys");
 	} else {
-		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
+		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user homedir");
 		return 1;
 	}
 
@@ -502,7 +507,7 @@ sub _deleteSshKey
 			}
 		}
 	} else {
-		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user home directory");
+		error("InstantSSH: Unable to retrieve $sshKeyData->{'admin_sys_name'} user homedir");
 		return 1;
 	}
 
@@ -528,7 +533,10 @@ sub _deleteSshPermissions
 		if(-f "$homeDir/.ssh/authorized_keys") {
 			# Force logout of ssh login if any
 			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($adminSysName), 'sshd');
-			execute("@cmd");
+			my ($stdout, $stderr);
+			debug($stdout) if $stdout;
+			debug($stderr) if $stderr;
+			execute("@cmd", \$stdout, \$stderr);
 
 			my $isProtectedHomeDir = isImmutable($homeDir);
 
@@ -543,14 +551,13 @@ sub _deleteSshPermissions
 			# Change customer unix user shell to /bin/false
 			@cmd = ("$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($adminSysName));
 
-			my($stdout, $stderr);
 			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			debug($stderr) if $stderr && $rs;
 			return $rs if $rs;
 		}
 	} else {
-		error("InstantSSH: Unable to retrieve $adminSysName unix user home dir");
+		error("InstantSSH: Unable to retrieve $adminSysName unix user homedir");
 		return 1;
 	}
 
@@ -569,18 +576,18 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for(qw/libpam-chroot makejail/) {
-		my($stdout, $stderr);
+	for(qw/initscripts libpam-chroot makejail/) {
+		my ($stdout, $stderr);
 		my $rs = execute("/usr/bin/dpkg -s $_", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
-		error("InstantSSH: The $_ package is not installed on your system") if $rs;
+		error("InstantSSH: The $_ package is not installed on your system. Please read the plugin documentation") if $rs;
 		$ret |= $rs;
 	}
 
 	$ret;
 }
 
-=item _configurePamChroot()
+=item _configurePamChroot($uninstall = false)
 
  Configure pam chroot
 

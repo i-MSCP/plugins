@@ -164,7 +164,7 @@ sub copyTimeAndPermissions($$;$$)
 {
 	my($src, $dst, $allowSuid, $copyOwnership) = @_;
 
-	my $sb = File::stat::stat($src) or  die("InstantSSH::JailBuilder::Utils: Failed to stat on $src: $!");
+	my $sb = File::stat::stat($src) or die("InstantSSH::JailBuilder::Utils: Failed to stat on $src: $!");
 	my $mode = S_IMODE($sb->mode);
 
 	unless($allowSuid) {
@@ -218,7 +218,6 @@ sub createParentPath($$;$$$)
 		my $tmp = resolveRealpath($tmp1, $chroot, 1);
 		last unless -e $tmp;
 		$existpath = $tmp;
-
 		$i++;
 	}
 
@@ -281,7 +280,7 @@ sub copyDevice($$;$)
 
 	my $chrootpath = resolveRealpath($chroot . $path, $chroot);
 
-	# Does attempt to create device if it already exists in jail
+	# Do not try to create the device if it already exist within the jail
 	unless(-e $chrootpath) {
 		my $sb = File::stat::stat($path) or die("InstantSSH::JailBuilder::Utils: Failed to stat on $path: $!");
 		my $mode = $sb->mode;
@@ -303,7 +302,7 @@ sub copyDevice($$;$)
 		);
 
 		# Copy time and permissions
-		copyTimeAndPermissions($path, $chrootpath, 0, $copyOwnership);
+		copyTimeAndPermissions($path, $chrootpath, undef, $copyOwnership);
 	}
 
 	undef;
@@ -333,7 +332,7 @@ sub _stat($)
 	my $ret = (exists $STATCACHE{$path}) ? $STATCACHE{$path} : undef;
 
 	unless (defined $ret) {
-		$STATCACHE{$path} = $ret = File::stat::stat($path) or  die(
+		$STATCACHE{$path} = $ret = File::stat::stat($path) or die(
 			"InstantSSH::JailBuilder::Utils: Failed to stat on $path: $!"
 		);
 	}

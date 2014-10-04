@@ -86,9 +86,9 @@ return array(
 	//
 	// This option can be also defined in the application sections (see below).
 	//
-	// WARNING: Do not remove the default /home entry if you don't know what you are doing.
+	// WARNING: Do not remove the default entry if you don't know what you are doing.
 	'preserve_files' => array(
-		'/home'
+		'/var/www/virtual'
 	),
 
 	# Application section (default: imscpbase)
@@ -113,22 +113,21 @@ return array(
 	#
 	# The following options can be defined in application sections
 	#
-	# path: List of paths which have to be copied inside the jail
+	# path: List of paths which have to be copied inside the jail. Be aware that copy is not recursive.
 	# packages: List of debian packages. Files from those packages will be copied inside the jail
+	# include_pkg_deps: Whether or not files from packages required by packages listed in packages option must be copied
 	# include_apps_sections: List of applications sections that have to be included
 	# users: List of users that have to be added inside the jail (eg. in passwd/shadow files)
 	# groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
 	# preserve_files: Files that have to be preserved when the jail is being updated
-    # devices: List of devices that have to be created inside the jail
-	# mount: List of keys/values where a key correspond to oldir (system) and the value to newdir (jail) (see man mount)
+	# devices: List of devices that have to be created inside the jail
+	# mount: List of directory/file to remount in jail as key/value  pairs where a key correspond to oldir (system) and
+	#        the value to newdir (jail) (see man mount)
 	#
-	# WARNING: Any of the paths and packages which are listed in the application sections must be already present on
-	# your system, else they will be ignored.
-	#
-	# WARNING: Some applications sections are still experimental and can require few adjustements.
+	# WARNING: Some application sections are still experimental and can require few adjustements.
 
 	// uidbasics section
-	// Provide common files for all jails that need user/group information
+	// Provide common files for jails that need user/group information
 	'uidbasics' => array(
 		'paths' => array(
 			'/lib/libnsl.so.1', '/lib64/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2',
@@ -159,10 +158,8 @@ return array(
 		'paths' => array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cpio', '/bin/egrep', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
 			'/bin/gzip', '/bin/more', '/usr/bin/rgrep', '/bin/sed', '/bin/tar', '/bin/uncompress', '/bin/zcat',
-			'/etc/motd', '/etc/issue', '/etc/bash.bashrc', '/etc/bashrc', '/etc/profile', '/usr/lib/locale/C.UTF-8',
-			'/dev/pt*',
-			#'/dev/ttyp[0-9]*',
-			'/dev/tty*'
+			'/usr/bin/lzma', '/usr/bin/xz', '/etc/motd', '/etc/issue', '/etc/bash.bashrc', '/etc/bashrc', '/etc/profile',
+			'/usr/lib/locale/C.UTF-8'
 		),
 		'users' => array(
 			'root'
@@ -175,9 +172,6 @@ return array(
 		),
 		'packages' => array(
 			'coreutils' # Package which provide basic file, shell and text manipulation utilities
-		),
-		'preserve_files' => array(
-			'/dev/'
 		)
 	),
 
@@ -189,7 +183,7 @@ return array(
 			'/usr/bin/cut', '/usr/bin/find', '/usr/bin/less', '/usr/bin/watch',
 		),
 		'include_app_sections' => array(
-			'basicshell', 'midnightcommander', 'editors'
+			'basicshell', 'midnightcommander', 'editors', 'terminfo'
 		)
 	),
 
@@ -199,18 +193,20 @@ return array(
 		'paths' => array(
 			'/usr/bin/joe', '/usr/bin/nano', '/usr/bin/vi', '/usr/bin/vim', '/usr/bin/pico', '/etc/vimrc', '/etc/joe',
 			'/usr/share/vim', '/usr/bin/pico'
+		),
+		'include_apps_sections' => array(
+			'terminfo'
 		)
 	),
 
 	// netutils section
 	// Provide several internet utilities like wget, ftp, rsync, scp, ssh
 	'netutils' => array(
-		'paths' => array(
-			'/usr/bin/wget', '/usr/bin/lynx', '/usr/bin/ftp', '/usr/bin/host', '/usr/bin/rsync', '/usr/bin/smbclient',
-			'/usr/bin/dig'
+		'paths' => array( # TODO review (resolv.conf ?)
+			'/usr/bin/wget', '/usr/bin/lynx', '/usr/bin/ftp', '/usr/bin/host', '/usr/bin/smbclient', '/usr/bin/dig'
 		),
 		'include_app_sections' => array(
-			'netbasics', 'ssh', 'sftp', 'scp'
+			'netbasics', 'ssh', 'sftp', 'scp', 'rsync'
 		)
 	),
 
@@ -244,6 +240,9 @@ return array(
 		),
 		'devices' => array(
 			'/dev/urandom'
+		),
+		'preserve_files' => array(
+			'/dev'
 		)
 	),
 
@@ -259,6 +258,9 @@ return array(
 		),
 		'devices' => array(
 			'/dev/urandom', '/dev/null'
+		),
+		'preserve_files' => array(
+			'/dev'
 		)
 	),
 
@@ -282,7 +284,7 @@ return array(
 	// rsync section
 	// Provide rsync command
 	'rsync' => array(
-		'path' => array(
+		'paths' => array(
 			'/usr/bin/rsync'
 		),
 		'include_app_sections' => array(
@@ -298,6 +300,9 @@ return array(
 		),
 		'devices' => array(
 			'/dev/null'
+		),
+		'preserve_files' => array(
+			'/dev'
 		)
 	),
 
@@ -323,14 +328,18 @@ return array(
 		),
 		'devices' => array(
 			'/dev/null'
+		),
+		'preserve_files' => array(
+			'/dev'
 		)
 	),
 
 	// terminfo section
 	// Provide terminfo databases, required for example for ncurses or vim
 	'terminfo' => array(
-		'paths' => array(
-			'/etc/terminfo', '/usr/share/terminfo', '/lib/terminfo'
+		'packages' => array(
+			'ncurses-base', # Package which provide terminfo data files to support the most common types of terminal
+			//'ncurses-term' # Package which provide all of the numerous terminal definitions not found in the ncurses-base
 		)
 	),
 
@@ -345,9 +354,13 @@ return array(
 	// perl section
 	// Provide the perl interpreter and libraries
 	'perl' => array(
-		'paths' => array(
-			'/usr/bin/perl', '/usr/lib/perl', '/usr/lib/perl5', '/usr/share/perl', '/usr/share/perl5'
-		)
+		#'paths' => array(
+		#	'/usr/bin/perl', '/usr/lib/perl', '/usr/lib/perl5', '/usr/share/perl', '/usr/share/perl5'
+		#)
+		'packages' => array(
+			'perl'
+		),
+		'include_pkg_deps' => true
 	),
 
 	// ping section
@@ -362,10 +375,14 @@ return array(
 	// Provide xterm
 	'xterm' => array(
 		'paths' => array(
-			'/usr/bin/X11/xterm', '/usr/share/terminfo', '/etc/terminfo'
+			'/usr/bin/X11/xterm'
 		),
-		'devices' => array( # TODO REVIEW
-			'/dev/pts/0', '/dev/pts/1', '/dev/pts/2', '/dev/pts/3', '/dev/pts/4', '/dev/ptyb4', '/dev/ptya4',
+		'include_app_sections' => array(
+			'terminfo'
+		),
+		'devices' => array(
+			'/dev/pts/0', '/dev/pts/1', '/dev/pts/2', '/dev/pts/3', '/dev/pts/4',
+			'/dev/ptyb4', '/dev/ptya4',
 			'/dev/tty', '/dev/tty0', '/dev/tty4'
 		)
 	),
@@ -391,7 +408,7 @@ return array(
 	),
 
 	// imscpbase section
-	// Provide pre-selected commands and application sections, users and groups for i-MSCP jailed shell
+	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
 		'paths' => array(
 			'/bin/hostname',
@@ -409,7 +426,7 @@ return array(
 			'root', 'www-data'
 		),
 		'include_app_sections' => array(
-			'extshellplusnet'
+			'extshellplusnet', 'xterm'
 		)
 	)
 );

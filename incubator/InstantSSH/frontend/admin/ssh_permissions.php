@@ -127,7 +127,7 @@ function instantssh_addSshPermissions()
 			$db->beginTransaction();
 
 			if (!$sshPermissionId) { // Add SSH permissions
-				$stmt = exec_query(
+				exec_query(
 					'
 						INSERT INTO instant_ssh_permissions(
 							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options,
@@ -142,53 +142,80 @@ function instantssh_addSshPermissions()
 					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, $adminName)
 				);
 
-				if ($stmt->rowCount()) {
-					$db->commit();
+				$db->commit();
 
-					write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
+				write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
 
-					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
-				}
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
 			} else { // Update SSH permissions
-				exec_query(
+				$stmt = exec_query(
 					'
-						UPDATE
+						SELECT
+							ssh_permission_auth_options, ssh_permission_jailed_shell
+						FROM
 							instant_ssh_permissions
-						SET
-							ssh_permission_max_keys = ?, ssh_permission_auth_options = ?
-							ssh_permission_jailed_shell = ?
 						WHERE
 							ssh_permission_id = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, $sshPermissionId)
+					$sshPermissionId
 				);
 
-				if (!$sshPermissionAuthOptions) {
-					/** @var iMSCP_Plugin_Manager $pluginManager */
-					$pluginManager = iMSCP_Registry::get('pluginManager');
-					$defaultSshAuthOptions = $pluginManager->getPlugin('InstantSSH')
-						->getConfigParam('default_ssh_auth_options', '');
+				if($stmt->rowCount()) {
+					$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
 					exec_query(
 						'
 							UPDATE
-								instant_ssh_keys
+								instant_ssh_permissions
 							SET
-								ssh_auth_options = ?, ssh_key_status = ?
+								ssh_permission_max_keys = ?, ssh_permission_auth_options = ?,
+								ssh_permission_jailed_shell = ?
 							WHERE
 								ssh_permission_id = ?
 						',
-						array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
+						array(
+							$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell,
+							$sshPermissionId
+						)
 					);
+
+					if (
+						$row['ssh_permission_auth_options'] != $sshPermissionAuthOptions ||
+						$row['ssh_permission_jailed_shell'] != $sshPermissionJailedShell
+					) {
+						if($row['ssh_permission_auth_options'] != $sshPermissionAuthOptions) {
+							/** @var iMSCP_Plugin_Manager $pluginManager */
+							$pluginManager = iMSCP_Registry::get('pluginManager');
+							$defaultSshAuthOptions = $pluginManager->getPlugin('InstantSSH')
+								->getConfigParam('default_ssh_auth_options', '');
+
+							exec_query(
+								'
+									UPDATE
+										instant_ssh_keys
+									SET
+										ssh_auth_options = ?, ssh_key_status = ?
+									WHERE
+										ssh_permission_id = ?
+								',
+								array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
+							);
+						} else {
+							exec_query(
+								'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id = ?',
+								array('tochange', $sshPermissionId)
+							);
+						}
+
+						$db->commit();
+
+						send_request();
+					}
+
+					write_log(sprintf('SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
+
+					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were updated.')));
 				}
-
-				$db->commit();
-
-				send_request();
-
-				write_log(sprintf('SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
-
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were updated.')));
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();

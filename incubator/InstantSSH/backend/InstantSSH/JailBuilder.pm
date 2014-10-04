@@ -34,14 +34,15 @@ use iMSCP::Dir;
 use iMSCP::Rights;
 use iMSCP::Execute;
 
+use InstantSSH::JailBuilder::Utils qw(createParentPath copyDevice);
+
 use File::HomeDir;
-use JSON;
 use List::MoreUtils qw(uniq);
 
 use parent 'Common::Object';
 
 my %jailCfg = (
-	'jail_dir' => '',
+	'chroot' => '',
 	'paths' => [],
 	'packages' => [],
 	'include_pkg_deps' => 0,
@@ -49,8 +50,7 @@ my %jailCfg = (
 	'users' => [],
 	'groups' => [],
 	'devices' => [],
-	'mounts' => [],
-	'need_logsocket' => 0
+	'mounts' => []
 );
 
 my $makejailCfgDir = '/etc/makejail';
@@ -76,12 +76,11 @@ sub makeJail
 {
 	my $self = $_[0];
 
-	my $cfg = $self->{'config'};
-	my $user = $self->{'user'};
+	my ($cfg, $user) = ($self->{'config'}, $self->{'user'});
 
 	#  Create the jail directory if it doesn't already exists or set it permissions
 	my $rs = iMSCP::Dir->new(
-		'dirname' => $jailCfg{'jail_dir'}
+		'dirname' => $jailCfg{'chroot'}
 	)->make(
 		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'} => 'mode' => 0755 }
 	);
@@ -89,13 +88,13 @@ sub makeJail
 
 	my $makejailCfgfilePath = "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py");
 
-	# Build makejail configuration file if needed
+	# Build makejail configuration file
 	$rs = $self->_buildMakejailCfgfile($cfg, $user);
 	return $rs if $rs;
 
-	# Create/Update the jail
+	# Create/Update jail
 	my ($stdout, $stderr);
-	$rs = execute("makejail $makejailCfgfilePath", \$stdout, \$stderr);
+	$rs = execute("makejail $makejailCfgfilePath", undef, \$stderr);
 	debug($stdout) if $stdout;
 	error("InstantSSH::JailBuilder:: $stderr") if $rs && $stderr;
 	error('InstantSSH::JailBuilder: Unable to create/update jail for unknown reason') if $rs && !$stderr;
@@ -105,9 +104,19 @@ sub makeJail
 	$rs = $self->addUserToJail($user);
 	return $rs if $rs;
 
-	# TODO:
-	# Create devices if needed
-	# Create log socket if needed
+	# Create devices inside jail
+	for my $devicePath (@{$jailCfg{'devices'}}) {
+		if(-e $devicePath) {
+			eval { copyDevice($jailCfg{'chroot'}, $devicePath); };
+
+			if($@) {
+				error("InstantSSH::JailBuilder: Unable to create device: $@") if $@;
+				return 1;
+			}
+		}
+	}
+
+	# TODO Create log socket if needed
 
 	0;
 }
@@ -125,46 +134,35 @@ sub addUserToJail
 {
 	my ($self, $user) = @_;
 
-	my $group = (getgrgid((getpwnam($user))[3]))[0];
+	my $group = $self->{'group'};
 
-	unless(defined $group) {
-		error(sprintf('InstantSSH::JailBuilder: Unable to find %s unix user group', $user));
-		return 1;
-	}
+	my $homeDir = File::HomeDir->users_home($user);
 
-	# Create home directory for the given user inside the jail
-	unless (-d $jailCfg{'jail_dir'} . "/home/$user") {
-		my $rs = iMSCP::Dir->new(
-			'dirname' => $jailCfg{'jail_dir'} . "/home/$user"
-		)->make(
-			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0755 }
-		);
-		return $rs if $rs;
-	}
+	# Create homedir for the given user inside the jail
+	my $rs = iMSCP::Dir->new(
+		'dirname' => $jailCfg{'chroot'} . $homeDir
+	)->make(
+		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0755 }
+	);
+	return $rs if $rs;
 
-	# Set owner/group for user home directory inside the jail
-	setRights($jailCfg{'jail_dir'} . "/home/$user", { 'user' => $user, 'group' => $group, 'mode' => '0750' });
+	# Set owner/group for user homedir inside the jail
+	$rs = setRights($jailCfg{'chroot'} . $homeDir, { 'user' => $user, 'group' => $group, 'mode' => '0750' });
+	return $rs if $rs;
 
-	# TODO copy content from /etc/skel if any
+	# TODO copy content from /etc/skel if any (or better selffiles with colors enabled)
 
 	# Add user into the jailed passwd file if any
-	my $rs = $self->addPasswdFile('/etc/passwd', $user);
+	$rs = $self->addPasswdFile('/etc/passwd', $user);
 	return $rs if $rs;
 
 	# Add user group into the jailed group file if any
 	$rs = $self->addPasswdFile('/etc/group', $group);
 	return $rs if $rs;
 
-#	my $homeDir = File::HomeDir->users_home($user);
-#
-#	if(defined $homeDir) {
-#		# TODO mount user Web folder into the jail ($userhome => <jail_dir>/home/$user/web)
-#		# $rs = $self->mount($homeDir, $jailCfg{'jail_dir'} . "/home/$user");
-#		# Return $rs if $rs;
-#	} else {
-#		error(sprintf('InstantSSH::JailBuilder: Unable to retrieve %s unix user home dir', $user));
-#		return 1;
-#	}
+	# TODO mount user Web folder into the jail ($homeDir => <chroot>/$homeDir)
+	# $rs = $self->mount($homeDir, $jailCfg{'chroot'} . "/home/$user");
+	# Return $rs if $rs;
 
 	# Add user into security chroot file
 	if(-f $securityChrootCfgFile) {
@@ -172,13 +170,13 @@ sub addUserToJail
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error(sprintf('InstantSSH::JailBuilder: Unable to read file %s', $securityChrootCfgFile));
+			error('InstantSSH::JailBuilder: Unable to read file $securityChrootCfgFile');
 			return 1;
 		}
 
-		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'jail_dir'}));
+		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
 		$fileContent =~ s/\n$userReg\s+$jailReg\n//;
-		$fileContent .= "\n$user\t$jailCfg{'jail_dir'}\n";
+		$fileContent .= "\n$user\t$jailCfg{'chroot'}\n";
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -186,7 +184,7 @@ sub addUserToJail
 		$rs = $file->save();
 		return $rs if $rs;
 	} else {
-		error(sprintf('InstantSSH::JailBuilder: File %s not found', $securityChrootCfgFile));
+		error('InstantSSH::JailBuilder: File $securityChrootCfgFile not found');
 		return 1;
 	}
 
@@ -209,20 +207,23 @@ sub removeUserFromJail
 	my $group = (getgrgid((getpwnam($user))[3]))[0];
 
 	unless(defined $group) {
-		error(sprintf('InstantSSH::JailBuilder: Unable to find %s unix user group', $user));
+		error('InstantSSH::JailBuilder: Unable to find $user unix user group');
 		return 1;
 	}
 
-	# TODO umount user Web folder from jail
-	# TODO remove user homedir from jail
+	if(-d $jailCfg{'chroot'}) {
+		# TODO See if we cannot use libpam-mount in place
+		# TODO umount user Web folder from jail
+		# TODO remove user homedir from jail
 
-	# Remove user from the jailed passwd file if any
-	my $rs = $self->removePasswdFile('/etc/passwd', $user);
-	return $rs if $rs;
+		# Remove user from the jailed passwd file if any
+		my $rs = $self->removePasswdFile('/etc/passwd', $user);
+		return $rs if $rs;
 
-	# Remove user group from the jailed group file if any
-	$rs = $self->removePasswdFile('/etc/group', $group);
-	return $rs if $rs;
+		# Remove user group from the jailed group file if any
+		$rs = $self->removePasswdFile('/etc/group', $group);
+		return $rs if $rs;
+	}
 
 	# Remove user from security chroot file
 	if(-f $securityChrootCfgFile) {
@@ -234,10 +235,10 @@ sub removeUserFromJail
 			return 1;
 		}
 
-		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'jail_dir'}));
+		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
 		$fileContent =~ s/\n$userReg\s+$jailReg\n//;
 
-		$rs = $file->set($fileContent);
+		my $rs = $file->set($fileContent);
 		return $rs if $rs;
 
 		$rs = $file->save();
@@ -261,7 +262,7 @@ sub addPasswdFile
 {
 	my ($self, $file, $what) = @_;
 
-	my $dest = $jailCfg{'jail_dir'} . $file;
+	my $dest = $jailCfg{'chroot'} . $file;
 
 	if(-f $dest) {
 		if(open my $fh, '<', $file) {
@@ -274,11 +275,13 @@ sub addPasswdFile
 				if(not grep $_ eq $what, @outLines) {
 					for my $line(@lines) {
 						next if index($line, ':') == -1;
-						my @fields = split ':', $line;
+						#my @fields = split ':', $line;
 
-						if ($fields[0] eq $what) {
-							$fields[5] = "/home/$what" if exists $fields[5]; # passwd file - override homedir field
-							print $fh join ':', @fields;
+						#if ($fields[0] eq $what) {
+						if ((split ':', $line, 2)[0] eq $what) {
+							#$fields[5] = "/home/$what" if exists $fields[5]; # passwd file - override homedir field
+							#print $fh join ':', @fields;
+							print $fh $line;
 							last;
 						}
 					}
@@ -286,11 +289,11 @@ sub addPasswdFile
 
 				close $fh;
 			} else {
-				error(sprintf("InstantSSH::JailBuilder: Unable to open file for writing: %s", $!));
+				error("InstantSSH::JailBuilder: Unable to open file for writing: $!");
 				return 1;
 			}
 		} else {
-			error(sprintf("InstantSSH::JailBuilder: Unable to open file for reading: %s", $!));
+			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
 			return 1;
 		}
 	}
@@ -312,7 +315,7 @@ sub removePasswdFile
 {
 	my ($self, $file, $what) = @_;
 
-	my $dest = $jailCfg{'jail_dir'} . $file;
+	my $dest = $jailCfg{'chroot'} . $file;
 
 	if(-f $dest) {
 		if(open my $fh, '<', $dest) {
@@ -325,11 +328,11 @@ sub removePasswdFile
 				print $fh "@lines";
 				close $fh;
 			} else {
-				error(sprintf("InstantSSH::JailBuilder: Unable to open file for writing: %s", $!));
+				error("InstantSSH::JailBuilder: Unable to open file for writing: $!");
 				return 1;
 			}
 		} else {
-			error(sprintf("InstantSSH::JailBuilder: Unable to open file for reading: %s", $!));
+			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
 			return 1;
 		}
 	}
@@ -347,7 +350,7 @@ sub removePasswdFile
 
  Initialize instance
 
- Return InstantSSH:JailBuilder
+ Return InstantSSH:JailBuilder (die on failure)
 
 =cut
 
@@ -357,12 +360,19 @@ sub _init
 
 	$self->{'user'} = '__unknown__' unless exists $self->{'user'};
 
-	if($self->{'user'} ne '__unknown__' && getpwnam($self->{'user'})) {
+	if($self->{'user'} ne '__unknown__') {
+		$self->{'group'} = getgrnam($self->{'user'});
+
+		unless(defined $self->{'group'}) {
+			die("InstantSSH::JailBuilder: Unable to find $self->{'user'} unix user group");
+			return 1;
+		}
+
 		$self->{'config'} = {} unless exists $self->{'config'} && ref $self->{'config'} eq 'HASH';
 
 		if(%{$self->{'config'}}) {
 			if(exists $self->{'config'}->{'root_jail_dir'}) {
-				$jailCfg{'jail_dir'} = $self->{'config'}->{'root_jail_dir'} .
+				$jailCfg{'chroot'} = $self->{'config'}->{'root_jail_dir'} .
 					(($self->{'config'}->{'shared_jail'}) ? '/shared_jail' : "/$self->{'user'}");
 			} else {
 				die("InstantSSH::JailBuilder: The 'root_jail_dir' option is not defined");
@@ -374,18 +384,19 @@ sub _init
 		if($self->{'user'} eq '__unknown__') {
 			die("InstantSSH::JailBuilder: The 'user' parameter is missing");
 		} else {
-			die(sprintf("InstantSSH::JailBuilder: The %s unix user doesn't exists", $self->{'user'}));
+			die("InstantSSH::JailBuilder: The $self->{'user'} unix user doesn't exists");
 		}
 	}
 
 	$self;
 }
 
-=item _buildMakejailCfgfile()
+=item _buildMakejailCfgfile($cfg, $user)
 
  Build makejail configuration file
 
  Param hash \%cfg Hash containing Jail configuration options
+ Param string $user
  Return int 0 on success, other on failure
 
 =cut
@@ -425,7 +436,7 @@ sub _buildMakejailCfgfile
 
 		my $fileContent = "# File auto-generated by i-MSCP InstantSSH plugin\n";
 
-		$fileContent .= "chroot = \"$jailCfg{'jail_dir'}\"\n";
+		$fileContent .= "chroot = \"$jailCfg{'chroot'}\"\n";
 		$fileContent .= "cleanJailFirst = 1\n";
 		$fileContent .= "maxRemove = 5000\n";
 
@@ -513,7 +524,7 @@ sub _handleAppsSection()
 
 				@{$jailCfg{$option}} = uniq(@{$jailCfg{$option}});
 			} else {
-				error(sprintf("InstantSSH::JailBuilder: The '%s' option must be an array", $option));
+				error("InstantSSH::JailBuilder: The $option option must be an array");
 				return 1;
 			}
 		}
@@ -523,10 +534,6 @@ sub _handleAppsSection()
 
 	if (exists $cfg->{$section}->{'include_pkg_deps'}) {
 		$jailCfg{'include_pkg_deps'} = 1;
-	}
-
-	if (exists $cfg->{$section}->{'need_logsocket'}) {
-		$jailCfg{'need_logsocket'} = 1;
 	}
 
 	0;
