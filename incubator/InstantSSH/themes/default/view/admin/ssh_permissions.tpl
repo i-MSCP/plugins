@@ -15,6 +15,7 @@
 			<th>Max Keys</th>
 			<th>Can Edit Auth Options</th>
 			<th>Jailed Shell</th>
+			<th>Status</th>
 			<th>Actions</th>
 		</tr>
 		</thead>
@@ -24,12 +25,13 @@
 			<td>Max Keys</td>
 			<td>Can Edit Auth Options</td>
 			<td>Jailed Shell</td>
+			<td>Status</td>
 			<td>Actions</td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="4">Processing...</td>
+			<td colspan="5">Processing...</td>
 		</tr>
 		</tbody>
 	</table>
@@ -82,14 +84,14 @@
 					</td>
 					<td>
 						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell"
-							   value="1" >
+							   value="1" checked="checked" />
 					</td>
 				</tr>
 				<tr>
 					<td colspan="2" style="text-align: right;">
 						<button data-action="add_ssh_permissions">Save</button>
-						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0">
-						<input type="reset" value="Cancel"/>
+						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0"/>
+						<input type="reset" value="reset"/>
 					</td>
 				</tr>
 				</tbody>
@@ -129,16 +131,18 @@
 			iDisplayLength: 5,
 			bProcessing: true,
 			bServerSide: true,
+			"pagingType": "simple",
 			sAjaxSource: "/admin/ssh_permissions?action=get_ssh_permissions_list",
 			bStateSave: true,
 			aoColumnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
+				{ bSortable: false, bSearchable: false, aTargets: [ 4, 5 ] }
 			],
 			aoColumns: [
 				{ mData: "admin_name" },
 				{ mData: "ssh_permission_max_keys" },
 				{ mData: "ssh_permission_auth_options" },
 				{ mData: "ssh_permission_jailed_shell" },
+				{ mData: "ssh_permission_status" },
 				{ mData: "ssh_permission_actions" }
 			],
 			fnServerData: function (sSource, aoData, fnCallback) {

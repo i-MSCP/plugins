@@ -33,8 +33,8 @@ use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Rights;
 use iMSCP::Execute;
-
-use InstantSSH::JailBuilder::Utils qw(createParentPath copyDevice);
+use iMSCP::TemplateParser;
+use InstantSSH::JailBuilder::Utils qw(copyDevice);
 
 use File::HomeDir;
 use List::MoreUtils qw(uniq);
@@ -49,17 +49,16 @@ my %jailCfg = (
 	'preserve_files' => [],
 	'users' => [],
 	'groups' => [],
-	'devices' => [],
-	'mounts' => []
+	'devices' => []
 );
 
 my $makejailCfgDir = '/etc/makejail';
 my $securityChrootCfgFile = '/etc/security/chroot.conf';
+my $fstabFile = '/etc/fstab';
 
 =head1 DESCRIPTION
 
- This package is part of the i-MSCP InstantSSH plugin. It provide jail builder which allow to build jailed shell
-environments.
+ This package is part of the i-MSCP InstantSSH plugin. It provide jail builder which allow to build jailed environments.
 
 =head1 PUBLIC METHODS
 
@@ -67,7 +66,8 @@ environments.
 
 =item makeJail()
 
- Create or update jail
+ Create jail
+
  Return int 0 on success, other on failure
 
 =cut
@@ -80,33 +80,31 @@ sub makeJail
 
 	#  Create the jail directory if it doesn't already exists or set it permissions
 	my $rs = iMSCP::Dir->new(
-		'dirname' => $jailCfg{'chroot'}
+		dirname => $jailCfg{'chroot'}
 	)->make(
-		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'} => 'mode' => 0755 }
+		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'} => mode => 0755 }
 	);
 	return $rs if $rs;
-
-	my $makejailCfgfilePath = "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py");
 
 	# Build makejail configuration file
 	$rs = $self->_buildMakejailCfgfile($cfg, $user);
 	return $rs if $rs;
 
-	# Create/Update jail
+	my $cfgFilePath = "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py");
+
+	# Create/update jail
 	my ($stdout, $stderr);
-	$rs = execute("makejail $makejailCfgfilePath", undef, \$stderr);
+	$rs = execute(
+		"python $main::imscpConfig{'GUI_ROOT_DIR'}/plugins/InstantSSH/bin/makejail $cfgFilePath", undef, \$stderr
+	);
 	debug($stdout) if $stdout;
 	error("InstantSSH::JailBuilder:: $stderr") if $rs && $stderr;
 	error('InstantSSH::JailBuilder: Unable to create/update jail for unknown reason') if $rs && !$stderr;
 	return $rs if $rs;
 
-	# Add user into jail
-	$rs = $self->addUserToJail($user);
-	return $rs if $rs;
-
-	# Create devices inside jail
-	for my $devicePath (@{$jailCfg{'devices'}}) {
-		if(-e $devicePath) {
+	# Copy devices inside jail
+	for my $devicePattern (@{$jailCfg{'devices'}}) {
+		for my $devicePath(glob $devicePattern) {
 			eval { copyDevice($jailCfg{'chroot'}, $devicePath); };
 
 			if($@) {
@@ -116,41 +114,99 @@ sub makeJail
 		}
 	}
 
-	# TODO Create log socket if needed
+	if(-d "$self->{'chroot'}/proc") {
+		# Add /proc entry in fstab if needed
+		$rs = $self->addFstabEntry("/proc $self->{'chroot'}/proc auto bind 0 0");
+		return $rs if $rs;
+	}
+
+	# Add user into jail
+	$rs = $self->addUserToJail($user);
+	return $rs if $rs;
 
 	0;
 }
 
+=item removeJail()
+
+ Remove jail
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub removeJail
+{
+	my $self = $_[0];
+
+	# Umount any directory which is mounted inside jail
+	my $rs = umount($self->{'chroot'});
+	return $rs if $rs;
+
+	# Remove any fstab entry
+	$rs = $self->removeFstab(qr%.*?$self->{'chroot'}.*%);
+	return $rs if $rs;
+
+	# Ensure that the user web directory is empty
+	my $jailUserWebDir = "$self->{'chroot'}/$main::imscpConfig{'USER_WEB_DIR'}";
+	if(-d $jailUserWebDir && ! iMSCP::Dir->new( dirname => $jailUserWebDir )->isEmpty()) {
+		error("InstantSSH::JailBuilder: Unable to remove jail. Directory $jailUserWebDir is not empty");
+		return 1;
+	}
+
+	# Ensure that the proc directory is emtpy if any
+	my $jailProcDir = "$self->{'chroot'}/proc";
+	if(-d $jailProcDir && ! iMSCP::Dir->new( dirname => $jailProcDir )->isEmpty()) {
+		error("InstantSSH::JailBuilder: Unable to remove jail. Directory $jailProcDir is not empty");
+		return 1;
+	}
+
+	# Remove the jail
+	iMSCP::Dir->new( dirname => $self->{'config'}->{'choot'} )->remove();
+}
+
+=item existsJail()
+
+ Does the jail already exists
+
+ Return bool True if the jail already exists, FALSE otherwise
+
+=cut
+
+sub existsJail
+{
+	(-d $jailCfg{'chroot'});
+}
+
 =item addUserToJail($user)
 
- Adds the given unix user into the jail
+ Adds unix user into the jail
 
- Param string $user Unix user
  Return int 0 on success, other on failure
 
 =cut
 
 sub addUserToJail
 {
-	my ($self, $user) = @_;
+	my $self = $_[0];
 
-	my $group = $self->{'group'};
+	my ($user, $group) = ($self->{'user'}, $self->{'group'});
 
 	my $homeDir = File::HomeDir->users_home($user);
 
-	# Create homedir for the given user inside the jail
+	# Create homedir for the given user within the jail
 	my $rs = iMSCP::Dir->new(
-		'dirname' => $jailCfg{'chroot'} . $homeDir
+		dirname => $jailCfg{'chroot'} . $homeDir
 	)->make(
-		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0755 }
+		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
 	);
 	return $rs if $rs;
 
-	# Set owner/group for user homedir inside the jail
-	$rs = setRights($jailCfg{'chroot'} . $homeDir, { 'user' => $user, 'group' => $group, 'mode' => '0750' });
+	# Set owner/group for user homedir withing the jail
+	$rs = setRights($jailCfg{'chroot'} . $homeDir, { user => $user, group => $group, mode => '0750' });
 	return $rs if $rs;
 
-	# TODO copy content from /etc/skel if any (or better selffiles with colors enabled)
+	# TODO copy content from /etc/skel if any (or better self files with colors enabled)
 
 	# Add user into the jailed passwd file if any
 	$rs = $self->addPasswdFile('/etc/passwd', $user);
@@ -160,13 +216,17 @@ sub addUserToJail
 	$rs = $self->addPasswdFile('/etc/group', $group);
 	return $rs if $rs;
 
-	# TODO mount user Web folder into the jail ($homeDir => <chroot>/$homeDir)
-	# $rs = $self->mount($homeDir, $jailCfg{'chroot'} . "/home/$user");
-	# Return $rs if $rs;
+	# Add fstab entry for user homedir
+	$rs = $self->addFstabEntry("$homeDir $jailCfg{'chroot'}$homeDir none bind 0 0");
+	return $rs if $rs;
+
+	# Mount user homedir within the jail
+	$rs = $self->mount($homeDir, $jailCfg{'chroot'} . $homeDir);
+	return $rs if $rs;
 
 	# Add user into security chroot file
 	if(-f $securityChrootCfgFile) {
-		my $file = iMSCP::File->new('filename' => $securityChrootCfgFile);
+		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
@@ -175,8 +235,8 @@ sub addUserToJail
 		}
 
 		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
-		$fileContent =~ s/\n$userReg\s+$jailReg\n//;
-		$fileContent .= "\n$user\t$jailCfg{'chroot'}\n";
+		$fileContent =~ s/^$userReg\s+$jailReg\n//gm;
+		$fileContent .= "$user\t$jailCfg{'chroot'}\n";
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -191,33 +251,40 @@ sub addUserToJail
 	0;
 }
 
-=item removeUserFromJail($user)
+=item removeUserFromJail()
 
- Remove the given unix user from the jail
+ Remove unix user from the jail
 
- Param string $user Unix user
  Return int 0 on success, other on failure
 
 =cut
 
 sub removeUserFromJail
 {
-	my ($self, $user) = @_;
+	my $self = $_[0];
 
-	my $group = (getgrgid((getpwnam($user))[3]))[0];
+	my ($user, $group) = ($self->{'user'}, $self->{'group'});
 
-	unless(defined $group) {
-		error('InstantSSH::JailBuilder: Unable to find $user unix user group');
-		return 1;
-	}
+	my $homeDir = File::HomeDir->users_home($user);
 
 	if(-d $jailCfg{'chroot'}) {
-		# TODO See if we cannot use libpam-mount in place
-		# TODO umount user Web folder from jail
-		# TODO remove user homedir from jail
+		# Umount user homedir from the jail
+		my $rs = $self->umount($jailCfg{'chroot'} . $homeDir);
+		return $rs if $rs;
+
+		# Remove the directory
+		# The check of the directory should avoid any drawback in case the user homedir is still mounted
+		my $homeDir = iMSCP::Dir->new( dirname => $jailCfg{'chroot'} . $homeDir);
+		if($homeDir->isEmpty()) {
+			$rs = $homeDir->remove();
+			return $rs if $rs;
+		} else {
+			error("InstantSSH::JailBuilder: Unable to remove %user homedir within the jail. Directory not empty");
+			return 1;
+		}
 
 		# Remove user from the jailed passwd file if any
-		my $rs = $self->removePasswdFile('/etc/passwd', $user);
+		$rs = $self->removePasswdFile('/etc/passwd', $user);
 		return $rs if $rs;
 
 		# Remove user group from the jailed group file if any
@@ -225,18 +292,22 @@ sub removeUserFromJail
 		return $rs if $rs;
 	}
 
+	# Remvove fstab entry for user homedir
+	my $rs = $self->removeFstabEntry(qr%.*?$jailCfg{'chroot'}$homeDir.*%);
+	return $rs if $rs;
+
 	# Remove user from security chroot file
 	if(-f $securityChrootCfgFile) {
-		my $file = iMSCP::File->new('filename' => $securityChrootCfgFile);
+		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("InstantSSH::JailBuilder: Unable to read file %s", $securityChrootCfgFile);
+			error("InstantSSH::JailBuilder: Unable to read file $securityChrootCfgFile");
 			return 1;
 		}
 
 		my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
-		$fileContent =~ s/\n$userReg\s+$jailReg\n//;
+		$fileContent =~ s/^$userReg\s+$jailReg\n//gm;
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -270,17 +341,13 @@ sub addPasswdFile
 			close $fh;
 
 			if(open $fh, '+<', $dest) {
-				s/^(.*?):.*\n/$1/ for (my @outLines = <$fh>);
+				s/^(.*?):.*/$1/s for (my @outLines = <$fh>);
 
 				if(not grep $_ eq $what, @outLines) {
 					for my $line(@lines) {
 						next if index($line, ':') == -1;
-						#my @fields = split ':', $line;
 
-						#if ($fields[0] eq $what) {
 						if ((split ':', $line, 2)[0] eq $what) {
-							#$fields[5] = "/home/$what" if exists $fields[5]; # passwd file - override homedir field
-							#print $fh join ':', @fields;
 							print $fh $line;
 							last;
 						}
@@ -324,8 +391,8 @@ sub removePasswdFile
 
 			if(open $fh, '>', $dest) {
 				$what = quotemeta($what);
-				@lines = grep $_ !~ /^$what:.*\n/, @lines;
-				print $fh "@lines";
+				@lines = grep $_ !~ /^$what:.*/s, @lines;
+				print $fh join '', @lines;
 				close $fh;
 			} else {
 				error("InstantSSH::JailBuilder: Unable to open file for writing: $!");
@@ -335,6 +402,119 @@ sub removePasswdFile
 			error("InstantSSH::JailBuilder: Unable to open file for reading: $!");
 			return 1;
 		}
+	}
+
+	0;
+}
+
+=item addFstabEntry($entry)
+
+ Add fstab entry
+
+ Param string $entry Fstab entry to remove
+ Return int 0 on success, other on failure
+
+=cut
+
+sub addFstabEntry
+{
+	my ($self, $entry) = @_;
+
+	my $file = iMSCP::File->new( filename => $fstabFile );
+	my $fileContent = $file->get();
+	unless(defined $fileContent) {
+		error("InstantSSH::JailBuilder: Unable to read file $fstabFile");
+		return 0;
+	}
+
+	my $entryReg = quotemeta($entry);
+	$fileContent =~ s/^$entryReg\n//gm;
+	$fileContent .= "$entry\n";
+
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$file->save();
+}
+
+=item removeFstabEntry($entry)
+
+ Remove fstab entry
+
+ Param regexp|string OPTIONAL $entry Fstab entry to remove as a string or regexp
+ Return int 0 on success, other on failure
+
+=cut
+
+sub removeFstabEntry
+{
+	my ($self, $entry) = @_;
+
+	my $file = iMSCP::File->new( filename => $fstabFile );
+	my $fileContent = $file->get();
+	unless(defined $fileContent) {
+		error("InstantSSH::JailBuilder: Unable to read file $fstabFile");
+		return 0;
+	}
+
+	my $regexp = (ref $entry eq 'Regexp') ? $entry : quotemeta($entry);
+	$fileContent =~ s/^$regexp\n//gm;
+
+	my $rs = $file->set($fileContent);
+	return $rs if $rs;
+
+	$file->save();
+}
+
+=item mount($oldir, $newdir)
+
+ Mount the given directory in safe way
+
+ Param string $oldir Directory to mount
+ Param string $newdir Mount point
+ Return int 0 on success, other on failure
+
+=cut
+
+sub mount
+{
+ 	my ($self, $oldir, $newdir) = @_;
+
+	if(-d $oldir) {
+		if(execute("mount | grep -q ' $newdir'")) {
+			my($stdout, $stderr);
+			my $rs = execute("mount --bind $oldir $newdir", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
+		}
+	}
+
+	0;
+}
+
+=item umount($directory)
+
+ Umount the given directory in safe way
+
+ Note: In case of a partial path, any directory which start by this path will be umounted.
+
+ Param string $directory Partial or full path of directory to umount.
+ Return int 0 on success, other on failure
+
+=cut
+
+sub umount
+{
+	my ($self, $directory) = @_;
+
+	my($stdout, $stderr);
+	until(execute("mount 2>/dev/null | grep ' $directory' | head -n 1 | cut -d ' ' -f 3", \$stdout)) {
+		my $mountPoint = $stdout;
+		my $rs = execute("umount -l $mountPoint", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
 	}
 
 	0;
@@ -416,6 +596,10 @@ sub _buildMakejailCfgfile
 		}
 	}
 
+	if(exists $cfg->{'include_pkg_deps'}) {
+		$jailCfg{'include_pkg_deps'} = ($cfg->{'include_pkg_deps'}) ? 1 : 0;
+	}
+
 	if(exists $cfg->{'app_sections'}) {
 		# Process sections as specified in app_sections configuration options.
 		if(ref $cfg->{'app_sections'} eq 'ARRAY') {
@@ -423,9 +607,7 @@ sub _buildMakejailCfgfile
 				if(exists $cfg->{$section}) {
 					$self->_handleAppsSection($cfg, $section);
 				} else {
-					error(sprinf(
-						"InstantSSH::JailBuilder: The %s application section doesn't exists", $cfg->{$section}
-					));
+					error("InstantSSH::JailBuilder: The $section application section doesn't exists");
 					return 1;
 				}
 			}
@@ -438,7 +620,8 @@ sub _buildMakejailCfgfile
 
 		$fileContent .= "chroot = \"$jailCfg{'chroot'}\"\n";
 		$fileContent .= "cleanJailFirst = 1\n";
-		$fileContent .= "maxRemove = 5000\n";
+		$fileContent .= "maxRemove = 10000\n";
+		$fileContent .= "doNotCopy = []\n";
 
 		if(@{$jailCfg{'preserve_files'}}) {
 			$fileContent .= 'preserve = [' . (join ', ', map { qq/"$_"/ } @{$jailCfg{'preserve_files'}}) . "]\n"
@@ -467,7 +650,7 @@ sub _buildMakejailCfgfile
 		$fileContent .= "sleepAfterStraceAttachPid = 1.0\n"; # Not really needed ATM
 
 		my $file = iMSCP::File->new(
-			'filename' => "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py")
+			filename => "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py")
 		);
 
 		my $rs = $file->set($fileContent);
@@ -515,7 +698,7 @@ sub _handleAppsSection()
 
 	# Handle list options from application section
 
-	for my $option(qw/paths packages devices mounts preserve_files users groups/) {
+	for my $option(qw/paths packages devices preserve_files users groups/) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
 				for my $item (@{$cfg->{$section}->{$option}}) {
@@ -528,12 +711,6 @@ sub _handleAppsSection()
 				return 1;
 			}
 		}
-	}
-
-	# Handle boolean options from application section
-
-	if (exists $cfg->{$section}->{'include_pkg_deps'}) {
-		$jailCfg{'include_pkg_deps'} = 1;
 	}
 
 	0;

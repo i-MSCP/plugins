@@ -206,9 +206,27 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			exec_query(
+				'UPDATE instant_ssh_permissions SET ssh_permission_status = ?', 'todelete'
+			);
+		} catch (iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Plugin deletion
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function delete(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
 			$this->migrateDb('down');
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception(tr('Unable to delete: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -249,14 +267,28 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		$stmt = exec_query(
 			"
 			SELECT
+				ssh_permission_id AS item_id, ssh_permission_status AS status,
+				CONCAT('SSH permssions for ', admin_name) as item_name, 'instant_ssh_permissions' AS `table`,
+				'ssh_permission_status' AS `field`
+			FROM
+				instant_ssh_permissions
+			INNER JOIN
+				admin ON(admin_id = ssh_permission_admin_id)
+			WHERE
+				ssh_permission_status NOT IN(:ok, :toadd, :tochange, todelete)
+			UNION
+			SELECT
 				ssh_key_id AS item_id, ssh_key_status AS status, ssh_key_name AS item_name,
 				'instant_ssh_keys' AS `table`, 'ssh_key_status' AS `field`
 			FROM
 				instant_ssh_keys
 			WHERE
-				ssh_key_status NOT IN(?, ?, ?, ?, ?, ?, ?)
+				ssh_key_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
 			",
-			array('ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+			array(
+				'ok' => 'ok', 'disabled' => 'disabled', 'toadd' => 'toadd', 'tochange' => 'tochange',
+				'toenable' => 'toenable', 'todisable' => 'todisable', 'todelete' => 'todelete'
+			)
 		);
 
 		if ($stmt->rowCount()) {
@@ -276,7 +308,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function changeItemStatus($table, $field, $itemId)
 	{
-		if ($table === 'instant_ssh_keys' && $field === 'ssh_key_status') {
+		if ($table === 'instant_ssh_permissions' && $field === 'ssh_permission_status') {
+			exec_query("UPDATE $table SET $field = ? WHERE ssh_key_id = ?", array('tochange', $itemId));
+		} elseif ($table === 'instant_ssh_keys' && $field === 'ssh_key_status') {
 			exec_query("UPDATE $table SET $field = ? WHERE ssh_key_id = ?", array('tochange', $itemId));
 		}
 	}
@@ -289,8 +323,27 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function getCountRequests()
 	{
 		$stmt = exec_query(
-			'SELECT COUNT(ssh_key_id) AS cnt FROM instant_ssh_keys WHERE ssh_key_status IN (?, ?, ?, ?, ?)',
-			array('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+			'
+				SELECT(
+					SELECT
+						COUNT(ssh_permission_id)
+					FROM
+						instant_ssh_permissions
+					WHERE
+						ssh_permission_status IN (:toadd, :tochange, :todelete)
+					UNION
+					SELECT
+						COUNT(ssh_key_id)
+					FROM
+						instant_ssh_keys
+					WHERE
+						ssh_key_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
+				) AS cnt
+			',
+			array(
+				'toadd' => 'toadd', 'tochange' => 'tochange', 'toenable' => 'toenable', 'todisable' => 'todisable',
+				'todelete' => 'todelete'
+			)
 		);
 
 		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
@@ -438,7 +491,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
 									$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
-									return (bool)($sshPermissions['ssh_permission_max_keys'] > -1);
+									return (bool)($sshPermissions['ssh_permission_id'] !== null);
 								}
 						)
 					)
@@ -467,10 +520,10 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						instant_ssh_keys USING(ssh_permission_id)
 					WHERE
 						ssh_permission_admin_id = ?
-					GROUP BY
-						ssh_permission_id
+					AND
+						ssh_permission_status = ?
 				',
-				intval($customerId)
+				array(intval($customerId), 'ok')
 			);
 
 			if ($stmt->rowCount()) {

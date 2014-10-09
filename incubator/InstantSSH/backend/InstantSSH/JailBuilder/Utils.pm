@@ -34,7 +34,7 @@ use File::Spec ();
 use Fcntl qw(:mode);
 use base qw(Exporter);
 
-our @EXPORT_OK = qw(normpath resolveRealpath copyTimeAndPermissions createParentPath copyDevice);
+our @EXPORT_OK = qw(normalizePath resolveRealpath copyTimeAndPermissions createParentPath copyDevice);
 
 my %STATCACHE = ();
 
@@ -42,13 +42,11 @@ my %STATCACHE = ();
 
  This package is part of the i-MSCP InstantSSH plugin. It provide high level utility functions for file handling.
 
- Library based upon the jk_lib.py library from the Jailkit project ( http://http://olivier.sessink.nl/jailkit/ ).
-
 =head1 PUBLIC FUNCTIONS
 
 =over 4
 
-=item normpath($path)
+=item normalizePath($path)
 
  Normalize a path, e.g. A//B, A/./B and A/foo/../B all become A/B
 
@@ -61,7 +59,7 @@ my %STATCACHE = ();
 
 =cut
 
-sub normpath($)
+sub normalizePath($)
 {
 	my $path = shift;
 
@@ -132,9 +130,9 @@ sub resolveRealpath($$;$)
 			my $realpath = readlink($ret) or die("InstantSSH::JailBuilder::Utils: Unable to read link $ret: $!");
 
 			if(index($path, '/') == 0) {
-				$ret = normpath($chroot . $realpath);
+				$ret = normalizePath($chroot . $realpath);
 			} else {
-				my $tmp = normpath(File::Spec->join(dirname($ret), $realpath));
+				my $tmp = normalizePath(File::Spec->join(dirname($ret), $realpath));
 
 				if(length($chroot) > 0 && substr($chroot, 0, length($chroot)) ne $chroot) {
 					die('InstantSSH::JailBuilder::Utils: Symlink $tmp points outside jail');
@@ -195,8 +193,8 @@ sub copyTimeAndPermissions($$;$$)
  Param string $chroot Chroot into which the parent path must be created
  Param string $path Parent path that must be created inside the chroot
  Param bool $copyPermissions OPTIONAL Whether or not permissions must be copied (default: true)
- Param bool $copyPermissions OPTIONAL Whether or not setuid/setgid permissions must be copied (default: false)
- Param bool $copyPermissions OPTIONAL Whether or not user/group must be copied (default: false)
+ Param bool $allowSuid OPTIONAL Whether or not setuid/setgid permissions must be copied (default: false)
+ Param bool $copyOwnership OPTIONAL Whether or not user/group must be copied (default: false)
  Return string  (die on failure)
 
 =cut
@@ -230,7 +228,7 @@ sub createParentPath($$;$$$)
 		my $sb = _stat($origpath);
 
 		if(S_ISDIR($sb->mode)) {
-			mkdir($jailpath, 0755) or die(sprintf('Unable to create %s: %s', $jailpath, $!));
+			mkdir($jailpath, 0755) or die("Unable to create $jailpath:, $!");
 
 			if($copyPermissions) {
 				copyTimeAndPermissions($origpath, $jailpath, $allowSuid, $copyOwnership);
@@ -243,7 +241,7 @@ sub createParentPath($$;$$$)
 			if(index($realfile, '/') == 0) {
 				$jailpath = &createParentPath($chroot, $realfile, $copyPermissions, $allowSuid, $copyOwnership);
 			} else {
-				my $tmp = normpath(File::Spec->catfile(dirname($jailpath), $realfile));
+				my $tmp = normalizePath(File::Spec->catfile(dirname($jailpath), $realfile));
 
 				if(length($chroot) > 0 && substr($tmp, 0, length($chroot)) ne $chroot) {
 					die("InstantSSH::JailBuilder::Utils: Symlink $tmp points outside jail");

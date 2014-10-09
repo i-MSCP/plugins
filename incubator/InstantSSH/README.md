@@ -4,8 +4,8 @@ Plugin allowing to provide full or restricted SSH access to your customers.
 
 ### Introduction
 
-This plugin allow to give your customers a full or restricted SSH access (jailed shell). A customer to which SSH
-permissions are given can add its own SSH keys  and use them to authenticate on the server.
+This plugin allow to give your customers a full or restricted SSH access. A customer to which SSH permissions are given
+can add its own SSH keys and use them to authenticate on the server.
 
 For each customer, you can set the maximum number of allowed SSH keys and choose if they can override the default
 authentication options. The authentication options are those specified in the documentation of the authorized_keys file
@@ -26,13 +26,17 @@ the plugin configuration file. In that file, you can also restrict the list of a
 customers can add by editing the **allowed_ssh_auth_options** option. You must note that any authentication option
 appearing in the the default authentication string must also be specified in the **allowed_ssh_auth_options** option.
 
-#### Jailed shell
+#### Jailed shells
 
-Jailed shell allow you to provide SSH access to your customers in a secured and restricted environment from which they
-cannot out. It's the preferable way to give an SSH access to an un-trusted customer.
+The Jailed shells allow you to provide SSH access to your customers in a secured and restricted environment from which
+they can theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the customers jails by simply adding the needed application sections into the
 **app_sections configuration option**. See the plugin configuration file for further details.
+
+The default configuration comes with a set of preselected application sections which allow to setup a very
+restricted jailed shell environment. This environment is setup by using busybox which combines tiny versions of many
+common UNIX utilities into a single small executable.
 
 ### Requirements
 
@@ -41,17 +45,17 @@ Several commands can be added into the customers jails by simply adding the need
 
 #### Debian / Ubuntu packages to install before installing this plugin
 
-* initscripts
+* busybox
 * libfile-homedir-perl
 * libpam-chroot
 * makejail
 
-You can install these packages by executing the following commands:
+You can install these packages by executing the following command:
 
 	# aptitude update
-	# aptitude install initscripts libfile-homedir-perl libpam-chroot makejail
+	# aptitude install busybox libfile-homedir-perl libpam-chroot makejail
 
-**Note:** If a package is not installed on your system, the plugin will raise an error.
+**Note:** If a package is not installed on your system, the plugin will thrown an error.
 
 ### Installation
 
@@ -64,7 +68,7 @@ You can install these packages by executing the following commands:
 1. Backup your current config file **plugins/InstantSSH/config.php**
 2. Login into the panel as admin and go to the plugin management interface
 3. Upload the **InstantSSH** plugin archive
-4. Restore your **plugins/InstantSSH/config.php** (compare it with the new configuration file first)
+4. Restore your **plugins/InstantSSH/config.php** (compare it with the new version first)
 5. Click on the **Update Plugins** button in the plugin management interface
 
 ### License

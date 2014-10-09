@@ -446,7 +446,7 @@ $plugin = $pluginManager->getPlugin('InstantSSH');
 
 $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 
-if ($sshPermissions['ssh_permission_max_keys'] > -1) {
+if ($sshPermissions['ssh_permission_id'] !== null) {
 	if (isset($_REQUEST['action'])) {
 		if (is_xhr()) {
 			$action = clean_input($_REQUEST['action']);

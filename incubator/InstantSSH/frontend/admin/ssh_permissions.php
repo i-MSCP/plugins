@@ -144,9 +144,11 @@ function instantssh_addSshPermissions()
 
 				$db->commit();
 
+				send_request();
+
 				write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
 
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
+				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions scheduled for addition.')));
 			} else { // Update SSH permissions
 				$stmt = exec_query(
 					'
@@ -214,7 +216,9 @@ function instantssh_addSshPermissions()
 
 					write_log(sprintf('SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
 
-					_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were updated.')));
+					_instantssh_sendJsonResponse(
+						200, array('message' => tr('SSH permissions were scheduled for update.'))
+					);
 				}
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -247,21 +251,27 @@ function instantssh_deleteSshPermissions()
 		$sshPermissionId = intval($_POST['ssh_permission_id']);
 
 		try {
-			$stmt = exec_query('DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?', $sshPermissionId);
+			$stmt = exec_query(
+				'UPDATE instant_ssh_permissions SET ssh_permissions_status = ? WHERE ssh_permission_id = ?',
+				array('todelete', $sshPermissionId)
+			);
 
 			if ($stmt->rowCount()) {
 				send_request();
 
 				write_log(
-					sprintf('InstantSSH: SSH permissions with ID %s were revoked', $sshPermissionId), E_USER_NOTICE
+					sprintf('InstantSSH: SSH permissions with ID %s were scheduled for deletion', $sshPermissionId),
+					E_USER_NOTICE
 				);
 
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH permissions were revoked.')));
+				_instantssh_sendJsonResponse(
+					200, array('message' => tr('SSH permissions were scheduled for deletion.'))
+				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			write_log(
 				sprintf(
-					'InstantSSH: Unable to revoke SSH permissions with ID %s: %s', $sshPermissionId, $e->getMessage()
+					'InstantSSH: Unable to delete SSH permissions with ID %s: %s', $sshPermissionId, $e->getMessage()
 				),
 				E_USER_ERROR
 			);
@@ -336,7 +346,7 @@ function instantssh_getSshPermissionsList()
 	try {
 		$columns = array(
 			'ssh_permission_id', 'ssh_permission_admin_id', 'admin_name', 'ssh_permission_max_keys',
-			'ssh_permission_auth_options', 'ssh_permission_jailed_shell'
+			'ssh_permission_auth_options', 'ssh_permission_jailed_shell', 'ssh_permission_status'
 		);
 
 		$nbColumns = count($columns);
@@ -441,19 +451,25 @@ function instantssh_getSshPermissionsList()
 					$row[$columns[$i]] = (!$data[$columns[$i]]) ? tr('unlimited') : $data[$columns[$i]];
 				} elseif ($columns[$i] == 'ssh_permission_jailed_shell') {
 					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('yes') : tr('no');
+				} elseif ($columns[$i] == 'ssh_permission_status') {
+					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
 				} else {
 					$row[$columns[$i]] = tohtml($data[$columns[$i]]);
 				}
 			}
 
-			$row['ssh_permission_actions'] =
-				"<span title=\"$trEditTooltip\" data-action=\"edit_ssh_permissions\" " .
-				"data-ssh-permission-id=\"{$data['ssh_permission_id']}\" " .
-				"class=\"icon icon_edit clickable\">&nbsp;</span> "
-				.
-				"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_permissions\" " .
-				"data-ssh-permission-id=\"{$data['ssh_permission_id']}\" " .
-				"class=\"icon icon_delete clickable\">&nbsp;</span>";
+			if($data['ssh_permission_status'] == 'ok') {
+				$row['ssh_permission_actions'] =
+					"<span title=\"$trEditTooltip\" data-action=\"edit_ssh_permissions\" " .
+					"data-ssh-permission-id=\"{$data['ssh_permission_id']}\" " .
+					"class=\"icon icon_edit clickable\">&nbsp;</span> "
+					.
+					"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_permissions\" " .
+					"data-ssh-permission-id=\"{$data['ssh_permission_id']}\" " .
+					"class=\"icon icon_delete clickable\">&nbsp;</span>";
+			} else {
+				$row['ssh_permission_actions'] = tr('n/a');
+			}
 
 			$output['aaData'][] = $row;
 		}

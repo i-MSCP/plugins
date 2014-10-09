@@ -209,7 +209,7 @@
 					});
 					break;
 				case "delete_ssh_key":
-					if (confirm("Are you sure you want to delete this SSH key?")) {
+					if (confirm("Are you sure you want to delete this SSH key? Be aware that this will destroy all your SSH sessions.")) {
 						doRequest("POST", action, { ssh_key_id: sshKeyId }).done(
 							function (data) {
 								oTable.fnDraw();

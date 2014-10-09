@@ -5,7 +5,7 @@ i-MSCP InstantSSH plugin
 Version 2.0.0 (dev in progress)
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Support for jailed shells (using libpam-chroot and makejail)
+	Added: Support for jailed shells
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2

@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 
 # Script allowing to test creation of jailed environment without any frontEnd
+# Note: Plugin must be already installed
 
 use strict;
 use warnings;
@@ -47,11 +48,7 @@ my $instantSSH = Plugin::InstantSSH->getInstance(
 # Ensure that the environment is ready to use (requirements, libpam-chroot configuration)
 unless($instantSSH->install()) {
 	# Let create a jailed environment manually for testing purpose
-	my $jailBuilder = InstantSSH::JailBuilder->new(
-		config => $instantSSH->{'config'}, user => $user
-	);
-
-	exit $jailBuilder->makeJail();
+	exit InstantSSH::JailBuilder->new( config => $instantSSH->{'config'}, user => $user )->makeJail();
 } else {
 	exit 1;
 }

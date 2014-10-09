@@ -34,19 +34,19 @@ return array(
 	//
 	// Valid options are:
 	//
-	// \InstantSSH\Validate\SshAuthOptions::ALL (for all options)
-	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY (for the cert-authority option)
-	// \InstantSSH\Validate\SshAuthOptions::COMMAND (for the 'command' option)
-	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT (for the 'environment' option)
-	// \InstantSSH\Validate\SshAuthOptions::FROM (for the 'from' option)
-	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING (for the 'no-agent-forwarding' option)
-	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING (for the 'no-port-forwarding' option)
-	// \InstantSSH\Validate\SshAuthOptions::NO_PTY (for the 'no-pty' option)
-	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC (for the 'no-user-rc' option)
-	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING (for the 'no-x11-forwarding' option)
-	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN (for the 'permitopen' option)
-	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS (for the 'principals' option)
-	// \InstantSSH\Validate\SshAuthOptions::TUNNEL (for the 'tunnel' option)
+	// \InstantSSH\Validate\SshAuthOptions::ALL (all options)
+	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY ( 'cert-authority' option )
+	// \InstantSSH\Validate\SshAuthOptions::COMMAND ( 'command' option )
+	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT ( 'environment' option )
+	// \InstantSSH\Validate\SshAuthOptions::FROM ( 'from' option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING ( 'no-agent-forwarding' option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING ( 'no-port-forwarding' option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_PTY ( 'no-pty' option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC ( 'no-user-rc' option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING ( 'no-x11-forwarding' option )
+	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN ( 'permitopen' option )
+	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS ( 'principals' option )
+	// \InstantSSH\Validate\SshAuthOptions::TUNNEL ( 'tunnel' option )
 	'allowed_ssh_auth_options' => array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
@@ -69,6 +69,8 @@ return array(
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
+	//
+	// Warning: If you are changing this path, don't forget to move the jails in the new directory.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
 	// Shared jail (default: true)
@@ -150,46 +152,38 @@ return array(
 	// Provide restricted shell using BusyBox (built-in shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash',
-			'/proc'
+			'/bin/ash', '/proc', '/tmp'
 		),
 		'include_app_sections' => array(
-			'uidbasics',
-			'busybox'
+			'uidbasics', 'busybox'
 		),
 		'preserve_files' => array(
-			'/dev'
+			'/tmp'
 		),
 		'devices' => array(
-			'/dev/ptmx',
-			'/dev/pty*',
-			'/dev/pts/*',
-			'/dev/tty*',
-			'/dev/urandom',
-			'/dev/zero',
-			'/dev/null'
+			'/dev/ptmx', '/dev/pty*', '/dev/pts/*', '/dev/tty*', '/dev/urandom', '/dev/zero', '/dev/null'
 		)
 	),
 
 	// busybox section
 	// Provide BusyBox which combines tiny versions of many common UNIX utilities into a single small executable
 	'busybox' => array(
-		'packages' => array(
-			'busybox'
+		'paths' => array(
+			'/bin/busybox'
 		)
 	),
 
 	// imscpbase section
 	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
+		'include_app_sections' => array(
+			'busyboxshell'
+		),
 		'users' => array(
 			'root', 'www-data'
 		),
 		'groups' => array(
 			'root', 'www-data'
-		),
-		'include_app_sections' => array(
-			'busyboxshell'
 		)
 	)
 );
