@@ -467,8 +467,8 @@ sub onDeleteDomain
 
  Event listener which listen on the onBeforeAddImscpUnixUser event
 
- When unix users are updated, the shell is set back to the default value (/bin/false). This listener change the default
-shell value for customers which have SSH permissions, according the shell specified in the plugin configuration file.
+ When unix users are updated, the user shell and homedir are set back to the default values. This listener set the
+needed values for customers which have SSH permissions.
 
  Return int 0 on success, other on failure
 
@@ -476,11 +476,15 @@ shell value for customers which have SSH permissions, according the shell specif
 
 sub onUnixUserUpdate
 {
-	my ($self, $user, $shell) = ($_[0], $_[1], $_[8]);
+	my ($self, $user, $homeDir, $shell) = ($_[0], $_[2], $_[6], $_[8]);
 
-	if(exists $customerShells{$$user}) {
-		$$shell = ($customerShells{$$user})
-			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
+	if(exists $customerShells{$user}) {
+		if($customerShells{$user}) {
+			$$homeDir .= '/./';
+			$$shell = $self->{'config'}->{'shells'}->{'jailed'};
+		} else {
+			$$shell = $self->{'config'}->{'shells'}->{'normal'};
+		}
 	}
 
 	0;
