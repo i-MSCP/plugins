@@ -153,10 +153,10 @@ return array(
 	// Provide restricted shell using BusyBox (built-in shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash', '/proc', '/tmp'
+			'/bin/ash', '/proc', '/tmp', '/usr/bin/nano'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'busybox'
+			'uidbasics', 'busybox', 'terminfo'
 		),
 		'preserve_files' => array(
 			'/tmp'
@@ -171,6 +171,14 @@ return array(
 	'busybox' => array(
 		'paths' => array(
 			'/bin/busybox'
+		)
+	),
+
+	// terminfo section
+	// Provide terminfo databases
+	'terminfo' => array(
+		'packages' => array(
+			'ncurses-base' # Package which provide terminfo data files to support the most common types of terminal
 		)
 	),
 

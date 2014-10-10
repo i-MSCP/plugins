@@ -138,9 +138,7 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $qrs = $self->{'db'}->doQuery(
-		'dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'toenable' WHERE ssh_permission_id IS NOT NULL"
-	);
+	my $qrs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'toenable'");
 	unless(ref $qrs eq 'HASH') {
 		error($qrs);
 		return 1;
@@ -161,9 +159,7 @@ sub disable
 {
 	my $self = $_[0];
 
-	my $qrs = $self->{'db'}->doQuery(
-		'dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'todisable' WHERE ssh_permission_id IS NOT NULL"
-	);
+	my $qrs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'todisable'");
 	unless(ref $qrs eq 'HASH') {
 		error($qrs);
 		return 1;
@@ -190,8 +186,6 @@ sub change
 	my @jailDirs = iMSCP::Dir->new( dirname => $jailRootDir )->getDirs();
 
 	if(@jailDirs) {
-		my $needSshPermsChange;
-
 		for my $jailDir(@jailDirs) {
 			my $jailBuilder;
 			eval {
@@ -209,32 +203,31 @@ sub change
 				(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
 			) {
 				my $rs = $jailBuilder->makeJail(); # Update jail
+				return $rs if $rs;
 			} else {
 				my $rs = $jailBuilder->removeJail(); # Remove jail
-				my $needSshPermsChange = 1;
-			}
-		}
-
-		if($needSshPermsChange) {
-			my $qrs = $self->{'db'}->doQuery(
-				'dummy',
-				"
-					UPDATE
-						instant_ssh_permissions
-					SET
-						ssh_permission_status = 'tochange'
-					WHERE
-						ssh_permission_status NOT IN ('toadd', 'todelete')
-				"
-			);
-			unless(ref $qrs eq 'HASH') {
-				error($qrs);
-				return 1;
+				return $rs if $rs;
 			}
 		}
 	}
 
-	0;
+	my $qrs = $self->{'db'}->doQuery(
+		'dummy',
+		"
+			UPDATE
+				instant_ssh_permissions
+			SET
+				ssh_permission_status = 'tochange'
+			WHERE
+				ssh_permission_status NOT IN ('toadd', 'todelete')
+		"
+	);
+	unless(ref $qrs eq 'HASH') {
+		error($qrs);
+		return 1;
+	}
+
+	$self->run();
 }
 
 =item run()
