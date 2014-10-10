@@ -187,10 +187,18 @@ sub change
 
 	if(@jailDirs) {
 		for my $jailDir(@jailDirs) {
+			my %fakeCfg = %{$self->{'config'}};
+
+			if ($jailDir eq 'shared_jail') {
+				$fakeCfg{'shared_jail'} = 1;
+			} else {
+				$fakeCfg{'shared_jail'} = 0;
+			}
+
 			my $jailBuilder;
 			eval {
 				$jailBuilder = InstantSSH::JailBuilder->new(
-					config => $self->{'config'}, user => ($jailDir eq 'shared_jail') ? 'root' : $jailDir
+					config => { %fakeCfg }, user => ($jailDir eq 'shared_jail') ? 'root' : $jailDir
 				);
 			};
 			if($@) {
@@ -556,9 +564,10 @@ sub _addSshPermissions
 			# Create jail if needed (only add user in jail if the jail already exists)
 			my $rs = ($jailBuilder->existsJail()) ? $jailBuilder->addUserToJail() : $jailBuilder->makeJail();
 			return $rs if $rs;
-		} else {
+		} elsif($jailBuilder->existsJail()) {
 			# Ensure that user is not jailed (tochange case)
-			my $rs = $jailBuilder->removeUserFromJail();
+			my $rs = ($sshPermissionData->{'shared_jail'}) ?
+				$jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
 			return $rs if $rs;
 		}
 
@@ -836,7 +845,7 @@ sub _configurePamChroot
 		}
 
 		$fileContent =~ s/^session\s+required\s+pam_chroot.so(?:\s+debug)?\n//gm;
-		$fileContent .= "session required pam_chroot.so debug\n" unless $_[1];
+		$fileContent .= "session required pam_chroot.so\n" unless $_[1];
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;

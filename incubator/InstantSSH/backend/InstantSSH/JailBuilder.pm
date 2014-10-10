@@ -151,11 +151,15 @@ sub removeJail
 	$rs = $self->removeFstabEntry(qr%.*?$jailCfg{'chroot'}.*%);
 	return $rs if $rs;
 
-	# Ensure that the user web directory is empty
-	my $jailUserWebDir = "$jailCfg{'chroot'}/$main::imscpConfig{'USER_WEB_DIR'}";
-	if(-d $jailUserWebDir && ! iMSCP::Dir->new( dirname => $jailUserWebDir )->isEmpty()) {
-		error("Unable to remove jail. Directory $jailUserWebDir is not empty");
-		return 1;
+	# Ensure that the user homedirs are emtpy if any
+	my $jailUserWebDir = "$jailCfg{'chroot'}$main::imscpConfig{'USER_WEB_DIR'}";
+	if(-d $jailUserWebDir) {
+		for my $homeDir(iMSCP::Dir->new( dirname => $jailUserWebDir )->getDirs()) {
+			unless(iMSCP::Dir->new( dirname => "$jailUserWebDir/$homeDir" )->isEmpty()) {
+				error("Unable to remove jail. Directory $jailUserWebDir/$homeDir is not empty");
+				return 1;
+			}
+		}
 	}
 
 	# Ensure that the proc directory is emtpy if any
@@ -250,8 +254,8 @@ sub addUserToJail
 
 			debug("Adding $user entry in $securityChrootCfgFile");
 
-			my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
-			$fileContent =~ s/^$userReg\s+$jailReg\n//gm;
+			my $userReg = quotemeta($user);
+			$fileContent =~ s/^$userReg\s+.*\n//gm;
 			$fileContent .= "$user\t$jailCfg{'chroot'}\n";
 
 			$rs = $file->set($fileContent);
@@ -328,8 +332,8 @@ sub removeUserFromJail
 
 			debug("Removing $user entry from $securityChrootCfgFile");
 
-			my ($userReg, $jailReg) = (quotemeta($user), quotemeta($jailCfg{'chroot'}));
-			$fileContent =~ s/^$userReg\s+$jailReg\n//gm;
+			my $userReg = quotemeta($user);
+			$fileContent =~ s/^$userReg\s+.*\n//gm;
 
 			my $rs = $file->set($fileContent);
 			return $rs if $rs;
