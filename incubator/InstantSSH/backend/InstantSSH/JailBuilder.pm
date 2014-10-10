@@ -64,7 +64,7 @@ my $fstabFile = '/etc/fstab';
 
 =item makeJail()
 
- Create or pdate jail
+ Create or update jail
 
  Return int 0 on success, other on failure
 

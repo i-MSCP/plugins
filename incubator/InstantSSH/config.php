@@ -51,16 +51,16 @@ return array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
 
-	// Shell for SSH users (default: /bin/bash for normal shell ; /bin/ash for jailed shell)
+	// Shell for SSH users (default: /bin/bash for normal shells ; /bin/ash for jailed shells)
 	//
-	// See man shells for further details. Please, do not change the default values if you do not know what you are doing.
+	// See man shells for further details. Do not change the default values if you do not know what you are doing.
 	'shells' => array(
 		// Shell for normal ssh users
 		'normal' => '/bin/bash',
 
 		// Shell for jailed ssh users
-		// BusyBox built-in shell ; Don't forget to set it back to /bin/bash if you do not use BusyBox built-in shell
-		// Note: /bin/ash is a link that point to the /bin/busybox executable. This link is automatically created by the
+		// BusyBox built-in shell ; Don't forget to set it back to something else if you do not use the BusyBox built-in
+		// shell. /bin/ash is a link that point to the /bin/busybox executable. This link is automatically created by the
 		// plugin. The /bin/ash shell is also automatically added in the /etc/shells file.
 		'jailed' => '/bin/ash'
 	),
@@ -70,15 +70,15 @@ return array(
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
 	//
-	// Warning: If you are changing this path, don't forget to move the jails in the new directory.
+	// Warning: If you are changing this path, don't forget to move the jails in the new location.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
 	// Shared jail (default: true)
 	//
-	// When the value is true, only one jail is created for all customers. A shared jail doesn't mean that customers
-	// will be able to read, modify or delete files of other customers. This simply mean that the jail will be shared
-	// between customers. The primary purpose of a jailed environment is to protect the main system. Having a jail for
-	// each customer is interesting only when you want provide a different set of commands for each of them.
+	// When set to true, only one jail is created for all customers. A shared jail doesn't mean that customers will be
+	// able to read, modify or delete files of other customers. This simply mean that the jail will be shared between
+	// customers. The primary purpose of a jailed environment is to protect the main system. Having a jail for each
+	// customer is interesting only when you want provide a different set of commands for each of them.
 	//
 	// Note: The creation of a jail per customer is currently useless because the per customer application feature is
 	// not implemented yet. This will be implemented in near future.
@@ -103,7 +103,7 @@ return array(
 	//
 	// This is the list of application sections which are used to create/update the jails (see below).
 	//
-	// By default only the imscpbase application section is added, which allows to build a very restricted jailed shell
+	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
 	// environments using BusyBox.
 	'app_sections' => array(
 		'imscpbase'
@@ -114,7 +114,7 @@ return array(
 	// Below, you can find the predefined application sections. Those sections are used to create and update the jails.
 	// You can select as many sections as you want by adding them into the app_sections configuration option above.
 	//
-	// It's not recommended to change a section without understanding its meaning and how it is working. Once you know
+	// It is not recommended to change a section without understanding its meaning and how it is working. Once you know
 	// how the sections are defined, you can define your own sections.
 	//
 	// Application section options
@@ -134,6 +134,7 @@ return array(
 	//  - Any path which doesn't exists on the system is ignored
 	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
 	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
+	//  - In case where the /proc directory is added in the paths option, it is mounted instead of be copied.
 	//
 	// Other application sections will be added soon.
 
