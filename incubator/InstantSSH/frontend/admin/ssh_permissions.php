@@ -131,15 +131,17 @@ function instantssh_addSshPermissions()
 					'
 						INSERT INTO instant_ssh_permissions(
 							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options,
-							ssh_permission_jailed_shell
+							ssh_permission_jailed_shell, ssh_permission_status
 						) SELECT
-							admin_id, ?, ?, ?
+							admin_id, ?, ?, ?, ?
 						FROM
 							admin
 						WHERE
 							admin_name = ?
 					',
-					array($sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, $adminName)
+					array(
+						$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'toadd', $adminName
+					)
 				);
 
 				$db->commit();
@@ -202,12 +204,13 @@ function instantssh_addSshPermissions()
 								',
 								array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
 							);
-						} else {
-							exec_query(
-								'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id = ?',
-								array('tochange', $sshPermissionId)
-							);
 						}
+						#else {
+						#	exec_query(
+						#		'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id = ?',
+						#		array('tochange', $sshPermissionId)
+						#	);
+						#}
 
 						$db->commit();
 
@@ -252,7 +255,7 @@ function instantssh_deleteSshPermissions()
 
 		try {
 			$stmt = exec_query(
-				'UPDATE instant_ssh_permissions SET ssh_permissions_status = ? WHERE ssh_permission_id = ?',
+				'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_id = ?',
 				array('todelete', $sshPermissionId)
 			);
 

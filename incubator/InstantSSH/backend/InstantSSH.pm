@@ -41,6 +41,7 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use InstantSSH::JailBuilder;
+use InstantSSH::JailBuilder::Utils qw (normalizePath);
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -104,6 +105,18 @@ sub uninstall
 	my $rs = $self->run();
 	return $rs if $rs;
 
+	if(-d "$self->{'config'}->{'root_jail_dir'}/shared_jail") {
+		my $jailBuilder;
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( config => $self->{'config'}, user => 'root'); };
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
+
+		$rs = $jailBuilder->removeJail();
+		return $rs if $rs;
+	}
+
 	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'root_jail_dir'} )->remove();
 	return $rs if $rs;
 
@@ -129,7 +142,7 @@ sub enable
 		'dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'toenable' WHERE ssh_permission_id IS NOT NULL"
 	);
 	unless(ref $qrs eq 'HASH') {
-		error("InstantSSH: $qrs");
+		error($qrs);
 		return 1;
 	}
 
@@ -152,7 +165,7 @@ sub disable
 		'dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'todisable' WHERE ssh_permission_id IS NOT NULL"
 	);
 	unless(ref $qrs eq 'HASH') {
-		error("InstantSSH: $qrs");
+		error($qrs);
 		return 1;
 	}
 
@@ -183,10 +196,13 @@ sub change
 			my $jailBuilder;
 			eval {
 				$jailBuilder = InstantSSH::JailBuilder->new(
-					config => $self->{'config'}, user => ($jaiDir eq 'shared_jail') ? 'root' : $jaiDir
+					config => $self->{'config'}, user => ($jailDir eq 'shared_jail') ? 'root' : $jailDir
 				);
 			};
-			error("InstantSSH: Unable to create JailBuilder object: $!") if $@;
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
 
 			if(
 				($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
@@ -194,7 +210,7 @@ sub change
 			) {
 				my $rs = $jailBuilder->makeJail(); # Update jail
 			} else {
-				my $rs = $jailBuilder->removeJail(); # Remove jail
+				my $rs = $jailBuilder->removeJail(); # Remove jail
 				my $needSshPermsChange = 1;
 			}
 		}
@@ -212,7 +228,7 @@ sub change
 				"
 			);
 			unless(ref $qrs eq 'HASH') {
-				error("InstantSSH: $qrs");
+				error($qrs);
 				return 1;
 			}
 		}
@@ -253,12 +269,12 @@ sub run
 	);
 	unless($sth) {
 		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
-		error("InstantSSH: Couldn't prepare SQL statement: " . $dbh->errstr);
+		error("Couldn't prepare SQL statement: " . $dbh->errstr);
 		return 1;
 	}
 
 	unless($sth->execute()) {
-		error("InstantSSH: Couldn't execute prepared statement: " . $dbh->errstr);
+		error("Couldn't execute prepared statement: " . $dbh->errstr);
 		return 1;
 	}
 
@@ -278,12 +294,11 @@ sub run
 
 			$customerShells{$sshPermissionData->{'admin_sys_name'}} = $sshPermissionData->{'ssh_permission_jailed_shell'};
 		} elsif($sshPermissionStatus eq 'todelete') {
-			$rs = $self->_deleteSshPermissions($sshPermissionData);
+			$rs = $self->_removeSshPermissions($sshPermissionData);
 			unless($rs) {
 				@sql = (
 					'dummy',
-					'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_id = ?',
-					($rs ? scalar getMessageByType('error') : 'disabled'),
+					'DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?',
 					$sshPermissionData->{'ssh_permission_id'}
 				);
 			} else {
@@ -299,7 +314,7 @@ sub run
 		my $qrs = $self->{'db'}->doQuery(@sql);
 		unless(ref $qrs eq 'HASH') {
 			$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
-			error("InstantSSH: $qrs");
+			error($qrs);
 			$rs = 1;
 		};
 
@@ -328,12 +343,12 @@ sub run
 	);
 	unless($sth) {
 		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
-		error("InstantSSH: Couldn't prepare SQL statement: " . $dbh->errstr);
+		error("Couldn't prepare SQL statement: " . $dbh->errstr);
 		return 1;
 	}
 
 	unless($sth->execute()) {
-		error("InstantSSH: Couldn't execute prepared statement: " . $dbh->errstr);
+		error("Couldn't execute prepared statement: " . $dbh->errstr);
 		return 1;
 	}
 
@@ -373,7 +388,7 @@ sub run
 		my $qrs = $self->{'db'}->doQuery(@sql);
 		unless(ref $qrs eq 'HASH') {
 			$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
-			error("InstantSSH: $qrs");
+			error($qrs);
 			$rs = 1;
 		};
 
@@ -403,7 +418,7 @@ sub onDeleteDomain
 	my ($self, $domainData) = @_;
 
 	if($domainData->{'DOMAIN_TYPE'} eq 'dmn') {
-		my $homeDir = File::HomeDir->users_home($domainData->{'USER'});
+		my $homeDir = (getpwnam($domainData->{'USER'}))[7];
 
 		if(defined $homeDir && -d "$homeDir/.ssh") {
 			# Force logout of ssh login if any
@@ -417,7 +432,10 @@ sub onDeleteDomain
 			eval { $jailBuilder = InstantSSH::JailBuilder->new(
 				config => $self->{'config'}, user => $domainData->{'USER'} );
 			};
-			error("InstantSSH: Unable to create JailBuilder object: $!") if $@;
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
 
 			if($jailBuilder->existsJail()) {
 				my $rs = ($self->{'config'}->{'shared_jail'})
@@ -431,12 +449,12 @@ sub onDeleteDomain
 			clearImmutable($homeDir) if $isProtectedHomeDir;
 			clearImmutable("$homeDir/.ssh/authorized_keys") if -f "$homeDir/.ssh/authorized_keys";
 
-			$rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
+			my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
 			return $rs if $rs;
 
 			setImmutable($homeDir) if $isProtectedHomeDir;
 		} else {
-			error("InstantSSH: Unable to find $domainData->{'USER'} unix user homedir");
+			error("Unable to find $domainData->{'USER'} unix user homedir");
 			return 1;
 		}
 	}
@@ -485,9 +503,6 @@ sub _init
 {
 	my $self = $_[0];
 
-	eval { require File::HomeDir };
-	die('The InstantSSH plugin require the File::HomeDir Perl module') if $@;
-
 	$self->{'db'} = iMSCP::Database->factory();
 
 	my $config = $self->{'db'}->doQuery(
@@ -518,41 +533,59 @@ sub _addSshPermissions
 {
 	my($self, $sshPermissionData) = @_;
 
-	# Force logout of ssh logins if any (tochange case)
-	my @cmd = (
-		$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($sshPermissionData->{'admin_sys_name'}),
-		'sshd'
-	);
-	my ($stdout, $stderr);
-	execute("@cmd", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	debug($stderr) if $stderr;
+	my $homeDir = (getpwnam($sshPermissionData->{'admin_sys_name'}))[7];
 
-	# Update user shell
-	my $shell = ($sshPermissionData->{'ssh_permission_jailed_shell'})
-		? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
-
-	@cmd = ("$main::imscpConfig{'CMD_USERMOD'}", "-s $shell", escapeShell($sshPermissionData->{'admin_sys_name'}));
-	my $rs = execute("@cmd", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	debug($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	# Create jail if needed (only add user in jail if the jail already exists)
-	if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
-		my $jailBuilder;
-		eval {
-			$jailBuilder = InstantSSH::JailBuilder->new(
-				config => $self->{'config'}, user => $sshPermissionData->{'admin_sys_name'}
+	if(defined $homeDir) {
+		if($sshPermissionData->{'ssh_permission_status'} eq 'tochange') {
+			# Force logout of ssh logins if any
+			my @cmd = (
+				$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($sshPermissionData->{'admin_sys_name'}),
+				'sshd'
 			);
-		};
-		error("InstantSSH: Unable to create JailBuilder object: $!") if $@;
+			my ($stdout, $stderr);
+			execute("@cmd", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			debug($stderr) if $stderr;
+		}
 
-		$rs = ($jailBuilder->existsJail()) ? $jailBuilder->addUserToJail() : $jailBuilder->makeJail();
-		return $rs if $rs;
+		# Create jail if needed (only add user in jail if the jail already exists)
+		if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
+			my $jailBuilder;
+			eval {
+				$jailBuilder = InstantSSH::JailBuilder->new(
+					config => $self->{'config'}, user => $sshPermissionData->{'admin_sys_name'}
+				);
+			};
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
+
+			my $rs = ($jailBuilder->existsJail()) ? $jailBuilder->addUserToJail() : $jailBuilder->makeJail();
+			return $rs if $rs;
+		}
+
+		# Update user homedir and shell
+		my $shell = ($sshPermissionData->{'ssh_permission_jailed_shell'})
+			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
+
+		my $homeDir = normalizePath($homeDir) . '/./';
+
+		my ($stdout, $stderr);
+		my @cmd = (
+			"$main::imscpConfig{'CMD_USERMOD'}",
+			"-d $homeDir",
+			"-s $shell",
+			escapeShell($sshPermissionData->{'admin_sys_name'})
+		);
+		my $rs = execute("@cmd", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		debug($stderr) if $stderr && $rs;
+		$rs;
+	} else {
+		error("Unable to find $sshPermissionData->{'admin_sys_name'} user homedir");
+		return 1;
 	}
-
-	0;
 }
 
 =item _removeSshPermissions(\%sshPermissionData)
@@ -568,9 +601,11 @@ sub _removeSshPermissions
 {
 	my($self, $sshPermissionData) = @_;
 
-	my $homeDir = File::HomeDir->users_home($sshPermissionData->{'admin_sys_name'});
+	my $homeDir = (getpwnam($sshPermissionData->{'admin_sys_name'}))[7];
 
 	if(defined $homeDir) {
+		$homeDir = normalizePath($homeDir);
+
 		# Force logout of ssh logins if any
 		my @cmd = (
 			$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($sshPermissionData->{'admin_sys_name'}),
@@ -581,9 +616,13 @@ sub _removeSshPermissions
 		debug($stdout) if $stdout;
 		debug($stderr) if $stderr;
 
-		# Set the user shell back to /bin/false
+		# Set the user homedir and shell back to default values
+
 		@cmd = (
-			"$main::imscpConfig{'CMD_USERMOD'}", '-s /bin/false', escapeShell($sshPermissionData->{'admin_sys_name'})
+			"$main::imscpConfig{'CMD_USERMOD'}",
+			"-d $homeDir",
+			'-s /bin/false',
+			escapeShell($sshPermissionData->{'admin_sys_name'})
 		);
 		my $rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -598,13 +637,16 @@ sub _removeSshPermissions
 					config => $self->{'config'}, user => $sshPermissionData->{'admin_sys_name'}
 				);
 			};
-			error("InstantSSH: Unable to create JailBuilder object: $!") if $@;
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
 
 			$rs = ($self->{'config'}->{'shared_jail'}) ? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
 			return $rs if $rs;
 		}
 
-		# Remove $HOME/.ssh directory if any
+		# Remove $HOME/.ssh directory if any (this remove all SSH keys)
 		if(-d "$homeDir/.ssh") {
 			my $isProtectedHomeDir = isImmutable($homeDir);
 
@@ -617,7 +659,7 @@ sub _removeSshPermissions
 			setImmutable($homeDir) if $isProtectedHomeDir;
 		}
 	} else {
-		error("InstantSSH: Unable to find $sshPermissionData->{'admin_sys_name'} user homedir");
+		error("Unable to find $sshPermissionData->{'admin_sys_name'} user homedir");
 		return 1;
 	}
 
@@ -637,9 +679,11 @@ sub _addSshKey
 {
 	my($self, $sshKeyData) = @_;
 
-	my $homeDir = File::HomeDir->users_home($sshKeyData->{'admin_sys_name'});
+	my $homeDir = (getpwnam($sshKeyData->{'admin_sys_name'}))[7];
 
 	if(defined $homeDir) {
+		$homeDir = normalizePath($homeDir);
+
 		my $isProtectedHomeDir = isImmutable($homeDir);
 
 		my $file = iMSCP::File->new( filename => "$homeDir/.ssh/authorized_keys" );
@@ -678,7 +722,7 @@ sub _addSshKey
 
 		setImmutable("$homeDir/.ssh/authorized_keys");
 	} else {
-		error("InstantSSH: Unable to find $sshKeyData->{'admin_sys_name'} user homedir");
+		error("Unable to find $sshKeyData->{'admin_sys_name'} user homedir");
 		return 1;
 	}
 
@@ -707,9 +751,11 @@ sub _deleteSshKey
 	debug($stdout) if $stdout;
 	debug($stderr) if $stderr;
 
-	my $homeDir = File::HomeDir->users_home($sshKeyData->{'admin_sys_name'});
+	my $homeDir = (getpwnam($sshKeyData->{'admin_sys_name'}))[7];
 
 	if(defined $homeDir) {
+		$homeDir = normalizePath($homeDir);
+
 		if(-f "$homeDir/.ssh/authorized_keys") {
 			clearImmutable("$homeDir/.ssh/authorized_keys");
 
@@ -734,12 +780,12 @@ sub _deleteSshKey
 
 				setImmutable("$homeDir/.ssh/authorized_keys");
 			} else {
-				error("InstantSSH: Unable to read $homeDir/.ssh/authorized_keys");
+				error("Unable to read $homeDir/.ssh/authorized_keys");
 				return 1;
 			}
 		}
 	} else {
-		error("InstantSSH: Unable to find $sshKeyData->{'admin_sys_name'} user homedir");
+		error("Unable to find $sshKeyData->{'admin_sys_name'} user homedir");
 		return 1;
 	}
 
@@ -762,7 +808,7 @@ sub _checkRequirements
 		my ($stdout, $stderr);
 		my $rs = execute("dpkg -s $package", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
-		error("InstantSSH: The $_ package is not installed on your system") if $rs;
+		error("The $_ package is not installed on your system") if $rs;
 		$ret |= $rs;
 	}
 
@@ -787,7 +833,7 @@ sub _configurePamChroot
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error('InstantSSH: Unable to read file /etc/pam.d/sshd');
+			error('Unable to read file /etc/pam.d/sshd');
 			return 1;
 		}
 
@@ -800,7 +846,7 @@ sub _configurePamChroot
 		$rs = $file->save();
 		return $rs if $rs;
 	} else {
-		error('InstantSSH: File /etc/pam.d/sshd not found');
+		error('File /etc/pam.d/sshd not found');
 		return 1;
 	}
 
@@ -825,18 +871,18 @@ sub _configureBusyBox
 	if(-e '/bin/ash') {
 		if(-s _) {
 			unless(unlink('/bin/ash')) {
-				error('InstantSSH: Unable to remove /bin/ash symlink');
+				error('Unable to remove /bin/ash symlink');
 				return 1;
 			}
 		} else {
-			error('InstantSSH: /bin/ash should be a symlink');
+			error('/bin/ash should be a symlink');
 			return 1;
 		}
 	}
 
 	unless($uninstall) {
 		unless(symlink('/bin/busybox', '/bin/ash')) {
-			error("InstantSSH: Unable to create /bin/ash symlink to /bin/busybox: $!");
+			error("Unable to create /bin/ash symlink to /bin/busybox: $!");
 			return 1;
 		}
 	}
@@ -847,9 +893,9 @@ sub _configureBusyBox
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error('InstantSSH: Unable to read /etc/shells');
+			error('Unable to read /etc/shells');
 			return 1;
-        }
+		}
 
 		$fileContent =~ s%^/bin/ash\n%%gm;
 		$fileContent .= "/bin/ash\n" unless $uninstall;

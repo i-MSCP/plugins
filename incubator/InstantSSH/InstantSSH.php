@@ -275,7 +275,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			INNER JOIN
 				admin ON(admin_id = ssh_permission_admin_id)
 			WHERE
-				ssh_permission_status NOT IN(:ok, :toadd, :tochange, todelete)
+				ssh_permission_status NOT IN(:ok, :toadd, :tochange, :todelete)
 			UNION
 			SELECT
 				ssh_key_id AS item_id, ssh_key_status AS status, ssh_key_name AS item_name,
@@ -309,7 +309,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function changeItemStatus($table, $field, $itemId)
 	{
 		if ($table === 'instant_ssh_permissions' && $field === 'ssh_permission_status') {
-			exec_query("UPDATE $table SET $field = ? WHERE ssh_key_id = ?", array('tochange', $itemId));
+			exec_query("UPDATE $table SET $field = ? WHERE ssh_permission_id = ?", array('tochange', $itemId));
 		} elseif ($table === 'instant_ssh_keys' && $field === 'ssh_key_status') {
 			exec_query("UPDATE $table SET $field = ? WHERE ssh_key_id = ?", array('tochange', $itemId));
 		}
@@ -324,20 +324,23 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	{
 		$stmt = exec_query(
 			'
-				SELECT(
-					SELECT
-						COUNT(ssh_permission_id)
-					FROM
-						instant_ssh_permissions
-					WHERE
-						ssh_permission_status IN (:toadd, :tochange, :todelete)
-					UNION
-					SELECT
-						COUNT(ssh_key_id)
-					FROM
-						instant_ssh_keys
-					WHERE
-						ssh_key_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
+				SELECT
+				(
+					(
+						SELECT
+							COUNT(ssh_permission_id)
+						FROM
+							instant_ssh_permissions
+						WHERE
+							ssh_permission_status IN (:toadd, :tochange, :todelete)
+					) + (
+						SELECT
+							COUNT(ssh_key_id)
+						FROM
+							instant_ssh_keys
+						WHERE
+							ssh_key_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
+					)
 				) AS cnt
 			',
 			array(

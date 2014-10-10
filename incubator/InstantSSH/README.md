@@ -46,14 +46,13 @@ common UNIX utilities into a single small executable.
 #### Debian / Ubuntu packages to install before installing this plugin
 
 * busybox
-* libfile-homedir-perl
 * libpam-chroot
 * makejail
 
 You can install these packages by executing the following command:
 
 	# aptitude update
-	# aptitude install busybox libfile-homedir-perl libpam-chroot makejail
+	# aptitude install busybox libpam-chroot makejail
 
 **Note:** If a package is not installed on your system, the plugin will thrown an error.
 
