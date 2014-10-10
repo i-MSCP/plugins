@@ -38,6 +38,13 @@ The default configuration comes with a set of preselected application sections w
 restricted jailed shell environment. This environment is setup by using busybox which combines tiny versions of many
 common UNIX utilities into a single small executable.
 
+### Plugin usage
+
+The developement of this plugin took me a lot of time, specially the Jailbuilder layer which allows to provide jailed
+shell environements. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
+account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, Just don't use this
+plugin.
+
 ### Requirements
 
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
