@@ -48,9 +48,7 @@
 				<tbody>
 				<tr>
 					<td><label for="admin_name">Customer name</label></td>
-					<td>
-						<input type="text" name="admin_name" id="admin_name" placeholder="Enter a customer name">
-					</td>
+					<td><input type="text" name="admin_name" id="admin_name" placeholder="Enter a customer name"></td>
 				</tr>
 				<tr>
 					<td>
@@ -59,8 +57,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="text" name="ssh_permission_max_keys" id="ssh_permission_max_keys"
-							   placeholder="Enter a number" value="0"/>
+						<input type="text" name="ssh_permission_max_keys" id="ssh_permission_max_keys" placeholder="Enter a number" value="0"/>
 					</td>
 				</tr>
 				<tr>
@@ -71,8 +68,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options"
-							   value="1"/>
+						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options" value="1"/>
 					</td>
 				</tr>
 				<tr>
@@ -83,8 +79,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell"
-							   value="1" checked="checked" />
+						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" />
 					</td>
 				</tr>
 				<tr>

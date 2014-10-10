@@ -173,49 +173,38 @@ function instantssh_addSshPermissions()
 								instant_ssh_permissions
 							SET
 								ssh_permission_max_keys = ?, ssh_permission_auth_options = ?,
-								ssh_permission_jailed_shell = ?
+								ssh_permission_jailed_shell = ?, ssh_permission_status = ?
 							WHERE
 								ssh_permission_id = ?
 						',
 						array(
-							$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell,
+							$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'tochange',
 							$sshPermissionId
 						)
 					);
 
-					if (
-						$row['ssh_permission_auth_options'] != $sshPermissionAuthOptions ||
-						$row['ssh_permission_jailed_shell'] != $sshPermissionJailedShell
-					) {
-						if($row['ssh_permission_auth_options'] != $sshPermissionAuthOptions) {
-							/** @var iMSCP_Plugin_Manager $pluginManager */
-							$pluginManager = iMSCP_Registry::get('pluginManager');
-							$defaultSshAuthOptions = $pluginManager->getPlugin('InstantSSH')
-								->getConfigParam('default_ssh_auth_options', '');
+					if ($row['ssh_permission_auth_options'] != $sshPermissionAuthOptions) {
+						/** @var iMSCP_Plugin_Manager $pluginManager */
+						$pluginManager = iMSCP_Registry::get('pluginManager');
+						$defaultSshAuthOptions = $pluginManager->getPlugin('InstantSSH')
+							->getConfigParam('default_ssh_auth_options', '');
 
-							exec_query(
-								'
-									UPDATE
-										instant_ssh_keys
-									SET
-										ssh_auth_options = ?, ssh_key_status = ?
-									WHERE
-										ssh_permission_id = ?
-								',
-								array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
-							);
-						}
-						#else {
-						#	exec_query(
-						#		'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_permission_id = ?',
-						#		array('tochange', $sshPermissionId)
-						#	);
-						#}
-
-						$db->commit();
-
-						send_request();
+						exec_query(
+							'
+								UPDATE
+									instant_ssh_keys
+								SET
+									ssh_auth_options = ?, ssh_key_status = ?
+								WHERE
+									ssh_permission_id = ?
+							',
+							array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
+						);
 					}
+
+					$db->commit();
+
+					send_request();
 
 					write_log(sprintf('SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
 

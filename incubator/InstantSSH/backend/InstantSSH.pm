@@ -541,20 +541,24 @@ sub _addSshPermissions
 			debug($stderr) if $stderr;
 		}
 
-		# Create jail if needed (only add user in jail if the jail already exists)
-		if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
-			my $jailBuilder;
-			eval {
-				$jailBuilder = InstantSSH::JailBuilder->new(
-					config => $self->{'config'}, user => $sshPermissionData->{'admin_sys_name'}
-				);
-			};
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
+		my $jailBuilder;
+		eval {
+			$jailBuilder = InstantSSH::JailBuilder->new(
+				config => $self->{'config'}, user => $sshPermissionData->{'admin_sys_name'}
+			);
+		};
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
 
+		if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
+			# Create jail if needed (only add user in jail if the jail already exists)
 			my $rs = ($jailBuilder->existsJail()) ? $jailBuilder->addUserToJail() : $jailBuilder->makeJail();
+			return $rs if $rs;
+		} else {
+			# Ensure that user is not jailed (tochange case)
+			my $rs = $jailBuilder->removeUserFromJail();
 			return $rs if $rs;
 		}
 
@@ -562,7 +566,8 @@ sub _addSshPermissions
 		my $shell = ($sshPermissionData->{'ssh_permission_jailed_shell'})
 			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
 
-		my $homeDir = normalizePath($homeDir) . '/./';
+		my $homeDir = normalizePath($homeDir);
+		$homeDir .= '/./' if $sshPermissionData->{'ssh_permission_jailed_shell'};
 
 		my ($stdout, $stderr);
 		my @cmd = (
