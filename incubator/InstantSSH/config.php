@@ -194,7 +194,7 @@ return array(
 	'editors' => array(
 		'paths' => array(
 			'/usr/bin/nano'
-		),
+		)
 	),
 
 	// terminfo section
