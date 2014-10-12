@@ -104,7 +104,8 @@ return array(
 	// This is the list of application sections which are used to create/update the jails (see below).
 	//
 	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
-	// environments using BusyBox.
+	// environments using BusyBox. The imscpbase application section also include the editors and the mysqlcmdlinetool
+	// sections
 	'app_sections' => array(
 		'imscpbase'
 	),
@@ -193,7 +194,7 @@ return array(
 	// Provide additional editors
 	'editors' => array(
 		'paths' => array(
-			'/usr/bin/nano'
+			'/usr/bin/nano', '/usr/bin/vim'
 		)
 	),
 
