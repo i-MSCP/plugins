@@ -157,7 +157,7 @@ return array(
 	// Provide restricted shell using BusyBox (built-in shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash', '/proc', '/tmp', '/usr/bin/nano'
+			'/bin/ash', '/proc', '/tmp'
 		),
 		'include_app_sections' => array(
 			'uidbasics', 'busybox', 'terminfo'
@@ -189,6 +189,14 @@ return array(
 		)
 	),
 
+	// editors section
+	// Provide additional editors
+	'editors' => array(
+		'paths' => array(
+			'/usr/bin/nano'
+		),
+	),
+
 	// terminfo section
 	// Provide terminfo databases
 	'terminfo' => array(
@@ -201,7 +209,7 @@ return array(
 	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
 		'include_app_sections' => array(
-			'busyboxshell', 'mysqlcmdlinetool'
+			'busyboxshell', 'editors', 'mysqlcmdlinetool'
 		),
 		'users' => array(
 			'root', 'www-data'
