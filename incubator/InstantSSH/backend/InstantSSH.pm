@@ -335,7 +335,7 @@ sub run
 			INNER JOIN
 				instant_ssh_permissions AS t3 using(ssh_permission_id)
 			WHERE
-				ssh_key_status IN ('toadd', 'toenable', 'todisable', 'todelete')
+				ssh_key_status IN ('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 			AND
 				ssh_permission_status = 'ok'
 			ORDER BY

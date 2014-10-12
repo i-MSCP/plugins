@@ -32,12 +32,13 @@ The Jailed shells allow you to provide SSH access to your customers in a secured
 they can theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the customers jails by simply adding the needed application sections into the
-**app_sections configuration option**. See the plugin configuration file for further details.
+**app_sections configuration option**.
 
 The default configuration comes with a set of preselected application sections which allow to setup a very
 restricted jailed shell environment. This environment is setup by using busybox which combines tiny versions of many
-common UNIX utilities into a single small executable. Default configuration also provide the MySQL command line tool and
-the nano editor.
+common UNIX utilities into a single small executable.
+
+See the plugin **config.php** file for further details.
 
 ### Plugin usage
 

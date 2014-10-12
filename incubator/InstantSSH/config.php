@@ -104,7 +104,7 @@ return array(
 	// This is the list of application sections which are used to create/update the jails (see below).
 	//
 	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
-	// environments using BusyBox. The imscpbase application section also include the editors and the mysqlcmdlinetool
+	// environments using BusyBox. The imscpbase application section also include the editors and the mysqltools
 	// sections
 	'app_sections' => array(
 		'imscpbase'
@@ -179,11 +179,11 @@ return array(
 		)
 	),
 
-	# mysqlcmdlinetool section
-	# Provide the MySQL command-line tool
-	'mysqlcmdlinetool' => array(
+	# mysqltools section
+	# Provide the MySQL command-line tool and the mysqldump program
+	'mysqltools' => array(
 		'paths' => array(
-			'/usr/bin/mysql', '/etc/mysql'
+			'/usr/bin/mysql', '/etc/mysql', '/usr/bin/mysqldump'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/mysql/my.cnf' => '/etc/mysql/my.cnf'
@@ -210,7 +210,7 @@ return array(
 	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
 		'include_app_sections' => array(
-			'busyboxshell', 'editors', 'mysqlcmdlinetool'
+			'busyboxshell', 'editors', 'mysqltools'
 		),
 		'users' => array(
 			'root', 'www-data'
