@@ -40,14 +40,16 @@ use List::MoreUtils qw(uniq);
 use parent 'Common::Object';
 
 my %jailCfg = (
-	'chroot' => '',
-	'paths' => [],
-	'packages' => [],
-	'include_pkg_deps' => 0,
-	'preserve_files' => [],
-	'users' => [],
-	'groups' => [],
-	'devices' => []
+	chroot => '',
+	paths => [],
+	copy_file_to => {},
+	packages => [],
+	include_pkg_deps => 0,
+	preserve_files => [],
+	users => [],
+	groups => [],
+	devices => [],
+	mount => {}
 );
 
 my $makejailCfgDir = '/etc/makejail';
@@ -80,7 +82,7 @@ sub makeJail
 	my $rs = iMSCP::Dir->new(
 		dirname => $jailCfg{'chroot'}
 	)->make(
-		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'} => mode => 0755 }
+		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, => mode => 0755 }
 	);
 	return $rs if $rs;
 
@@ -89,6 +91,16 @@ sub makeJail
 	return $rs if $rs;
 
 	my $cfgFilePath = "$makejailCfgDir/InstantSSH" . (($cfg->{'shared_jail'}) ? '.py' : ".$user.py");
+
+	unless(iMSCP::Dir->new( dirname => $jailCfg{'chroot'} )->isEmpty()) {
+		# Any directory which is mounted within the jail must be umounted prior any update
+		$rs = $self->umount($jailCfg{'chroot'});
+		return $rs if $rs;
+
+		# Remove any fstab entry
+		$rs = $self->removeFstabEntry(qr%.*?$jailCfg{'chroot'}.*%);
+		return $rs if $rs;
+	}
 
 	# Create/update jail
 	my ($stdout, $stderr);
@@ -118,6 +130,31 @@ sub makeJail
 		return $rs if $rs;
 	}
 
+	# Copy files specified in the copy_file_to option within the jail
+	while(my ($src, $dst) = each(%{$jailCfg{'copy_file_to'}})) {
+		if(index($src, '/') == 0 && index($dst, '/') == 0) {
+			$rs = iMSCP::File->new( filename => $src )->copyFile($jailCfg{'chroot'} . $dst);
+			return $rs if $rs;
+		} else {
+			error("Any file path specified in the copy_file_to option must be absolute");
+			return 1;
+		}
+	}
+
+	# Mount any directory specified in the mount option within the jail and add the needed fstab entries
+	while(my ($oldDir, $newDir) = each(%{$jailCfg{'mount'}})) {
+		if(index($oldDir, '/') == 0 && index($newDir, '/') == 0) {
+			$rs = $self->mount($oldDir, $jailCfg{'chroot'} . $newDir);
+			return $rs if $rs;
+
+			$rs = $self->addFstabEntry("$oldDir $jailCfg{'chroot'}$newDir none bind 0 0");
+			return $rs if $rs;
+		} else {
+			error("Any directory path specified in the mount option must be absolute");
+			return 1;
+		}
+	}
+
 	# Add user into jail
 	$rs = $self->addUserToJail($user);
 	return $rs if $rs;
@@ -143,7 +180,7 @@ sub removeJail
 	my $rs = $self->removeUserFromJail();
 	return $rs if $rs;
 
-	# Umount any directory which is mounted inside jail
+	# Umount any directory which is mounted within jail
 	$rs = $self->umount($jailCfg{'chroot'});
 	return $rs if $rs;
 
@@ -165,7 +202,7 @@ sub removeJail
 	# Ensure that the proc directory is emtpy if any
 	my $jailProcDir = "$jailCfg{'chroot'}/proc";
 	if(-d $jailProcDir && ! iMSCP::Dir->new( dirname => $jailProcDir )->isEmpty()) {
-		error("Unable to remove jail. Directory $jailProcDir is not empty");
+		error("Cannot remove jail. Directory $jailProcDir is not empty");
 		return 1;
 	}
 
@@ -176,7 +213,7 @@ sub removeJail
 		return $rs if $rs;
 	}
 
-	# Remove the jail
+	# Remove jail
 	iMSCP::Dir->new( dirname => $jailCfg{'chroot'} )->remove();
 }
 
@@ -184,7 +221,7 @@ sub removeJail
 
  Does the jail already exists
 
- Return bool True if the jail already exists, FALSE otherwise
+ Return bool TRUE if the jail already exists, FALSE otherwise
 
 =cut
 
@@ -215,12 +252,12 @@ sub addUserToJail
 			my $rs = iMSCP::Dir->new(
 				dirname => $jailedHomedir
 			)->make(
-				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
+				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0555 }
 			);
 			return $rs if $rs;
 
 			# Set owner/group for jailed homedir
-			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0750' });
+			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0555' });
 			return $rs if $rs;
 		}
 
@@ -295,14 +332,14 @@ sub removeUserFromJail
 			return $rs if $rs;
 
 			if(-d $jailedHomedir) {
-				my $dir = iMSCP::Dir->new( dirname => $jailedHomedir);
+				my $dir = iMSCP::Dir->new( dirname => $jailedHomedir );
 				# Remove the directory
         		# The check of the directory should avoid any drawback in case the user homedir is still mounted
 				if($dir->isEmpty()) {
 					$rs = $dir->remove();
 					return $rs if $rs;
 				} else {
-					error("Unable to remove $user user homedir within the jail. Directory not empty");
+					error("Cannot remove $user user homedir within the jail. Directory not empty");
 					return 1;
 				}
 			}
@@ -445,7 +482,7 @@ sub removePasswdFile
 
  Add fstab entry
 
- Param string $entry Fstab entry to remove
+ Param string $entry Fstab entry to add
  Return int 0 on success, other on failure
 
 =cut
@@ -458,7 +495,7 @@ sub addFstabEntry
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
 		error("Unable to read file $fstabFile");
-		return 0;
+		return 1;
 	}
 
 	debug("Adding $entry entry in $fstabFile");
@@ -477,7 +514,7 @@ sub addFstabEntry
 
  Remove fstab entry
 
- Param regexp|string OPTIONAL $entry Fstab entry to remove as a string or regexp
+ Param string|regexp $entry Fstab entry to remove as a string or regexp
  Return int 0 on success, other on failure
 
 =cut
@@ -493,7 +530,7 @@ sub removeFstabEntry
 		return 0;
 	}
 
-	debug("Removing $entry matching entries from $fstabFile");
+	debug("Removing any entry matching with $entry from $fstabFile");
 
 	my $regexp = (ref $entry eq 'Regexp') ? $entry : quotemeta($entry);
 	$fileContent =~ s/^$regexp\n//gm;
@@ -504,24 +541,40 @@ sub removeFstabEntry
 	$file->save();
 }
 
-=item mount($oldir, $newdir)
+=item mount($oldDir, $newDir)
 
  Mount the given directory in safe way
 
- Param string $oldir Directory to mount
- Param string $newdir Mount point
+ Param string $oldDir Directory to mount
+ Param string $newDir Mount point
  Return int 0 on success, other on failure
 
 =cut
 
 sub mount
 {
- 	my ($self, $oldir, $newdir) = @_;
+ 	my ($self, $oldDir, $newDir) = @_;
 
-	if(-d $oldir) {
-		if(execute("mount | grep -q ' $newdir'")) {
+	if(-d $oldDir) {
+		if(execute("mount | grep -q ' $newDir '")) {
+			unless(-e $newDir) {
+				my $rs = iMSCP::Dir->new(
+					dirname => $newDir
+				)->make(
+					{
+						user => $main::imscpConfig{'ROOT_USER'},
+						group => $main::imscpConfig{'ROOT_GROUP'},
+						mode => 0555
+					}
+				);
+				return $rs if $rs;
+			} elsif(! -d _) {
+				error('Unable to mount $oldDir on $newDir: $newDir is not a directory');
+				return 1;
+			}
+
 			my($stdout, $stderr);
-			my $rs = execute("mount --bind $oldir $newdir", \$stdout, \$stderr);
+			my $rs = execute("mount --bind $oldDir $newDir", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 			return $rs if $rs;
@@ -531,25 +584,25 @@ sub mount
 	0;
 }
 
-=item umount($directory)
+=item umount($dirPath)
 
  Umount the given directory in safe way
 
- Note: In case of a partial path, any directory which start by this path will be umounted.
+ Note: In case of a partial path, any directory below this path will be umounted.
 
- Param string $directory Partial or full path of directory to umount.
+ Param string $dirPath Partial or full path of directory to umount
  Return int 0 on success, other on failure
 
 =cut
 
 sub umount
 {
-	my ($self, $directory) = @_;
+	my ($self, $dirPath) = @_;
 
 	my($stdout, $stderr, $mountPoint);
 
 	do {
-		my $rs = execute("mount 2>/dev/null | grep ' $directory' | head -n 1 | cut -d ' ' -f 3", \$stdout);
+		my $rs = execute("mount 2>/dev/null | grep ' $dirPath' | head -n 1 | cut -d ' ' -f 3", \$stdout);
 		return $rs if $rs;
 		$mountPoint = $stdout;
 
@@ -606,8 +659,12 @@ sub _init
 
 		if(%{$self->{'config'}}) {
 			if(exists $self->{'config'}->{'root_jail_dir'}) {
-				$jailCfg{'chroot'} = $self->{'config'}->{'root_jail_dir'} .
-					(($self->{'config'}->{'shared_jail'}) ? '/shared_jail' : "/$self->{'user'}");
+				if(index($self->{'config'}->{'root_jail_dir'}, '/') == 0) {
+					$jailCfg{'chroot'} = $self->{'config'}->{'root_jail_dir'} .
+						(($self->{'config'}->{'shared_jail'}) ? '/shared_jail' : "/$self->{'user'}");
+				} else {
+					die("InstantSSH::JailBuilder: Path specified in the 'root_jail_dir' option must be absolute");
+				}
 			} else {
 				die("InstantSSH::JailBuilder: The 'root_jail_dir' option is not defined");
 			}
@@ -625,21 +682,19 @@ sub _init
 	$self;
 }
 
-=item _buildMakejailCfgfile($cfg, $user)
+=item _buildMakejailCfgfile()
 
  Build makejail configuration file
 
- Param hash \%cfg Hash containing Jail configuration options
- Param string $user
  Return int 0 on success, other on failure
 
 =cut
 
 sub _buildMakejailCfgfile
 {
-	my ($self, $cfg, $user) = @_;
+	my $self = $_[0];
 
-	$cfg = {} unless $cfg && ref $cfg eq 'HASH';
+	my ($cfg, $user) = ($self->{'config'}, $self->{'user'});
 
 	if(exists $cfg->{'preserve_files'}) {
 		if(ref $cfg->{'preserve_files'} eq 'ARRAY') {
@@ -671,6 +726,7 @@ sub _buildMakejailCfgfile
 		}
 
 		my $fileContent = "# File auto-generated by i-MSCP InstantSSH plugin\n";
+		$fileContent .= "# Do not edit it manually\n\n";
 
 		$fileContent .= "chroot = \"$jailCfg{'chroot'}\"\n";
 		$fileContent .= "cleanJailFirst = 1\n";
@@ -678,7 +734,7 @@ sub _buildMakejailCfgfile
 		$fileContent .= "doNotCopy = []\n";
 
 		if(@{$jailCfg{'preserve_files'}}) {
-			$fileContent .= 'preserve = [' . (join ', ', map { qq/"$_"/ } @{$jailCfg{'preserve_files'}}) . "]\n"
+			$fileContent .= 'preserve = [' . (join ', ', map { qq/"$_"/ } @{$jailCfg{'preserve_files'}}) . "]\n";
 		}
 
 		if(@{$jailCfg{'paths'}}) {
@@ -762,6 +818,20 @@ sub _handleAppsSection()
 				@{$jailCfg{$option}} = uniq(@{$jailCfg{$option}});
 			} else {
 				error("The $option option must be an array");
+				return 1;
+			}
+		}
+	}
+
+	# Handle key/value pairs options from application section
+	for my $option(qw/copy_file_to mount/) {
+		if(exists $cfg->{$section}->{$option}) {
+			if(ref $cfg->{$section}->{$option} eq 'HASH') {
+				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {
+					$jailCfg{$option}->{$key} = $value;
+				}
+			} else {
+				error("The $_ option must be an associative array");
 				return 1;
 			}
 		}

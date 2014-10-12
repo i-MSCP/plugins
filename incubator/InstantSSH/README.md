@@ -36,7 +36,8 @@ Several commands can be added into the customers jails by simply adding the need
 
 The default configuration comes with a set of preselected application sections which allow to setup a very
 restricted jailed shell environment. This environment is setup by using busybox which combines tiny versions of many
-common UNIX utilities into a single small executable.
+common UNIX utilities into a single small executable. Default configuration also provide the MySQL command line tool and
+the nano editor.
 
 ### Plugin usage
 

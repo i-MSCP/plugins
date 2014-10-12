@@ -36,8 +36,6 @@ use base qw(Exporter);
 
 our @EXPORT_OK = qw(normalizePath resolveRealpath copyTimeAndPermissions createParentPath copyDevice);
 
-my %STATCACHE = ();
-
 =head1 DESCRIPTION
 
  This package is part of the i-MSCP InstantSSH plugin. It provide high level utility functions for file handling.
@@ -124,7 +122,7 @@ sub resolveRealpath($$;$)
 	for my $entry (@spath) {
 		$ret = File::Spec->join($ret, $entry);
 
-		my $sb = _stat($ret);
+		my $sb = File::stat::stat($ret) or die("InstantSSH::JailBuilder::Utils: Failed to stat on $ret: $!");
 
 		if(S_ISLNK($sb->mode)) {
 			my $realpath = readlink($ret) or die("InstantSSH::JailBuilder::Utils: Unable to read link $ret: $!");
@@ -195,7 +193,7 @@ sub copyTimeAndPermissions($$;$$)
  Param bool $copyPermissions OPTIONAL Whether or not permissions must be copied (default: true)
  Param bool $allowSuid OPTIONAL Whether or not setuid/setgid permissions must be copied (default: false)
  Param bool $copyOwnership OPTIONAL Whether or not user/group must be copied (default: false)
- Return string  (die on failure)
+ Return string (die on failure)
 
 =cut
 
@@ -207,7 +205,7 @@ sub createParentPath($$;$$$)
 	my $existpath = $chroot;
 	my $i = 0;
 
-	# the first part of the function checks the already existing paths in the jail and follow any symplinks relative
+	# the first part of the function checks the already existing paths in the jail and follow any symlinks relative
 	# to the jail
 	while($i < scalar @spath) {
 		my $tmp1 = File::Spec->catfile($existpath, $spath[$i]);
@@ -225,7 +223,7 @@ sub createParentPath($$;$$$)
 		my $origpath = File::Spec->catfile((@spath)[0..$i+1]);
 		my $jailpath = File::Spec->catfile($existpath, $spath[$i]);
 
-		my $sb = _stat($origpath);
+		my $sb = File::stat::stat($origpath) or die("InstantSSH::JailBuilder::Utils: Failed to stat on $origpath: $!");
 
 		if(S_ISDIR($sb->mode)) {
 			mkdir($jailpath, 0755) or die("Unable to create $jailpath:, $!");
@@ -304,38 +302,6 @@ sub copyDevice($$;$)
 	}
 
 	undef;
-}
-
-=back
-
-=head1 PRIVATE FUNCTIONS
-
-=over 4
-
-=item _stat($path)
-
- Get file status info
-
- Note: Info are cached for possible later use.
-
- Param string $path Path for which status info must be returned
- Return File::Stat
-
-=cut
-
-sub _stat($)
-{
-	my $path = shift;
-
-	my $ret = (exists $STATCACHE{$path}) ? $STATCACHE{$path} : undef;
-
-	unless (defined $ret) {
-		$STATCACHE{$path} = $ret = File::stat::stat($path) or die(
-			"InstantSSH::JailBuilder::Utils: Failed to stat on $path: $!"
-		);
-	}
-
-	$ret;
 }
 
 =back

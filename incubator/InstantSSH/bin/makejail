@@ -5,11 +5,10 @@
 # OS: GNU/Linux
 # Version: 0.0.5
 #
-# WARNING: Modified version shipped with the i-MSCP InstantSSH plugin
-# Modification include:
-# - Fix for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283
-# - Ignore missing packages
-#
+# WARNING: This is a modified version which is shipped with the i-MSCP InstantSSH plugin
+# Modifications:
+# - Fixed: for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283
+# - Fixed: Do not try to umount /proc if it is umounted
 
 # Required unusual external programs:
 # strace (package strace)
@@ -232,7 +231,6 @@ def readFileLines(fileName):
 	return map(string.strip,lines)
 
 def dpkgInfoFiles(package):
-	# InstantSSH fix integration (see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283)
 	# return readFileLines(config.debianDpkgInfoFile % package)
 	for arch in [':amd64', ':i386', '']:
 		fileName = "%s%s" % (package,arch)
@@ -885,7 +883,7 @@ def makeChroot():
 	killall(config.processNames)
 	if config.cleanJailFirst:
 		# We have to umount /proc before we proceed
-		if os.path.isdir(config.chroot+config.procPath):
+		if os.path.isdir(config.chroot+config.procPath) and os.path.ismount(config.chroot+config.procPath):
 			unmountProc()
 		cleanJail()
 

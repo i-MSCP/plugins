@@ -41,7 +41,7 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use InstantSSH::JailBuilder;
-use InstantSSH::JailBuilder::Utils qw (normalizePath);
+use InstantSSH::JailBuilder::Utils qw(normalizePath);
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -307,7 +307,7 @@ sub run
 					'dummy',
 					'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_id = ?',
 					scalar getMessageByType('error'),
-					$sshPermissionData->{'sshssh_permission_id_key_id'}
+					$sshPermissionData->{'ssh_permission_id'}
 				);
 			}
 		}
@@ -430,8 +430,10 @@ sub onDeleteDomain
 			debug($stderr) if $stderr;
 
 			my $jailBuilder;
-			eval { $jailBuilder = InstantSSH::JailBuilder->new(
-				config => $self->{'config'}, user => $domainData->{'USER'} );
+			eval {
+				$jailBuilder = InstantSSH::JailBuilder->new(
+					config => $self->{'config'}, user => $domainData->{'USER'}
+				);
 			};
 			if($@) {
 				error("Unable to create JailBuilder object: $@");
@@ -519,8 +521,8 @@ sub _init
         $self->{'config'} = decode_json($config->{'InstantSSH'}->{'plugin_config'})
 	}
 
-	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', sub {$self->onUnixUserUpdate(@_) });
-	$self->{'eventManager'}->register('beforeHttpdDelDmn', sub { $self->onDeleteDomain(@_) });
+	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', sub { $self->onUnixUserUpdate(@_); });
+	$self->{'eventManager'}->register('beforeHttpdDelDmn', sub { $self->onDeleteDomain(@_); });
 
 	$self;
 }
@@ -714,7 +716,7 @@ sub _addSshKey
 			$fileContent = $file->get() || '';
 		}
 
-		# Add ssk key in authorized_keys file
+		# Add ssh key in authorized_keys file
 		my $sshKeyReg = quotemeta($sshKeyData->{'ssh_key'});
 		$fileContent =~ s/[^\n]*?$sshKeyReg\n//;
 		$fileContent .= "$sshKeyData->{'ssh_auth_options'} $sshKeyData->{'ssh_key'}\n";
@@ -849,7 +851,7 @@ sub _configurePamChroot
 		}
 
 		$fileContent =~ s/^session\s+required\s+pam_chroot.so(?:\s+debug)?\n//gm;
-		$fileContent .= "session required pam_chroot.so\n" unless $_[1];
+		$fileContent .= "session required pam_chroot.so\n" unless $uninstall;
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;

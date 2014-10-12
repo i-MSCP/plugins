@@ -96,7 +96,7 @@ return array(
 		iMSCP_Registry::get('config')->get('USER_WEB_DIR')
 	),
 
-	// Whether or not files from packages required by packages listed in packages options must be copied whthin the jails
+	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
 	'include_pkg_deps' => false,
 
 	// Selected application sections for jailed shell environments (default: imscpbase)
@@ -123,14 +123,18 @@ return array(
 	//
 	// paths: List of paths which have to be copied inside the jail. Be aware that copy is not recursive.
 	// packages: List of debian packages. Files from those packages will be copied inside the jail
+	// copy_file_to: List of files to copy within the jail, each of them specified as a key/value pairs where the key
+	//               is the source file path and the value, the destination path
 	// include_apps_sections: List of applications sections that have to be included
 	// users: List of users that have to be added inside the jail (eg. in passwd/shadow files)
 	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
 	// preserve_files: Files that have to be preserved when a jail is being updated
 	// devices: List of devices that have to be copied inside the jail
+	// mount: List of directories to mount within the jail, each of them specified as a key/value pair where the key
+	//        corresponds to 'oldir' on the system and the value to 'newdir' within the jail.
 	//
 	// Notes:
-	//  - All options which contain paths (paths, devices) support the glob patterns.
+	//  - The paths and devices options both support the glob patterns.
 	//  - Any path which doesn't exists on the system is ignored
 	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
 	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
@@ -174,6 +178,17 @@ return array(
 		)
 	),
 
+	# mysqlcmdlinetool section
+	# Provide the MySQL command-line tool
+	'mysqlcmdlinetool' => array(
+		'paths' => array(
+			'/usr/bin/mysql', '/etc/mysql'
+		),
+		'copy_file_to' => array(
+			dirname(__FILE__) . '/config/mysql/my.cnf' => '/etc/mysql/my.cnf'
+		)
+	),
+
 	// terminfo section
 	// Provide terminfo databases
 	'terminfo' => array(
@@ -186,7 +201,7 @@ return array(
 	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
 		'include_app_sections' => array(
-			'busyboxshell'
+			'busyboxshell', 'mysqlcmdlinetool'
 		),
 		'users' => array(
 			'root', 'www-data'
