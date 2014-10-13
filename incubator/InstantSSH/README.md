@@ -43,8 +43,8 @@ See the plugin **config.php** file for further details.
 
 ### Plugin usage
 
-The developement of this plugin took me a lot of time, specially the Jailbuilder layer which allows to provide jailed
-shell environements. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
+The developement of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
+shell environments. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
 account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, just don't use this
 plugin.
 
@@ -104,7 +104,8 @@ You can install these packages by executing the following command:
 
 ### Sponsors
 
-  - [Osna-Solution UG](http://portal.osna-solution.de// "Osna-Solution UG")
+  - [Osna-Solution UG](http://portal.osna-solution.de "Osna-Solution UG")
+  - [Sascha Bay aka TheCry](https://github.com/thecry "Sascha Bay")
 
 ### Author(s)
 

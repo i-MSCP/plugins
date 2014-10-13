@@ -234,7 +234,7 @@ sub createParentPath($$;$$$)
 		} elsif(S_ISLNK($sb->mode)) {
 			my $realfile = readlink($origpath);
 
-			symlink($realfile, $jailpath) or die('Unable to create symlink $realfile -> $jailpath');
+			symlink($realfile, $jailpath) or die("Unable to create symlink $jailpath -> $realfile: $!");
 
 			if(index($realfile, '/') == 0) {
 				$jailpath = &createParentPath($chroot, $realfile, $copyPermissions, $allowSuid, $copyOwnership);

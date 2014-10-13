@@ -104,8 +104,7 @@ return array(
 	// This is the list of application sections which are used to create/update the jails (see below).
 	//
 	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
-	// environments using BusyBox. The imscpbase application section also include the editors and the mysqltools
-	// sections
+	// environments using BusyBox. The imscpbase application section also include the editors and the mysqltools sections
 	'app_sections' => array(
 		'imscpbase'
 	),
@@ -122,7 +121,7 @@ return array(
 	//
 	// The following options can be defined in application sections
 	//
-	// paths: List of paths which have to be copied inside the jail. Be aware that copy is not recursive.
+	// paths: List of paths which have to be copied inside the jail. Be aware that copy is not recursive
 	// packages: List of debian packages. Files from those packages will be copied inside the jail
 	// copy_file_to: List of files to copy within the jail, each of them specified as a key/value pairs where the key
 	//               is the source file path and the value, the destination path
@@ -140,7 +139,6 @@ return array(
 	//  - Any path which doesn't exists on the system is ignored
 	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
 	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
-	//  - In case where the /proc directory is added in the paths option, it is mounted instead of be copied.
 	//
 	// Other application sections will be added soon.
 
@@ -166,13 +164,10 @@ return array(
 			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'busybox'
-		),
-		'preserve_files' => array(
-			'/tmp'
+			'busybox', 'uidbasics'
 		),
 		'devices' => array(
-			'/dev/ptmx', '/dev/urandom', '/dev/zero', '/dev/null'
+			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
 		),
 		'mount' => array(
 			'devpts' => '/dev/pts',
@@ -219,7 +214,7 @@ return array(
 	),
 
 	// imscpbase section
-	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell
+	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell environments
 	'imscpbase' => array(
 		'include_app_sections' => array(
 			'busyboxshell', 'editors', 'mysqltools'

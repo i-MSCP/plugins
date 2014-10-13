@@ -851,7 +851,7 @@ sub _configurePamChroot
 		}
 
 		unless($uninstall) {
-			# Remove any pam_motd.so, pam_mail.so and pam_chroot.so related lines
+			# Remove any pam_motd.so and pam_chroot.so lines
 			# Note: Both pam_motd lines must be moved below the pam_chroot line
 			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd|)\.so.*?\n//gm;
 			$fileContent =~ s/^\@include\s+common-password\n//gm;
