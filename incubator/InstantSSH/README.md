@@ -85,8 +85,8 @@ You can install these packages by executing the following command:
 
 #### Ubuntu Lucid
 
-The the **pam_chroot.so** module provided libpam-chroot package from the Ubuntu Lucid repository is buggy. For instance,
-you can see such a log in the /var/log/auth.log:
+The **pam_chroot.so** module provided by the libpam-chroot package from the Ubuntu Lucid repository is buggy.
+For instance, you can see those logs in the /var/log/auth.log:
 
 	...
 	Oct 13 21:04:31 lucid sshd[1509]: PAM unable to dlopen(/lib/security/pam_chroot.so): /lib/security/pam_chroot.so: undefined symbol: __stack_chk_fail_local
@@ -99,7 +99,8 @@ This can be easily fixed by following this procedure:
 	# mkdir libpam-chroot
 	# cd libpam-chroot
 	# apt-get install build-essential devscripts debhelper libpam0g-dev
-	# apt-get source libpam-chroot && cd libpam-chroot*
+	# apt-get source libpam-chroot
+	# cd libpam-chroot*
 
 Then edit the Makefile file to replace the line:
 
