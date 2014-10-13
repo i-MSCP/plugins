@@ -81,6 +81,44 @@ You can install these packages by executing the following command:
 5. Restore your **plugins/InstantSSH/config.php** (compare it with the new version first)
 6. Click on the **Update Plugins** button in the plugin management interface
 
+### Troubleshooting
+
+#### Ubuntu Lucid
+
+The the **pam_chroot.so** module provided libpam-chroot package from the Ubuntu Lucid repository is buggy. For instance,
+you can see such a log in the /var/log/auth.log:
+
+	...
+	Oct 13 21:04:31 lucid sshd[1509]: PAM unable to dlopen(/lib/security/pam_chroot.so): /lib/security/pam_chroot.so: undefined symbol: __stack_chk_fail_local
+	Oct 13 21:04:31 lucid sshd[1509]: PAM adding faulty module: /lib/security/pam_chroot.so
+	...
+
+This can be easily fixed by following this procedure:
+
+	# cd /usr/usr/local
+	# mkdir libpam-chroot
+	# cd libpam-chroot
+	# apt-get install build-essential devscripts debhelper libpam0g-dev
+	# apt-get source libpam-chroot && cd libpam-chroot*
+
+Then edit the Makefile file to replace the line:
+
+	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic
+
+by
+
+	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic -fno-stack-protector
+
+
+Once it's done, you must rebuild and reinstall the package as follow:
+
+	# dpkg-buildpackage -uc -us
+	# cd ..
+	# dpkg -i libpam-chroot_0.9-3_i386.deb
+
+**Refs:**
+  - https://answers.launchpad.net/ubuntu/+source/openssh/+question/33707
+
 ### License
 
 	i-MSCP InstantSSH plugin
