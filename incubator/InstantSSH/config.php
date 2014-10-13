@@ -219,12 +219,6 @@ return array(
 	// imscpbase section
 	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
-		'paths' => array(
-			'/usr/bin/dircolors'
-		),
-		'preserve_files' => array(
-			'/etc/profile'
-		),
 		'include_app_sections' => array(
 			'busyboxshell', 'editors', 'mysqltools'
 		),
