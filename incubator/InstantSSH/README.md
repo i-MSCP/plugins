@@ -73,11 +73,12 @@ You can install these packages by executing the following command:
 
 ### Update
 
-1. Backup your current config file **plugins/InstantSSH/config.php**
-2. Login into the panel as admin and go to the plugin management interface
-3. Upload the **InstantSSH** plugin archive
-4. Restore your **plugins/InstantSSH/config.php** (compare it with the new version first)
-5. Click on the **Update Plugins** button in the plugin management interface
+1. Be sure that all required packages as mentionned in the requirements section are installed on your system
+2. Backup your current config file **plugins/InstantSSH/config.php**
+3. Login into the panel as admin and go to the plugin management interface
+4. Upload the **InstantSSH** plugin archive
+5. Restore your **plugins/InstantSSH/config.php** (compare it with the new version first)
+6. Click on the **Update Plugins** button in the plugin management interface
 
 ### License
 

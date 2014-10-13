@@ -132,7 +132,8 @@ return array(
 	// preserve_files: Files that have to be preserved when a jail is being updated
 	// devices: List of devices that have to be copied inside the jail
 	// mount: List of directories to mount within the jail, each of them specified as a key/value pair where the key
-	//        corresponds to 'oldir' on the system and the value to 'newdir' within the jail.
+	//        corresponds to 'oldir' on the system or the fstype (devpts, proc) and the value to 'newdir' within the
+	//        jail.
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.
@@ -158,16 +159,20 @@ return array(
 	// Provide restricted shell using BusyBox (built-in shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash', '/proc', '/tmp'
+			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'busybox', 'terminfo'
+			'uidbasics', 'busybox'
 		),
 		'preserve_files' => array(
 			'/tmp'
 		),
 		'devices' => array(
-			'/dev/ptmx', '/dev/pty*', '/dev/pts/*', '/dev/tty*', '/dev/urandom', '/dev/zero', '/dev/null'
+			'/dev/ptmx', '/dev/urandom', '/dev/zero', '/dev/null'
+		),
+		'mount' => array(
+			'devpts' => '/dev/pts',
+			'proc' => '/proc'
 		)
 	),
 
@@ -186,6 +191,8 @@ return array(
 			'/usr/bin/mysql', '/etc/mysql', '/usr/bin/mysqldump'
 		),
 		'copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
+			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile',
 			dirname(__FILE__) . '/config/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
@@ -195,6 +202,9 @@ return array(
 	'editors' => array(
 		'paths' => array(
 			'/usr/bin/nano', '/usr/bin/vim'
+		),
+		'include_app_sections' => array(
+			'terminfo'
 		)
 	),
 
@@ -207,8 +217,14 @@ return array(
 	),
 
 	// imscpbase section
-	// Provide pre-selected path, application sections, users and groups for i-MSCP jailed shell
+	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell
 	'imscpbase' => array(
+		'paths' => array(
+			'/usr/bin/dircolors'
+		),
+		'preserve_files' => array(
+			'/etc/profile'
+		),
 		'include_app_sections' => array(
 			'busyboxshell', 'editors', 'mysqltools'
 		),

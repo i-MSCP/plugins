@@ -28,6 +28,8 @@ package InstantSSH::JailBuilder;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
 use iMSCP::File;
 use iMSCP::Dir;
@@ -35,6 +37,7 @@ use iMSCP::Rights;
 use iMSCP::Execute;
 use InstantSSH::JailBuilder::Utils qw(copyDevice normalizePath);
 
+use File::Basename;
 use List::MoreUtils qw(uniq);
 
 use parent 'Common::Object';
@@ -112,24 +115,6 @@ sub makeJail
 	error('Unable to create/update jail for unknown reason') if $rs && !$stderr;
 	return $rs if $rs;
 
-	# Copy devices inside jail
-	for my $devicePattern (@{$jailCfg{'devices'}}) {
-		for my $devicePath(glob $devicePattern) {
-			eval { copyDevice($jailCfg{'chroot'}, $devicePath); };
-
-			if($@) {
-				error("Unable to create device within jail: $@");
-				return 1;
-			}
-		}
-	}
-
-	# Add /proc entry in fstab if needed
-	if(-d "$jailCfg{'chroot'}/proc") {
-		$rs = $self->addFstabEntry("/proc $jailCfg{'chroot'}/proc none bind 0 0");
-		return $rs if $rs;
-	}
-
 	# Copy files specified in the copy_file_to option within the jail
 	while(my ($src, $dst) = each(%{$jailCfg{'copy_file_to'}})) {
 		if(index($src, '/') == 0 && index($dst, '/') == 0) {
@@ -141,16 +126,35 @@ sub makeJail
 		}
 	}
 
+	# Copy devices specified in the devices option within the jail
+	for my $devicePattern (@{$jailCfg{'devices'}}) {
+		for my $devicePath(glob $devicePattern) {
+			eval { copyDevice($jailCfg{'chroot'}, $devicePath); };
+
+			if($@) {
+				error("Unable to create device within jail: $@");
+				return 1;
+			}
+		}
+	}
+
 	# Mount any directory specified in the mount option within the jail and add the needed fstab entries
 	while(my ($oldDir, $newDir) = each(%{$jailCfg{'mount'}})) {
-		if(index($oldDir, '/') == 0 && index($newDir, '/') == 0) {
+		if(($oldDir ~~ ['devpts', 'proc'] || index($oldDir, '/') == 0) && index($newDir, '/') == 0) {
 			$rs = $self->mount($oldDir, $jailCfg{'chroot'} . $newDir);
 			return $rs if $rs;
 
-			$rs = $self->addFstabEntry("$oldDir $jailCfg{'chroot'}$newDir none bind 0 0");
+			my $entry;
+			if($oldDir ~~ ['devpts', 'proc']) {
+				$entry = $oldDir . '-' . basename($jailCfg{'chroot'}) . " $jailCfg{'chroot'}$newDir $oldDir defaults 0 0";
+			} else {
+				$entry = "$oldDir $jailCfg{'chroot'}$newDir none bind 0 0";
+			}
+
+			$rs = $self->addFstabEntry($entry);
 			return $rs if $rs;
 		} else {
-			error("Any directory path specified in the mount option must be absolute");
+			error("Any path in the mount option must be absolute, excepted the oldir value which can also be devpts or proc");
 			return 1;
 		}
 	}
@@ -197,13 +201,6 @@ sub removeJail
 				return 1;
 			}
 		}
-	}
-
-	# Ensure that the proc directory is emtpy if any
-	my $jailProcDir = "$jailCfg{'chroot'}/proc";
-	if(-d $jailProcDir && ! iMSCP::Dir->new( dirname => $jailProcDir )->isEmpty()) {
-		error("Cannot remove jail. Directory $jailProcDir is not empty");
-		return 1;
 	}
 
 	# Remove jail configuration file if any
@@ -545,7 +542,7 @@ sub removeFstabEntry
 
  Mount the given directory in safe way
 
- Param string $oldDir Directory to mount
+ Param string $oldDir Directory or fstype (devpts, proc) to mount
  Param string $newDir Mount point
  Return int 0 on success, other on failure
 
@@ -555,8 +552,8 @@ sub mount
 {
  	my ($self, $oldDir, $newDir) = @_;
 
-	if(-d $oldDir) {
-		if(execute("mount | grep -q ' $newDir '")) {
+	if($oldDir ~~ ['proc', 'devpts'] || -d $oldDir) {
+		if(execute("mount 2>/dev/null | grep -q ' $newDir '")) {
 			unless(-e $newDir) {
 				my $rs = iMSCP::Dir->new(
 					dirname => $newDir
@@ -573,10 +570,17 @@ sub mount
 				return 1;
 			}
 
+			my @cmdArgs;
+			if($oldDir ~~ ['proc', 'devpts']) {
+				@cmdArgs = ('-t', $oldDir, $oldDir . '-' . basename($jailCfg{'chroot'}), $newDir);
+			} else {
+				@cmdArgs = ('--bind', $oldDir, $newDir);
+			}
+
 			my($stdout, $stderr);
-			my $rs = execute("mount --bind $oldDir $newDir", \$stdout, \$stderr);
+			my $rs = execute("mount @cmdArgs", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
+			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
 		}
 	}
