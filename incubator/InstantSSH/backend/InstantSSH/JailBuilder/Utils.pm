@@ -220,13 +220,13 @@ sub createParentPath($$;$$$)
 	# The second part of the function create the missing parts in the jail according the original directory names,
 	# including any symlinks
 	while($i < scalar @spath) {
-		my $origpath = File::Spec->catfile((@spath)[0..$i+1]);
+		my $origpath = File::Spec->catfile((@spath)[0..$i]);
 		my $jailpath = File::Spec->catfile($existpath, $spath[$i]);
 
 		my $sb = File::stat::stat($origpath) or die("InstantSSH::JailBuilder::Utils: Failed to stat on $origpath: $!");
 
 		if(S_ISDIR($sb->mode)) {
-			mkdir($jailpath, 0755) or die("Unable to create $jailpath:, $!");
+			mkdir($jailpath, 0755) or die("Unable to create $jailpath: $!");
 
 			if($copyPermissions) {
 				copyTimeAndPermissions($origpath, $jailpath, $allowSuid, $copyOwnership);
