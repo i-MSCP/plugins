@@ -161,6 +161,10 @@ return array(
 		'paths' => array(
 			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput'
 		),
+		'copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
+			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+		),
 		'include_app_sections' => array(
 			'uidbasics', 'busybox'
 		),
@@ -191,9 +195,7 @@ return array(
 			'/usr/bin/mysql', '/etc/mysql', '/usr/bin/mysqldump'
 		),
 		'copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
-			dirname(__FILE__) . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf',
-			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+			dirname(__FILE__) . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
 
