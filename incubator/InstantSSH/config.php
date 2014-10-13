@@ -156,7 +156,7 @@ return array(
 	),
 
 	// busyboxshell section
-	// Provide restricted shell using BusyBox (built-in shell and common UNIX utilities)
+	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
 			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput'
@@ -192,7 +192,7 @@ return array(
 	# Provide the MySQL command-line tool and the mysqldump program
 	'mysqltools' => array(
 		'paths' => array(
-			'/usr/bin/mysql', '/etc/mysql', '/usr/bin/mysqldump'
+			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'

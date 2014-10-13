@@ -850,8 +850,19 @@ sub _configurePamChroot
 			return 1;
 		}
 
-		$fileContent =~ s/^session\s+required\s+pam_chroot.so(?:\s+debug)?\n//gm;
-		$fileContent .= "session required pam_chroot.so\n" unless $uninstall;
+		unless($uninstall) {
+			# Remove any pam_motd.so, pam_mail.so and pam_chroot.so related lines
+			# Note: Both pam_motd lines must be moved below the pam_chroot line
+			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd|)\.so.*?\n//gm;
+			$fileContent =~ s/^\@include\s+common-password\n//gm;
+
+			$fileContent .= "session required pam_chroot.so debug\n";
+			$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
+			$fileContent .= "session optional pam_motd.so noupdate\n";
+			$fileContent .= "\@include common-password\n";
+		} else {
+			$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
+		}
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;

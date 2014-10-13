@@ -1,6 +1,10 @@
 # /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
 # and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
 
+# Override some environment variables
+HOME=`pwd`
+LANG=C
+
 if [ "`id -u`" -eq 0 ]; then
   PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 else
@@ -24,8 +28,8 @@ if [ "$PS1" ]; then
   fi
 fi
 
-# The default umask is now handled by pam_umask.
-# See pam_umask(8) and /etc/login.defs.
+# Set umask
+umask 027
 
 if [ -d /etc/profile.d ]; then
   for i in /etc/profile.d/*.sh; do
