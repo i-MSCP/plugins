@@ -87,7 +87,7 @@ You can install these packages by executing the following commands:
 
 #### PAM chroot module
 
-The **Pam Chroot** module shipped with some libpam-chroot package versions (eg. Ubuntu Lucid) doesn't work as expected.
+The **PAM chroot** module shipped with some libpam-chroot package versions (eg. Ubuntu Lucid) doesn't work as expected.
 For instance, You can see the following logs in the /var/log/auth.log file:
 
 	...
