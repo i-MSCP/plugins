@@ -32,18 +32,18 @@ appearing in the the default authentication string must also be specified in the
 The Jailed shells allow you to provide SSH access to your customers in a secured and restricted environment from which
 they can theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
-Several commands can be added into the customers jails by simply adding the needed application sections into the
-**app_sections configuration option**.
+Several commands can be added into the jails by simply adding the needed application sections into the **app_sections**
+configuration option.
 
-The default configuration comes with a set of preselected application sections which allow to setup a very
-restricted jailed shell environment. This environment is setup by using busybox which combines tiny versions of many
-common UNIX utilities into a single small executable.
+The default configuration comes with a set of preselected application sections which allow to setup a very restricted
+jailed shell environment. This environment is setup by using busybox which combines tiny versions of many common UNIX
+utilities into a single small executable.
 
 See the plugin **config.php** file for further details.
 
 ### Plugin usage
 
-The developement of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
+The development of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
 shell environments. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
 account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, just don't use this
 plugin.
@@ -53,13 +53,13 @@ plugin.
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
 * openSSH server with public key authentication support enabled
 
-#### Debian / Ubuntu packages to install before installing this plugin
+#### Debian / Ubuntu packages
 
 * busybox
 * libpam-chroot
 * makejail
 
-You can install these packages by executing the following command:
+You can install these packages by executing the following commands:
 
 	# aptitude update
 	# aptitude install busybox libpam-chroot makejail
@@ -76,7 +76,7 @@ You can install these packages by executing the following command:
 
 ### Update
 
-1. Be sure that all required packages as mentionned in the requirements section are installed on your system
+1. Be sure that all required packages as mentioned in the requirements section are installed on your system
 2. Backup your current config file **plugins/InstantSSH/config.php**
 3. Login into the panel as admin and go to the plugin management interface
 4. Upload the **InstantSSH** plugin archive
