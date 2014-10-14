@@ -77,7 +77,7 @@ sub makeJail
 	return $rs if $rs;
 
 	unless(iMSCP::Dir->new( dirname => $self->{'jailCfg'}->{'chroot'} )->isEmpty()) {
-		# Any directory which is mounted within the jail must be umounted prior any update
+		# Any directory/file which is mounted within the jail must be umounted prior any update
 		$rs = $self->umount($self->{'jailCfg'}->{'chroot'});
 		return $rs if $rs;
 
@@ -125,7 +125,7 @@ sub makeJail
 		}
 	}
 
-	# Mount any directory specified in the mount option within the jail and add the needed fstab entries
+	# Mount any directory/file specified in the mount option within the jail and add the needed fstab entries
 	while(my ($oldDir, $newDir) = each(%{$self->{'jailCfg'}->{'mount'}})) {
 		if(($oldDir ~~ ['devpts', 'proc'] || index($oldDir, '/') == 0) && index($newDir, '/') == 0) {
 			$rs = $self->mount($oldDir, $self->{'jailCfg'}->{'chroot'} . $newDir);
@@ -142,7 +142,7 @@ sub makeJail
 			$rs = $self->addFstabEntry($entry);
 			return $rs if $rs;
 		} else {
-			error("Any path in the mount option must be absolute, excepted the oldir value which can also be devpts or proc");
+			error("Any path speficied in the mount option must be absolute, excepted the oldir value which can also be devpts or proc");
 			return 1;
 		}
 	}
@@ -528,9 +528,9 @@ sub removeFstabEntry
 
 =item mount($oldDir, $newDir)
 
- Mount the given directory in safe way
+ Mount the given directory or file or devpts|proc fstype in safe way
 
- Param string $oldDir Directory or fstype (devpts, proc) to mount
+ Param string $oldDir Directory/file or devpts/proc fstype to mount
  Param string $newDir Mount point
  Return int 0 on success, other on failure
 
@@ -540,21 +540,31 @@ sub mount
 {
  	my ($self, $oldDir, $newDir) = @_;
 
-	if($oldDir ~~ ['proc', 'devpts'] || -d $oldDir) {
-		if(execute("mount 2>/dev/null | grep -q ' $newDir '")) {
-			unless(-e $newDir) {
-				my $rs = iMSCP::Dir->new(
-					dirname => $newDir
-				)->make(
-					{
-						user => $main::imscpConfig{'ROOT_USER'},
-						group => $main::imscpConfig{'ROOT_GROUP'},
-						mode => 0555
-					}
-				);
+	if($oldDir ~~ ['proc', 'devpts'] || (-d $oldDir || -f _)) {
+		if(execute("mount 2>/dev/null | grep -q ' $newDir '")) { # Don't do anything if the mount point already exists
+			unless(-e $newDir) { # Don't create $newdir if it already exists
+				my $rs = 0;
+
+				if($oldDir ~~ ['proc', 'devpts'] || -d $oldDir) {
+					my $rs = iMSCP::Dir->new(
+						dirname => $newDir
+					)->make(
+						{
+							user => $main::imscpConfig{'ROOT_USER'},
+							group => $main::imscpConfig{'ROOT_GROUP'},
+							mode => 0555
+						}
+					);
+				} else {
+					my $file = iMSCP::File->new( filename => $newDir );
+					$rs = $file->save();
+					$rs ||= $file->mode(0444);
+					$rs ||= $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
+				}
+
 				return $rs if $rs;
-			} elsif(! -d _) {
-				error('Cannot mount $oldDir on $newDir: $newDir is not a directory');
+			} elsif(! -d _ && ! -f _) { # Enssure that $newDir is valid
+				error('Cannot mount $oldDir on $newDir: $newDir is not a directory nor a regular file');
 				return 1;
 			}
 
@@ -660,7 +670,7 @@ sub _init
 					$self->{'jailCfg'}->{'chroot'} = $self->{'config'}->{'root_jail_dir'} .
 						(($self->{'config'}->{'shared_jail'}) ? '/shared_jail' : "/$self->{'user'}");
 				} else {
-					die("InstantSSH::JailBuilder: Path specified in the root_jail_dir option must be absolute");
+					die("InstantSSH::JailBuilder: The root_jail_dir option must specify an absolute path");
 				}
 			} else {
 				die("InstantSSH::JailBuilder: The root_jail_dir option is not defined");

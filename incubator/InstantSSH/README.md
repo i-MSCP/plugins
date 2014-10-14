@@ -64,7 +64,9 @@ You can install these packages by executing the following command:
 	# aptitude update
 	# aptitude install busybox libpam-chroot makejail
 
-**Note:** If a package is not installed on your system, the plugin will thrown an error.
+**Notes:**
+  - If a package is not installed on your system, the plugin installer throws an error
+  - If you have any problem with the PAM chroot module read the **Troubleshooting** section below
 
 ### Installation
 
@@ -83,26 +85,27 @@ You can install these packages by executing the following command:
 
 ### Troubleshooting
 
-#### Ubuntu Lucid
+#### PAM chroot module
 
-The **pam_chroot.so** module provided by the libpam-chroot package from the Ubuntu Lucid repository is buggy.
-For instance, you can see those logs in the /var/log/auth.log:
+The **Pam Chroot** module shipped with some libpam-chroot package versions (eg. Ubuntu Lucid) doesn't work as expected.
+For instance, You can see the following logs in the /var/log/auth.log file:
 
 	...
 	Oct 13 21:04:31 lucid sshd[1509]: PAM unable to dlopen(/lib/security/pam_chroot.so): /lib/security/pam_chroot.so: undefined symbol: __stack_chk_fail_local
 	Oct 13 21:04:31 lucid sshd[1509]: PAM adding faulty module: /lib/security/pam_chroot.so
 	...
 
-This can be easily fixed by following this procedure:
+You can fix this easily by following this procedure:
 
-	# cd /usr/usr/local
-	# mkdir libpam-chroot
-	# cd libpam-chroot
-	# apt-get install build-essential devscripts debhelper libpam0g-dev
+1. Get the libpam-chroot package source and install some tools
+
+	# cd /usr/local/src
+	# mkdir libpam-chroot && cd libpam-chroot
+	# apt-get install build-essential debhelper libpam0g-dev
 	# apt-get source libpam-chroot
 	# cd libpam-chroot*
 
-Then edit the Makefile file to replace the line:
+2. Edit the **Makefile** file to replace the line:
 
 	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic
 
@@ -110,15 +113,11 @@ by
 
 	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic -fno-stack-protector
 
-
-Once it's done, you must rebuild and reinstall the package as follow:
+3. Rebuild and reinstall the package as follow:
 
 	# dpkg-buildpackage -uc -us
 	# cd ..
-	# dpkg -i libpam-chroot_0.9-3_i386.deb
-
-**Refs:**
-  - https://answers.launchpad.net/ubuntu/+source/openssh/+question/33707
+	# dpkg -i dpkg -i libpam-chroot*.deb
 
 ### License
 

@@ -130,9 +130,9 @@ return array(
 	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
 	// preserve_files: Files that have to be preserved when a jail is being updated
 	// devices: List of devices that have to be copied inside the jail
-	// mount: List of directories to mount within the jail, each of them specified as a key/value pair where the key
-	//        corresponds to 'oldir' on the system or the fstype (devpts, proc) and the value to 'newdir' within the
-	//        jail.
+	// mount: List of directory/file to mount within the jail, each of them specified as a key/value pair where the key
+	//        corresponds to 'oldir/oldfile' on the system or the fstype (devpts, proc) and the value to 'newdir/newfile'
+	// within the jail.
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.
@@ -157,7 +157,7 @@ return array(
 	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput'
+			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
@@ -171,7 +171,8 @@ return array(
 		),
 		'mount' => array(
 			'devpts' => '/dev/pts',
-			'proc' => '/proc'
+			'proc' => '/proc',
+			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
 		)
 	),
 

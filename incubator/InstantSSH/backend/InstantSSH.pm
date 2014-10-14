@@ -852,14 +852,26 @@ sub _configurePamChroot
 
 		unless($uninstall) {
 			# Remove any pam_motd.so and pam_chroot.so lines
-			# Note: Both pam_motd lines must be moved below the pam_chroot line
+			# Note: pam_motd lines must be moved below the pam_chroot declaration because we want read motd from jail
 			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd|)\.so.*?\n//gm;
-			$fileContent =~ s/^\@include\s+common-password\n//gm;
 
 			$fileContent .= "session required pam_chroot.so debug\n";
 			$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
-			$fileContent .= "session optional pam_motd.so noupdate\n";
-			$fileContent .= "\@include common-password\n";
+
+			# The pam_motd module shipped with libpam-modules versions oldest than 1.1.3-7 doesn't provide the
+			# 'noupdate' option. Thus, we must check the package version
+
+			my ($stdout, $stderr);
+			my $rs = execute('dpkg-query --show --showformat \'${Version}\' libpam-modules', \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $rs && $stderr;
+			return $rs if $rs;
+
+			my $ret = execute("dpkg --compare-versions $stdout lt 1.1.3-7", \$stdout, \$stderr);
+			error($stderr) if $stderr;
+			return 1 if $stderr;
+
+			$fileContent .= ($ret) ? "session optional pam_motd.so noupdate\n" : "session optional pam_motd.so\n";
 		} else {
 			$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
 		}
