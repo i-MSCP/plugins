@@ -33,6 +33,7 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use File::Basename ();
 use Cwd ();
 use lib Cwd::realpath(File::Basename::dirname(__FILE__));
+use lib Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
 
 use iMSCP::Debug;
 use iMSCP::Database;
@@ -42,6 +43,7 @@ use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
+use Unix::PasswdFile;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -584,17 +586,27 @@ sub _addSshPermissions
 		my $homeDir = normalizePath($homeDir);
 		$homeDir .= '/./' if $sshPermissionData->{'ssh_permission_jailed_shell'};
 
-		my ($stdout, $stderr);
-		my @cmd = (
-			"$main::imscpConfig{'CMD_USERMOD'}",
-			"-d $homeDir",
-			"-s $shell",
-			escapeShell($sshPermissionData->{'admin_sys_name'})
-		);
-		my $rs = execute("@cmd", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		debug($stderr) if $stderr && $rs;
-		$rs;
+		my $pw = Unix::PasswdFile->new('/etc/passwd');
+		$pw->home($sshPermissionData->{'admin_sys_name'}, $homeDir);
+		$pw->shell($sshPermissionData->{'admin_sys_name'}, $shell);
+		unless($pw->commit()) {
+			error('Unable to update user properties');
+			return 1;
+		} else {
+			return 0;
+		}
+
+		#my ($stdout, $stderr);
+		#my @cmd = (
+		#	"$main::imscpConfig{'CMD_USERMOD'}",
+		#	"-d $homeDir",
+		#	"-s $shell",
+		#	escapeShell($sshPermissionData->{'admin_sys_name'})
+		#);
+		#my $rs = execute("@cmd", \$stdout, \$stderr);
+		#debug($stdout) if $stdout;
+		#debug($stderr) if $stderr && $rs;
+		#return $rs;
 	} else {
 		error("Unable to find $sshPermissionData->{'admin_sys_name'} user homedir");
 		return 1;
@@ -631,16 +643,24 @@ sub _removeSshPermissions
 
 		# Set the user homedir and shell back to default values
 
-		@cmd = (
-			"$main::imscpConfig{'CMD_USERMOD'}",
-			"-d $homeDir",
-			'-s /bin/false',
-			escapeShell($sshPermissionData->{'admin_sys_name'})
-		);
-		my $rs = execute("@cmd", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		debug($stderr) if $stderr && $rs;
-		return $rs if $rs;
+		my $pw = Unix::PasswdFile->new('/etc/passwd');
+		$pw->home($sshPermissionData->{'admin_sys_name'}, $homeDir);
+		$pw->shell($sshPermissionData->{'admin_sys_name'}, '/bin/false');
+		unless($pw->commit()) {
+			error('Unable to update user properties');
+			return 1;
+		}
+
+		#@cmd = (
+		#	"$main::imscpConfig{'CMD_USERMOD'}",
+		#	"-d $homeDir",
+		#	'-s /bin/false',
+		#	escapeShell($sshPermissionData->{'admin_sys_name'})
+		#);
+		#my $rs = execute("@cmd", \$stdout, \$stderr);
+		#debug($stdout) if $stdout;
+		#debug($stderr) if $stderr && $rs;
+		#return $rs if $rs;
 
 		# Remove user from jail (also the jail if per user jail)
 		if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
@@ -655,7 +675,7 @@ sub _removeSshPermissions
 				return 1;
 			}
 
-			$rs = ($self->{'config'}->{'shared_jail'}) ? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
+			my $rs = ($self->{'config'}->{'shared_jail'}) ? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
 			return $rs if $rs;
 		}
 
