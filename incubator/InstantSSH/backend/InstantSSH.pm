@@ -572,7 +572,7 @@ sub _addSshPermissions
 			return $rs if $rs;
 		} elsif($jailBuilder->existsJail()) {
 			# Ensure that user is not jailed (tochange case)
-			my $rs = ($sshPermissionData->{'shared_jail'}) ?
+			my $rs = ($self->{'config'}->{'shared_jail'}) ?
 				$jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
 			return $rs if $rs;
 		}
