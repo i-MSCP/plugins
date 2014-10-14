@@ -32,8 +32,8 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 use File::Basename ();
 use Cwd ();
-use lib Cwd::realpath(File::Basename::dirname(__FILE__));
-use lib Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
+use lib Cwd::realpath(File::Basename::dirname(__FILE__)),
+	Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
 
 use iMSCP::Debug;
 use iMSCP::Database;
