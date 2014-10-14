@@ -64,7 +64,7 @@ You can install these packages by executing the following command:
 	# aptitude update
 	# aptitude install busybox libpam-chroot makejail
 
-**Notes:**
+**Notes**
   - If a package is not installed on your system, the plugin installer throws an error
   - If you have any problem with the PAM chroot module read the **Troubleshooting** section below
 
@@ -97,15 +97,13 @@ For instance, You can see the following logs in the /var/log/auth.log file:
 
 You can fix this easily by following this procedure:
 
-1. Get the libpam-chroot package source and install some tools
-
 	# cd /usr/local/src
 	# mkdir libpam-chroot && cd libpam-chroot
 	# apt-get install build-essential debhelper libpam0g-dev
 	# apt-get source libpam-chroot
 	# cd libpam-chroot*
 
-2. Edit the **Makefile** file to replace the line:
+Edit the **Makefile** file to replace the line:
 
 	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic
 
@@ -113,7 +111,7 @@ by
 
 	CFLAGS=-fPIC -O2 -Wall -Werror -pedantic -fno-stack-protector
 
-3. Rebuild and reinstall the package as follow:
+Rebuild and reinstall the package as follow:
 
 	# dpkg-buildpackage -uc -us
 	# cd ..
