@@ -5,10 +5,15 @@
 # OS: GNU/Linux
 # Version: 0.0.5
 #
-# WARNING: This is a modified version which is shipped with the i-MSCP InstantSSH plugin
+# WARNING:
+# This is a modified version shipped with the i-MSCP InstantSSH plugin
+# Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+#
 # Modifications:
 # - Fixed: for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283
 # - Fixed: Do not try to umount /proc if it is umounted
+# - Fixed: Deprecation warning: The popen2 module is deprecated. Use the subprocess module.
+# - Disabled: Loading of default configuration file (eg. /etc/makejail/makejail.conf)
 
 # Required unusual external programs:
 # strace (package strace)
@@ -101,7 +106,8 @@ import string
 import os
 import shutil
 import types
-import popen2
+#import popen2
+from subprocess import Popen, PIPE
 import tempfile
 import re
 import glob
@@ -468,9 +474,12 @@ def makeNonBlocking(fd):
 
 def execute(command):
 	debug("  Executing : %s" % command)
-	child=popen2.Popen3(command,1)
-	child.tochild.close()
-	files=(child.fromchild,child.childerr)
+
+	#child=popen2.Popen3(command,1)
+	p = Popen(command, bufsize=1, stdin=None, stdout=PIPE, stderr=PIPE, close_fds=True, shell=True)
+	#child.tochild.close()
+	#files=(child.fromchild,child.childerr)
+	files=(p.stdout,p.stderr)
 	fds=[files[0].fileno(),files[1].fileno()]
 	for fd in fds:
 		makeNonBlocking(fd)
@@ -495,7 +504,8 @@ def execute(command):
 		if finished==[1,1]:
 			break
 		select.select([],[],[],.05)
-	errCode=child.wait()
+	#errCode=child.wait()
+	errCode=p.wait()
 	if errCode:
 		debug("  WARNING: exit code %i" % errCode)
 	return datas[0]
@@ -1048,8 +1058,8 @@ if __name__=="__main__":
 	except IndexError:
 		abort("Usage: %s package\n\tpackage is the name of an installed package\n\t(a configuration file must exist in %s)" % (sys.argv[0],config.etcFile))
 
-	if os.path.isfile(config.etcFile):
-		loadConfig(config.etcFile)
+	#if os.path.isfile(config.etcFile):
+	#	loadConfig(config.etcFile)
 
 	loadConfig(configFile)
 

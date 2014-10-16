@@ -2,10 +2,19 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 2.0.2
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Deprecation warning: The popen2 module is deprecated ( makejail )
+	Fixed: The <jail>/etc/profile file is no longer sourced after i-MSCP reconfiguration ( umask 027 )
+	Fixed: Unable to delete customer accounts which doesn't have SSH permissions ( onDeleteDomain event listener )
+	Fixed: Wrong mode set on <jail>/etc/* files ( copy_file_to option )
+
+------------------------------------------------------------------------------------------------------------------------
 Version 2.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Unable to add/remove SSH permissions when the targeted user is already used by UNIX process
+	Fixed: Unable to add/remove SSH permissions when the targeted user is executing an UNIX process
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.0.0
@@ -33,7 +42,7 @@ Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Configuration option allowing to define which SSH authentication options can be overriden by customers
-	Added: SSH authentication options validator and converter (string to array and vice versa)
+	Added: SSH authentication options validator and converter ( string to array and vice versa )
 	Fixed: All keys are shown in datatable whatever the owner
 	Fixed: SSH users are not logged out when SSH permissions are revoked
 	Fixed: Unable to delete customer account
@@ -43,9 +52,9 @@ Version 1.0.0
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Checkbox remain checked whatever the value from database (ssh permissions UI)
+	Fixed: Checkbox remain checked whatever the value from database ( SSH permissions UI )
 	Fixed: Customer shouldn't be able to edit full SSH key. Only key options must be editable
-	Fixed: Number of bound variables does not match... (ssh permissions UI - edit action)
+	Fixed: Number of bound variables does not match... ( SSH permissions UI - edit action )
 	Fixed: Unregistered data 'navigation'
 
 ------------------------------------------------------------------------------------------------------------------------

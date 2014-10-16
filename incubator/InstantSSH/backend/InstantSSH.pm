@@ -2,7 +2,7 @@
 
 =head1 NAME
 
- Plugin::InstantSSH;
+ Plugin::InstantSSH
 
 =cut
 
@@ -33,7 +33,7 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use File::Basename ();
 use Cwd ();
 use lib Cwd::realpath(File::Basename::dirname(__FILE__)),
-	Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
+        Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
 
 use iMSCP::Debug;
 use iMSCP::Database;
@@ -73,7 +73,7 @@ sub install
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	$rs =$self->_configurePamChroot();
+	$rs = $self->_configurePamChroot();
 	return $rs if $rs;
 
 	$self->_configureBusyBox();
@@ -107,7 +107,9 @@ sub uninstall
 	my $rs = $self->run();
 	return $rs if $rs;
 
-	if(-d "$self->{'config'}->{'root_jail_dir'}/shared_jail") {
+	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+
+	if(-d "$rootJailDir/shared_jail") {
 		my $jailBuilder;
 		eval { $jailBuilder = InstantSSH::JailBuilder->new( config => $self->{'config'}, user => 'root'); };
 		if($@) {
@@ -119,7 +121,7 @@ sub uninstall
 		return $rs if $rs;
 	}
 
-	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'root_jail_dir'} )->remove();
+	$rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
 	return $rs if $rs;
 
 	$rs = $self->_configurePamChroot('uninstall');
@@ -182,20 +184,15 @@ sub change
 {
 	my $self = $_[0];
 
-	my $jailRootDir = $self->{'config'}->{'root_jail_dir'};
+	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
-	# Retrieve list of jails
-	my @jailDirs = iMSCP::Dir->new( dirname => $jailRootDir )->getDirs();
+	my @jailDirs = iMSCP::Dir->new( dirname => $rootJailDir )->getDirs(); # Retrieve list of jails
 
 	if(@jailDirs) {
 		for my $jailDir(@jailDirs) {
 			my %fakeCfg = %{$self->{'config'}};
 
-			if ($jailDir eq 'shared_jail') {
-				$fakeCfg{'shared_jail'} = 1;
-			} else {
-				$fakeCfg{'shared_jail'} = 0;
-			}
+			$fakeCfg{'shared_jail'} = ($jailDir eq 'shared_jail') ? 1 : 0;
 
 			my $jailBuilder;
 			eval {
@@ -277,6 +274,7 @@ sub run
 	}
 
 	unless($sth->execute()) {
+		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
 		error("Couldn't execute prepared statement: " . $dbh->errstr);
 		return 1;
 	}
@@ -351,6 +349,7 @@ sub run
 	}
 
 	unless($sth->execute()) {
+		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item so we force retval
 		error("Couldn't execute prepared statement: " . $dbh->errstr);
 		return 1;
 	}
@@ -409,7 +408,7 @@ sub run
 
 =item onDeleteDomain(\%data)
 
- Event listener which is responsible to remove SSH permission prior domain deletion (customer account)
+ Event listener which is responsible to remove SSH permissions prior domain deletion (customer account)
 
  Param hash $domainData Domain data
  Return int 0 on success, other on failure
@@ -423,41 +422,46 @@ sub onDeleteDomain
 	if($domainData->{'DOMAIN_TYPE'} eq 'dmn') {
 		my $homeDir = (getpwnam($domainData->{'USER'}))[7];
 
-		if(defined $homeDir && -d "$homeDir/.ssh") {
-			# Force logout of ssh login if any
-			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($domainData->{'USER'}), 'sshd');
-			my ($stdout, $stderr);
-			execute("@cmd", \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			debug($stderr) if $stderr;
+		if(defined $homeDir) {
+			$homeDir = normalizePath($homeDir);
 
-			my $jailBuilder;
-			eval {
-				$jailBuilder = InstantSSH::JailBuilder->new(
-					config => $self->{'config'}, user => $domainData->{'USER'}
+			if(-d "$homeDir/.ssh") {
+				# Force logout of ssh login if any
+				my @cmd = (
+					$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($domainData->{'USER'}), 'sshd'
 				);
-			};
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
+				my ($stdout, $stderr);
+				execute("@cmd", \$stdout, \$stderr);
+				debug($stdout) if $stdout;
+				debug($stderr) if $stderr;
 
-			if($jailBuilder->existsJail()) {
-				my $rs = ($self->{'config'}->{'shared_jail'})
-					? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
+				my $jailBuilder;
+				eval {
+					$jailBuilder = InstantSSH::JailBuilder->new(
+						config => $self->{'config'}, user => $domainData->{'USER'}
+					);
+				};
+				if($@) {
+					error("Unable to create JailBuilder object: $@");
+					return 1;
+				}
+
+				if($jailBuilder->existsJail()) {
+					my $rs = ($self->{'config'}->{'shared_jail'})
+						? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
+					return $rs if $rs;
+				}
+
+				my $isProtectedHomeDir = isImmutable($homeDir);
+
+				clearImmutable($homeDir) if $isProtectedHomeDir;
+				clearImmutable("$homeDir/.ssh/authorized_keys") if -f "$homeDir/.ssh/authorized_keys";
+
+				my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
 				return $rs if $rs;
+
+				setImmutable($homeDir) if $isProtectedHomeDir;
 			}
-
-			# Remove $HOME/.ssh directory
-			my $isProtectedHomeDir = isImmutable($homeDir);
-
-			clearImmutable($homeDir) if $isProtectedHomeDir;
-			clearImmutable("$homeDir/.ssh/authorized_keys") if -f "$homeDir/.ssh/authorized_keys";
-
-			my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
-			return $rs if $rs;
-
-			setImmutable($homeDir) if $isProtectedHomeDir;
 		} else {
 			error("Unable to find $domainData->{'USER'} unix user homedir");
 			return 1;
@@ -583,30 +587,18 @@ sub _addSshPermissions
 		my $shell = ($sshPermissionData->{'ssh_permission_jailed_shell'})
 			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
 
-		my $homeDir = normalizePath($homeDir);
+		$homeDir = normalizePath($homeDir);
 		$homeDir .= '/./' if $sshPermissionData->{'ssh_permission_jailed_shell'};
 
 		my $pw = Unix::PasswdFile->new('/etc/passwd');
 		$pw->home($sshPermissionData->{'admin_sys_name'}, $homeDir);
 		$pw->shell($sshPermissionData->{'admin_sys_name'}, $shell);
 		unless($pw->commit()) {
-			error('Unable to update user properties');
+			error("Unable to update $sshPermissionData->{'admin_sys_name'} unix user properties");
 			return 1;
 		} else {
 			return 0;
 		}
-
-		#my ($stdout, $stderr);
-		#my @cmd = (
-		#	"$main::imscpConfig{'CMD_USERMOD'}",
-		#	"-d $homeDir",
-		#	"-s $shell",
-		#	escapeShell($sshPermissionData->{'admin_sys_name'})
-		#);
-		#my $rs = execute("@cmd", \$stdout, \$stderr);
-		#debug($stdout) if $stdout;
-		#debug($stderr) if $stderr && $rs;
-		#return $rs;
 	} else {
 		error("Unable to find $sshPermissionData->{'admin_sys_name'} user homedir");
 		return 1;
@@ -647,20 +639,9 @@ sub _removeSshPermissions
 		$pw->home($sshPermissionData->{'admin_sys_name'}, $homeDir);
 		$pw->shell($sshPermissionData->{'admin_sys_name'}, '/bin/false');
 		unless($pw->commit()) {
-			error('Unable to update user properties');
+			error("Unable to update $sshPermissionData->{'admin_sys_name'} unix user properties");
 			return 1;
 		}
-
-		#@cmd = (
-		#	"$main::imscpConfig{'CMD_USERMOD'}",
-		#	"-d $homeDir",
-		#	'-s /bin/false',
-		#	escapeShell($sshPermissionData->{'admin_sys_name'})
-		#);
-		#my $rs = execute("@cmd", \$stdout, \$stderr);
-		#debug($stdout) if $stdout;
-		#debug($stderr) if $stderr && $rs;
-		#return $rs if $rs;
 
 		# Remove user from jail (also the jail if per user jail)
 		if($sshPermissionData->{'ssh_permission_jailed_shell'}) {
@@ -675,7 +656,8 @@ sub _removeSshPermissions
 				return 1;
 			}
 
-			my $rs = ($self->{'config'}->{'shared_jail'}) ? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
+			my $rs = ($self->{'config'}->{'shared_jail'})
+				? $jailBuilder->removeUserFromJail() : $jailBuilder->removeJail();
 			return $rs if $rs;
 		}
 
@@ -839,10 +821,14 @@ sub _checkRequirements
 
 	for my $package (qw/busybox libpam-chroot makejail/) {
 		my ($stdout, $stderr);
-		my $rs = execute("dpkg -s $package", \$stdout, \$stderr);
+		my $rs = execute(
+			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
+		);
 		debug($stdout) if $stdout;
-		error("The $_ package is not installed on your system") if $rs;
-		$ret |= $rs;
+		if($stdout ne 'installed') {
+			error("The $_ package is not installed on your system");
+			$ret ||= 1;
+		}
 	}
 
 	$ret;

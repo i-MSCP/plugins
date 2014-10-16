@@ -2,7 +2,7 @@
 
 =head1 NAME
 
- InstantSSH::JailBuilder::Utils;
+ InstantSSH::JailBuilder::Utils
 
 =cut
 

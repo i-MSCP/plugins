@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v2.0.1
+## i-MSCP InstantSSH plugin v2.0.2
 
 Plugin allowing to provide full or jailed shell access to your customers.
 
@@ -71,19 +71,20 @@ You can install these packages by executing the following commands:
 ### Installation
 
 1. Login into the panel as admin and go to the plugin management interface
-2. Upload the **InstantSSH** plugin archive
+2. Upload the plugin archive
 3. Activate the plugin
 
 ### Update
 
 1. Be sure that all required packages as mentioned in the requirements section are installed on your system
-2. Backup your current config file **plugins/InstantSSH/config.php**
+2. Backup your **plugins/InstantSSH/config.php** configuration file
 3. Login into the panel as admin and go to the plugin management interface
-4. Upload the **InstantSSH** plugin archive
-5. Restore your **plugins/InstantSSH/config.php** (compare it with the new version first)
-6. Click on the **Update Plugins** button in the plugin management interface
+4. Deactivate the plugin
+5. Upload the plugin archive
+6. Restore your **plugins/InstantSSH/config.php** configuration file (compare it with the new version first)
+7. Activate the plugin
 
-### Troubleshooting
+### Troubleshootings
 
 #### PAM chroot module
 
