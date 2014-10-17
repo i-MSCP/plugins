@@ -141,7 +141,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	{
 		try {
 			exec_query(
-				'UPDATE instant_ssh_permissions SET ssh_permission_status = ?', 'todelete'
+				'UPDATE cron_permissions SET cron_permission_status = ?', 'todelete'
 			);
 		} catch (iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
@@ -167,8 +167,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	/**
 	 * onAfterChangeDomainStatus listener
 	 *
-	 * When a customer account is being activated, we schedule reactivation of SSH feature
-	 * When a customer account is being deactivated, we schedule deactivation of SSH feature
+	 * When a customer account is being activated, we schedule reactivation of cron feature
+	 * When a customer account is being deactivated, we schedule deactivation of cron feature
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void

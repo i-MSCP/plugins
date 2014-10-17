@@ -24,6 +24,6 @@ return array(
 	'version' => '0.0.1',
 	'date' => '2014-10-17',
 	'name' => 'CronJobs',
-	'desc' => 'Plugin implementing a cron time-based job scheduler for i-MSCP',
+	'desc' => 'Plugin implementing a cron time-based job scheduler for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:cronjobs'
 );
