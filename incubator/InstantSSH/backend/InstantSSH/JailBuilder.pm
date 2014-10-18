@@ -211,7 +211,7 @@ sub removeJail
 
 =item existsJail()
 
- Does the jail already exists
+ Does the jail already exists?
 
  Return bool TRUE if the jail already exists, FALSE otherwise
 
@@ -236,7 +236,7 @@ sub addUserToJail
 
 	my ($user, $group, $homeDir) = ($self->{'user'}, $self->{'group'}, $self->{'homedir'});
 
-	if($user ne 'root') {
+	if($user ne 'nobody') {
 		my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
 		unless(-d $jailedHomedir) {
@@ -244,12 +244,12 @@ sub addUserToJail
 			my $rs = iMSCP::Dir->new(
 				dirname => $jailedHomedir
 			)->make(
-				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0555 }
+				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
 			);
 			return $rs if $rs;
 
 			# Set owner/group for jailed homedir
-			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0555' });
+			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
 			return $rs if $rs;
 		}
 
@@ -313,7 +313,7 @@ sub removeUserFromJail
 
 	my ($user, $group, $homeDir) = ($self->{'user'}, $self->{'group'}, $self->{'homedir'});
 
-	if($user ne 'root') {
+	if($user ne 'nobody') {
 		my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
 		if(-d $self->{'jailCfg'}->{'chroot'}) {
@@ -556,7 +556,7 @@ sub mount
 				my $rs = 0;
 
 				if($oldDir ~~ ['proc', 'devpts'] || -d $oldDir) {
-					my $rs = iMSCP::Dir->new(
+					$rs = iMSCP::Dir->new(
 						dirname => $newDir
 					)->make(
 						{
@@ -654,22 +654,27 @@ sub _init
 		users => [], groups => [], devices => [], mount => {}
 	};
 
-	if($self->{'user'}) {
-		my @pwEntry = getpwnam($self->{'user'});
+	if($self->{'user'} && $self->{'user'} ne 'root') {
+		if('user' ne 'nobody') {
+			my @pwEntry = getpwnam($self->{'user'});
 
-		unless(@pwEntry) {
-			die("InstantSSH::JailBuilder: Unable to find $self->{'user'} unix user");
-			return 1;
-		}
+			unless(@pwEntry) {
+				die("InstantSSH::JailBuilder: Unable to find $self->{'user'} unix user");
+				return 1;
+			}
 
-		$self->{'user'} = $pwEntry[0];
-		$self->{'homedir'} = normalizePath($pwEntry[7]);
+			$self->{'user'} = $pwEntry[0];
+			$self->{'homedir'} = normalizePath($pwEntry[7]);
+			$self->{'group'} = getgrgid($pwEntry[3]);
 
-		$self->{'group'} = getgrgid($pwEntry[3]);
-
-		unless(defined $self->{'group'}) {
-			die("InstantSSH::JailBuilder: Unable to find $self->{'user'} unix user group");
-			return 1;
+			unless(defined $self->{'group'}) {
+				die("InstantSSH::JailBuilder: Unable to find $self->{'user'} unix user group");
+				return 1;
+			}
+		} else {
+			$self->{'user'} = 'nobody';
+			$self->{'homedir'} = '/nonexistent';
+			$self->{'group'} = 'nogroup';
 		}
 
 		if(exists $self->{'config'} && ref $self->{'config'} eq 'HASH') {
@@ -687,7 +692,11 @@ sub _init
 			die("InstantSSH::JailBuilder: Missing config parameter")
 		}
 	} else {
-		die("InstantSSH::JailBuilder: Missing user parameter");
+		if($self->{'user'} && $self->{'user'} eq 'root') {
+			die("InstantSSH::JailBuilder: Usage of the root user is not allowed");
+		} else {
+			die("InstantSSH::JailBuilder: Missing user parameter");
+		}
 	}
 
 	$self;
@@ -709,7 +718,7 @@ sub _buildMakejailCfgfile
 
 	if(exists $cfg->{'preserve_files'}) {
 		if(ref $cfg->{'preserve_files'} eq 'ARRAY') {
-			@{$self->{'jailCfg'}->{'preserve_files'}} = @{$cfg->{'preserve_files'}} if exists $cfg->{'preserve_files'};
+			@{$self->{'jailCfg'}->{'preserve_files'}} = @{$cfg->{'preserve_files'}};
 		} else {
 			error("The preserve_files option must be an array");
 			return 1;
@@ -721,7 +730,6 @@ sub _buildMakejailCfgfile
 	}
 
 	if(exists $cfg->{'app_sections'}) {
-		# Process sections as defined in app_sections configuration options.
 		if(ref $cfg->{'app_sections'} eq 'ARRAY') {
 			for my $section(@{$cfg->{'app_sections'}}) {
 				if(exists $cfg->{$section}) {
@@ -828,7 +836,7 @@ sub _handleAppsSection()
 	for my $option(qw/paths packages devices preserve_files users groups/) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
-				for my $item (@{$cfg->{$section}->{$option}}) {
+				for my $item(@{$cfg->{$section}->{$option}}) {
 					push @{$self->{'jailCfg'}->{$option}}, $item;
 				}
 

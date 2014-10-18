@@ -104,24 +104,23 @@ sub uninstall
 {
 	my $self = $_[0];
 
-	my $rs = $self->run();
-	return $rs if $rs;
-
 	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
+	# Delete shared jail if any
 	if(-d "$rootJailDir/shared_jail") {
 		my $jailBuilder;
-		eval { $jailBuilder = InstantSSH::JailBuilder->new( config => $self->{'config'}, user => 'root'); };
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( config => $self->{'config'}, user => 'nobody' ); };
 		if($@) {
 			error("Unable to create JailBuilder object: $@");
 			return 1;
 		}
 
-		$rs = $jailBuilder->removeJail();
+		my $rs = $jailBuilder->removeJail();
 		return $rs if $rs;
 	}
 
-	$rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
+	# Delete root jail directory
+	my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
 	return $rs if $rs;
 
 	$rs = $self->_configurePamChroot('uninstall');
@@ -142,9 +141,15 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $qrs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'toenable'");
-	unless(ref $qrs eq 'HASH') {
-		error($qrs);
+	my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_permissions SET ssh_permission_status = 'toenable'");
+	unless(ref $rs eq 'HASH') {
+		error($rs);
+		return 1;
+	}
+
+	$rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'toenable'");
+	unless(ref $rs eq 'HASH') {
+		error($rs);
 		return 1;
 	}
 
@@ -163,13 +168,22 @@ sub disable
 {
 	my $self = $_[0];
 
-	my $qrs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'todisable'");
-	unless(ref $qrs eq 'HASH') {
-		error($qrs);
+	my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_permissions SET ssh_permission_status = 'todisable'");
+	unless(ref $rs eq 'HASH') {
+		error($rs);
 		return 1;
 	}
 
-	$self->run();
+	$rs = $self->run();
+	return $rs if $rs;
+
+	$rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_keys SET ssh_key_status = 'disabled'");
+	unless(ref $rs eq 'HASH') {
+		error($rs);
+		return 1;
+	}
+
+	0;
 }
 
 =item change
@@ -184,57 +198,43 @@ sub change
 {
 	my $self = $_[0];
 
-	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
-	my @jailDirs = iMSCP::Dir->new( dirname => $rootJailDir )->getDirs(); # Retrieve list of jails
+		my @jailDirs = iMSCP::Dir->new( dirname => $rootJailDir )->getDirs(); # Retrieve list of jails
 
-	if(@jailDirs) {
-		for my $jailDir(@jailDirs) {
-			my %fakeCfg = %{$self->{'config'}};
+		if(@jailDirs) {
+			for my $jailDir(@jailDirs) {
+				my %fakeCfg = %{$self->{'config'}};
 
-			$fakeCfg{'shared_jail'} = ($jailDir eq 'shared_jail') ? 1 : 0;
+				$fakeCfg{'shared_jail'} = ($jailDir eq 'shared_jail') ? 1 : 0;
 
-			my $jailBuilder;
-			eval {
-				$jailBuilder = InstantSSH::JailBuilder->new(
-					config => { %fakeCfg }, user => ($jailDir eq 'shared_jail') ? 'root' : $jailDir
-				);
-			};
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
+				my $jailBuilder;
+				eval {
+					$jailBuilder = InstantSSH::JailBuilder->new(
+						config => { %fakeCfg }, user => ($jailDir eq 'shared_jail') ? 'nobody' : $jailDir
+					);
+				};
+				if($@) {
+					error("Unable to create JailBuilder object: $@");
+					return 1;
+				}
 
-			if(
-				($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
-				(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
-			) {
-				my $rs = $jailBuilder->makeJail(); # Update jail
-				return $rs if $rs;
-			} else {
-				my $rs = $jailBuilder->removeJail(); # Remove jail
-				return $rs if $rs;
+				if(
+					($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
+					(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
+				) {
+					my $rs = $jailBuilder->makeJail(); # Update jail
+					return $rs if $rs;
+				} else {
+					my $rs = $jailBuilder->removeJail(); # Remove jail
+					return $rs if $rs;
+				}
 			}
 		}
 	}
 
-	my $qrs = $self->{'db'}->doQuery(
-		'dummy',
-		"
-			UPDATE
-				instant_ssh_permissions
-			SET
-				ssh_permission_status = 'tochange'
-			WHERE
-				ssh_permission_status NOT IN ('toadd', 'todelete')
-		"
-	);
-	unless(ref $qrs eq 'HASH') {
-		error($qrs);
-		return 1;
-	}
-
-	$self->run();
+	0;
 }
 
 =item run()
@@ -264,7 +264,7 @@ sub run
 			INNER JOIN
 				admin AS t2 ON(admin_id = ssh_permission_admin_id)
 			WHERE
-				ssh_permission_status in('toadd', 'tochange', 'todelete')
+				ssh_permission_status in('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 		"
 	);
 	unless($sth) {
@@ -284,7 +284,7 @@ sub run
 
 		my @sql;
 
-		if($sshPermissionStatus ~~ ['toadd', 'tochange']) {
+		if($sshPermissionStatus ~~ ['toadd', 'tochange', 'toenable']) {
 			$rs = $self->_addSshPermissions($sshPermissionData);
 			@sql = (
 				'dummy',
@@ -294,14 +294,23 @@ sub run
 			);
 
 			$customerShells{$sshPermissionData->{'admin_sys_name'}} = $sshPermissionData->{'ssh_permission_jailed_shell'};
-		} elsif($sshPermissionStatus eq 'todelete') {
+		} elsif($sshPermissionStatus ~~ ['todisable', 'todelete']) {
 			$rs = $self->_removeSshPermissions($sshPermissionData);
 			unless($rs) {
-				@sql = (
-					'dummy',
-					'DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?',
-					$sshPermissionData->{'ssh_permission_id'}
-				);
+				if($sshPermissionStatus eq 'todisable') {
+					@sql = (
+						'dummy',
+						'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_id = ?',
+						'disabled',
+						$sshPermissionData->{'ssh_permission_id'}
+					);
+				} else {
+					@sql = (
+						'dummy',
+						'DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?',
+						$sshPermissionData->{'ssh_permission_id'}
+					);
+				}
 			} else {
 				@sql = (
 					'dummy',
@@ -372,7 +381,7 @@ sub run
 				if($sshKeyStatus eq 'todisable') {
 					@sql = (
 						'dummy', 'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_id = ?',
-						($rs ? scalar getMessageByType('error') : 'disabled'),
+						'disabled',
 						$sshKeyData->{'ssh_key_id'}
 					);
 				} else {
@@ -488,7 +497,7 @@ sub onUnixUserUpdate
 
 	if(exists $customerShells{$user}) {
 		if($customerShells{$user}) {
-			$$homeDir .= '/./';
+			$$homeDir = normalizePath($$homeDir) . '/./';
 			$$shell = $self->{'config'}->{'shells'}->{'jailed'};
 		} else {
 			$$shell = $self->{'config'}->{'shells'}->{'normal'};
@@ -522,9 +531,9 @@ sub _init
 		'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'InstantSSH'"
 	);
 	unless(ref $config eq 'HASH') {
-        die("InstantSSH: $config");
+		die("InstantSSH: $config");
 	} else {
-        $self->{'config'} = decode_json($config->{'InstantSSH'}->{'plugin_config'})
+		$self->{'config'} = decode_json($config->{'InstantSSH'}->{'plugin_config'})
 	}
 
 	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', sub { $self->onUnixUserUpdate(@_); });

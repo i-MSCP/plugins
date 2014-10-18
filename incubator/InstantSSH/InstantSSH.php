@@ -206,24 +206,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			exec_query(
-				'UPDATE instant_ssh_permissions SET ssh_permission_status = ?', 'todelete'
-			);
-		} catch (iMSCP_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Plugin deletion
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function delete(iMSCP_Plugin_Manager $pluginManager)
-	{
-		try {
 			$this->migrateDb('down');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to delete: %s', $e->getMessage()), $e->getCode(), $e);
@@ -242,19 +224,17 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function onAfterChangeDomainStatus($event)
 	{
 		$customerId = $event->getParam('customerId');
-		$action = $event->getParam('action');
+		$action = ($event->getParam('action') == 'activate');
 
-		if ($action == 'activate') {
-			exec_query(
-				'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_admin_id = ?',
-				array('toenable', $customerId)
-			);
-		} else {
-			exec_query(
-				'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_admin_id = ?',
-				array('todisable', $customerId)
-			);
-		}
+		exec_query(
+			'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_admin_id = ?',
+			array(($action == 'activate') ? 'toenable' : 'todisable', $customerId)
+		);
+
+		exec_query(
+			'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_admin_id = ?',
+			array(($action == 'activate') ? 'toenable' : 'disabled', $customerId)
+		);
 	}
 
 	/**
@@ -268,8 +248,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			"
 			SELECT
 				ssh_permission_id AS item_id, ssh_permission_status AS status,
-				CONCAT('SSH permssions for ', admin_name) as item_name, 'instant_ssh_permissions' AS `table`,
-				'ssh_permission_status' AS `field`
+				CONCAT('SSH permssions for: ', admin_name, '( ', admin_type, ' )') as item_name,
+				'instant_ssh_permissions' AS `table`, 'ssh_permission_status' AS `field`
 			FROM
 				instant_ssh_permissions
 			INNER JOIN

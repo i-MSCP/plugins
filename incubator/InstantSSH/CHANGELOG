@@ -2,6 +2,16 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 2.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+	Added: /bin/false path to the busyboxshell application section
+	Changed: Do not process jails update on i-MSCP update/reconfiguration
+	Changed: Usage of the nobody user as fake user in place of root user ( InstantSSH::JailBuilder )
+	Fixed: Unable to connect through SSH after i-MSCP reconfiguration when the plugin has been deactivated
+	Review: Permissions for user homedirs within jails ( mountpoint )
+
+------------------------------------------------------------------------------------------------------------------------
 Version 2.0.2
 ------------------------------------------------------------------------------------------------------------------------
 

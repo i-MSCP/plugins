@@ -233,7 +233,7 @@ function instantssh_addSshPermissions()
 }
 
 /**
- * Add/Update SSH permissions
+ * Delete SSH permissions
  *
  * @return void
  */
@@ -280,14 +280,14 @@ function instantssh_deleteSshPermissions()
 /**
  * Search customer
  *
- * Only customer which doesn't have ssh permissions already set are returned.
+ * Note: Only customer which doesn't have ssh permissions already set are returned.
  *
  * @return void
  */
 function instantssh_searchCustomer()
 {
 	if (isset($_GET['term'])) {
-		$term = encode_idna(clean_input($_GET['term'])) . "%";
+		$term = encode_idna(clean_input($_GET['term'])) . '%';
 
 		try {
 			$stmt = exec_query(
@@ -329,7 +329,7 @@ function instantssh_searchCustomer()
 }
 
 /**
- * Get SSH permission list
+ * Get SSH permissions list
  *
  * @return void
  */

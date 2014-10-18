@@ -157,7 +157,7 @@ return array(
 	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
 	'busyboxshell' => array(
 		'paths' => array(
-			'/bin/ash', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
+			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
