@@ -56,7 +56,9 @@
 					<td>
 						<select name="cron_permission_type" id="cron_permission_type">
 							<option value="url">Url</option>
+							<!-- BDP: cron_permission_jailed -->
 							<option value="jailed">Jailed</option>
+							<!-- EDP: cron_permission_jailed -->
 							<option value="full">Full</option>
 						</select>
 					</td>

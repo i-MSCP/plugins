@@ -36,6 +36,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
+				iMSCP_Events::onBeforeDisablePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
@@ -131,6 +132,37 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeDisablePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeDisablePlugin($event)
+	{
+		if ($event->getParam('pluginName') === 'InstantSSH') {
+			/** @var iMSCP_Plugin_Manager $pluginManager */
+			$pluginManager = iMSCP_Registry::get('pluginManager');
+
+			if($pluginManager->isPluginInstalled($this->getName())) {
+				$stmt = exec_query(
+					'SELECT COUNT(cron_permission_id) AS cnt FROM cron_permissions WHERE cron_permission_type = ?',
+					'jailed'
+				);
+				$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+
+				if($row['cnt']) {
+					set_page_message(
+						tr('InstantSSH plugin is required by the %s plugin. You cannot disable it', $this->getName()),
+						'error'
+					);
+
+					$event->stopPropagation();
+				}
+			}
+		}
+	}
+
+	/**
 	 * Plugin uninstallation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -202,8 +234,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			"
 			SELECT
 				cron_permission_id AS item_id, cron_permission_status AS status,
-				CONCAT('Cron permssions for ', admin_name) as item_name, 'cron_permissions' AS `table`,
-				'cron_permission_status' AS `field`
+				CONCAT('Cron permssions for: ', admin_name, '( ', admin_type, ' )') as item_name,
+				'cron_permissions' AS `table`, 'cron_permission_status' AS `field`
 			FROM
 				cron_permissions
 			INNER JOIN

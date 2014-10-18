@@ -470,7 +470,8 @@ $tpl->define_dynamic(
 	array(
 		'layout' => 'shared/layouts/ui.tpl',
 		'page' => '../../plugins/CronJobs/themes/default/view/admin/cron_permissions.tpl',
-		'page_message' => 'layout'
+		'page_message' => 'layout',
+		'cron_permission_jailed' => 'page'
 	)
 );
 
@@ -489,6 +490,16 @@ $tpl->assign(
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations()
 	)
 );
+
+/** @var iMSCP_Plugin_Manager $pluginManager */
+$pluginManager = iMSCP_Registry::get('pluginManager');
+if($pluginManager->isPluginKnown('InstantSSH')) {
+	$info = $pluginManager->getPluginInfo('InstantSSH');
+
+	if(! $pluginManager->isPluginEnabled('InstantSSH') || version_compare($info['version'], '2.0.2', '<')) {
+		$tpl->assign('CRON_PERMISSION_JAILED', '');
+	}
+}
 
 generateNavigation($tpl);
 generatePageMessage($tpl);
