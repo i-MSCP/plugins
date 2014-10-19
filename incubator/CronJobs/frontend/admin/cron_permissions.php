@@ -108,7 +108,7 @@ function cronjobs_addCronPermissions()
 		isset($_POST['cron_permission_frequency'])
 	) {
 		$cronPermissionId = intval($_POST['cron_permission_id']);
-		$adminName = encode_idna(clean_input($_POST['admin_name']));
+		$adminName = clean_input($_POST['admin_name']);
 		$cronPermissionType = clean_input($_POST['cron_permission_type']);
 		$cronPermissionFrequency = clean_input($_POST['cron_permission_frequency']);
 
@@ -116,10 +116,7 @@ function cronjobs_addCronPermissions()
 			_cronjobs_sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		} elseif (!is_number($cronPermissionFrequency)) {
 			_cronjobs_sendJsonResponse(
-				400,
-				array(
-					'message' => tr("Wrong value for the 'Job frequency' field. Please, enter a number.")
-				)
+				400, array('message' => tr("Wrong value for the 'Job frequency' field. Please, enter a number."))
 			);
 		}
 
@@ -129,13 +126,13 @@ function cronjobs_addCronPermissions()
 			$db->beginTransaction();
 
 			if (!$cronPermissionId) { // Add cron permissions
-				exec_query(
+				$stmt = exec_query(
 					'
 						INSERT INTO cron_permissions(
 							cron_permission_admin_id, cron_permission_type, cron_permission_frequency,
 							cron_permission_status
 						) SELECT
-							admin_id, ?, ?, ?, ?
+							admin_id, ?, ?, ?
 						FROM
 							admin
 						WHERE
@@ -143,16 +140,17 @@ function cronjobs_addCronPermissions()
 					',
 					array($cronPermissionType, $cronPermissionFrequency, 'ok', $adminName)
 				);
+				if($stmt->rowCount()) {
+					$db->commit();
 
-				$db->commit();
+					send_request();
 
-				send_request();
+					write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
 
-				write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
-
-				_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were added.')));
+					_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were added.')));
+				}
 			} else { // Update cron permissions
-				exec_query(
+				$stmt = exec_query(
 					'
 						UPDATE
 							cron_permissions
@@ -161,16 +159,17 @@ function cronjobs_addCronPermissions()
 						WHERE
 							cron_permission_id = ?
 					',
-					array($cronPermissionType, $cronPermissionFrequency, 'tochange', $cronPermissionId)
+					array($cronPermissionType, $cronPermissionFrequency, 'ok', $cronPermissionId)
 				);
+				if($stmt->rowCount()) {
+					$db->commit();
 
-				$db->commit();
+					send_request();
 
-				send_request();
+					write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
 
-				write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
-
-				_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for update.')));
+					_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were updated.')));
+				}
 			}
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
@@ -257,7 +256,7 @@ function cronjobs_searchReseller()
 						admin_type = ?
 					AND
 						admin_id NOT IN(SELECT cron_permission_admin_id FROM cron_permissions)
-					',
+				',
 				array($term, 'reseller')
 			);
 
@@ -272,7 +271,7 @@ function cronjobs_searchReseller()
 
 			_cronjobs_sendJsonResponse(200, $responseData);
 		} catch (iMSCP_Exception_Database $e) {
-			write_log(sprintf('CronJobs: Unable to search customer: %s', $e->getMessage()), E_USER_ERROR);
+			write_log(sprintf('CronJobs: Unable to search reseller: %s', $e->getMessage()), E_USER_ERROR);
 
 			_cronjobs_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
@@ -330,10 +329,10 @@ function cronjobs_getCronPermissionsList()
 		}
 
 		/* Filtering */
-		$where = '';
+		$where = "WHERE admin_type = 'reseller'";
 
 		if ($_REQUEST['sSearch'] != '') {
-			$where .= 'WHERE (';
+			$where .= 'AND (';
 
 			for ($i = 0; $i < $nbColumns; $i++) {
 				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
@@ -371,7 +370,18 @@ function cronjobs_getCronPermissionsList()
 		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
-		$resultTotal = execute_query("SELECT COUNT($indexColumn) FROM $table");
+		$resultTotal = execute_query(
+			"
+				SELECT
+					COUNT($indexColumn)
+				FROM
+					$table
+				INNER JOIN
+					admin ON(admin_id = cron_permission_admin_id)
+				WHERE
+					admin_type = 'reseller'
+			"
+		);
 		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
 		$total = $resultTotal[0];
 
@@ -394,6 +404,8 @@ function cronjobs_getCronPermissionsList()
 					$row[$columns[$i]] = tohtml(decode_idna($data[$columns[$i]]));
 				} elseif($columns[$i] == 'cron_permission_type') {
 					$row[$columns[$i]] = tohtml(ucfirst($data[$columns[$i]]));
+				} elseif($columns[$i] == 'cron_permission_frequency') {
+					$row[$columns[$i]] = tohtml(ucfirst($data[$columns[$i]])) . ' ' . tr('minutes');
 				} elseif ($columns[$i] == 'cron_permission_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
 				} else {
@@ -499,6 +511,8 @@ if($pluginManager->isPluginKnown('InstantSSH')) {
 	if(! $pluginManager->isPluginEnabled('InstantSSH') || version_compare($info['version'], '2.0.2', '<')) {
 		$tpl->assign('CRON_PERMISSION_JAILED', '');
 	}
+} else {
+	$tpl->assign('CRON_PERMISSION_JAILED', '');
 }
 
 generateNavigation($tpl);

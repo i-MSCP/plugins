@@ -8,7 +8,7 @@ TODO (Plugin under development)
 
 ### Requirements
 
-* i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
+* i-MSCP >= 1.1.15 (plugin API >= 0.2.12)
 * InstantSSH plugin >= 2.0.2 (only if you want jailed cronjobs support)
 
 ### Installation

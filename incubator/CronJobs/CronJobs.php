@@ -36,7 +36,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
-				iMSCP_Events::onBeforeDisablePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
@@ -44,6 +43,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			),
 			$this
 		);
+
+		$eventManager->registerListener(iMSCP_Events::onBeforeDisablePlugin, $this, 10);
 	}
 
 	/**
@@ -139,7 +140,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeDisablePlugin($event)
 	{
-		if ($event->getParam('pluginName') === 'InstantSSH') {
+		if ($event->getParam('pluginName') == 'InstantSSH') {
 			/** @var iMSCP_Plugin_Manager $pluginManager */
 			$pluginManager = iMSCP_Registry::get('pluginManager');
 
@@ -330,9 +331,9 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		$pluginName = $this->getName();
 
 		return array(
-			'/admin/cron/permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_permissions.php',
-			'/reseller/cron/permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cron_permissions.php',
-			'/client/cron/jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cron_jobs.php'
+			'/admin/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_permissions.php',
+			'/reseller/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cron_permissions.php',
+			'/client/cron_jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cron_jobs.php'
 		);
 	}
 
@@ -374,7 +375,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.11', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.12', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -399,8 +400,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			if ($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('Cron Permissions'),
-						'uri' => '/admin/cron/permissions',
+						'label' => tr('Cron permissions'),
+						'uri' => '/admin/cron_permissions',
 						'title_class' => 'settings',
 						'order' => 9
 					)
@@ -410,8 +411,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 
 				$page->addPage(
 					array(
-						'label' => tr('Cron Permissions'),
-						'uri' => '/reseller/cron/permissions',
+						'label' => tr('Cron permissions'),
+						'uri' => '/reseller/cron_permissions',
 						'title_class' => 'settings',
 						'order' => 7,
 						//'privilege_callback' => array(
@@ -427,8 +428,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 
 				$page->addPage(
 					array(
-						'label' => tr('Cron Jobs'),
-						'uri' => '/client/cron/jobs',
+						'label' => tr('Cron jobs'),
+						'uri' => '/client/cron_jobs',
 						'title_class' => 'tools',
 						//'privilege_callback' => array(
 						//	'name' => function () use ($self) {

@@ -23,13 +23,13 @@ return array(
 		CREATE TABLE IF NOT EXISTS cron_permissions (
 			cron_permission_id INT(10) unsigned AUTO_INCREMENT NOT NULL,
 			cron_permission_admin_id INT(10) unsigned NOT NULL,
-			cron_permission_type enum('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
+			cron_permission_type ENUM('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
 			cron_permission_frequency INT(10) NOT NULL DEFAULT 5,
-			cron_permission_status varchar(255) NOT NULL,
+			cron_permission_status VARCHAR(255) NOT NULL,
 			PRIMARY KEY cron_permission_id (cron_permission_id),
 			UNIQUE KEY cron_permission_admin_id (cron_permission_admin_id),
 			CONSTRAINT cron_permission_admin_id FOREIGN KEY (cron_permission_admin_id)
-  				REFERENCES admin (admin_id) ON DELETE CASCADE
+				REFERENCES admin (admin_id) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '

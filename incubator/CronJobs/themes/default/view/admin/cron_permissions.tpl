@@ -12,8 +12,8 @@
 		<thead>
 		<tr>
 			<th>Reseller Name</th>
-			<th>Job Type</th>
-			<th>Job Frequency</th>
+			<th>Cron Job Type</th>
+			<th>Cron Job Frequency</th>
 			<th>Status</th>
 			<th>Actions</th>
 		</tr>
@@ -21,8 +21,8 @@
 		<tfoot>
 		<tr>
 			<td>Reseller Name</td>
-			<td>Job Type</td>
-			<td>Job Frequency</td>
+			<td>Cron Job Type</td>
+			<td>Cron Job Frequency</td>
 			<td>Status</td>
 			<td>Actions</td>
 		</tr>
@@ -50,7 +50,7 @@
 				<tr>
 					<td>
 						<label for="cron_permission_type">
-							Job type <span class="icon i_help" title="TODO">&nbsp;</span>
+							Job type <span class="icon i_help" title="Allowed job types">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -66,7 +66,8 @@
 				<tr>
 					<td>
 						<label for="cron_permission_frequency">
-							Job frequency <span class="icon i_help" title="TODO">&nbsp;</span>
+							Job frequency <span class="icon i_help" title="Minimum time interval between each job execution">&nbsp;</span>
+							<span style="display: block">(In minutes)</span>
 						</label>
 					</td>
 					<td>
@@ -98,7 +99,7 @@
 		return $.ajax({
 			dataType: "json",
 			type: rType,
-			url: "/admin/cron/permissions?action=" + action,
+			url: "/admin/cron_permissions?action=" + action,
 			data: data,
 			timeout: 5000
 		});
@@ -119,7 +120,7 @@
 			bProcessing: true,
 			bServerSide: true,
 			"pagingType": "simple",
-			sAjaxSource: "/admin/cron/permissions?action=get_cron_permissions_list",
+			sAjaxSource: "/admin/cron_permissions?action=get_cron_permissions_list",
 			bStateSave: true,
 			aoColumnDefs: [
 				{ bSortable: false, bSearchable: false, aTargets: [ 3, 4 ] }
@@ -149,7 +150,7 @@
 		});
 
 		$("#admin_name").autocomplete({
-			source: "/admin/cron/permissions?action=search_reseller",
+			source: "/admin/cron_permissions?action=search_reseller",
 			minLength: 2,
 			delay: 500,
 			autoFocus: true,

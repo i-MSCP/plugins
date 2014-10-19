@@ -22,20 +22,20 @@ return array(
 	'up' => "
 		CREATE TABLE IF NOT EXISTS cron_jobs (
 			cron_job_id INT(10) unsigned AUTO_INCREMENT NOT NULL,
-			cron_job_permission_id INT(10) unsigned NOT NULL,
+			cron_job_permission_id INT(10) unsigned DEFAULT NULL,
 			cron_job_admin_id INT(10) unsigned NOT NULL,
-			cron_job_type enum('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
+			cron_job_type ENUM('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
 			cron_job_command TEXT,
-  			cron_job_minute VARCHAR(255) NULL,
-  			cron_job_hour VARCHAR(255) NULL,
-  			cron_job_dmonth VARCHAR(255) NULL,
-  			cron_job_month VARCHAR(255) NULL,
-  			cron_job_dweek VARCHAR(255) NULL,
-  			cron_job_notification VARCHAR(255) NULL,
-  			cron_job_status varchar(255) NOT NULL,
+			cron_job_minute VARCHAR(255) NULL,
+			cron_job_hour VARCHAR(255) NULL,
+			cron_job_dmonth VARCHAR(255) NULL,
+			cron_job_month VARCHAR(255) NULL,
+			cron_job_dweek VARCHAR(255) NULL,
+			cron_job_notification VARCHAR(255) NULL,
+			cron_job_status varchar(255) NOT NULL,
 			PRIMARY KEY cron_job_id (cron_job_id),
 			CONSTRAINT cron_job_permission_id FOREIGN KEY (cron_job_permission_id)
-  				REFERENCES cron_permissions (cron_permission_id) ON DELETE CASCADE
+				REFERENCES cron_permissions (cron_permission_id) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '
