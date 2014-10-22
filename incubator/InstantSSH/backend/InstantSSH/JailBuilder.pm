@@ -173,8 +173,8 @@ sub removeJail
 	return $rs if $rs;
 
 	# Remove jail configuration file if any
-	if(-f "$cfg->{'makejail_confdir'}/$jailId.py") {
-		$rs = iMSCP::File->new( filename => "$cfg->{'makejail_confdir'}/$jailId.py" )->delFile();
+	if(-f "$cfg->{'makejail_confdir_path'}/$jailId.py") {
+		$rs = iMSCP::File->new( filename => "$cfg->{'makejail_confdir_path'}/$jailId.py" )->delFile();
 		return $rs if $rs;
 	}
 
