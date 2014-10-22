@@ -1,60 +1,90 @@
-## i-MSCP CronJobs plugin v0.0.1
+# i-mscp cronjobs plugin v0.0.1
 
-Plugin implementing a cron time-based job scheduler for i-MSCP.
+plugin implementing a cron time-based job scheduler for i-MSCP.
 
-### Introduction
+WARNING: This plugin is still under development, not ready for use
 
-TODO (Plugin under development)
+## introduction
 
-### Requirements
+Administrators give cron permissions to their reseller, and the resellers give cron permissions to their customers
+according their own permissions. This is a cascading permissions level.  For instance a reseller will be able to give
+the full cronjob permission to a customer only if he has also this permission.
 
-* i-MSCP >= 1.1.15 (plugin API >= 0.2.12)
-* InstantSSH plugin >= 2.0.2 (only if you want jailed cronjobs support)
+The administrators can also add their own cron jobs using their own interface. Their interface differ from the customer
+interface in sense that they can setup the unix user to use for the command execution.
 
-### Installation
+### Cronjob types
 
-1. Login into the panel as admin and go to the plugin management interface
-2. Upload the plugin archive
-3. Activate the plugin
+Three types of cronjobs can be added which are in order: **Url**, **Jailed** and **Full**.
 
-### Update
+The jailed type is available and functional only when the InstantSSH plugin is also installed on the system. Thus, this
+is a pre-requirement for use of jailed cronjob types.
 
-1. Backup your **plugins/CronJobs/config.php** configuration file
-2. Login into the panel as admin and go to the plugin management interface
-3. Deactivate the plugin
-4. Upload the plugin archive
-5. Restore your **plugins/CronJobs/config.php** configuration file (compare it with the new version first)
-6. Activate the plugin
+#### Url cronjob
 
-### Plugin usage
+This cronjob type allow to schedule commands which should be run through Wget. The command must be a valid URL.
 
-The development of this plugin took me a lot of time. Thus, I would ask a small contribution for use of this plugin by
-doing a donation on my paypal account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want
+#### Jailed cronjob
+
+This cronjob type allow to confine execution of a command through sh, in a jailed environment. Thus, any needed binary
+should be available inside the jail, else, the command will fail. By default the plugin will create a specific jailed
+environment which provides Perl, PHP and all the standard commands.
+
+#### Full cronjob
+
+This cronjob type is identical to the jailed cronjob type, excepted the fact that the command is not run in a jailed
+environment. Giving to an untrusted customer the permissions to add such a cronjob is not really safe and can lead to
+several security issue on your system.
+
+## Requirements
+
+* i-mscp >= 1.1.15 (plugin api >= 0.2.12)
+* instantssh plugin >= 2.0.2 (only if you want enable support for jailed cronjobs)
+
+## Installation
+
+1. login into the panel as admin and go to the plugin management interface
+2. upload the plugin archive
+3. activate the plugin
+
+## Update
+
+1. backup your **plugins/cronjobs/config.php** configuration file
+2. login into the panel as admin and go to the plugin management interface
+3. deactivate the plugin
+4. upload the plugin archive
+5. restore your **plugins/cronjobs/config.php** configuration file (compare it with the new version first)
+6. activate the plugin
+
+## Plugin usage
+
+the development of this plugin took me a lot of time. thus, i would ask a small contribution for use of this plugin by
+doing a donation on my paypal account ( paypal@nuxwin.com ). if you don't understand such asks, or if you do not want
 donate, just don't use this plugin.
 
-### License
+## License
 
-	i-MSCP CronJobs plugin
-	Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+	i-mscp cronjobs plugin
+	copyright (c) 2014 laurent declercq <l.declercq@nuxwin.com>
 
-	This library is free software; you can redistribute it and/or
- 	modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either
-	version 2.1 of the License, or (at your option) any later version.
+	this library is free software; you can redistribute it and/or
+ 	modify it under the terms of the gnu lesser general public
+	license as published by the free software foundation; either
+	version 2.1 of the license, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Lesser General Public License for more details.
+	this library is distributed in the hope that it will be useful,
+	but without any warranty; without even the implied warranty of
+	merchantability or fitness for a particular purpose.  see the gnu
+	lesser general public license for more details.
 
-	You should have received a copy of the GNU Lesser General Public
-	License along with this library; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+	you should have received a copy of the gnu lesser general public
+	license along with this library; if not, write to the free software
+	foundation, inc., 51 franklin street, fifth floor, boston, ma  02110-1301  usa
 
- See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+ see [lgpl v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "lgpl v2.1")
 
-### Sponsors
+## Sponsors
 
-### Author(s)
+## Author(s)
 
- * Laurent Declercq <l.declercq@nuxwin.com>
+ * laurent declercq <l.declercq@nuxwin.com>
