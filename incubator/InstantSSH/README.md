@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v2.0.3
+## i-MSCP InstantSSH plugin v2.0.4
 
 Plugin allowing to provide full or jailed shell access to your customers.
 
