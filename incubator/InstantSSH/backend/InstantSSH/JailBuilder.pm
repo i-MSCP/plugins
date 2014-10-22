@@ -645,7 +645,7 @@ sub _init
 		users => [], groups => [], devices => [], mount => {}
 	};
 
-	unless(defined $self->{'id'} && $self->{'id'} =~ /^\[a-z0-9]+/i) {
+	if(defined $self->{'id'} && $self->{'id'} =~ /^[a-z0-9]+/i) {
 		if(defined $self->{'config'} && ref $self->{'config'} eq 'HASH') {
 			unless(defined $self->{'config'}->{'makejail_path'} && -f $self->{'config'}->{'makejail_path'}) {
 				die("InstantSSH::JailBuilder: Missing or wrong makejail_path parameter");
