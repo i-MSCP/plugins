@@ -89,7 +89,7 @@
 			<tr>
 				<td><label for="cron_job_user">User</label></td>
 				<td>
-					<input type="text" name="cron_job_user" id="cron_job_user" value="roots" />
+					<input type="text" name="cron_job_user" id="cron_job_user" value="root" />
 					<div><small>User under which command must be executed</small></div>
 				</td>
 			</tr>

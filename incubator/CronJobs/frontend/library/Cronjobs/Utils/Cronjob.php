@@ -21,12 +21,14 @@
 namespace Cronjobs\Utils;
 
 use Cronjobs\Exception\CronjobException;
+use Zend_Uri_Http as HttpUri;
 
 /**
  * Class Cronjob
- * @package Cronjobs\Utils
  *
- * Note: Most of the code is borrowed to the WCF framework ( @copyright	2001-2014 WoltLab GmbH )
+ * Note: Most of the code has been borrowed to the WCF framework ( @copyright 2001-2014 WoltLab GmbH )
+ *
+ * @package Cronjobs\Utils
  */
 final class Cronjob
 {
@@ -171,10 +173,14 @@ final class Cronjob
 		}
 
 		if($type == 'url') {
-			$uriValidator = new \iMSCP_Validate_Uri();
+			try {
+				$httpUri = HttpUri::fromString($command);
 
-			if(!$uriValidator->isValid($command)) {
-				throw new CronjobException("command for Url cronjob must be a valid URL");
+				if(!$httpUri->valid($command)) {
+					throw new CronjobException("command for Url cronjob must be a valid Http URL");
+				}
+			} catch(\Exception $e) {
+				throw new CronjobException($e->getMessage(), $e->getCode(), $e);
 			}
 		}
 	}

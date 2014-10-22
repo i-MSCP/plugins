@@ -24,6 +24,19 @@
 class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 {
 	/**
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		/** @var Zend_Loader_StandardAutoloader $loader */
+		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
+		$loader->registerNamespace('Cronjobs', __DIR__ . '/frontend/library/Cronjobs');
+		unset($loader);
+	}
+
+	/**
 	 * Register event listeners
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
@@ -45,19 +58,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		);
 
 		$eventManager->registerListener(iMSCP_Events::onBeforeDisablePlugin, $this, 10);
-	}
-
-	/**
-	 * Allow plugin initialization
-	 *
-	 * @return void
-	 */
-	public function init()
-	{
-		/** @var Zend_Loader_StandardAutoloader $loader */
-		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-		$loader->registerNamespace('Cronjobs', __DIR__ . '/frontend/library/Cronjobs');
-		unset($loader);
 	}
 
 	/**
