@@ -73,6 +73,14 @@ return array(
 	// Warning: If you are changing this path, don't forget to move the jails in the new location.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
+	// Makejail script path
+	// Don't change this parameter if you don't know what you are doing
+	'makejail_path' => __DIR__ . '/bin/makejail',
+
+	// Makejail configuration directory (default: <CONF_DIR>/InstantSSH)
+	// Don't change this parameter if you don't know what you are doing
+	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/InstantSSH',
+
 	// Shared jail (default: true)
 	//
 	// When set to true, only one jail is created for all customers. A shared jail doesn't mean that customers will be
@@ -84,7 +92,7 @@ return array(
 	// not implemented yet. This will be implemented in near future.
 	'shared_jail' => true,
 
-	// Preserved files (default: USER_WEB_DIR parameter value from the imscp.conf file)
+	// Preserved files (default: <USER_WEB_DIR>)
 	//
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.

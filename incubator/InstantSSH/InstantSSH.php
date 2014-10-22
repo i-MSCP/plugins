@@ -370,6 +370,47 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Get SSH permissions for the given customer
+	 *
+	 * @param int $customerId Customer unique identifier
+	 * @return int
+	 */
+	public function getCustomerPermissions($customerId)
+	{
+		if (null === $this->customerSshPermissions) {
+			$stmt = exec_query(
+				'
+					SELECT
+						ssh_permission_id, ssh_permission_max_keys, ssh_permission_auth_options,
+						COUNT(ssh_key_id) as ssh_permission_cnb_keys
+					FROM
+						instant_ssh_permissions
+					LEFT JOIN
+						instant_ssh_keys USING(ssh_permission_id)
+					WHERE
+						ssh_permission_admin_id = ?
+					AND
+						ssh_permission_status = ?
+				',
+				array(intval($customerId), 'ok')
+			);
+
+			if ($stmt->rowCount()) {
+				$this->customerSshPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
+			} else {
+				$this->customerSshPermissions = array(
+					'ssh_permission_id' => null,
+					'ssh_permission_max_keys' => -1,
+					'ssh_permission_cnb_keys' => 0,
+					'ssh_permission_keys_options' => 0
+				);
+			}
+		}
+
+		return $this->customerSshPermissions;
+	}
+
+	/**
 	 * Check plugin compatibility
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -457,7 +498,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			if ($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('SSH Permissions'),
+						'label' => tr('SSH permissions'),
 						'uri' => '/admin/ssh_permissions',
 						'title_class' => 'settings',
 						'order' => 8
@@ -473,7 +514,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'title_class' => 'profile',
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
-									$sshPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
+									$sshPermissions = $self->getCustomerPermissions(intval($_SESSION['user_id']));
 									return (bool)($sshPermissions['ssh_permission_id'] !== null);
 								}
 						)
@@ -481,46 +522,5 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 				);
 			}
 		}
-	}
-
-	/**
-	 * Get SSH permissions for the given customer
-	 *
-	 * @param int $customerId Customer unique identifier
-	 * @return int
-	 */
-	public function getCustomerPermissions($customerId)
-	{
-		if (null === $this->customerSshPermissions) {
-			$stmt = exec_query(
-				'
-					SELECT
-						ssh_permission_id, ssh_permission_max_keys, ssh_permission_auth_options,
-						COUNT(ssh_key_id) as ssh_permission_cnb_keys
-					FROM
-						instant_ssh_permissions
-					LEFT JOIN
-						instant_ssh_keys USING(ssh_permission_id)
-					WHERE
-						ssh_permission_admin_id = ?
-					AND
-						ssh_permission_status = ?
-				',
-				array(intval($customerId), 'ok')
-			);
-
-			if ($stmt->rowCount()) {
-				$this->customerSshPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
-			} else {
-				$this->customerSshPermissions = array(
-					'ssh_permission_id' => null,
-					'ssh_permission_max_keys' => -1,
-					'ssh_permission_cnb_keys' => 0,
-					'ssh_permission_keys_options' => 0
-				);
-			}
-		}
-
-		return $this->customerSshPermissions;
 	}
 }
