@@ -20,7 +20,7 @@
 
 namespace Cronjobs\Utils;
 
-use Cronjobs\Exception\Cronjob as CronjobException;
+use Cronjobs\Exception\CronjobException;
 
 /**
  * Class Cronjob

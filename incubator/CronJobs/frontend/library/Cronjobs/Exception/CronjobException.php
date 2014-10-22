@@ -26,6 +26,6 @@ use iMSCP_Plugin_Exception;
  * Class Cronjob
  * @package Cronjobs\Exception
  */
-class Cronjob extends iMSCP_Plugin_Exception
+class CronjobException extends iMSCP_Plugin_Exception
 {
 }

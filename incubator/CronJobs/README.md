@@ -4,29 +4,30 @@ plugin implementing a cron time-based job scheduler for i-MSCP.
 
 WARNING: This plugin is still under development, not ready for use
 
-## introduction
+## Introduction
 
-Administrators give cron permissions to their reseller, and the resellers give cron permissions to their customers
-according their own permissions. This is a cascading permissions level.  For instance a reseller will be able to give
-the full cronjob permission to a customer only if he has also this permission.
+This plugin provide a cron time-based job scheduler for i-MSCP. Administrators give cron permissions to their reseller,
+and the resellers give cron permissions to their customers according their own permissions. This is a cascading permissions
+level.  For instance a reseller will be able to give the full cronjob permission to a customer only if he has also this
+permission.
 
-The administrators can also add their own cron jobs using their own interface. Their interface differ from the customer
-interface in sense that they can setup the unix user to use for the command execution.
+Administrators can also add their own cron jobs using their own interface. The administrator interface differ from the
+customer interface in sense that only administrators can setup the unix user to use for the command execution.
 
 ### Cronjob types
 
-Three types of cronjobs can be added which are in order: **Url**, **Jailed** and **Full**.
+Three types of cronjobs are available, which are in order: **Url**, **Jailed** and **Full**.
 
-The jailed type is available and functional only when the InstantSSH plugin is also installed on the system. Thus, this
-is a pre-requirement for use of jailed cronjob types.
+The jailed cronjob type is available and functional only when the InstantSSH plugin is also installed on the system. Thus,
+this is a pre-requirement for use of jailed cronjob types.
 
 #### Url cronjob
 
-This cronjob type allow to schedule commands which should be run through Wget. The command must be a valid URL.
+This cronjob type allow to schedule commands which are run through Wget. The command must be a valid URL.
 
 #### Jailed cronjob
 
-This cronjob type allow to confine execution of a command through sh, in a jailed environment. Thus, any needed binary
+This cronjob type allow to schedule command which are run through sh,  in a jailed environment. Thus, any needed binary
 should be available inside the jail, else, the command will fail. By default the plugin will create a specific jailed
 environment which provides Perl, PHP and all the standard commands.
 
@@ -38,7 +39,7 @@ several security issue on your system.
 
 ## Requirements
 
-* i-mscp >= 1.1.15 (plugin api >= 0.2.12)
+* i-MSCP >= 1.1.15 (plugin api >= 0.2.12)
 * instantssh plugin >= 2.0.2 (only if you want enable support for jailed cronjobs)
 
 ## Installation

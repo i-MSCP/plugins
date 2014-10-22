@@ -48,6 +48,19 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Allow plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		/** @var Zend_Loader_StandardAutoloader $loader */
+		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
+		$loader->registerNamespace('Cronjobs', __DIR__ . '/frontend/library/Cronjobs');
+		unset($loader);
+	}
+
+	/**
 	 * onBeforeInstallPlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -332,6 +345,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 
 		return array(
 			'/admin/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_permissions.php',
+			'/admin/cron_jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_jobs.php',
 			'/reseller/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cron_permissions.php',
 			'/client/cron_jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cron_jobs.php'
 		);
@@ -397,15 +411,28 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if ($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
-				$page->addPage(
-					array(
-						'label' => tr('Cron permissions'),
-						'uri' => '/admin/cron_permissions',
-						'title_class' => 'settings',
-						'order' => 9
-					)
-				);
+			if ($uiLevel == 'admin') {
+				if($page = $navigation->findOneBy('uri', '/admin/settings.php')) {
+					$page->addPage(
+						array(
+							'label' => tr('Cron permissions'),
+							'uri' => '/admin/cron_permissions',
+							'title_class' => 'settings',
+							'order' => 9
+						)
+					);
+				}
+
+				if($page = $navigation->findOneBy('uri', '/admin/system_info.php')) {
+					$page->addPage(
+						array(
+							'label' => tr('Cron jobs'),
+							'uri' => '/admin/cron_jobs',
+							'title_class' => 'tools',
+							'order' => 9
+						)
+					);
+				}
 			} elseif ($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
 				//$self = $this;
 
@@ -425,12 +452,12 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				);
 			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
 				//$self = $this;
-
 				$page->addPage(
 					array(
 						'label' => tr('Cron jobs'),
 						'uri' => '/client/cron_jobs',
 						'title_class' => 'tools',
+						'order' => 3
 						//'privilege_callback' => array(
 						//	'name' => function () use ($self) {
 						//			$cronPermissions = $self->getCustomerPermissions($_SESSION['user_id']);

@@ -20,3 +20,7 @@
 .icon_delete {
     background-image: url("/CronJobs/themes/default/assets/images/delete.png");
 }
+
+small {
+    font-size: 0.9em;
+}

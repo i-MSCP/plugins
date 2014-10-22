@@ -25,6 +25,7 @@ return array(
 			cron_job_permission_id INT(10) unsigned DEFAULT NULL,
 			cron_job_admin_id INT(10) unsigned NOT NULL,
 			cron_job_type ENUM('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
+			cron_job_user VARCHAR(255) NULL,
 			cron_job_command TEXT,
 			cron_job_minute VARCHAR(255) NULL,
 			cron_job_hour VARCHAR(255) NULL,
