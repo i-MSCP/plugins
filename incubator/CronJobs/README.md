@@ -40,22 +40,22 @@ several security issue on your system.
 ## Requirements
 
 * i-MSCP >= 1.1.15 (plugin api >= 0.2.12)
-* instantssh plugin >= 2.0.2 (only if you want enable support for jailed cronjobs)
+* instantssh plugin >= 2.0.4 (only if you want enable support for jailed cronjobs)
 
 ## Installation
 
-1. login into the panel as admin and go to the plugin management interface
-2. upload the plugin archive
-3. activate the plugin
+1. Login into the panel as admin and go to the plugin management interface
+2. Upload the plugin archive
+3. Activate the plugin
 
 ## Update
 
-1. backup your **plugins/cronjobs/config.php** configuration file
-2. login into the panel as admin and go to the plugin management interface
-3. deactivate the plugin
-4. upload the plugin archive
-5. restore your **plugins/cronjobs/config.php** configuration file (compare it with the new version first)
-6. activate the plugin
+1. Backup your **plugins/cronjobs/config.php** configuration file
+2. Login into the panel as admin and go to the plugin management interface
+3. Deactivate the plugin
+4. Upload the plugin archive
+5. Restore your **plugins/cronjobs/config.php** configuration file (compare it with the new version first)
+6. Activate the plugin
 
 ## Plugin usage
 

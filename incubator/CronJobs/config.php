@@ -41,15 +41,20 @@ return array(
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
 	//
-	// Warning: If you are changing this path, don't forget to move the jails in the new location.
+	// Warning: If you are changing this path, don't forget to move the jail in the new location.
 	'root_jail_dir' => '/var/chroot/CronJobs',
 
-	// Makejail script path
-	// Don't change this parameter if you don't know what you are doing
+	// Makejail script path (default: Path to the makejail script or false if the file doesn't exists)
+	//
+	// This is a dynamic parameter. When the value is being changed ( when the InstantSSH plugin is being uploaded or
+	// deleted ), the plugin will automatically enable or disable the support for jailed cronjobs. This is  based on the
+	// fact that the PHP realpath() function return FALSE when the path doesn't exists.
+	//
+	// Don't change this parameter unless you know what you are doing
 	'makejail_path' => realpath('../InstantSSH/bin/makejail'),
 
 	// Makejail configuration directory (default: <CONF_DIR>/CronJobs)
-	// Don't change this parameter if you don't know what you are doing
+	// Don't change this parameter unless you know what you are doing
 	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
 
 	// Preserved files (default: <USER_WEB_DIR>)
@@ -69,7 +74,7 @@ return array(
 	// This is the list of application sections which are used to create/update the jailed cronjob environement.
 	//
 	// By default only the default application section is added, which allows to build very restricted jailed  cronjob
-	// environments using BusyBox.
+	// environment using BusyBox.
 	'app_sections' => array(
 		'default'
 	),
@@ -89,7 +94,7 @@ return array(
 	),
 
 	// default section
-	// Provide pre-selected application sections, users and groups for Cron jailed shell environments
+	// Provide pre-selected application sections, users and groups for Cron jailed shell environment
 	'default' => array(
 		'paths' => array(
 			'/bin/ash', '/bin/busybox', '/tmp'
