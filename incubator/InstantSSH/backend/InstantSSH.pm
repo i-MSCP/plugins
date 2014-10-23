@@ -766,11 +766,13 @@ sub _addSshKey
 		} else {
 			clearImmutable("$homeDir/.ssh/authorized_keys");
 			$fileContent = $file->get() || '';
+
+			# Prevent duplicate entry
+			my $sshKeyReg = quotemeta($data->{'ssh_key'});
+			$fileContent =~ s/[^\n]*?$sshKeyReg\n//;
 		}
 
 		# Add ssh key in authorized_keys file
-		my $sshKeyReg = quotemeta($data->{'ssh_key'});
-		$fileContent =~ s/[^\n]*?$sshKeyReg\n//;
 		$fileContent .= "$data->{'ssh_auth_options'} $data->{'ssh_key'}\n";
 
 		my $rs = $file->set($fileContent);
