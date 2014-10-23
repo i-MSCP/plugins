@@ -29,7 +29,6 @@ use strict;
 use warnings;
 
 use iMSCP::Debug;
-use iMSCP::HooksManager;
 use iMSCP::Database;
 use iMSCP::Execute;
 use iMSCP::TemplateParser;

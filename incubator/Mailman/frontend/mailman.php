@@ -40,7 +40,7 @@ function mailman_manageList()
 		$adminPassword = clean_input($_POST['admin_password']);
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
-		if (!preg_match('/[-_a-z0-9+]/i', $listName) || $listName == 'mailman') {
+		if (!preg_match('/^[a-z0-9-_]+$/i', $listName) || $listName == 'mailman') {
 			set_page_message(tr('List name is either reserved or not valid'), 'error');
 			$error = true;
 		}
