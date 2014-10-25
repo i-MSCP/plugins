@@ -148,7 +148,7 @@ sub uninstall
 	my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
 	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->delete();
+	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
 	return $rs if $rs;
 
 	$rs = $self->_configurePamChroot('uninstall');
@@ -701,7 +701,7 @@ sub _removeSshPermissions
 
 			# Remove user from jail (also the jail if per user jail and task != change)
 			if($self->{'config'}->{'shared_jail'} || $self->{'action'} eq 'change') {
-				my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'})
+				my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'});
 				return $rs if $rs;
 			} else {
 				my $rs = $jailBuilder->removeJail();

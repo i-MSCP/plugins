@@ -431,7 +431,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	/**
 	 * Check default SSH authentication options
 	 *
-	 * @throw iMSCP_Plugin_Exception in case default key options are invalid
+	 * @throws iMSCP_Plugin_Exception in case default key options are invalid
 	 * @return void
 	 */
 	protected function checkDefaultAuthOptions()
