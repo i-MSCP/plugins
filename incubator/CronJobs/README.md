@@ -1,46 +1,46 @@
 # i-mscp cronjobs plugin v0.0.1
 
-plugin implementing a cron time-based job scheduler for i-MSCP.
+plugin providing a cron time-based job scheduler for i-MSCP.
 
 WARNING: This plugin is still under development, not ready for use
 
 ## Introduction
 
-This plugin provide a cron time-based job scheduler for i-MSCP. Administrators give cron permissions to their reseller,
+This plugin provide a cron time-based job scheduler for i-MSCP. Administrators give cron permissions to their resellers,
 and the resellers give cron permissions to their customers according their own permissions. This is a cascading permissions
-level.  For instance a reseller will be able to give the full cronjob permission to a customer only if he has also this
+system. For instance, a reseller will be able to give the full cronjob permission to a customer only if he has also this
 permission.
-
-Administrators can also add their own cron jobs using their own interface. The administrator interface differ from the
-customer interface in sense that only administrators can setup the unix user to use for the command execution.
 
 ### Cronjob types
 
 Three types of cronjobs are available, which are in order: **Url**, **Jailed** and **Full**.
 
-The jailed cronjob type is available and functional only when the InstantSSH plugin is also installed on the system. Thus,
-this is a pre-requirement for use of jailed cronjob types.
+The jailed cronjob type is available and functional only when the InstantSSH plugin is also present on the system. Thus,
+this is a pre-requirement for use of jailed cronjobs feature.
 
-#### Url cronjob
+#### Url
 
-This cronjob type allow to schedule commands which are run through Wget. The command must be a valid URL.
+This type of cronjob allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP URL.
 
-#### Jailed cronjob
+#### Jailed
 
-This cronjob type allow to schedule command which are run through sh,  in a jailed environment. Thus, any needed binary
-should be available inside the jail, else, the command will fail. By default the plugin will create a specific jailed
-environment which provides Perl, PHP and all the standard commands.
+This type of  cronjob allow to schedule commands which are run through /bin/sh, in a jailed environment. Thus, any needed
+binary should be available inside the jail, else, the commands will fail. By default the plugin will create a jailed
+environment which provides Perl, PHP and the common UNIX utilities as provided by BusyBox.
 
-#### Full cronjob
+Only one jailed environment is created for all jailed cronjobs. This is by design. The most important thing here is that
+the cronjob cannot warn the whole system. This is not like for jailed shell where it's sometime more convenient to have
+a jail per customer.
 
-This cronjob type is identical to the jailed cronjob type, excepted the fact that the command is not run in a jailed
-environment. Giving to an untrusted customer the permissions to add such a cronjob is not really safe and can lead to
-several security issue on your system.
+#### Full
+
+This type of cronjob is identical to the jailed cronjob, excepted the fact that the commands are not run in a jailed
+environment.
 
 ## Requirements
 
 * i-MSCP >= 1.1.15 (plugin api >= 0.2.12)
-* instantssh plugin >= 2.0.4 (only if you want enable support for jailed cronjobs)
+* InstantSSH plugin >= 2.0.4 (only if you want enable support for jailed cronjobs)
 
 ## Installation
 
@@ -59,32 +59,35 @@ several security issue on your system.
 
 ## Plugin usage
 
-the development of this plugin took me a lot of time. thus, i would ask a small contribution for use of this plugin by
-doing a donation on my paypal account ( paypal@nuxwin.com ). if you don't understand such asks, or if you do not want
+the development of this plugin took me a lot of time. Thus, I would ask a small contribution for use of this plugin by
+doing a donation on my paypal account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want
 donate, just don't use this plugin.
 
 ## License
 
-	i-mscp cronjobs plugin
+	i-MSCP CronJobs plugin
 	copyright (c) 2014 laurent declercq <l.declercq@nuxwin.com>
 
-	this library is free software; you can redistribute it and/or
- 	modify it under the terms of the gnu lesser general public
-	license as published by the free software foundation; either
-	version 2.1 of the license, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+ 	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
 
-	this library is distributed in the hope that it will be useful,
-	but without any warranty; without even the implied warranty of
-	merchantability or fitness for a particular purpose.  see the gnu
-	lesser general public license for more details.
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-	you should have received a copy of the gnu lesser general public
-	license along with this library; if not, write to the free software
-	foundation, inc., 51 franklin street, fifth floor, boston, ma  02110-1301  usa
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
  see [lgpl v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "lgpl v2.1")
 
 ## Sponsors
+
+ - [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
+ - [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
 
 ## Author(s)
 
