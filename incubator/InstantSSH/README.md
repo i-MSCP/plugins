@@ -109,7 +109,7 @@ Rebuild and reinstall the package as follow:
 
 	# dpkg-buildpackage -uc -us
 	# cd ..
-	# dpkg -i dpkg -i libpam-chroot*.deb
+	# dpkg -i libpam-chroot*.deb
 
 ### Plugin usage
 
