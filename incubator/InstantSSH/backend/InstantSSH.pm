@@ -871,7 +871,7 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for my $package (qw/busybox libpam-chroot makejail/) {
+	for my $package (qw/libpam-chroot makejail/) {
 		my ($stdout, $stderr);
 		my $rs = execute(
 			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
@@ -918,7 +918,7 @@ sub _configurePamChroot
 		unless($uninstall) {
 			# Remove any pam_motd.so and pam_chroot.so lines
 			# Note: pam_motd lines must be moved below the pam_chroot declaration because we want read motd from jail
-			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd|)\.so.*?\n//gm;
+			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd)\.so.*?\n//gm;
 
 			$fileContent .= "session required pam_chroot.so debug\n";
 			$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
