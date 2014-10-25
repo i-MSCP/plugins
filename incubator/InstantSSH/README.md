@@ -142,7 +142,7 @@ Rebuild and reinstall the package as follow:
 ### Sponsors
 
   - [Osna-Solution UG](http://portal.osna-solution.de "Osna-Solution UG")
-  - [Sascha Bay aka TheCry](https://github.com/thecry "Sascha Bay")
+  - [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
 
 ### Author(s)
 
