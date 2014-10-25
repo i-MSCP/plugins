@@ -456,9 +456,7 @@ sub onDeleteDomain
 
 			if(-d "$homeDir/.ssh") {
 				# Force logout of ssh login if any
-				my @cmd = (
-					$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'USER'}), 'sshd'
-				);
+				my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'USER'}), 'sshd');
 				my ($stdout, $stderr);
 				execute("@cmd", \$stdout, \$stderr);
 				debug($stdout) if $stdout;
@@ -590,8 +588,7 @@ sub _addSshPermissions
 		if($data->{'ssh_permission_status'} eq 'tochange') {
 			# Force logout of ssh logins if any
 			my @cmd = (
-				$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}),
-				'sshd'
+				$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd'
 			);
 			my ($stdout, $stderr);
 			execute("@cmd", \$stdout, \$stderr);
@@ -614,7 +611,7 @@ sub _addSshPermissions
 		if($data->{'ssh_permission_jailed_shell'}) {
 			# Create jail if needed
 			unless($jailBuilder->existsJail()) {
-				my $rs = jailBuilder->makeJail();
+				my $rs = $jailBuilder->makeJail();
 				return $rs if $rs;
 			}
 
@@ -658,7 +655,7 @@ sub _addSshPermissions
 
  Remove the given SSH permissions
 
- Param hash \%data SSH Permissions
+ Param hash \%data SSH permissions
  Return int 0 on success, other on failure
 
 =cut
@@ -673,10 +670,7 @@ sub _removeSshPermissions
 		$homeDir = normalizePath($homeDir);
 
 		# Force logout of ssh logins if any
-		my @cmd = (
-			$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}),
-			'sshd'
-		);
+		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}),  'sshd');
 		my ($stdout, $stderr);
 		execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -692,7 +686,6 @@ sub _removeSshPermissions
 			return 1;
 		}
 
-		# Remove user from jail (also the jail if per user jail)
 		if($data->{'ssh_permission_jailed_shell'}) {
 			my $jailBuilder;
 			eval {
@@ -706,9 +699,14 @@ sub _removeSshPermissions
 				return 1;
 			}
 
-			my $rs = ($self->{'config'}->{'shared_jail'} || $self->{'action'} eq 'change')
-				? $jailBuilder->removeUserFromJail($data->{'admin_sys_name'}) : $jailBuilder->removeJail();
-			return $rs if $rs;
+			# Remove user from jail (also the jail if per user jail and task != change)
+			if($self->{'config'}->{'shared_jail'} || $self->{'action'} eq 'change') {
+				my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'})
+				return $rs if $rs;
+			} else {
+				my $rs = $jailBuilder->removeJail();
+				return $rs if $rs;
+			}
 		}
 
 		# Remove $HOME/.ssh directory if any (this remove all SSH keys)
@@ -810,9 +808,7 @@ sub _deleteSshKey
 	my($self, $data) = @_;
 
 	# Force logout of ssh login if any
-	my @cmd = (
-		$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd'
-	);
+	my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd');
 	my ($stdout, $stderr);
 	execute("@cmd", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -884,7 +880,8 @@ sub _checkRequirements
 	}
 
 	# Process dedicated test for busybox
-	# This allow the admin to install either the busybox package or the busybox-static package as self compiled version
+	# This allow the admin to install either the busybox package or the
+	# busybox-static package, as its own compiled version
 	unless(-x '/bin/busybox') {
 		error("The busybox package is not installed on your system");
 		$ret ||= 1;
