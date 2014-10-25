@@ -41,13 +41,6 @@ utilities into a single small executable.
 
 See the plugin **config.php** file for further details.
 
-### Plugin usage
-
-The development of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
-shell environments. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
-account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, just don't use this
-plugin.
-
 ### Requirements
 
 * i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
@@ -117,6 +110,13 @@ Rebuild and reinstall the package as follow:
 	# dpkg-buildpackage -uc -us
 	# cd ..
 	# dpkg -i dpkg -i libpam-chroot*.deb
+
+### Plugin usage
+
+The development of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
+shell environments. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
+account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, just don't use this
+plugin.
 
 ### License
 
