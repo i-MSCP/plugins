@@ -200,13 +200,14 @@ sub existsJail
  Add the given unix user into the jail
 
  Param string $user User to add into the jail
+ Param string $shell User shell
  Return int 0 on success, other on failure
 
 =cut
 
 sub addUserToJail
 {
-	my ($self, $user) = @_;
+	my ($self, $user, $shell) = @_;
 
 	my @pwEntry = getpwnam($user);
 
@@ -246,7 +247,7 @@ sub addUserToJail
 	}
 
 	# Add user into the jailed passwd file if any
-	my $rs = $self->addPasswdFile('/etc/passwd', $user);
+	my $rs = $self->addPasswdFile('/etc/passwd', $user, $shell);
 	return $rs if $rs;
 
 	# Add user group into the jailed group file if any
@@ -364,19 +365,20 @@ sub removeUserFromJail
 	0;
 }
 
-=item addPasswdFile($file, $what)
+=item addPasswdFile($file, $what, [$shell = undef])
 
  Add the given user/group into the passwd/group file of the Jail if any
 
  Param string $file Path of system passwd/group file
  Param string $what User/group name to add
+ Param string $shell OPTIONAL User shell
  Return int 0 on success, 1 on failure
 
 =cut
 
 sub addPasswdFile
 {
-	my ($self, $file, $what) = @_;
+	my ($self, $file, $what, $shell) = @_;
 
 	my $dest = $self->{'jailCfg'}->{'chroot'} . $file;
 
@@ -395,9 +397,14 @@ sub addPasswdFile
 						my @sysLineFields = split ':', $sysLine;
 
 						if ($sysLineFields[0] eq $what) {
-							debug("Adding $what user/group into $dest");
+							if(defined $sysLineFields[6]) {
+								debug("Adding $what user into $dest");
+								$sysLineFields[5] = normalizePath($sysLineFields[5]);
+								$sysLineFields[6] = $shell;
+							} else {
+								debug("Adding $what group into $dest");
+							}
 
-							$sysLineFields[5] = normalizePath($sysLineFields[5]) if defined $sysLineFields[5];
 							print $fh join ':', @sysLineFields;
 							last;
 						}

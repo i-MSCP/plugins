@@ -2,4 +2,3 @@
 - Password authentication driver
 - Cascading permissions (admin -> reseller -> customer)
 - Per customer application sections selector
-- i18n

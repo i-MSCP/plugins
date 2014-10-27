@@ -18,42 +18,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+namespace InstantSSH\Admin;
+
+use Crypt_RSA as CryptRsa;
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Exception_Database as ExceptionDatabase;
+use iMSCP_pTemplate as TemplateEngnine;
+use iMSCP_Registry as Registry;
+use InstantSSH\CommonFunctions as Common;
+use InstantSSH\Validate\SshAuthOptions as SshAuthOptions;
+
 /***********************************************************************************************************************
  * Functions
  */
-
-/**
- * Send Json response
- *
- * @param int $statusCode HTTP status code
- * @param array $data JSON data
- * @return void
- */
-function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
-{
-	header('Cache-Control: no-cache, must-revalidate');
-	header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-	header('Content-type: application/json');
-
-	switch ($statusCode) {
-		case 400:
-			header('Status: 400 Bad Request');
-			break;
-		case 404:
-			header('Status: 404 Not Found');
-			break;
-		case 500:
-			header('Status: 500 Internal Server Error');
-			break;
-		case 501:
-			header('Status: 501 Not Implemented');
-			break;
-		default:
-			header('Status: 200 OK');
-	}
-
-	exit(json_encode($data));
-}
 
 /**
  * Get openSSH key and its associated fingerprint
@@ -61,12 +39,12 @@ function _instantssh_sendJsonResponse($statusCode = 200, array $data = array())
  * @param string $rsaKey RSA key (Supported formats: PKCS#1, openSSH and XML Signature)
  * @return array|false An array which contain the normalized SSH key and its associated fingerprint or false on failure
  */
-function _instantssh_getOpenSshKey($rsaKey)
+function getOpenSshKey($rsaKey)
 {
-	$rsa = new Crypt_RSA();
+	$rsa = new CryptRsa();
 	$ret = false;
 
-	if ($rsa->loadKey($rsaKey)) {
+	if($rsa->loadKey($rsaKey)) {
 		$ret = array();
 
 		$rsa->setPublicKey();
@@ -84,9 +62,9 @@ function _instantssh_getOpenSshKey($rsaKey)
  *
  * @return void
  */
-function instantssh_getSshKey()
+function getSshKey()
 {
-	if (isset($_GET['ssh_key_id'])) {
+	if(isset($_GET['ssh_key_id'])) {
 		$sshKeyId = intval($_GET['ssh_key_id']);
 
 		try {
@@ -95,70 +73,69 @@ function instantssh_getSshKey()
 				array($_SESSION['user_id'], $sshKeyId)
 			);
 
-			if ($stmt->rowCount()) {
-				_instantssh_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
+			if($stmt->rowCount()) {
+				Common::sendJsonResponse(200, $stmt->fetchRow(\PDO::FETCH_ASSOC));
 			}
 
-			_instantssh_sendJsonResponse(404, array('message' => tr('SSH Key not found.')));
-		} catch (iMSCP_Exception_Database $e) {
+			Common::sendJsonResponse(404, array('message' => tr('SSH Key not found.', true)));
+		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to get SSH key: %s', $e->getMessage()), E_USER_ERROR);
-			_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+
+			Common::sendJsonResponse(500, array('message' => tr('An unexpected error occurred.', true)));
 		}
 	}
 
-	_instantssh_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
  * Add/Update SSH key
  *
- * @param iMSCP_Plugin_Manager $pluginManager
+ * @param \iMSCP_Plugin_Manager $pluginManager
  * @param array $sshPermissions SSH permissions
  * @return void
  */
-function instantssh_addSshKey($pluginManager, $sshPermissions)
+function addSshKey($pluginManager, $sshPermissions)
 {
-	if (isset($_POST['ssh_key_id']) && isset($_POST['ssh_key_name']) && isset($_POST['ssh_key'])) {
+	if(isset($_POST['ssh_key_id']) && isset($_POST['ssh_key_name']) && isset($_POST['ssh_key'])) {
 		$sshKeyId = intval($_POST['ssh_key_id']);
 		$sshKeyName = clean_input($_POST['ssh_key_name']);
 		$sshKey = clean_input($_POST['ssh_key']);
 		$sshKeyFingerprint = '';
 
-		/** @var iMSCP_Plugin_InstantSSH $plugin */
+		/** @var \iMSCP_Plugin_InstantSSH $plugin */
 		$plugin = $pluginManager->getPlugin('InstantSSH');
 
 		$sshAuthOptions = $plugin->getConfigParam('default_ssh_auth_options', '');
 
-		if ($sshPermissions['ssh_permission_auth_options']) {
-			if (isset($_POST['ssh_auth_options']) && is_string($_POST['ssh_auth_options'])) {
+		if($sshPermissions['ssh_permission_auth_options']) {
+			if(isset($_POST['ssh_auth_options']) && is_string($_POST['ssh_auth_options'])) {
 				$sshAuthOptions = clean_input($_POST['ssh_auth_options']);
 				$sshAuthOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshAuthOptions);
 				$allowedAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options', array());
 
-				require_once 'InstantSSH/Validate/SshAuthOptions.php';
+				$validator = new SshAuthOptions(array('auth_option' => $allowedAuthOptions));
 
-				$validator = new \InstantSSH\Validate\SshAuthOptions(array('auth_option' => $allowedAuthOptions));
-
-				if (!$validator->isValid($sshAuthOptions)) {
-					_instantssh_sendJsonResponse(400, array('message' => implode('<br />', $validator->getMessages())));
+				if(!$validator->isValid($sshAuthOptions)) {
+					Common::sendJsonResponse(400, array('message' => implode('<br />', $validator->getMessages())));
 				}
 			} else {
-				_instantssh_sendJsonResponse(400, array('message' => tr('Bad requests.')));
+				Common::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
 			}
 		}
 
-		if ($sshKeyName == '' || $sshKey == '') {
-			_instantssh_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif (!preg_match('/^[[:alnum:] ]+$/i', $sshKeyName)) {
-			_instantssh_sendJsonResponse(
+		if($sshKeyName == '' || $sshKey == '') {
+			Common::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+		} elseif(!preg_match('/^[[:alnum:] ]+$/i', $sshKeyName)) {
+			Common::sendJsonResponse(
 				400,
-				array('message' => tr('Un-allowed SSH key name. Please use alphanumeric and space characters only.'))
+				array('message' => tr('Un-allowed SSH key name. Please use alphanumeric and space characters only.', true))
 			);
-		} elseif (strlen($sshKeyName) > 255) {
-			_instantssh_sendJsonResponse(400, array('message' => tr('SSH key name is too long (Max 255 characters).')));
+		} elseif(strlen($sshKeyName) > 255) {
+			Common::sendJsonResponse(400, array('message' => tr('SSH key name is too long (Max 255 characters).', true)));
 		} else {
-			if (($sshKey = _instantssh_getOpenSshKey($sshKey)) === false) {
-				_instantssh_sendJsonResponse(400, array('message' => tr('Invalid SSH key.')));
+			if(($sshKey = getOpenSshKey($sshKey)) === false) {
+				Common::sendJsonResponse(400, array('message' => tr('Invalid SSH key.', true)));
 			}
 
 			$sshKeyFingerprint = $sshKey['fingerprint'];
@@ -166,8 +143,8 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 		}
 
 		try {
-			if (!$sshKeyId) { // Add SSH key
-				if (
+			if(!$sshKeyId) { // Add SSH key
+				if(
 					$sshPermissions['ssh_permission_max_keys'] == 0 ||
 					$sshPermissions['ssh_permission_cnb_keys'] < $sshPermissions['ssh_permission_max_keys']
 				) {
@@ -197,13 +174,11 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 						E_USER_NOTICE
 					);
 
-					_instantssh_sendJsonResponse(
-						200, array('message' => tr('SSH key scheduled for addition.'))
-					);
+					Common::sendJsonResponse(200, array('message' => tr('SSH key scheduled for addition.', true)));
 				} else {
-					_instantssh_sendJsonResponse(400, array('message' => tr('Your SSH key limit is reached.')));
+					Common::sendJsonResponse(400, array('message' => tr('Your SSH key limit is reached.', true)));
 				}
-			} elseif ($sshPermissions['ssh_permission_auth_options']) { // Update SSH key
+			} elseif($sshPermissions['ssh_permission_auth_options']) { // Update SSH key
 				exec_query(
 					'
 						UPDATE
@@ -231,21 +206,24 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
 					E_USER_NOTICE
 				);
 
-				_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for update.')));
+				Common::sendJsonResponse(200, array('message' => tr('SSH key scheduled for update.', true)));
 			}
-		} catch (iMSCP_Exception_Database $e) {
-			if ($e->getCode() == '23000') {
-				_instantssh_sendJsonResponse(
-					400, array('message' => tr('SSH key with same name or same fingerprint already exists.'))
+		} catch(ExceptionDatabase $e) {
+			if($e->getCode() == '23000') {
+				Common::sendJsonResponse(
+					400, array('message' => tr('SSH key with same name or same fingerprint already exists.', true))
 				);
 			} else {
 				write_log(sprintf('InstantSSH: Unable to add or update SSH key: %s', $e->getMessage()), E_USER_ERROR);
-				_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred.')));
+
+				Common::sendJsonResponse(
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				);
 			}
 		}
 	}
 
-	_instantssh_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -253,9 +231,9 @@ function instantssh_addSshKey($pluginManager, $sshPermissions)
  *
  * @return void
  */
-function instantssh_deleteSshKey()
+function deleteSshKey()
 {
-	if (isset($_POST['ssh_key_id'])) {
+	if(isset($_POST['ssh_key_id'])) {
 		$sshKeyId = intval($_POST['ssh_key_id']);
 
 		try {
@@ -271,16 +249,17 @@ function instantssh_deleteSshKey()
 				E_USER_NOTICE
 			);
 
-			_instantssh_sendJsonResponse(200, array('message' => tr('SSH key scheduled for deletion.')));
-		} catch (iMSCP_Exception_Database $e) {
+			Common::sendJsonResponse(200, array('message' => tr('SSH key scheduled for deletion.', true)));
+		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to delete SSH key: %s', $e->getMessage()), E_USER_ERROR);
-			_instantssh_sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
+
+			Common::sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
 			);
 		}
 	}
 
-	_instantssh_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -288,14 +267,13 @@ function instantssh_deleteSshKey()
  *
  * @return void
  */
-function instantssh_getSshKeys()
+function getSshKeys()
 {
 	global $sshPermissions;
 
 	try {
-		$columns = array(
-			'ssh_key_id', 'ssh_key_name', 'ssh_key', 'ssh_key_fingerprint', 'admin_sys_name', 'ssh_key_status'
-		);
+		// Filterable / orderable columns
+		$columns = array('ssh_key_name', 'ssh_key_fingerprint', 'admin_sys_name', 'ssh_key_status');
 
 		$nbColumns = count($columns);
 
@@ -307,25 +285,29 @@ function instantssh_getSshKeys()
 		/* Paging */
 		$limit = '';
 
-		if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
+		if(isset($_GET['iDisplayStart']) && isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] !== '-1') {
 			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Ordering */
 		$order = '';
 
-		if (isset($_GET['iSortCol_0'])) {
+		if(isset($_GET['iSortCol_0']) && isset($_GET['iSortingCols'])) {
 			$order = 'ORDER BY ';
 
-			for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
-				if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
-					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $_GET['sSortDir_' . $i] . ', ';
+			for($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
+				if($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] === 'true') {
+					$sortDir = (
+						isset($_GET['sSortDir_' . $i]) && in_array($_GET['sSortDir_' . $i], array('asc', 'desc'))
+					) ? $_GET['sSortDir_' . $i] : 'asc';
+
+					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $sortDir . ', ';
 				}
 			}
 
 			$order = substr_replace($order, '', -2);
 
-			if ($order == 'ORDER BY') {
+			if($order == 'ORDER BY') {
 				$order = '';
 			}
 		}
@@ -333,11 +315,11 @@ function instantssh_getSshKeys()
 		/* Filtering */
 		$where = 'WHERE ssh_key_admin_id = ' . intval($_SESSION['user_id']);
 
-		if ($_GET['sSearch'] != '') {
+		if($_GET['sSearch'] != '') {
 			$where .= ' AND (';
 
-			for ($i = 0; $i < $nbColumns; $i++) {
-				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
+			for($i = 0; $i < $nbColumns; $i++) {
+				$where .= $columns[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] .'%') . ' OR ';
 			}
 
 			$where = substr_replace($where, '', -3);
@@ -345,9 +327,9 @@ function instantssh_getSshKeys()
 		}
 
 		/* Individual column filtering */
-		for ($i = 0; $i < $nbColumns; $i++) {
-			if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
-				$where .= "AND {$columns[$i]} LIKE " . quoteValue("%{$_GET["sSearch_$i"]}%");
+		for($i = 0; $i < $nbColumns; $i++) {
+			if(isset($_GET['bSearchable_' . $i]) && $_GET['bSearchable_' . $i] === 'true' && $_GET['sSearch_' . $i] !== '') {
+				$where .= "AND {$columns[$i]} LIKE " . quoteValue('%' . $_GET['sSearch_' . $i] . '%');
 			}
 		}
 
@@ -355,7 +337,8 @@ function instantssh_getSshKeys()
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . " , admin_sys_name
+					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . ",
+					ssh_key_id
 				FROM
 					$table
 				INNER JOIN
@@ -368,12 +351,12 @@ function instantssh_getSshKeys()
 
 		/* Data set length after filtering */
 		$resultFilterTotal = execute_query('SELECT FOUND_ROWS()');
-		$resultFilterTotal = $resultFilterTotal->fetchRow(PDO::FETCH_NUM);
+		$resultFilterTotal = $resultFilterTotal->fetchRow(\PDO::FETCH_NUM);
 		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
 		$resultTotal = execute_query("SELECT COUNT($indexColumn) FROM $table");
-		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
+		$resultTotal = $resultTotal->fetchRow(\PDO::FETCH_NUM);
 		$total = $resultTotal[0];
 
 		/* Output */
@@ -384,36 +367,36 @@ function instantssh_getSshKeys()
 			'aaData' => array()
 		);
 
-		$trShowSshKey = tr('Show SSH key');
-		$trEditTooltip = tr('Edit SSH key options');
-		$trDeleteTooltip = tr('Delete this SSH key');
+		$trShowSshKey = Common::escapeJs(tr('Show SSH key', true));
+		$trEditTooltip = Common::escapeJs(tr('Edit SSH key', true));
+		$trDeleteTooltip = Common::escapeJs(tr('Delete this SSH key', true));
 
-		while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
+		while($data = $rResult->fetchRow(\PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for ($i = 0; $i < $nbColumns; $i++) {
-				if ($columns[$i] == 'ssh_key_status') {
+			for($i = 0; $i < $nbColumns; $i++) {
+				if($columns[$i] == 'ssh_key_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
 				} else {
 					$row[$columns[$i]] = tohtml($data[$columns[$i]]);
 				}
 			}
 
-			if ($data['ssh_key_status'] == 'ok') {
+			if($data['ssh_key_status'] == 'ok') {
 				$row['ssh_key_actions'] =
 					(
 					($sshPermissions['ssh_permission_auth_options'])
 						? "<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
-						"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-						"class=\"icon icon_edit clickable\">&nbsp;</span> "
+						"data-ssh-key-id=\"" . $data['ssh_key_id'] ."\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
+						"\" class=\"icon icon_edit clickable\">&nbsp;</span> "
 						: "<span title=\"$trShowSshKey\" data-action=\"show_ssh_key\" " .
-						"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-						"class=\"icon icon_show clickable\">&nbsp;</span> "
+						"data-ssh-key-id=\"" . $data['ssh_key_id'] ."\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
+						"\" class=\"icon icon_show clickable\">&nbsp;</span> "
 					)
 					.
 					"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_key\" " .
-					"data-ssh-key-id=\"{$data['ssh_key_id']}\" data-ssh-key-name=\"{$data['ssh_key_name']}\" " .
-					"class=\"icon icon_delete clickable\">&nbsp;</span>";
+					"data-ssh-key-id=\"" . $data['ssh_key_id'] . "\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
+					"\" class=\"icon icon_delete clickable\">&nbsp;</span>";
 			} else {
 				$row['ssh_key_actions'] = '';
 			}
@@ -421,62 +404,66 @@ function instantssh_getSshKeys()
 			$output['aaData'][] = $row;
 		}
 
-		_instantssh_sendJsonResponse(200, $output);
-	} catch (iMSCP_Exception_Database $e) {
+		Common::sendJsonResponse(200, $output);
+	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to get SSH keys: %s', $e->getMessage()), E_USER_ERROR);
-		_instantssh_sendJsonResponse(500, array('message' => tr('An unexpected error occurred')));
+
+		Common::sendJsonResponse(
+			500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+		);
 	}
 
-	_instantssh_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+EventsAggregator::getInstance()->dispatch(Events::onClientScriptStart);
 
 check_login('user');
 
-/** @var iMSCP_Plugin_Manager $pluginManager */
-$pluginManager = iMSCP_Registry::get('pluginManager');
+/** @var \iMSCP_Plugin_Manager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
 
-/** @var iMSCP_Plugin_InstantSSH $plugin */
+/** @var \iMSCP_Plugin_InstantSSH $plugin */
 $plugin = $pluginManager->getPlugin('InstantSSH');
 
 $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 
-if ($sshPermissions['ssh_permission_id'] !== null) {
-	if (isset($_REQUEST['action'])) {
-		if (is_xhr()) {
+if($sshPermissions['ssh_permission_id'] !== null) {
+	Common::initEscaper();
+
+	if(isset($_REQUEST['action'])) {
+		if(is_xhr()) {
 			$action = clean_input($_REQUEST['action']);
 
-			switch ($action) {
+			switch($action) {
 				case 'get_ssh_keys':
-					instantssh_getSshKeys();
+					getSshKeys();
 					break;
 				case 'get_ssh_key':
-					instantssh_getSshKey();
+					getSshKey();
 					break;
 				case 'add_ssh_key':
-					instantssh_addSshKey($pluginManager, $sshPermissions);
+					addSshKey($pluginManager, $sshPermissions);
 					break;
 				case 'delete_ssh_key':
-					instantssh_deleteSshKey();
+					deleteSshKey();
 					break;
 				default:
-					_instantssh_sendJsonResponse(400, array('message' => tr('Bad request.')));
+					Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 			}
 		}
 
 		showBadRequestErrorPage();
 	}
 
-	$tpl = new iMSCP_pTemplate();
+	$tpl = new TemplateEngnine();
 	$tpl->define_dynamic(
 		array(
 			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/InstantSSH/themes/default/view/client/ssh_keys.tpl',
 			'page_message' => 'layout',
 			'ssh_auth_options_block' => 'page',
 			'ssh_show_action' => 'page',
@@ -484,7 +471,11 @@ if ($sshPermissions['ssh_permission_id'] !== null) {
 		)
 	);
 
-	if (iMSCP_Registry::get('config')->DEBUG) {
+	$tpl->define_no_file_dynamic('page', Common::renderTpl(
+		PLUGINS_PATH . '/InstantSSH/themes/default/view/client/ssh_keys.tpl')
+	);
+
+	if(Registry::get('config')->DEBUG) {
 		$assetVersion = time();
 	} else {
 		$pluginInfo = $pluginManager->getPluginInfo('InstantSSH');
@@ -493,35 +484,35 @@ if ($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl->assign(
 		array(
-			'TR_PAGE_TITLE' => tr('Client / Profile / SSH Keys'),
+			'TR_PAGE_TITLE' => Common::escapeHtml(tr('Client / Profile / SSH Keys', true)),
 			'ISP_LOGO' => layout_getUserLogo(),
-			'INSTANT_SSH_ASSET_VERSION' => $assetVersion,
+			'INSTANT_SSH_ASSET_VERSION' => Common::escapeUrl($assetVersion),
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-			'TR_DYN_ACTIONS' => ($sshPermissions['ssh_permission_auth_options']) ? tr('Add / Edit') : tr('Add / Show'),
+			'TR_DYN_ACTIONS' => Common::escapeHtml(
+				($sshPermissions['ssh_permission_auth_options'])
+					? tr('Add / Edit SSH keys', true) :tr('Add / Show SSH keys', true)
+			),
 			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
 		)
 	);
 
-	if (!$sshPermissions['ssh_permission_auth_options']) {
+	if(!$sshPermissions['ssh_permission_auth_options']) {
 		$tpl->assign(
 			array(
-				'TR_RESET_BUTTON_LABEL' => tr('Reset'),
+				'TR_RESET_BUTTON_LABEL' => Common::escapeHtml(tr('Cancel', true)),
 				'SSH_AUTH_OPTIONS_BLOCK' => '',
 				'SSH_EDIT_ACTION' => ''
 			)
 		);
 	} else {
-		require_once 'InstantSSH/Validate/SshAuthOptions.php';
-
 		$allowedSshAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options');
 
 		$tpl->assign(
 			array(
-				'TR_ALLOWED_OPTIONS' => tr(
-					'Allowed authentication options: %s <br />See man authorized_keys for more details',
-					implode(', ', $allowedSshAuthOptions)
+				'TR_ALLOWED_OPTIONS' => Common::escapeHtml(
+					tr('Allowed authentication options: %s', true, implode(', ', $allowedSshAuthOptions))
 				),
-				'TR_RESET_BUTTON_LABEL' => tr('Cancel'),
+				'TR_RESET_BUTTON_LABEL' => Common::escapeHtml(tr('Cancel', true)),
 				'SSH_SHOW_ACTION' => ''
 			)
 		);
@@ -532,7 +523,7 @@ if ($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+	EventsAggregator::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 } else {

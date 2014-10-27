@@ -1,10 +1,10 @@
-## i-MSCP InstantSSH plugin v2.0.4
+## i-MSCP InstantSSH plugin v2.1.0
 
-Plugin allowing to provide full or jailed shell access to your customers.
+Plugin allowing to provide full or restricted shell access to your customers.
 
 ### Introduction
 
-This plugin allow to give your customers a full or jailed shell access.
+This plugin allow to give your customers a full or restricted shell access.
 
 A customer to which SSH permissions are given can add its own SSH keys and use them to authenticate on the server.
 
@@ -43,7 +43,7 @@ See the plugin **config.php** file for further details.
 
 ### Requirements
 
-* i-MSCP >= 1.1.14 (plugin API >= 0.2.11)
+* i-MSCP >= 1.1.15 (plugin API >= 0.2.12)
 * openSSH server with public key authentication support enabled
 
 #### Debian / Ubuntu packages
@@ -76,6 +76,22 @@ You can install these packages by executing the following commands:
 5. Upload the plugin archive
 6. Restore your **plugins/InstantSSH/config.php** configuration file (compare it with the new version first)
 7. Activate the plugin
+
+### Translations
+
+Since version 2.0.1, this plugin can be translated in your language using a simple PHP file which return an array of
+translation strings. In order, to translate this plugin in your language, you must:
+ 
+1. Create a new translation file for your language (eg. de_DE.php) in the InstantSSH/l10n directory by copying the
+en_GB.php file ( only if the file doesn't exist yet ). The file must be UTF-8 encoded.
+2. Translate the strings (The keys are the msgid strings and the values the msgstr strings). You must only translate the
+msgstr strings.
+
+During your translation session, you must enable the DEBUG mode in the /etc/imscp/imscp.conf file to force reload of the
+translation files on each request, else, the translation strings are put in cache. Don't forget to disable it once you
+have finished to translate.
+
+You're welcome to submit your translation files in our forum if you want see them integrated in the later release.
 
 ### Troubleshootings
 

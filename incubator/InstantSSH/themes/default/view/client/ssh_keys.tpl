@@ -1,95 +1,84 @@
-<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet"
-	  type="text/css"/>
 
-<div class="flash_message" style="display: none;"></div>
-
+<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
-		This is the list of SSH public keys associated with your account. Remove any keys that you do not recognize.
+		<?= self::escapeHtml(tr('This is the list of SSH public keys associated with your account. Remove any keys that you do not recognize.', true));?>
 	</p>
 	<br/>
-
 	<div class="info">
-		You can generate your rsa key pair using the following command:
-		<strong>ssh-keygen -t rsa -C user@domain.tld</strong>
+		<?= self::escapeHtml(tr('You can generate your rsa key pair by running the following command: %s', true, 'ssh-keygen -t rsa -C user@domain.tld', true))?>
 	</div>
-
 	<table class="datatable">
 		<thead>
 		<tr>
-			<th>Key Name</th>
-			<th>Key Fingerprint</th>
-			<th>Key User</th>
-			<th>Key Status</th>
-			<th>Key Actions</th>
+			<th><?= self::escapeHtml(tr('Name', true))?></th>
+			<th><?= self::escapeHtml(tr('Fingerprint', true))?></th>
+			<th><?= self::escapeHtml(tr('User', true))?></th>
+			<th><?= self::escapeHtml(tr('Status', true))?></th>
+			<th><?= self::escapeHtml(tr('Actions', true))?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td>Key Name</td>
-			<td>Key Fingerprint</td>
-			<td>Key User</td>
-			<td>KeyStatus</td>
-			<td>Key Actions</td>
+			<td><?= self::escapeHtml(tr('Name', true))?></td>
+			<td><?= self::escapeHtml(tr('Fingerprint', true))?></td>
+			<td><?= self::escapeHtml(tr('User', true))?></td>
+			<td><?= self::escapeHtml(tr('Status', true))?></td>
+			<td><?= self::escapeHtml(tr('Actions', true))?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="3">Processing...</td>
+			<td colspan="5"><?= self::escapeHtml(tr('Processing...', true));?></td>
 		</tr>
 		</tbody>
 	</table>
-
 	<form name="ssh_key_frm" id="ssh_key_frm" method="post" enctype="application/x-www-form-urlencoded">
 		<table>
 			<thead>
 			<tr>
-				<th colspan="2">{TR_DYN_ACTIONS} SSH Key</th>
+				<th colspan="2">{TR_DYN_ACTIONS}</th>
 			</tr>
 			</thead>
 			<tbody>
 			<tr>
 				<td>
 					<label for="ssh_key_name">
-						SSH Key name
-						<span class="icon i_help"
-							  title="Arbitrary name which allow you to retrieve your SSH key">&nbsp;</span>
+						<?= self::escapeHtml(tr('SSH Key name', true));?>
+						<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Arbitrary name which allow you to retrieve your SSH key.', true));?>">&nbsp;</span>
 					</label>
 				</td>
 				<td>
-					<input type="text" class="inputTitle" name="ssh_key_name" id="ssh_key_name" value="" maxlength="255"
-						   placeholder="Enter a key name">
+					<input type="text" class="inputTitle" name="ssh_key_name" id="ssh_key_name" value="" maxlength="255" placeholder="<?= self::escapeHtmlAttr(tr('Enter a key name', true));?>">
 				</td>
 			</tr>
 			<!-- BDP: ssh_auth_options_block -->
 			<tr>
 				<td>
 					<label for="ssh_auth_options">
-						Authentication options
+						<?= tr('Authentication options');?>
 						<span class="icon i_help" title="{TR_ALLOWED_OPTIONS}">&nbsp;</span>
 					</label>
 				</td>
 				<td>
-					<textarea style="height: 45px" name="ssh_auth_options"
-							  id="ssh_auth_options">{DEFAULT_AUTH_OPTIONS}</textarea>
+					<textarea style="height: 45px" name="ssh_auth_options" id="ssh_auth_options">{DEFAULT_AUTH_OPTIONS}</textarea>
 				</td>
 			</tr>
 			<!-- EDP: ssh_auth_options_block -->
 			<tr>
 				<td>
 					<label for="ssh_key">
-						SSH Key
-						<span class="icon i_help"
-							  title="Supported RSA key formats are PKCS#1, openSSH and XML Signature">&nbsp;</span>
+						<?= tr('SSH Key');?>
+						<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Supported RSA key formats are PKCS#1, openSSH and XML Signature.', true));?>">&nbsp;</span>
 					</label>
 				</td>
 				<td>
-					<textarea style="height: 90px" name="ssh_key" id="ssh_key" placeholder="Enter a key"></textarea>
+					<textarea style="height: 90px" name="ssh_key" id="ssh_key" placeholder="<?= self::escapeHtmlAttr(tr('Enter a key', true));?>"></textarea>
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2" style="text-align: right;">
-					<button id="action" data-action="add_ssh_key">Save</button>
+					<button id="action" data-action="add_ssh_key"><?= self::escapeHtml(tr('Save'));?></button>
 					<input type="hidden" id="ssh_key_id" name="ssh_key_id" value="0">
 					<input type="reset" value="{TR_RESET_BUTTON_LABEL}"/>
 				</td>
@@ -98,7 +87,6 @@
 		</table>
 	</form>
 </div>
-
 <script>
 	var oTable;
 
@@ -121,7 +109,7 @@
 			}
 		).prependTo("#page").hide().fadeIn('fast').delay(3000).fadeOut('normal', function () {
 				$(this).remove();
-			});
+		});
 	}
 
 	$(document).ready(function () {
@@ -169,14 +157,16 @@
 			}
 		});
 
-		$("input:reset").click(function () {
+		var $page = $("#page");
+
+		$page.on("click", "input:reset,span[data-action]", function () {
 			$("#ssh_key_id").val("0");
 			$("#ssh_key_name").prop("readonly", false);
 			$("#ssh_key").prop("readonly", false);
 			$("#action").show();
 		});
 
-		$("#page").on("click", "span[data-action], button", function (e) {
+		$page.on("click", "span[data-action], button", function (e) {
 			e.preventDefault();
 
 			action = $(this).data('action');
@@ -209,7 +199,7 @@
 					});
 					break;
 				case "delete_ssh_key":
-					if (confirm("Are you sure you want to delete this SSH key? Be aware that this will destroy all your SSH sessions.")) {
+					if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH key? Be aware that this will destroy all your SSH sessions.', true));?>")) {
 						doRequest("POST", action, { ssh_key_id: sshKeyId }).done(
 							function (data) {
 								oTable.fnDraw();
@@ -219,25 +209,21 @@
 					}
 					break;
 				default:
-					alert("Unknown Action");
+					alert("<?= self::escapeJs(tr('Unknown action', true));?>");
 			}
 		});
 
-		$(document).ajaxStart(function () {
-			oTable.fnProcessingIndicator();
-		});
-		$(document).ajaxStop(function () {
-			oTable.fnProcessingIndicator(false);
-		});
+		$(document).ajaxStart(function () { oTable.fnProcessingIndicator(); });
+		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false); });
 		$(document).ajaxError(function (e, jqXHR, settings, exception) {
 			if (jqXHR.status == 403) {
 				window.location.href = '/index.php';
 			} else if (jqXHR.responseJSON != "") {
 				flashMessage("error", jqXHR.responseJSON.message);
 			} else if (exception == "timeout") {
-				flashMessage("error", "Request Timeout: The server took too long to send the data.");
+				flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
 			} else {
-				flashMessage("error", "An unexpected error occurred.");
+				flashMessage("error", "<?= self::escapeHtmlAttr(tr('An unexpected error occurred.', true));?>");
 			}
 		});
 	});

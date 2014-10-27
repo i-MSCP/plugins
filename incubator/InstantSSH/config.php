@@ -18,8 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-require_once 'InstantSSH/Validate/SshAuthOptions.php';
-
 return array(
 	// Default SSH authentication options added for any new SSH key
 	//
@@ -148,7 +146,64 @@ return array(
 	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
 	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
 	//
-	// Other application sections will be added soon.
+	// Other application sections will be added in time. Feel free to provide us your own section for integration.
+
+	// ashshell section
+	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
+	// Warning: Don't forget to set the shells => jailed configuration option to /bin/ash
+	'ashshell' => array(
+		'paths' => array(
+			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
+		),
+		'copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
+			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+		),
+		'include_app_sections' => array(
+			'busybox', 'uidbasics', 'editors'
+		),
+		'devices' => array(
+			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
+		),
+		'mount' => array(
+			'devpts' => '/dev/pts',
+			'proc' => '/proc',
+			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
+		)
+	),
+
+	// bashshell
+	// Provide restricted shell using bash
+	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
+	'bashshell' => array(
+		'paths' => array(
+			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
+			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
+			'/bin/gzip', '/bin/ln', '/bin/mktemp', '/bin/more', '/bin/mv', '/bin/pwd', '/bin/rm', '/bin/rmdir',
+			'/bin/sed',  '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/touch', '/bin/true', '/bin/uncompress',
+			'/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput', '/tmp', '/var/log',
+			'/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less', '/usr/bin/clear',
+			'/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum', '/usr/bin/nice',
+			'/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc', '/usr/bin/watch',
+			'/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz', '/usr/bin/pbzip2',
+			'/usr/bin/curl'
+		),
+		'copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
+			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+		),
+		'include_app_sections' => array(
+			'uidbasics', 'editors'
+		),
+		'devices' => array(
+			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
+		),
+		'mount' => array(
+			'devpts' => '/dev/pts',
+			'proc' => '/proc',
+			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
+		)
+	),
 
 	// uidbasics section
 	// Provide common files for jails that need user/group information
@@ -161,27 +216,13 @@ return array(
 		)
 	),
 
-	// busyboxshell section
-	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
-	'busyboxshell' => array(
+	// netbasics section
+	// Provide common files for jails that need any internet connectivity
+	'netbasics' => array(
 		'paths' => array(
-			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
+			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
+			'/etc/protocols', '/etc/services'
 		),
-		'copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
-			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
-		),
-		'include_app_sections' => array(
-			'busybox', 'uidbasics'
-		),
-		'devices' => array(
-			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
-		),
-		'mount' => array(
-			'devpts' => '/dev/pts',
-			'proc' => '/proc',
-			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
-		)
 	),
 
 	// busybox section
@@ -189,6 +230,16 @@ return array(
 	'busybox' => array(
 		'paths' => array(
 			'/bin/busybox'
+		)
+	),
+
+	// netutils section
+	'netutils' => array(
+		'paths' => array(
+			'/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/rsync', '/usr/bin/wget', '/etc/lynx-cur/*'
+		),
+		'include_app_sections' => array(
+			'netbasics'
 		)
 	),
 
@@ -204,10 +255,10 @@ return array(
 	),
 
 	// editors section
-	// Provide additional editors
+	// Provide common editors
 	'editors' => array(
 		'paths' => array(
-			'/usr/bin/nano', '/usr/bin/vim'
+			'/usr/bin/nano', '/usr/bin/vi', '/usr/bin/vim'
 		),
 		'include_app_sections' => array(
 			'terminfo'
@@ -226,7 +277,8 @@ return array(
 	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell environments
 	'imscpbase' => array(
 		'include_app_sections' => array(
-			'busyboxshell', 'editors', 'mysqltools'
+			// 'ashshell',
+			'bashshell', 'mysqltools', 'netutils'
 		),
 		'users' => array(
 			'root', 'www-data'

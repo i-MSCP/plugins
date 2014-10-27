@@ -585,16 +585,14 @@ sub _addSshPermissions
 	my $homeDir = (getpwnam($data->{'admin_sys_name'}))[7];
 
 	if(defined $homeDir) {
-		if($data->{'ssh_permission_status'} eq 'tochange') {
-			# Force logout of ssh logins if any
-			my @cmd = (
-				$main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd'
-			);
-			my ($stdout, $stderr);
-			execute("@cmd", \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			debug($stderr) if $stderr;
-		}
+		$homeDir = normalizePath($homeDir);
+
+		# Force logout of ssh logins if any
+		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd');
+		my ($stdout, $stderr);
+		execute("@cmd", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		debug($stderr) if $stderr;
 
 		my $jailBuilder;
 		eval {
@@ -608,6 +606,9 @@ sub _addSshPermissions
 			return 1;
 		}
 
+		my $shell = ($data->{'ssh_permission_jailed_shell'})
+			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
+
 		if($data->{'ssh_permission_jailed_shell'}) {
 			# Create jail if needed
 			unless($jailBuilder->existsJail()) {
@@ -616,7 +617,7 @@ sub _addSshPermissions
 			}
 
 			# Add user in jail
-			my $rs = $jailBuilder->addUserToJail($data->{'admin_sys_name'});
+			my $rs = $jailBuilder->addUserToJail($data->{'admin_sys_name'}, $shell);
 			return $rs if $rs;
 		} elsif($jailBuilder->existsJail()) {
 			# Ensure that user is not jailed (tochange case)
@@ -630,10 +631,7 @@ sub _addSshPermissions
 		}
 
 		# Update user homedir and shell
-		my $shell = ($data->{'ssh_permission_jailed_shell'})
-			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
 
-		$homeDir = normalizePath($homeDir);
 		$homeDir .= '/./' if $data->{'ssh_permission_jailed_shell'};
 
 		my $pw = Unix::PasswdFile->new('/etc/passwd');

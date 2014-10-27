@@ -2,13 +2,17 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 2.0.4
+Version 2.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
+	Added: Support for translations
+	Added: bashshell, netbasics and netutils application sections
 	Added: makejail_confdir_path and makejail_path configuration parameters
 	Fixed: Jails update is still done on i-MSCP update/reconfiguration when it shouldn't ( per customer jail )
 	Fixed: Jail builder layer must be review for better reusability
+	Fixed: User shell in jail is still set to /bin/false
 	Moved: makejail configuration files to <CONF_DIR>/InstantSSH
+	Renamed: busyboxshell application section to ashshell
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.0.3
