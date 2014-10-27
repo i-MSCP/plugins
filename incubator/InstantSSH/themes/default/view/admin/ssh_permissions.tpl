@@ -146,7 +146,7 @@
 						oTable.fnProcessingIndicator(false);
 					}
 				}).done(function () {
-					oTable.find("span").imscpTooltip({ exaClass: "tooltip_icon tooltip_notice" });
+					oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
 				});
 			}
 		});
