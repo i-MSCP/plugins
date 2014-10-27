@@ -26,7 +26,7 @@ return array(
 	'Unable to uninstall: %s' => 'Kan inte avinstallera: %s',
 	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.'=> 'Din i-MSCP versionen är inte kompatibel med denna plugin. Pröva med en nyare version.',
 	'Invalid default authentication options: %s' => 'Ogiltiga alternativ standard autentisering: %s',
-	'Any authentication options appearing in the default_ssh_auth_options parameter must be also specified in the allowed_ssh_auth_options parameter.' => 'Alla autentiseringsalternativ som förekommer i default_ssh_auth_options parameter måste också anges i allowed_ssh_auth_options parametern.',
+	'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.' => 'Alla autentiseringsalternativ som förekommer i default_ssh_auth_options parameter måste också anges i allowed_ssh_auth_options parametern.',
 	'allowed_ssh_auth_options parameter must be an array.' => 'Allowed_ssh_auth_options parametern måste vara en array.',
 	'default_ssh_auth_options parameter must be a string.' => 'Default_ssh_auth_options parametern måste vara en sträng.',
 	'SSH permissions' => 'SSH behörigheter',

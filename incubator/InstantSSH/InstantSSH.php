@@ -469,8 +469,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						if($sshAuthOptionNew !== $sshAuthOptionsOld) {
 							throw new iMSCP_Plugin_Exception(
 								tr(
-									'Any authentication options appearing in the default_ssh_auth_options ' .
-									'parameter must be also specified in the allowed_ssh_auth_options parameter.'
+									'Any authentication options defined in the default_ssh_auth_options ' .
+									'parameter must be also defined in the allowed_ssh_auth_options parameter.'
 								)
 							);
 						}

@@ -26,7 +26,7 @@ return array(
 	'Unable to uninstall: %s' => 'Impossible de désinstaller: %s',
 	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => "Votre version d'i-MSCP n'est pas compatible avec ce plugin. Veuillez essayer avec une version plus récente.",
 	'Invalid default authentication options: %s' => "Options d'authentification par défaut invalides: %s",
-	'Any authentication options appearing in the default_ssh_auth_options parameter must be also specified in the allowed_ssh_auth_options parameter.' => "Toute option d'authentification définie dans le paramètre default_ssh_auth_options doit également être définie dans le paramètre allowed_ssh_auth_options.",
+	'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.' => "Toute option d'authentification définie dans le paramètre default_ssh_auth_options doit également être définie dans le paramètre allowed_ssh_auth_options.",
 	'allowed_ssh_auth_options parameter must be an array.' => 'Le paramètre allowed_ssh_auth_options doit être un tableau.',
 	'default_ssh_auth_options parameter must be a string.' => 'Le paramètre default_ssh_auth_options doit être une chaîne.',
 	'SSH permissions' => 'Permissions SSH',
