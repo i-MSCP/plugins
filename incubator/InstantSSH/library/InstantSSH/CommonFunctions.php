@@ -75,7 +75,6 @@ class CommonFunctions
 				header('Status: 200 OK');
 		}
 
-
 		exit(json_encode($data));
 	}
 

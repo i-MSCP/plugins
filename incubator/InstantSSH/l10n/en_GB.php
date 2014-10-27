@@ -29,7 +29,7 @@ return array(
 	'Any authentication options appearing in the default_ssh_auth_options parameter must be also specified in the allowed_ssh_auth_options parameter.' => 'Any authentication options appearing in the default_ssh_auth_options parameter must be also specified in the allowed_ssh_auth_options parameter.',
 	'allowed_ssh_auth_options parameter must be an array.' => 'allowed_ssh_auth_options parameter must be an array.',
 	'default_ssh_auth_options parameter must be a string.' => 'default_ssh_auth_options parameter must be a string.',
-	'Permissions SSH' => 'Permissions SSH',
+	'SSH permissions' => 'SSH permissions',
 	'SSH keys' => 'SSH keys',
 	'This is the list of customers which are allowed to add their SSH keys to login on the system using SSH.' => 'This is the list of customers which are allowed to add their SSH keys to login on the system using SSH.',
 	'Customer name' => 'Customer name',

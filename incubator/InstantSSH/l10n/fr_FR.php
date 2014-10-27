@@ -29,7 +29,7 @@ return array(
 	'Any authentication options appearing in the default_ssh_auth_options parameter must be also specified in the allowed_ssh_auth_options parameter.' => "Toute option d'authentification définie dans le paramètre default_ssh_auth_options doit également être définie dans le paramètre allowed_ssh_auth_options.",
 	'allowed_ssh_auth_options parameter must be an array.' => 'Le paramètre allowed_ssh_auth_options doit être un tableau.',
 	'default_ssh_auth_options parameter must be a string.' => 'Le paramètre default_ssh_auth_options doit être une chaîne.',
-	'Permissions SSH' => 'Permissions SSH',
+	'SSH permissions' => 'Permissions SSH',
 	'SSH keys' => 'Clés SSH',
 	'This is the list of customers which are allowed to add their SSH keys to login on the system using SSH.' => 'Liste des clients qui sont autorisés à ajouter leur clés SSH pour se connecter au système en utilisant SSH.',
 	'Customer name' => 'Nom du client',

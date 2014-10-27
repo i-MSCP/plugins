@@ -151,7 +151,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 				$allowedSshAuthOptions = $this->getConfigParam('allowed_ssh_auth_options', array());
 
-				if(!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
+				if(!in_array(\InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
 					// Normalize options for comparaison
 					$allowedSshAuthOptions = array_change_key_case(array_flip($allowedSshAuthOptions), CASE_LOWER);
 
@@ -447,14 +447,14 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 			if(is_array($allowedSshAuthOptions)) {
 				if($defaulltAuthOptions != '') {
-					$validator = new InstantSSH\Validate\SshAuthOptions();
+					$validator = new \InstantSSH\Validate\SshAuthOptions();
 
 					if(!$validator->isValid($defaulltAuthOptions)) {
 						$messages = implode(', ', $validator->getMessages());
 						throw new iMSCP_Plugin_Exception(tr('Invalid default authentication options: %s', $messages));
 					}
 
-					if(!in_array(InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
+					if(!in_array(\InstantSSH\Validate\SshAuthOptions::ALL, $allowedSshAuthOptions)) {
 						// Normalize options for comparaison
 						$allowedSshAuthOptions = array_map('strtolower', $allowedSshAuthOptions);
 
@@ -499,7 +499,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			if($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('Permissions SSH'),
+						'label' => tr('SSH permissions'),
 						'uri' => '/admin/ssh_permissions',
 						'title_class' => 'settings',
 						'order' => 8
