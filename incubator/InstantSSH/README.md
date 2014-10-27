@@ -83,7 +83,7 @@ Since version **2.1.0**, this plugin can be translated in your language using a 
 translation strings. In order, to translate this plugin in your language, you must:
  
 1. Create a new translation file for your language (eg. de_DE.php) in the **plugins/InstantSSH/l10n** directory by
-copying the **en_GB.php* file ( only if the file doesn't exist yet ). The file must be UTF-8 encoded.
+copying the **en_GB.php** file ( only if the file doesn't exist yet ). The file must be UTF-8 encoded.
 2. Translate the strings (The keys are the msgid strings and the values the msgstr strings). You must only translate the
 msgstr strings.
 
