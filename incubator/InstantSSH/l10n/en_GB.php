@@ -96,5 +96,5 @@ return array(
 	'Allowed authentication options: %s' => 'Allowed authentication options: %s',
 	'Unlimited' => 'Unlimited',
 	'Yes' => 'Yes',
-	'No' => 'No',
+	'No' => 'No'
 );
