@@ -79,7 +79,7 @@ You can install these packages by executing the following commands:
 
 ### Translations
 
-Since version **2.0.1**, this plugin can be translated in your language using a simple PHP file which return an array of
+Since version **2.1.0**, this plugin can be translated in your language using a simple PHP file which return an array of
 translation strings. In order, to translate this plugin in your language, you must:
  
 1. Create a new translation file for your language (eg. de_DE.php) in the **plugins/InstantSSH/l10n** directory by
