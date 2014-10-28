@@ -16,6 +16,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @translator Igor Scheller (MyIgel)
+ * @translator Ninos Ego (Ninos) <me@ninosego.de>
  */
 
 return array(
@@ -60,7 +63,7 @@ return array(
 	'Bad request' => 'Bad request',
 	'All fields are required.' => 'Alle Felder müssen ausgefüllt werden.',
 	"Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number." => "Ungültiger Wert des 'Maximale Anzahl an SSH-Schlüsseln' Feldes. Gebe bitte eine Zahl ein.",
-	'SSH permissions scheduled for addition.' => 'Die SSH-Berechtigungen wurden zum Hinzufügen vorgemerkt.',
+	'SSH permissions were scheduled for addition.' => 'Die SSH-Berechtigungen wurden zum Hinzufügen vorgemerkt.',
 	'SSH permissions were scheduled for update.' => 'Die SSH-Berechtigungen wurden zum Aktualisieren vorgemerkt.',
 	'SSH permissions were scheduled for deletion.' => 'Die SSH-Berechtigungen wurden zum Löschen vorgemerkt.',
 	'Edit permissions' => 'Berechtigungen bearbeiten',

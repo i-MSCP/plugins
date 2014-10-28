@@ -103,7 +103,7 @@ class SshAuthOptions extends ValidateAbstract
 	 * Constructor
 	 *
 	 * @param array|string|Zend_Config $options
-	 * @return void
+	 * @return \InstantSSH\Validate\SshAuthOptions
 	 */
 	public function __construct($options = array())
 	{
@@ -177,7 +177,7 @@ class SshAuthOptions extends ValidateAbstract
 	 * If $value fails validation, then this method returns false, and getMessages() will return an array of messages
 	 * that explain why the validation failed.
 	 *
-	 * @param string $options
+	 * @param mixed $value
 	 * @return boolean
 	 */
 	public function isValid($value)

@@ -319,7 +319,7 @@ function getSshKeys()
 			$where .= ' AND (';
 
 			for($i = 0; $i < $nbColumns; $i++) {
-				$where .= $columns[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] .'%') . ' OR ';
+				$where .= $columns[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
 			}
 
 			$where = substr_replace($where, '', -3);
@@ -367,9 +367,9 @@ function getSshKeys()
 			'aaData' => array()
 		);
 
-		$trShowSshKey = Common::escapeJs(tr('Show SSH key', true));
-		$trEditTooltip = Common::escapeJs(tr('Edit SSH key', true));
-		$trDeleteTooltip = Common::escapeJs(tr('Delete this SSH key', true));
+		$trShowSshKey = tr('Show SSH key', true);
+		$trEditTooltip = tr('Edit SSH key', true);
+		$trDeleteTooltip = tr('Delete this SSH key', true);
 
 		while($data = $rResult->fetchRow(\PDO::FETCH_ASSOC)) {
 			$row = array();
@@ -387,10 +387,10 @@ function getSshKeys()
 					(
 					($sshPermissions['ssh_permission_auth_options'])
 						? "<span title=\"$trEditTooltip\" data-action=\"edit_ssh_key\" " .
-						"data-ssh-key-id=\"" . $data['ssh_key_id'] ."\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
+						"data-ssh-key-id=\"" . $data['ssh_key_id'] . "\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
 						"\" class=\"icon icon_edit clickable\">&nbsp;</span> "
 						: "<span title=\"$trShowSshKey\" data-action=\"show_ssh_key\" " .
-						"data-ssh-key-id=\"" . $data['ssh_key_id'] ."\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
+						"data-ssh-key-id=\"" . $data['ssh_key_id'] . "\" data-ssh-key-name=\"" . $data['ssh_key_name'] .
 						"\" class=\"icon icon_show clickable\">&nbsp;</span> "
 					)
 					.
@@ -472,7 +472,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	);
 
 	$tpl->define_no_file_dynamic('page', Common::renderTpl(
-		PLUGINS_PATH . '/InstantSSH/themes/default/view/client/ssh_keys.tpl')
+			PLUGINS_PATH . '/InstantSSH/themes/default/view/client/ssh_keys.tpl')
 	);
 
 	if(Registry::get('config')->DEBUG) {
@@ -490,7 +490,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 			'TR_DYN_ACTIONS' => Common::escapeHtml(
 				($sshPermissions['ssh_permission_auth_options'])
-					? tr('Add / Edit SSH keys', true) :tr('Add / Show SSH keys', true)
+					? tr('Add / Edit SSH keys', true) : tr('Add / Show SSH keys', true)
 			),
 			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
 		)

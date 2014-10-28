@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @translator Cool
  */
 
 return array(
@@ -60,7 +62,7 @@ return array(
 	'Bad request' => 'Ogiltig begäran',
 	'All fields are required.' => 'Alla fält är obligatoriska.',
 	"Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number." => "Fel värde för 'Maximalt antal SSH-nycklar' fält. Vänligen, ange en siffra.",
-	'SSH permissions scheduled for addition.' => 'SSH behörigheter planerad till tillägg.',
+	'SSH permissions were scheduled for addition.' => 'SSH behörigheter var planerade för till tillägg.',
 	'SSH permissions were scheduled for update.' => 'SSH behörigheter var planerade för uppdatering.',
 	'SSH permissions were scheduled for deletion.' => 'SSH behörigheter var planerade för radering.',
 	'Edit permissions' => 'Redigera behörigheter',

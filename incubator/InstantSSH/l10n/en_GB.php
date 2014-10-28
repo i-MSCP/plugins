@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @translator Laurent Declercq (nuxwin) <l.declercq@nuxwin.com>
  */
 
 return array(
@@ -60,7 +62,7 @@ return array(
 	'Bad request' => 'Bad request',
 	'All fields are required.' => 'All fields are required.',
 	"Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number." => "Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number.",
-	'SSH permissions scheduled for addition.' => 'SSH permissions scheduled for addition.',
+	'SSH permissions were scheduled for addition.' => 'SSH permissions were scheduled for addition.',
 	'SSH permissions were scheduled for update.' => 'SSH permissions were scheduled for update.',
 	'SSH permissions were scheduled for deletion.' => 'SSH permissions were scheduled for deletion.',
 	'Edit permissions' => 'Edit permissions',

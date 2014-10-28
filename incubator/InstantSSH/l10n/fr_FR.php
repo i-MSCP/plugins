@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @translator Laurent Declercq (nuxwin) <l.declercq@nuxwin.com>
  */
 
 return array(
@@ -60,9 +62,9 @@ return array(
 	'Bad request' => 'Mauvaise requête',
 	'All fields are required.' => 'Tous les champs sont requis.',
 	"Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number." => "Valeur erronée pour le champ 'Nombre de clés SSH'. Veullez entrer un nombre.",
-	'SSH permissions scheduled for addition.' => 'Permissions SSH programmée pour ajout.',
-	'SSH permissions were scheduled for update.' => 'Permissions SSH programmée pour mise à jour.',
-	'SSH permissions were scheduled for deletion.' => 'Permissions SSH programmée pour suppression.',
+	'SSH permissions were scheduled for addition.' => 'Permissions SSH programmées pour ajout.',
+	'SSH permissions were scheduled for update.' => 'Permissions SSH programmées pour mise à jour.',
+	'SSH permissions were scheduled for deletion.' => 'Permissions SSH programmées pour suppression.',
 	'Edit permissions' => 'Éditer les permissions',
 	'Revoke permissions' => 'Révoquer les permissions',
 	'This is the list of SSH public keys associated with your account. Remove any keys that you do not recognize.' => 'Liste des clés SSH associées à votre compte. Supprimez toutes les clés que vous ne reconnaissez pas.',

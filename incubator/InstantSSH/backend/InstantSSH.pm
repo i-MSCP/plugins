@@ -30,10 +30,8 @@ use warnings;
 
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
-use File::Basename ();
-use Cwd ();
-use lib Cwd::realpath(File::Basename::dirname(__FILE__)),
-        Cwd::realpath(File::Basename::dirname(__FILE__)) . '/Vendor';
+use lib "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend",
+        "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend/Vendor";
 
 use iMSCP::Debug;
 use iMSCP::Database;

@@ -125,7 +125,7 @@ function addSshPermissions()
 
 				write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
 
-				Common::sendJsonResponse(200, array('message' => tr('SSH permissions scheduled for addition.', true)));
+				Common::sendJsonResponse(200, array('message' => tr('SSH permissions were scheduled for addition.', true)));
 			} else { // Update SSH permissions
 				$stmt = exec_query(
 					'
@@ -431,7 +431,7 @@ function getSshPermissionsList()
 			if($data['ssh_permission_status'] == 'ok') {
 				$row['ssh_permission_actions'] =
 					"<span title=\"$trEditTooltip\" data-action=\"edit_ssh_permissions\" " .
-					"data-ssh-permission-id=\"" . $data['ssh_permission_id'] ."\" . " .
+					"data-ssh-permission-id=\"" . $data['ssh_permission_id'] . "\" . " .
 					"class=\"icon icon_edit clickable\">&nbsp;</span> "
 					.
 					"<span title=\"$trDeleteTooltip\" data-action=\"delete_ssh_permissions\" " .
