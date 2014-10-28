@@ -118,7 +118,13 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			Zend_Translate::clearCache($this->getName());
+			/** @var Zend_Translate $translator */
+			$translator = iMSCP_Registry::get('translator');
+
+			if($translator->hasCache()) {
+				$translator->clearCache($this->getName());
+			}
+
 			$this->migrateDb('up');
 		} catch(iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
@@ -209,7 +215,13 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			Zend_Translate::clearCache('InstantSSH');
+			/** @var Zend_Translate $translator */
+			$translator = iMSCP_Registry::get('translator');
+
+			if($translator->hasCache()) {
+				$translator->clearCache($this->getName());
+			}
+
 			$this->migrateDb('down');
 		} catch(iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);

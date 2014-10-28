@@ -354,7 +354,7 @@ function getSshPermissionsList()
 		/* Filtering */
 		$where = '';
 
-		if($_GET['sSearch'] != '') {
+		if($_GET['sSearch'] !== '') {
 			$where .= 'WHERE (';
 
 			for($i = 0; $i < $nbColumns; $i++) {
@@ -376,7 +376,7 @@ function getSshPermissionsList()
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS  ' . str_replace(' , ', ' ', implode(', ', $columns)) . ",
+					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . ",
 					ssh_permission_id, ssh_permission_admin_id
 				FROM
 					$table
@@ -487,7 +487,7 @@ if(isset($_REQUEST['action'])) {
 				deleteSshPermissions();
 				break;
 			default:
-				Common::sendJsonResponse(400, array('message' => tr('Bad request.')));
+				Common::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 		}
 	}
 
