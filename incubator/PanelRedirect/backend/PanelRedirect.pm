@@ -174,7 +174,7 @@ sub _createConfig
 {
 	my ($self, $vhostTplFile) = @_;
 
-	my $tplRootDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/PanelRedirect/templates/$self->{'config'}->{'type'}";
+	my $tplRootDir = "$main::imscpConfig{'PLUGINS_DIR'}/PanelRedirect/templates/$self->{'config'}->{'type'}";
 
 	my $ipMngr = iMSCP::Net->getInstance();
 
