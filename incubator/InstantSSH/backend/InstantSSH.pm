@@ -58,7 +58,7 @@ my %customerShells = ();
 
 =item install()
 
- Process install tasks
+ Process plugin installation tasks
 
  Return int 0 on success, other on failure
 
@@ -71,6 +71,7 @@ sub install
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
+	# Create configuration directory for makejail ( Since version 2.1.0 )
 	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->make(
 		'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'IMSCP_GROUP'}, 'mode' => 0750
 	);
@@ -82,9 +83,56 @@ sub install
 	$self->_configureBusyBox();
 }
 
+=item uninstall()
+
+ Process plugin uninstallation tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub uninstall
+{
+	my $self = $_[0];
+
+	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+
+	# Remove the shared jail if any.
+	# Note: Customer jails are removed when the plugin is being deactivated,
+	# which is a pre-condition for the plugin uninstallation
+	if(-d "$rootJailDir/shared_jail") {
+		my $jailBuilder;
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
+
+		my $rs = $jailBuilder->removeJail();
+		return $rs if $rs;
+	}
+
+	# Remove the jails root directory ( only if empty )
+	if(-d $rootJailDir && iMSCP::Dir->new( dirname => $rootJailDir )->isEmpty()) {
+		my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
+		return $rs if $rs;
+
+		$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
+		return $rs if $rs;
+	} else {
+		error("Unable to delete the $rootJailDir directory: Directory is not empty");
+		return 1;
+	}
+
+	my $rs = $self->_configurePamChroot('uninstall');
+	return $rs if $rs;
+
+	$self->_configureBusyBox('uninstall');
+}
+
 =item update($fromVersion, $toVersion)
 
- Process update tasks
+ Process plugin update tasks
 
  Param string $fromVersion
  Param string $toVersion
@@ -99,7 +147,10 @@ sub update
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	if($toVersion eq '2.0.4' && -d '/etc/makejail') {
+	# Since version 2.1.0, we are using our own directory to store makejail configuration files
+	# In oldest versions, those files were stored in default directory ( /etc/makejail ). We move
+	# them to the new directory using the new naming convention.
+	if($toVersion eq '2.1.0' && -d '/etc/makejail') {
 		for my $file(iMSCP::Dir->new( dirname => '/etc/makejail', fileType => 'InstantSSH.*\\.py' )->getFiles()) {
 			my $nPath;
 
@@ -117,42 +168,44 @@ sub update
 	0;
 }
 
-=item uninstall()
+=item change
 
- Process uninstall tasks
+ Process plugin change tasks
 
- Return int 0 on success, other on failure
+ Return int 0, other on failure
 
 =cut
 
-sub uninstall
+sub change
 {
 	my $self = $_[0];
 
-	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# We loop through each jail
+		for my $jailDir(iMSCP::Dir->new( dirname => normalizePath($self->{'config'}->{'root_jail_dir'}) )->getDirs()) {
+			my $jailBuilder;
+			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
 
-	if(-d "$rootJailDir/shared_jail") {
-		my $jailBuilder;
-		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
-		if($@) {
-			error("Unable to create JailBuilder object: $@");
-			return 1;
+			# We update or remove the jail according the value of the shared_jail parameter
+			# which tell what type of jail is expected
+			if(
+				($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
+				(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
+			) {
+				my $rs = $jailBuilder->makeJail(); # Update jail
+				return $rs if $rs;
+			} else {
+				my $rs = $jailBuilder->removeJail(); # Remove jail
+				return $rs if $rs;
+			}
 		}
-
-		my $rs = $jailBuilder->removeJail();
-		return $rs if $rs;
 	}
 
-	my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
-	return $rs if $rs;
-
-	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
-	return $rs if $rs;
-
-	$rs = $self->_configurePamChroot('uninstall');
-	return $rs if $rs;
-
-	$self->_configureBusyBox('uninstall');
+	0;
 }
 
 =item enable()
@@ -207,49 +260,6 @@ sub disable
 	unless(ref $rs eq 'HASH') {
 		error($rs);
 		return 1;
-	}
-
-	0;
-}
-
-=item change
-
- Process change tasks
-
- Return int 0, other on failure
-
-=cut
-
-sub change
-{
-	my $self = $_[0];
-
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
-
-		my @jailDirs = iMSCP::Dir->new( dirname => $rootJailDir )->getDirs(); # Retrieve list of jails
-
-		if(@jailDirs) {
-			for my $jailDir(@jailDirs) {
-				my $jailBuilder;
-				eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
-				if($@) {
-					error("Unable to create JailBuilder object: $@");
-					return 1;
-				}
-
-				if(
-					($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
-					(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
-				) {
-					my $rs = $jailBuilder->makeJail(); # Update jail
-					return $rs if $rs;
-				} else {
-					my $rs = $jailBuilder->removeJail(); # Remove jail
-					return $rs if $rs;
-				}
-			}
-		}
 	}
 
 	0;
@@ -452,15 +462,22 @@ sub onDeleteDomain
 		if(defined $homeDir) {
 			$homeDir = normalizePath($homeDir);
 
-			if(-d "$homeDir/.ssh") {
-				# Force logout of ssh login if any
-				my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'USER'}), 'sshd');
-				my ($stdout, $stderr);
-				execute("@cmd", \$stdout, \$stderr);
-				debug($stdout) if $stdout;
-				debug($stderr) if $stderr;
+			# Force logout of ssh login if any
+			my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'USER'}), 'sshd');
+			my ($stdout, $stderr);
+			execute("@cmd", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			debug($stderr) if $stderr;
 
-				my $jailBuilder;
+			if(-d "$homeDir/.ssh") {
+				clearImmutable($homeDir);
+				clearImmutable("$homeDir/.ssh", 'recursive');
+
+				my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
+				return $rs if $rs;
+			}
+
+			my $jailBuilder;
 				eval {
 					$jailBuilder = InstantSSH::JailBuilder->new(
 						id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $data->{'USER'},
@@ -481,17 +498,6 @@ sub onDeleteDomain
 						return $rs if $rs;
 					}
 				}
-
-				my $isProtectedHomeDir = isImmutable($homeDir);
-
-				clearImmutable($homeDir) if $isProtectedHomeDir;
-				clearImmutable("$homeDir/.ssh/authorized_keys") if -f "$homeDir/.ssh/authorized_keys";
-
-				my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
-				return $rs if $rs;
-
-				setImmutable($homeDir) if $isProtectedHomeDir;
-			}
 		} else {
 			error("Unable to find $data->{'USER'} unix user homedir");
 			return 1;
@@ -521,7 +527,7 @@ sub onUnixUserUpdate
 			$$homeDir = normalizePath($$homeDir) . '/./';
 			$$shell = $self->{'config'}->{'shells'}->{'jailed'};
 		} else {
-			$$shell = $self->{'config'}->{'shells'}->{'normal'};
+			$$shell = $self->{'config'}->{'shells'}->{'full'};
 		}
 	}
 
@@ -558,7 +564,7 @@ sub _init
 	}
 
 	for(qw/makejail_confdir_path root_jail_dir shared_jail shells/) {
-		die("Missing $_ configuration parameter") unless defined $self->{'config'}->{$_};
+		die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
 	}
 
 	$self->{'eventManager'}->register('onBeforeAddImscpUnixUser', sub { $self->onUnixUserUpdate(@_); });
@@ -571,7 +577,7 @@ sub _init
 
  Adds the given SSH permissions
 
- Param hash \%data SSH permissions
+ Param hash \%data SSH permissions data
  Return int 0 on success, other on failure
 
 =cut
@@ -585,7 +591,7 @@ sub _addSshPermissions
 	if(defined $homeDir) {
 		$homeDir = normalizePath($homeDir);
 
-		# Force logout of ssh logins if any
+		# Force logout of ssh logins if any ( tochange case )
 		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd');
 		my ($stdout, $stderr);
 		execute("@cmd", \$stdout, \$stderr);
@@ -604,34 +610,34 @@ sub _addSshPermissions
 			return 1;
 		}
 
-		my $shell = ($data->{'ssh_permission_jailed_shell'})
-			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'normal'};
+		my $shell;
+		if($data->{'ssh_permission_jailed_shell'}) { # Jailed shell
+			$shell = $self->{'config'}->{'shells'}->{'jailed'};
+			$homeDir .= '/./';
 
-		if($data->{'ssh_permission_jailed_shell'}) {
 			# Create jail if needed
-			unless($jailBuilder->existsJail()) {
-				my $rs = $jailBuilder->makeJail();
-				return $rs if $rs;
-			}
+			my $rs = $jailBuilder->makeJail() unless $jailBuilder->existsJail();
+			return $rs if $rs;
 
 			# Add user in jail
-			my $rs = $jailBuilder->addUserToJail($data->{'admin_sys_name'}, $shell);
+			$rs = $jailBuilder->addUserToJail($data->{'admin_sys_name'}, $shell);
 			return $rs if $rs;
-		} elsif($jailBuilder->existsJail()) {
-			# Ensure that user is not jailed (tochange case)
-			if($self->{'config'}->{'shared_jail'}) {
-				my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'});
-				return $rs if $rs;
-			} else {
-				my $rs = $jailBuilder->removeJail();
-				return $rs if $rs;
+		} else { # Full shell
+			$shell = $self->{'config'}->{'shells'}->{'full'};
+
+			# Ensure that user is not jailed
+			if($jailBuilder->existsJail()) {
+				if($self->{'config'}->{'shared_jail'}) {
+					my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'});
+					return $rs if $rs;
+				} else {
+					my $rs = $jailBuilder->removeJail();
+					return $rs if $rs;
+				}
 			}
 		}
 
-		# Update user homedir and shell
-
-		$homeDir .= '/./' if $data->{'ssh_permission_jailed_shell'};
-
+		# Update user homedir and shell ( must be done last to prevent any full SSH login while jail is bein created )
 		my $pw = Unix::PasswdFile->new('/etc/passwd');
 		$pw->home($data->{'admin_sys_name'}, $homeDir);
 		$pw->shell($data->{'admin_sys_name'}, $shell);
@@ -651,7 +657,7 @@ sub _addSshPermissions
 
  Remove the given SSH permissions
 
- Param hash \%data SSH permissions
+ Param hash \%data SSH permissions data
  Return int 0 on success, other on failure
 
 =cut
@@ -666,7 +672,7 @@ sub _removeSshPermissions
 		$homeDir = normalizePath($homeDir);
 
 		# Force logout of ssh logins if any
-		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}),  'sshd');
+		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', '-u', escapeShell($data->{'admin_sys_name'}), 'sshd');
 		my ($stdout, $stderr);
 		execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -682,19 +688,19 @@ sub _removeSshPermissions
 			return 1;
 		}
 
-		if($data->{'ssh_permission_jailed_shell'}) {
-			my $jailBuilder;
-			eval {
-				$jailBuilder = InstantSSH::JailBuilder->new(
-					id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $data->{'admin_sys_name'},
-					config => $self->{'config'}
-				);
-			};
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
+		my $jailBuilder;
+		eval {
+			$jailBuilder = InstantSSH::JailBuilder->new(
+				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $data->{'admin_sys_name'},
+				config => $self->{'config'}
+			);
+		};
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
 
+		if($jailBuilder->existsJail()) {
 			# Remove user from jail (also the jail if per user jail and task != change)
 			if($self->{'config'}->{'shared_jail'} || $self->{'action'} eq 'change') {
 				my $rs = $jailBuilder->removeUserFromJail($data->{'admin_sys_name'});
@@ -705,12 +711,12 @@ sub _removeSshPermissions
 			}
 		}
 
-		# Remove $HOME/.ssh directory if any (this remove all SSH keys)
+		# Remove $HOME/.ssh directory if any
 		if(-d "$homeDir/.ssh") {
 			my $isProtectedHomeDir = isImmutable($homeDir);
 
-			clearImmutable($homeDir) if $isProtectedHomeDir;
-			clearImmutable("$homeDir/.ssh/authorized_keys") if -f "$homeDir/.ssh/authorized_keys";
+			clearImmutable($homeDir);
+			clearImmutable("$homeDir/.ssh", 'recursive');
 
 			my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->remove();
 			return $rs if $rs;
@@ -744,22 +750,23 @@ sub _addSshKey
 		$homeDir = normalizePath($homeDir);
 
 		my $isProtectedHomeDir = isImmutable($homeDir);
+		clearImmutable($homeDir) if $isProtectedHomeDir;
+		clearImmutable("$homeDir/.ssh") if -d "$homeDir/.ssh";
+
+		# Create $HOME/.ssh directory of set its permissions if it already exists
+		my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->make(
+			{ user => $data->{'admin_sys_name'}, group => $data->{'admin_sys_gname'}, mode => 0700 }
+		);
 
 		my $file = iMSCP::File->new( filename => "$homeDir/.ssh/authorized_keys" );
-		my $fileContent;
+		my $fileContent = '';
 
-		unless(-f "$homeDir/.ssh/authorized_keys") {
-			clearImmutable($homeDir) if $isProtectedHomeDir;
-
-			# Create $HOME/.ssh directory of set its permissions if it already exists
-			my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->make(
-				{ user => $data->{'admin_sys_name'}, group => $data->{'admin_sys_gname'}, mode => 0700 }
-			);
-
-			setImmutable($homeDir) if $isProtectedHomeDir;
-		} else {
-			clearImmutable("$homeDir/.ssh/authorized_keys");
-			$fileContent = $file->get() || '';
+		if(-f "$homeDir/.ssh/authorized_keys") {
+			$fileContent = $file->get();
+			unless(defined $fileContent) {
+				error("Unable to read $homeDir/.ssh/authorized_keys");
+				return 1;
+			}
 
 			# Prevent duplicate entry
 			my $sshKeyReg = quotemeta($data->{'ssh_key'});
@@ -769,7 +776,7 @@ sub _addSshKey
 		# Add ssh key in authorized_keys file
 		$fileContent .= "$data->{'ssh_auth_options'} $data->{'ssh_key'}\n";
 
-		my $rs = $file->set($fileContent);
+		$rs = $file->set($fileContent);
 		return $rs if $rs;
 
 		$rs = $file->save();
@@ -781,7 +788,8 @@ sub _addSshKey
 		$rs = $file->owner($data->{'admin_sys_name'}, $data->{'admin_sys_gname'});
 		return $rs if $rs;
 
-		setImmutable("$homeDir/.ssh/authorized_keys");
+		setImmutable("$homeDir/.ssh", 'recursive');
+		setImmutable($homeDir) if $isProtectedHomeDir;
 	} else {
 		error("Unable to find $data->{'admin_sys_name'} user homedir");
 		return 1;
@@ -815,33 +823,35 @@ sub _deleteSshKey
 	if(defined $homeDir) {
 		$homeDir = normalizePath($homeDir);
 
-		if(-f "$homeDir/.ssh/authorized_keys") {
-			clearImmutable("$homeDir/.ssh/authorized_keys");
+		if(-d "$homeDir/.ssh") {
+			clearImmutable("$homeDir/.ssh", 'recursive');
 
-			my $file = iMSCP::File->new( filename => "$homeDir/.ssh/authorized_keys" );
-			my $fileContent = $file->get();
+			if(-f "$homeDir/.ssh/authorized_keys") {
+				my $file = iMSCP::File->new( filename => "$homeDir/.ssh/authorized_keys" );
+				my $fileContent = $file->get();
 
-			if(defined $fileContent) {
-				my $sshKeyReg = quotemeta($data->{'ssh_key'});
-				$fileContent =~ s/[^\n]*?$sshKeyReg\n//;
+				if(defined $fileContent) {
+					my $sshKeyReg = quotemeta($data->{'ssh_key'});
+					$fileContent =~ s/[^\n]*?$sshKeyReg\n//;
 
-				my $rs = $file->set($fileContent);
-				return $rs if $rs;
+					my $rs = $file->set($fileContent);
+					return $rs if $rs;
 
-				$rs = $file->save();
-				return $rs if $rs;
+					$rs = $file->save();
+					return $rs if $rs;
 
-				$rs = $file->mode(0600);
-				return $rs if $rs;
+					$rs = $file->mode(0600);
+					return $rs if $rs;
 
-				$rs = $file->owner($data->{'admin_sys_name'}, $data->{'admin_sys_gname'});
-				return $rs if $rs;
-
-				setImmutable("$homeDir/.ssh/authorized_keys");
-			} else {
-				error("Unable to read $homeDir/.ssh/authorized_keys");
-				return 1;
+					$rs = $file->owner($data->{'admin_sys_name'}, $data->{'admin_sys_gname'});
+					return $rs if $rs;
+				} else {
+					error("Unable to read $homeDir/.ssh/authorized_keys");
+					return 1;
+				}
 			}
+
+			setImmutable("$homeDir/.ssh", 'recursive');
 		}
 	} else {
 		error("Unable to find $data->{'admin_sys_name'} user homedir");
@@ -877,7 +887,7 @@ sub _checkRequirements
 
 	# Process dedicated test for busybox
 	# This allow the admin to install either the busybox package or the
-	# busybox-static package, as its own compiled version
+	# busybox-static package, as a own compiled version
 	unless(-x '/bin/busybox') {
 		error("The busybox package is not installed on your system");
 		$ret ||= 1;

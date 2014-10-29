@@ -49,14 +49,14 @@ return array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
 
-	// Shell for SSH users (default: /bin/bash for normal shells ; /bin/ash for jailed shells)
+	// Shell for SSH users (default: /bin/bash for full SSH access ; /bin/ash for restricted SSH access)
 	//
 	// See man shells for further details. Do not change the default values if you do not know what you are doing.
 	'shells' => array(
-		// Shell for normal ssh users
-		'normal' => '/bin/bash',
+		// Shell for full SSH access
+		'full' => '/bin/bash',
 
-		// Shell for jailed ssh users
+		// Shell for restricted SSH access
 		// BusyBox built-in shell ; Don't forget to set it back to something else if you do not use the BusyBox built-in
 		// shell. /bin/ash is a link that point to the /bin/busybox executable. This link is automatically created by the
 		// plugin. The /bin/ash shell is also automatically added in the /etc/shells file.
@@ -186,7 +186,7 @@ return array(
 			'/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum', '/usr/bin/nice',
 			'/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc', '/usr/bin/watch',
 			'/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz', '/usr/bin/pbzip2',
-			'/usr/bin/curl'
+			'/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
@@ -277,8 +277,7 @@ return array(
 	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell environments
 	'imscpbase' => array(
 		'include_app_sections' => array(
-			// 'ashshell',
-			'bashshell', 'mysqltools', 'netutils'
+			'ashshell', 'mysqltools'
 		),
 		'users' => array(
 			'root', 'www-data'
