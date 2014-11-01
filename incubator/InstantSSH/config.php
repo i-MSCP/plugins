@@ -262,7 +262,7 @@ return array(
 	# Provide ssh secure ftp
 	'sftp' => array(
 		'paths' => array(
-			'/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server', '/usr/bin/sftp'
+			'/usr/bin/sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
 		),
 		'include_app_sections' => array(
 			'netbasics', 'uidbasics'
