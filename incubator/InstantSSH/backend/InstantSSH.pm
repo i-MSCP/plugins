@@ -181,26 +181,30 @@ sub change
 	my $self = $_[0];
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		# We loop through each jail
-		for my $jailDir(iMSCP::Dir->new( dirname => normalizePath($self->{'config'}->{'root_jail_dir'}) )->getDirs()) {
-			my $jailBuilder;
-			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
+		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
-			# We update or remove the jail according the value of the shared_jail parameter
-			# which tell what type of jail is expected
-			if(
-				($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
-				(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
-			) {
-				my $rs = $jailBuilder->makeJail(); # Update jail
-				return $rs if $rs;
-			} else {
-				my $rs = $jailBuilder->removeJail(); # Remove jail
-				return $rs if $rs;
+		if(-d $rootJailDir) {
+			# We loop through each jail
+			for my $jailDir(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
+				my $jailBuilder;
+				eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
+				if($@) {
+					error("Unable to create JailBuilder object: $@");
+					return 1;
+				}
+
+				# We update or remove the jail according the value of the shared_jail parameter
+				# which tell what type of jail is expected
+				if(
+					($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
+					(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
+				) {
+					my $rs = $jailBuilder->makeJail(); # Update jail
+					return $rs if $rs;
+				} else {
+					my $rs = $jailBuilder->removeJail(); # Remove jail
+					return $rs if $rs;
+				}
 			}
 		}
 	}
