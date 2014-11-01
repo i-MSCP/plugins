@@ -6,7 +6,7 @@ Version 2.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Support for translations
-	Added: bashshell, netbasics and netutils application sections
+	Added: bashshell, netbasics, netutils, scp, sftp, ssh and rsync application sections
 	Added: makejail_confdir_path and makejail_path configuration parameters
 	Fixed: Jail builder layer must be review for better reusability
 	Fixed: User shell in jail is still set to /bin/false

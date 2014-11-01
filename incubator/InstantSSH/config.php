@@ -234,13 +234,67 @@ return array(
 	),
 
 	// netutils section
+	// Provide wget, lynx, ftp, ssh, sftp, scp, rsync
 	'netutils' => array(
 		'paths' => array(
-			'/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/rsync', '/usr/bin/wget', '/etc/lynx-cur/*'
+			'/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/wget', '/etc/lynx-cur/*'
 		),
 		'include_app_sections' => array(
-			'netbasics'
+			'netbasics', 'scp', 'sftp', 'ssh', 'rsync'
 		)
+	),
+
+	# scp section
+	# Provide ssh secure copy
+	'scp' => array(
+		'paths' => array(
+			'/usr/bin/scp'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array(
+			'/dev/urandom'
+		)
+	),
+
+	# sftp section
+	# Provide ssh secure ftp
+	'sftp' => array(
+		'paths' => array(
+			'/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server', '/usr/bin/sftp'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array(
+			'/dev/urandom', '/dev/null'
+		)
+	),
+
+	# ssh section
+	# Provide ssh secure shell
+	'ssh' => array(
+		'paths' => array(
+			'/usr/bin/ssh'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
+		'devices' => array(
+			'/dev/urandom', '/dev/tty', '/dev/null'
+		)
+	),
+
+	# rsync section
+	# Provide rsync
+	'rsync' => array(
+		'paths' => array(
+			'/usr/bin/rsync'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'uidbasics'
+		),
 	),
 
 	# mysqltools section
