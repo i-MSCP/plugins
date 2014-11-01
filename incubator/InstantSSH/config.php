@@ -28,28 +28,28 @@ return array(
 	'default_ssh_auth_options' => 'no-agent-forwarding,no-port-forwarding,no-X11-forwarding',
 
 	//
-	// SSH authentication options that customers are allowed to define when they are allowed to override default.
+	// SSH authentication options that customers can define when they are allowed to override default.
 	//
-	// Valid options are:
+	// Supported options are:
 	//
 	// \InstantSSH\Validate\SshAuthOptions::ALL (all options)
-	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY ( 'cert-authority' option )
-	// \InstantSSH\Validate\SshAuthOptions::COMMAND ( 'command' option )
-	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT ( 'environment' option )
-	// \InstantSSH\Validate\SshAuthOptions::FROM ( 'from' option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING ( 'no-agent-forwarding' option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING ( 'no-port-forwarding' option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_PTY ( 'no-pty' option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC ( 'no-user-rc' option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING ( 'no-x11-forwarding' option )
-	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN ( 'permitopen' option )
-	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS ( 'principals' option )
-	// \InstantSSH\Validate\SshAuthOptions::TUNNEL ( 'tunnel' option )
+	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY ( cert-authority option )
+	// \InstantSSH\Validate\SshAuthOptions::COMMAND ( command option )
+	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT ( environment option )
+	// \InstantSSH\Validate\SshAuthOptions::FROM ( from option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING ( no-agent-forwarding option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING ( no-port-forwarding option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_PTY ( no-pty option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC ( no-user-rc option )
+	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING ( no-x11-forwarding option )
+	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN ( permitopen option )
+	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS ( principals option )
+	// \InstantSSH\Validate\SshAuthOptions::TUNNEL ( tunnel option )
 	'allowed_ssh_auth_options' => array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
 
-	// Shell for SSH users (default: /bin/bash for full SSH access ; /bin/ash for restricted SSH access)
+	// Shell for SSH users ( default: /bin/bash for full SSH access ; /bin/ash for restricted SSH access )
 	//
 	// See man shells for further details. Do not change the default values if you do not know what you are doing.
 	'shells' => array(
@@ -63,7 +63,7 @@ return array(
 		'jailed' => '/bin/ash'
 	),
 
-	// Root jail directory (default: /var/chroot/InstantSSH)
+	// Root jail directory ( default: /var/chroot/InstantSSH )
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
@@ -75,11 +75,11 @@ return array(
 	// Don't change this parameter if you don't know what you are doing
 	'makejail_path' => __DIR__ . '/bin/makejail',
 
-	// Makejail configuration directory (default: <CONF_DIR>/InstantSSH)
+	// Makejail configuration directory ( default: <CONF_DIR>/InstantSSH )
 	// Don't change this parameter if you don't know what you are doing
 	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/InstantSSH',
 
-	// Shared jail (default: true)
+	// Shared jail ( default: true )
 	//
 	// When set to true, only one jail is created for all customers. A shared jail doesn't mean that customers will be
 	// able to read, modify or delete files of other customers. This simply mean that the jail will be shared between
@@ -90,7 +90,7 @@ return array(
 	// not implemented yet. This will be implemented in near future.
 	'shared_jail' => true,
 
-	// Preserved files (default: <USER_WEB_DIR>)
+	// Preserved files ( default: <USER_WEB_DIR> )
 	//
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.
@@ -105,9 +105,9 @@ return array(
 	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
 	'include_pkg_deps' => false,
 
-	// Selected application sections for jailed shell environments (default: imscpbase)
+	// Selected application sections for jailed shell environments ( default: imscpbase )
 	//
-	// This is the list of application sections which are used to create/update the jails (see below).
+	// This is the list of application sections which are used to create/update the jails ( see below ).
 	//
 	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
 	// environments using BusyBox. The imscpbase application section also include the editors and the mysqltools sections
@@ -149,7 +149,7 @@ return array(
 	// Other application sections will be added in time. Feel free to provide us your own section for integration.
 
 	// ashshell section
-	// Provide restricted shell using BusyBox (built-in ash shell and common UNIX utilities)
+	// Provide restricted ash shell  ( BusyBox built-in shell and common UNIX utilities )
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/ash
 	'ashshell' => array(
 		'paths' => array(
@@ -173,7 +173,7 @@ return array(
 	),
 
 	// bashshell
-	// Provide restricted shell using bash
+	// Provide restricted GNU bash shell
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
 	'bashshell' => array(
 		'paths' => array(
