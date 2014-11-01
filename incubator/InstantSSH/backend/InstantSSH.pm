@@ -184,7 +184,6 @@ sub change
 		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
 		if(-d $rootJailDir) {
-			# We loop through each jail
 			for my $jailDir(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
 				my $jailBuilder;
 				eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
