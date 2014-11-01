@@ -294,7 +294,7 @@ return array(
 		),
 		'include_app_sections' => array(
 			'netbasics', 'uidbasics'
-		),
+		)
 	),
 
 	# mysqltools section
