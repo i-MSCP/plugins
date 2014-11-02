@@ -21,7 +21,7 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '2.1.0',
+	'version' => '2.1.1',
 	'date' => '2014-11-02',
 	'name' => 'InstantSSH',
 	'desc' => 'Plugin allowing to provide full or restricted shell access to your customers.',

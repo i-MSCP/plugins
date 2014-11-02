@@ -754,7 +754,7 @@ sub _addSshKey
 
 		my $isProtectedHomeDir = isImmutable($homeDir);
 		clearImmutable($homeDir) if $isProtectedHomeDir;
-		clearImmutable("$homeDir/.ssh") if -d "$homeDir/.ssh";
+		clearImmutable("$homeDir/.ssh", 'recursive') if -d "$homeDir/.ssh";
 
 		# Create $HOME/.ssh directory of set its permissions if it already exists
 		my $rs = iMSCP::Dir->new( dirname => "$homeDir/.ssh" )->make(
