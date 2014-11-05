@@ -63,7 +63,7 @@ plugin context. You can see all integrated events by reading the iMSCP_Events cl
 
 To disable one or more actions, you must add a new section like below in the plugin configuration file:
 
-		...
+	...
 			'disabled_actions' => array(
 			'onBeforeAddFtp',
 			'onBeforeEditFtp',
