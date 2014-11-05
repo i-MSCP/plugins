@@ -92,10 +92,10 @@ return array(
 	),
 
 	// Perform Razor check of messages if installed.
-	'use_razor2' => 'no', // YES, NO (default)
+	'use_razor2' => 'yes', // YES, NO (default)
 
 	// Perform Pyzor check of messages if installed.
-	'use_pyzor' => 'no', // YES, NO (default)
+	'use_pyzor' => 'yes', // YES, NO (default)
 
 	// Perform DCC (Distributed Checksum Clearinghouse) check of messages if installed.
 	'use_dcc' => 'no', // YES, NO (default)

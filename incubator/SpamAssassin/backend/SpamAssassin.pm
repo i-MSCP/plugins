@@ -75,10 +75,10 @@ sub install
 		return 1;
 	}
 
-	my $rs = $self->_checkVersion();
-	return $rs if $rs;
+#	my $rs = $self->_checkVersion();
+#	return $rs if $rs;
 
-	$rs = $self->_checkSaUser();
+	my $rs = $self->_checkSaUser();
 	return $rs if $rs;
 
 	$rs = $self->_setupDatabase();
@@ -166,11 +166,11 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_checkVersion();
-	return $rs if $rs;
+#	my $rs = $self->_checkVersion();
+#	return $rs if $rs;
 
 	# Add Postfix configuration
-	$rs = $self->_modifyPostfixMainConfig('add');
+	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
 	
 	# Activate Roundcube Plugins
@@ -261,7 +261,7 @@ sub uninstall
 
 =item discoverRazor()
 
- Create the Razor server list files.
+ Create the Razor server list files
 
  Return int 0 on success, other on failure
 
@@ -282,7 +282,7 @@ sub discoverRazor
 
 =item cleanAwlDb()
 
- Check and clean the SpamAssassin auto-whitelist (AWL) database.
+ Check and clean the SpamAssassin auto-whitelist (AWL) database
 
  Return int 0 on success, other on failure
 
@@ -303,10 +303,9 @@ sub cleanAwlDb
 
 =item cleanBayesDb()
 
- Expire old tokens from the bayes database.
+ Expire old tokens from the bayes database
  
- It cleans the database only when the number of tokens
- surpasses the bayes_expiry_max_db_size value.
+ It cleans the database only when the number of tokens surpasses the bayes_expiry_max_db_size value.
 
  Return int 0 on success, other on failure
 
@@ -324,7 +323,7 @@ sub cleanBayesDb
 
 =item bayesSaLearn()
 
- Train SpamAssassin's Bayesian classifier with spam and ham reported by the users.
+ Train SpamAssassin's Bayesian classifier with spam and ham reported by the users
 
  Return int 0 on success, other on failure
 
@@ -397,7 +396,7 @@ sub _init
 
 =item _updateSpamassassinRules()
 
- Update the SpamAssassin filter rules and keys.
+ Update the SpamAssassin filter rules and keys
 
  Return int 0 on success, other on failure
 
@@ -432,7 +431,7 @@ sub _updateSpamassassinRules
 
 =item _discoverPyzor()
 
- Create Pyzor home folder and discover the servers.
+ Create Pyzor home folder and discover the servers
 
  Return int 0 on success, other on failure
 
@@ -452,7 +451,7 @@ sub _discoverPyzor
 
 =item _createRazor()
 
- Create Razor home folder and registers a new identity.
+ Create Razor home folder and registers a new identity
 
  Return int 0 on success, other on failure
 
@@ -477,13 +476,13 @@ sub _createRazor
 
 =item _modifySpamassMilterDefaultConfig($action)
 
- Modify spamass-milter default config file.
+ Modify spamass-milter default config file
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifySpamassMilterDefaultConfig($$)
+sub _modifySpamassMilterDefaultConfig
 {
 	my ($self, $action) = @_;
 
@@ -524,13 +523,13 @@ sub _modifySpamassMilterDefaultConfig($$)
 
 =item _modifySpamassassinDefaultConfig($action)
 
- Modify SpamAssassin default config file.
+ Modify SpamAssassin default config file
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifySpamassassinDefaultConfig($$)
+sub _modifySpamassassinDefaultConfig
 {
 	my ($self, $action) = @_;
 
@@ -564,13 +563,13 @@ sub _modifySpamassassinDefaultConfig($$)
 
 =item _modifyPostfixMainConfig($action)
 
- Modify postfix main.cf config file.
+ Modify postfix main.cf config file
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifyPostfixMainConfig($$)
+sub _modifyPostfixMainConfig
 {
 	my ($self, $action) = @_;
 
@@ -648,7 +647,7 @@ sub _modifyPostfixMainConfig($$)
 
 =cut
 
-sub _restartDaemon($$$)
+sub _restartDaemon
 {
 	my ($self, $daemon, $action) = @_;
 
@@ -662,7 +661,7 @@ sub _restartDaemon($$$)
 
 =item _restartDaemonPostfix()
 
- Restart the postfix daemon.
+ Restart the postfix daemon
 
  Return int 0 on success, other on failure
 
@@ -678,13 +677,13 @@ sub _restartDaemonPostfix
 
 =item _registerCronjob($cronjobName)
 
- Register cronjob.
+ Register cronjob
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _registerCronjob($$)
+sub _registerCronjob
 {
 	my ($self, $cronjobName) = @_;
 
@@ -767,13 +766,13 @@ sub _registerCronjob($$)
 
 =item _unregisterCronjob($cronjobName)
 
- Unregister cronjob.
+ Unregister cronjob
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _unregisterCronjob($$)
+sub _unregisterCronjob
 {
 	my ($self, $cronjobName) = @_;
 
@@ -792,13 +791,13 @@ sub _unregisterCronjob($$)
 
 =item _setSpamassassinConfig($saFile)
 
- Copy the SpamAssassin config files and set the values.
+ Copy the SpamAssassin config files and set the values
 
  Return int 0 if all requirements are meet, 1 otherwise
 
 =cut
 
-sub _setSpamassassinConfig($$)
+sub _setSpamassassinConfig
 {
 	my ($self, $saFile) = @_;
 
@@ -855,7 +854,7 @@ sub _setSpamassassinConfig($$)
 
 =item _removeSpamassassinConfig()
 
- Remove SpamAssassin config files.
+ Remove SpamAssassin config files
 
  Return int 0 on success, other on failure
 
@@ -873,16 +872,16 @@ sub _removeSpamassassinConfig
 
 =item _installRoundcubePlugins()
 
- Copy the plugins to the Roundcube Plugin folder.
+ Copy the plugins to the Roundcube Plugin folder
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _installRoundcubePlugins()
+sub _installRoundcubePlugins
 {
 	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/roundcube-plugins";
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin/* $pluginFolder/", \$stdout, \$stderr);
@@ -890,8 +889,8 @@ sub _installRoundcubePlugins()
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	my $panelUName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-	my $panelGName = $panelUName;
+	my $panelUName =
+	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
 	require iMSCP::Rights;
 	iMSCP::Rights->import();
@@ -903,21 +902,22 @@ sub _installRoundcubePlugins()
 
 =item _removeRoundcubePlugins()
 
- Remove the Plugins from the Roundcube Plugin folder.
+ Remove the Plugins from the Roundcube Plugin folder
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _removeRoundcubePlugins()
+sub _removeRoundcubePlugins
 {
 	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/roundcube-plugins";
-	my $pluginFolder = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-	foreach my $plugin (glob($roundcubePlugin . "/*")) {
-		$plugin =~ s%$roundcubePlugin/(.*)%$pluginFolder/$1%gm;
-		my $rs = iMSCP::Dir->new('dirname' => $plugin)->remove() if -d $plugin;
-		return $rs if $rs;
+	for my $pluginDir(iMSCP::Dir->new( dirname => $roundcubePlugin)->getDirs()) {
+		if(-d "$pluginFolder/$pluginDir") {
+			my $rs = iMSCP::Dir->new( dirname => $pluginDir )->remove();
+			return $rs if $rs;
+		}
 	}
 
 	0;
@@ -925,33 +925,44 @@ sub _removeRoundcubePlugins()
 
 =item _setRoundcubePlugin($action)
 
- Activate or deactivate the Roundcube Plugin.
+ Activate or deactivate the Roundcube Plugin
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setRoundcubePlugin($$)
+sub _setRoundcubePlugin
 {
 	my ($self, $action) = @_;
 	
-	my $spamassassinPlugins = "";
-	my $roundcubePluginConfig = "";
+	my $spamassassinPlugins = '';
+	my $roundcubePluginConfig = '';
 
-	# Modify the roundcube main.inc.php
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
-	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
+	my $roundcubeConfDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config";
 
-	my $fileContent = $file->get();
-	unless(defined $fileContent) {
-		error("Unable to read $roundcubeMainIncFile");
+	my $confFilename;
+	if(-f "$roundcubeConfDir/main.inc.php") {
+		$confFilename = 'main.inc.php';
+	} elsif(-f "$roundcubeConfDir/config.inc.php") {
+		$confFilename = 'config.inc.php';
+	} else {
+		error('Unable to find roundcube configuration file');
 		return 1;
 	}
 
-	if($action eq 'add') {		
+	my $file = iMSCP::File->new( filename => "$roundcubeConfDir/$confFilename" );
+
+	my $fileContent = $file->get();
+	unless(defined $fileContent) {
+		error("Unable to read $file->{'filename'}");
+		return 1;
+	}
+
+	if($action eq 'add') {
 		if($self->{'config'}->{'sauserprefs'} eq 'yes') {
 			$spamassassinPlugins = "'sauserprefs'";
 		}
+
 		if($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
 			$spamassassinPlugins .= ($spamassassinPlugins eq '') ? "'markasjunk2'" : ", 'markasjunk2'";
 		}
@@ -959,7 +970,13 @@ sub _setRoundcubePlugin($$)
 		$fileContent =~ s/^\n# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
 		
 		$roundcubePluginConfig = "\n# Begin Plugin::SpamAssassin\n";
-		$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $spamassassinPlugins . "));\n";
+
+		if($confFilename eq 'main.inc.php') {
+			$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $spamassassinPlugins . "));\n";
+		} else {
+			$roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(" . $spamassassinPlugins . "));\n";
+		}
+
 		$roundcubePluginConfig .= "# Ending Plugin::SpamAssassin\n";
 		
 		$fileContent .= $roundcubePluginConfig;
@@ -975,7 +992,7 @@ sub _setRoundcubePlugin($$)
 
 =item _checkSpamassassinPlugins()
 
- Check which SpamAssassin Plugins have to be activated.
+ Check which SpamAssassin Plugins have to be activated
 
  Return int 0 if all requirements are meet, 1 otherwise
 
@@ -1105,7 +1122,7 @@ sub _checkSpamassassinPlugins
 
 =item _checkRoundcubePlugins
 
- Check which Roundcube Plugins have to be activated.
+ Check which Roundcube Plugins have to be activated
 
  Return int 0 if all requirements are meet, 1 otherwise
 
@@ -1136,13 +1153,13 @@ sub _checkRoundcubePlugins
 
 =item _setRoundcubePluginConfig($plugin)
 
- Set the values in the Roundcube Plugin config file config.inc.php.
+ Set the values in the Roundcube Plugin config file config.inc.php
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setRoundcubePluginConfig($$)
+sub _setRoundcubePluginConfig
 {
 	my ($self, $plugin) = @_;
 
@@ -1239,13 +1256,13 @@ sub _setRoundcubePluginConfig($$)
 
 =item _setSpamassassinUserprefs($preference, $value)
 
- Set the values in the SpamAssassin userpref table.
+ Set the values in the SpamAssassin userpref table
 
  Return int 0 if all requirements are meet, 1 otherwise
 
 =cut
 
-sub _setSpamassassinUserprefs($$$)
+sub _setSpamassassinUserprefs
 {
 	my ($self, $preference, $value) = @_;
 
@@ -1262,7 +1279,7 @@ sub _setSpamassassinUserprefs($$$)
 
 =item _setupDatabase
 
- Setup SpamAssassin database.
+ Setup SpamAssassin database
 
  Return int 0 if all requirements are meet, 1 otherwise
 
@@ -1324,13 +1341,13 @@ sub _setupDatabase
 
 =item _dropSaDatabaseUser()
 
- Drop SpamAssassin database user.
+ Drop SpamAssassin database user
 
  Return int 0 if all requirements are meet, 1 otherwise
 
 =cut
 
-sub _dropSaDatabaseUser()
+sub _dropSaDatabaseUser
 {
 	my $self = $_[0];
 
@@ -1348,7 +1365,7 @@ sub _dropSaDatabaseUser()
 
 =item _getSaDbPassword()
 
- Get the SpamAssassin database user password from file or create a new one.
+ Get the SpamAssassin database user password from file or create a new one
 
 =cut
 
@@ -1386,13 +1403,13 @@ sub _getSaDbPassword
 
 =item _setSpamassassinPlugin($plugin, $action)
 
- Add or remove the plugin from the SpamAssassin folder.
+ Add or remove the plugin from the SpamAssassin folder
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setSpamassassinPlugin($$$)
+sub _setSpamassassinPlugin
 {
 	my ($self, $plugin, $action) = @_;
 
@@ -1423,7 +1440,7 @@ sub _setSpamassassinPlugin($$$)
 
 =item _checkSaUser()
 
- Check the SpamAssassin user and home directory.
+ Check the SpamAssassin user and home directory
 
  Return int 0 on success, other on failure
 
@@ -1476,28 +1493,28 @@ sub _checkSaUser
 	0;
 }
 
-=item _checkVersion()
-
- Check the SpamAssassin and Roundcube versions.
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _checkVersion
-{
-	my $self = $_[0];
-
-	# Check the Roundcube version
-	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
-
-	if(version->new($self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}) > version->new('0.9.5')) {
-		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
-		return 1;
-	}
-
-	0;
-}
+#=item _checkVersion()
+#
+# Check the SpamAssassin and Roundcube versions
+#
+# Return int 0 on success, other on failure
+#
+#=cut
+#
+#sub _checkVersion
+#{
+#	my $self = $_[0];
+#
+#	# Check the Roundcube version
+#	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
+#
+#	if(version->new($self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}) > version->new('0.9.5')) {
+#		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
+#		return 1;
+#	}
+#
+#	0;
+#}
 
 =back
 

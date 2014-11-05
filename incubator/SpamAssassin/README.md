@@ -1,4 +1,4 @@
-## i-MSCP SpamAssassin plugin v0.0.10
+## i-MSCP SpamAssassin plugin v0.0.11
 
 Plugin allows to use SpamAssassin with i-MSCP.
 
@@ -21,14 +21,14 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 	- i-MSCP versions >= 1.1.11
 	- SpamAssassin 3.3.x or 3.4.x
-	- Roundcube 0.9.x
+	- Roundcube >= 0.9.x
 	- See installation section for required software packages.
 
 ### Existing milter configurations
 
 	This plugin will not check for an existing milter configuration in the Postfix main.cf file.
 	If you need to add an extra milter, please ask in our forum!
-	
+
 ### INSTALLATION
 
 **1. Install the needed Debian / Ubuntu packages** 
@@ -37,11 +37,11 @@ Installation of spamassasin packages:
 
 	# aptitude update
 	# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl
-	
+
 **Optional install pyzor and razor**
 
 	# aptitude install pyzor razor
-	
+
 **2. Get the plugin from Plugin Store**
 
 http://i-mscp.net/filebase/index.php/Filebase/
@@ -61,7 +61,7 @@ http://i-mscp.net/filebase/index.php/Filebase/
 **2. Backup your current plugin config**
 
 	- plugins/SpamAssassin/config.php
-	
+
 **3. Plugin upload and update**
 
 	- Login into the panel as admin and go to the plugin management interface
@@ -73,12 +73,12 @@ http://i-mscp.net/filebase/index.php/Filebase/
 For the different configuration options please check the plugin config file.
 
 	# plugins/SpamAssassin/config.php
-	
+
 After you made your config changes, don't forget to update the plugin list.
 
 	- Login into the panel as admin and go to the plugin management interface
 	- Update the plugin list
-	
+
 
 #### 3rd party SpamAssasin Plugins
 
@@ -96,7 +96,6 @@ which can then be accessed by other plugins, such as URIDNSBL.
 [iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance 
 and removing unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.	
 
-
 #### Included Roundcube Plugins
 
 **markasjunk2**
@@ -113,12 +112,10 @@ The SpamAssassin preferences shown in Roundcube will vary depending the changes 
 
 Roundcube user config: Settings -> Spam
 
-
 #### Move Spam into Junk folder
 
 If you want to move Spam massages into the users Junk folder, you will need the Roundcube Plugin managesieve, 
 which is included in the I-MSCP Plugin RoundcubePlugins.
-
 
 #### SpamAssassin user preferences
 
@@ -243,7 +240,6 @@ until the user has no individual entry in the userpref table. Here are some exam
 	</tr>
 </table>
 
-
 ##### Per-User SpamAssassin preferences
 
 If you enabled the Roundcube Plugin **sauserprefs** in the config.php file, then the user can change his 
@@ -275,12 +271,11 @@ The user preferences will also be stored in the **userpref** table with the mail
 **GTUBE (Generic Test for Unsolicited Bulk Email)**
 
 Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message:
-	
+
 	XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
-	
+
 Note that this should be reproduced in one line, without whitespace or line breaks.
 
-	
 ### AUTHORS
 
  - Sascha Bay <info@space2place.de>
