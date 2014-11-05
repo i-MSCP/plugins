@@ -99,6 +99,7 @@ sub normalizePath($)
  Param string $chroot OPTIONAL Chroot path (default: '')
  Param bool $includeFile OPTIONAL Include file or not (default: false)
  Return string Real path (die on failure)
+
 =cut
 
 sub resolveRealpath($$;$)
