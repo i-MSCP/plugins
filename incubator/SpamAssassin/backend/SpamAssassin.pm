@@ -913,9 +913,9 @@ sub _removeRoundcubePlugins
 	my $roundcubePlugin = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/roundcube-plugins";
 	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-	for my $pluginDir(iMSCP::Dir->new( dirname => $roundcubePlugin)->getDirs()) {
+	for my $pluginDir(iMSCP::Dir->new( dirname => $roundcubePlugin )->getDirs()) {
 		if(-d "$pluginFolder/$pluginDir") {
-			my $rs = iMSCP::Dir->new( dirname => $pluginDir )->remove();
+			my $rs = iMSCP::Dir->new( dirname => "$pluginFolder/$pluginDir" )->remove();
 			return $rs if $rs;
 		}
 	}
