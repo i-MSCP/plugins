@@ -94,8 +94,8 @@
 	var oTable;
 
 	function flashMessage(type, message) {
-		$('<div />', { "class": 'flash_message ' + type, "text": message, "hide": true }).prependTo("#page")
-			.hide().fadeIn('fast').delay(5000).fadeOut('normal', function() { $(this).remove(); });
+		$('<div />', { "class": "flash_message " + type, "text": message, "hide": true }).prependTo("#page")
+			.hide().fadeIn("fast").delay(5000).fadeOut("normal", function() { $(this).remove(); });
 	}
 
 	function doRequest(rType, action, data) {
@@ -167,10 +167,10 @@
 		var $page = $("#page");
 
 		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#admin_name").prop('readonly', false).val("");
+			$("#admin_name").prop("readonly", false).val("");
 			$("#ssh_permission_max_keys").val("0");
-			$("#ssh_permission_auth_options").prop('checked', false);
-			$("#ssh_permission_jailed_shell").prop('checked', false);
+			$("#ssh_permission_auth_options").prop("checked", false);
+			$("#ssh_permission_jailed_shell").prop("checked", false);
 			$("#ssh_permission_id").val("0");
 		});
 
@@ -181,35 +181,37 @@
 
 			switch (action) {
 				case "add_ssh_permissions":
-					doRequest('POST', action, $("#ssh_permissions_frm").serialize()).done(function (data) {
-						$("input:reset").trigger("click");
-						flashMessage('success', data.message);
-						oTable.fnDraw();
-					});
+					if($("#admin_name").val() != '') {
+						doRequest('POST', action, $("#ssh_permissions_frm").serialize()).done(function (data) {
+							$("input:reset").trigger("click");
+							flashMessage('success', data.message);
+							oTable.fnDraw();
+						});
+					}
 					break;
 				case "edit_ssh_permissions":
 					doRequest(
-						"GET", "get_ssh_permissions", { ssh_permission_id: $(this).data('ssh-permission-id') }
+						"GET", "get_ssh_permissions", { ssh_permission_id: $(this).data("ssh-permission-id") }
 					).done(function (data) {
-							$("#admin_name").val(data.admin_name).prop('readonly', true);
+							$("#admin_name").val(data.admin_name).prop("readonly", true);
 							$("#ssh_permission_max_keys").val(data.ssh_permission_max_keys);
-							$("#ssh_permission_auth_options").prop('checked', (data.ssh_permission_auth_options != 0));
-							$("#ssh_permission_jailed_shell").prop('checked', (data.ssh_permission_jailed_shell != 0));
+							$("#ssh_permission_auth_options").prop("checked", (data.ssh_permission_auth_options > 0));
+							$("#ssh_permission_jailed_shell").prop("checked", (data.ssh_permission_jailed_shell > 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);
 						});
 					break;
 				case "delete_ssh_permissions":
 					if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?', true));?>")) {
 						doRequest(
-							"POST", 'delete_ssh_permissions', { ssh_permission_id: $(this).data('ssh-permission-id') }
+							"POST", "delete_ssh_permissions", { ssh_permission_id: $(this).data("ssh-permission-id") }
 						).done(function (data) {
 							oTable.fnDraw();
-							flashMessage('success', data.message);
+							flashMessage("success", data.message);
 						});
 					}
 					break;
 				default:
-					flashMessage('error', "<?= self::escapeJs(tr('Unknown action.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
 			}
 		});
 
@@ -217,7 +219,7 @@
 		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
 		$(document).ajaxError(function (e, jqXHR, settings, exception) {
 			if(jqXHR.status == 403) {
-				window.location.href = '/index.php';
+				window.location.href = "/index.php";
 			} else if (jqXHR.responseJSON != "") {
 				flashMessage("error", jqXHR.responseJSON.message);
 			} else if (exception == "timeout") {
