@@ -1,46 +1,52 @@
-# i-mscp cronjobs plugin v0.0.1
+# i-MSCP cronjobs plugin v0.0.1
 
-plugin providing a cron time-based job scheduler for i-MSCP.
+Plugin providing a cron time-based job scheduler for i-MSCP.
 
 WARNING: This plugin is still under development, not ready for use
 
 ## Introduction
 
-This plugin provide a cron time-based job scheduler for i-MSCP. Administrators give cron permissions to their resellers,
-and the resellers give cron permissions to their customers according their own permissions. This is a cascading permissions
-system. For instance, a reseller will be able to give the full cronjob permission to a customer only if he has also this
-permission.
+This plugin provide a cron time-based job scheduler for i-MSCP. 
 
-### Cronjob types
+Administrators give cron permissions to their resellers, and the resellers are giving cron permissions to their
+customers according their own permissions. This is a cascading permissions system. For instance, a reseller will be able
+to give the full cron job permission to a customer only if he has also thispermission.
 
-Three types of cronjobs are available, which are in order: **Url**, **Jailed** and **Full**.
+Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
+interface. Indeed, administrators can set the user to use for the cron job execution while the customers cannot.
 
-The jailed cronjob type is available and functional only when the InstantSSH plugin is also present on the system. Thus,
-this is a pre-requirement for use of jailed cronjobs feature.
+### Cron job types
+
+Three types of cron jobs are available, which are in order: **Url**, **Jailed** and **Full**.
 
 #### Url
 
-This type of cronjob allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP URL.
+The Url cron jobs allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP(s) URL.
 
 #### Jailed
 
-This type of  cronjob allow to schedule commands which are run through /bin/sh, in a jailed environment. Thus, any needed
-binary should be available inside the jail, else, the commands will fail. By default the plugin will create a jailed
-environment which provides Perl, PHP and the common UNIX utilities as provided by BusyBox.
+The jailed cron jobs allow to schedule commands which are run through /bin/sh (default) in a jailed cron environment.
+By default the plugin will create a jailed cron environment which provides Perl, PHP and the common UNIX utilities as
+provided by the BusyBox excutable.
 
-Only one jailed environment is created for all jailed cronjobs. This is by design. The most important thing here is that
-the cronjob cannot warn the whole system. This is not like for jailed shell where it's sometime more convenient to have
-a jail per customer.
+Only one jailed cron environment is created for all jailed cron jobs. This is by design. The most important thing here
+is that the cron jobs cannot broke the whole system.
+
+##### Jailed cron jobs availability
+
+The jailed cron jobs are available only when the InstantSSH plugin is also present on the system, whatever it is
+activated or not. The CronJobs plugin reuses the jail builder library which is provided by the InstantSSH plugin to
+build the jailed cron environment.
 
 #### Full
 
-This type of cronjob is identical to the jailed cronjob, excepted the fact that the commands are not run in a jailed
-environment.
+The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run in a jailed
+cron environment.
 
 ## Requirements
 
 * i-MSCP >= 1.1.15 (plugin api >= 0.2.12)
-* InstantSSH plugin >= 2.0.4 (only if you want enable support for jailed cronjobs)
+* InstantSSH plugin >= 2.0.4 ( only if you want enable support for jailed cron jobs )
 
 ## Installation
 
@@ -50,16 +56,16 @@ environment.
 
 ## Update
 
-1. Backup your **plugins/cronjobs/config.php** configuration file
+1. Backup your **plugins/CronJobs/config.php** configuration file
 2. Login into the panel as admin and go to the plugin management interface
 3. Deactivate the plugin
 4. Upload the plugin archive
-5. Restore your **plugins/cronjobs/config.php** configuration file (compare it with the new version first)
+5. Restore your **plugins/cronjobs/config.php** configuration file ( compare it with the new version first )
 6. Activate the plugin
 
-## Plugin usage
+## Usage
 
-the development of this plugin took me a lot of time. Thus, I would ask a small contribution for use of this plugin by
+The development of this plugin took me a lot of time. Thus, I would ask a small contribution for use of this plugin by
 doing a donation on my paypal account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want
 donate, just don't use this plugin.
 
