@@ -10,7 +10,7 @@ This plugin provide a cron time-based job scheduler for i-MSCP.
 
 Administrators give cron permissions to their resellers, and the resellers are giving cron permissions to their
 customers according their own permissions. This is a cascading permissions system. For instance, a reseller will be able
-to give the full cron job permission to a customer only if he has also thispermission.
+to give the full cron job permission to a customer only if he has also this permission.
 
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
 interface. Indeed, administrators can set the user to use for the cron job execution while the customers cannot.
