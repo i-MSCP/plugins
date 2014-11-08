@@ -235,6 +235,10 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- (must be an array), array('alias1.tld', 'alias2.tld')
 
+**9.** mail_quota
+
+	- value: numeric in MB, 0 (unlimited)
+
 ### Customer data variable which are available
 
 	- fname: first name
