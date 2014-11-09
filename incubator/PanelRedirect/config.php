@@ -20,6 +20,6 @@
 
 return array(
 	// Redirection type
-	// Available types: redirect (default), proxy
-	'type' => 'redirect'
+	// Available types: proxy (default), redirect
+	'type' => 'proxy'
 );
