@@ -19,6 +19,20 @@
  */
 
 return array(
+
+	// Passwordless authentication (default: false)
+	//
+	// When the value is set to TRUE, passwordless authentication is enforced, meaning that the customers cannot set
+	// password for their SSH users. This implies necessarily that the customers have to provide an SSH key. When the
+	// value is set to FALSE, both authentication methods (password and key) are available. In such a case, customers
+	// can provide either a password, either a key or both.
+	//
+	// Note: For better security, it's recommended to set the value of this parameter to true.
+	'passwordless_authentication' => false,
+
+	// SSH user name prefix ( default: ssh_ )
+	'ssh_user_name_prefix' => 'ssh_',
+
 	// Default SSH authentication options added for any new SSH key
 	//
 	// See man authorized_keys for list of allowed authentication options.

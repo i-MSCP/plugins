@@ -2,14 +2,14 @@
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
-		<?= self::escapeHtml(tr('This is the list of customers which are allowed to add their SSH keys to login on the system using SSH.', true));?>
+		<?= self::escapeHtml(tr('This is the list of customers which are allowed to create SSH users to login on the system using SSH.', true));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
 		<thead>
 		<tr>
 			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
-			<th><?= self::escapeHtml(tr('Max Keys', true));?></th>
+			<th><?= self::escapeHtml(tr('Max SSH users', true));?></th>
 			<th><?= self::escapeHtml(tr('Authentication options', true));?></th>
 			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
@@ -19,7 +19,7 @@
 		<tfoot>
 		<tr>
 			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
-			<td><?= self::escapeHtml(tr('Max Keys', true));?></td>
+			<td><?= self::escapeHtml(tr('Max SSH users', true));?></td>
 			<td><?= self::escapeHtml(tr('Authentication options', true));?></td>
 			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
@@ -46,14 +46,14 @@
 					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
 				</tr>
 				<tr>
-					<td>
-						<label for="ssh_permission_max_keys">
-							<?= self::escapeHtml(tr('Maximum number of SSH keys', true));?><br>
+					<td style="width:20%;">
+						<label for="ssh_permission_max_users">
+							<?= self::escapeHtml(tr('Maximum number of SSH users', true));?><br>
 							(<small><?= self::escapeHtml(tr('0 for unlimited', true));?>)</small>
 						</label>
 					</td>
 					<td>
-						<input type="text" name="ssh_permission_max_keys" id="ssh_permission_max_keys" placeholder="<?= self::escapeHtmlAttr(tr('Enter a number', true));?>" value="0"/>
+						<input type="text" name="ssh_permission_max_users" id="ssh_permission_max_users" placeholder="<?= self::escapeHtmlAttr(tr('Enter a number', true));?>" value="0"/>
 					</td>
 				</tr>
 				<tr>
@@ -94,8 +94,13 @@
 	var oTable;
 
 	function flashMessage(type, message) {
-		$('<div />', { "class": "flash_message " + type, "text": message, "hide": true }).prependTo("#page")
-			.hide().fadeIn("fast").delay(5000).fadeOut("normal", function() { $(this).remove(); });
+		$('<div />',
+			{
+				"class": 'flash_message ' + type,
+				"html": $.parseHTML(message),
+				"hide": true
+			}
+		).prependTo(".body").trigger('message_timeout');
 	}
 
 	function doRequest(rType, action, data) {
@@ -104,7 +109,7 @@
 			type: rType,
 			url: "/admin/ssh_permissions?action=" + action,
 			data: data,
-			timeout: 5000
+			timeout: 3000
 		});
 	}
 
@@ -128,7 +133,7 @@
 			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 5 ] } ],
 			aoColumns: [
 				{ mData: "admin_name" },
-				{ mData: "ssh_permission_max_keys" },
+				{ mData: "ssh_permission_max_users" },
 				{ mData: "ssh_permission_auth_options" },
 				{ mData: "ssh_permission_jailed_shell" },
 				{ mData: "ssh_permission_status" },
@@ -155,7 +160,7 @@
 			source: "/admin/ssh_permissions?action=search_customer",
 			minLength: 2,
 			delay: 500,
-			autoFocus: true,
+			autoFocus: false,
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = '';
@@ -168,7 +173,7 @@
 
 		$page.on("click", "input:reset,span[data-action]", function () {
 			$("#admin_name").prop("readonly", false).val("");
-			$("#ssh_permission_max_keys").val("0");
+			$("#ssh_permission_max_users").val("0");
 			$("#ssh_permission_auth_options").prop("checked", false);
 			$("#ssh_permission_jailed_shell").prop("checked", false);
 			$("#ssh_permission_id").val("0");
@@ -187,6 +192,8 @@
 							flashMessage('success', data.message);
 							oTable.fnDraw();
 						});
+					} else if(!$(".flash_message").length) {
+						flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.', true));?>")
 					}
 					break;
 				case "edit_ssh_permissions":
@@ -194,7 +201,7 @@
 						"GET", "get_ssh_permissions", { ssh_permission_id: $(this).data("ssh-permission-id") }
 					).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop("readonly", true);
-							$("#ssh_permission_max_keys").val(data.ssh_permission_max_keys);
+							$("#ssh_permission_max_users").val(data.ssh_permission_max_users);
 							$("#ssh_permission_auth_options").prop("checked", (data.ssh_permission_auth_options > 0));
 							$("#ssh_permission_jailed_shell").prop("checked", (data.ssh_permission_jailed_shell > 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);

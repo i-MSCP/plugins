@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v2.1.2
+## i-MSCP InstantSSH plugin v3.0.0 (Not ready for use)
 
 Plugin allowing to provide full or restricted shell access to your customers.
 
@@ -6,9 +6,9 @@ Plugin allowing to provide full or restricted shell access to your customers.
 
 This plugin allow to give your customers a full or restricted shell access.
 
-A customer to which SSH permissions are given can add its own SSH keys and use them to authenticate on the server.
+A customer to which SSH permissions are given can create SSH users and use them to login on the server.
 
-For each customer, you can set the maximum number of allowed SSH keys and choose if they can override the default
+For each customer, you can set the maximum number of allowed SSH users and choose if they can override the default
 authentication options. The authentication options are those specified in the documentation of the authorized_keys file
 (see man authorized_keys).
 

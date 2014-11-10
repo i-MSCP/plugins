@@ -18,22 +18,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-# Rename ssh_permission_key_options column to ssh_permission_auth_options
+# Rename instant_ssh_permissions.ssh_permission_max_keys column to instant_ssh_permissions.ssh_permission_max_users
 
 return array(
-	'up' =>
-		'
-			ALTER TABLE
-				instant_ssh_permissions
-			CHANGE
-				ssh_permission_key_options ssh_permission_auth_options TINYINT(1) NOT NULL
-		'
-,
-	'down' =>
-		'
-			ALTER TABLE
-				instant_ssh_permissions
-			CHANGE
-				ssh_permission_auth_options ssh_permission_key_options TINYINT(1) NOT NULL
-		'
+	'up' => '
+		ALTER TABLE
+			instant_ssh_permissions
+		CHANGE
+			ssh_permission_max_keys ssh_permission_max_users INT(10) NOT NULL
+	',
+	'down' => '
+		ALTER TABLE
+			instant_ssh_permissions
+		CHANGE
+			ssh_permission_max_users ssh_permission_max_keys INT(10) NOT NULL
+	'
 );

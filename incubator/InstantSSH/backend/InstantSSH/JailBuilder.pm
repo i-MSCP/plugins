@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 =head1 NAME
 
  InstantSSH::JailBuilder
@@ -47,7 +45,7 @@ my $fstabFile = '/etc/fstab';
 
 =head1 DESCRIPTION
 
- This package is part of the i-MSCP InstantSSH plugin. It provide the jail builder which allows to build jailed
+ This package is part of the i-MSCP InstantSSH plugin. It provide the jail builder layer which allows to build jailed
 environments.
 
 =head1 PUBLIC METHODS
@@ -195,7 +193,7 @@ sub existsJail
 	(-d $_[0]->{'jailCfg'}->{'chroot'});
 }
 
-=item addUserToJail($user)
+=item addUserToJail($user, $shell)
 
  Add the given unix user into the jail
 
@@ -224,38 +222,12 @@ sub addUserToJail
 		return 1;
 	}
 
-	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
-
-	if(-d $homeDir) {
-		unless(-d $jailedHomedir) {
-			# Create jailed homedir
-			my $rs = iMSCP::Dir->new(
-				dirname => $jailedHomedir
-			)->make(
-				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
-			);
-			return $rs if $rs;
-
-			# Set owner/group for jailed homedir
-			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
-			return $rs if $rs;
-		}
-
-		# Mount user homedir within the jail
-		my $rs = $self->mount($homeDir, $jailedHomedir);
-		return $rs if $rs;
-	}
-
 	# Add user into the jailed passwd file if any
 	my $rs = $self->addPasswdFile('/etc/passwd', $user, $shell);
 	return $rs if $rs;
 
 	# Add user group into the jailed group file if any
 	$rs = $self->addPasswdFile('/etc/group', $group);
-	return $rs if $rs;
-
-	# Add fstab entry for user homedir
-	$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
 	return $rs if $rs;
 
 	# Add user into security chroot file
@@ -282,6 +254,32 @@ sub addUserToJail
 	} else {
 		error("File $securityChrootCfgFile not found");
 		return 1;
+	}
+
+	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
+
+	if(-d $homeDir) {
+		unless(-d $jailedHomedir) {
+			# Create jailed homedir
+			$rs = iMSCP::Dir->new(
+				dirname => $jailedHomedir
+			)->make(
+				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
+			);
+			return $rs if $rs;
+
+			# Set owner/group for jailed homedir
+			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
+			return $rs if $rs;
+		}
+
+		# Mount user homedir within the jail
+		$rs = $self->mount($homeDir, $jailedHomedir);
+		return $rs if $rs;
+
+		# Add fstab entry for user homedir
+		$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
+		return $rs if $rs;
 	}
 
 	0;
@@ -616,6 +614,7 @@ sub umount
 	do {
 		my $rs = execute("mount 2>/dev/null | grep ' $dirPath\\(/\\| \\)' | head -n 1 | cut -d ' ' -f 3", \$stdout);
 		return $rs if $rs;
+
 		$mountPoint = $stdout;
 
 		if($mountPoint) {
@@ -648,8 +647,16 @@ sub _init
 	my $self = $_[0];
 
 	$self->{'jailCfg'} = {
-		chroot => '', paths => [], copy_file_to => {}, packages => [], include_pkg_deps => 0, preserve_files => [],
-		users => [], groups => [], devices => [], mount => {}
+		chroot => '',
+		paths => [],
+		copy_file_to => {},
+		packages => [],
+		include_pkg_deps => 0,
+		preserve_files => [],
+		users => [],
+		groups => [],
+		devices => [],
+		mount => {}
 	};
 
 	if(defined $self->{'id'} && $self->{'id'} =~ /^[a-z0-9]+/i) {
@@ -726,6 +733,8 @@ sub _buildMakejailCfgfile
 					return 1;
 				}
 			}
+
+			undef $self->{'_app_sections'};
 		} else {
 			error("The app_sections option must be an array");
 			return 1;
@@ -867,3 +876,4 @@ sub _handleAppsSection()
 =cut
 
 1;
+__END__

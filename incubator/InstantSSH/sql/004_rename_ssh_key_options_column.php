@@ -28,7 +28,7 @@ return array(
 			CHANGE
 				ssh_key_options ssh_auth_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
 		'
-	,
+,
 	'down' =>
 		'
 			ALTER TABLE

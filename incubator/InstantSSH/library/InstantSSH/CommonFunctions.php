@@ -59,6 +59,9 @@ class CommonFunctions
 		header('Content-type: application/json');
 
 		switch($statusCode) {
+			case 202:
+				header('Status: 202 Accepted');
+				break;
 			case 400:
 				header('Status: 400 Bad Request');
 				break;

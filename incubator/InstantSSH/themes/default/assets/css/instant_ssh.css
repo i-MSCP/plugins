@@ -9,10 +9,6 @@
     padding-left: 20px;
 }
 
-.icon_show {
-    background-image: url("/InstantSSH/themes/default/assets/images/show.png");
-}
-
 .icon_edit {
     background-image: url("/InstantSSH/themes/default/assets/images/edit.png");
 }

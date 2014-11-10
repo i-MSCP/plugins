@@ -2,10 +2,16 @@ i-MSCP InstantSSH plugin
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 2.1.2
+Version 3.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
+	Added: instant_ssh_users database table
+	Added: Password authentication capability
+	Added: Support for multiple SSH user per customer
+	Changed: The plugin no longer use i-MSCP unix users
 	Fixed: Customer name must be checked for empty value before sending data ( InstantSSH/Admin - Autocomplete feature )
+	Moved: Client interface into the domain section
+	Removed: instant_ssh_keys database table
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.1.1

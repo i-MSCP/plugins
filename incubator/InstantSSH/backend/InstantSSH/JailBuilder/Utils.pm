@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 =head1 NAME
 
  InstantSSH::JailBuilder::Utils
@@ -91,7 +89,7 @@ sub normalizePath($)
 	$path || $dot;
 }
 
-=item resolveRealpath($path [, $chroot = '' [, $includeFile = false]])
+=item resolveRealpath($path [, $chroot = '' [, $includeFile = false ]])
 
  Resolves the real path of the given path relative to the given chroot, including file or not
 
@@ -145,7 +143,7 @@ sub resolveRealpath($$;$)
 	File::Spec->join($ret, $basename);
 }
 
-=item copyTimeAndPermissions($src, $dst [, $allowSuid = false [, $copyOwnership = false]])
+=item copyTimeAndPermissions($src, $dst [, $allowSuid = false [, $copyOwnership = false ]])
 
  Copy time and permissions from a file to another
 
@@ -185,7 +183,7 @@ sub copyTimeAndPermissions($$;$$)
 	undef;
 }
 
-=item createParentPath($chroot, $path [, $copyPermissions = true [, $allowSuid = false [, $copyOwnership = false]]])
+=item createParentPath($chroot, $path [, $copyPermissions = true [, $allowSuid = false [, $copyOwnership = false ]]])
 
  Create the given parent path inside the given chroot
 
@@ -258,7 +256,7 @@ sub createParentPath($$;$$$)
 	$existpath;
 }
 
-=item copyDevice($chroot, $path [, $copyOwnership = false])
+=item copyDevice($chroot, $path [, $copyOwnership = false ])
 
  Copy the given character or block device inside the given jail
 
@@ -314,3 +312,4 @@ sub copyDevice($$;$)
 =cut
 
 1;
+__END__

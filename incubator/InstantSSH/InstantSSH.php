@@ -167,7 +167,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						$db->beginTransaction();
 
 						$stmt = exec_query(
-							'SELECT ssh_key_id, ssh_auth_options FROM instant_ssh_keys WHERE ssh_key_status <> ?',
+							'SELECT ssh_user_id, ssh_user_auth_options FROM instant_ssh_users WHERE ssh_user_status <> ?',
 							'todelete'
 						);
 
@@ -183,10 +183,10 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 								if($sshAuthOptionNew !== $sshAuthOptionsOld) {
 									exec_query(
-										'UPDATE instant_ssh_keys SET ssh_auth_options = ? WHERE ssh_key_id = ?',
+										'UPDATE instant_ssh_users SET ssh_user_auth_options = ? WHERE ssh_user_id = ?',
 										array(
 											\InstantSSH\Converter\SshAuthOptions::toString($sshAuthOptionNew),
-											$row['ssh_key_id']
+											$row['ssh_user_id']
 										)
 									);
 								}
@@ -231,25 +231,14 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	/**
 	 * onAfterChangeDomainStatus listener
 	 *
-	 * When a customer account is being activated, we schedule reactivation of SSH feature
-	 * When a customer account is being deactivated, we schedule deactivation of SSH feature
-	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onAfterChangeDomainStatus($event)
 	{
-		$customerId = $event->getParam('customerId');
-		$action = ($event->getParam('action') == 'activate');
-
 		exec_query(
-			'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_admin_id = ?',
-			array(($action == 'activate') ? 'toenable' : 'todisable', $customerId)
-		);
-
-		exec_query(
-			'UPDATE instant_ssh_keys SET ssh_key_status = ? WHERE ssh_key_admin_id = ?',
-			array(($action == 'activate') ? 'toenable' : 'disabled', $customerId)
+			'UPDATE instant_ssh_users SET ssh_users_status = ? WHERE ssh_user_admin_id = ?',
+			array(($event->getParam('action') == 'activate') ? 'toenable' : 'todisable', $event->getParam('customerId'))
 		);
 	}
 
@@ -274,12 +263,12 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 				ssh_permission_status NOT IN(:ok, :toadd, :tochange, :todelete)
 			UNION
 			SELECT
-				ssh_key_id AS item_id, ssh_key_status AS status, ssh_key_name AS item_name,
-				'instant_ssh_keys' AS `table`, 'ssh_key_status' AS `field`
+				ssh_user_id AS item_id, ssh_user_status AS status, ssh_user_name AS item_name,
+				'instant_ssh_users' AS `table`, 'ssh_user_status' AS `field`
 			FROM
-				instant_ssh_keys
+				instant_ssh_users
 			WHERE
-				ssh_key_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
+				ssh_user_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
 			",
 			array(
 				'ok' => 'ok', 'disabled' => 'disabled', 'toadd' => 'toadd', 'tochange' => 'tochange',
@@ -306,8 +295,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	{
 		if($table === 'instant_ssh_permissions' && $field === 'ssh_permission_status') {
 			exec_query("UPDATE $table SET $field = ? WHERE ssh_permission_id = ?", array('tochange', $itemId));
-		} elseif($table === 'instant_ssh_keys' && $field === 'ssh_key_status') {
-			exec_query("UPDATE $table SET $field = ? WHERE ssh_key_id = ?", array('tochange', $itemId));
+		} elseif($table === 'instant_ssh_users' && $field === 'ssh_user_status') {
+			exec_query("UPDATE $table SET $field = ? WHERE ssh_user_id = ?", array('tochange', $itemId));
 		}
 	}
 
@@ -331,11 +320,11 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 							ssh_permission_status IN (:toadd, :tochange, :todelete)
 					) + (
 						SELECT
-							COUNT(ssh_key_id)
+							COUNT(ssh_user_id)
 						FROM
-							instant_ssh_keys
+							instant_ssh_users
 						WHERE
-							ssh_key_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
+							ssh_user_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
 					)
 				) AS cnt
 			',
@@ -361,7 +350,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 		return array(
 			'/admin/ssh_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/ssh_permissions.php',
-			'/client/ssh_keys' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/ssh_keys.php'
+			'/client/ssh_users' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/ssh_users.php'
 		);
 	}
 
@@ -397,12 +386,12 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			$stmt = exec_query(
 				'
 					SELECT
-						ssh_permission_id, ssh_permission_max_keys, ssh_permission_auth_options,
-						COUNT(ssh_key_id) as ssh_permission_cnb_keys
+						ssh_permission_id, ssh_permission_max_users, ssh_permission_auth_options,
+						COUNT(ssh_user_id) AS ssh_permission_cnb_users
 					FROM
 						instant_ssh_permissions
 					LEFT JOIN
-						instant_ssh_keys USING(ssh_permission_id)
+						instant_ssh_users ON(ssh_user_permission_id = ssh_permission_id)
 					WHERE
 						ssh_permission_admin_id = ?
 					AND
@@ -416,9 +405,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			} else {
 				$this->customerSshPermissions = array(
 					'ssh_permission_id' => null,
-					'ssh_permission_max_keys' => -1,
-					'ssh_permission_cnb_keys' => 0,
-					'ssh_permission_keys_options' => 0
+					'ssh_permission_max_users' => -1,
+					'ssh_permission_auth_options' => 0,
+					'ssh_permission_cnb_users' => 0,
 				);
 			}
 		}
@@ -447,7 +436,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	/**
 	 * Check default SSH authentication options
 	 *
-	 * @throws iMSCP_Plugin_Exception in case default key options are invalid
+	 * @throws iMSCP_Plugin_Exception in case default auth options are invalid
 	 * @return void
 	 */
 	protected function checkDefaultAuthOptions()
@@ -517,14 +506,14 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'order' => 8
 					)
 				);
-			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/profile.php'))) {
+			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
 				$self = $this;
 
 				$page->addPage(
 					array(
-						'label' => tr('SSH keys'),
-						'uri' => '/client/ssh_keys',
-						'title_class' => 'profile',
+						'label' => tr('SSH users'),
+						'uri' => '/client/ssh_users',
+						'title_class' => 'users',
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
 								$sshPermissions = $self->getCustomerPermissions(intval($_SESSION['user_id']));

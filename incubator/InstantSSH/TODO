@@ -1,4 +1,2 @@
-- Per SSH key unix user
-- Password authentication driver
 - Cascading permissions (admin -> reseller -> customer)
 - Per customer application sections selector

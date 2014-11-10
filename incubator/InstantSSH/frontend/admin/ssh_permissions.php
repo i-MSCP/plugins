@@ -44,7 +44,7 @@ function getSshPermissions()
 			$stmt = exec_query(
 				'
 					SELECT
-						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_keys,
+						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_users,
 						ssh_permission_auth_options, ssh_permission_jailed_shell, admin_name
 					FROM
 						instant_ssh_permissions
@@ -80,19 +80,19 @@ function getSshPermissions()
  */
 function addSshPermissions()
 {
-	if(isset($_POST['ssh_permission_id']) && isset($_POST['admin_name']) && isset($_POST['ssh_permission_max_keys'])) {
+	if(isset($_POST['ssh_permission_id']) && isset($_POST['admin_name']) && isset($_POST['ssh_permission_max_users'])) {
 		$sshPermissionId = intval($_POST['ssh_permission_id']);
 		$adminName = encode_idna(clean_input($_POST['admin_name']));
-		$sshPermissionMaxKey = clean_input($_POST['ssh_permission_max_keys']);
+		$sshPermissionMaxUsers = clean_input($_POST['ssh_permission_max_users']);
 		$sshPermissionAuthOptions = (isset($_POST['ssh_permission_auth_options'])) ?: 0;
 		$sshPermissionJailedShell = (isset($_POST['ssh_permission_jailed_shell'])) ?: 0;
 
-		if($adminName == '' || $sshPermissionMaxKey == '') {
+		if($adminName == '' || $sshPermissionMaxUsers == '') {
 			Common::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
-		} elseif(!is_number($sshPermissionMaxKey)) {
+		} elseif(!is_number($sshPermissionMaxUsers)) {
 			Common::sendJsonResponse(
 				400,
-				array('message' => tr("Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number.", true))
+				array('message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true))
 			);
 		}
 
@@ -105,7 +105,7 @@ function addSshPermissions()
 				exec_query(
 					'
 						INSERT INTO instant_ssh_permissions(
-							ssh_permission_admin_id, ssh_permission_max_keys, ssh_permission_auth_options,
+							ssh_permission_admin_id, ssh_permission_max_users, ssh_permission_auth_options,
 							ssh_permission_jailed_shell, ssh_permission_status
 						) SELECT
 							admin_id, ?, ?, ?, ?
@@ -115,17 +115,15 @@ function addSshPermissions()
 							admin_name = ?
 					',
 					array(
-						$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'toadd', $adminName
+						$sshPermissionMaxUsers, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'ok', $adminName
 					)
 				);
 
 				$db->commit();
 
-				send_request();
-
 				write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
 
-				Common::sendJsonResponse(200, array('message' => tr('SSH permissions were scheduled for addition.', true)));
+				Common::sendJsonResponse(200, array('message' => tr('SSH permissions were added.', true)));
 			} else { // Update SSH permissions
 				$stmt = exec_query(
 					'
@@ -147,13 +145,13 @@ function addSshPermissions()
 							UPDATE
 								instant_ssh_permissions
 							SET
-								ssh_permission_max_keys = ?, ssh_permission_auth_options = ?,
+								ssh_permission_max_users = ?, ssh_permission_auth_options = ?,
 								ssh_permission_jailed_shell = ?, ssh_permission_status = ?
 							WHERE
 								ssh_permission_id = ?
 						',
 						array(
-							$sshPermissionMaxKey, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'tochange',
+							$sshPermissionMaxUsers, $sshPermissionAuthOptions, $sshPermissionJailedShell, 'tochange',
 							$sshPermissionId
 						)
 					);
@@ -167,11 +165,11 @@ function addSshPermissions()
 						exec_query(
 							'
 								UPDATE
-									instant_ssh_keys
+									instant_ssh_users
 								SET
-									ssh_auth_options = ?, ssh_key_status = ?
+									ssh_user_auth_options = ?, ssh_user_status = ?
 								WHERE
-									ssh_permission_id = ?
+									ssh_user_permission_id = ?
 							',
 							array($defaultSshAuthOptions, 'tochange', $sshPermissionId)
 						);
@@ -218,8 +216,7 @@ function deleteSshPermissions()
 
 		try {
 			$stmt = exec_query(
-				'UPDATE instant_ssh_permissions SET ssh_permission_status = ? WHERE ssh_permission_id = ?',
-				array('todelete', $sshPermissionId)
+				'DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?', array($sshPermissionId)
 			);
 
 			if($stmt->rowCount()) {
@@ -310,7 +307,7 @@ function getSshPermissionsList()
 	try {
 		// Filterable / orderable columns
 		$columns = array(
-			'admin_name', 'ssh_permission_max_keys', 'ssh_permission_auth_options', 'ssh_permission_jailed_shell',
+			'admin_name', 'ssh_permission_max_users', 'ssh_permission_auth_options', 'ssh_permission_jailed_shell',
 			'ssh_permission_status'
 		);
 
@@ -417,7 +414,7 @@ function getSshPermissionsList()
 					$row[$columns[$i]] = decode_idna($data[$columns[$i]]);
 				} elseif($columns[$i] == 'ssh_permission_auth_options') {
 					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('Yes', true) : tr('No', true);
-				} elseif($columns[$i] == 'ssh_permission_max_keys') {
+				} elseif($columns[$i] == 'ssh_permission_max_users') {
 					$row[$columns[$i]] = (!$data[$columns[$i]]) ? tr('Unlimited', true) : $data[$columns[$i]];
 				} elseif($columns[$i] == 'ssh_permission_jailed_shell') {
 					$row[$columns[$i]] = ($data[$columns[$i]]) ? tr('Yes', true) : tr('No', true);
