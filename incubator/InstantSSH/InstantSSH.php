@@ -407,7 +407,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 					'ssh_permission_id' => null,
 					'ssh_permission_max_users' => -1,
 					'ssh_permission_auth_options' => 0,
-					'ssh_permission_cnb_users' => 0,
+					'ssh_permission_cnb_users' => 0
 				);
 			}
 		}
@@ -423,7 +423,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.12', '<')) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.13', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);

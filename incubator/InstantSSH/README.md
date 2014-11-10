@@ -43,7 +43,7 @@ See the plugin **config.php** file for further details.
 
 ### Requirements
 
-* i-MSCP >= 1.1.15 (plugin API >= 0.2.12)
+* i-MSCP >= 1.1.17 (plugin API >= 0.2.13)
 * openSSH server with public key authentication support enabled
 
 #### Debian / Ubuntu packages

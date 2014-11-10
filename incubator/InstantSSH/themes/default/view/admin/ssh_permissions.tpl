@@ -160,7 +160,7 @@
 			source: "/admin/ssh_permissions?action=search_customer",
 			minLength: 2,
 			delay: 500,
-			autoFocus: false,
+			autoFocus: true,
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = '';
