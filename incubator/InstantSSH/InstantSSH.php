@@ -90,7 +90,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			$this->checkDefaultAuthOptions();
 			$this->migrateDb('up');
 		} catch(iMSCP_Plugin_Exception $e) {
-			Zend_Translate::clearCache($this->getName());
+			//Zend_Translate::clearCache($this->getName());
 			throw new iMSCP_Plugin_Exception(tr('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}

@@ -388,17 +388,19 @@ sub addPasswdFile
 			if(open $fh, '+<', $dest) {
 				s/^(.*?):.*/$1/s for (my @jailLines = <$fh>);
 
+				my $regWhat = quotemeta($what);
+
 				if(not grep $_ eq $what, @jailLines) {
 					for my $sysLine(@sysLines) {
 						next if index($sysLine, ':') == -1;
 
-						my @sysLineFields = split ':', $sysLine;
+						if ($sysLine =~ /^$regWhat:/) {
+							my @sysLineFields = split ':', $sysLine;
 
-						if ($sysLineFields[0] eq $what) {
 							if(defined $sysLineFields[6]) {
 								debug("Adding $what user into $dest");
 								$sysLineFields[5] = normalizePath($sysLineFields[5]);
-								$sysLineFields[6] = $shell;
+								$sysLineFields[6] = $shell . "\n" if defined $shell;
 							} else {
 								debug("Adding $what group into $dest");
 							}
