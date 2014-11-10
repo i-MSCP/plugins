@@ -93,34 +93,20 @@ sub uninstall
 
 	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
-	# Remove the shared jail if any.
-	# Note: Customer jails are removed when the plugin is being deactivated,
-	# which is a pre-condition for the plugin uninstallation
-	if(-d "$rootJailDir/shared_jail") {
-		my $jailBuilder;
-		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
-		if($@) {
-			error("Unable to create JailBuilder object: $@");
-			return 1;
-		}
-
-		my $rs = $jailBuilder->removeJail();
-		return $rs if $rs;
-	}
-
 	# Remove the jails root directory ( only if empty )
 	if(-d $rootJailDir && iMSCP::Dir->new( dirname => $rootJailDir )->isEmpty()) {
 		my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
-		return $rs if $rs;
-
-		$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
 		return $rs if $rs;
 	} else {
 		error("Unable to delete the $rootJailDir directory: Directory is not empty");
 		return 1;
 	}
 
-	my $rs = $self->_configurePamChroot('uninstall');
+	# Remove the plugin configuration directory if any
+	my $rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
+	return $rs if $rs;
+
+	$rs = $self->_configurePamChroot('uninstall');
 	return $rs if $rs;
 
 	$self->_configureBusyBox('uninstall');
@@ -147,26 +133,18 @@ sub update
 	version->import();
 
 	# Starting with the version 2.1.0, the plugin use its own directory to store the makejail configuration files. In
-	# old versions, those files were stored in the default directory ( /etc/makejail ). We move all existent files to
-	# the new location using the new naming convention.
+	# old versions, those files were stored in the default directory ( /etc/makejail ).
+	# Because the jail builder only handle files from the new location, we remove the old files manually.
 	if(version->parse("v$fromVersion") < version->parse("v2.1.0") && -d '/etc/makejail') {
 		for my $file(iMSCP::Dir->new( dirname => '/etc/makejail', fileType => 'InstantSSH.*\\.py' )->getFiles()) {
-			my $nPath;
-
-			if($file eq 'InstantSSH.py') {
-				$nPath = $self->{'config'}->{'makejail_confdir_path'} . '/' . 'shared_jail.py';
-			} else {
-				($nPath = $self->{'config'}->{'makejail_confdir_path'} . '/' . $file) =~ s/InstantSSH\.(.+)$/$1/;
-			}
-
-			$rs = iMSCP::File->new( filename => "/etc/makejail/$file" )->moveFile($nPath);
+			$rs = iMSCP::File->new( filename => "/etc/makejail/$file" )->delFile();
 			return $rs if $rs;
 		}
 	}
 
 	# Starting with the version 3.0.0, the plugin no longer uses the unix users which are created by i-MSCP. Therefore,
-	# the homedir and shell fields of these users must be reset back to their default values. We must also ensure that
-	# these users are not jailed.
+	# the homedir and shell fields of those users must be reset back to their default values. We must also cleanup
+	# the /etc/security/chroot.conf file.
 	if(version->parse("v$fromVersion") < version->parse("v3.0.0")) {
 		my $adminSysNames = $self->{'db'}->doQuery(
 			'admin_sys_name',
@@ -214,16 +192,11 @@ sub update
 						return 1;
 					}
 
-					if($jailBuilder->existsJail()) {
-						# Remove user from jail (also the jail if per user jail)
-						if($self->{'config'}->{'shared_jail'}) {
-							$rs = $jailBuilder->removeUserFromJail($adminSysName);
-							return $rs if $rs;
-						} else {
-							$rs = $jailBuilder->removeJail();
-							return $rs if $rs;
-						}
-					}
+					# Remove user entry from the /etc/security/chroot.conf if any
+					# Note: Here we operate only on the /etc/security/chroot.conf file since the jails were already
+					# remove while plugin deactivation
+					$rs = $jailBuilder->removeUserFromJail($adminSysName);
+					return $rs if $rs;
 				} else {
 					error("Unable to find $adminSysName user homedir");
 					return 1;
@@ -317,7 +290,24 @@ sub disable
 		return 1;
 	}
 
-	$self->run();
+	$rs = $self->run();
+	return $rs if $rs;
+
+	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+
+	if(-d $rootJailDir) {
+		for my $jailDir(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
+			my $jailBuilder;
+			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
+			}
+
+			my $rs = $jailBuilder->removeJail();
+			return $rs if $rs;
+		}
+	}
 }
 
 =item run()

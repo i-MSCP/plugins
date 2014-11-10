@@ -38,9 +38,7 @@ return array(
 			UNIQUE KEY ssh_user_name (ssh_user_name),
 			KEY ssh_user_status (ssh_user_status),
 			CONSTRAINT ssh_user_permission_id FOREIGN KEY (ssh_user_permission_id)
-  				REFERENCES instant_ssh_permissions (ssh_permission_id) ON DELETE SET NULL,
-			CONSTRAINT ssh_user_admin_id FOREIGN KEY (ssh_user_admin_id)
-  				REFERENCES admin (admin_id) ON DELETE SET NULL,
+  				REFERENCES instant_ssh_permissions (ssh_permission_id) ON DELETE SET NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 
 		INSERT IGNORE instant_ssh_users SELECT
@@ -53,7 +51,7 @@ return array(
 
 		DROP TABLE IF EXISTS instant_ssh_keys;
 	",
-	'down' => '
+	'down' => "
 		CREATE TABLE IF NOT EXISTS instant_ssh_keys (
 			ssh_key_id int(10) unsigned AUTO_INCREMENT NOT NULL,
 			ssh_permission_id int(10) unsigned DEFAULT NULL,
@@ -74,12 +72,12 @@ return array(
   				REFERENCES admin (admin_id) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 
-		INSERT INGORE instant_ssh_keys SELECT
-			ssh_user_id, ssh_user_permission_id, ssh_user_admin_id, ssh_user_key, ssh_user_key_fingerprint,
-			ssh_user_auth_options, ssh_user_status
+		INSERT IGNORE instant_ssh_keys SELECT
+			ssh_user_id, ssh_user_permission_id, ssh_user_admin_id, CONCAT('key_', ssh_user_id), ssh_user_key,
+			ssh_user_key_fingerprint, ssh_user_auth_options, ssh_user_status
 		FROM
 			instant_ssh_users;
 
 		DROP TABLE IF EXISTS instant_ssh_users
-	'
+	"
 );
