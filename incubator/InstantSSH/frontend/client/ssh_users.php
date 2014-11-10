@@ -100,7 +100,7 @@ function addSshUser($pluginManager, $sshPermissions)
 	if(isset($_POST['ssh_user_id']) && isset($_POST['ssh_user_name'])) {
 		$sshUserId = intval($_POST['ssh_user_id']);
 		$sshUserName = clean_input($_POST['ssh_user_name']);
-		$sshUserPassword = $sshUserPasswonrdConfirmation = null;
+		$sshUserPassword = $sshUserPasswordConfirmation = null;
 		$sshUserKey = clean_input($_POST['ssh_user_key']);
 		$sshUserKeyFingerprint = '';
 
@@ -110,7 +110,7 @@ function addSshUser($pluginManager, $sshPermissions)
 		if(!$plugin->getConfigParam('passwordless_authentication', false)) {
 			if(isset($_POST['ssh_user_password']) && isset($_POST['ssh_user_password_confirmation'])) {
 				$sshUserPassword = clean_input($_POST['ssh_user_password']);
-				$sshUserPasswonrdConfirmation = clean_input($_POST['ssh_user_password_confirmation']);
+				$sshUserPasswordConfirmation = clean_input($_POST['ssh_user_password_confirmation']);
 			} else {
 				Common::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
 			}
@@ -164,9 +164,11 @@ function addSshUser($pluginManager, $sshPermissions)
 		if($sshUserPassword != '') {
 			if(!preg_match('/^[[:alnum:]]+$/i', $sshUserPassword)) {
 				$errorMsgs[] = tr('Un-allowed password. Please use alphanumeric characters only.', true);
+			} elseif (strlen($sshUserPassword) < 8) {
+				$errorMsgs[] = tr('Wrong password length (Min 6 characters).', true);
 			} elseif(strlen($sshUserPassword) > 32) {
-				$errorMsgs[] = tr('The password is too long (Max 32 characters).', true);
-			} elseif($sshUserPassword !== $sshUserPasswonrdConfirmation) {
+				$errorMsgs[] = tr('Wrong password length (Max 32 characters).', true);
+			} elseif($sshUserPassword !== $sshUserPasswordConfirmation) {
 				$errorMsgs[] = tr('Passwords do not match.', true);
 			}
 		}
@@ -230,13 +232,13 @@ function addSshUser($pluginManager, $sshPermissions)
 					Common::sendJsonResponse(400, array('message' => tr('Your SSH user limit is reached.', true)));
 				}
 			} else { // Update SSH user
-				$stmt = exec_query(
+				exec_query(
 					'
 						UPDATE
 							instant_ssh_users
 						SET
-							ssh_user_password = ?, ssh_user_key = ?,
-							ssh_user_key_fingerprint = ?, ssh_user_auth_options = ?, ssh_user_status = ?
+							ssh_user_password = ?, ssh_user_key = ?, ssh_user_key_fingerprint = ?,
+							ssh_user_auth_options = ?, ssh_user_status = ?
 						WHERE
 							ssh_user_id = ?
 						AND
@@ -245,25 +247,19 @@ function addSshUser($pluginManager, $sshPermissions)
 							ssh_user_status = ?
 					',
 					array(
-						$sshUserPassword, $sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'ok', $sshUserId,
-						$_SESSION['user_id'], 'tochange'
+						$sshUserPassword, $sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'tochange', $sshUserId,
+						$_SESSION['user_id'], 'ok'
 					)
 				);
 
-				if($stmt->rowCount()) {
-					send_request();
+				send_request();
 
-					write_log(
-						sprintf(
-							'InstantSSH: %s updated SSH user : %s', decode_idna($_SESSION['user_logged']), $sshUserName
-						),
-						E_USER_NOTICE
-					);
+				write_log(
+					sprintf('InstantSSH: %s updated SSH user : %s', decode_idna($_SESSION['user_logged']), $sshUserName),
+					E_USER_NOTICE
+				);
 
-					Common::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for update.', true)));
-				} else {
-					Common::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
-				}
+				Common::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for update.', true)));
 			}
 		} catch(ExceptionDatabase $e) {
 			if($e->getCode() == '23000') {
