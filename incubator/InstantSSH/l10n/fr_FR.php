@@ -21,12 +21,6 @@
  */
 
 return array(
-	'Plugin allowing to provide full or restricted shell access to your customers.' => 'Plugin permettant de fournir des accèss SSH complets ou restreints aux clients.',
-	'Unable to install: %s' => "Impossible d'installer: %s",
-	'Unable to update: %s' => 'Impossible de mettre à jour: %s',
-	'Unable to enable: %s' => "Impossible d'activer: %s",
-	'Unable to uninstall: %s' => 'Impossible de désinstaller: %s',
-	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => "Votre version d'i-MSCP n'est pas compatible avec ce plugin. Veuillez essayer avec une version plus récente.",
 	'Invalid default authentication options: %s' => "Options d'authentification par défaut invalides: %s",
 	'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.' => "Toute option d'authentification définie dans le paramètre default_ssh_auth_options doit également être définie dans le paramètre allowed_ssh_auth_options.",
 	'allowed_ssh_auth_options parameter must be an array.' => 'Le paramètre allowed_ssh_auth_options doit être un tableau.',

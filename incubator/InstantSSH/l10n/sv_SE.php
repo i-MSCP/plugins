@@ -21,12 +21,6 @@
  */
 
 return array(
-	'Plugin allowing to provide full or restricted shell access to your customers.' => 'Plugin som gör det möjligt att ge fullständig eller begränsad skal åtkomst till dina kunder.',
-	'Unable to install: %s' => 'Kan inte installera: %s',
-	'Unable to update: %s' => 'Kunde inte uppdatera: %s',
-	'Unable to enable: %s' => 'Kunde inte aktivera: %s',
-	'Unable to uninstall: %s' => 'Kan inte avinstallera: %s',
-	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.'=> 'Din i-MSCP versionen är inte kompatibel med denna plugin. Pröva med en nyare version.',
 	'Invalid default authentication options: %s' => 'Ogiltiga alternativ standard autentisering: %s',
 	'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.' => 'Alla autentiseringsalternativ som förekommer i default_ssh_auth_options parameter måste också anges i allowed_ssh_auth_options parametern.',
 	'allowed_ssh_auth_options parameter must be an array.' => 'Allowed_ssh_auth_options parametern måste vara en array.',

@@ -21,12 +21,6 @@
  */
 
 return array(
-	'Plugin allowing to provide full or restricted shell access to your customers.' => 'Plugin allowing to provide full or restricted shell access to your customers.',
-	'Unable to install: %s' => 'Unable to install: %s',
-	'Unable to update: %s' => 'Unable to update: %s',
-	'Unable to enable: %s' => 'Unable to enable: %s',
-	'Unable to uninstall: %s' => 'Unable to uninstall: %s',
-	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => 'Your i-MSCP version is not compatible with this plugin. Try with a newer version.',
 	'Invalid default authentication options: %s' => 'Invalid default authentication options: %s',
 	'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.' => 'Any authentication options defined in the default_ssh_auth_options parameter must be also defined in the allowed_ssh_auth_options parameter.',
 	'allowed_ssh_auth_options parameter must be an array.' => 'allowed_ssh_auth_options parameter must be an array.',

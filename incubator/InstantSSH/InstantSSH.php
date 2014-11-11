@@ -41,8 +41,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
 		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
 		unset($loader);
-
-		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $pluginName);
 	}
 
 	/**
@@ -89,9 +87,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		try {
 			$this->checkDefaultAuthOptions();
 			$this->migrateDb('up');
-		} catch(iMSCP_Plugin_Exception $e) {
-			//Zend_Translate::clearCache($this->getName());
-			throw new iMSCP_Plugin_Exception(tr('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -109,7 +106,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	/**
 	 * Plugin update
 	 *
-	 * @throws iMSCP_Plugin_Exception When update fail
+	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @param string $fromVersion Version from which plugin update is initiated
 	 * @param string $toVersion Version to which plugin is updated
@@ -126,8 +123,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			}
 
 			$this->migrateDb('up');
-		} catch(iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -196,11 +193,11 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						$db->commit();
 					} catch(iMSCP_Exception_Database $e) {
 						$db->rollBack();
-						throw $e;
+						throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 					}
 				}
-			} catch(iMSCP_Exception $e) {
-				throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
+			} catch(Exception $e) {
+				throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 			}
 		}
 	}
@@ -223,8 +220,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			}
 
 			$this->migrateDb('down');
-		} catch(iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
