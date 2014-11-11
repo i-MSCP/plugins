@@ -491,8 +491,6 @@ if(isset($_REQUEST['action'])) {
 	showBadRequestErrorPage();
 }
 
-l10n_addTranslations(PLUGINS_PATH . '/InstantSSH/l10n', 'Array', 'InstantSSH');
-
 $tpl = new TemplateEngnine();
 
 $tpl->define_dynamic(

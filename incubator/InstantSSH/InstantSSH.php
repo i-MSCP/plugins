@@ -29,22 +29,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	protected $customerSshPermissions;
 
 	/**
-	 * Plugin initialization
-	 *
-	 * @return void
-	 */
-	public function init()
-	{
-		$pluginName = $this->getName();
-
-		/** @var Zend_Loader_StandardAutoloader $loader */
-		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
-		unset($loader);
-	}
-
-	/**
-	 * Register event listeners
+	 * Register event listeners and process some initialization tasks
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
 	 * @return void
@@ -62,6 +47,15 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			),
 			$this
 		);
+
+		$pluginName = $this->getName();
+
+		/** @var Zend_Loader_StandardAutoloader $loader */
+		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
+		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
+		unset($loader);
+
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
 	}
 
 	/**
