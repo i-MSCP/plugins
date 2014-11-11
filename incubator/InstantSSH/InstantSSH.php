@@ -193,7 +193,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						$db->commit();
 					} catch(iMSCP_Exception_Database $e) {
 						$db->rollBack();
-						throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+						throw $e;
 					}
 				}
 			} catch(Exception $e) {
