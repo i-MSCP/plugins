@@ -148,7 +148,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				$errorMsgs[] = tr('The username is too long (Max 8 characters).', true);
 			}
 
-			$sshUserName = $plugin->getConfigParam('ssh_user_name_prefix', 'ssh_') . $sshUserName;
+			$sshUserName = $plugin->getConfigParam('ssh_user_name_prefix', '') . $sshUserName;
 
 			if(posix_getpwnam($sshUserName)) {
 				$errorMsgs[] = tr("This username is not available.", true);
@@ -265,7 +265,9 @@ function addSshUser($pluginManager, $sshPermissions)
 			}
 		} catch(ExceptionDatabase $e) {
 			if($e->getCode() == '23000') {
-				Common::sendJsonResponse(400, array('message' => tr("This SSH key is already assigned to another SSH user.", true)));
+				Common::sendJsonResponse(
+					400, array('message' => tr("An SSH user with the same name or the same SSH key already exists.", true))
+				);
 			} else {
 				write_log(sprintf('InstantSSH: Unable to add or update SSH user: %s', $e->getMessage()), E_USER_ERROR);
 
@@ -406,7 +408,9 @@ function getSshUsers()
 		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
-		$resultTotal = execute_query("SELECT COUNT($indexColumn) FROM $table");
+		$resultTotal = exec_query(
+			"SELECT COUNT($indexColumn) FROM $table WHERE ssh_user_admin_id = ?", $_SESSION['user_id']
+		);
 		$resultTotal = $resultTotal->fetchRow(\PDO::FETCH_NUM);
 		$total = $resultTotal[0];
 
@@ -534,7 +538,8 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 			'ISP_LOGO' => layout_getUserLogo(),
 			'INSTANT_SSH_ASSET_VERSION' => Common::escapeUrl($assetVersion),
 			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', '')
+			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
+			'SSH_USERNAME_PREFIX' => $plugin->getConfigParam('ssh_user_name_prefix', ''),
 		)
 	);
 

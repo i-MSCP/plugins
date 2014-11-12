@@ -81,7 +81,7 @@ return array(
 	'Un-allowed username. Please use alphanumeric characters only.' => 'Un-allowed username. Please use alphanumeric characters only.',
 	'The username is too long (Max 8 characters).' => 'The username is too long (Max 8 characters).',
 	'This username is not available.' => 'This username is not available.',
-	'This SSH key is already assigned to another SSH user.' => 'This SSH key is already assigned to another SSH user.',
+	'An SSH user with the same name or the same SSH key already exists.' => 'This SSH key is already assigned to another SSH user.',
 	'You must enter an SSH key.' => 'You must enter an SSH key.',
 	'You must enter either a password, an SSH key or both.' => 'You must enter either a password, an SSH key or both.',
 	'Un-allowed password. Please use alphanumeric characters only.' => 'Un-allowed password. Please use alphanumeric characters only.',

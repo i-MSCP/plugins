@@ -38,6 +38,7 @@
 			<tr>
 				<td style="width:20%;">
 					<label for="ssh_user_name"><?= self::escapeHtml(tr('Username', true));?></label>
+					<span style="float: right" id="ssh_username_prefix"><strong>{SSH_USERNAME_PREFIX}</strong></span>
 				</td>
 				<td>
 					<input type="text" class="inputTitle" name="ssh_user_name" id="ssh_user_name" value="" maxlength="8" placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
@@ -177,6 +178,7 @@
 
 		$page.on("click", "input:reset,span[data-action]", function () {
 			$("#ssh_user_id").val("0");
+			$("#ssh_username_prefix").show();
 			$("#ssh_user_name").prop("readonly", false);
 			$("#ssh_user_password").val("");
 			$("#ssh_user_key").prop("readonly", false);
@@ -202,6 +204,7 @@
 				case "edit_ssh_user":
 					doRequest('GET', "get_ssh_user", { ssh_user_id: sshUserId }).done(function (data) {
 						$("#ssh_user_id").val(data.ssh_user_id);
+						$("#ssh_username_prefix").hide();
 						$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
 						$("#ssh_user_password").val("");
 						$("#ssh_user_auth_options").val(data.ssh_user_auth_options);

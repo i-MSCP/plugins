@@ -81,7 +81,7 @@ return array(
 	'Un-allowed username. Please use alphanumeric characters only.'=> 'Un-tillåtet användarnamn. Använd bara alfanumeriska tecken.',
 	'The username is too long (Max 8 characters).' => 'Användarnamnet är för lång (max 8 tecken).',
 	'This username is not available.' => 'Användarnamnet är inte tillgänglig.',
-	'This SSH key is already assigned to another SSH user.' => 'Denna SSH knappen redan tilldelats en annan SSH användaren.',
+	'An SSH user with the same name or the same SSH key already exists.' => 'En SSH användare med samma namn eller samma SSH-nyckel finns redan.',
 	'You must enter an SSH key.' => 'Du måste ange en SSH-nyckel.',
 	'You must enter either a password, an SSH key or both.' => 'Du måste ange antingen ett lösenord, en SSH-nyckel eller båda.',
 	'Un-allowed password. Please use alphanumeric characters only.' => 'Un-tillåtet lösenord. Använd bara alfanumeriska tecken.',

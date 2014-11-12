@@ -80,6 +80,7 @@ return array(
 	'Un-allowed username. Please use alphanumeric characters only.' => 'Gebruikersnaam niet toegestaan. Gebruik enkel alfanumerieke tekens.',
 	'The username is too long (Max 8 characters).' => 'De gebruikersnaam is te lang (Maximaal 8 tekens).',
 	'This username is not available.' => 'Deze gebruikernaam is niet (meer) beschikbaar.',
+	'An SSH user with the same name or the same SSH key already exists.' => 'Een SSH gebruiker met dezelfde naam of dezelfde dezelfde SSH-sleutel al bestaat.',
 	'You must enter an SSH key.' => 'U moet een SSH-key ingeven.',
 	'You must enter either a password, an SSH key or both.' => 'U dient een wachtwoord, een SSH-key of beide in te geven..',
 	'Un-allowed password. Please use alphanumeric characters only.' => 'Wachtwoord niet toegestaan. Kies uit alfanumerieke tekens.',
