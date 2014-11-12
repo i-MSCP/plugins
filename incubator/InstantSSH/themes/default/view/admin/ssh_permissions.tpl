@@ -71,7 +71,7 @@
 					<td>
 						<label for="ssh_permission_jailed_shell">
 							<?= tr('Restricted shell');?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access must be provided in restricted environment (recommended)?', true));?>">&nbsp;</span>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access have to be provided in restricted environment (recommended)?', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
