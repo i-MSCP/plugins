@@ -29,6 +29,23 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	protected $customerSshPermissions;
 
 	/**
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		$pluginName = $this->getName();
+
+		/** @var Zend_Loader_StandardAutoloader $loader */
+		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
+		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
+		unset($loader);
+
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+	}
+
+	/**
 	 * Register event listeners and process some initialization tasks
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
@@ -47,15 +64,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			),
 			$this
 		);
-
-		$pluginName = $this->getName();
-
-		/** @var Zend_Loader_StandardAutoloader $loader */
-		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
-		unset($loader);
-
-		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
 	}
 
 	/**
@@ -109,13 +117,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			/** @var Zend_Translate $translator */
-			$translator = iMSCP_Registry::get('translator');
-
-			if($translator->hasCache()) {
-				$translator->clearCache($this->getName());
-			}
-
+			$this->clearTranslations();
 			$this->migrateDb('up');
 		} catch(Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -206,14 +208,24 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			/** @var Zend_Translate $translator */
-			$translator = iMSCP_Registry::get('translator');
-
-			if($translator->hasCache()) {
-				$translator->clearCache($this->getName());
-			}
-
+			$this->clearTranslations();
 			$this->migrateDb('down');
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Plugin deletion
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function delete(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
+			$this->clearTranslations();
 		} catch(Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -514,6 +526,21 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 					)
 				);
 			}
+		}
+	}
+
+	/**
+	 * Clear translations
+	 *
+	 * @return void
+	 */
+	protected function clearTranslations()
+	{
+		/** @var Zend_Translate $translator */
+		$translator = iMSCP_Registry::get('translator');
+
+		if($translator->hasCache()) {
+			$translator->clearCache($this->getName());
 		}
 	}
 }

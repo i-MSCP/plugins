@@ -193,19 +193,20 @@ sub existsJail
 	(-d $_[0]->{'jailCfg'}->{'chroot'});
 }
 
-=item addUserToJail($user, $shell)
+=item jailUser($user, $shell, $mountHomeDir)
 
- Add the given unix user into the jail
+ Jail the given user
 
  Param string $user User to add into the jail
  Param string $shell User shell
+ Parram string $mountHomeDir Does the user homedir must be mounted inside jail (default false)
  Return int 0 on success, other on failure
 
 =cut
 
-sub addUserToJail
+sub jailUser
 {
-	my ($self, $user, $shell) = @_;
+	my ($self, $user, $shell, $mountHomeDir) = @_;
 
 	my @pwEntry = getpwnam($user);
 
@@ -214,7 +215,6 @@ sub addUserToJail
 		return 1;
 	}
 
-	my $homeDir = normalizePath($pwEntry[7]);
 	my $group = getgrgid($pwEntry[3]);
 
 	unless(defined $group) {
@@ -256,47 +256,51 @@ sub addUserToJail
 		return 1;
 	}
 
-	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
+	if($mountHomeDir) {
+		my $homeDir = normalizePath($pwEntry[7]);
+		my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
-	if(-d $homeDir) {
-		unless(-d $jailedHomedir) {
-			# Create jailed homedir
-			$rs = iMSCP::Dir->new(
-				dirname => $jailedHomedir
-			)->make(
-				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
-			);
+		if(-d $homeDir) {
+			unless(-d $jailedHomedir) {
+				# Create jailed homedir
+				$rs = iMSCP::Dir->new(
+					dirname => $jailedHomedir
+				)->make(
+					{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
+				);
+				return $rs if $rs;
+
+				# Set owner/group for jailed homedir
+				$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
+				return $rs if $rs;
+			}
+
+			# Mount user homedir within the jail
+			$rs = $self->mount($homeDir, $jailedHomedir);
 			return $rs if $rs;
 
-			# Set owner/group for jailed homedir
-			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
+			# Add fstab entry for user homedir
+			$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
 			return $rs if $rs;
 		}
-
-		# Mount user homedir within the jail
-		$rs = $self->mount($homeDir, $jailedHomedir);
-		return $rs if $rs;
-
-		# Add fstab entry for user homedir
-		$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
-		return $rs if $rs;
 	}
 
 	0;
 }
 
-=item removeUserFromJail($user)
+=item unjailUser($user, $unmountHomeDir)
 
- Remove the given unix user from the jail
+ Unjial the given user
 
  Param string $user User to remove from the jail
+ Param bool $unmountHomeDir Does the user homedir must be unmounted from the jail (default false)
  Return int 0 on success, other on failure
 
 =cut
 
-sub removeUserFromJail
+sub unjailUser
 {
-	my ($self, $user) = @_;
+	my ($self, $user, $unmountHomeDir) = @_;
 
 	my @pwEntry = getpwnam($user);
 
@@ -313,15 +317,21 @@ sub removeUserFromJail
 		return 1;
 	}
 
-	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
-
 	if(-d $self->{'jailCfg'}->{'chroot'}) {
-		if(-d $jailedHomedir) {
-			# Umount user homedir from the jail
-			my $rs = $self->umount($jailedHomedir);
-			return $rs if $rs;
+		if($unmountHomeDir) {
+			my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
-			$rs = iMSCP::Dir->new( dirname => $jailedHomedir )->remove();
+			if(-d $jailedHomedir) {
+				# Umount user homedir from the jail
+				my $rs = $self->umount($jailedHomedir);
+				return $rs if $rs;
+
+				$rs = iMSCP::Dir->new( dirname => $jailedHomedir )->remove();
+				return $rs if $rs;
+			}
+
+			# Remove fstab entry for user homedir
+			my $rs = $self->removeFstabEntry(qr%.*?\s$jailedHomedir(?:/|\s).*%);
 			return $rs if $rs;
 		}
 
@@ -333,10 +343,6 @@ sub removeUserFromJail
 		$rs = $self->removePasswdFile('/etc/group', $group);
 		return $rs if $rs;
 	}
-
-	# Remove fstab entry for user homedir
-	my $rs = $self->removeFstabEntry(qr%.*?\s$jailedHomedir(?:/|\s).*%);
-	return $rs if $rs;
 
 	# Remove user from security chroot file
 	if(-f $securityChrootCfgFile) {
@@ -353,7 +359,7 @@ sub removeUserFromJail
 		my $userReg = quotemeta($user);
 		$fileContent =~ s/^$userReg\s+.*\n//gm;
 
-		$rs = $file->set($fileContent);
+		my $rs = $file->set($fileContent);
 		return $rs if $rs;
 
 		$rs = $file->save();

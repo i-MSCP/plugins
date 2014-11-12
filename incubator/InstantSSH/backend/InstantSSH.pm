@@ -98,7 +98,7 @@ sub uninstall
 		my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
 		return $rs if $rs;
 	} else {
-		error("Unable to delete the $rootJailDir directory: Directory is not empty");
+		error("Cannot delete the $rootJailDir directory: Directory is not empty");
 		return 1;
 	}
 
@@ -132,9 +132,8 @@ sub update
 	require version;
 	version->import();
 
-	# Starting with the version 2.1.0, the plugin use its own directory to store the makejail configuration files. In
-	# old versions, those files were stored in the default directory ( /etc/makejail ).
-	# Because the jail builder only handle files from the new location, we remove the old files manually.
+	# Update from versions older than 2.1.0
+	# Remove old makejail files
 	if(version->parse("v$fromVersion") < version->parse("v2.1.0") && -d '/etc/makejail') {
 		for my $file(iMSCP::Dir->new( dirname => '/etc/makejail', fileType => 'InstantSSH.*\\.py' )->getFiles()) {
 			$rs = iMSCP::File->new( filename => "/etc/makejail/$file" )->delFile();
@@ -142,9 +141,9 @@ sub update
 		}
 	}
 
-	# Starting with the version 3.0.0, the plugin no longer uses the unix users which are created by i-MSCP. Therefore,
-	# the homedir and shell fields of those users must be reset back to their default values. We must also cleanup
-	# the /etc/security/chroot.conf file.
+	# Update from version older than version 3.0.0,
+	# Reset back i-MSCP unix user fields (homedir, shell) to their default values
+	# Remove old jails
 	if(version->parse("v$fromVersion") < version->parse("v3.0.0")) {
 		my $adminSysNames = $self->{'db'}->doQuery(
 			'admin_sys_name',
@@ -156,6 +155,8 @@ sub update
 		}
 
 		if(%{$adminSysNames}) {
+			my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+
 			my $pw = Unix::PasswdFile->new('/etc/passwd');
 
 			for my $adminSysName(keys $adminSysNames) {
@@ -180,22 +181,21 @@ sub update
 						return 1;
 					}
 
+					my $jailId = (-d "$rootJailDir/$adminSysName") ? $adminSysName : 'shared_jail';
+
 					my $jailBuilder;
 					eval {
-						$jailBuilder = InstantSSH::JailBuilder->new(
-							id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $adminSysName,
-							config => $self->{'config'}
-						);
+						$jailBuilder = InstantSSH::JailBuilder->new( id => $jailId, config => $self->{'config'} );
 					};
 					if($@) {
 						error("Unable to create JailBuilder object: $@");
 						return 1;
 					}
 
-					# Remove user entry from the /etc/security/chroot.conf if any
-					# Note: Here we operate only on the /etc/security/chroot.conf file since the jails were already
-					# remove while plugin deactivation
-					$rs = $jailBuilder->removeUserFromJail($adminSysName);
+					$rs = $jailBuilder->unjailUser($adminSysName, 'umountHomeDir');
+					return $rs if $rs;
+
+					$rs = $jailBuilder->removeJail() unless $jailBuilder eq 'shared_jail';
 					return $rs if $rs;
 				} else {
 					error("Unable to find $adminSysName user homedir");
@@ -220,6 +220,7 @@ sub change
 {
 	my $self = $_[0];
 
+	# Update all jails excepted when this method is run in the context of an i-MSCP update
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
 		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
@@ -293,26 +294,31 @@ sub disable
 	$rs = $self->run();
 	return $rs if $rs;
 
-	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+	# Remove all jail excepted when this method is run in the context of a subaction
+	if($self->{'action'} eq 'disable') {
+		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
-	if(-d $rootJailDir) {
-		for my $jailDir(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
-			my $jailBuilder;
-			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
+		if(-d $rootJailDir) {
+			for my $jailId(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
+				my $jailBuilder;
+				eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailId, config => $self->{'config'} ); };
+				if($@) {
+					error("Unable to create JailBuilder object: $@");
+					return 1;
+				}
+
+				$rs = $jailBuilder->removeJail();
+				return $rs if $rs;
 			}
-
-			my $rs = $jailBuilder->removeJail();
-			return $rs if $rs;
 		}
 	}
+
+	0;
 }
 
 =item run()
 
- Handle SSH users
+ Handle permissions and SSH users
 
  Return int 0 on succes, other on failure
 
@@ -331,25 +337,27 @@ sub run
 	my $sth = $dbh->prepare(
 		"
 			SELECT
-				ssh_user_id, ssh_user_permission_id, ssh_user_name, ssh_user_password, ssh_user_status,
-				domain_name AS ssh_user_parent_domain, domain_admin_id AS ssh_user_admin_id,
-				IFNULL(ssh_permission_jailed_shell, 0) AS ssh_user_jailed
+				t1.ssh_user_id, t1.ssh_user_permission_id, t1.ssh_user_admin_id, t1.ssh_user_name,
+				t1.ssh_user_password, t1.ssh_user_status, COUNT(t2.ssh_user_id) AS nb_ssh_users,
+				t3.ssh_permission_jailed_shell AS ssh_user_jailed
 			FROM
 				instant_ssh_users AS t1
-			INNER JOIN
-				domain AS t2 ON(domain_admin_id = ssh_user_admin_id)
 			LEFT JOIN
-				instant_ssh_permissions AS t3 ON(ssh_permission_id = ssh_user_permission_id)
-			WHERE
-				(
-					ssh_user_permission_id IS NULL
-					OR
-					ssh_user_status IN ('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+				instant_ssh_users AS t2 ON(
+					t2.ssh_user_admin_id = t1.ssh_user_admin_id AND t2.ssh_user_status NOT IN(
+						'todisable', 'todelete', 'disabled'
+					)
 				)
-			AND
-				(ssh_permission_status IS NULL OR ssh_permission_status = 'ok')
-			ORDER BY
+			LEFT JOIN
+				instant_ssh_permissions AS t3 ON(t3.ssh_permission_id = t1.ssh_user_permission_id)
+			WHERE
+				t1.ssh_user_status IN('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+				OR
+				t1.ssh_user_permission_id IS NULL
+			GROUP BY
 				ssh_user_id
+			ORDER BY
+				ssh_user_admin_id
 		"
 	);
 	unless($sth) {
@@ -431,16 +439,16 @@ sub onDeleteDomain
 
 	if($data->{'DOMAIN_TYPE'} eq 'dmn') {
 		my $jailBuilder;
-		eval { $jailBuilder = InstantSSH::JailBuilder->new(id => $data->{'DOMAIN_NAME'}, config => $self->{'config'}); };
+		eval {
+			$jailBuilder = InstantSSH::JailBuilder->new( id => $data->{'DOMAIN_NAME'}, config => $self->{'config'} );
+		};
 		if($@) {
 			error("Unable to create JailBuilder object: $@");
 			return 1;
 		}
 
-		if($jailBuilder->existsJail()) {
-			my $rs = $jailBuilder->removeJail();
-			return $rs if $rs;
-		}
+		my $rs = $jailBuilder->removeJail();
+		return $rs if $rs;
 	}
 
 	0;
@@ -526,6 +534,17 @@ sub _addSshUser
 		error($stderr) if $rs && $stderr;
 		return $rs if $rs;
 
+		my $jailBuilder;
+		eval {
+			$jailBuilder = InstantSSH::JailBuilder->new(
+				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $pUserName, config => $self->{'config'}
+			);
+		};
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
+
 		# Jail user if needed
 		if($data->{'ssh_user_jailed'}) {
 			# Lock ssh user temporarely
@@ -535,26 +554,18 @@ sub _addSshUser
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
 
-			my $jailBuilder;
-			eval {
-				$jailBuilder = InstantSSH::JailBuilder->new(
-					id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $data->{'ssh_user_parent_domain'},
-					config => $self->{'config'}
-				);
-			};
-			if($@) {
-				error("Unable to create JailBuilder object: $@");
-				return 1;
-			}
-
 			# Create jail if needed
 			unless($jailBuilder->existsJail()) {
 				$rs = $jailBuilder->makeJail();
 				return $rs if $rs;
 			}
 
+			# Add parent user to show parent user as file owner in ls command result
+			$rs = $jailBuilder->addPasswdFile('/etc/passwd', $pUserName);
+			return $rs if $rs;
+
 			# Jail ssh user
-			$rs = $jailBuilder->addUserToJail($data->{'ssh_user_name'}, $shell);
+			$rs = $jailBuilder->jailUser($data->{'ssh_user_name'}, $shell, 'mountHomeDir');
 			return $rs if $rs;
 
 			# Unlock ssh user
@@ -562,6 +573,14 @@ sub _addSshUser
 			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $rs && $stderr;
+			return $rs if $rs;
+		} elsif($data->{'ssh_user_status'} eq 'tochange') {
+			# Ensure that the user is not jailed
+			$rs = $jailBuilder->unjailUser($data->{'ssh_user_name'}, 'umountHomeDir');
+			return $rs if $rs;
+
+			# Remove per user jail if any
+			$rs = $jailBuilder->removeJail() unless $self->{'shared_jail'};
 			return $rs if $rs;
 		}
 
@@ -589,6 +608,9 @@ sub _deleteSshUser
 	my($self, $data) = @_;
 
 	if(getpwnam($data->{'ssh_user_name'})) {
+		my $pUserName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
+			($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'ssh_user_admin_id'});
+
 		# Lock ssh user
 		my @cmd = ('usermod', '-s', '/bin/false', '-L', escapeShell($data->{'ssh_user_name'}));
 		my ($stdout, $stderr);
@@ -606,8 +628,7 @@ sub _deleteSshUser
 		my $jailBuilder;
 		eval {
 			$jailBuilder = InstantSSH::JailBuilder->new(
-				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $data->{'ssh_user_parent_domain'},
-				config => $self->{'config'}
+				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $pUserName, config => $self->{'config'}
 			);
 		};
 		if($@) {
@@ -615,9 +636,16 @@ sub _deleteSshUser
 			return 1;
 		}
 
-		# We are doing this in any case to prevent any garbage
-		$rs = $jailBuilder->removeUserFromJail($data->{'ssh_user_name'});
+		# Unjail user if needed
+		$rs = $jailBuilder->unjailUser(
+			$data->{'ssh_user_name'}, ($data->{'nb_ssh_users'} eq '0') ? 'umountHomeDir' : undef
+		);
 		return $rs if $rs;
+
+		if($data->{'nb_ssh_users'} eq '0') {
+			$rs = $jailBuilder->removeJail();
+			return $rs if $rs;
+		}
 
 		# Delete ssh user
 		@cmd = ('userdel', '-f', escapeShell($data->{'ssh_user_name'}));
@@ -643,12 +671,12 @@ sub _updateAuthorizedKeysFile
 {
 	my ($self, $data) = @_;
 
-	my $rs = 0;
 	my $pUserName =
 	my $pUserGroup = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
 		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'ssh_user_admin_id'});
 
 	my $pUserHomeDir = normalizePath((getpwnam($pUserName))[7]);
+	my $rs = 0;
 
 	if(-d $pUserHomeDir) {
 		my $dbh = $self->{'db'}->getRawDb();
@@ -711,7 +739,6 @@ sub _updateAuthorizedKeysFile
 		}
 
 		setImmutable($pUserHomeDir) if $isProtectedPuserHomeDir;
-		return $rs if $rs;
 	}
 
 	$rs;

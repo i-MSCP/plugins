@@ -194,13 +194,13 @@ return array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
 			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
 			'/bin/gzip', '/bin/ln', '/bin/mktemp', '/bin/more', '/bin/mv', '/bin/pwd', '/bin/rm', '/bin/rmdir',
-			'/bin/sed',  '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/touch', '/bin/true', '/bin/uncompress',
-			'/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput', '/tmp', '/var/log',
-			'/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less', '/usr/bin/clear',
-			'/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum', '/usr/bin/nice',
-			'/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc', '/usr/bin/watch',
-			'/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz', '/usr/bin/pbzip2',
-			'/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
+			'/bin/sed',  '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/basename', '/usr/bin/touch', '/bin/true',
+			'/bin/uncompress', '/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput',
+			'/tmp', '/var/log', '/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less',
+			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
+			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
+			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
+			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
 		),
 		'copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',

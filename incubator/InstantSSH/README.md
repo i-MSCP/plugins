@@ -29,8 +29,8 @@ appearing in the the default authentication string must also be specified in the
 
 #### Jailed shells
 
-The Jailed shells allow you to provide SSH access to your customers in a secured and restricted environment from which
-they can theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
+The Jailed shells allow you to provide SSH access to your customers in a restricted environment from which they can
+theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the jails by simply adding the needed application sections into the **app_sections**
 configuration option.
@@ -44,7 +44,10 @@ See the plugin **config.php** file for further details.
 ### Requirements
 
 * i-MSCP >= 1.1.17 (plugin API >= 0.2.13)
-* openSSH server with public key authentication support enabled
+* openSSH server with both, passsword and key-based authentication support enabled
+
+**Note:** If you want allow only the key-based authentication, you can set the **passwordless_authentication**
+configuration option to **true** in the plugin configuration file.
 
 #### Debian / Ubuntu packages
 
@@ -54,7 +57,6 @@ See the plugin **config.php** file for further details.
 
 You can install these packages by executing the following commands:
 
-	# aptitude update
 	# aptitude install busybox libpam-chroot makejail
 
 **Notes**
@@ -63,9 +65,10 @@ You can install these packages by executing the following commands:
 
 ### Installation
 
-1. Login into the panel as admin and go to the plugin management interface
-2. Upload the plugin archive
-3. Activate the plugin
+1. Be sure that all required packages as mentioned in the requirements section are installed on your system
+2. Login into the panel as admin and go to the plugin management interface
+3. Upload the plugin archive
+4. Install the plugin
 
 ### Update
 
@@ -108,7 +111,8 @@ For instance, You can see the following logs in the /var/log/auth.log file:
 You can fix this easily by following this procedure:
 
 	# cd /usr/local/src
-	# mkdir libpam-chroot && cd libpam-chroot
+	# mkdir libpam-chroot
+	# cd libpam-chroot
 	# apt-get install build-essential debhelper libpam0g-dev
 	# apt-get source libpam-chroot
 	# cd libpam-chroot*

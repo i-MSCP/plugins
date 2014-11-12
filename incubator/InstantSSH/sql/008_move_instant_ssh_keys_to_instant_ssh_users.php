@@ -36,6 +36,7 @@ return array(
 			PRIMARY KEY ssh_user_id (ssh_user_id),
 			KEY ssh_user_admin_id (ssh_user_admin_id),
 			UNIQUE KEY ssh_user_name (ssh_user_name),
+			UNIQUE KEY ssh_user_key_fingerprint (ssh_user_admin_id, ssh_user_key_fingerprint),
 			KEY ssh_user_status (ssh_user_status),
 			CONSTRAINT ssh_user_permission_id FOREIGN KEY (ssh_user_permission_id)
   				REFERENCES instant_ssh_permissions (ssh_permission_id) ON DELETE SET NULL

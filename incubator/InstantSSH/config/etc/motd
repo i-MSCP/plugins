@@ -1,4 +1,3 @@
-
   _           __  __    _____    _____   _____
  (_)         |  \/  |  / ____|  / ____| |  __ \
   _   _____  | \  / | | (___   | |      | |__) |
@@ -6,10 +5,10 @@
  | |         | |  | |  ____) | | |____  | |
  |_|         |_|  |_| |_____/   \_____| |_|
 
-Welcome to your restricted shell.
+Welcome to your shell.
 
 If you need a specific command, get in contact with your reseller.
 
-i-MSCP InstantSSH plugin with jailed shell support.
+i-MSCP InstantSSH plugin v3.0.0
 Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
 

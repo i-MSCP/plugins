@@ -146,11 +146,13 @@ function addSshUser($pluginManager, $sshPermissions)
 				$errorMsgs[] = tr('Un-allowed username. Please use alphanumeric characters only.', true);
 			} elseif(strlen($sshUserName) > 8) {
 				$errorMsgs[] = tr('The username is too long (Max 8 characters).', true);
-			} elseif(posix_getpwnam($sshUserName)) {
-				$errorMsgs[] = tr("This username is not available.", true);
 			}
 
 			$sshUserName = $plugin->getConfigParam('ssh_user_name_prefix', 'ssh_') . $sshUserName;
+
+			if(posix_getpwnam($sshUserName)) {
+				$errorMsgs[] = tr("This username is not available.", true);
+			}
 		}
 
 		if($sshUserPassword == '' && $sshUserKey == '') {
@@ -263,7 +265,7 @@ function addSshUser($pluginManager, $sshPermissions)
 			}
 		} catch(ExceptionDatabase $e) {
 			if($e->getCode() == '23000') {
-				Common::sendJsonResponse(400, array('message' => tr("This username is not available.", true)));
+				Common::sendJsonResponse(400, array('message' => tr("This SSH key is already assigned to another SSH user.", true)));
 			} else {
 				write_log(sprintf('InstantSSH: Unable to add or update SSH user: %s', $e->getMessage()), E_USER_ERROR);
 
