@@ -60,7 +60,8 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterChangeDomainStatus
+				iMSCP_Events::onAfterChangeDomainStatus,
+				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
 		);
@@ -242,6 +243,19 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		exec_query(
 			'UPDATE instant_ssh_users SET ssh_users_status = ? WHERE ssh_user_admin_id = ?',
 			array(($event->getParam('action') == 'activate') ? 'toenable' : 'todisable', $event->getParam('customerId'))
+		);
+	}
+
+	/**
+	 * onAfterDeleteCustomer listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onAfterDeleteCustomer($event)
+	{
+		exec_query(
+			'DELETE FROM instant_ssh_permissions WHERE ssh_permission_admin_id = ?', $event->getParam('customerId')
 		);
 	}
 

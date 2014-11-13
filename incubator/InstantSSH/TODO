@@ -1,2 +1,4 @@
 - Cascading permissions (admin -> reseller -> customer)
-- Per customer application sections selector
+- Per customer application sections selector ( Admin level)
+- Allow to deactivate SSH permissions without removing associated SSH users ( Admin level)
+- Allow to deactivate specific SSH user without removing it ( Customer level)

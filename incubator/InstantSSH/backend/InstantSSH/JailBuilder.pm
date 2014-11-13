@@ -193,20 +193,19 @@ sub existsJail
 	(-d $_[0]->{'jailCfg'}->{'chroot'});
 }
 
-=item jailUser($user, $shell, $mountHomeDir)
+=item jailUser($user [, $shell = system user shell ])
 
  Jail the given user
 
  Param string $user User to add into the jail
- Param string $shell User shell
- Parram string $mountHomeDir Does the user homedir must be mounted inside jail (default false)
+ Param string OPTIONAL $shell User shell inside jail
  Return int 0 on success, other on failure
 
 =cut
 
 sub jailUser
 {
-	my ($self, $user, $shell, $mountHomeDir) = @_;
+	my ($self, $user, $shell) = @_;
 
 	my @pwEntry = getpwnam($user);
 
@@ -221,6 +220,16 @@ sub jailUser
 		error("Unable to find $user unix user group");
 		return 1;
 	}
+
+	my $homeDir = $pwEntry[7];
+
+	unless(defined $homeDir) {
+		error("Unable to find $user unix user homedir");
+		return 1;
+	}
+
+	$homeDir = normalizePath($homeDir);
+	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
 	# Add user into the jailed passwd file if any
 	my $rs = $self->addPasswdFile('/etc/passwd', $user, $shell);
@@ -256,51 +265,46 @@ sub jailUser
 		return 1;
 	}
 
-	if($mountHomeDir) {
-		my $homeDir = normalizePath($pwEntry[7]);
-		my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
-
-		if(-d $homeDir) {
-			unless(-d $jailedHomedir) {
-				# Create jailed homedir
-				$rs = iMSCP::Dir->new(
-					dirname => $jailedHomedir
-				)->make(
-					{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
-				);
-				return $rs if $rs;
-
-				# Set owner/group for jailed homedir
-				$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
-				return $rs if $rs;
-			}
-
-			# Mount user homedir within the jail
-			$rs = $self->mount($homeDir, $jailedHomedir);
+	if(-d $homeDir) {
+		unless(-d $jailedHomedir) {
+			# Create jailed homedir
+			$rs = iMSCP::Dir->new(
+				dirname => $jailedHomedir
+			)->make(
+				{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
+			);
 			return $rs if $rs;
 
-			# Add fstab entry for user homedir
-			$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
+			# Set owner/group for jailed homedir
+			$rs = setRights($jailedHomedir, { user => $user, group => $group, mode => '0550' });
 			return $rs if $rs;
 		}
+
+		# Mount user homedir within the jail
+		$rs = $self->mount($homeDir, $jailedHomedir);
+		return $rs if $rs;
+
+		# Add fstab entry for user homedir
+		$rs = $self->addFstabEntry("$homeDir $jailedHomedir none bind 0 0");
+		return $rs if $rs;
 	}
 
 	0;
 }
 
-=item unjailUser($user, $unmountHomeDir)
+=item unjailUser($user [, $userOnly = FALSE ])
 
  Unjial the given user
 
  Param string $user User to remove from the jail
- Param bool $unmountHomeDir Does the user homedir must be unmounted from the jail (default false)
+ Param bool $userOnly OPTIONAL When TRUE only the user entries are removed (homedir, and group are kept)
  Return int 0 on success, other on failure
 
 =cut
 
 sub unjailUser
 {
-	my ($self, $user, $unmountHomeDir) = @_;
+	my ($self, $user, $userOnly) = @_;
 
 	my @pwEntry = getpwnam($user);
 
@@ -309,18 +313,18 @@ sub unjailUser
 		return 1;
 	}
 
-	my $homeDir = normalizePath($pwEntry[7]);
-	my $group = getgrgid($pwEntry[3]);
+	my $homeDir = $pwEntry[7];
 
-	unless(defined $group) {
-		error("Unable to find $user unix user group");
+	unless(defined $homeDir) {
+		error("Unable to find $user unix user homedir");
 		return 1;
 	}
 
-	if(-d $self->{'jailCfg'}->{'chroot'}) {
-		if($unmountHomeDir) {
-			my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
+	$homeDir = normalizePath($homeDir);
+	my $jailedHomedir = $self->{'jailCfg'}->{'chroot'} . $homeDir;
 
+	if(-d $self->{'jailCfg'}->{'chroot'}) {
+		unless($userOnly) {
 			if(-d $jailedHomedir) {
 				# Umount user homedir from the jail
 				my $rs = $self->umount($jailedHomedir);
@@ -329,22 +333,33 @@ sub unjailUser
 				$rs = iMSCP::Dir->new( dirname => $jailedHomedir )->remove();
 				return $rs if $rs;
 			}
-
-			# Remove fstab entry for user homedir
-			my $rs = $self->removeFstabEntry(qr%.*?\s$jailedHomedir(?:/|\s).*%);
-			return $rs if $rs;
 		}
 
 		# Remove user from the jailed passwd file if any
 		my $rs = $self->removePasswdFile('/etc/passwd', $user);
 		return $rs if $rs;
 
-		# Remove user group from the jailed group file if any
-		$rs = $self->removePasswdFile('/etc/group', $group);
+		unless($userOnly) {
+			my $group = getgrgid($pwEntry[3]);
+
+			unless(defined $group) {
+				error("Unable to find $user unix user group");
+				return 1;
+			}
+
+			# Remove user group from the jailed group file if any
+			my $rs = $self->removePasswdFile('/etc/group', $group);
+			return $rs if $rs;
+		}
+	}
+
+	unless($userOnly) {
+		# Remove fstab entry for user homedir
+		my $rs = $self->removeFstabEntry(qr%.*?\s$jailedHomedir(?:/|\s).*%);
 		return $rs if $rs;
 	}
 
-	# Remove user from security chroot file
+	# Remove user from security chroot file if any
 	if(-f $securityChrootCfgFile) {
 		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
 
@@ -369,9 +384,9 @@ sub unjailUser
 	0;
 }
 
-=item addPasswdFile($file, $what, [$shell = undef])
+=item addPasswdFile($file, $what [, $shell = undef ])
 
- Add the given user/group into the passwd/group file of the Jail if any
+ Add the given user/group into the passwd/group file of the jail if any
 
  Param string $file Path of system passwd/group file
  Param string $what User/group name to add
@@ -398,8 +413,6 @@ sub addPasswdFile
 
 				if(not grep $_ eq $what, @jailLines) {
 					for my $sysLine(@sysLines) {
-						next if index($sysLine, ':') == -1;
-
 						if ($sysLine =~ /^$regWhat:/) {
 							my @sysLineFields = split ':', $sysLine;
 
