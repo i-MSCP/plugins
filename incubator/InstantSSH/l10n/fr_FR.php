@@ -55,6 +55,7 @@ return array(
 	'SSH permissions not found.' => 'Permissions SSH non trouvées.',
 	'Bad request.' => 'Mauvaise requête.',
 	'All fields are required.' => 'Tous les champs sont requis.',
+	'The username field is required.' => "Le nom d'utilisateur est requis.",
 	"Wrong value for the 'Maximum number of SSH users' field. Please, enter a number." => "Valeur erronée pour le champ 'Nombre de comptes SSH'. Veullez entrer un nombre.",
 	'SSH permissions were added.' => 'Les permissions SSH ont été ajoutées',
 	'SSH permissions were scheduled for update.' => 'Les permissions SSH vont êtres mises à jour.',

@@ -55,6 +55,7 @@ return array(
 	'SSH permissions not found.' => 'SSH behörigheter hittades inte.',
 	'Bad request.' => 'Ogiltig begäran.',
 	'All fields are required.' => 'Alla fält är obligatoriska.',
+	'The username field is required.' => 'Användarnamnet fältet är obligatoriskt.',
 	"Wrong value for the 'Maximum number of SSH keys' field. Please, enter a number." => "Fel värde för 'Maximalt antal SSH-nycklar' fält. Vänligen, ange en siffra.",
 	'SSH permissions were added.' => 'SSH behörigheter sattes.',
 	'SSH permissions were scheduled for update.' => 'SSH behörigheter var planerade för uppdatering.',

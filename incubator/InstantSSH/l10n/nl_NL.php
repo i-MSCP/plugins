@@ -54,6 +54,7 @@ return array(
 	'SSH permissions not found.' => 'SSH-rechten niet gevonden.',
 	'Bad request.' => 'Fout verzoek.',
 	'All fields are required.' => 'Alle velden dienen te worden ingevuld.',
+	'The username field is required.' => 'Het veld gebruikersnaam is vereist.',
 	"Wrong value for the 'Maximum number of SSH users' field. Please, enter a number." => "Incorrecte waarde voor het 'Maximaal aantal SSH-gebruikers'-veld. Vul een correct getal in.",
 	'SSH permissions were added.' => 'SSH-rechten zijn toegevoegd.',
 	'SSH permissions were scheduled for update.' => 'SSH-rechten zijn ingepland om bijgewerkt te worden.',
