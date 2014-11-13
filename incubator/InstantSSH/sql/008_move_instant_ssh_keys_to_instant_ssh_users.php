@@ -43,7 +43,7 @@ return array(
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 
 		INSERT IGNORE instant_ssh_users SELECT
-			ssh_key_id, ssh_permission_id, ssh_key_admin_id, CONCAT('ssh_', ssh_key_id), null, ssh_key,
+			ssh_key_id, ssh_permission_id, ssh_key_admin_id, CONCAT('imscp_', ssh_key_id), null, ssh_key,
 			ssh_key_fingerprint, ssh_auth_options, ssh_key_status
 		FROM
 			instant_ssh_keys
