@@ -29,6 +29,7 @@ return array(
 	'SSH users' => 'SSH-användare',
 	'This is the list of customers which are allowed to create SSH users to login on the system using SSH.' => 'Detta är en lista över kunder som får skapa SSH-användare att logga in på systemet med SSH.',
 	'Customer name' => 'Kundens namn',
+	'You must enter a customer name.' => 'Du måste ange ett kundnamn.',
 	'Max SSH users' => 'Max SSH-användare',
 	'Authentication options' => 'Autentiserings alternativ',
 	'Restricted shell' => 'Begränsad shell',

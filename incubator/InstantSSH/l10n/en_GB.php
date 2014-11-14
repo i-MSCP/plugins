@@ -29,6 +29,7 @@ return array(
 	'SSH users' => 'SSH users',
 	'This is the list of customers which are allowed to create SSH users to login on the system using SSH.' => 'This is the list of customers which are allowed to create SSH users to login on the system using SSH.',
 	'Customer name' => 'Customer name',
+	'You must enter a customer name.' => 'You must enter a customer name.',
 	'Max SSH users' => 'Max SSH users',
 	'Authentication options' => 'Authentication options',
 	'Restricted shell' => 'Restricted Shell',

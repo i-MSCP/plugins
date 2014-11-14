@@ -29,6 +29,7 @@ return array(
 	'SSH users' => 'Comptes SSH',
 	'This is the list of customers which are allowed to create SSH users to login on the system using SSH.' => 'Liste des clients qui sont autorisés à créer des comptes SSH pour se connecter au système.',
 	'Customer name' => 'Nom du client',
+	'You must enter a customer name.' => "Vous devez entrer un nom d'utilisateur.",
 	'Max SSH users' => "Nombre de comptes SSH",
 	'Authentication options' => "Options d'authentification",
 	'Restricted shell' => 'Shell restreint',

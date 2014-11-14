@@ -75,7 +75,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" />
+						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" checked="checked"/>
 					</td>
 				</tr>
 				<tr>
