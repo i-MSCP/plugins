@@ -64,8 +64,9 @@ function getOpenSshKey($rsaKey)
  */
 function getSshUser()
 {
-	if(isset($_GET['ssh_user_id'])) {
+	if(isset($_GET['ssh_user_id']) && isset($_GET['ssh_user_name'])) {
 		$sshUserId = intval($_GET['ssh_user_id']);
+		$sshUserName = clean_input($_GET['ssh_user_name']);
 
 		try {
 			$stmt = exec_query(
@@ -79,7 +80,7 @@ function getSshUser()
 
 			Common::sendJsonResponse(404, array('message' => tr('SSH user not found.', true)));
 		} catch(ExceptionDatabase $e) {
-			write_log(sprintf('InstantSSH: Unable to get SSH user: %s', $e->getMessage()), E_USER_ERROR);
+			write_log(sprintf('InstantSSH: Unable to %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
 
 			Common::sendJsonResponse(500, array('message' => tr('An unexpected error occurred.', true)));
 		}
@@ -126,13 +127,18 @@ function addSshUser($pluginManager, $sshPermissions)
 		if($sshPermissions['ssh_permission_auth_options']) {
 			if(isset($_POST['ssh_user_auth_options']) && is_string($_POST['ssh_user_auth_options'])) {
 				$sshAuthOptions = clean_input($_POST['ssh_user_auth_options']);
-				$sshAuthOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshAuthOptions);
-				$allowedAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options', array());
 
-				$validator = new SshAuthOptions(array('auth_option' => $allowedAuthOptions));
+				if($sshAuthOptions !== '') {
+					$sshAuthOptions = str_replace(array("\r\n", "\r", "\n"), '', $sshAuthOptions);
+					$allowedAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options', array());
 
-				if(!$validator->isValid($sshAuthOptions)) {
-					$errorMsgs[] = implode('<br />', $validator->getMessages());
+					$validator = new SshAuthOptions(array('auth_option' => $allowedAuthOptions));
+
+					if(!$validator->isValid($sshAuthOptions)) {
+						$errorMsgs[] = implode('<br />', $validator->getMessages());
+					}
+				} else {
+					$sshAuthOptions = null;
 				}
 			} else {
 				Common::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
@@ -257,7 +263,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				send_request();
 
 				write_log(
-					sprintf('InstantSSH: %s updated SSH user : %s', decode_idna($_SESSION['user_logged']), $sshUserName),
+					sprintf('InstantSSH: %s updated SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName),
 					E_USER_NOTICE
 				);
 
@@ -269,7 +275,10 @@ function addSshUser($pluginManager, $sshPermissions)
 					400, array('message' => tr("An SSH user with the same name or the same SSH key already exists.", true))
 				);
 			} else {
-				write_log(sprintf('InstantSSH: Unable to add or update SSH user: %s', $e->getMessage()), E_USER_ERROR);
+				write_log(
+					sprintf('InstantSSH: Unable to add or update the %s SSH user: %s', $sshUserName, $e->getMessage()),
+					E_USER_ERROR
+				);
 
 				Common::sendJsonResponse(
 					500, array('message' => tr('An unexpected error occurred. Please contact your reseller', true))
@@ -288,8 +297,9 @@ function addSshUser($pluginManager, $sshPermissions)
  */
 function deleteSshUser()
 {
-	if(isset($_POST['ssh_user_id'])) {
+	if(isset($_POST['ssh_user_id']) && isset($_POST['ssh_user_name'])) {
 		$sshUserId = intval($_POST['ssh_user_id']);
+		$sshUserName = clean_input($_POST['ssh_user_name']);
 
 		try {
 			$stmt = exec_query(
@@ -301,14 +311,17 @@ function deleteSshUser()
 				send_request();
 
 				write_log(
-					sprintf('InstantSSH: %s deleted SSH user with ID: %s', decode_idna($_SESSION['user_logged']), $sshUserId),
+					sprintf('InstantSSH: %s deleted an SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName),
 					E_USER_NOTICE
 				);
 
 				Common::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for deletion.', true)));
 			}
 		} catch(ExceptionDatabase $e) {
-			write_log(sprintf('InstantSSH: Unable to delete SSH user: %s', $e->getMessage()), E_USER_ERROR);
+			write_log(
+				sprintf('InstantSSH: Unable to delete the %s SSH user: %s', $sshUserName, $e->getMessage()),
+				E_USER_ERROR
+			);
 
 			Common::sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))

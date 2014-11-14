@@ -179,9 +179,9 @@
 		$page.on("click", "input:reset,span[data-action]", function () {
 			$("#ssh_user_id").val("0");
 			$("#ssh_username_prefix").show();
-			$("#ssh_user_name").prop("readonly", false);
+			$("#ssh_user_name").prop("readonly", false).val("");
 			$("#ssh_user_password").val("");
-			$("#ssh_user_key").prop("readonly", false);
+			$("#ssh_user_key").prop("readonly", false).val("");
 		});
 
 		$page.on("click", "span[data-action], button", function (e) {
@@ -202,18 +202,20 @@
 					);
 					break;
 				case "edit_ssh_user":
-					doRequest('GET', "get_ssh_user", { ssh_user_id: sshUserId }).done(function (data) {
-						$("#ssh_user_id").val(data.ssh_user_id);
-						$("#ssh_username_prefix").hide();
-						$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
-						$("#ssh_user_password").val("");
-						$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
-						$("#ssh_user_key").val(data.ssh_user_key);
-					});
+					doRequest('GET', "get_ssh_user", { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
+						function (data) {
+							$("#ssh_user_id").val(data.ssh_user_id);
+							$("#ssh_username_prefix").hide();
+							$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
+							$("#ssh_user_password").val("");
+							$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
+							$("#ssh_user_key").val(data.ssh_user_key);
+						}
+					);
 					break;
 				case "delete_ssh_user":
 					if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?', true));?>")) {
-						doRequest("POST", action, { ssh_user_id: sshUserId }).done(
+						doRequest("POST", action, { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
 							function (data) {
 								oTable.fnDraw();
 								flashMessage('success', data.message);

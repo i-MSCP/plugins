@@ -5,6 +5,8 @@ HOME=$(readlink -f $HOME)
 cd $HOME
 export LANG=C
 
+HOSTNAME=$(basename $HOME);
+
 if [ "`id -u`" -eq 0 ]; then
   PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 else
@@ -62,16 +64,16 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 if [ "$color_prompt" = yes ]; then
-    PS1='\[\033[01;32m\]${USER}@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='\[\033[01;32m\]${USER}@${HOSTNAME}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1='${USER}@\h:\w\$ '
+    PS1='${USER}@${HOSTNAME}:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
-    PS1="\[\e]0;${USER}@\h: \w\a\]$PS1"
+    PS1="\[\e]0;${USER}@${HOSTNAME}: \w\a\]$PS1"
     ;;
 *)
     ;;

@@ -47,8 +47,6 @@ return array(
 			ssh_key_fingerprint, ssh_auth_options, ssh_key_status
 		FROM
 			instant_ssh_keys
-		INNER JOIN
-			admin ON(admin_id = ssh_key_admin_id);
 
 		DROP TABLE IF EXISTS instant_ssh_keys;
 	",

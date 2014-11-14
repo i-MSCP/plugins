@@ -217,41 +217,40 @@ sub change
 {
 	my $self = $_[0];
 
-	# Update all jails excepted when this method is run in the context of an i-MSCP update
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'todisable'");
+		unless(ref $rs eq 'HASH') {
+			error($rs);
+			return 1;
+		}
 
-		if(-d $rootJailDir) {
-			for my $jailDir(iMSCP::Dir->new( dirname => $rootJailDir )->getDirs()) {
-				my $jailBuilder;
-				eval { $jailBuilder = InstantSSH::JailBuilder->new( id => $jailDir, config => $self->{'config'} ); };
-				if($@) {
-					error("Unable to create JailBuilder object: $@");
-					return 1;
-				}
+		$rs = $self->run();
+		return $rs if $rs;
 
-				# Update or remove the jail according the value of the shared_jail parameter
-				if(
-					($self->{'config'}->{'shared_jail'} && $jailDir eq 'shared_jail') ||
-					(!$self->{'config'}->{'shared_jail'} && $jailDir ne 'shared_jail')
-				) {
-					my $rs = $jailBuilder->makeJail(); # Update jail
-					return $rs if $rs;
-				} else {
-					my $rs = $jailBuilder->removeJail(); # Remove jail
-					return $rs if $rs;
-				}
-			}
+		my $jailBuilder;
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
 
-			my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'tochange'");
-			unless(ref $rs eq 'HASH') {
-				error($rs);
-				return 1;
-			}
-
-			$rs = $self->run();
+		# Create / Update / Remove the shared jail according the value of the shared_jail parameter
+		if($self->{'config'}->{'shared_jail'}) {
+			$rs = $jailBuilder->makeJail(); # Update jail
+			return $rs if $rs;
+		} else {
+			$rs = $jailBuilder->removeJail(); # Remove jail
 			return $rs if $rs;
 		}
+
+		$rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'toenable'");
+		unless(ref $rs eq 'HASH') {
+			error($rs);
+			return 1;
+		}
+
+		$rs = $self->run();
+		return $rs if $rs;
 	}
 
 	0;
@@ -324,8 +323,6 @@ sub run
 	my ($rs, $ret) = (0, 0);
 
 	my $dbh = $self->{'db'}->getRawDb();
-
-	# Handle SSH users
 
 	my $sth = $dbh->prepare(
 		"
@@ -467,7 +464,7 @@ sub _addSshUser
 
 	if((my @pwEntry = getpwnam($pUserName))) {
 		# Force logout of SSH logins if any
-		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', escapeShell("^sshd:.*$data->{'ssh_user_name'}"));
+		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', escapeShell("^sshd: $data->{'ssh_user_name'}"));
 		my ($stdout, $stderr);
 		my $rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -542,7 +539,7 @@ sub _addSshUser
 				$rs = $jailBuilder->removePasswdFile('/etc/passwd', $pUserName);
 				return $rs if $rs;
 
-				if(!$self->{'config'}->{'shared_jail'}) {
+				unless($self->{'config'}->{'shared_jail'}) {
 					$rs = $jailBuilder->removeJail();
 					return $rs if $rs;
 				}
@@ -585,7 +582,7 @@ sub _deleteSshUser
 		return $rs if $rs;
 
 		# Force logout of ssh login if any
-		@cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f',  escapeShell("^sshd:.*$data->{'ssh_user_name'}"));
+		@cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f',  escapeShell("^sshd: $data->{'ssh_user_name'}"));
 		execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		debug($stderr) if $stderr;
@@ -613,7 +610,7 @@ sub _deleteSshUser
 			return $rs if $rs;
 
 			# Remove per customer jail if any
-			if(!$self->{'config'}->{'shared_jail'}) {
+			unless($self->{'config'}->{'shared_jail'}) {
 				$rs = $jailBuilder->removeJail();
 				return $rs if $rs;
 			}
@@ -684,7 +681,7 @@ sub _updateAuthorizedKeysFile
 			my $fileContent = '';
 			while (my $key = $sth->fetchrow_hashref()) {
 				if($key->{'ssh_user_id'} ne $data->{'ssh_user_id'} || $data->{'ssh_user_status'} ne 'todelete') {
-					if(defined $key->{'ssh_user_auth_options'}) {
+					if(defined $key->{'ssh_user_auth_options'} && $key->{'ssh_user_auth_options'} ne '') {
 						$fileContent .= "$key->{'ssh_user_auth_options'} ";
 					}
 
@@ -765,7 +762,7 @@ sub _checkRequirements
 
 sub _configurePamChroot
 {
-	my $uninstall = $_[1] // undef;
+	my $uninstall = $_[1] || undef;
 
 	if(-f '/etc/pam.d/sshd') {
 		my $file = iMSCP::File->new( filename => '/etc/pam.d/sshd' );
@@ -826,7 +823,7 @@ sub _configurePamChroot
 
 sub _configureBusyBox
 {
-	my $uninstall = $_[1] // undef;
+	my $uninstall = $_[1] || undef;
 
 	# Handle /bin/ash symlink
 

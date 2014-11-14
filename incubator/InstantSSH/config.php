@@ -20,6 +20,9 @@
 
 return array(
 
+	// SSH user name prefix ( default: imscp_ )
+	'ssh_user_name_prefix' => 'imscp_',
+
 	// Passwordless authentication (default: false)
 	//
 	// When the value is set to TRUE, passwordless authentication is enforced, meaning that the customers cannot set
@@ -30,9 +33,6 @@ return array(
 	// Note: This applies only to newly created or updated SSH users
 	'passwordless_authentication' => false,
 
-	// SSH user name prefix ( default: imscp_ )
-	'ssh_user_name_prefix' => 'imscp_',
-
 	// Default SSH authentication options added for any new SSH key
 	//
 	// See man authorized_keys for list of allowed authentication options.
@@ -41,7 +41,6 @@ return array(
 	// WARNING: Any option defined here must be specified in the allowed_ssh_auth_options configuration option.
 	'default_ssh_auth_options' => 'no-agent-forwarding,no-port-forwarding,no-X11-forwarding',
 
-	//
 	// SSH authentication options that customers can define when they are allowed to override default.
 	//
 	// Supported options are:
@@ -194,7 +193,7 @@ return array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
 			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
 			'/bin/gzip', '/bin/ln', '/bin/mktemp', '/bin/more', '/bin/mv', '/bin/pwd', '/bin/rm', '/bin/rmdir',
-			'/bin/sed',  '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/basename', '/usr/bin/touch', '/bin/true',
+			'/bin/sed', '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/basename', '/usr/bin/touch', '/bin/true',
 			'/bin/uncompress', '/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput',
 			'/tmp', '/var/log', '/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less',
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
@@ -337,7 +336,7 @@ return array(
 	// Provide terminfo databases
 	'terminfo' => array(
 		'packages' => array(
-			'ncurses-base' # Package which provide terminfo data files to support the most common types of terminal
+			'ncurses-base' // Package which provide terminfo data files to support the most common types of terminal
 		)
 	),
 

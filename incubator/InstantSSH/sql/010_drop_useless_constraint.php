@@ -18,10 +18,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+// Drop useless constraint
+
 return array(
-	'up' => "
+	'up' => '
 		ALTER TABLE instant_ssh_permissions DROP FOREIGN KEY ssh_permission_admin_id;
-	",
+	',
 	'down' => '
 		ALTER TABLE instant_ssh_permissions ADD CONSTRAINT ssh_permission_admin_id FOREIGN KEY (ssh_permission_admin_id)
 			REFERENCES admin (admin_id) ON DELETE CASCADE
