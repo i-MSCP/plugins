@@ -181,6 +181,7 @@
 			$("#ssh_username_prefix").show();
 			$("#ssh_user_name").prop("readonly", false).val("");
 			$("#ssh_user_password").val("");
+			$("#ssh_user_password_confirmation").val("");
 			$("#ssh_user_key").prop("readonly", false).val("");
 		});
 
@@ -208,6 +209,7 @@
 							$("#ssh_username_prefix").hide();
 							$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
 							$("#ssh_user_password").val("");
+							$("#ssh_user_password_confirmation").val("");
 							$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
 							$("#ssh_user_key").val(data.ssh_user_key);
 						}
