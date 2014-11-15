@@ -159,9 +159,6 @@ function addSshPermissions($sshPermissions)
 
 				if(!$stmt->rowCount()) {
 					if($sshPermissions['ssh_permission_id'] !== null) {
-						/** @var \iMSCP_Plugin_InstantSSH $plugin */
-						$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
-
 						// Update SSH permissions of the customer
 						$stmt = exec_query(
 							'
@@ -177,6 +174,9 @@ function addSshPermissions($sshPermissions)
 						);
 
 						if($stmt->rowCount()) {
+							/** @var \iMSCP_Plugin_InstantSSH $plugin */
+							$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+
 							// Update of the SSH users which belong to the customers
 							$stmt = exec_query(
 								'
