@@ -34,7 +34,7 @@ The passwords are encrypted in the database using the better available algorythm
 reasons, this feature can be disabled by allowing only the passwordless authentication. This can be achieved by setting
 the **passwordless_authentication** configuration parameter to TRUE into the plugin configuration file.
 
-### Note regarding update from a previous versions
+### Note regarding system and database update
 
 #### i-MSCP default user (vuxxx)
 
