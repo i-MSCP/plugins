@@ -54,7 +54,6 @@ return array(
 	'Cancel' => 'Abbrechen',
 	'Admin / Settings / SSH Permissions' => 'Admin / Einstellungen / SSH-Berechtigungen',
 	'An unexpected error occurred: %s' => 'Ein unerwarteter Fehler ist aufgetreten: %s',
-	'SSH permissions not found.' => 'SSH-Berechtigungen nicht gefunden.',
 	'Bad request.' => 'Bad request.',
 	'All fields are required.' => 'Alle Felder müssen ausgefüllt werden.',
 	'The username field is required.' => 'Das Feld Benutzername ist erforderlich.',

@@ -53,7 +53,6 @@ return array(
 	'Cancel' => 'Annuler',
 	'Admin / Settings / SSH Permissions' => 'Admin / Paramètres / Permissions SSH',
 	'An unexpected error occurred: %s' => "Une erreur innatendue s'est produite: %s",
-	'SSH permissions not found.' => 'Permissions SSH non trouvées.',
 	'Bad request.' => 'Mauvaise requête.',
 	'All fields are required.' => 'Tous les champs sont requis.',
 	'The username field is required.' => "Le nom d'utilisateur est requis.",

@@ -52,7 +52,6 @@ return array(
 	'Cancel' => 'Annuleren',
 	'Admin / Settings / SSH Permissions' => 'Beheerder / Instellingen / SSH-instellingen',
 	'An unexpected error occurred: %s' => 'Er is een onbekende fout opgetreden: %s',
-	'SSH permissions not found.' => 'SSH-rechten niet gevonden.',
 	'Bad request.' => 'Fout verzoek.',
 	'All fields are required.' => 'Alle velden dienen te worden ingevuld.',
 	'The username field is required.' => 'Het veld gebruikersnaam is vereist.',

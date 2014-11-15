@@ -53,7 +53,6 @@ return array(
 	'Cancel' => 'Avbryt',
 	'Admin / Settings / SSH Permissions' => 'Admin / Inställningar / SSH Behörigheter',
 	'An unexpected error occurred: %s' => 'Ett oväntat fel inträffade: %s',
-	'SSH permissions not found.' => 'SSH behörigheter hittades inte.',
 	'Bad request.' => 'Ogiltig begäran.',
 	'All fields are required.' => 'Alla fält är obligatoriska.',
 	'The username field is required.' => 'Användarnamnet fältet är obligatoriskt.',
