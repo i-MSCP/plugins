@@ -48,6 +48,6 @@ prefix of SSH usernames and the SSH key unique identifier (eg. \<ssh_user_name_p
 
 #### Reseller permissions
 
-The resellers's permissions are automatically created using a predefined set of permissions. Once the plugin update is
-done, don't forget to edit the SSH permissions of your resellers if you want restrict them (eg. Force usage of jailed
-shell, forbid the edition of authentication options).
+The SSH permissions for resellers which have customers with existent SSH permissions are automatically created using a
+predefined set of permissions. After the plugin update, you should review those permissions if you want restrict the
+resellers (eg. to force usage of jailed shells, forbid the edition of authentication options).
