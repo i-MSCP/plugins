@@ -79,7 +79,6 @@ return array(
 	'Enter a key' => 'Entrez une clé',
 	'Are you sure you want to delete this SSH user?' => 'Êtes-vous certain de vouloir supprimer ce compte SSH?',
 	'Client / Profile / SSH Users' => 'Client / Profil / Comptes SSH',
-	'SSH user not found.' => 'Utilisateur SSH non trouvé.',
 	'Un-allowed username. Please use alphanumeric characters only.' => "Nom d'utilisateur non-autorisé. Veuillez n'utiliser que des caractères alphanumériques.",
 	'The username is too long (Max 255 characters).' => "Le nom d'utilisateur est trop long (Max. 8 caractères).",
 	'This username is not available.' => "Ce nom d'utilisateur n'est pas disponible.",

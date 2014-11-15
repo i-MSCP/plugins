@@ -77,7 +77,6 @@ return array(
 	'Supported RSA key formats are PKCS#1, openSSH and XML Signature.' => 'Ondersteunde RSA-keyformaten zijn PKCS#1, openSSH en een XML-handtekening.',
 	'Are you sure you want to delete this SSH user?' => 'Weet u zeker dat u deze SSH-gebruiker wilt aanpassen?',
 	'Client / Profile / SSH Users' => 'Klant / Profiel / SSH-gebruikers',
-	'SSH user not found.' => 'SSH-key niet gevonden.',
 	'Un-allowed username. Please use alphanumeric characters only.' => 'Gebruikersnaam niet toegestaan. Gebruik enkel alfanumerieke tekens.',
 	'The username is too long (Max 8 characters).' => 'De gebruikersnaam is te lang (Maximaal 8 tekens).',
 	'This username is not available.' => 'Deze gebruikernaam is niet (meer) beschikbaar.',

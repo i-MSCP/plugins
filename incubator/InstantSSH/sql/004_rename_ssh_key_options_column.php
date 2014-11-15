@@ -21,19 +21,16 @@
 # Rename ssh_key_options column to ssh_auth_options
 
 return array(
-	'up' =>
-		'
-			ALTER TABLE
-				instant_ssh_keys
-			CHANGE
-				ssh_key_options ssh_auth_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
-		'
-,
-	'down' =>
-		'
-			ALTER TABLE
-				instant_ssh_keys
-			CHANGE
-				ssh_auth_options ssh_key_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
-		'
+	'up' => '
+		ALTER TABLE
+			instant_ssh_keys
+		CHANGE
+			ssh_key_options ssh_auth_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
+	',
+	'down' => '
+		ALTER TABLE
+			instant_ssh_keys
+		CHANGE
+			ssh_auth_options ssh_key_options TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
+	'
 );

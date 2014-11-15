@@ -21,15 +21,13 @@
 # Add ssh_permission_jailed_shell column in instant_ssh_permissions table
 
 return array(
-	'up' =>
-		'
-			ALTER TABLE
-				instant_ssh_permissions
-			ADD
-				ssh_permission_jailed_shell tinyint(1) NOT NULL AFTER ssh_permission_auth_options
-		',
-	'down' =>
-		'
-			ALTER TABLE instant_ssh_permissions DROP ssh_permission_jailed_shell
-		'
+	'up' => '
+		ALTER TABLE
+			instant_ssh_permissions
+		ADD
+			ssh_permission_jailed_shell tinyint(1) NOT NULL AFTER ssh_permission_auth_options
+	',
+	'down' => '
+		ALTER TABLE instant_ssh_permissions DROP ssh_permission_jailed_shell
+	'
 );

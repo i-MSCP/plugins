@@ -19,7 +19,7 @@
  */
 
 return array(
-	'up' => "
+	'up' => '
 		CREATE TABLE IF NOT EXISTS instant_ssh_permissions (
 			ssh_permission_id int(10) unsigned AUTO_INCREMENT NOT NULL,
 			ssh_permission_admin_id int(10) unsigned NOT NULL,
@@ -30,7 +30,7 @@ return array(
 			CONSTRAINT ssh_permission_admin_id FOREIGN KEY (ssh_permission_admin_id)
   				REFERENCES admin (admin_id) ON DELETE CASCADE
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-	",
+	',
 	'down' => '
 		DROP TABLE IF EXISTS instant_ssh_permissions
 	'

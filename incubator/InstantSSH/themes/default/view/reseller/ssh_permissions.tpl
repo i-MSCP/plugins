@@ -2,13 +2,14 @@
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
-		<?= self::escapeHtml(tr('This is the list of resellers which are allowed to give SSH permissions to their customers.', true));?>
+		<?= self::escapeHtml(tr('This is the list of customers which are allowed to create SSH users to login on the system using SSH.', true));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
 		<thead>
 		<tr>
-			<th><?= self::escapeHtml(tr('Reseller name', true));?></th>
+			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
+			<th><?= self::escapeHtml(tr('Max SSH users', true));?></th>
 			<th><?= self::escapeHtml(tr('Authentication options', true));?></th>
 			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
@@ -17,7 +18,8 @@
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Reseller name', true));?></td>
+			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
+			<td><?= self::escapeHtml(tr('Max SSH users', true));?></td>
 			<td><?= self::escapeHtml(tr('Authentication options', true));?></td>
 			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
@@ -26,12 +28,12 @@
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="5"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="6"><?= self::escapeHtml(tr('Processing...', true));?></td>
 		</tr>
 		</tbody>
 	</table>
 	<div>
-		<form name="ssh_permissions_frm" id="ssh_permissions_frm">
+		<form name="ssh_permissions_frm" id="ssh_permissions_frm" method="post" enctype="application/x-www-form-urlencoded">
 			<table class="firstColFixed">
 				<thead>
 				<tr>
@@ -40,9 +42,21 @@
 				</thead>
 				<tbody>
 				<tr>
-					<td><label for="admin_name"><?= self::escapeHtml(tr('Reseller name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a reseller name', true));?>"></td>
+					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
+					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
 				</tr>
+				<tr>
+					<td style="width:20%;">
+						<label for="ssh_permission_max_users">
+							<?= self::escapeHtml(tr('Maximum number of SSH users', true));?><br>
+							(<small><?= self::escapeHtml(tr('0 for unlimited', true));?>)</small>
+						</label>
+					</td>
+					<td>
+						<input type="text" name="ssh_permission_max_users" id="ssh_permission_max_users" placeholder="<?= self::escapeHtmlAttr(tr('Enter a number', true));?>" value="0"/>
+					</td>
+				</tr>
+				<!-- BDP: ssh_permission_auth_options_block -->
 				<tr>
 					<td>
 						<label for="ssh_permission_auth_options">
@@ -54,6 +68,8 @@
 						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options" value="1"/>
 					</td>
 				</tr>
+				<!-- EDP: ssh_permission_auth_options_block -->
+				<!-- BDP: ssh_permission_jailed_shell_block -->
 				<tr>
 					<td>
 						<label for="ssh_permission_jailed_shell">
@@ -65,6 +81,7 @@
 						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" checked="checked"/>
 					</td>
 				</tr>
+				<!-- EDP: ssh_permission_jailed_shell_block -->
 				<tr>
 					<td colspan="2" style="text-align: right;">
 						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
@@ -95,7 +112,7 @@
 		return $.ajax({
 			dataType: "json",
 			type: rType,
-			url: "/admin/ssh_permissions?action=" + action,
+			url: "/reseller/ssh_permissions?action=" + action,
 			data: data,
 			timeout: 3000
 		});
@@ -116,11 +133,12 @@
 			bProcessing: true,
 			bServerSide: true,
 			pagingType: "simple",
-			sAjaxSource: "/admin/ssh_permissions?action=get_ssh_permissions_list",
+			sAjaxSource: "/reseller/ssh_permissions?action=get_ssh_permissions_list",
 			bStateSave: true,
-			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
+			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 5 ] } ],
 			aoColumns: [
 				{ mData: "admin_name" },
+				{ mData: "ssh_permission_max_users" },
 				{ mData: "ssh_permission_auth_options" },
 				{ mData: "ssh_permission_jailed_shell" },
 				{ mData: "ssh_permission_status" },
@@ -134,7 +152,7 @@
 					data: aoData,
 					success: fnCallback,
 					timeout: 3000,
-					error: function () {
+					error: function (xhr, textStatus, error) {
 						oTable.fnProcessingIndicator(false);
 					}
 				}).done(function () {
@@ -144,14 +162,14 @@
 		});
 
 		$("#admin_name").autocomplete({
-			source: "/admin/ssh_permissions?action=search_reseller",
+			source: "/reseller/ssh_permissions?action=search_customer",
 			minLength: 2,
 			delay: 500,
 			autoFocus: true,
 			change: function (event, ui) {
 				if (!ui.item) {
-					this.value = "";
-					flashMessage("warning", "<?= self::escapeJs(tr('Unknown reseller. Please enter a valid reseller name.', true));?>");
+					this.value = '';
+					flashMessage("warning", "<?= self::escapeJs(tr('Unknown customer. Please enter a valid customer name.', true));?>");
 				}
 			}
 		});
@@ -160,6 +178,7 @@
 
 		$page.on("click", "input:reset,span[data-action]", function () {
 			$("#admin_name").prop("readonly", false).val("");
+			$("#ssh_permission_max_users").val("0");
 			$("#ssh_permission_auth_options").prop("checked", false);
 			$("#ssh_permission_jailed_shell").prop("checked", false);
 			$("#ssh_permission_id").val("0");
@@ -182,7 +201,7 @@
 							}
 						);
 					} else if(!$(".flash_message").length) {
-						flashMessage("error", "<?= self::escapeJs(tr('You must enter a reseller name.', true));?>")
+						flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.', true));?>")
 					}
 					break;
 				case "edit_ssh_permissions":
@@ -196,6 +215,7 @@
 						}
 					).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop("readonly", true);
+							$("#ssh_permission_max_users").val(data.ssh_permission_max_users);
 							$("#ssh_permission_auth_options").prop("checked", (data.ssh_permission_auth_options > 0));
 							$("#ssh_permission_jailed_shell").prop("checked", (data.ssh_permission_jailed_shell > 0));
 							$("#ssh_permission_id").val(data.ssh_permission_id);
@@ -203,7 +223,7 @@
 						});
 					break;
 				case "delete_ssh_permissions":
-					if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this reseller?', true));?>")) {
+					if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?', true));?>")) {
 						doRequest(
 							"POST",
 							"delete_ssh_permissions",

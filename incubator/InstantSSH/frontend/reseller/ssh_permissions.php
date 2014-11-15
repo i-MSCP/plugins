@@ -61,7 +61,7 @@ function getSshPermissions()
 					AND
 						admin_type = ?
 				',
-				array($sshPermId, $sshPermAdminId, 'reseller')
+				array($sshPermId, $sshPermAdminId, 'user')
 			);
 
 			if($stmt->rowCount()) {
@@ -83,16 +83,21 @@ function getSshPermissions()
  */
 function addSshPermissions()
 {
-	if(isset($_POST['ssh_permission_id']) && isset($_POST['ssh_permission_admin_id']) && isset($_POST['admin_name'])) {
+	if(
+		isset($_POST['ssh_permission_id']) && isset($_POST['ssh_permission_admin_id']) &&
+		isset($_POST['ssh_permission_max_users']) && isset($_POST['admin_name'])
+	) {
 		$sshPermId = intval($_POST['ssh_permission_id']);
 		$sshPermAdminId = intval($_POST['ssh_permission_admin_id']);
 		$adminName = clean_input($_POST['admin_name']);
-		$sshPermMaxUsers = 0;
+		$sshPermMaxUsers = intval($_POST['ssh_permission_max_users']);
 		$sshPermAuthOptions = intval((isset($_POST['ssh_permission_auth_options'])) ?: 0);
 		$sshPermJailedShell = intval((isset($_POST['ssh_permission_jailed_shell'])) ?: 0);
 
-		if($adminName == '') {
+		if($adminName == '' || $sshPermMaxUsers == '') {
 			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+		} elseif(!is_number($sshPermMaxUsers)) {
+			Common::sendJsonResponse(400, array('message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true)));
 		}
 
 		$db = Database::getInstance();
@@ -115,7 +120,7 @@ function addSshPermissions()
 						AND
 							admin_type = ?
 					',
-					array($sshPermMaxUsers, $sshPermAuthOptions, $sshPermJailedShell, 'ok', $adminName, 'reseller')
+					array($sshPermMaxUsers, $sshPermAuthOptions, $sshPermJailedShell, 'ok', encode_idna($adminName), 'user')
 				);
 
 				if($stmt->rowCount()) {
@@ -153,7 +158,7 @@ function addSshPermissions()
 							$sshPermissions['ssh_permission_auth_options'] != $sshPermAuthOptions ||
 							$sshPermissions['ssh_permission_jailed_shell'] != $sshPermJailedShell
 						) {
-							// Update SSH permissions of the reseller
+							// Update SSH permissions of the customer
 							exec_query(
 								'
 									UPDATE
@@ -166,36 +171,18 @@ function addSshPermissions()
 								array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
 							);
 
-							// Update SSH permissions of the reseller's customers
-							exec_query(
-								'
-									UPDATE
-										instant_ssh_permissions
-									INNER JOIN
-										admin ON(admin_id = ssh_permission_admin_id)
-									SET
-										ssh_permission_auth_options = IF(?=1, ssh_permission_auth_options, 0),
-										ssh_permission_jailed_shell = ?
-									WHERE
-										created_by = ?
-								',
-								array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
-							);
-
-							// Update of the SSH users which belong to the reseller's customers
+							// Update of the SSH users which belong to the customers
 							$stmt = exec_query(
 								'
 									UPDATE
 										instant_ssh_users
 									INNER JOIN
 										instant_ssh_permissions ON(ssh_permission_id = ssh_user_permission_id)
-									INNER JOIN
-										admin ON(admin_id = ssh_user_admin_id)
 									SET
 										ssh_user_auth_options = IF(ssh_permission_auth_options=1, ssh_user_auth_options, ?),
 										ssh_user_status = ?
 									WHERE
-										created_by = ?
+										ssh_user_admin_id = ?
 								',
 								array($plugin->getConfigParam('default_ssh_auth_options', null), 'tochange', $sshPermAdminId)
 							);
@@ -212,7 +199,7 @@ function addSshPermissions()
 						}
 					}
 				} else {
-					Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
+					Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the customer are currently processed. Please retry in few minutes.", true)));
 				}
 			}
 		} catch(ExceptionDatabase $e) {
@@ -243,37 +230,12 @@ function deleteSshPermissions()
 
 			# We must ensure that no child item is currently processed to avoid any race condition
 			$stmt = exec_query(
-				'
-					SELECT
-						ssh_user_id
-					FROM
-						instant_ssh_users
-					INNER JOIN
-						admin ON(admin_id = ssh_user_admin_id)
-					WHERE
-						created_by = ?
-					AND
-						ssh_user_status <> ?
-					LIMIT
-						1
-				',
+				'SELECT ssh_user_id FROM instant_ssh_users WHERE ssh_user_admin_id = ? AND ssh_user_status <> ? LIMIT 1',
 				array($sshPermAdminId, 'ok')
 			);
 
 			if(!$stmt->rowCount()) {
-				$stmt = exec_query(
-					'
-						DELETE
-							instant_ssh_permissions
-						FROM
-							instant_ssh_permissions
-						INNER JOIN
-							admin ON(admin_id = ssh_permission_admin_id)
-						WHERE
-							(ssh_permission_id = ? OR created_by = ?)
-					',
-					array($sshPermId, $sshPermAdminId)
-				);
+				$stmt = exec_query('DELETE FROM instant_ssh_permissions WHERE ssh_permission_id = ?', $sshPermId);
 
 				if($stmt->rowCount()) {
 					$db->commit();
@@ -282,7 +244,7 @@ function deleteSshPermissions()
 					Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were deleted for %s.', true, $adminName)));
 				}
 			} else {
-				Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
+				Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the customer are currently processed. Please retry in few minutes.", true)));
 			}
 		} catch(ExceptionDatabase $e) {
 			$db->rollBack();
@@ -295,13 +257,13 @@ function deleteSshPermissions()
 }
 
 /**
- * Search reseller
+ * Search customer
  *
- * Note: Only resellers which doesn't have ssh permissions already set are sent.
+ * Note: Only customers which doesn't have ssh permissions already set are sent.
  *
  * @return void
  */
-function searchReseller()
+function searchCustomer()
 {
 	if(isset($_GET['term'])) {
 		$term = encode_idna(clean_input($_GET['term'])) . '%';
@@ -322,18 +284,21 @@ function searchReseller()
 					AND
 						ssh_permission_admin_id IS NULL
 					',
-				array($term, 'reseller')
+				array($term, 'user')
 			);
 
 			if($stmt->rowCount()) {
-				$responseData = $stmt->fetchRow(\PDO::FETCH_ASSOC);
+				$responseData = array();
+				while($row = $stmt->fetchRow(\PDO::FETCH_ASSOC)) {
+					$responseData[] = decode_idna($row['admin_name']);
+				}
 			} else {
 				$responseData = array();
 			}
 
 			Functions::sendJsonResponse(200, $responseData);
 		} catch(ExceptionDatabase $e) {
-			write_log(sprintf('InstantSSH: Unable to search reseller: %s', $e->getMessage()), E_USER_ERROR);
+			write_log(sprintf('InstantSSH: Unable to search customer: %s', $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 		}
 	}
@@ -350,7 +315,10 @@ function getSshPermissionsList()
 {
 	try {
 		// Filterable / orderable columns
-		$cols = array('admin_name', 'ssh_permission_auth_options', 'ssh_permission_jailed_shell', 'ssh_permission_status');
+		$cols = array(
+			'admin_name', 'ssh_permission_max_users', 'ssh_permission_auth_options', 'ssh_permission_jailed_shell',
+			'ssh_permission_status'
+		);
 		$nbCols = count($cols);
 		$idxCol = 'ssh_permission_id';
 		$table = 'instant_ssh_permissions'; /* DB table to use */
@@ -384,7 +352,7 @@ function getSshPermissionsList()
 		}
 
 		/* Filtering */
-		$where = "WHERE admin_type = 'reseller'";
+		$where = "WHERE admin_type = 'user'";
 		if($_GET['sSearch'] !== '') {
 			$where .= 'AND (';
 
@@ -434,7 +402,7 @@ function getSshPermissionsList()
 				INNER JOIN
 					admin ON(admin_id = ssh_permission_admin_id)
 				WHERE
-					admin_type = 'reseller'
+					admin_type = 'user'
 			"
 		);
 		$resultTotal = $resultTotal->fetchRow(\PDO::FETCH_NUM);
@@ -455,7 +423,9 @@ function getSshPermissionsList()
 			$row = array();
 
 			for($i = 0; $i < $nbCols; $i++) {
-				if($cols[$i] == 'ssh_permission_auth_options') {
+				if($cols[$i] == 'ssh_permission_max_users') {
+					$row[$cols[$i]] = (!$data[$cols[$i]]) ? tr('Unlimited', true) : $data[$cols[$i]];
+				} elseif($cols[$i] == 'ssh_permission_auth_options') {
 					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
 				} elseif($cols[$i] == 'ssh_permission_jailed_shell') {
 					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
@@ -501,60 +471,85 @@ function getSshPermissionsList()
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
-check_login('admin');
-Functions::initEscaper();
+EventsAggregator::getInstance()->dispatch(Events::onResellerScriptStart);
+check_login('reseller');
 
-if(isset($_REQUEST['action'])) {
-	if(is_xhr()) {
-		$action = clean_input($_REQUEST['action']);
+/** @var \iMSCP_Plugin_Manager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
+/** @var \iMSCP_Plugin_InstantSSH $plugin */
+$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+$sshPermissions = $plugin->getResellerPermissions($_SESSION['user_id']);
 
-		switch($action) {
-			case 'get_ssh_permissions_list':
-				getSshPermissionsList();
-				break;
-			case 'search_reseller':
-				searchReseller();
-				break;
-			case 'add_ssh_permissions':
-				addSshPermissions();
-				break;
-			case 'get_ssh_permissions':
-				getSshPermissions();
-				break;
-			case 'delete_ssh_permissions':
-				deleteSshPermissions();
-				break;
-			default:
-				Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+if($sshPermissions['ssh_permission_id'] !== null) {
+	Functions::initEscaper();
+
+	if(isset($_REQUEST['action'])) {
+		if(is_xhr()) {
+			$action = clean_input($_REQUEST['action']);
+
+			switch($action) {
+				case 'get_ssh_permissions_list':
+					getSshPermissionsList();
+					break;
+				case 'search_customer':
+					searchCustomer();
+					break;
+				case 'add_ssh_permissions':
+					addSshPermissions();
+					break;
+				case 'get_ssh_permissions':
+					getSshPermissions();
+					break;
+				case 'delete_ssh_permissions':
+					deleteSshPermissions();
+					break;
+				default:
+					Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+			}
 		}
+
+		showBadRequestErrorPage();
 	}
 
+	$tpl = new TemplateEngnine();
+	$tpl->define_dynamic(array('layout' => 'shared/layouts/ui.tpl', 'page_message' => 'layout'));
+	$tpl->define_no_file_dynamic(
+		array(
+			'page' => Functions::renderTpl(PLUGINS_PATH . '/InstantSSH/themes/default/view/reseller/ssh_permissions.tpl'),
+			'ssh_permission_auth_options_block' => 'page',
+			'ssh_permission_jailed_shell_block' => 'page'
+		)
+	);
+
+	if(Registry::get('config')->DEBUG) {
+		$assetVersion = time();
+	} else {
+		$pluginInfo = $pluginManager->getPluginInfo('InstantSSH');
+		$assetVersion = strtotime($pluginInfo['date']);
+	}
+
+	$tpl->assign(
+		array(
+			'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Reseller / Customers / SSH Permissions', true)),
+			'ISP_LOGO' => layout_getUserLogo(),
+			'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+			'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
+		)
+	);
+
+	if(!$sshPermissions['ssh_permission_auth_options']) {
+		$tpl->assign('SSH_PERMISSION_AUTH_OPTIONS_BLOCK', '');
+	}
+
+	if($sshPermissions['ssh_permission_jailed_shell']) {
+		$tpl->assign('SSH_PERMISSION_JAILED_SHELL_BLOCK', '');
+	}
+
+	generateNavigation($tpl);
+	$tpl->parse('LAYOUT_CONTENT', 'page');
+	EventsAggregator::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
+	$tpl->prnt();
+} else {
 	showBadRequestErrorPage();
 }
-
-$tpl = new TemplateEngnine();
-$tpl->define_dynamic(array('layout' => 'shared/layouts/ui.tpl', 'page_message' => 'layout'));
-$tpl->define_no_file('page', Functions::renderTpl(PLUGINS_PATH . '/InstantSSH/themes/default/view/admin/ssh_permissions.tpl'));
-
-if(Registry::get('config')->DEBUG) {
-	$assetVersion = time();
-} else {
-	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('InstantSSH');
-	$assetVersion = strtotime($pluginInfo['date']);
-}
-
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions', true)),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
-	)
-);
-
-generateNavigation($tpl);
-$tpl->parse('LAYOUT_CONTENT', 'page');
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
-$tpl->prnt();

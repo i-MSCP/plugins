@@ -21,17 +21,15 @@
 # Add ssh_permission_status column in instant_ssh_permissions table
 
 return array(
-	'up' =>
-		"
-			ALTER TABLE
-				instant_ssh_permissions
-			ADD
-				ssh_permission_status VARCHAR(255) NOT NULL AFTER ssh_permission_jailed_shell;
+	'up' => "
+		ALTER TABLE
+			instant_ssh_permissions
+		ADD
+			ssh_permission_status VARCHAR(255) NOT NULL AFTER ssh_permission_jailed_shell;
 
-			UPDATE instant_ssh_permissions SET ssh_permission_status = 'ok'
-		",
-	'down' =>
-		'
-			ALTER TABLE instant_ssh_permissions DROP ssh_permission_status
-		'
+		UPDATE instant_ssh_permissions SET ssh_permission_status = 'ok'
+	",
+	'down' => '
+		ALTER TABLE instant_ssh_permissions DROP ssh_permission_status
+	'
 );

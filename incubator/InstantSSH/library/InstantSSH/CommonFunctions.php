@@ -68,6 +68,9 @@ class CommonFunctions
 			case 404:
 				header('Status: 404 Not Found');
 				break;
+			case 409:
+				header('Status: 409 Conflict');
+				break;
 			case 500:
 				header('Status: 500 Internal Server Error');
 				break;

@@ -21,12 +21,12 @@
 # Update ssh_permission_id constraint (ON DELETE SET NULL to ON DELETE CASCADE)
 
 return array(
-	'up' => "
+	'up' => '
 		ALTER TABLE instant_ssh_keys DROP FOREIGN KEY ssh_permission_id, DROP INDEX ssh_permission_id;
 
 		ALTER TABLE instant_ssh_keys ADD CONSTRAINT ssh_permission_id FOREIGN KEY (ssh_permission_id)
 			REFERENCES instant_ssh_permissions (ssh_permission_id) ON DELETE CASCADE
-	",
+	',
 	'down' => '
 		ALTER TABLE instant_ssh_keys DROP FOREIGN KEY ssh_permission_id, DROP INDEX ssh_permission_id;
 

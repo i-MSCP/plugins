@@ -94,12 +94,14 @@ sub uninstall
 	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
 
 	# Remove the jails root directory ( only if empty )
-	if(-d $rootJailDir && iMSCP::Dir->new( dirname => $rootJailDir )->isEmpty()) {
-		my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
-		return $rs if $rs;
-	} else {
-		error("Cannot delete the $rootJailDir directory: Directory is not empty");
-		return 1;
+	if(-d $rootJailDir) {
+		if(iMSCP::Dir->new( dirname => $rootJailDir )->isEmpty()) {
+			my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
+			return $rs if $rs;
+		} else {
+			error("Cannot delete the $rootJailDir directory: Directory is not empty");
+			return 1;
+		}
 	}
 
 	# Remove the plugin configuration directory if any
@@ -303,6 +305,16 @@ sub disable
 
 		$rs = $self->run();
 		return $rs if $rs;
+
+		my $jailBuilder;
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+		if($@) {
+			error("Unable to create JailBuilder object: $@");
+			return 1;
+		}
+
+		$rs = $jailBuilder->removeJail(); # Remove shared jail if any
+		return $rs if $rs;
 	}
 
 	0;
@@ -319,8 +331,6 @@ sub disable
 sub run
 {
 	my $self = $_[0];
-
-	my ($rs, $ret) = (0, 0);
 
 	my $dbh = $self->{'db'}->getRawDb();
 
@@ -363,6 +373,8 @@ sub run
 		error("Couldn't execute prepared statement: " . $dbh->errstr);
 		return 1;
 	}
+
+	my ($rs, $ret) = (0, 0);
 
 	while (my $data = $sth->fetchrow_hashref()) {
 		$data->{'ssh_user_status'} = 'todelete' unless defined $data->{'ssh_user_permission_id'};

@@ -79,7 +79,6 @@ return array(
 	'Supported RSA key formats are PKCS#1, openSSH and XML Signature.' => 'Unterstützte RSA-Schlüsselformate sind PKCS#1, openSSH und XML Signatur.',
 	'Are you sure you want to delete this SSH user?' => 'Sind Sie sicher, Sie wollen diesen SSH-Benutzer löschen?',
 	'Client / Profile / SSH Users' => 'Kunde / Profil / SSH-Benutzer',
-	'SSH user not found.' => 'SSH-Benutzer nicht gefunden.',
 	'Un-allowed username. Please use alphanumeric characters only.' => 'Unzulässiger Benutzernamen. Bitte benutze nur alphanumerische Zeichen.',
 	'The username is too long (Max 8 characters).' => 'Der Name des SSH-Benutzer ist zu lange (Max 8 Zeichen).',
 	'This username is not available.' => 'Benutzername ist nicht verfügbar.',

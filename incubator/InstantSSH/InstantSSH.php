@@ -24,6 +24,11 @@
 class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 {
 	/**
+	 * @var array Reseller SSH permissions
+	 */
+	protected $resellerSshPermissions;
+
+	/**
 	 * @var array customer SSH permissions
 	 */
 	protected $customerSshPermissions;
@@ -59,8 +64,10 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAdminScriptStart,
+				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onAfterChangeDomainStatus,
+				iMSCP_Events::onAfterDeleteUser,
 				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
@@ -247,6 +254,17 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onAfterDeleteUser listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onAfterDeleteUser($event)
+	{
+		exec_query('DELETE FROM instant_ssh_permissions WHERE ssh_permission_admin_id = ?', $event->getParam('userId'));
+	}
+
+	/**
 	 * onAfterDeleteCustomer listener
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -268,24 +286,24 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	{
 		$stmt = exec_query(
 			"
-			SELECT
-				ssh_permission_id AS item_id, ssh_permission_status AS status,
-				CONCAT('SSH permssions for: ', admin_name, '( ', admin_type, ' )') as item_name,
-				'instant_ssh_permissions' AS `table`, 'ssh_permission_status' AS `field`
-			FROM
-				instant_ssh_permissions
-			INNER JOIN
-				admin ON(admin_id = ssh_permission_admin_id)
-			WHERE
-				ssh_permission_status NOT IN(:ok, :toadd, :tochange, :todelete)
-			UNION
-			SELECT
-				ssh_user_id AS item_id, ssh_user_status AS status, ssh_user_name AS item_name,
-				'instant_ssh_users' AS `table`, 'ssh_user_status' AS `field`
-			FROM
-				instant_ssh_users
-			WHERE
-				ssh_user_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
+				SELECT
+					ssh_permission_id AS item_id, ssh_permission_status AS status,
+					CONCAT('SSH permssions for: ', admin_name, '( ', admin_type, ' )') as item_name,
+					'instant_ssh_permissions' AS `table`, 'ssh_permission_status' AS `field`
+				FROM
+					instant_ssh_permissions
+				INNER JOIN
+					admin ON(admin_id = ssh_permission_admin_id)
+				WHERE
+					ssh_permission_status NOT IN(:ok, :toadd, :tochange, :todelete)
+				UNION
+				SELECT
+					ssh_user_id AS item_id, ssh_user_status AS status, ssh_user_name AS item_name,
+					'instant_ssh_users' AS `table`, 'ssh_user_status' AS `field`
+				FROM
+					instant_ssh_users
+				WHERE
+					ssh_user_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
 			",
 			array(
 				'ok' => 'ok', 'disabled' => 'disabled', 'toadd' => 'toadd', 'tochange' => 'tochange',
@@ -367,6 +385,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 
 		return array(
 			'/admin/ssh_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/ssh_permissions.php',
+			'/reseller/ssh_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/ssh_permissions.php',
 			'/client/ssh_users' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/ssh_users.php'
 		);
 	}
@@ -386,9 +405,52 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 *
 	 * @return void
 	 */
+	public function onResellerScriptStart()
+	{
+		$this->setupNavigation('reseller');
+	}
+
+	/**
+	 * onAdminScriptStart event listener
+	 *
+	 * @return void
+	 */
 	public function onClientScriptStart()
 	{
 		$this->setupNavigation('client');
+	}
+
+	/**
+	 * Get SSH permissions for the given reseller
+	 *
+	 * @param int $resellerId Reseller unique identifier
+	 * @return array
+	 */
+	public function getResellerPermissions($resellerId)
+	{
+		if(null === $this->customerSshPermissions) {
+			$stmt = exec_query(
+				'
+					SELECT
+						ssh_permission_id, ssh_permission_auth_options, ssh_permission_jailed_shell
+					FROM
+						instant_ssh_permissions
+					WHERE
+						ssh_permission_admin_id = ?
+					AND
+						ssh_permission_status = ?
+				',
+				array(intval($resellerId), 'ok')
+			);
+
+			if($stmt->rowCount()) {
+				$this->resellerSshPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
+			} else {
+				$this->resellerSshPermissions = array('ssh_permission_id' => null);
+			}
+		}
+
+		return $this->resellerSshPermissions;
 	}
 
 	/**
@@ -420,12 +482,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			if($stmt->rowCount()) {
 				$this->customerSshPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
 			} else {
-				$this->customerSshPermissions = array(
-					'ssh_permission_id' => null,
-					'ssh_permission_max_users' => -1,
-					'ssh_permission_auth_options' => 0,
-					'ssh_permission_cnb_users' => 0
-				);
+				$this->customerSshPermissions = array('ssh_permission_id' => null);
 			}
 		}
 
@@ -523,9 +580,24 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						'order' => 8
 					)
 				);
+			} elseif($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
+				$self = $this;
+				$page->addPage(
+					array(
+						'label' => tr('SSH permissions'),
+						'uri' => '/reseller/ssh_permissions',
+						'title_class' => 'users',
+						'order' => 3,
+						'privilege_callback' => array(
+							'name' => function () use ($self) {
+								$sshPermissions = $self->getResellerPermissions(intval($_SESSION['user_id']));
+								return (bool)($sshPermissions['ssh_permission_id'] !== null);
+							}
+						)
+					)
+				);
 			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
 				$self = $this;
-
 				$page->addPage(
 					array(
 						'label' => tr('SSH users'),

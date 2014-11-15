@@ -78,7 +78,6 @@ return array(
 	'Supported RSA key formats are PKCS#1, openSSH and XML Signature.' => 'Stöds RSA viktiga format är PKCS#1, OpenSSH och XML Signature.',
 	'Are you sure you want to delete this SSH user?'=> 'Är du säker på att du vill ta bort denna SSH användare?',
 	'Client / Profile / SSH Users' => 'Klient / Profile / SSH-användare',
-	'SSH user not found.' => 'SSH-användare hittades inte.',
 	'Un-allowed username. Please use alphanumeric characters only.'=> 'Un-tillåtet användarnamn. Använd bara alfanumeriska tecken.',
 	'The username is too long (Max 8 characters).' => 'Användarnamnet är för lång (max 8 tecken).',
 	'This username is not available.' => 'Användarnamnet är inte tillgänglig.',

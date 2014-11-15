@@ -21,19 +21,16 @@
 # Rename ssh_permission_key_options column to ssh_permission_auth_options
 
 return array(
-	'up' =>
-		'
-			ALTER TABLE
-				instant_ssh_permissions
-			CHANGE
-				ssh_permission_key_options ssh_permission_auth_options TINYINT(1) NOT NULL
-		'
-,
-	'down' =>
-		'
-			ALTER TABLE
-				instant_ssh_permissions
-			CHANGE
-				ssh_permission_auth_options ssh_permission_key_options TINYINT(1) NOT NULL
-		'
+	'up' => '
+		ALTER TABLE
+			instant_ssh_permissions
+		CHANGE
+			ssh_permission_key_options ssh_permission_auth_options TINYINT(1) NOT NULL
+	',
+	'down' => '
+		ALTER TABLE
+			instant_ssh_permissions
+		CHANGE
+			ssh_permission_auth_options ssh_permission_key_options TINYINT(1) NOT NULL
+	'
 );
