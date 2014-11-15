@@ -79,7 +79,7 @@ function getSshPermissions()
 /**
  * Add/Update SSH permissions
  *
- * @param $sshPermissions
+ * @param array $sshPermissions SSH permissions
  * @return void
  */
 function addSshPermissions($sshPermissions)
