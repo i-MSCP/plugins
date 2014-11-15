@@ -48,8 +48,8 @@ function getSshPermissions()
 			$stmt = exec_query(
 				'
 					SELECT
-						ssh_permission_id, ssh_permission_admin_id, ssh_permission_auth_options,
-						ssh_permission_jailed_shell, admin_name
+						ssh_permission_id, ssh_permission_admin_id, ssh_permission_max_users,
+						ssh_permission_auth_options, ssh_permission_jailed_shell, admin_name
 					FROM
 						instant_ssh_permissions
 					INNER JOIN
@@ -162,23 +162,21 @@ function addSshPermissions($sshPermissions)
 						/** @var \iMSCP_Plugin_InstantSSH $plugin */
 						$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
 
-						if(
-							$sshPermissions['ssh_permission_auth_options'] != $sshPermAuthOptions ||
-							$sshPermissions['ssh_permission_jailed_shell'] != $sshPermJailedShell
-						) {
-							// Update SSH permissions of the customer
-							exec_query(
-								'
-									UPDATE
-										instant_ssh_permissions
-									SET
-										ssh_permission_auth_options = ?, ssh_permission_jailed_shell = ?
-									WHERE
-										ssh_permission_admin_id = ?
-								',
-								array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
-							);
+						// Update SSH permissions of the customer
+						$stmt = exec_query(
+							'
+								UPDATE
+									instant_ssh_permissions
+								SET
+									ssh_permission_max_users = ?, ssh_permission_auth_options = ?,
+									ssh_permission_jailed_shell = ?
+								WHERE
+									ssh_permission_admin_id = ?
+							',
+							array($sshPermMaxUsers, $sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
+						);
 
+						if($stmt->rowCount()) {
 							// Update of the SSH users which belong to the customers
 							$stmt = exec_query(
 								'
