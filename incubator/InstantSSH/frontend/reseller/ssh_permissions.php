@@ -69,7 +69,7 @@ function getSshPermissions()
 			}
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to get SSH permissions for %s: %s', $adminName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)));
 		}
 	}
 
@@ -106,7 +106,7 @@ function addSshPermissions($sshPermissions)
 		if($adminName === '' || $sshPermMaxUsers === '') {
 			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
 		} elseif(!is_number($sshPermMaxUsers)) {
-			Common::sendJsonResponse(400, array('message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true)));
+			Functions::sendJsonResponse(400, array('message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true)));
 		}
 
 		$db = Database::getInstance();
@@ -213,7 +213,7 @@ function addSshPermissions($sshPermissions)
 		} catch(ExceptionDatabase $e) {
 			$db->rollBack();
 			write_log(sprintf('InstantSSH: Unable to add or update SSH permissions for %s: %s', $adminName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)));
 		}
 	}
 
@@ -257,7 +257,7 @@ function deleteSshPermissions()
 		} catch(ExceptionDatabase $e) {
 			$db->rollBack();
 			write_log(sprintf('InstantSSH: Unable to delete SSH permissions ofr %s: %s', $adminName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)));
 		}
 	}
 
@@ -305,7 +305,7 @@ function searchCustomer()
 			Functions::sendJsonResponse(200, $responseData);
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to search customer: %s', $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)));
 		}
 	}
 
@@ -465,9 +465,7 @@ function getSshPermissionsList()
 		Functions::sendJsonResponse(200, $output);
 	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to get SSH permissions list: %s', $e->getMessage()), E_USER_ERROR);
-		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
-		);
+		Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)));
 	}
 
 	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));

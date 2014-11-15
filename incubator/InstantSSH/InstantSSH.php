@@ -552,10 +552,10 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 					}
 				}
 			} else {
-				throw new iMSCP_Plugin_Exception(tr('allowed_ssh_auth_options parameter must be an array.'));
+				throw new iMSCP_Plugin_Exception(tr('The allowed_ssh_auth_options parameter must be an array.'));
 			}
 		} else {
-			throw new iMSCP_Plugin_Exception(tr('default_ssh_auth_options parameter must be a string.'));
+			throw new iMSCP_Plugin_Exception(tr('The default_ssh_auth_options parameter must be a string.'));
 		}
 	}
 

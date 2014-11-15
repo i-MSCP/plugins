@@ -77,7 +77,7 @@ function getSshUser()
 			}
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred.', true)));
+			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true)));
 		}
 	}
 
@@ -251,7 +251,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				Functions::sendJsonResponse(400, array('message' => tr("An SSH user with the same name or the same SSH key already exists.", true)));
 			} else {
 				write_log(sprintf('InstantSSH: Unable to add or update the %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
-				Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your reseller', true)));
+				Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true)));
 			}
 		}
 	}
