@@ -44,7 +44,7 @@ un-jailed if needed.
 #### SSH keys entries
 
 The ssh keys entries are automatically converted into SSH user entries where the SSH usernames are defined using the
-prefix of SSH usernames and the SSH key unique identifier (eg. **ssh_user_name_prefix**1, **ssh_user_name_prefix**2...)
+prefix of SSH usernames and the SSH key unique identifier (eg. \<ssh_user_name_prefix1\>, \<ssh_user_name_prefix2\>...)
 
 #### Reseller permissions
 
