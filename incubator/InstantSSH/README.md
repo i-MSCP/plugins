@@ -80,6 +80,8 @@ You can install these packages by executing the following commands:
 6. Restore your **plugins/InstantSSH/config.php** configuration file (compare it with the new version first)
 7. Activate the plugin
 
+**Note** If you are updating to the version 3.0.0, don't forget to read the [update errata](update_errata.md) file.
+
 ### Translations
 
 Since version **2.1.0**, this plugin can be translated in your language using a simple PHP file which return an array of
