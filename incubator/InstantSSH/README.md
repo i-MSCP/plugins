@@ -47,7 +47,7 @@ See the plugin **config.php** file for further details.
 * openSSH server with both, passsword and key-based authentication support enabled
 
 **Note:** If you want allow only the key-based authentication, you can set the **passwordless_authentication**
-configuration option to **true** in the plugin configuration file.
+configuration option to **TRUE** in the plugin configuration file.
 
 #### Debian / Ubuntu packages
 

@@ -33,7 +33,7 @@ create unix users with reserved names.
 This new version also come with the password authentication capability which was missing in previous versions.
 The passwords are encrypted in the database using the better available algorythm as provided by crypt(). For safety
 reasons, this feature can be disabled by allowing only the passwordless authentication. This can be achieved by setting
-the **passwordless_authentication** configuration parameter to TRUE into the plugin configuration file.
+the **passwordless_authentication** configuration parameter to **TRUE** into the plugin configuration file.
 
 ### Note regarding system and database update
 
