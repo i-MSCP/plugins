@@ -37,7 +37,7 @@ return array(
 	'Actions' => 'Actions',
 	'Processing...' => 'Chargement en cours...',
 	'Add / Edit SSH Permissions' => 'Ajout / Édition des permissions SSH',
-	'Maximum number of SSH users' => "Nombre comptes SSH",
+	'Maximum number of SSH users' => "Nombre de comptes SSH",
 	'0 for unlimited' => '0 pour illimité',
 	'Enter a number' => 'Entrez un nombre',
 	'Enter a customer name' => "Entrez le nom d'un client",

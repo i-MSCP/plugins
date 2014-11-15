@@ -9,7 +9,7 @@
 		<thead>
 		<tr>
 			<th><?= self::escapeHtml(tr('Reseller name', true));?></th>
-			<th><?= self::escapeHtml(tr('Authentication options', true));?></th>
+			<th><?= self::escapeHtml(tr('Can edit authentication options', true));?></th>
 			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
 			<th><?= self::escapeHtml(tr('Actions', true));?></th>
@@ -18,7 +18,7 @@
 		<tfoot>
 		<tr>
 			<td><?= self::escapeHtml(tr('Reseller name', true));?></td>
-			<td><?= self::escapeHtml(tr('Authentication options', true));?></td>
+			<td><?= self::escapeHtml(tr('Can edit authentication options', true));?></td>
 			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>

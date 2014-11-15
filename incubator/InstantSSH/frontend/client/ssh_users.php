@@ -138,7 +138,7 @@ function addSshUser($pluginManager, $sshPermissions)
 		}
 
 		if(!$sshUserId) {
-			if($sshUserName == '') {
+			if($sshUserName === '') {
 				$errorMsgs[] = tr('The username field is required.', true);
 			} elseif(!preg_match('/^[[:alnum:]]+$/i', $sshUserName)) {
 				$errorMsgs[] = tr('Un-allowed username. Please use alphanumeric characters only.', true);
@@ -153,7 +153,7 @@ function addSshUser($pluginManager, $sshPermissions)
 			}
 		}
 
-		if($sshUserPassword == '' && $sshUserKey == '') {
+		if($sshUserPassword === '' && $sshUserKey === '') {
 			if($plugin->getConfigParam('passwordless_authentication', false)) {
 				$errorMsgs[] = tr('You must enter an SSH key.', true);
 			} else {
@@ -161,7 +161,7 @@ function addSshUser($pluginManager, $sshPermissions)
 			}
 		}
 
-		if($sshUserPassword != '') {
+		if($sshUserPassword !== '') {
 			if(!preg_match('/^[[:alnum:]]+$/i', $sshUserPassword)) {
 				$errorMsgs[] = tr('Un-allowed password. Please use alphanumeric characters only.', true);
 			} elseif (strlen($sshUserPassword) < 8) {
@@ -173,7 +173,7 @@ function addSshUser($pluginManager, $sshPermissions)
 			}
 		}
 
-		if($sshUserKey != '') {
+		if($sshUserKey !== '') {
 			if(($sshUserKey = getOpenSshKey($sshUserKey)) === false) {
 				$errorMsgs[] = tr('Invalid SSH key.', true);
 			} else {

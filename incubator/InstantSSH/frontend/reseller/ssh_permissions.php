@@ -79,9 +79,10 @@ function getSshPermissions()
 /**
  * Add/Update SSH permissions
  *
+ * @param $sshPermissions
  * @return void
  */
-function addSshPermissions()
+function addSshPermissions($sshPermissions)
 {
 	if(
 		isset($_POST['ssh_permission_id']) && isset($_POST['ssh_permission_admin_id']) &&
@@ -91,10 +92,18 @@ function addSshPermissions()
 		$sshPermAdminId = intval($_POST['ssh_permission_admin_id']);
 		$adminName = clean_input($_POST['admin_name']);
 		$sshPermMaxUsers = intval($_POST['ssh_permission_max_users']);
-		$sshPermAuthOptions = intval((isset($_POST['ssh_permission_auth_options'])) ?: 0);
-		$sshPermJailedShell = intval((isset($_POST['ssh_permission_jailed_shell'])) ?: 0);
+		$sshPermAuthOptions = intval(
+			($sshPermissions['ssh_permission_auth_options'])
+				? ((isset($_POST['ssh_permission_auth_options'])) ?: 0)
+				: 0
+		);
+		$sshPermJailedShell = intval(
+			(!$sshPermissions['ssh_permission_jailed_shell'])
+				? ((isset($_POST['ssh_permission_jailed_shell'])) ?: 0)
+				: 1
+		);
 
-		if($adminName == '' || $sshPermMaxUsers == '') {
+		if($adminName === '' || $sshPermMaxUsers === '') {
 			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
 		} elseif(!is_number($sshPermMaxUsers)) {
 			Common::sendJsonResponse(400, array('message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true)));
@@ -149,11 +158,10 @@ function addSshPermissions()
 				);
 
 				if(!$stmt->rowCount()) {
-					/** @var \iMSCP_Plugin_InstantSSH $plugin */
-					$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
-					$sshPermissions = $plugin->getResellerPermissions($sshPermAdminId);
-
 					if($sshPermissions['ssh_permission_id'] !== null) {
+						/** @var \iMSCP_Plugin_InstantSSH $plugin */
+						$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+
 						if(
 							$sshPermissions['ssh_permission_auth_options'] != $sshPermAuthOptions ||
 							$sshPermissions['ssh_permission_jailed_shell'] != $sshPermJailedShell
@@ -258,8 +266,6 @@ function deleteSshPermissions()
 
 /**
  * Search customer
- *
- * Note: Only customers which doesn't have ssh permissions already set are sent.
  *
  * @return void
  */
@@ -495,7 +501,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 					searchCustomer();
 					break;
 				case 'add_ssh_permissions':
-					addSshPermissions();
+					addSshPermissions($sshPermissions);
 					break;
 				case 'get_ssh_permissions':
 					getSshPermissions();

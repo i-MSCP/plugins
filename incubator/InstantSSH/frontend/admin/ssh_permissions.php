@@ -91,7 +91,7 @@ function addSshPermissions()
 		$sshPermAuthOptions = intval((isset($_POST['ssh_permission_auth_options'])) ?: 0);
 		$sshPermJailedShell = intval((isset($_POST['ssh_permission_jailed_shell'])) ?: 0);
 
-		if($adminName == '') {
+		if($adminName === '') {
 			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
 		}
 
@@ -175,7 +175,7 @@ function addSshPermissions()
 										admin ON(admin_id = ssh_permission_admin_id)
 									SET
 										ssh_permission_auth_options = IF(?=1, ssh_permission_auth_options, 0),
-										ssh_permission_jailed_shell = ?
+										ssh_permission_jailed_shell = IF(?=0, ssh_permission_jailed_shell, 1)
 									WHERE
 										created_by = ?
 								',
@@ -296,8 +296,6 @@ function deleteSshPermissions()
 
 /**
  * Search reseller
- *
- * Note: Only resellers which doesn't have ssh permissions already set are sent.
  *
  * @return void
  */

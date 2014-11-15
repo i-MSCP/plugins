@@ -10,7 +10,7 @@
 		<tr>
 			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
 			<th><?= self::escapeHtml(tr('Max SSH users', true));?></th>
-			<th><?= self::escapeHtml(tr('Authentication options', true));?></th>
+			<th><?= self::escapeHtml(tr('Can edit authentication options', true));?></th>
 			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
 			<th><?= self::escapeHtml(tr('Actions', true));?></th>
@@ -20,7 +20,7 @@
 		<tr>
 			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
 			<td><?= self::escapeHtml(tr('Max SSH users', true));?></td>
-			<td><?= self::escapeHtml(tr('Authentication options', true));?></td>
+			<td><?= self::escapeHtml(tr('Can edit authentication options', true));?></td>
 			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>
