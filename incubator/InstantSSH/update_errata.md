@@ -20,9 +20,10 @@ results. Indeed, this command always take the first entry matching the UID/GID f
 
 #### SSH users's prefixes
 
-A prefix is added to all SSH usernames to allow the administrator to filter them easily in the /etc/passwd file. The
-default prefix, which is set to **imscp_**, can be modified by editing the **ssh_user_name_prefix** configuration parameter
-in the plugin configuration file. This parameter does applies only to the newly created SSH users.
+A prefix is added to all SSH usernames to allow the administrator to filter them easily in the /etc/passwd file and also
+to prevent customer to create SSH users with a reserved names. The default prefix, which is set to **imscp_**, can be
+modified by editing the **ssh_user_name_prefix** configuration parameter in the plugin configuration file. This parameter
+does applies only to the newly created SSH users.
 
 **Warning**: You must never set the **ssh_user_name_prefix** to an empty value. Doing this would allow the customers to
 create unix users with reserved names.
