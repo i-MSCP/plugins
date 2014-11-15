@@ -249,7 +249,7 @@ function deleteSshPermissions()
 					$db->commit();
 					send_request();
 					write_log(sprintf('InstantSSH: SSH permissions were deleted for %s', $adminName), E_USER_NOTICE);
-					Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were deleted for %s.', true, $adminName)));
+					Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were deleted.', true, $adminName)));
 				}
 			} else {
 				Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the customer are currently processed. Please retry in few minutes.", true)));

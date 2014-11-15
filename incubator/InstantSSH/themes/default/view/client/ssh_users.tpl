@@ -226,7 +226,7 @@
 					}
 					break;
 				default:
-					alert("<?= self::escapeJs(tr('Unknown action', true));?>");
+					alert("<?= self::escapeJs(tr('Unknown action.', true));?>");
 			}
 		});
 
