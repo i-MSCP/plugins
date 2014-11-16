@@ -471,6 +471,9 @@ sub _addSshUser
 {
 	my($self, $data) = @_;
 
+	my $rs = $self->{'eventManager'}->trigger('onBeforeAddSshUser', $data);
+	return $rs if $rs;
+
 	my $pUserName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
 		($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'ssh_user_admin_id'});
 
@@ -478,7 +481,7 @@ sub _addSshUser
 		# Force logout of SSH logins if any
 		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', escapeShell("^sshd: $data->{'ssh_user_name'}"));
 		my ($stdout, $stderr);
-		my $rs = execute("@cmd", \$stdout, \$stderr);
+		$rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 
 		# Create / Update user
@@ -561,6 +564,9 @@ sub _addSshUser
 		# Add / Update authorized_keys file
 		$rs = $self->_updateAuthorizedKeysFile($data);
 		return $rs if $rs;
+
+		$rs = $self->{'eventManager'}->trigger('onAfterAddSshUser', $data);
+		return $rs if $rs;
 	} else {
 		debug("$data->{'ssh_user_name'} SSH user not added/updated: Parent user $pUserName not found.");
 	}
@@ -582,13 +588,16 @@ sub _deleteSshUser
 	my($self, $data) = @_;
 
 	if(getpwnam($data->{'ssh_user_name'})) {
+		my $rs = $self->{'eventManager'}->trigger('onBeforeDeleteSshUser', $data);
+		return $rs if $rs;
+
 		my $pUserName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} .
 			($main::imscpConfig{'SYSTEM_USER_MIN_UID'} + $data->{'ssh_user_admin_id'});
 
 		# Lock ssh user
 		my @cmd = ('usermod', '-s', '/bin/false', '-L', escapeShell($data->{'ssh_user_name'}));
 		my ($stdout, $stderr);
-		my $rs = execute("@cmd", \$stdout, \$stderr);
+		$rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
 		return $rs if $rs;
@@ -633,6 +642,9 @@ sub _deleteSshUser
 		$rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+
+		$rs = $self->{'eventManager'}->trigger('onAfterDeleteSshUser', $data);
 		return $rs if $rs;
 	}
 

@@ -101,8 +101,17 @@ function addSshPermissions()
 			$db->beginTransaction();
 
 			if(!$sshPermId) { // Add SSH permissions
-				$stmt = exec_query(
-					'
+				$response = EventsAggregator::getInstance()->dispatch('onBeforeAddSshPermissions', array(
+					'ssh_permission_max_user' => $sshPermMaxUsers,
+					'ssh_permission_auth_options' => $sshPermAuthOptions,
+					'ssh_permission_jailed_shell' => $sshPermJailedShell,
+					'admin_name' => $adminName,
+					'admin_type' => 'reseller'
+				));
+
+				if(!$response->isStopped()) {
+					$stmt = exec_query(
+						'
 						INSERT INTO instant_ssh_permissions (
 							ssh_permission_admin_id, ssh_permission_max_users, ssh_permission_auth_options,
 							ssh_permission_jailed_shell, ssh_permission_status
@@ -115,18 +124,41 @@ function addSshPermissions()
 						AND
 							admin_type = ?
 					',
-					array($sshPermMaxUsers, $sshPermAuthOptions, $sshPermJailedShell, 'ok', $adminName, 'reseller')
-				);
+						array($sshPermMaxUsers, $sshPermAuthOptions, $sshPermJailedShell, 'ok', $adminName, 'reseller')
+					);
 
-				if($stmt->rowCount()) {
-					$db->commit();
-					write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
-					Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.', true)));
+					if($stmt->rowCount()) {
+						EventsAggregator::getInstance()->dispatch('onAfterAddSshPermissions', array(
+							'ssh_permission_id' => $db->insertId(),
+							'ssh_permission_max_user' => $sshPermMaxUsers,
+							'ssh_permission_auth_options' => $sshPermAuthOptions,
+							'ssh_permission_jailed_shell' => $sshPermJailedShell,
+							'admin_name' => $adminName,
+							'admin_type' => 'reseller'
+						));
+
+						$db->commit();
+						write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
+						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.', true)));
+					}
+				} else {
+					Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
 				}
 			} elseif($sshPermAdminId) { // Update SSH permissions
-				# We must ensure that no child item is currently processed to avoid any race condition
-				$stmt = exec_query(
-					'
+				$response = EventsAggregator::getInstance()->dispatch('onBeforeUpdateSshPermissions', array(
+					'ssh_permission_id' => $sshPermId,
+					'ssh_permission_admin_id' => $sshPermAdminId,
+					'ssh_permission_max_user' => $sshPermMaxUsers,
+					'ssh_permission_auth_options' => $sshPermAuthOptions,
+					'ssh_permission_jailed_shell' => $sshPermJailedShell,
+					'admin_name' => $adminName,
+					'admin_type' => 'reseller'
+				));
+
+				if(!$response->isStopped()) {
+					# We must ensure that no child item is currently processed to avoid any race condition
+					$stmt = exec_query(
+						'
 						SELECT
 							ssh_user_id
 						FROM
@@ -140,22 +172,22 @@ function addSshPermissions()
 						LIMIT
 							1
 					',
-					array($sshPermAdminId, 'ok')
-				);
+						array($sshPermAdminId, 'ok')
+					);
 
-				if(!$stmt->rowCount()) {
-					/** @var \iMSCP_Plugin_InstantSSH $plugin */
-					$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
-					$sshPermissions = $plugin->getResellerPermissions($sshPermAdminId);
+					if(!$stmt->rowCount()) {
+						/** @var \iMSCP_Plugin_InstantSSH $plugin */
+						$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+						$sshPermissions = $plugin->getResellerPermissions($sshPermAdminId);
 
-					if($sshPermissions['ssh_permission_id'] !== null) {
-						if(
-							$sshPermissions['ssh_permission_auth_options'] != $sshPermAuthOptions ||
-							$sshPermissions['ssh_permission_jailed_shell'] != $sshPermJailedShell
-						) {
-							// Update SSH permissions of the reseller
-							exec_query(
-								'
+						if($sshPermissions['ssh_permission_id'] !== null) {
+							if(
+								$sshPermissions['ssh_permission_auth_options'] != $sshPermAuthOptions ||
+								$sshPermissions['ssh_permission_jailed_shell'] != $sshPermJailedShell
+							) {
+								// Update SSH permissions of the reseller
+								exec_query(
+									'
 									UPDATE
 										instant_ssh_permissions
 									SET
@@ -163,12 +195,12 @@ function addSshPermissions()
 									WHERE
 										ssh_permission_admin_id = ?
 								',
-								array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
-							);
+									array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
+								);
 
-							// Update SSH permissions of the reseller's customers
-							exec_query(
-								'
+								// Update SSH permissions of the reseller's customers
+								exec_query(
+									'
 									UPDATE
 										instant_ssh_permissions
 									INNER JOIN
@@ -179,12 +211,12 @@ function addSshPermissions()
 									WHERE
 										created_by = ?
 								',
-								array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
-							);
+									array($sshPermAuthOptions, $sshPermJailedShell, $sshPermAdminId)
+								);
 
-							// Update of the SSH users which belong to the reseller's customers
-							$stmt = exec_query(
-								'
+								// Update of the SSH users which belong to the reseller's customers
+								$stmt = exec_query(
+									'
 									UPDATE
 										instant_ssh_users
 									INNER JOIN
@@ -197,22 +229,35 @@ function addSshPermissions()
 									WHERE
 										created_by = ?
 								',
-								array($plugin->getConfigParam('default_ssh_auth_options', null), 'tochange', $sshPermAdminId)
-							);
+									array($plugin->getConfigParam('default_ssh_auth_options', null), 'tochange', $sshPermAdminId)
+								);
 
-							if($stmt->rowCount()) {
-								register_shutdown_function('send_request');
+								if($stmt->rowCount()) {
+									register_shutdown_function('send_request');
+								}
+
+								EventsAggregator::getInstance()->dispatch('onAfterUpdateSshPermissions', array(
+									'ssh_permission_id' => $sshPermId,
+									'ssh_permission_admin_id' => $sshPermAdminId,
+									'ssh_permission_max_user' => $sshPermMaxUsers,
+									'ssh_permission_auth_options' => $sshPermAuthOptions,
+									'ssh_permission_jailed_shell' => $sshPermJailedShell,
+									'admin_name' => $adminName,
+									'admin_type' => 'reseller'
+								));
+
+								$db->commit();
+								write_log(sprintf('InstantSSH: SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
+								Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were updated.', true)));
+							} else {
+								Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
 							}
-
-							$db->commit();
-							write_log(sprintf('InstantSSH: SSH permissions were updated for %s', $adminName), E_USER_NOTICE);
-							Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were updated.', true)));
-						} else {
-							Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
 						}
+					} else {
+						Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
 					}
 				} else {
-					Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
+					Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
 				}
 			}
 		} catch(ExceptionDatabase $e) {
@@ -238,12 +283,20 @@ function deleteSshPermissions()
 		$adminName = clean_input($_POST['admin_name']);
 		$db = Database::getInstance();
 
-		try {
-			$db->beginTransaction();
+		$response = EventsAggregator::getInstance()->dispatch('onBeforeDeleteSshPermissions', array(
+			'ssh_permission_id' => $sshPermId,
+			'ssh_permission_admin_id' => $sshPermAdminId,
+			'admin_name' => $adminName,
+			'admin_type' => 'reseller'
+		));
 
-			# We must ensure that no child item is currently processed to avoid any race condition
-			$stmt = exec_query(
-				'
+		if(!$response->isStopped()) {
+			try {
+				$db->beginTransaction();
+
+				# We must ensure that no child item is currently processed to avoid any race condition
+				$stmt = exec_query(
+					'
 					SELECT
 						ssh_user_id
 					FROM
@@ -257,12 +310,12 @@ function deleteSshPermissions()
 					LIMIT
 						1
 				',
-				array($sshPermAdminId, 'ok')
-			);
+					array($sshPermAdminId, 'ok')
+				);
 
-			if(!$stmt->rowCount()) {
-				$stmt = exec_query(
-					'
+				if(!$stmt->rowCount()) {
+					$stmt = exec_query(
+						'
 						DELETE
 							instant_ssh_permissions
 						FROM
@@ -272,22 +325,33 @@ function deleteSshPermissions()
 						WHERE
 							(ssh_permission_id = ? OR created_by = ?)
 					',
-					array($sshPermId, $sshPermAdminId)
-				);
+						array($sshPermId, $sshPermAdminId)
+					);
 
-				if($stmt->rowCount()) {
-					$db->commit();
-					send_request();
-					write_log(sprintf('InstantSSH: SSH permissions were deleted for %s', $adminName), E_USER_NOTICE);
-					Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were deleted.', true, $adminName)));
+					if($stmt->rowCount()) {
+						$db->commit();
+
+						EventsAggregator::getInstance()->dispatch('onAfterDeleteSshPermissions', array(
+							'ssh_permission_id' => $sshPermId,
+							'ssh_permission_admin_id' => $sshPermAdminId,
+							'admin_name' => $adminName,
+							'admin_type' => 'reseller'
+						));
+
+						send_request();
+						write_log(sprintf('InstantSSH: SSH permissions were deleted for %s', $adminName), E_USER_NOTICE);
+						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were deleted.', true, $adminName)));
+					}
+				} else {
+					Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
 				}
-			} else {
-				Functions::sendJsonResponse(409, array('message' => tr("One or many SSH users which belongs to the reseller's customers are currently processed. Please retry in few minutes.", true)));
+			} catch(ExceptionDatabase $e) {
+				$db->rollBack();
+				write_log(sprintf('InstantSSH: Unable to delete SSH permissions ofr %s: %s', $adminName, $e->getMessage()), E_USER_ERROR);
+				Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 			}
-		} catch(ExceptionDatabase $e) {
-			$db->rollBack();
-			write_log(sprintf('InstantSSH: Unable to delete SSH permissions ofr %s: %s', $adminName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+		} else {
+			Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
 		}
 	}
 

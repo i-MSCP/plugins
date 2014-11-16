@@ -200,8 +200,19 @@ function addSshUser($pluginManager, $sshPermissions)
 					$sshPermissions['ssh_permission_max_users'] == 0 ||
 					$sshPermissions['ssh_permission_cnb_users'] < $sshPermissions['ssh_permission_max_users']
 				) {
-					exec_query(
-						'
+					$response = EventsAggregator::getInstance()->dispatch('onBeforeAddSshUser', array(
+						'ssh_user_permission_id' => $sshPermissions['ssh_permission_id'],
+						'ssh_user_admin_id' => $_SESSION['user_id'],
+						'ssh_user_name' => $sshUserName,
+						'ssh_user_password' => $sshUserPassword,
+						'ssh_user_key' => $sshUserKey,
+						'ssh_user_key_fingerprint' => $sshUserKeyFingerprint,
+						'ssh_user_auth_options' => $sshAuthOptions
+					));
+
+					if(!$response->isStopped()) {
+						exec_query(
+							'
 							INSERT INTO instant_ssh_users (
 								ssh_user_permission_id, ssh_user_admin_id, ssh_user_name, ssh_user_password,
 								ssh_user_key, ssh_user_key_fingerprint, ssh_user_auth_options, ssh_user_status
@@ -209,21 +220,35 @@ function addSshUser($pluginManager, $sshPermissions)
 								?, ?, ?, ?, ?, ?, ?, ?
 							)
 						',
-						array(
-							$sshPermissions['ssh_permission_id'], $_SESSION['user_id'], $sshUserName, $sshUserPassword,
-							$sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'toadd'
-						)
-					);
+							array(
+								$sshPermissions['ssh_permission_id'], $_SESSION['user_id'], $sshUserName, $sshUserPassword,
+								$sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'toadd'
+							)
+						);
 
-					send_request();
-					write_log(sprintf('InstantSSH: %s added new SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
-					Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for addition.', true)));
+						send_request();
+						write_log(sprintf('InstantSSH: %s added new SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
+						Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for addition.', true)));
+					} else {
+						Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
+					}
 				} else {
 					Functions::sendJsonResponse(400, array('message' => tr('Your SSH user limit is reached.', true)));
 				}
 			} else { // Update SSH user
-				exec_query(
-					'
+				$response = EventsAggregator::getInstance()->dispatch('onBeforeUpdateSshUser', array(
+					'ssh_user_permission_id' => $sshPermissions['ssh_permission_id'],
+					'ssh_user_admin_id' => $_SESSION['user_id'],
+					'ssh_user_name' => $sshUserName,
+					'ssh_user_password' => $sshUserPassword,
+					'ssh_user_key' => $sshUserKey,
+					'ssh_user_key_fingerprint' => $sshUserKeyFingerprint,
+					'ssh_user_auth_options' => $sshAuthOptions
+				));
+
+				if(!$response->isStopped()) {
+					exec_query(
+						'
 						UPDATE
 							instant_ssh_users
 						SET
@@ -236,15 +261,18 @@ function addSshUser($pluginManager, $sshPermissions)
 						AND
 							ssh_user_status = ?
 					',
-					array(
-						$sshUserPassword, $sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'tochange', $sshUserId,
-						$_SESSION['user_id'], 'ok'
-					)
-				);
+						array(
+							$sshUserPassword, $sshUserKey, $sshUserKeyFingerprint, $sshAuthOptions, 'tochange', $sshUserId,
+							$_SESSION['user_id'], 'ok'
+						)
+					);
 
-				send_request();
-				write_log(sprintf('InstantSSH: %s updated SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
-				Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for update.', true)));
+					send_request();
+					write_log(sprintf('InstantSSH: %s updated SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
+					Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for update.', true)));
+				} else {
+					Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
+				}
 			}
 		} catch(ExceptionDatabase $e) {
 			if($e->getCode() == '23000') {
@@ -270,20 +298,34 @@ function deleteSshUser()
 		$sshUserId = intval($_POST['ssh_user_id']);
 		$sshUserName = clean_input($_POST['ssh_user_name']);
 
-		try {
-			$stmt = exec_query(
-				'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_id = ? AND ssh_user_admin_id = ?',
-				array('todelete', $sshUserId, $_SESSION['user_id'])
-			);
+		$response = EventsAggregator::getInstance()->dispatch('onBeforeDeleteSshUser', array(
+			'ssh_user_id' => $sshUserId,
+			'ssh_user_name' => $sshUserName
+		));
 
-			if($stmt->rowCount()) {
-				send_request();
-				write_log(sprintf('InstantSSH: %s deleted an SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
-				Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for deletion.', true)));
+		if(!$response->isStopped()) {
+			try {
+				$stmt = exec_query(
+					'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_id = ? AND ssh_user_admin_id = ?',
+					array('todelete', $sshUserId, $_SESSION['user_id'])
+				);
+
+				if($stmt->rowCount()) {
+					EventsAggregator::getInstance()->dispatch('onAfterDeleteSshUser', array(
+						'ssh_user_id' => $sshUserId,
+						'ssh_user_name' => $sshUserName
+					));
+
+					send_request();
+					write_log(sprintf('InstantSSH: %s deleted an SSH user: %s', decode_idna($_SESSION['user_logged']), $sshUserName), E_USER_NOTICE);
+					Functions::sendJsonResponse(200, array('message' => tr('SSH user has been scheduled for deletion.', true)));
+				}
+			} catch(ExceptionDatabase $e) {
+				write_log(sprintf('InstantSSH: Unable to delete the %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
+				Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true)));
 			}
-		} catch(ExceptionDatabase $e) {
-			write_log(sprintf('InstantSSH: Unable to delete the %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
-			Functions::sendJsonResponse(500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true)));
+		} else {
+			Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.', true)));
 		}
 	}
 
