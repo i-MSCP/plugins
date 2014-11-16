@@ -21,8 +21,8 @@
 // Configuration file sample for the demo plugin
 
 return array(
-	//	List of user accounts that will be available via select box on login page. If an user account is protected, it
-	//	will be imposible to remove it. Also, its password will be protected against modification.
+	// List of user accounts which have to be available in select box on login page. Those users must exists.
+	// If an user account is protected, it will be impossible to edit it or remove it.
 	'user_accounts' => array(
 		array(
 			'label' => 'Administrator 1',

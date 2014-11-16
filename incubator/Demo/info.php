@@ -21,8 +21,8 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.0.1',
-	'date' => '2014-11-05',
+	'version' => '1.0.2',
+	'date' => '2014-11-16',
 	'name' => 'Demo',
 	'desc' => 'Plugin allowing to setup an i-MSCP demo server in few minutes.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:demo'

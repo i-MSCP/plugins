@@ -1,4 +1,4 @@
-## i-MSCP Demo plugin v1.0.1
+## i-MSCP Demo plugin v1.0.2
 
 Plugin allowing to create an i-MSCP Demo server in few minutes.
 
@@ -17,16 +17,20 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 ### Installation
 
 1. Login into the panel as admin and go to the plugin management interface
-2. Upload the Demo plugin archive
-3. Activate the plugin
+2. Upload the plugin archive
+3. Edit the plugin configuration (see below for available configuration parameters)
+4. Activate the plugin
+5. Protect the plugin
 
 ### Update
 
 1. Backup your current plugins/Demo/config.php file
-2. Login into the panel as admin and go to the plugin management interface
-3. Upload the Demo plugin archive
-4. Restore your plugins/Demo/config.php file (check for any change)
-5. Update the plugin list through the plugin interface
+2. Unprotect the plugin
+3. Login into the panel as admin and go to the plugin management interface
+4. Upload the plugin archive
+5. Restore your plugins/Demo/config.php file (compare it with the new version first)
+6. Update the plugin list through the plugin interface
+4. Protect the plugin
 
 ### Configuration
 

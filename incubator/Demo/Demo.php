@@ -24,11 +24,6 @@
 class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 {
 	/**
-	 * @var array Events
-	 */
-	protected $events = array();
-
-	/**
 	 * Disabled actions
 	 *
 	 * @var array
@@ -47,13 +42,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
 
-		if ($pluginManager->getPluginStatus($this->getName()) == 'enabled') {
+		if($pluginManager->isPluginEnabled($this->getName())) {
 			$events = $this->getConfigParam('disabled_actions', array());
 
 			if(is_array($events)) {
 				$this->disabledActions = $events;
 
-				if (($userAccounts = $this->getConfigParam('user_accounts', array()))) {
+				if(($userAccounts = $this->getConfigParam('user_accounts', array()))) {
 					if(is_array($userAccounts)) {
 						if(!empty($userAccounts)) {
 							$events[] = iMSCP_Events::onLoginScriptEnd;
@@ -62,17 +57,17 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 							$events[] = iMSCP_Events::onBeforeDeleteCustomer;
 						}
 					} else {
-						throw new iMSCP_Plugin_Exception('User accounts should be provided as array.');
+						throw new iMSCP_Plugin_Exception('The user_accounts configuration parameter must be an array.');
 					}
 				}
 
-				$this->events = array_unique($events);
+				$events = array_unique($events);
 
-				if(!empty($this->events)) {
-					$eventsManager->registerListener($this->events, $this, 999);
+				if(!empty($events)) {
+					$eventsManager->registerListener($events, $this, 999);
 				}
 			} else {
-				throw new iMSCP_Plugin_Exception('Disabled actions should be provided as array.');
+				throw new iMSCP_Plugin_Exception('The disabled_actions configuration parameter must be an array.');
 			}
 		} else {
 			$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
@@ -90,11 +85,35 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
 
-		if (isset($_SERVER['HTTP_REFERER'])) {
+		if(isset($_SERVER['HTTP_REFERER'])) {
 			redirectTo($_SERVER['HTTP_REFERER']);
 		} else {
 			redirectTo('index.php');
 		}
+	}
+
+	/**
+	 * onBeforeInstallPlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeInstallPlugin()
+	{
+		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+		$event->stopPropagation();
+	}
+
+	/**
+	 * onBeforeUninstallPlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUninstallPlugin()
+	{
+		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+		$event->stopPropagation();
 	}
 
 	/**
@@ -105,8 +124,8 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.4', '<')) {
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.4', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -114,25 +133,51 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				$event->stopPropagation();
 			}
 		} else {
-			$this->__call($event->getName(), array($event));
+			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+			$event->stopPropagation();
 		}
 	}
 
 	/**
-	 * onBeforeDeactivatePlugin listener
+	 * onBeforeDisablePlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeDisablePlugin($event)
 	{
-		if($event->getParam('pluginName') != $this->getName()) {
-			$this->__call($event->getName(), array($event));
+		if($event->getParam('pluginName') !== $this->getName()) {
+			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+			$event->stopPropagation();
 		}
 	}
 
 	/**
-	 * onBeforeEditUser listener method
+	 * onBeforeUpdatePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+		$event->stopPropagation();
+	}
+
+	/**
+	 * onBeforeDeletePlugin event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeDeletePlugin($event)
+	{
+		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+		$event->stopPropagation();
+	}
+
+	/**
+	 * onBeforeProtectPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -140,7 +185,8 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	public function onBeforeProtectPlugin($event)
 	{
 		if($event->getParam('pluginName') !== $this->getName()) {
-			$this->__call($event->getName(), array($event));
+			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+			$event->stopPropagation();
 		}
 	}
 
@@ -154,7 +200,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		$eventName = $event->getName();
 
-		if ($this->isDisabledAction($eventName)) {
+		if($this->isDisabledAction($eventName)) {
 			$this->__call($eventName, array($event));
 		} else {
 			$this->protectDemoUser($event);
@@ -171,7 +217,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		$eventName = $event->getName();
 
-		if ($this->isDisabledAction($eventName)) {
+		if($this->isDisabledAction($eventName)) {
 			$this->__call($eventName, array($event));
 		} else {
 			$this->protectDemoUser($event);
@@ -188,16 +234,11 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		$eventName = $event->getName();
 
-		if ($this->isDisabledAction($eventName)) {
+		if($this->isDisabledAction($eventName)) {
 			$this->__call($eventName, array($event));
 		} else {
-			$query = 'SELECT admin_id FROM admin WHERE admin_id = ?';
-			$stmt = exec_query($query, $event->getParam('customerId'));
-
-			if ($stmt->rowCount()) {
-				$event->setParam('userId', $event->getParam('customerId'));
-				$this->protectDemoUser($event);
-			}
+			$event->setParam('userId', $event->getParam('customerId'));
+			$this->protectDemoUser($event);
 		}
 	}
 
@@ -222,18 +263,18 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		$stmt = exec_query('SELECT admin_name FROM admin WHERE admin_id = ?', $event->getParam('userId'));
 
-		if ($stmt->rowCount()) {
+		if($stmt->rowCount()) {
 			$username = idn_to_utf8($stmt->fields['admin_name']);
 			$foundUser = false;
 
-			foreach ($this->getConfigParam('user_accounts') as $account) {
-				if ($account['username'] == $username && (isset($account['protected']) && $account['protected'])) {
+			foreach($this->getConfigParam('user_accounts') as $account) {
+				if($account['username'] == $username && (isset($account['protected']) && $account['protected'])) {
 					$foundUser = true;
 					break;
 				}
 			}
 
-			if ($foundUser) {
+			if($foundUser) {
 				$this->__call($event->getName(), array($event));
 			}
 		}
@@ -250,7 +291,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	public function onLoginScriptEnd($event)
 	{
-		if ($this->getConfigParam('user_accounts') && ($jsCode = $this->_getCredentialsDialog()) != '') {
+		if($this->getConfigParam('user_accounts') && ($jsCode = $this->_getCredentialsDialog()) != '') {
 			/** @var $tpl iMSCP_pTemplate */
 			$tpl = $event->getParam('templateEngine');
 			$tpl->replaceLastParseResult(
@@ -268,7 +309,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	{
 		$credentials = $this->getCredentials();
 
-		if (!empty($credentials)) {
+		if(!empty($credentials)) {
 			$title = json_encode(tr('i-MSCP Demo', true));
 			$welcomeMsg = json_encode(tr('Welcome to the i-MSCP Demo version', true));
 			$credentialInfo = json_encode(
@@ -323,16 +364,16 @@ EOF;
 	{
 		$credentials = array();
 
-		foreach ($this->getConfigParam('user_accounts') as $account) {
-			if (isset($account['label']) && isset($account['username']) && isset($account['password'])) {
+		foreach($this->getConfigParam('user_accounts') as $account) {
+			if(isset($account['label']) && isset($account['username']) && isset($account['password'])) {
 				$stmt = exec_query(
 					'SELECT admin_pass FROM admin WHERE admin_name = ?', encode_idna($account['username'])
 				);
 
-				if ($stmt->rowCount()) {
+				if($stmt->rowCount()) {
 					$dbPassword = $stmt->fields['admin_pass'];
 
-					if (
+					if(
 						crypt($account['password'], $dbPassword) == $dbPassword ||
 						$dbPassword == md5($account['password'])
 					) {
