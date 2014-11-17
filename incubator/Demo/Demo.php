@@ -42,7 +42,9 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		/** @var iMSCP_Plugin_Manager $pluginManager */
 		$pluginManager = iMSCP_Registry::get('pluginManager');
 
-		if($pluginManager->isPluginEnabled($this->getName())) {
+		$pluginName = $this->getName();
+
+		if($pluginManager->isPluginKnown($pluginName) && $pluginManager->isPluginEnabled($pluginName)) {
 			$events = $this->getConfigParam('disabled_actions', array());
 
 			if(is_array($events)) {
@@ -93,6 +95,20 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * onBeforeUpdatePluginList event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePluginList($event)
+	{
+		if($event->getParam('pluginName') !== $this->getName()) {
+			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+			$event->stopPropagation();
+		}
+	}
+
+	/**
 	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -133,8 +149,12 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				$event->stopPropagation();
 			}
 		} else {
-			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
-			$event->stopPropagation();
+			$pluginManager = iMSCP_Registry::get('pluginManager');
+
+			if($pluginManager->isPluginEnabled($this->getName())) {
+				set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+				$event->stopPropagation();
+			}
 		}
 	}
 
