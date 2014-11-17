@@ -32,11 +32,11 @@ appearing in the the default authentication string must also be specified in the
 The Jailed shells allow you to provide SSH access to your customers in a restricted environment from which they can
 theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
-Several commands can be added into the jails by simply adding the needed application sections into the **app_sections**
+Several commands can be added into the jails by simply adding the required application sections to the **app_sections**
 configuration option.
 
-The default configuration comes with a set of preselected application sections which allow to setup a very restricted
-jailed shell environment. This environment is setup by using busybox which combines tiny versions of many common UNIX
+The default configuration comes with a set of preselected application sections which allow to setup very restricted
+jailed shell environments. These environments are setup using busybox which combines tiny versions of many common UNIX
 utilities into a single small executable.
 
 See the plugin **config.php** file for further details.
@@ -68,6 +68,7 @@ You can install these packages by executing the following commands:
 1. Be sure that all required packages as mentioned in the requirements section are installed on your system
 2. Login into the panel as admin and go to the plugin management interface
 3. Upload the plugin archive
+4. Configure the plugin for your needs by editing the plugin configuration file
 4. Install the plugin
 
 ### Update
@@ -77,7 +78,7 @@ You can install these packages by executing the following commands:
 3. Login into the panel as admin and go to the plugin management interface
 4. Deactivate the plugin
 5. Upload the plugin archive
-6. Restore your **plugins/InstantSSH/config.php** configuration file (compare it with the new version first)
+6. Restore your **plugins/InstantSSH/config.php** configuration file ( compare it with the new version first )
 7. Activate the plugin
 
 **Note:** If you are updating to the version 3.0.0, don't forget to read the [update errata](update_errata.md) file.
@@ -166,6 +167,6 @@ plugin.
   - [Osna-Solution UG](http://portal.osna-solution.de "Osna-Solution UG")
   - [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
 
-### Author(s)
+### Author
 
  * Laurent Declercq <l.declercq@nuxwin.com>

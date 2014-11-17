@@ -23,7 +23,7 @@ return array(
 	// SSH user name prefix ( default: imscp_ )
 	'ssh_user_name_prefix' => 'imscp_',
 
-	// Passwordless authentication (default: false)
+	// Passwordless authentication ( default: false )
 	//
 	// When the value is set to TRUE, passwordless authentication is enforced, meaning that the customers cannot set
 	// password for their SSH users. This implies necessarily that the customers have to provide an SSH key. When the

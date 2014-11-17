@@ -1,3 +1,4 @@
-- Per customer application sections selector ( Admin level)
-- Allow to deactivate SSH permissions without removing associated SSH users ( Admin level)
-- Allow to deactivate specific SSH user without removing it ( Customer level)
+- Allow to deactivate SSH permissions without removing associated SSH users ( Admin level )
+- Allow to deactivate specific SSH user without removing it ( Customer level )
+- BUlk actions
+- Per customer application sections configurator ( Admin level )
