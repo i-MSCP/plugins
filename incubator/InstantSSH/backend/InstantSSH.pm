@@ -202,6 +202,15 @@ sub update
 				}
 			}
 		}
+
+		$rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'tochange'");
+		unless(ref $rs eq 'HASH') {
+			error($rs);
+			return 1;
+		}
+
+		$rs = $self->run();
+		return $rs if $rs;
 	}
 
 	0;

@@ -46,9 +46,9 @@ return array(
 			ssh_key_id, ssh_permission_id, ssh_key_admin_id, CONCAT('imscp_', ssh_key_id), null, ssh_key,
 			ssh_key_fingerprint, ssh_auth_options, ssh_key_status
 		FROM
-			instant_ssh_keys
+			instant_ssh_keys;
 
-		DROP TABLE IF EXISTS instant_ssh_keys;
+		DROP TABLE IF EXISTS instant_ssh_keys
 	",
 	'down' => "
 		CREATE TABLE IF NOT EXISTS instant_ssh_keys (
