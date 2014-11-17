@@ -422,7 +422,7 @@ function getSshPermissionsList()
 
 		/* Filtering */
 		$where = "WHERE admin_type = 'user'";
-		if($_GET['sSearch'] !== '') {
+		if(isset($_GET['sSearch']) && $_GET['sSearch'] !== '') {
 			$where .= 'AND (';
 
 			for($i = 0; $i < $nbCols; $i++) {

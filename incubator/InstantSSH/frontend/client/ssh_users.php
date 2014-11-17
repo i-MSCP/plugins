@@ -377,7 +377,7 @@ function getSshUsers()
 
 		/* Filtering */
 		$where = 'WHERE ssh_user_admin_id = ' . intval($_SESSION['user_id']);
-		if($_GET['sSearch'] != '') {
+		if(isset($_GET['sSearch']) && $_GET['sSearch'] != '') {
 			$where .= ' AND (';
 
 			for($i = 0; $i < $nbCols; $i++) {
