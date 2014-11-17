@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by Laurent Declercq
+ * Copyright (C) 2010-2014 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,14 +20,14 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  HelloWorld
- * @copyright   Copyright (C) 2010-2013 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
- * Hello World Plugin.
+ * Hello World Plugin
  *
  * This plugin is only intended to be used in documentation to explain how to create a plugin for i-MSCP. This plugin
  * simply say 'Hello World' when the login page is loaded.
@@ -40,7 +40,7 @@
 class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register event listeners
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
@@ -57,8 +57,8 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -69,7 +69,7 @@ class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Implements the onLoginScriptStart listener method.
+	 * onLoginScriptStart event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
