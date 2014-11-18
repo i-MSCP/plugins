@@ -2,7 +2,7 @@
 
 ## Update to version 3.0.0
 
-### Cascading permissions (admin -> reseller -> customer)
+### Cascading permissions ( admin -> reseller -> customer )
 
 Support for cascading permissions has been added. From now, administrators give SSH permissions to the resellers, and
 the resellers give SSH permisssions to their customers according their own permissions.
@@ -21,7 +21,7 @@ results. Indeed, this command always take the first entry matching the UID/GID f
 #### SSH users's prefixes
 
 A prefix is added to all SSH usernames to allow the administrator to filter them easily in the /etc/passwd file and also
-to prevent customer to create SSH users with a reserved names. The default prefix, which is set to **imscp_**, can be
+to prevent customer to create SSH users with reserved names. The default prefix, which is set to **imscp_**, can be
 modified by editing the **ssh_user_name_prefix** configuration parameter in the plugin configuration file. This parameter
 does applies only to the newly created SSH users.
 
@@ -30,12 +30,12 @@ create unix users with reserved names.
 
 ### Password authentication capability
 
-This new version also come with the password authentication capability which was missing in previous versions.
-The passwords are encrypted in the database using the better available algorythm as provided by crypt(). For safety
-reasons, this feature can be disabled by allowing only the passwordless authentication. This can be achieved by setting
-the **passwordless_authentication** configuration parameter to **TRUE** into the plugin configuration file.
+This new version also come with the password authentication capability which was missing in previous versions. The
+passwords are encrypted in the database using the better available algorythm as provided by crypt(). For safety reasons,
+this feature can be disabled by allowing only the passwordless authentication. This can be achieved by setting the
+**passwordless_authentication** configuration parameter to **TRUE** into the plugin configuration file.
 
-### Note regarding system and database update
+### Note regarding the system and database update
 
 #### i-MSCP default user (vuxxx)
 
