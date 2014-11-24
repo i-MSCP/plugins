@@ -312,14 +312,14 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		}
 
 		if(iMSCP_Registry::isRegistered('navigation')) {
-			/** @var Zend_Navigation $nagigationObject */
-			$nagigationObject = iMSCP_Registry::get('navigation');
+			/** @var Zend_Navigation $navigation */
+			$navigation = iMSCP_Registry::get('navigation');
 
 			foreach($this->disabledPages as $page) {
-				$pages = $nagigationObject->findAllBy('uri', "~$page~i", true, true);
+				$pages = $navigation->findAllBy('uri', "~$page~i", true, true);
 
 				foreach($pages as $page) {
-					$nagigationObject->removePage($page, true);
+					$navigation->removePage($page, true);
 				}
 			}
 		}
