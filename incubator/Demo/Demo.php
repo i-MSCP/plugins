@@ -24,11 +24,14 @@
 class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 {
 	/**
-	 * Disabled actions
-	 *
-	 * @var array
+	 * @var array Disabled actions
 	 */
 	protected $disabledActions = array();
+
+	/**
+	 * @var array Disabled pages
+	 */
+	protected $disabledPages = array();
 
 	/**
 	 * Register listeners on the event manager
@@ -70,6 +73,25 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				}
 			} else {
 				throw new iMSCP_Plugin_Exception('The disabled_actions configuration parameter must be an array.');
+			}
+
+			$disabledPages = $events = $this->getConfigParam('disabled_pages', array());
+
+			if(is_array($disabledPages)) {
+				$this->disabledPages = $disabledPages;
+
+				if(!empty($disabledPages)) {
+					$eventsManager->registerListener(
+						array(
+							iMSCP_Events::onAdminScriptStart,
+							iMSCP_Events::onResellerScriptStart,
+							iMSCP_Events::onClientScriptStart,
+						),
+						array($this, 'disablePages')
+					);
+				}
+			} else {
+				throw new iMSCP_Plugin_Exception('The disabled_pages configuration parameter must be an array.');
 			}
 		} else {
 			$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
@@ -274,6 +296,36 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * disablePages event listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function disablePages($event)
+	{
+		$requestPage = $_SERVER['SCRIPT_NAME'];
+
+		foreach($this->disabledPages as $page) {
+			if(preg_match("~$page~i", $requestPage)) {
+				showNotFoundErrorPage();
+			}
+		}
+
+		if(iMSCP_Registry::isRegistered('navigation')) {
+			/** @var Zend_Navigation $nagigationObject */
+			$nagigationObject = iMSCP_Registry::get('navigation');
+
+			foreach($this->disabledPages as $page) {
+				$pages = $nagigationObject->findAllBy('uri', "~$page~i", true, true);
+
+				foreach($pages as $page) {
+					$nagigationObject->removePage($page, true);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Protect demo user / domain accounts against some actions
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -311,7 +363,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	public function onLoginScriptEnd($event)
 	{
-		if($this->getConfigParam('user_accounts') && ($jsCode = $this->_getCredentialsDialog()) != '') {
+		if($this->getConfigParam('user_accounts') && ($jsCode = $this->getCredentialsDialog()) != '') {
 			/** @var $tpl iMSCP_pTemplate */
 			$tpl = $event->getParam('templateEngine');
 			$tpl->replaceLastParseResult(
@@ -325,7 +377,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 *
 	 * @return string
 	 */
-	protected function _getCredentialsDialog()
+	protected function getCredentialsDialog()
 	{
 		$credentials = $this->getCredentials();
 
@@ -341,9 +393,9 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				<script>
 					$(document).ready(function() {
 						var welcome = $welcomeMsg;
-						var credentialInfo = $credentialInfo + "<br /><br />";
-						$("<div/>", { "id": "demo", html: "<h2>" + welcome + "</h2>" + credentialInfo }).appendTo("body");
-						$("<select/>", { "id": "demo_credentials" }).appendTo("#demo");
+						var credentialInfo = $credentialInfo + "<br><br>";
+						$("<div>", { "id": "demo", html: "<h2>" + welcome + "</h2>" + credentialInfo }).appendTo("body");
+						$("<select>", { "id": "demo_credentials" }).appendTo("#demo");
 						var credentials = $credentials;
 						$.each(credentials, function() {
 							$("#demo_credentials").append(

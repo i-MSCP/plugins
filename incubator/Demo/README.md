@@ -1,4 +1,4 @@
-## i-MSCP Demo plugin v1.0.2
+## i-MSCP Demo plugin v1.1.0
 
 Plugin allowing to create an i-MSCP Demo server in few minutes.
 
@@ -77,6 +77,20 @@ To disable one or more actions, you must add a new section like below in the plu
 			'onBeforeDeleteSqlUser',
 			'onBeforeAddSqlDb',
 			'onBeforeDeleteSqlDb'
+		)
+	...
+
+#### Disabled pages
+
+The plugin also allows to disable a specific list of pages, each of them defined using either a string or regexp. This
+is needed when a page doesn't trigger any events allowing to stop sensible actions. For instance, the software installer
+pages doesn't trigger any events. Thus, the only way to disable the sensible actions is to fully disable those pages.
+
+	...
+		'disabled_pages' => array(
+			'^/admin/software.*',
+			'^/reseller/software.*',
+			'^/client/software.*'
 		)
 	...
 
@@ -184,6 +198,19 @@ To disable one or more actions, you must add a new section like below in the plu
 			'onBeforeDeleteMail',
 			'onBeforeAddExternalMailServer',
 			'onBeforeChangeDomainStatus'
+		),
+		
+		// List of pages to which access must be fully disabled
+		//
+		// This parameter allow to set a list of pages ( each of them defined using either a string or regexp ) which
+		// must be disabled. This is needed when a page doesn't trigger an event allowing to stop sensible actions.
+		// For instance, the software installer pages doesn't trigger any events. Thus, they must be fully disabled.
+		//
+		// Note: Only the pages from the admin, reseller and client levels can be disabled through this parameter.
+		'disabled_pages' => array(
+			'^/admin/software.*',
+			'^/reseller/software.*',
+			'^/client/software.*'
 		)
 	);
 

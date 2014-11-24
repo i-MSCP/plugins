@@ -120,5 +120,18 @@ return array(
 		'onBeforeDeleteMail',
 		'onBeforeAddExternalMailServer',
 		'onBeforeChangeDomainStatus'
+	),
+
+	// List of pages to which access must be fully disabled
+	//
+	// This parameter allow to set a list of pages ( each of them defined using either a string or regexp ) which
+	// must be disabled. This is needed when a page doesn't trigger an event allowing to stop sensible actions.
+	// For instance, the software installer pages doesn't trigger any events. Thus, they must be fully disabled.
+	//
+	// Note: Only the pages from the admin, reseller and client levels can be disabled through this parameter.
+	'disabled_pages' => array(
+		'^/admin/software.*',
+		'^/reseller/software.*',
+		'^/client/software.*'
 	)
 );
