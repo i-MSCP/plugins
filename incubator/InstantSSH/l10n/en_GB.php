@@ -83,7 +83,7 @@ return array(
 	'You must enter an SSH key.' => 'You must enter an SSH key.',
 	'You must enter either a password, an SSH key or both.' => 'You must enter either a password, an SSH key or both.',
 	'Un-allowed password. Please use ASCII characters only.' => 'Un-allowed password. Please use ASCII characters only.',
-	'Wrong password length (Min 6 characters).' => 'Wrong password length (Min 6 characters).',
+	'Wrong password length (Min 8 characters).' => 'Wrong password length (Min 8 characters).',
 	'Wrong password length (Max 32 characters).' => 'Wrong password length (Max 32 characters).',
 	'Passwords do not match.' => 'Passwords do not match.',
 	'Invalid SSH key.' => 'Invalid SSH key.',

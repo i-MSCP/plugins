@@ -164,7 +164,7 @@ function addSshUser($pluginManager, $sshPermissions)
 			if(preg_match('/[^\x21-\x7e]/', $sshUserPassword)) {
 				$errorMsgs[] = tr('Un-allowed password. Please use ASCII characters only.', true);
 			} elseif (strlen($sshUserPassword) < 8) {
-				$errorMsgs[] = tr('Wrong password length (Min 6 characters).', true);
+				$errorMsgs[] = tr('Wrong password length (Min 8 characters).', true);
 			} elseif(strlen($sshUserPassword) > 32) {
 				$errorMsgs[] = tr('Wrong password length (Max 32 characters).', true);
 			} elseif($sshUserPassword !== $sshUserPasswordConfirmation) {

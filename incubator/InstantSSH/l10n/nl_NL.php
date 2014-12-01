@@ -83,7 +83,7 @@ return array(
 	'You must enter an SSH key.' => 'U moet een SSH-key ingeven.',
 	'You must enter either a password, an SSH key or both.' => 'U dient een wachtwoord, een SSH-key of beide in te geven.',
 	'Un-allowed password. Please use ASCII characters only.' => 'Wachtwoord niet toegestaan. Kies uit ASCII tekens.',
-	'Wrong password length (Min 6 characters).' => 'Verkeerde wachtwoordlengte (Minimaal 6 tekens).',
+	'Wrong password length (Min 8 characters).' => 'Verkeerde wachtwoordlengte (Minimaal 8 tekens).',
 	'Wrong password length (Max 32 characters).' => 'Verkeerde wachtwoordlengte (Maximaal 32 tekens).',
 	'Passwords do not match.' => 'Wachtwoorden komen niet overeen.',
 	'Invalid SSH key.' => 'Incorrecte SSH-key.',
