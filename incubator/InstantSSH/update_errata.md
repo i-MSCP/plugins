@@ -9,7 +9,7 @@ the resellers give SSH permisssions to their customers according their own permi
 
 ### Multiple SSH users per customer
 
-This new version add support for multiple SSH users per customer. Those users share the UID/GID of the i-MSCP  unix
+This new version add support for multiple SSH users per customer. Those users share the UID/GID of the i-MSCP unix
 users (vuxxx), which in the context of the InstantSSH plugin are merely called **parent users**.
 
 #### Parent users' usage
@@ -51,4 +51,4 @@ prefix of SSH usernames and the SSH key unique identifier (eg. \<ssh_user_name_p
 
 The SSH permissions for resellers which have customers with existent SSH permissions are automatically created using a
 predefined set of permissions. After the plugin update, you should review those permissions if you want restrict the
-resellers (eg. to force usage of jailed shells, forbid the edition of authentication options).
+resellers (eg. to force usage of jailed shells and/or forbid the edition of authentication options).
