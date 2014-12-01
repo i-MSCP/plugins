@@ -138,7 +138,11 @@
 						oTable.fnProcessingIndicator(false);
 					}
 				}).done(function () {
-					oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+					if(jQuery.fn.imscpTooltip) {
+						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+					} else {
+						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
+					}
 				});
 			}
 		});
