@@ -83,22 +83,6 @@ You can install these packages by executing the following commands:
 
 **Note:** Don't forget to read the [update errata](update_errata.md) file.
 
-### Translations
-
-Since version **2.1.0**, this plugin can be translated in your language using a simple PHP file which return an array of
-translation strings. In order, to translate this plugin in your language, you must:
- 
-1. Create a new translation file for your language (eg. de_DE.php) in the **plugins/InstantSSH/l10n** directory by
-copying the **en_GB.php** file ( only if the file doesn't exist yet ). The file must be UTF-8 encoded.
-2. Translate the strings (The keys are the msgid strings and the values the msgstr strings). You must only translate the
-msgstr strings.
-
-During your translation session, you must enable the **DEBUG** mode in the **/etc/imscp/imscp.conf** file to force reload
-of the translation files on each request, else, the translation strings are put in cache. Don't forget to disable it once
-you have finished to translate.
-
-You're welcome to submit your translation files in our forum if you want see them integrated in the later release.
-
 ### Troubleshootings
 
 #### PAM chroot module
