@@ -82,7 +82,7 @@ return array(
 	'This username is not available.' => "Ce nom d'utilisateur n'est pas disponible.",
 	'You must enter an SSH key.' => 'Vous devez entrer une clé SSH.',
 	'You must enter either a password, an SSH key or both.' => 'You must enter either a password, an SSH key or both.',
-	'Un-allowed password. Please use alphanumeric characters only.' => "Mot de passe non-autorisé. Veuillez n'utiliser que des caractères alphanumériques.",
+	'Un-allowed password. Please use ASCII characters only.' => "Mot de passe non-autorisé. Veuillez n'utiliser que des caractères ASCII.",
 	'Wrong password length (Min 6 characters).' => 'Mauvaise longueur de mot de passe (8 caractères minimum).',
 	'Wrong password length (Max 32 characters).' => 'Mauvaise longueur de mot de passe (32 caractères maximum).',
 	'Passwords do not match.' => 'Les mots de passe ne correspondent pas.',

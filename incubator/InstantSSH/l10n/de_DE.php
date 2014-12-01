@@ -83,7 +83,7 @@ return array(
 	'This username is not available.' => 'Benutzername ist nicht verfügbar.',
 	'You must enter an SSH key.' => 'Sie müssen einen SSH-Schlüssel eingeben.',
 	'You must enter either a password, an SSH key or both.' => 'Sie müssen entweder ein Passwort, einen SSH-Schlüssel oder beides eingeben.',
-	'Un-allowed password. Please use alphanumeric characters only.' => 'Unerlaubtes Passwort. Bitte verwenden Sie nur alphanumerische Buchstaben.',
+	'Un-allowed password. Please use ASCII characters only.' => 'Unerlaubtes Passwort. Bitte verwenden Sie nur ASCII Buchstaben.',
 	'Wrong password length (Min 6 characters).' => 'Falsche Passwortlänge (Min 8 Zeichen).',
 	'Wrong password length (Max 32 characters).' => 'Falsche Passwortlänge (Max 32 Zeichen).',
 	'Passwords do not match.' => 'Die Passwörter stimmen nicht überein.',

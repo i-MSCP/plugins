@@ -248,7 +248,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	public function onAfterChangeDomainStatus($event)
 	{
 		exec_query(
-			'UPDATE instant_ssh_users SET ssh_users_status = ? WHERE ssh_user_admin_id = ?',
+			'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_admin_id = ?',
 			array(($event->getParam('action') == 'activate') ? 'toenable' : 'todisable', $event->getParam('customerId'))
 		);
 	}

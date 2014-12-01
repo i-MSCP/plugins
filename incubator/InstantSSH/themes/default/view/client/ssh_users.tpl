@@ -1,5 +1,5 @@
 
-<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;margin-bottom: 10px;">
 		<?= self::escapeHtml(tr('This is the list of SSH users associated with your account.', true));?>
@@ -38,20 +38,20 @@
 			<tr>
 				<td style="width:20%;">
 					<label for="ssh_user_name"><?= self::escapeHtml(tr('Username', true));?></label>
-					<span style="float: right" id="ssh_username_prefix"><strong>{SSH_USERNAME_PREFIX}</strong></span>
+					<span style="float:right;" id="ssh_username_prefix"><strong>{SSH_USERNAME_PREFIX}</strong></span>
 				</td>
 				<td>
-					<input type="text" class="inputTitle" name="ssh_user_name" id="ssh_user_name" value="" maxlength="8" placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
+					<input type="text" name="ssh_user_name" id="ssh_user_name" maxlength="8" autofocus placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
 				</td>
 			</tr>
 			<!-- BDP: ssh_password_field_block -->
 			<tr>
-				<td><label for="ssh_user_password"><?= self::escapeHtml(tr('Password', true));?></label></td>
-				<td><input type="text" class="inputTitle" name="ssh_user_password" id="ssh_user_password" value="" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Enter a password', true));?>"></td>
+				<td><label for="password"><?= self::escapeHtml(tr('Password', true));?></label></td>
+				<td><input type="password" class="pwd_generator" name="ssh_user_password" id="password" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Enter a password', true));?>"></td>
 			</tr>
 			<tr>
-				<td><label for="ssh_user_password"><?= self::escapeHtml(tr('Password confirmation', true));?></label></td>
-				<td><input type="text" class="inputTitle" name="ssh_user_password_confirmation" id="ssh_user_password_confirmation" value="" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Confirm the password', true));?>"></td>
+				<td><label for="cpassword"><?= self::escapeHtml(tr('Password confirmation', true));?></label></td>
+				<td><input type="password" name="ssh_user_cpassword" id="cpassword" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Confirm the password', true));?>"></td>
 			</tr>
 			<!-- EDP: ssh_password_field_block -->
 			<tr>
@@ -83,22 +83,24 @@
 					<table>
 						<tr>
 							<!-- BDP: ssh_password_key_info_block -->
-							<td>
-								<div style="color:#666666;padding:15px 0 15px 60px;background: url(/themes/default/assets/images/messages/info.png) no-repeat 5px 50%;">
-									<ul style="list-style-type:none">
+							<td style="background: #ffffff;">
+								<div style="color:#666666;padding:15px 0 15px 45px;background: url(/themes/default/assets/images/messages/info.png) no-repeat 5px 50%;">
+									<ul style="list-style-type:none;">
 									<li><?= self::escapeHtml(tr("You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication.", true));?></li>
 									<li>
 										<?= self::escapeHtml(tr('You can generate your rsa key pair by running the following command:', true))?>
-										<span style="color:#404040;background-color:#ffffff;border:1px solid #cccccc;padding: 2px 5px;font-weight: bold;">ssh-keygen -t rsa -C user@domain.tld</span>
+										<span class="disabled" style="border:1px solid #cccccc;padding: 2px 5px;">ssh-keygen -t rsa -C user@domain.tld</span>
 									</li>
 									</ul>
 								</div>
 							</td>
 							<!-- EDP: ssh_password_key_info_block -->
-							<td style="text-align: right">
-								<button id="action" data-action="add_ssh_user"><?= self::escapeHtml(tr('Save'));?></button>
-								<input type="hidden" name="ssh_user_id" id="ssh_user_id" value="0">
-								<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true)) ;?>" />
+							<td style="background:#ffffff;text-align: right;">
+								<div id="actions">
+									<button id="action" data-action="add_ssh_user"><?= self::escapeHtml(tr('Save'));?></button>
+									<input type="hidden" name="ssh_user_id" id="ssh_user_id" value="0">
+									<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true)) ;?>" />
+								</div>
 							</tr>
 					</table>
 				</td>
@@ -180,12 +182,11 @@
 			$("#ssh_user_id").val("0");
 			$("#ssh_username_prefix").show();
 			$("#ssh_user_name").prop("readonly", false).val("");
-			$("#ssh_user_password").val("");
-			$("#ssh_user_password_confirmation").val("");
+			$("#password, #cpassword").val("");
 			$("#ssh_user_key").prop("readonly", false).val("");
 		});
 
-		$page.on("click", "span[data-action], button", function (e) {
+		$page.on("click", "span[data-action], #actions button", function (e) {
 			e.preventDefault();
 
 			action = $(this).data('action');
@@ -208,8 +209,7 @@
 							$("#ssh_user_id").val(data.ssh_user_id);
 							$("#ssh_username_prefix").hide();
 							$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
-							$("#ssh_user_password").val("");
-							$("#ssh_user_password_confirmation").val("");
+							$("#password, #cpassword").val("");
 							$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
 							$("#ssh_user_key").val(data.ssh_user_key);
 						}

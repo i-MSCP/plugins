@@ -82,7 +82,7 @@ return array(
 	'This username is not available.' => 'Användarnamnet är inte tillgänglig.',
 	'You must enter an SSH key.' => 'Du måste ange en SSH-nyckel.',
 	'You must enter either a password, an SSH key or both.' => 'You must enter either a password, an SSH key or both.',
-	'Un-allowed password. Please use alphanumeric characters only.' => 'Un-tillåtet lösenord. Använd bara alfanumeriska tecken.',
+	'Un-allowed password. Please use ASCII characters only.' => 'Un-tillåtet lösenord. Använd bara ASCII tecken.',
 	'Wrong password length (Min 6 characters).' => 'Fel lösenord längd (Min 8 tecken).',
 	'Wrong password length (Max 32 characters).' => 'Fel lösenord längd (Max 32 tecken).',
 	'Passwords do not match.' => 'Lösenorden matchar inte.',

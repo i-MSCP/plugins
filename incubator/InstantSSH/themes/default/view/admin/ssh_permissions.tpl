@@ -41,7 +41,7 @@
 				<tbody>
 				<tr>
 					<td><label for="admin_name"><?= self::escapeHtml(tr('Reseller name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a reseller name', true));?>"></td>
+					<td><input type="text" name="admin_name" id="admin_name" autofocus placeholder="<?= self::escapeHtmlAttr(tr('Enter a reseller name', true));?>"></td>
 				</tr>
 				<tr>
 					<td>
@@ -151,7 +151,8 @@
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = "";
-					flashMessage("warning", "<?= self::escapeJs(tr('Unknown reseller. Please enter a valid reseller name.', true));?>");
+					$("#admin_name").addClass('ui-state-error');
+					flashMessage("error", "<?= self::escapeJs(tr('Unknown reseller. Please enter a valid reseller name.', true));?>");
 				}
 			}
 		});
@@ -159,7 +160,7 @@
 		var $page = $("#page");
 
 		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#admin_name").prop("readonly", false).val("");
+			$("#admin_name").prop("readonly", false).val("").focus();
 			$("#ssh_permission_auth_options").prop("checked", false);
 			$("#ssh_permission_jailed_shell").prop("checked", false);
 			$("#ssh_permission_id").val("0");

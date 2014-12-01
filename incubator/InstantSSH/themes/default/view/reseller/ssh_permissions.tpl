@@ -43,7 +43,7 @@
 				<tbody>
 				<tr>
 					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
+					<td><input type="text" name="admin_name" id="admin_name" autofocus placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
 				</tr>
 				<tr>
 					<td style="width:20%;">
@@ -177,7 +177,7 @@
 		var $page = $("#page");
 
 		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#admin_name").prop("readonly", false).val("");
+			$("#admin_name").prop("readonly", false).val("").focus();
 			$("#ssh_permission_max_users").val("0");
 			$("#ssh_permission_auth_options").prop("checked", false);
 			$("#ssh_permission_jailed_shell").prop("checked", false);

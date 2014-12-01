@@ -104,14 +104,13 @@ function addSshUser($pluginManager, $sshPermissions)
 		$plugin = $pluginManager->getPlugin('InstantSSH');
 
 		if(!$plugin->getConfigParam('passwordless_authentication', false)) {
-			if(isset($_POST['ssh_user_password']) && isset($_POST['ssh_user_password_confirmation'])) {
+			if(isset($_POST['ssh_user_password']) && isset($_POST['ssh_user_cpassword'])) {
 				$sshUserPassword = clean_input($_POST['ssh_user_password']);
-				$sshUserPasswordConfirmation = clean_input($_POST['ssh_user_password_confirmation']);
+				$sshUserPasswordConfirmation = clean_input($_POST['ssh_user_cpassword']);
 			} else {
 				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
 			}
 		}
-
 		/** @var \iMSCP_Plugin_InstantSSH $plugin */
 		$plugin = $pluginManager->getPlugin('InstantSSH');
 		$sshAuthOptions = $plugin->getConfigParam('default_ssh_auth_options', null);
@@ -162,8 +161,8 @@ function addSshUser($pluginManager, $sshPermissions)
 		}
 
 		if($sshUserPassword !== '') {
-			if(!preg_match('/^[[:alnum:]]+$/i', $sshUserPassword)) {
-				$errorMsgs[] = tr('Un-allowed password. Please use alphanumeric characters only.', true);
+			if(preg_match('/[^\x21-\x7e]/', $sshUserPassword)) {
+				$errorMsgs[] = tr('Un-allowed password. Please use ASCII characters only.', true);
 			} elseif (strlen($sshUserPassword) < 8) {
 				$errorMsgs[] = tr('Wrong password length (Min 6 characters).', true);
 			} elseif(strlen($sshUserPassword) > 32) {

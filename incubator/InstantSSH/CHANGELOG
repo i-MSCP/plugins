@@ -6,7 +6,7 @@ Version 3.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Action events to allow 3rd-party softwares to listen on those events
-	Added: Cascading permissions (admin -> reseller -> customer)
+	Added: Cascading permissions ( admin -> reseller -> customer )
 	Added: instant_ssh_users database table
 	Added: Dutch translation file
 	Added: Password authentication capability
@@ -14,6 +14,7 @@ Version 3.0.0
 	Changed: The plugin no longer use i-MSCP unix users
 	Fixed: Customer name must be checked for empty value before sending data ( InstantSSH/Admin - Autocomplete feature )
 	Fixed: Missing EOL in jailed passwd file resulting to corrupted file
+	Fixed: Wrong SQL statement in iMSCP_Plugin_InstantSSH::onAfterChangeDomainStatus()
 	Moved: Client interface into the domain section
 	Removed: instant_ssh_keys database table
 
