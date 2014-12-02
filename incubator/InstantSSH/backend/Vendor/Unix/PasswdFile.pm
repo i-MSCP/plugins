@@ -1,10 +1,9 @@
 package Unix::PasswdFile;
 
-# $Id: PasswdFile.pm,v 1.5 2000/05/02 15:58:36 ssnodgra Exp $
-
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use Unix::ConfigFile;
+use Tie::IxHash;
 
 require Exporter;
 
@@ -14,13 +13,13 @@ require Exporter;
 # Use EXPORT_OK instead. Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 # Implementation notes
 #
 # This module only adds a single field to the basic ConfigFile object. The field is called 'pwent' (password entry) and
 # is a hash of arrays (or, more properly, a reference to a hash of references to arrays!). The key is the username and
-# the array contents are the next six fields found in the password file.
+# the array contents are the next six fields found in the passwd file.
 
 # Preloaded methods go here.
 
@@ -28,6 +27,8 @@ $VERSION = '0.06';
 sub read
 {
 	my ($this, $fh) = @_;
+
+	tie %{$this->{pwent}}, 'Tie::IxHash';
 
 	while (<$fh>) {
 		chop;
@@ -51,7 +52,7 @@ sub user
 	return undef if @_ > 6;
 
 	# Need to pad the list to 6 elements or we might lose colons during commit
-	push @_, "" while @_ < 6;
+	push @_, '' while @_ < 6;
 
 	$this->{pwent}{$username} = [ @_ ];
 }
@@ -79,19 +80,23 @@ sub delete
 }
 
 # Return the list of usernames
-# Accepts a sorting order parameter: uid or name (default uid)
+# Accepts an optional sorting order parameter: uid or name
 sub users
 {
 	my $this = shift;
-	my $order = @_ ? shift : "uid";
+	my $order = shift;
 
 	return keys %{$this->{pwent}} unless wantarray;
 
-	if ($order eq "name") {
-		sort keys %{$this->{pwent}};
-	} else {
-		sort { $this->uid($a) <=> $this->uid($b) } keys %{$this->{pwent}};
-    }
+	if(defined $order) {
+		if ($order eq 'name') {
+			return sort keys %{$this->{pwent}};
+		} elsif($order = 'uid') {
+			return sort { $this->uid($a) <=> $this->uid($b) } keys %{$this->{pwent}};
+		}
+	}
+
+	keys %{$this->{pwent}};
 }
 
 # Returns the maximum UID in use in the file
@@ -118,14 +123,8 @@ sub write
 {
 	my ($this, $fh) = @_;
 
-	# Make sure to output root first if it exists
-	if (defined $this->user("root")) {
-		print $fh join(":", "root", $this->user("root")), "\n" or return 0;
-	}
-
-	foreach my $user ($this->users) {
-		next if ($user eq "root");
-		print $fh join(":", $user, $this->user($user)), "\n" or return 0;
+	for my $user ($this->users) {
+		print $fh join(':', $user, $this->user($user)), "\n" or return 0;
 	}
 
 	1;
@@ -140,7 +139,7 @@ sub passwd
 	my $username = shift;
 
 	return undef unless defined $this->{pwent}{$username};
-	 @_ ? $this->{pwent}{$username}[0] = shift : $this->{pwent}{$username}[0];
+	@_ ? $this->{pwent}{$username}[0] = shift : $this->{pwent}{$username}[0];
 }
 
 sub uid
@@ -188,13 +187,9 @@ sub shell
 	@_ ? $this->{pwent}{$username}[5] = shift : $this->{pwent}{$username}[5];
 }
 
-# Autoload methods go after =cut, and are processed by the autosplit program.
-
 1;
 
 __END__
-
-# Below is the stub of documentation for your module. You better edit it!
 
 =head1 NAME
 
@@ -209,7 +204,7 @@ Unix::PasswdFile - Perl interface to /etc/passwd format files
   $pw->delete("deadguy");
   $pw->passwd("johndoe", $pw->encpass("newpass"));
 
-  foreach $user ($pw->users) {
+  for $user ($pw->users) {
     print "Username: $user, Full Name: ", $pw->gecos($user), "\n";
   }
 
@@ -223,7 +218,7 @@ locking, getting colons in the right places, and all the other niggling details.
 
 =head1 METHODS
 
-=head2 commit( [BACKUPEXT] )
+=head2 commit( [ BACKUPEXT ] )
 
 See the Unix::ConfigFile documentation for a description of this method.
 
@@ -235,7 +230,7 @@ This method will delete the named user. It has no effect if the supplied user do
 
 See the Unix::ConfigFile documentation for a description of this method.
 
-=head2 gecos( USERNAME [,GECOS] )
+=head2 gecos( USERNAME [, GECOS ] )
 
 Read or modify a user's GECOS string (typically their full name).  Returns the GECOS string in either case.
 
@@ -243,7 +238,7 @@ Read or modify a user's GECOS string (typically their full name).  Returns the G
 
 Read or modify a user's GID.  Returns the GID in either case.
 
-=head2 home( USERNAME [,HOMEDIR] )
+=head2 home( USERNAME [, HOMEDIR ] )
 
 Read or modify a user's home directory.  Returns the home directory in either case.
 
@@ -252,11 +247,11 @@ Read or modify a user's home directory.  Returns the home directory in either ca
 This method returns the maximum UID in use by all users. If you pass in the optional IGNORE parameter, it will ignore
 all UIDs greater or equal to IGNORE when doing this calculation. This is useful for excluding accounts like nobody.
 
-=head2 new( FILENAME [,OPTIONS] )
+=head2 new( FILENAME [, OPTIONS ] )
 
 See the Unix::ConfigFile documentation for a description of this method.
 
-=head2 passwd( USERNAME [,PASSWD] )
+=head2 passwd( USERNAME [, PASSWD ] )
 
 Read or modify a user's password.  Returns the encrypted password in either case. If you have a plaintext password, use
 the encpass method to encrypt it before passing it to this method.
@@ -276,19 +271,20 @@ Read or modify a user's UID.  Returns the UID in either case.
 
 =head2 user( USERNAME [,PASSWD, UID, GID, GECOS, HOMEDIR, SHELL] )
 
-This method can add, modify, or return information about a user.  Supplied with a single username parameter, it will
+This method can add, modify, or return information about a user. Supplied with a single username parameter, it will
 return a six element list consisting of (PASSWORD, UID, GID, GECOS, HOMEDIR, SHELL), or undef if no such user exists.
-If you supply all seven parameters, the named user will be created or modified if it already exists.  The six element
+If you supply all seven parameters, the named user will be created or modified if it already exists. The six element
 list is also returned to you in this case.
 
 =head2 users( [SORTBY] )
 
-This method returns a list of all existing usernames. By default the list will be sorted in order of the UIDs of the
-users. You may also supply "name" as a parameter to the method to get the list sorted by username. In scalar context,
-this method returns the total number of users.
+This method returns a list of all existing usernames. You may supply "name" as a parameter to the method to get the list
+sorted by username or "uid" to get the list sorted by uid. In scalar context, this method returns the total number of
+users.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
+Laurent Declercq, l.declercq@nuxwin.com
 Steve Snodgrass, ssnodgra@fore.com
 
 =head1 SEE ALSO

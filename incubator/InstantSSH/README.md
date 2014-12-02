@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v3.0.0 (Not ready for use)
+## i-MSCP InstantSSH plugin v3.0.1
 
 Plugin allowing to provide full or restricted shell access to your customers.
 

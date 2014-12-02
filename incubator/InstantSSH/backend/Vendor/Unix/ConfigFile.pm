@@ -1,7 +1,5 @@
 package Unix::ConfigFile;
 
-# $Id: ConfigFile.pm,v 1.6 2000/05/02 15:49:19 ssnodgra Exp $
-
 use 5.004;
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $LOCKEXT);
@@ -21,7 +19,7 @@ require Exporter;
 $VERSION = '0.06';
 
 # Package variables
-my $SALTCHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/.";
+my $SALTCHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/.';
 
 # Preloaded methods go here.
 
@@ -39,8 +37,8 @@ sub new
 		locked => 0,
 		lockfh => undef,
 		lockfile => "$filename.lock",
-		locking => "dotlock",
-		mode => "r+",
+		locking => 'dotlock',
+		mode => 'r+',
 		seq => [ ]
 	};
 
@@ -57,8 +55,8 @@ sub new
 	$this->fh($fh);
 
 	# Do file locking - this must happen before read is called or we could end up with stale data in memory
-	if ($this->mode eq "r") {
-		$this->lock("shared") or return undef;
+	if ($this->mode eq 'r') {
+		$this->lock('shared') or return undef;
 	} else {
 		$this->lock() or return undef;
 	}
@@ -78,9 +76,9 @@ sub commit
 {
 	my ($this, %opt) = @_;
 
-	return 0 if $this->mode eq "r";
+	return 0 if $this->mode eq 'r';
 
-	my $tempname = $this->filename . ".tmp." . $$;
+	my $tempname = $this->filename . '.tmp.' . $$;
 	my $fh = new IO::File ">$tempname" or return 0;
 	my ($mode, $uid, $gid) = (stat $this->fh)[2,4,5];
 	chown $uid, $gid, $tempname;
@@ -173,12 +171,12 @@ sub lock
 {
 	my $this = shift;
 
-	return 1 if ($this->locking eq "none");
+	return 1 if ($this->locking eq 'none');
 	return 0 if $this->{locked};
 
-	if ($this->locking eq "flock") {
+	if ($this->locking eq 'flock') {
 		@_ ? flock $this->fh, LOCK_SH : flock $this->fh, LOCK_EX;
-	} elsif ($this->locking eq "dotlock") {
+	} elsif ($this->locking eq 'dotlock') {
 		# We only support exclusive locks with dotlock
 		my $fh = new IO::File $this->lockfile, O_CREAT|O_EXCL|O_RDWR;
 
@@ -199,15 +197,15 @@ sub unlock
 	# shutdown.  Thus, we now check if locked is set, which happens only if a lock is successfully acquired. This also
 	# prevents us from unlinking someone else's lock file.
 
-	return 1 if ($this->locking eq "none");
+	return 1 if ($this->locking eq 'none');
 	return 0 unless $this->{locked};
 
 	$this->{locked} = 0;
 
-	if ($this->locking eq "flock") {
+	if ($this->locking eq 'flock') {
 		flock $this->fh, LOCK_UN;
 		return 1;
-	} elsif ($this->locking eq "dotlock") {
+	} elsif ($this->locking eq 'dotlock') {
 		$this->lockfh->close() if defined($this->lockfh);
 		my $result = unlink $this->lockfile;
 		return ($result == 1);
@@ -272,7 +270,6 @@ sub seq_remove
 	0;
 }
 
-
 # Joinwrap is a utility function that happens to be useful in several modules
 # This thing was a bitch to get working 100% right, so use caution.
 sub joinwrap
@@ -335,7 +332,7 @@ The ConfigFile object also provides a sequencing API for modules that wish to pr
 file they read and write. The sequencer maintains a list of arbitrary data that a submodule may append, insert, and
 delete from. Use of the sequencer is completely optional.
 
-A module that subclasses from Unix::ConfigFile must, at a minimum, provide two methods, called "read" and "write". Both
+A module that subclasses from Unix::ConfigFile must, at a minimum, provide two methods, called 'read' and 'write'. Both
 methods will receive a filehandle as a parameter (besides the regular object parameter). The read method is called after
 the file is opened. It is expected to read in the configuration file and initialize the subclass-specific data
 structures associated with the object. The write method is called when an object is committed and is expected to write
@@ -347,8 +344,8 @@ out the new configuration to the supplied filehandle.
 
 This writes any changes you have made to the object back to disk. If you do not call commit, none of your changes will
 be reflected in the file you are modifying. Commit may not be called on files opened in read-only mode. There are some
-optional parameters that may be provided; these are passed in the form of key => value pairs. The "backup" option allows
-you to specify a file extension that will be used to save a backup of the original file. The "writeopts" option passes
+optional parameters that may be provided; these are passed in the form of key => value pairs. The 'backup' option allows
+you to specify a file extension that will be used to save a backup of the original file. The 'writeopts' option passes
 module-specific options through to the write method. It will accept any scalar for its value; typically this will be a
 list or hash reference. Commit returns 1 on success and 0 on failure.
 
@@ -361,14 +358,14 @@ this method does not actually make any use of the object that it is invoked on, 
 
 The new method constructs a new ConfigFile (or subclass) object using the specified FILENAME. There are several optional
 parameters that may be specified. Options must be passed as keyed pairs in the form of option => value. Valid options
-are "locking", "lockfile", "mode", and "readopts".
+are 'locking', 'lockfile', 'mode', and 'readopts'.
 
-The locking option determines what style of file locking is used; available styles are "dotlock", "flock", and "none".
-The default locking style is "dotlock". The "none" locking style causes no locking to be done, and all lock and unlock
+The locking option determines what style of file locking is used; available styles are 'dotlock', 'flock', and 'none'.
+The default locking style is 'dotlock'. The 'none' locking style causes no locking to be done, and all lock and unlock
 requests will return success. The lockfile option can be used to specify the lock filename used with dotlocking. The
-default is "FILENAME.lock", where FILENAME is the name of the file being opened.  The mode option allows the file open
-mode to be specified.  The default mode is "r+" (read/write), but "r" and "w" are accepted as well.  Finally, the
-readopts option allows module-specific options to be passed through to the read method.  It will accept any scalar for
+default is 'FILENAME.lock', where FILENAME is the name of the file being opened. The mode option allows the file open
+mode to be specified.  The default mode is 'r+' (read/write), but 'r' and 'w' are accepted as well. Finally, the
+readopts option allows module-specific options to be passed through to the read method. It will accept any scalar for
 its value; typically this will be a list or hash reference.
 
 =head1 DEVELOPER METHODS

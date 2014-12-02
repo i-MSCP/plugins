@@ -40,6 +40,7 @@ use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
 use Unix::PasswdFile;
+use Unix::ShadowFile;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -201,6 +202,8 @@ sub update
 					return 1;
 				}
 			}
+
+			undef $pw;
 		}
 
 		$rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'tochange'");
@@ -497,21 +500,57 @@ sub _addSshUser
 		my $pUserHomeDir = normalizePath($pwEntry[7]);
 		my $shell = ($data->{'ssh_user_jailed'})
 			? $self->{'config'}->{'shells'}->{'jailed'} : $self->{'config'}->{'shells'}->{'full'};
-		@cmd = (
-			((!getpwnam($data->{'ssh_user_name'})) ? 'useradd' : 'usermod'),
-			'-c', escapeShell('i-MSCP InstantSSH User'),
-			'-d', (($data->{'ssh_user_jailed'}) ? escapeShell($pUserHomeDir . '/./') : escapeShell($pUserHomeDir)),
-			'-g', escapeShell($pwEntry[3]),
-			'-o',
-			'-p', ((defined $data->{'ssh_user_password'}) ? escapeShell($data->{'ssh_user_password'}) : '!'),
-			'-s', escapeShell($shell),
-			'-u', escapeShell($pwEntry[2]),
-			escapeShell($data->{'ssh_user_name'})
-		);
-		$rs = execute("@cmd", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $rs && $stderr;
-		return $rs if $rs;
+
+		unless(getpwnam($data->{'ssh_user_name'})) {
+			@cmd = (
+				'useradd',
+				'-c', escapeShell('i-MSCP InstantSSH User'),
+				'-d', (($data->{'ssh_user_jailed'}) ? escapeShell($pUserHomeDir . '/./') : escapeShell($pUserHomeDir)),
+				'-g', escapeShell($pwEntry[3]),
+				'-o',
+				'-p', ((defined $data->{'ssh_user_password'}) ? escapeShell($data->{'ssh_user_password'}) : '!'),
+				'-s', escapeShell($shell),
+				'-u', escapeShell($pwEntry[2]),
+				escapeShell($data->{'ssh_user_name'})
+			);
+			$rs = execute("@cmd", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $rs && $stderr;
+			return $rs if $rs;
+		} else {
+			if(-f '/etc/shadow') { # On some systems, shadow passwords can be disabled
+				my $pw = Unix::PasswdFile->new('/etc/passwd');
+				$pw->home($data->{'ssh_user_name'}, ($data->{'ssh_user_jailed'}) ? $pUserHomeDir . '/./' : $pUserHomeDir);
+				$pw->shell($data->{'ssh_user_name'}, $shell);
+				unless($pw->commit()) {
+					error("Unable to update $data->{'ssh_user_name'} entry in /etc/passwd file");
+					return 1;
+				}
+				undef $pw;
+
+				my $sw = Unix::ShadowFile->new('/etc/shadow');
+				$sw->passwd(
+					$data->{'ssh_user_name'}, (defined $data->{'ssh_user_password'}) ? $data->{'ssh_user_password'} : '!'
+				);
+				unless($sw->commit()) {
+					error("Unable to update $data->{'ssh_user_name'} entry in /etc/shadow file");
+					return 1;
+				}
+				undef $sw;
+			} else {
+				my $pw = Unix::PasswdFile->new('/etc/passwd');
+				$pw->passwd(
+					$data->{'ssh_user_name'}, (defined $data->{'ssh_user_password'}) ? $data->{'ssh_user_password'} : '!'
+				);
+				$pw->home($data->{'ssh_user_name'}, ($data->{'ssh_user_jailed'}) ? $pUserHomeDir . '/./' : $pUserHomeDir);
+				$pw->shell($data->{'ssh_user_name'}, $shell);
+				unless($pw->commit()) {
+					error("Unable to update $data->{'ssh_user_name'} entry in /etc/passwd file");
+					return 1;
+				}
+				undef $pw;
+			}
+		}
 
 		my $jailBuilder;
 		eval {
@@ -528,7 +567,7 @@ sub _addSshUser
 		if($data->{'ssh_user_jailed'}) {
 			# Lock ssh user temporarely
 			@cmd = ('usermod', '-s', '/bin/false', '-L', escapeShell($data->{'ssh_user_name'}));
-			execute("@cmd", \$stdout, \$stderr);
+			$rs = execute("@cmd", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
@@ -629,9 +668,7 @@ sub _deleteSshUser
 		}
 
 		# Unjail user if needed
-		$rs = $jailBuilder->unjailUser(
-			$data->{'ssh_user_name'}, ($data->{'nb_ssh_users'} eq '0') ? undef : 'userEntriesOnly'
-		);
+		$rs = $jailBuilder->unjailUser($data->{'ssh_user_name'}, ($data->{'nb_ssh_users'} eq '0') ? undef : 'userOnly');
 		return $rs if $rs;
 
 		if($jailBuilder->existsJail() && $data->{'nb_ssh_users'} eq '0') {
@@ -646,12 +683,23 @@ sub _deleteSshUser
 			}
 		}
 
-		# Delete ssh user
-		@cmd = ('userdel', '-f', escapeShell($data->{'ssh_user_name'}));
-		$rs = execute("@cmd", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $rs && $stderr;
-		return $rs if $rs;
+		my $pw = Unix::PasswdFile->new('/etc/passwd');
+		$pw->delete($data->{'ssh_user_name'});
+		unless($pw->commit()) {
+			error("Unable to remove $data->{'ssh_user_name'} entry from /etc/passwd file");
+			return 1;
+		}
+		undef $pw;
+
+		if(-f '/etc/shadow') { # On some systems, shadow passwords can be disabled
+			my $sw = Unix::ShadowFile->new('/etc/shadow');
+			$sw->delete($data->{'ssh_user_name'});
+			unless($sw->commit()) {
+				error("Unable to remove $data->{'ssh_user_name'} entry from /etc/shadow file");
+				return 1;
+			}
+			undef $sw;
+		}
 
 		$rs = $self->{'eventManager'}->trigger('onAfterDeleteSshUser', $data);
 		return $rs if $rs;
