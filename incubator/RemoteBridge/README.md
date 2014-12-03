@@ -1,4 +1,4 @@
-### i-MSCP RemoteBridge plugin v0.0.7
+## i-MSCP RemoteBridge plugin v0.0.7
 
 Plugin providing an API which allows to manage i-MSCP accounts.
 
@@ -119,11 +119,6 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- get all users from a reseller
 
-**1.8.** action addmail
-
-	- Add mailaccounts for user 
-	(codesample: http://i-mscp.net/index.php/Thread/6511-Extended-RemoteBridge-plugin-UPDATE-2014-11-30/)
-	
 **2.** reseller_username (required)
 
 	- value: Username of the reseller account

@@ -5,11 +5,9 @@ i-MSCP RemoteBridge plugin ChangeLog
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Add: Add new Emailaddress 
-		- action 'addmail'
-
-	- Add: Check max. amount of mailadresses and max. quota for addmail action. 
-	- Add: Check for forward mailadresses if mailtype is 'normal_forward' or 'normal_mail,normal_forward'
+        - Add: Add mailaccount for mailbox and/or forwarding
+                - action 'addmail'
+			- adds mailaddress (mailbox and/or forwarding)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
