@@ -119,7 +119,11 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- get all users from a reseller
 
-**2.** reseller_username (required)
+**1.8.** action addmail
+
+        - adds mailaddress (mailbox and/or mail forwarding) to a domain
+
+***2.** reseller_username (required)
 
 	- value: Username of the reseller account
 
