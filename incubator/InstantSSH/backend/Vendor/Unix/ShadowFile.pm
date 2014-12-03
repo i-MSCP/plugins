@@ -279,6 +279,6 @@ Laurent Declercq, l.declercq@nuxwin.com
 
 =head1 SEE ALSO
 
-Unix::AliasFile, Unix::AutomountFile, Unix::ConfigFile, Unix::GroupFile
+Unix::PasswFile, Unix::AliasFile, Unix::AutomountFile, Unix::ConfigFile, Unix::GroupFile
 
 =cut

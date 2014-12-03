@@ -6,7 +6,7 @@ Version 3.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Unix::ShadowFile module which allow to handle the /etc/shadow file without use of system management commands
-	Fixed: Order for user entries must be kept when committing ( Unix::Passwd )
+	Fixed: Order for user entries must be kept when committing ( Unix::PasswdFile )
 	Fixed: Unable to delete SSH user ( xxxx is currently used by process xxxx userdel: cannot open /etc/subuid )
 
 ------------------------------------------------------------------------------------------------------------------------
