@@ -370,5 +370,5 @@ return array(
 		'groups' => array(
 			'root', 'www-data'
 		)
-	),
+	)
 );
