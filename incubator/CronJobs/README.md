@@ -19,26 +19,26 @@ interface. Indeed, administrators can set the user to use for the cron job execu
 
 Three types of cron jobs are available, which are in order: **Url**, **Jailed** and **Full**.
 
-**Note:** Both Jailed and Full cronjobs types include Url cron job.
-
 #### Url
 
 The Url cron jobs allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP(s) URL.
 
+This cron job type is always available. When full cron jobs is selected, the URL cron jobs are run using the wget
+command from the system, else, they are run using the wget command from the jailed cron environment.
+
 #### Jailed
 
 The jailed cron jobs allow to schedule commands which are run through /bin/sh (default) in a jailed cron environment.
-By default the plugin will create a jailed cron environment which provides Perl, PHP and the common UNIX utilities as
-provided by the BusyBox excutable.
+By default the plugin will create a jailed cron environment which provides PHP and a set of common UNIX utilities.
 
 Only one jailed cron environment is created for all jailed cron jobs. This is by design. The most important thing here
 is that the cron jobs cannot broke the whole system.
 
 ##### Jailed cron jobs availability
 
-The jailed cron jobs are available only when the InstantSSH plugin is also present on the system, whatever it is
-activated or not. The CronJobs plugin reuses the jail builder library which is provided by the InstantSSH plugin to
-build the jailed cron environment.
+The jailed cron jobs are available only when the [InstantSSH](../InstantSSH/README.md) plugin is also present on the
+system, whatever it is activated or not. The CronJobs plugin reuses the jail builder library which is provided by the
+InstantSSH plugin to build the jailed cron environment.
 
 #### Full
 
@@ -47,7 +47,7 @@ cron environment.
 
 ## Requirements
 
-* i-MSCP >= 1.1.15 (plugin api >= 0.2.13)
+* i-MSCP >= 1.1.17 (plugin api >= 0.2.13)
 * InstantSSH plugin >= 3.0.2 ( only if you want enable support for jailed cron jobs )
 
 ## Installation
