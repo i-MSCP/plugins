@@ -30,7 +30,7 @@ appearing in the the default authentication string must also be specified in the
 #### Jailed shells
 
 The Jailed shells allow you to provide SSH access to your customers in a restricted environment from which they can
-theorically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
+theoretically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the jails by simply adding the required application sections to the **app_sections**
 configuration option.

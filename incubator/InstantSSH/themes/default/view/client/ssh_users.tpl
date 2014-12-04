@@ -41,7 +41,7 @@
 					<span style="float:right;" id="ssh_username_prefix"><strong>{SSH_USERNAME_PREFIX}</strong></span>
 				</td>
 				<td>
-					<input type="text" name="ssh_user_name" id="ssh_user_name" maxlength="8" autofocus placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
+					<input type="text" name="ssh_user_name" id="ssh_user_name" maxlength="8" placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
 				</td>
 			</tr>
 			<!-- BDP: ssh_password_field_block -->
@@ -123,13 +123,7 @@
 	}
 
 	function flashMessage(type, message) {
-		$('<div />',
-			{
-				"class": type,
-				"html": $.parseHTML(message),
-				"hide": true
-			}
-		).prependTo(".body").trigger('message_timeout');
+		$("<div>", { "class": type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
 	}
 
 	$(document).ready(function () {
@@ -180,72 +174,70 @@
 			}
 		});
 
-		var $page = $("#page");
+		$("#page").
+			on("click", "input:reset", function () {
+				$("#ssh_user_name").prop("readonly", false);
+				$("#ssh_username_prefix").show();
+				$("input:hidden").val("0");
+			}).
+			on("click", "span[data-action]", function () { $("input:reset").click(); }).
+			on("click", "span[data-action], #actions button", function (e) {
+				e.preventDefault();
 
-		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#ssh_user_id").val("0");
-			$("#ssh_username_prefix").show();
-			$("#ssh_user_name").prop("readonly", false).val("");
-			$("#password, #cpassword").val("");
-			$("#ssh_user_key").prop("readonly", false).val("");
-		});
+				action = $(this).data('action');
+				sshUserName = $(this).data('ssh-user-name');
+				sshUserId = $(this).data('ssh-user-id');
 
-		$page.on("click", "span[data-action], #actions button", function (e) {
-			e.preventDefault();
-
-			action = $(this).data('action');
-			sshUserName = $(this).data('ssh-user-name');
-			sshUserId = $(this).data('ssh-user-id');
-
-			switch (action) {
-				case "add_ssh_user":
-					doRequest('POST', "add_ssh_user", $("#ssh_user_frm").serialize()).done(
-						function (data, textStatus, jqXHR) {
-							$("input:reset").trigger("click");
-							flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-							oTable.fnDraw();
-						}
-					);
-					break;
-				case "edit_ssh_user":
-					doRequest('GET', "get_ssh_user", { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
-						function (data) {
-							$("#ssh_user_id").val(data.ssh_user_id);
-							$("#ssh_username_prefix").hide();
-							$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
-							$("#password, #cpassword").val("");
-							$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
-							$("#ssh_user_key").val(data.ssh_user_key);
-						}
-					);
-					break;
-				case "delete_ssh_user":
-					if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?', true));?>")) {
-						doRequest("POST", action, { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
-							function (data) {
+				switch (action) {
+					case "add_ssh_user":
+						doRequest('POST', "add_ssh_user", $("#ssh_user_frm").serialize()).done(
+							function (data, textStatus, jqXHR) {
+								$("input:reset").trigger("click");
+								flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
 								oTable.fnDraw();
-								flashMessage('success', data.message);
 							}
 						);
-					}
-					break;
-				default:
-					alert("<?= self::escapeJs(tr('Unknown action.', true));?>");
-			}
-		});
+						break;
+					case "edit_ssh_user":
+						doRequest('GET', "get_ssh_user", { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
+							function (data) {
+								$("#ssh_user_id").val(data.ssh_user_id);
+								$("#ssh_username_prefix").hide();
+								$("#ssh_user_name").val(data.ssh_user_name).prop("readonly", true);
+								$("#password, #cpassword").val("");
+								$("#ssh_user_auth_options").val(data.ssh_user_auth_options);
+								$("#ssh_user_key").val(data.ssh_user_key);
+							}
+						);
+						break;
+					case "delete_ssh_user":
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?', true));?>")) {
+							doRequest("POST", action, { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
+								function (data) {
+									oTable.fnDraw();
+									flashMessage('success', data.message);
+								}
+							);
+						}
+						break;
+					default:
+						alert("<?= self::escapeJs(tr('Unknown action.', true));?>");
+				}
+			});
 
-		$(document).ajaxStart(function () { oTable.fnProcessingIndicator(); });
-		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false); });
-		$(document).ajaxError(function (e, jqXHR, settings, exception) {
-			if (jqXHR.status == 403) {
-				window.location.href = '/index.php';
-			} else if (jqXHR.responseJSON != "") {
-				flashMessage("error", jqXHR.responseJSON.message);
-			} else if (exception == "timeout") {
-				flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
-			} else {
-				flashMessage("error", "<?= self::escapeHtmlAttr(tr('An unexpected error occurred.', true));?>");
-			}
-		});
+		$(document).
+			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxError(function (e, jqXHR, settings, exception) {
+				if (jqXHR.status == 403) {
+					window.location.href = '/index.php';
+				} else if (jqXHR.responseJSON != "") {
+					flashMessage("error", jqXHR.responseJSON.message);
+				} else if (exception == "timeout") {
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+				} else {
+					flashMessage("error", "<?= self::escapeHtmlAttr(tr('An unexpected error occurred.', true));?>");
+				}
+			});
 	});
 </script>

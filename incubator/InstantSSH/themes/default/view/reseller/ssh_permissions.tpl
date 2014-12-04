@@ -43,7 +43,7 @@
 				<tbody>
 				<tr>
 					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" autofocus placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
+					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
 				</tr>
 				<tr>
 					<td style="width:20%;">
@@ -99,13 +99,7 @@
 	var oTable;
 
 	function flashMessage(type, message) {
-		$('<div />',
-			{
-				"class": "flash_message " + type,
-				"html": $.parseHTML(message),
-				"hide": true
-			}
-		).prependTo(".body").trigger('message_timeout');
+		$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
 	}
 
 	function doRequest(rType, action, data) {
@@ -178,89 +172,82 @@
 			}
 		});
 
-		var $page = $("#page");
+		$("#page").
+			on("click", "input:reset", function () { $("#admin_name").prop("readonly", false); $("input:hidden").val("0"); }).
+			on("click", "span[data-action]", function () { $("input:reset").click(); }).
+			on("click", "span[data-action],button", function (e) {
+				e.preventDefault();
 
-		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#admin_name").prop("readonly", false).val("").focus();
-			$("#ssh_permission_max_users").val("0");
-			$("#ssh_permission_auth_options").prop("checked", false);
-			$("#ssh_permission_jailed_shell").prop("checked", false);
-			$("#ssh_permission_id").val("0");
-			$("ssh_permission_admin_id").val("0");
-		});
+				action = $(this).data("action");
 
-		$page.on("click", "span[data-action],button", function (e) {
-			e.preventDefault();
-
-			action = $(this).data("action");
-
-			switch (action) {
-				case "add_ssh_permissions":
-					if($("#admin_name").val() != '') {
-						doRequest("POST", action, $("#ssh_permissions_frm").serialize()).done(
-							function (data, textStatus, jqXHR) {
-								$("input:reset").trigger("click");
-								flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-								oTable.fnDraw();
-							}
-						);
-					} else if(!$(".flash_message").length) {
-						flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.', true));?>")
-					}
-					break;
-				case "edit_ssh_permissions":
-					doRequest(
-						"GET",
-						"get_ssh_permissions",
-						{
-							ssh_permission_id: $(this).data("ssh-permission-id"),
-							ssh_permission_admin_id: $(this).data("ssh-permission-admin-id"),
-							admin_name: $(this).data("admin-name")
+				switch (action) {
+					case "add_ssh_permissions":
+						if($("#admin_name").val() != '') {
+							doRequest("POST", action, $("#ssh_permissions_frm").serialize()).done(
+								function (data, textStatus, jqXHR) {
+									$("input:reset").click();
+									flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
+									oTable.fnDraw();
+								}
+							);
+						} else if(!$(".flash_message").length) {
+							flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.', true));?>")
 						}
-					).done(function (data) {
-							$("#admin_name").val(data.admin_name).prop("readonly", true);
-							$("#ssh_permission_max_users").val(data.ssh_permission_max_users);
-							$("#ssh_permission_auth_options").prop("checked", (data.ssh_permission_auth_options > 0));
-							$("#ssh_permission_jailed_shell").prop("checked", (data.ssh_permission_jailed_shell > 0));
-							$("#ssh_permission_id").val(data.ssh_permission_id);
-							$("#ssh_permission_admin_id").val(data.ssh_permission_admin_id);
-						});
-					break;
-				case "delete_ssh_permissions":
-					if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?', true));?>")) {
+						break;
+					case "edit_ssh_permissions":
 						doRequest(
-							"POST",
-							"delete_ssh_permissions",
+							"GET",
+							"get_ssh_permissions",
 							{
 								ssh_permission_id: $(this).data("ssh-permission-id"),
 								ssh_permission_admin_id: $(this).data("ssh-permission-admin-id"),
 								admin_name: $(this).data("admin-name")
 							}
 						).done(function (data) {
-							oTable.fnDraw();
-							flashMessage("success", data.message);
-						});
-					}
-					break;
-				default:
-					flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
-			}
-		});
+								$("#admin_name").val(data.admin_name).prop("readonly", true);
+								$("#ssh_permission_max_users").val(data.ssh_permission_max_users);
+								$("#ssh_permission_auth_options").prop("checked", (data.ssh_permission_auth_options > 0));
+								$("#ssh_permission_jailed_shell").prop("checked", (data.ssh_permission_jailed_shell > 0));
+								$("#ssh_permission_id").val(data.ssh_permission_id);
+								$("#ssh_permission_admin_id").val(data.ssh_permission_admin_id);
+							});
+						break;
+					case "delete_ssh_permissions":
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?', true));?>")) {
+							doRequest(
+								"POST",
+								"delete_ssh_permissions",
+								{
+									ssh_permission_id: $(this).data("ssh-permission-id"),
+									ssh_permission_admin_id: $(this).data("ssh-permission-admin-id"),
+									admin_name: $(this).data("admin-name")
+								}
+							).done(function (data) {
+								oTable.fnDraw();
+								flashMessage("success", data.message);
+							});
+						}
+						break;
+					default:
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
+				}
+			});
 
-		$(document).ajaxStart(function () { oTable.fnProcessingIndicator();});
-		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
-		$(document).ajaxError(function (e, jqXHR, settings, exception) {
-			if(jqXHR.status == 403) {
-				window.location.href = "/index.php";
-			} else if(jqXHR.status == 409) {
-				flashMessage("warning", jqXHR.responseJSON.message);
-			} else if (jqXHR.responseJSON != "") {
-				flashMessage("error", jqXHR.responseJSON.message);
-			} else if (exception == "timeout") {
-				flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
-			} else {
-				flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
-			}
-		});
+		$(document).
+			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxError(function (e, jqXHR, settings, exception) {
+				if(jqXHR.status == 403) {
+					window.location.href = "/index.php";
+				} else if(jqXHR.status == 409) {
+					flashMessage("warning", jqXHR.responseJSON.message);
+				} else if (jqXHR.responseJSON != "") {
+					flashMessage("error", jqXHR.responseJSON.message);
+				} else if (exception == "timeout") {
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+				} else {
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
+				}
+			});
 	});
 </script>

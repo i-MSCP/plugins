@@ -81,7 +81,7 @@ return array(
 	'The username is too long (Max 8 characters).' => "Le nom d'utilisateur est trop long (8 charactères maximum).",
 	'This username is not available.' => "Ce nom d'utilisateur n'est pas disponible.",
 	'You must enter an SSH key.' => 'Vous devez entrer une clé SSH.',
-	'You must enter either a password, an SSH key or both.' => 'You must enter either a password, an SSH key or both.',
+	'You must enter either a password, an SSH key or both.' => 'Vous devez entrer un mot de passe, une clé SSH ou les deux.',
 	'Un-allowed password. Please use ASCII characters only.' => "Mot de passe non-autorisé. Veuillez n'utiliser que des caractères ASCII.",
 	'Wrong password length (Min 8 characters).' => 'Mauvaise longueur de mot de passe (8 caractères minimum).',
 	'Wrong password length (Max 32 characters).' => 'Mauvaise longueur de mot de passe (32 caractères maximum).',
