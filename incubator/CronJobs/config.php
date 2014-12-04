@@ -22,15 +22,15 @@
 $pluginManager = iMSCP_Registry::get('pluginManager');
 
 if($pluginManager->isPluginKnown('InstantSSH')) {
-	if(
-		isset($instantConfig['makejail_path']) && isset($instantConfig['preserve_files']) &&
-		isset($instantConfig['bashshell']) && isset($instantConfig['uidbasics']) &&
-		isset($instantConfig['netbasics']) && isset($instantConfig['netutils']) &&
-		isset($instantConfig['rsync']) && isset($instantConfig['mysqltools']) &&
-		isset($instantConfig['php'])
-	) {
-		$instantConfig = $pluginManager->getPlugin('InstantSSH')->getConfig();
+	$instantSSHConfig = $pluginManager->getPlugin('InstantSSH')->getConfig();
 
+	if(
+		isset($instantSSHConfig['makejail_path']) && isset($instantSSHConfig['preserve_files']) &&
+		isset($instantSSHConfig['bashshell']) && isset($instantSSHConfig['uidbasics']) &&
+		isset($instantSSHConfig['netbasics']) && isset($instantSSHConfig['netutils']) &&
+		isset($instantSSHConfig['rsync']) && isset($instantSSHConfig['mysqltools']) &&
+		isset($instantSSHConfig['php'])
+	) {
 		$config = array(
 			// Root jail directory (default: /var/chroot/CronJobs)
 			//
@@ -41,14 +41,14 @@ if($pluginManager->isPluginKnown('InstantSSH')) {
 			'root_jail_dir' => '/var/chroot/CronJobs',
 
 			// Se InstantSSH/config.php
-			'makejail_path' => $instantConfig['makejail_path'],
+			'makejail_path' => $instantSSHConfig['makejail_path'],
 
 			// Makejail configuration directory (default: <CONF_DIR>/CronJobs)
 			// Don't change this parameter unless you know what you are doing
 			'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
 
 			// See InstantSSH/config.php
-			'preserve_files' => $instantConfig['preserve_files'],
+			'preserve_files' => $instantSSHConfig['preserve_files'],
 
 			// Selected application sections for jailed cron environment (default: default)
 			//
@@ -64,13 +64,13 @@ if($pluginManager->isPluginKnown('InstantSSH')) {
 			// See InstanSSH configuration file for more details about how to define your own application sections
 
 			// See InstantSSH/config.php
-			'bashshell' => $instantConfig['bashshell'],
-			'uidbasics', $instantConfig['uidbasics'],
-			'netbasics' => $instantConfig['netbasics'],
-			'netutils' => $instantConfig['netutils'],
-			'rsync' => $instantConfig['rsync'],
-			'mysqltools' => $instantConfig['mysqltools'],
-			'php' => $instantConfig['php'],
+			'bashshell' => $instantSSHConfig['bashshell'],
+			'uidbasics', $instantSSHConfig['uidbasics'],
+			'netbasics' => $instantSSHConfig['netbasics'],
+			'netutils' => $instantSSHConfig['netutils'],
+			'rsync' => $instantSSHConfig['rsync'],
+			'mysqltools' => $instantSSHConfig['mysqltools'],
+			'php' => $instantSSHConfig['php'],
 
 			# cron section
 			'cron' => array(
@@ -98,7 +98,7 @@ if($pluginManager->isPluginKnown('InstantSSH')) {
 		);
 	}
 
-	unset($pluginManager, $instantConfig);
+	unset($pluginManager, $instantSSHConfig);
 } else {
 	$config = array();
 }
