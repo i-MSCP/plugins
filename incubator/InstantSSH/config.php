@@ -19,7 +19,6 @@
  */
 
 return array(
-
 	// SSH user name prefix ( default: imscp_ )
 	'ssh_user_name_prefix' => 'imscp_',
 
@@ -340,6 +339,25 @@ return array(
 		)
 	),
 
+	# php section
+	# Provide PHP (CLI) and common modules ( if installed on the system )
+	'php' => array(
+		'paths' => array(
+			'/usr/bin/php',
+			'/etc/php5/cli/php.ini',
+			'/etc/php5/cli/conf.d/*mysqlnd.ini', '/usr/lib/php5/*/mysqlnd.so',
+			'/etc/php5/cli/conf.d/*pdo.ini', '/usr/lib/php5/*/pdo.so',
+			'/etc/php5/cli/conf.d/*gd.ini', '/usr/lib/php5/*/gd.so',
+			'/etc/php5/cli/conf.d/*intl.ini', '/usr/lib/php5/*/intl.so',
+			'/etc/php5/cli/conf.d/*json.ini', '/usr/lib/php5/*/json.so',
+			'/etc/php5/cli/conf.d/*mcrypt.ini', '/usr/lib/php5/*/mcrypt.so',
+			'/etc/php5/cli/conf.d/*mysql.ini', '/usr/lib/php5/*/mysql.so',
+			'/etc/php5/cli/conf.d/*mysqli.ini', '/usr/lib/php5/*/mysqli.so',
+			'/etc/php5/cli/conf.d/*pdo_mysql.ini', '/usr/lib/php5/*/pdo_mysql.so',
+			'/etc/php5/cli/conf.d/*readline.ini', '/usr/lib/php5/*/readline.so'
+		)
+	),
+
 	// imscpbase section
 	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell environments
 	'imscpbase' => array(
@@ -352,5 +370,5 @@ return array(
 		'groups' => array(
 			'root', 'www-data'
 		)
-	)
+	),
 );
