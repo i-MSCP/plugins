@@ -18,14 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-namespace Cronjobs\Exception;
+return array(
 
-use iMSCP_Plugin_Exception;
-
-/**
- * Class Cronjob
- * @package Cronjobs\Exception
- */
-class CronjobException extends iMSCP_Plugin_Exception
-{
-}
+);

@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-namespace Cronjobs\Utils;
+namespace CronJobs\Utils;
 
-use Cronjobs\Exception\CronjobException;
+use CronJobs\Exception\CronjobException;
 use Zend_Uri_Http as HttpUri;
 
 /**
@@ -38,43 +38,52 @@ final class Cronjob
 	private function __construct() { }
 
 	/**
-	 * Validates all cronjob attributes
+	 * Validates all cron job attributes
 	 *
-	 * @throws CronjobException if the given cronjob is not valid
-	 * @param string $minute Minute at which the cronjob must be executed
-	 * @param string $hour Hour at which the cronjob must be executed
-	 * @param string $dmonth Day of month at which the cronjob must be executed
-	 * @param string $month Month in which the cronjob must be executed
-	 * @param string $dweek Day of week at which the cronjob must be executed
-	 * @param string $user User under which cronjob command must be executed
-	 * @param string $command Cronjob command
-	 * @param string $type Cronjob type
+	 * @throws CronjobException if the given cron job is not valid
+	 * @param string $minute Minute at which the cron job must be executed
+	 * @param string $hour Hour at which the cron job must be executed
+	 * @param string $dmonth Day of month at which the cron job must be executed
+	 * @param string $month Month in which the cron job must be executed
+	 * @param string $dweek Day of week at which the cron job must be executed
+	 * @param string $user User under which cron job command must be executed
+	 * @param string $command Cron job command
+	 * @param string $type Cron job type
 	 */
 	public static function validate($minute, $hour, $dmonth, $month, $dweek, $user, $command, $type)
 	{
 		if(in_array($type, array('url', 'jailed', 'full'))) {
-			self::validateAttribute('minute', $minute);
-			self::validateAttribute('hour', $hour);
-			self::validateAttribute('dmonth', $dmonth);
-			self::validateAttribute('month', $month);
-			self::validateAttribute('dweek', $dweek);
-			self::validateCommand($user, $command, $type);
+			if(
+				in_array(
+					$minute,
+					array('@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly')
+				)
+			) {
+				self::validateCommand($user, $command, $type);
+			} else {
+				self::validateAttribute('minute', $minute);
+				self::validateAttribute('hour', $hour);
+				self::validateAttribute('dmonth', $dmonth);
+				self::validateAttribute('month', $month);
+				self::validateAttribute('dweek', $dweek);
+				self::validateCommand($user, $command, $type);
+			}
 		} else {
-			throw new CronjobException('Invalid cronjob type');
+			throw new CronjobException(tr('Invalid cron job type: %s', true, $type));
 		}
 	}
 
 	/**
-	 * Validates a cronjob attribute
+	 * Validates a cron job attribute
 	 *
-	 * @throws CronjobException if the given cronjob attribute value is not valid
-	 * @param string $name Cronjob attribute name
-	 * @param string $value Cronjob attribute value
+	 * @throws CronjobException if the given cron job attribute value is not valid
+	 * @param string $name Cron job attribute name
+	 * @param string $value Cron job attribute value
 	 */
 	protected static function validateAttribute($name, $value)
 	{
 		if ($value === '') {
-			throw new CronjobException(sprintf("Value for the '%s' cronjob attribute cannot be empty", $name));
+			throw new CronjobException(tr("Value for the '%s' cron job attribute cannot be empty", true, $name));
 		}
 
 		$pattern = '';
@@ -89,21 +98,21 @@ final class Cronjob
 				$pattern = '[ ]*(\b[0-5]?[0-9]\b)[ ]*';
 				break;
 			// check if hour attribute is a valid hour or a list of valid hours
-			case 'cron_job_hour':
+			case 'hour':
 				$pattern = '[ ]*(\b[01]?[0-9]\b|\b2[0-3]\b)[ ]*';
 				break;
 			// check if dmonth attribute is a valid day of month or a list of valid days of month
-			case 'cron_job_dmonth':
+			case 'dmonth':
 				$pattern = '[ ]*(\b[01]?[1-9]\b|\b2[0-9]\b|\b3[01]\b)[ ]*';
 				break;
 			// check if month attribute is a valid month or a list of valid months
-			case 'cron_job_month':
+			case 'month':
 				$digits = '[ ]*(\b[0-1]?[0-9]\b)[ ]*';
 				$namesArr = explode('|', $months);
 				$pattern = '(' . $digits . ')|([ ]*(' . $months . ')[ ]*)';
 				break;
 			// check if dweek attribute is a valid day of week or a list of valid days of week
-			case 'cron_job_dweek':
+			case 'dweek':
 				$digits = '[ ]*(\b[0]?[0-7]\b)[ ]*';
 				$namesArr = explode('|', $days);
 				$pattern = '(' . $digits . ')|([ ]*(' . $days . ')[ ]*)';
@@ -115,9 +124,10 @@ final class Cronjob
 
 		$longPattern = '/^' . $range . '(,' . $range . ')*$/i';
 
-		preg_match($longPattern, $value);
 		if ($value != '*' && !preg_match($longPattern, $value)) {
-			throw new CronjobException("invalid value '" . $value . "' given for cronjob attribute '" . $name . "'");
+			throw new CronjobException(
+				tr("Invalid value '%s' given for the '%s' cron job attribute ", true, $value, $name)
+			);
 		} else {
 			// Test whether the user provided a meaningful order inside a range
 			$testArr = explode(',', $value);
@@ -148,7 +158,7 @@ final class Cronjob
 					// now check the values
 					if (intval($left) > intval($right)) {
 						throw new CronjobException(
-							sprintf("Invalid value '%s' given for the '%s' cronjob attribute", $value, $name)
+							tr("Invalid value '%s' given for the '%s' cron job attribute.", true, $value, $name)
 						);
 					}
 				}
@@ -157,19 +167,17 @@ final class Cronjob
 	}
 
 	/**
-	 * Validates a cronjob command
+	 * Validates a cron job command
 	 *
-	 * @throws CronjobException if the cronjob user or cronjob command is no valid
-	 * @param string $user User under which the cronjob command should be executed
-	 * @param string $command Cronjob command
-	 * @param string $type Cronjob type
+	 * @throws CronjobException if the cron job user or cron job command is no valid
+	 * @param string $user User under which the cron job command should be executed
+	 * @param string $command Cron job command
+	 * @param string $type Cron job type
 	 */
 	protected static function validateCommand($user, $command, $type)
 	{
-		if(function_exists('posix_getgrnam')) {
-			if(!posix_getgrnam($user)) {
-				throw new CronjobException("User for cronjob 'command' attribute must be a valid unix user");
-			}
+		if(!posix_getgrnam($user)) {
+				throw new CronjobException(tr('Cron job user attribute must be a valid unix user.', true));
 		}
 
 		if($type == 'url') {
@@ -177,10 +185,14 @@ final class Cronjob
 				$httpUri = HttpUri::fromString($command);
 
 				if(!$httpUri->valid($command)) {
-					throw new CronjobException("command for Url cronjob must be a valid Http URL");
+					throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
+				} elseif($httpUri->getUsername() || $httpUri->getPassword()) {
+					throw new CronjobException(
+						tr('Url cron job must not contain any username/password for security reasons.', true)
+					);
 				}
 			} catch(\Exception $e) {
-				throw new CronjobException($e->getMessage(), $e->getCode(), $e);
+				throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
 			}
 		}
 	}

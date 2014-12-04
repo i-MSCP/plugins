@@ -18,6 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+namespace CronJobs\Reseller;
+
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Exception_Database as DatabaseException;
+use iMSCP_Plugin_CronJobs as PluginCronJobs;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
+use PDO;
+
 /***********************************************************************************************************************
  * Functions
  */
@@ -29,7 +41,7 @@
  * @param array $data JSON data
  * @return void
  */
-function _cronjobs_sendJsonResponse($statusCode = 200, array $data = array())
+function _sendJsonResponse($statusCode = 200, array $data = array())
 {
 	header('Cache-Control: no-cache, must-revalidate');
 	header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -60,7 +72,7 @@ function _cronjobs_sendJsonResponse($statusCode = 200, array $data = array())
  *
  * @return void
  */
-function cronjobs_getCronPermissions()
+function getCronPermissions()
 {
 	if (isset($_GET['cron_permission_id'])) {
 		try {
@@ -80,28 +92,29 @@ function cronjobs_getCronPermissions()
 			);
 
 			if ($stmt->rowCount()) {
-				_cronjobs_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
+				_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 
-			_cronjobs_sendJsonResponse(404, array('message' => tr('Cron permissions not found.')));
-		} catch (iMSCP_Exception_Database $e) {
+			_sendJsonResponse(404, array('message' => tr('Cron permissions not found.')));
+		} catch (DatabaseException $e) {
 			write_log(sprintf('CronJobs: Unable to get cron permissions: %s', $e->getMessage()), E_USER_ERROR);
 
-			_cronjobs_sendJsonResponse(
+			_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your administrator'))
 			);
 		}
 	}
 
-	_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
  * Add/Update cron permissions
  *
+ * @param array $cronPermissions Cron permissions
  * @return void
  */
-function cronjobs_addCronPermissions()
+function addCronPermissions($cronPermissions)
 {
 	if (
 		isset($_POST['cron_permission_id']) && isset($_POST['admin_name']) && isset($_POST['cron_permission_type']) &&
@@ -113,14 +126,14 @@ function cronjobs_addCronPermissions()
 		$cronPermissionFrequency = clean_input($_POST['cron_permission_frequency']);
 
 		if ($adminName == '' || $cronPermissionFrequency == '') {
-			_cronjobs_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+			_sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		} elseif (!is_number($cronPermissionFrequency)) {
-			_cronjobs_sendJsonResponse(
+			_sendJsonResponse(
 				400, array('message' => tr("Wrong value for the 'Job frequency' field. Please, enter a number."))
 			);
 		}
 
-		$db = iMSCP_Database::getInstance();
+		$db = Database::getInstance();
 
 		try {
 			$db->beginTransaction();
@@ -157,9 +170,7 @@ function cronjobs_addCronPermissions()
 
 					write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
 
-					_cronjobs_sendJsonResponse(
-						200, array('message' => tr('Cron permissions were scheduled for addition.'))
-					);
+					_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for addition.')));
 				}
 			} else { // Update cron permissions
 				$stmt = exec_query(
@@ -192,10 +203,10 @@ function cronjobs_addCronPermissions()
 
 					write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
 
-					_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for update.')));
+					_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for update.')));
 				}
 			}
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (DatabaseException $e) {
 			$db->rollBack();
 
 			if ($e->getCode() != '23000') {
@@ -204,7 +215,7 @@ function cronjobs_addCronPermissions()
 					E_USER_ERROR
 				);
 
-				_cronjobs_sendJsonResponse(
+				_sendJsonResponse(
 					500, array('message' => tr('An unexpected error occurred. Please contact your administrator')
 					)
 				);
@@ -212,7 +223,7 @@ function cronjobs_addCronPermissions()
 		}
 	}
 
-	_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -220,7 +231,7 @@ function cronjobs_addCronPermissions()
  *
  * @return void
  */
-function cronjobs_deleteCronPermissions()
+function deleteCronPermissions()
 {
 	if (isset($_POST['cron_permission_id'])) {
 		$cronPermissionId = intval($_POST['cron_permission_id']);
@@ -250,21 +261,21 @@ function cronjobs_deleteCronPermissions()
 					E_USER_NOTICE
 				);
 
-				_cronjobs_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for deletion.')));
+				_sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for deletion.')));
 			}
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (DatabaseException $e) {
 			write_log(
 				sprintf('CronJobs: Unable to delete cron permissions with ID %s: %s', $cronPermissionId, $e->getMessage()),
 				E_USER_ERROR
 			);
 
-			_cronjobs_sendJsonResponse(
+			_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your administrator'))
 			);
 		}
 	}
 
-	_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -274,7 +285,7 @@ function cronjobs_deleteCronPermissions()
  *
  * @return void
  */
-function cronjobs_searchCustomer()
+function searchCustomer()
 {
 	if (isset($_GET['term'])) {
 		$term = encode_idna(clean_input($_GET['term'])) . '%';
@@ -307,17 +318,17 @@ function cronjobs_searchCustomer()
 				$responseData = array();
 			}
 
-			_cronjobs_sendJsonResponse(200, $responseData);
-		} catch (iMSCP_Exception_Database $e) {
+			_sendJsonResponse(200, $responseData);
+		} catch (DatabaseException $e) {
 			write_log(sprintf('CronJobs: Unable to search customer: %s', $e->getMessage()), E_USER_ERROR);
 
-			_cronjobs_sendJsonResponse(
+			_sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred. Please contact your administrator'))
 			);
 		}
 	}
 
-	_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -325,16 +336,13 @@ function cronjobs_searchCustomer()
  *
  * @return void
  */
-function cronjobs_getCronPermissionsList()
+function getCronPermissionsList()
 {
 	try {
-		$columns = array(
-			'cron_permission_id', 'cron_permission_admin_id', 'admin_name', 'cron_permission_type',
-			'cron_permission_frequency', 'cron_permission_status'
-		);
+		// Filterable, orderable columns
+		$columns = array('admin_name', 'cron_permission_type', 'cron_permission_frequency', 'cron_permission_status');
 
 		$nbColumns = count($columns);
-
 		$indexColumn = 'cron_permission_id';
 
 		/* DB table to use */
@@ -369,7 +377,7 @@ function cronjobs_getCronPermissionsList()
 		/* Filtering */
 		$where = 'WHERE created_by =' . intval($_SESSION['user_id']);
 
-		if ($_REQUEST['sSearch'] != '') {
+		if ($_GET['sSearch'] != '') {
 			$where .= 'AND (';
 
 			for ($i = 0; $i < $nbColumns; $i++) {
@@ -391,7 +399,8 @@ function cronjobs_getCronPermissionsList()
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . "
+					SQL_CALC_FOUND_ROWS cron_permission_id, cron_permission_admin_id,
+			' . str_replace(' , ', ' ', implode(', ', $columns)) . "
 				FROM
 					$table
 				INNER JOIN
@@ -466,73 +475,65 @@ function cronjobs_getCronPermissionsList()
 			$output['aaData'][] = $row;
 		}
 
-		_cronjobs_sendJsonResponse(200, $output);
-	} catch (iMSCP_Exception_Database $e) {
+		_sendJsonResponse(200, $output);
+	} catch (DatabaseException $e) {
 		write_log(sprintf('CronJobs: Unable to get cron permissions list: %s', $e->getMessage()), E_USER_ERROR);
 
-		_cronjobs_sendJsonResponse(
+		_sendJsonResponse(
 			500, array('message' => tr('An unexpected error occurred. Please contact your administrator'))
 		);
 	}
 
-	_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptStart);
+EventsAggregator::getInstance()->dispatch(Events::onResellerScriptStart);
 
 check_login('reseller');
 
-$stmt = exec_query(
-	'
-		SELECT
-			cron_permission_type, cron_permission_frequency
-		FROM
-			cron_permissions
-		WHERE
-			cron_permission_admin_id = ?
-	',
-	$_SESSION['user_id']
-);
+/** @var PluginManager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
 
-if ($stmt->rowCount()) {
-	$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-	iMSCP_Registry::set('cron_permission_type', $row['cron_permission_type']);
-	iMSCP_Registry::set('cron_permission_frequency', $row['cron_permission_frequency']);
-	unset($row);
+/** @var PluginCronJobs $cronjobsPlugin */
+$cronjobsPlugin = $pluginManager->getPlugin('CronJobs');
 
+$cronPermissions = $cronjobsPlugin->getCronPermissions(intval($_SESSION['user_id']));
+unset($cronjobsPlugin);
+
+if ($cronPermissions) {
 	if (isset($_REQUEST['action'])) {
 		if (is_xhr()) {
 			$action = clean_input($_REQUEST['action']);
 
 			switch ($action) {
 				case 'get_cron_permissions_list':
-					cronjobs_getCronPermissionsList();
+					getCronPermissionsList();
 					break;
 				case 'search_customer':
-					cronjobs_searchCustomer();
+					searchCustomer();
 					break;
 				case 'add_cron_permissions':
-					cronjobs_addCronPermissions();
+					addCronPermissions($cronPermissions);
 					break;
 				case 'get_cron_permissions':
-					cronjobs_getCronPermissions();
+					getCronPermissions();
 					break;
 				case 'delete_cron_permissions':
-					cronjobs_deleteCronPermissions();
+					deleteCronPermissions();
 					break;
 				default:
-					_cronjobs_sendJsonResponse(400, array('message' => tr('Bad request.')));
+					_sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 
 		showBadRequestErrorPage();
 	}
 
-	$tpl = new iMSCP_pTemplate();
+	$tpl = new TemplateEngine();
 	$tpl->define_dynamic(
 		array(
 			'layout' => 'shared/layouts/ui.tpl',
@@ -544,10 +545,10 @@ if ($stmt->rowCount()) {
 		)
 	);
 
-	if (iMSCP_Registry::get('config')->DEBUG) {
+	if (Registry::get('config')->DEBUG) {
 		$assetVersion = time();
 	} else {
-		$pluginInfo = iMSCP_Registry::get('pluginManager')->getPluginInfo('CronJobs');
+		$pluginInfo = Registry::get('pluginManager')->getPluginInfo('CronJobs');
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
@@ -560,14 +561,14 @@ if ($stmt->rowCount()) {
 		)
 	);
 
-	if(iMSCP_Registry::get('cron_permission_type') == 'url') {
+	if($cronPermissions['cron_permission_type'] == 'url') {
 		$tpl->assign(
 			array(
 				'CRON_PERMISSION_JAILED' => '',
 				'CRON_PERMISSION_FULL' => ''
 			)
 		);
-	} elseif(iMSCP_Registry::get('cron_permission_type') == 'jailed') {
+	} elseif($cronPermissions['cron_permission_type'] == 'jailed') {
 		$tpl->assign(
 			array(
 				'CRON_PERMISSION_URL' => '',
@@ -575,12 +576,12 @@ if ($stmt->rowCount()) {
 			)
 		);
 	} else {
-		/** @var iMSCP_Plugin_Manager $pluginManager */
-		$pluginManager = iMSCP_Registry::get('pluginManager');
+		/** @var PluginManager $pluginManager */
+		$pluginManager = Registry::get('pluginManager');
 		if($pluginManager->isPluginKnown('InstantSSH')) {
 			$info = $pluginManager->getPluginInfo('InstantSSH');
 
-			if(! $pluginManager->isPluginEnabled('InstantSSH') || version_compare($info['version'], '2.0.2', '<')) {
+			if(! $pluginManager->isPluginEnabled('InstantSSH') || version_compare($info['version'], '2.0.4', '<')) {
 				$tpl->assign('CRON_PERMISSION_JAILED', '');
 			}
 		} else {
@@ -593,7 +594,7 @@ if ($stmt->rowCount()) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptEnd, array('templateEngine' => $tpl));
+	EventsAggregator::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 

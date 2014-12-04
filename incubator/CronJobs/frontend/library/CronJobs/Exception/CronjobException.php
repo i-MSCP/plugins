@@ -18,12 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.1',
-	'date' => '2014-12-04',
-	'name' => 'CronJobs',
-	'desc' => 'Plugin providing a cron time-based job scheduler for i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:cronjobs'
-);
+namespace CronJobs\Exception;
+
+use iMSCP_Plugin_Exception;
+
+/**
+ * Class Cronjob
+ * @package Cronjobs\Exception
+ */
+class CronjobException extends iMSCP_Plugin_Exception
+{
+}

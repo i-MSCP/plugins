@@ -24,16 +24,25 @@
 class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 {
 	/**
+	 * @var array Cron permmissions for the current user
+	 */
+	protected $cronPermissions;
+
+	/**
 	 * Plugin initialization
 	 *
 	 * @return void
 	 */
 	public function init()
 	{
+		$pluginName = $this->getName();
+
 		/** @var Zend_Loader_StandardAutoloader $loader */
 		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-		$loader->registerNamespace('Cronjobs', __DIR__ . '/frontend/library/Cronjobs');
+		$loader->registerNamespace($pluginName, __DIR__ . '/frontend/library/' . $pluginName);
 		unset($loader);
+
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $pluginName);
 	}
 
 	/**
@@ -110,6 +119,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
+			Zend_Translate::clearCache($this->getName());
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
@@ -204,6 +214,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	public function delete(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			Zend_Translate::clearCache($this->getName());
 			$this->migrateDb('down');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to delete: %s', $e->getMessage()), $e->getCode(), $e);
@@ -344,10 +355,10 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		$pluginName = $this->getName();
 
 		return array(
-			'/admin/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_permissions.php',
-			'/admin/cron_jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cron_jobs.php',
-			'/reseller/cron_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cron_permissions.php',
-			'/client/cron_jobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cron_jobs.php'
+			'/admin/cronjobs_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cronjobs_permissions.php',
+			'/admin/cronjobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cronjobs.php',
+			'/reseller/cronjobs_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cronjobs_permissions.php',
+			'/client/cronjobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cronjobs.php'
 		);
 	}
 
@@ -382,6 +393,39 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Get cron permissions for the given user
+	 *
+	 * @param int $adminId User unique identifier
+	 * @return array
+	 */
+	public function getCronPermissions($adminId)
+	{
+		if (null === $this->cronPermissions) {
+			$stmt = exec_query(
+				'
+					SELECT
+						cron_permission_type, cron_permission_frequency
+					FROM
+						cron_permissions
+					WHERE
+						cron_permission_admin_id = ?
+					AND
+						cron_permission_status = ?
+				',
+				array(intval($adminId), 'ok')
+			);
+
+			if ($stmt->rowCount()) {
+				$this->cronPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
+			} else {
+				$this->customerSshPermissions = array();
+			}
+		}
+
+		return $this->cronPermissions;
+	}
+
+	/**
 	 * Check plugin compatibility
 	 *
 	 * @param iMSCP_Events_Event $event
@@ -389,7 +433,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.12', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.13', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -416,7 +460,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 					$page->addPage(
 						array(
 							'label' => tr('Cron permissions'),
-							'uri' => '/admin/cron_permissions',
+							'uri' => '/admin/cronjobs_permissions',
 							'title_class' => 'settings',
 							'order' => 9
 						)
@@ -427,43 +471,41 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 					$page->addPage(
 						array(
 							'label' => tr('Cron jobs'),
-							'uri' => '/admin/cron_jobs',
+							'uri' => '/admin/cronjobs',
 							'title_class' => 'tools',
 							'order' => 9
 						)
 					);
 				}
 			} elseif ($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
-				//$self = $this;
+				$self = $this;
 
 				$page->addPage(
 					array(
 						'label' => tr('Cron permissions'),
-						'uri' => '/reseller/cron_permissions',
+						'uri' => '/reseller/cronjobs_permissions',
 						'title_class' => 'settings',
 						'order' => 7,
-						//'privilege_callback' => array(
-						//	'name' => function () use ($self) {
-						//			$cronPermissions = $self->getResellerPermissions($_SESSION['user_id']);
-						//			return (bool)($cronPermissions['cron_permission_id'] !== null);
-						//		}
-						//)
+						'privilege_callback' => array(
+							'name' => function () use ($self) {
+								return (bool)($self->getCronPermissions(intval($_SESSION['user_id'])));
+							}
+						)
 					)
 				);
 			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
-				//$self = $this;
+				$self = $this;
 				$page->addPage(
 					array(
 						'label' => tr('Cron jobs'),
-						'uri' => '/client/cron_jobs',
+						'uri' => '/client/cronjobs',
 						'title_class' => 'tools',
-						'order' => 3
-						//'privilege_callback' => array(
-						//	'name' => function () use ($self) {
-						//			$cronPermissions = $self->getCustomerPermissions($_SESSION['user_id']);
-						//			return (bool)($cronPermissions['cron_permission_id'] !== null);
-						//		}
-						//)
+						'order' => 3,
+						'privilege_callback' => array(
+							'name' => function () use ($self) {
+									return (bool)($self->getCronPermissions(intval($_SESSION['user_id'])));
+							}
+						)
 					)
 				);
 			}

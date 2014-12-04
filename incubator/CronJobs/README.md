@@ -19,6 +19,8 @@ interface. Indeed, administrators can set the user to use for the cron job execu
 
 Three types of cron jobs are available, which are in order: **Url**, **Jailed** and **Full**.
 
+**Note:** Both Jailed and Full cronjobs types include Url cron job.
+
 #### Url
 
 The Url cron jobs allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP(s) URL.
@@ -45,8 +47,8 @@ cron environment.
 
 ## Requirements
 
-* i-MSCP >= 1.1.15 (plugin api >= 0.2.12)
-* InstantSSH plugin >= 2.0.4 ( only if you want enable support for jailed cron jobs )
+* i-MSCP >= 1.1.15 (plugin api >= 0.2.13)
+* InstantSSH plugin >= 3.0.2 ( only if you want enable support for jailed cron jobs )
 
 ## Installation
 

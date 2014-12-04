@@ -4,13 +4,11 @@
 
 <div id="page">
 	<div class="message info">
-		Configuring cronjobs requires distinct knowledge of the crontab syntax on Unix based systems. More information
+		Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information
 		about this topic can be obtained on the following webpage:
 		<a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html">
 			<strong>Newbie: Intro to cron</strong>
 		</a>.
-		<br>
-		This interface is for admin users only. Customers have their own interface which is more restricted.
 	</div>
 
 	<table class="datatable">
@@ -87,13 +85,6 @@
 				</td>
 			</tr>
 			<tr>
-				<td><label for="cron_job_user">User</label></td>
-				<td>
-					<input type="text" name="cron_job_user" id="cron_job_user" value="root" />
-					<div><small>User under which command must be executed</small></div>
-				</td>
-			</tr>
-			<tr>
 				<td><label for="cron_job_command">Command</label></td>
 				<td>
 					<input type="text" name="cron_job_command" id="cron_job_command" class="inputTitle" value=""
@@ -104,11 +95,15 @@
 				<td><label for="cron_job_type">Job Type</label></td>
 				<td>
 					<select name="cron_job_type" id="cron_job_type">
+						<!-- BDP: cron_permission_url -->
 						<option value="url">Url</option>
-						<!-- BDP: cron_job_jailed -->
+						<!-- EDP: cron_permission_url -->
+						<!-- BDP: cron_permission_jailed -->
 						<option value="jailed">Jailed</option>
-						<!-- EDP: cron_job_jailed -->
+						<!-- EDP: cron_permission_jailed -->
+						<!-- BDP: cron_permission_full -->
 						<option value="full">Full</option>
+						<!-- EDP: cron_permission_full -->
 					</select>
 				</td>
 			</tr>
@@ -136,7 +131,7 @@
 		return $.ajax({
 			dataType: "json",
 			type: rType,
-			url: "/admin/cron_jobs?action=" + action,
+			url: "/client/cron_jobs?action=" + action,
 			data: data,
 			timeout: 5000
 		});
@@ -157,7 +152,7 @@
 			bProcessing: true,
 			bServerSide: true,
 			pagingType: "simple",
-			sAjaxSource: "/admin/cron_jobs?action=get_cron_jobs_list",
+			sAjaxSource: "/client/cron_jobs?action=get_cron_jobs_list",
 			bStateSave: true,
 			//aoColumnDefs: [
 			//	{ bSortable: false, bSearchable: false, aTargets: [ 6 ] }
@@ -190,8 +185,7 @@
 
 		$("input:reset").click(function () {
 			$("#cron_job_minute, #cron_job_hour, #cron_job_dmonth, #cron_job_month, #cron_job_dweek").val("*");
-			$("#cron_job_user").val("root");
-			$("#cron_job_command").val("*");
+			$("#cron_job_command").val("");
 			$("#cron_job_type").val("url");
 			$("#cron_job_id").val("0");
 		});
@@ -213,16 +207,16 @@
 					doRequest(
 						"GET", "get_cron_job", { cron_job_id: $(this).data('cron-job-id') }
 					).done(function (data) {
-						$("#cron_job_minute").val(data.cron_job_minute);
-						$("#cron_job_hour").val(data.cron_job_hour);
-						$("#cron_job_dmonth").val(data.cron_job_dmonth);
-						$("#cron_job_month").val(data.cron_job_month);
-						$("#cron_job_dweek").val(data.cron_job_dweek);
-						$("#cron_job_user").val(data.cron_job_user);
-						$("#cron_job_command").val(data.cron_job_command);
-						$("#cron_job_type").val(data.cron_job_type);
-						$("#cron_job_id").val(data.cron_job_id);
-					});
+							$("#cron_job_minute").val(data.cron_job_minute);
+							$("#cron_job_hour").val(data.cron_job_hour);
+							$("#cron_job_dmonth").val(data.cron_job_dmonth);
+							$("#cron_job_month").val(data.cron_job_month);
+							$("#cron_job_dweek").val(data.cron_job_dweek);
+							$("#cron_job_user").val(data.cron_job_user);
+							$("#cron_job_command").val(data.cron_job_command);
+							$("#cron_job_type").val(data.cron_job_type);
+							$("#cron_job_id").val(data.cron_job_id);
+						});
 					break;
 				case "delete_cron_job":
 					if (confirm("Are you sure you want to delete this cron job?")) {
