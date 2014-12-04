@@ -22,83 +22,91 @@
 $pluginManager = iMSCP_Registry::get('pluginManager');
 
 if($pluginManager->isPluginKnown('InstantSSH')) {
-	$instantSSHConfig = $pluginManager->getPlugin('InstantSSH')->getConfig();
+	$info = $pluginManager->getPluginInfo('InstantSSH');
 
-	if(
-		isset($instantSSHConfig['makejail_path']) && isset($instantSSHConfig['preserve_files']) &&
-		isset($instantSSHConfig['bashshell']) && isset($instantSSHConfig['uidbasics']) &&
-		isset($instantSSHConfig['netbasics']) && isset($instantSSHConfig['netutils']) &&
-		isset($instantSSHConfig['rsync']) && isset($instantSSHConfig['mysqltools']) &&
-		isset($instantSSHConfig['php'])
-	) {
-		$config = array(
-			// Root jail directory (default: /var/chroot/CronJobs)
-			//
-			// Full path to the root jail directory. Be sure that the partition in which this directory is living has
-			// enough space to host the jails.
-			//
-			// Warning: If you are changing this path, don't forget to move the jail in the new location.
-			'root_jail_dir' => '/var/chroot/CronJobs',
+	if(version_compare($info['version'], '3.0.2', '>=')) {
+		$instantSSHConfig = $pluginManager->getPlugin('InstantSSH')->getConfig();
 
-			// Se InstantSSH/config.php
-			'makejail_path' => $instantSSHConfig['makejail_path'],
+		if(
+			isset($instantSSHConfig['makejail_path']) && isset($instantSSHConfig['preserve_files']) &&
+			isset($instantSSHConfig['bashshell']) && isset($instantSSHConfig['uidbasics']) &&
+			isset($instantSSHConfig['netbasics']) && isset($instantSSHConfig['netutils']) &&
+			isset($instantSSHConfig['rsync']) && isset($instantSSHConfig['mysqltools']) &&
+			isset($instantSSHConfig['php'])
+		) {
+			$config = array(
+				// Root jail directory (default: /var/chroot/CronJobs)
+				//
+				// Full path to the root jail directory. Be sure that the partition in which this directory is living has
+				// enough space to host the jails.
+				//
+				// Warning: If you are changing this path, don't forget to move the jail in the new location.
+				'root_jail_dir' => '/var/chroot/CronJobs',
 
-			// Makejail configuration directory (default: <CONF_DIR>/CronJobs)
-			// Don't change this parameter unless you know what you are doing
-			'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
+				// Se InstantSSH/config.php
+				'makejail_path' => $instantSSHConfig['makejail_path'],
 
-			// See InstantSSH/config.php
-			'preserve_files' => $instantSSHConfig['preserve_files'],
+				// Makejail configuration directory (default: <CONF_DIR>/CronJobs)
+				// Don't change this parameter unless you know what you are doing
+				'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
 
-			// Selected application sections for jailed cron environment (default: default)
-			//
-			// This is the list of application sections which are used to create/update the jailed cron environement.
-			//
-			// By default only the default application section is added, which allows to build very restricted jailed
-			// cron environment using BusyBox.
-			'app_sections' => array(
-				'cronjobs_base',
-			),
+				// See InstantSSH/config.php
+				'preserve_files' => $instantSSHConfig['preserve_files'],
 
-			// Predefined application sections for jailed cron environment
-			// See InstanSSH configuration file for more details about how to define your own application sections
-
-			// See InstantSSH/config.php
-			'bashshell' => $instantSSHConfig['bashshell'],
-			'uidbasics', $instantSSHConfig['uidbasics'],
-			'netbasics' => $instantSSHConfig['netbasics'],
-			'netutils' => $instantSSHConfig['netutils'],
-			'rsync' => $instantSSHConfig['rsync'],
-			'mysqltools' => $instantSSHConfig['mysqltools'],
-			'php' => $instantSSHConfig['php'],
-
-			# cron section
-			'cron' => array(
-				'paths' => array(
-					'/usr/sbin/cron', '/dev'
+				// Selected application sections for jailed cron environment (default: default)
+				//
+				// This is the list of application sections which are used to create/update the jailed cron environement.
+				//
+				// By default only the default application section is added, which allows to build very restricted jailed
+				// cron environment using BusyBox.
+				'app_sections' => array(
+					'cronjobs_base',
 				),
-				'preserve_files' => array(
-					'/dev/log'
-				)
-			),
 
-			// cronjobs base section
-			// Provide pre-selected application sections, users and groups for Cron jailed shell environment
-			'cronjobs_base' => array(
-				'include_app_sections' => array(
-					'bashshell', 'cron', 'php'
+				// Predefined application sections for jailed cron environment
+				// See InstanSSH configuration file for more details about how to define your own application sections
+
+				// See InstantSSH/config.php
+				'bashshell' => $instantSSHConfig['bashshell'],
+				'uidbasics', $instantSSHConfig['uidbasics'],
+				'netbasics' => $instantSSHConfig['netbasics'],
+				'netutils' => $instantSSHConfig['netutils'],
+				'rsync' => $instantSSHConfig['rsync'],
+				'mysqltools' => $instantSSHConfig['mysqltools'],
+				'php' => $instantSSHConfig['php'],
+
+				# cron section
+				'cron' => array(
+					'paths' => array(
+						'/usr/sbin/cron', '/dev'
+					),
+					'preserve_files' => array(
+						'/dev/log'
+					)
 				),
-				'users' => array(
-					'root'
+
+				// cronjobs base section
+				// Provide pre-selected application sections, users and groups for Cron jailed shell environment
+				'cronjobs_base' => array(
+					'include_app_sections' => array(
+						'bashshell', 'cron', 'php'
+					),
+					'users' => array(
+						'root'
+					),
+					'groups' => array(
+						'root'
+					)
 				),
-				'groups' => array(
-					'root'
-				)
-			),
-		);
+			);
+		}
+
+		unset($instantSSHConfig);
+	} else {
+		$config = array();
 	}
 
-	unset($pluginManager, $instantSSHConfig);
+	unset($pluginManager, $info);
 } else {
 	$config = array();
 }

@@ -29,7 +29,12 @@ command from the system, else, they are run using the wget command from the jail
 #### Jailed
 
 The jailed cron jobs allow to schedule commands which are run through /bin/sh (default) in a jailed cron environment.
-By default the plugin will create a jailed cron environment which provides PHP and a set of common UNIX utilities.
+By default the plugin will create a jailed cron environment which provides:
+
+* PHP (CLI) and some common modules (mysqlnd, pdo, gd, intl, json, mcrypt, mysql, mysqli, pdo_mysql, readline)
+* rsync
+* Mysql Monitor and mysqldump
+* A set of common UNIX utilities
 
 Only one jailed cron environment is created for all jailed cron jobs. This is by design. The most important thing here
 is that the cron jobs cannot broke the whole system.
