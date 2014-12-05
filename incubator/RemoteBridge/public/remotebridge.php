@@ -56,7 +56,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 			createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData);
 
 			break;
-/*		case 'update':
+		case 'update_dmn':
 			 $resellerHostingPlan = (isset($postData['hosting_plan']))
                                 ? checkResellerHostingPlan($resellerId, $postData['hosting_plan']) : array();
 
@@ -66,8 +66,8 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
                                 checkLimitsPostData($postData, $resellerId);
                         }
 
-			updateUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData);
-			break; */
+			updateDomain($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData);
+			break; 
 		case 'addalias':
 			$resellerIpaddress = checkResellerAssignedIP($resellerId);
 			addAliasDomain($resellerId, $resellerIpaddress, $postData);
@@ -1025,26 +1025,27 @@ function createNewUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $p
 }
 
 /**
-* Update user and domain
+* Update domain
 *
 * @param int $resellerId Reseller unique identifier
+* @param string $resellerHostingPlan HostingPlan name
 * @param string $resellerIpaddress IP address
 * @param array $postData POST data
 * @return void
 */
-function updateUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData)
+function updateDomain($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData)
 {
 	$db = iMSCP_Registry::get('db');
 	$cfg = iMSCP_Registry::get('config');
 	$auth = iMSCP_Authentication::getInstance();
 
-	if (empty($postData['domain']) || empty($postData['email'])) {
+	if (empty($postData['domain'])) {
 		logoutReseller();
 		exit(
 		createJsonMessage(
 		array(
 		'level' => 'Error',
-		'message' => 'No domain, or user emailaddress in post data available.'
+		'message' => 'No domain in post data available.'
 				)
 			)
 		);
@@ -1070,93 +1071,19 @@ function updateUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $post
 		);
 	}
 
-	$admin_type = 'user';
-	$created_by = $resellerId;
-	$fname = (isset($postData['fname'])) ? clean_input(urldecode($postData['fname'])) : '';
-	$lname = (isset($postData['lname'])) ? clean_input(urldecode($postData['lname'])) : '';
-	$firm = (isset($postData['firm'])) ? clean_input(urldecode($postData['firm'])) : '';
-	$zip = (isset($postData['zip'])) ? clean_input(urldecode($postData['zip'])) : '';
-	$city = (isset($postData['city'])) ? clean_input(urldecode($postData['city'])) : '';
-	$state = (isset($postData['state'])) ? clean_input(urldecode($postData['state'])) : '';
-	$country = (isset($postData['country'])) ? clean_input(urldecode($postData['country'])) : '';
-	$userEmail = (isset($postData['email'])) ? clean_input(urldecode($postData['email'])) : '';
-	$phone = (isset($postData['phone'])) ? clean_input(urldecode($postData['phone'])) : '';
-	$fax = (isset($postData['fax'])) ? clean_input(urldecode($postData['fax'])) : '';
-	$street1 = (isset($postData['street1'])) ? clean_input(urldecode($postData['street1'])) : '';
-	$street2 = (isset($postData['street2'])) ? clean_input(urldecode($postData['street2'])) : '';
-	$customer_id = (isset($postData['customer_id'])) ? clean_input(urldecode($postData['customer_id'])) : '';
-	$gender = (
-		(isset($postData['gender']) && $postData['gender'] == 'M') ||
-		(isset($postData['gender']) && $postData['gender'] == 'F')
-		) ? clean_input(urldecode($postData['gender'])) : 'U';
+	$query = '
+		SELECT
+			domain_id
+		FROM
+			domain
+		WHERE
+			domain_name = ?
+	';
+	$stmt = exec_query($query, $domain);
+	$domainId = $stmt->fields['domain_id'];
 
 	try {
 		$db->beginTransaction();
-
-		$query = "
-			UPDATE 	`admin` 
-			SET
-				`admin_name` = ?,  
-				`admin_type` = ?, 
-				`fname` = ?, 
-				`lname` = ?, 
-				`firm` = ?,
-				`zip` = ?, 
-				`city` = ?, 
-				`state` = ?, 
-				`country` = ?, 
-				`email` = ?, 
-				`phone` = ?, 
-				`fax` = ?, 
-				`street1` = ?, 
-				`street2` = ?,
-				`gender` = ?, 
-				`admin_status` = ? 
-			WHERE 
-				`admin_name` = ?
-		";
-		exec_query(
-			$query,
-				array(
-					$dmnUsername, 
-					$admin_type, 
-					$fname, 
-					$lname, 
-					$firm, 
-					$zip, 
-					$city, 
-					$state, 
-					$country, 
-					$userEmail, 
-					$phone, 
-					$fax, 
-					$street1, 
-					$street2, 
-					$gender, 
-					$cfg->ITEM_TOCHANGE_STATUS, 
-					$dmnUsername
-				)
-			);
-
-		if(! empty($postData['admin_pass'])){
-			$query = "
-        			UPDATE  
-					`admin`
-        			SET
-                			`admin_pass` = ?
-       		 		WHERE
-                			`admin_name` = ?
-			";
-			exec_query(
-        			$query,
-        			array(
-					$admin_pass, 
-					$dmnUsername
-				)
-        		);
-		}
-
-		$recordId = $db->insertId();
 
 		iMSCP_Events_Manager::getInstance()->dispatch(
 			iMSCP_Events::onBeforeEditDomain,
@@ -1212,65 +1139,31 @@ function updateUser($resellerId, $resellerHostingPlan, $resellerIpaddress, $post
 		: preg_replace("/\_/", '', $resellerHostingPlan['web_folder_protection']);
 
 	$query = "
-		UPDATE 
-			`domain` 
-		SET 
-			`domain_expires` = ?,
-			`domain_mailacc_limit` = ?, 
-			`domain_ftpacc_limit` = ?, 
-			`domain_traffic_limit` = ?, 
-			`domain_sqld_limit` = ?,
-			`domain_sqlu_limit` = ?, 
-			`domain_status` = ?, 
-			`domain_subd_limit` = ?, 
-			`domain_alias_limit` = ?, 
-			`domain_ip_id` = ?,
-			`domain_disk_limit` = ?, 
-			`domain_disk_usage` = ?, 
-			`domain_php` = ?, 
-			`domain_cgi` = ?, 
-			`allowbackup` = ?, 
-			`domain_dns` = ?,
-			`domain_software_allowed` = ?, 
-			`phpini_perm_system` = ?, 
-			`phpini_perm_allow_url_fopen` = ?,
-			`phpini_perm_display_errors` = ?, 
-			`phpini_perm_disable_functions` = ?, 
-			`domain_external_mail` = ?,
-			`web_folder_protection` = ?, 
-			`mail_quota` = ? 
-		WHERE 
-			`domain_name` = ?
-	";
-
+		UPDATE
+			`domain`
+		SET
+			`domain_expires` = ?, `domain_last_modified` = ?, `domain_mailacc_limit` = ?,
+			`domain_ftpacc_limit` = ?, `domain_traffic_limit` = ?, `domain_sqld_limit` = ?,
+			`domain_sqlu_limit` = ?, `domain_status` = ?, `domain_alias_limit` = ?, `domain_subd_limit` = ?,
+			`domain_ip_id` = ?, `domain_disk_limit` = ?, `domain_php` = ?, `domain_cgi` = ?, `allowbackup` = ?,
+			`domain_dns` = ?,  `domain_software_allowed` = ?, `phpini_perm_system` = ?,
+			`phpini_perm_allow_url_fopen` = ?, `phpini_perm_display_errors` = ?,
+			`phpini_perm_disable_functions` = ?, `domain_external_mail` = ?, `web_folder_protection` = ?,
+			`mail_quota` = ?
+		WHERE
+			`domain_id` = ?
+			";
 	exec_query(
 		$query,
 		array(
-			$dmnExpire, 
-			$domain_mailacc_limit, 
-			$domain_ftpacc_limit,
-			$domain_traffic_limit, 
-			$domain_sqld_limit, 
-			$domain_sqlu_limit, 
-			$cfg->ITEM_TOCHANGE_STATUS,
-			$domain_subd_limit, 
-			$domain_alias_limit, 
-			$domain_ip_id, 
-			$domain_disk_limit, 
-			0, 
-			$domain_php, 
-			$domain_cgi,
-			$allowbackup, 
-			$domain_dns, 
-			$domain_software_allowed, 
-			$phpini_perm_system, 
-			$phpini_perm_allow_url_fopen,
-			$phpini_perm_display_errors, 
-			$phpini_perm_disable_functions, 
-			$domain_external_mail,
-			$webFolderProtection, 
-			$domain_mail_quota, 
-			$dmnUsername,
+			$dmnExpire, $lastModified, $domain_mailacc_limit, 
+			$domain_ftpacc_limit, $domain_traffic_limit, $domain_sqld_limit, 
+			$domain_sqlu_limit, $cfg->ITEM_TOCHANGE_STATUS,	$domain_alias_limit, $domain_subd_limit, 
+			$domain_ip_id, $domain_disk_limit, $domain_php, $domain_cgi, $allowbackup, 
+			$domain_dns, $domain_software_allowed, $phpini_perm_system, 
+			$phpini_perm_allow_url_fopen, $phpini_perm_display_errors, 
+			$phpini_perm_disable_functions, $domain_external_mail,	$webFolderProtection, 
+			$domain_mail_quota, $domainId
 		)
 	);
 
