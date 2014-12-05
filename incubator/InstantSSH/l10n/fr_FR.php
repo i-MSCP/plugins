@@ -104,7 +104,7 @@ return array(
 	'Enter an username' => "Entrez un nom d'utilisateur ",
 	'Password' => 'Mot de passe',
 	'Enter a password' => 'Entrez un mot de passe',
-	'Password confirmation' => 'Password confirmation',
+	'Password confirmation' => 'Confirmation du mot de passe',
 	'Confirm the password' => 'Confirmez le mot de passe',
 	'SSH key' => 'Clé SSH',
 	'Supported RSA key formats are PKCS#1, openSSH and XML Signature.' => 'Les formats de clés SSH supportés sont: PKCS#1, openSSH et XML Signature.',
