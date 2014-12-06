@@ -1,4 +1,4 @@
-## i-MSCP RemoteBridge plugin v0.0.4
+## i-MSCP RemoteBridge plugin v0.0.7
 
 Plugin providing an API which allows to manage i-MSCP accounts.
 
@@ -66,7 +66,7 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 			'domain'                => ''
 	);
 
-	$ch = curl_init('http(s)://admin.myserver.tld/remotebrigde.php');
+	$ch = curl_init('http(s)://admin.myserver.tld/remotebridge.php');
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, 'key='.$bridgeKey.'&data='.dataEncryption($dataToEncrypt, $ResellerUsername));
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -95,21 +95,29 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- creates a new i-MSCP acount
 
-**1.2.** action terminate
+**1.2.** action update
+
+	- updates existing i-MSCP acount
+
+**1.3.** action terminate
 
 	- deletes an existing i-MSCP acount
 
-**1.3.** action suspend
+**1.4.** action suspend
 
 	- disables an existing i-MSCP acount
 
-**1.4.** action unsuspend
+**1.5.** action unsuspend
 
 	- enables an existing i-MSCP acount
 
-**1.5.** action addalias
+**1.6.** action addalias
 
 	- Adds a new domain alias to an existing i-MSCP acount
+
+**1.7.** action get_user
+
+	- get all users from a reseller
 
 **2.** reseller_username (required)
 
@@ -235,10 +243,6 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- (must be an array), array('alias1.tld', 'alias2.tld')
 
-**9.** mail_quota
-
-	- value: numeric in MB, 0 (unlimited)
-
 ### Customer data variable which are available
 
 	- fname: first name
@@ -252,10 +256,11 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 	- fax: fax number
 	- street1: street
 	- street2: additional street informations
-	- gender: value can be "F=female, M=male"
+	- gender: value can be "U=unknown F=female, M=male"
 
 ### AUTHORS AND CONTRIBUTORS
 
  * Sascha Bay <info@space2place.de> (Author)
+ * Peter Ziergöbel <info@fisa4.de> (Contributor)
 
 **Thank you for using this plugin.**
