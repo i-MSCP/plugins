@@ -25,59 +25,23 @@ return array(
 	// If an user account is protected, it will be impossible to edit it or remove it.
 	'user_accounts' => array(
 		array(
-			'label' => 'Administrator 1',
+			'label' => 'Administrator',
 			'username' => 'admin1',
 			'password' => 'admin1',
 			'protected' => true
 		),
 		array(
-			'label' => 'Administrator 2',
-			'username' => 'admin2',
-			'password' => 'admin2',
-			'protected' => true
-		),
-		array(
-			'label' => 'Administrator 3',
-			'username' => 'admin3',
-			'password' => 'admin3',
-			'protected' => true
-		),
-		array(
-			'label' => 'Reseller 1',
+			'label' => 'Reseller',
 			'username' => 'reseller1',
 			'password' => 'reseller1',
 			'protected' => true
 		),
 		array(
-			'label' => 'Reseller 2',
-			'username' => 'reseller2',
-			'password' => 'reseller2',
-			'protected' => true
-		),
-		array(
-			'label' => 'Reseller 3',
-			'username' => 'reseller3',
-			'password' => 'reseller3',
-			'protected' => true
-		),
-		array(
-			'label' => 'Customer 1',
+			'label' => 'Client',
 			'username' => 'domain1.tld',
 			'password' => 'domain1',
 			'protected' => true
 		),
-		array(
-			'label' => 'Customer 2',
-			'username' => 'domain2.tld',
-			'password' => 'domain2',
-			'protected' => true
-		),
-		array(
-			'label' => 'Customer 3',
-			'username' => 'domain3.tld',
-			'password' => 'domain3',
-			'protected' => true
-		)
 	),
 
 	// List of actions that must be totally disabled. Each action must be prefixed by 'onBefore'
@@ -118,6 +82,7 @@ return array(
 		'onBeforeAddMail',
 		'onBeforeEditMail',
 		'onBeforeDeleteMail',
+		'onBeforeAddMailCatchall',
 		'onBeforeAddExternalMailServer',
 		'onBeforeChangeDomainStatus'
 	),

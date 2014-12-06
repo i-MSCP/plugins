@@ -56,7 +56,8 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 				if(($userAccounts = $this->getConfigParam('user_accounts', array()))) {
 					if(is_array($userAccounts)) {
 						if(!empty($userAccounts)) {
-							$events[] = iMSCP_Events::onLoginScriptEnd;
+							$eventsManager->registerListener(onLoginScriptEnd, $this, -10);
+
 							$events[] = iMSCP_Events::onBeforeEditUser;
 							$events[] = iMSCP_Events::onBeforeDeleteUser;
 							$events[] = iMSCP_Events::onBeforeDeleteCustomer;
@@ -390,37 +391,37 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 			$credentials = json_encode($credentials);
 
 			return <<<EOF
-				<script>
-					$(document).ready(function() {
-						var welcome = $welcomeMsg;
-						var credentialInfo = $credentialInfo + "<br><br>";
-						$("<div>", { "id": "demo", html: "<h2>" + welcome + "</h2>" + credentialInfo }).appendTo("body");
-						$("<select>", { "id": "demo_credentials" }).appendTo("#demo");
-						var credentials = $credentials;
-						$.each(credentials, function() {
-							$("#demo_credentials").append(
-								$("<option></option>").val(this.username + " " + this.password).text(this.label)
-							);
-						})
-						$("#demo_credentials").change(function() {
-							var credentials = $("#demo_credentials option:selected").val().split(" ");
-							$("#uname").val(credentials.shift());
-							$("#upass").val(credentials.shift());
-						}).trigger("change");
-						$("#demo").dialog({
-							modal: true,
-							width: 500,
-							autoOpen: true,
-							height: "auto",
-							buttons: {
-								Ok: function() {
-									$(this).dialog("close");
-								}
-							},
-							title: $title
-						});
-					});
-				</script>
+<script>
+	$(document).ready(function() {
+		var welcome = $welcomeMsg;
+		var credentialInfo = $credentialInfo + "<br><br>";
+		$("<div>", { "id": "demo", html: "<h2>" + welcome + "</h2>" + credentialInfo }).appendTo("body");
+		$("<select>", { "id": "demo_credentials" }).appendTo("#demo");
+		var credentials = $credentials;
+		$.each(credentials, function() {
+			$("#demo_credentials").append(
+				$("<option>").val(this.username + " " + this.password).text(this.label)
+			);
+		});
+		$("#demo_credentials").change(function() {
+			var credentials = $("#demo_credentials option:selected").val().split(" ");
+			$("#uname").val(credentials.shift());
+			$("#password,#upass").val(credentials.shift());
+		}).trigger("change");
+		$("#demo").dialog({
+			modal: true,
+			width: 500,
+			autoOpen: true,
+			height: "auto",
+			buttons: {
+				Ok: function() {
+					$(this).dialog("close");
+				}
+			},
+			title: $title
+		});
+	});
+</script>
 EOF;
 		} else {
 			return '';
