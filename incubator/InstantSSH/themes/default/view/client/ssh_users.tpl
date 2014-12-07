@@ -184,9 +184,9 @@
 			on("click", "span[data-action], #actions button", function (e) {
 				e.preventDefault();
 
-				action = $(this).data('action');
-				sshUserName = $(this).data('ssh-user-name');
-				sshUserId = $(this).data('ssh-user-id');
+				var action = $(this).data('action');
+				var sshUserName = $(this).data('ssh-user-name');
+				var sshUserId = $(this).data('ssh-user-id');
 
 				switch (action) {
 					case "add_ssh_user":

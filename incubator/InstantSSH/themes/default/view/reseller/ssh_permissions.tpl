@@ -178,7 +178,7 @@
 			on("click", "span[data-action],button", function (e) {
 				e.preventDefault();
 
-				action = $(this).data("action");
+				var action = $(this).data("action");
 
 				switch (action) {
 					case "add_ssh_permissions":
