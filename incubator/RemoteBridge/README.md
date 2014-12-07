@@ -1,4 +1,4 @@
-### i-MSCP RemoteBridge plugin v0.0.8
+### i-MSCP RemoteBridge plugin v0.0.9
 
 Plugin providing an API which allows to manage i-MSCP accounts.
 
@@ -99,19 +99,19 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 
 	- updates existing domain on i-MSCP 
 
-**1.3.** action terminate
+**1.3.** action terminate_dmn
 
 	- deletes an existing i-MSCP acount
 
-**1.4.** action suspend
+**1.4.** action suspend_dmn
 
 	- disables an existing i-MSCP acount
 
-**1.5.** action unsuspend
+**1.5.** action unsuspend_dmn
 
 	- enables an existing i-MSCP acount
 
-**1.6.** action addalias
+**1.6.** action add_alias
 
 	- Adds a new domain alias to an existing i-MSCP acount
 
@@ -122,6 +122,10 @@ Plugin compatible with i-MSCP versions >= 1.1.0
 **1.8.** action add_mail
 
         - adds mailaddress (mailbox and/or mail forwarding) to a domain
+
+**1.9.** action get_mail
+
+        - get mailaccounts of a domain
 
 ***2.** reseller_username (required)
 

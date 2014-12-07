@@ -43,7 +43,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 	$action = isset($postData['action']) ? $postData['action'] : 'default';
 
 	switch ($action) {
-		case 'create':
+		case 'create_account':
 			$resellerHostingPlan = (isset($postData['hosting_plan']))
 				? checkResellerHostingPlan($resellerId, $postData['hosting_plan']) : array();
 
@@ -68,11 +68,11 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 
 			updateDomain($resellerId, $resellerHostingPlan, $resellerIpaddress, $postData);
 			break; 
-		case 'addalias':
+		case 'add_alias':
 			$resellerIpaddress = checkResellerAssignedIP($resellerId);
 			addAliasDomain($resellerId, $resellerIpaddress, $postData);
 			break;
-		case 'terminate':
+		case 'terminate_dmn':
 			if (empty($postData['domain'])) {
 				logoutReseller();
 				exit(
@@ -87,7 +87,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 
 			deleteUser($resellerId, $postData['domain']);
 			break;
-		case 'suspend':
+		case 'suspend_dmn':
 			if (empty($postData['domain'])) {
 				logoutReseller();
 				exit(
@@ -102,7 +102,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 
 			disableUser($resellerId, $postData['domain']);
 			break;
-		case 'unsuspend':
+		case 'unsuspend_dmn':
 			if (empty($postData['domain'])) {
 				logoutReseller();
 				exit(
@@ -118,7 +118,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 			enableUser($resellerId, $postData['domain']);
 
 			break;
-		case 'collectusagedata':
+		case 'collect_usagedata':
 			if (empty($postData['domain'])) {
 				logoutReseller();
 				exit(
@@ -149,8 +149,35 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 			getUserList($resellerId, $postData['reseller_username']);
 			break;
 		case 'add_mail':
+			 if (empty($postData['domain']) || empty($postData['account']) || empty($postData['quota']) || empty($postData['newmailpass']) || empty($postData['account_type']) || empty($postData['mail_forward'])) {
+                                logoutReseller();
+                                exit(
+                                createJsonMessage(
+                                        array(
+                                                'level' => 'Error',
+                                                'message' => 'One or more required $postData array values are missing'
+                                        )
+                                )
+                                );
+                        }
+
 			addMailAccount($resellerId, $postData['domain'], $postData['account'], $postData['quota'], $postData['newmailpass'], $postData['account_type'], $postData['mail_forward']);
 			break;
+		 case 'get_mail':
+                        if (empty($postData['reseller_username']) || empty($postData['domain'])) {
+                                logoutReseller();
+                                exit(
+                                createJsonMessage(
+                                        array(
+                                                'level' => 'Error',
+                                                'message' => 'No reseller name in post data available.'
+                                        )
+                                )
+                                );
+                        }
+
+                        getMailList($resellerId, $postData['domain']);
+                        break;
 		default:
 			echo(
 			createJsonMessage(
@@ -1932,6 +1959,89 @@ function getUserList($resellerId, $resellerName)
 		); 
 
 	}
+}
+
+/**
+ * Create Mailaccount list of a domain
+ *
+ * @param $resellerId
+ * @param $domain
+ * @return Mailaccount list
+ */
+
+function getMailList($resellerId, $domain)
+{
+	if (empty($domain)) {
+                logoutReseller();
+                exit(
+                createJsonMessage(
+                array(
+                'level' => 'Error',
+                'message' => 'No domain in post data available.'
+                                )
+                        )
+                );
+        }
+        
+        $domain = strtolower($domain);
+        $dmnUsername = encode_idna($domain);
+
+        if (! imscp_domain_exists($dmnUsername, $resellerId)) {
+                logoutReseller();
+                exit(
+                        createJsonMessage(
+                                array(
+                                        'level' => 'Error',
+                                        'message' => sprintf('Domain %s not exist on this server.', $domain)
+                                )
+                        )
+                );
+        }
+	$query = '
+                SELECT
+                        domain_id,
+                        domain_admin_id
+                FROM
+                        domain
+                WHERE
+                        domain_name = ?
+        ';
+        $stmt = exec_query($query, $domain);
+        $domainId = $stmt->fields['domain_id'];
+	$query = '
+                SELECT
+				`mail_addr`
+			FROM
+				`mail_users`
+			WHERE
+				`domain_id` = ?
+        ';
+
+                $stmt = exec_query($query, $domainId);
+
+        if (!$stmt->rowCount()) {
+                exit(
+                createJsonMessage(
+                        array(
+                                'level' => 'Error',
+                                'message' => sprintf('No admin data available.')
+                        )
+                                )
+                );
+        } else {
+                $result = $stmt->fetchAll();
+
+                echo(
+                createJsonMessage(
+                        array(
+                                'level' => 'Success',
+                                'message' => sprintf('Mailaccount list for domain %s successfully generated.', $domain),
+                                'data' => $result
+                        )
+                )
+                );
+
+        }
 }
 
 /**
