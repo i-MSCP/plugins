@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2013 by i-MSCP Team
+ * Copyright (C) 2010-2014 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  RemoteBridge
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   2010-2014 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.4',
-	'date' => '2014-08-01',
+	'version' => '0.0.9',
+	'date' => '2014-12-07',
 	'name' => 'RemoteBridge',
 	'desc' => 'Plugin providing an API which allows to manage i-MSCP accounts.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:remotebridge'
