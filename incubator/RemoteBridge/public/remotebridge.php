@@ -133,7 +133,7 @@ if (isset($_POST['key']) && isset($_POST['data'])) {
 
 			collectUsageData($resellerId, $postData['domain']);
 			break;
-		case 'get_user':
+		case 'get_dmn':
 			if (empty($postData['reseller_username'])) {
 				logoutReseller();
 				exit(

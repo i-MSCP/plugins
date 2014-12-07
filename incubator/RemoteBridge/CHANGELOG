@@ -14,7 +14,7 @@ Version 0.0.8
 
         - Fixed: Domain update was not working with Domains created by i-MSCP Panel
 		- update is now only updating domain related things
-		- removed unneded code
+		- removed unneded code for updating user details
 		- action renamed to update_dmn
 	- Renamed: action for adding mails are now 'add_mail'
 
@@ -22,7 +22,7 @@ Version 0.0.8
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-        - Add: Add mailaccount for mailbox and/or forwarding
+        - Added: Add mailaccount for mailbox and/or forwarding
                 - action 'addmail'
 			- adds mailaddress (mailbox and/or forwarding)
 
@@ -30,14 +30,14 @@ Version 0.0.7
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Add: User list 
-		- action 'get'
+	- Added: User list 
+		- action 'get_dmn'
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	- Add: Update user and domain
+	- Added: Update user and domain
 		- action 'update'
 
 ------------------------------------------------------------------------------------------------------------------------
