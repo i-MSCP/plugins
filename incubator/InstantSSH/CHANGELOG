@@ -2,8 +2,10 @@
 Version 3.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
+	Added: sys_copy_file_to configuration parameter
 	Added: php (CLI) application section
 	Fixed: Small layout issues
+	Renamed: copy_file_to parameter to jail_copy_file_to
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 3.0.1

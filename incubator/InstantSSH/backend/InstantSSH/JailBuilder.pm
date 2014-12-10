@@ -97,15 +97,26 @@ sub makeJail
 	{
 		local $UMASK = 022;
 
-		# Copy files defined in the copy_file_to option within the jail
-		while(my ($src, $dst) = each(%{$self->{'jailCfg'}->{'copy_file_to'}})) {
+		# Copy files defined in the sys_copy_file_to option within the system
+		while(my ($src, $dst) = each(%{$self->{'jailCfg'}->{'sys_copy_file_to'}})) {
+			if(index($src, '/') == 0 && index($dst, '/') == 0) {
+				$rs = iMSCP::File->new( filename => $src )->copyFile($dst, { preserve => 'no' });
+				return $rs if $rs;
+			} else {
+				error("Any file path defined in the sys_copy_file_to option must be absolute");
+				return 1;
+			}
+		}
+
+		# Copy files defined in the jail_copy_file_to option within the jail
+		while(my ($src, $dst) = each(%{$self->{'jailCfg'}->{'jail_copy_file_to'}})) {
 			if(index($src, '/') == 0 && index($dst, '/') == 0) {
 				$rs = iMSCP::File->new( filename => $src )->copyFile(
 					$self->{'jailCfg'}->{'chroot'} . $dst, { preserve => 'no' }
 				);
 				return $rs if $rs;
 			} else {
-				error("Any file path defined in the copy_file_to option must be absolute");
+				error("Any file path defined in the jail_copy_file_to option must be absolute");
 				return 1;
 			}
 		}
@@ -670,7 +681,8 @@ sub _init
 	$self->{'jailCfg'} = {
 		chroot => '',
 		paths => [],
-		copy_file_to => {},
+		sys_copy_file_to => {},
+		jail_copy_file_to => {},
 		packages => [],
 		include_pkg_deps => 0,
 		preserve_files => [],
@@ -872,7 +884,7 @@ sub _handleAppsSection()
 	}
 
 	# Handle key/value pairs options from application section
-	for my $option(qw/copy_file_to mount/) {
+	for my $option(qw/sys_copy_file_to jail_copy_file_to mount/) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'HASH') {
 				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {

@@ -62,7 +62,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
@@ -130,17 +129,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		} catch(Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**

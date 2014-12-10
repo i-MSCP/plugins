@@ -141,8 +141,10 @@ return array(
 	//
 	// paths: List of paths which have to be copied inside the jail. Be aware that copy is not recursive
 	// packages: List of debian packages. Files from those packages will be copied inside the jail
-	// copy_file_to: List of files to copy within the jail, each of them specified as a key/value pairs where the key
-	//               is the source file path and the value, the destination path
+	// sys_copy_file_to:  List of files to copy within the system, each of them specified as a key/value pairs where the
+	//                    key is the source file path and the value, the destination path
+	// jail_copy_file_to: List of files to copy within the jail, each of them specified as a key/value pairs where the
+	//                    key is the source file path and the value, the destination path
 	// include_apps_sections: List of applications sections that have to be included
 	// users: List of users that have to be added inside the jail (eg. in passwd/shadow files)
 	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
@@ -167,7 +169,7 @@ return array(
 		'paths' => array(
 			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
 		),
-		'copy_file_to' => array(
+		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
 			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
 		),
@@ -200,7 +202,7 @@ return array(
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
 			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
 		),
-		'copy_file_to' => array(
+		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
 			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
 		),
@@ -315,7 +317,7 @@ return array(
 		'paths' => array(
 			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump'
 		),
-		'copy_file_to' => array(
+		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
