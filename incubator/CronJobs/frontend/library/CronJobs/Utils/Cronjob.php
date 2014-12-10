@@ -41,6 +41,7 @@ final class Cronjob
 	 * Validates all cron job attributes
 	 *
 	 * @throws CronjobException if the given cron job is not valid
+	 * @param string $email Cron job notification email
 	 * @param string $minute Minute at which the cron job must be executed
 	 * @param string $hour Hour at which the cron job must be executed
 	 * @param string $dmonth Day of month at which the cron job must be executed
@@ -50,8 +51,10 @@ final class Cronjob
 	 * @param string $command Cron job command
 	 * @param string $type Cron job type
 	 */
-	public static function validate($minute, $hour, $dmonth, $month, $dweek, $user, $command, $type)
+	public static function validate($email, $minute, $hour, $dmonth, $month, $dweek, $user, $command, $type)
 	{
+		self::validateNotificationEmail($email);
+
 		if(in_array($type, array('url', 'jailed', 'full'))) {
 			if(
 				in_array(
@@ -70,6 +73,19 @@ final class Cronjob
 			}
 		} else {
 			throw new CronjobException(tr('Invalid cron job type: %s', true, $type));
+		}
+	}
+
+	/**
+	 * Validate a cron notification email
+	 *
+	 * @param string $email
+	 * @throws CronjobException
+	 */
+	protected static function validateNotificationEmail($email)
+	{
+		if($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+			throw new CronjobException(tr('Invalid email for cron notification: %s', true, $email));
 		}
 	}
 
@@ -176,24 +192,32 @@ final class Cronjob
 	 */
 	protected static function validateCommand($user, $command, $type)
 	{
-		if(!posix_getgrnam($user)) {
-				throw new CronjobException(tr('Cron job user attribute must be a valid unix user.', true));
+		if($user !== '') {
+			if(!posix_getgrnam($user)) {
+				throw new CronjobException(tr('Cron job user must be a valid unix user.', true));
+			}
+		} else {
+			throw new CronjobException(tr('Cron job user field cannot be empty.', true));
 		}
 
-		if($type == 'url') {
-			try {
-				$httpUri = HttpUri::fromString($command);
+		if($command !== '') {
+			if($type == 'url') {
+				try {
+					$httpUri = HttpUri::fromString($command);
 
-				if(!$httpUri->valid($command)) {
+					if(!$httpUri->valid($command)) {
+						throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
+					} elseif($httpUri->getUsername() || $httpUri->getPassword()) {
+						throw new CronjobException(
+							tr('Url cron job must not contain any username/password for security reasons.', true)
+						);
+					}
+				} catch(\Exception $e) {
 					throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
-				} elseif($httpUri->getUsername() || $httpUri->getPassword()) {
-					throw new CronjobException(
-						tr('Url cron job must not contain any username/password for security reasons.', true)
-					);
 				}
-			} catch(\Exception $e) {
-				throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
 			}
+		} else {
+			throw new CronjobException(tr('Cron job command field cannot be empty.', true));
 		}
 	}
 }

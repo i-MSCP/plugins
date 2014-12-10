@@ -27,7 +27,6 @@ use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventsAggregator;
 use iMSCP_Exception as iMSCPException;
 use iMSCP_Exception_Database as DatabaseException;
-use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngine;
 use iMSCP_Registry as Registry;
 use PDO;
@@ -44,11 +43,13 @@ use PDO;
 function addCronJob()
 {
 	if(
-		isset($_POST['cron_job_id']) && isset($_POST['cron_job_minute']) && isset($_POST['cron_job_hour']) &&
-		isset($_POST['cron_job_dmonth']) && isset($_POST['cron_job_month']) && isset($_POST['cron_job_dweek']) &&
-		isset($_POST['cron_job_user']) && isset($_POST['cron_job_command']) && isset($_POST['cron_job_type'])
+		isset($_POST['cron_job_id']) && isset($_POST['cron_job_notification']) && isset($_POST['cron_job_minute']) &&
+		isset($_POST['cron_job_hour']) && isset($_POST['cron_job_dmonth']) && isset($_POST['cron_job_month']) &&
+		isset($_POST['cron_job_dweek']) && isset($_POST['cron_job_user']) && isset($_POST['cron_job_command']) &&
+		isset($_POST['cron_job_type'])
 	) {
 		$cronjobId = clean_input($_POST['cron_job_id']);
+		$cronjobNotification = clean_input($_POST['cron_job_notification']);
 		$cronjobMinute = clean_input($_POST['cron_job_minute']);
 		$cronjobHour = clean_input($_POST['cron_job_hour']);
 		$cronjobDmonth = clean_input($_POST['cron_job_dmonth']);
@@ -59,79 +60,83 @@ function addCronJob()
 		$cronjobType = clean_input($_POST['cron_job_type']);
 
 		try {
-			CronjobValidator::validate(
-				$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobUser,
-				$cronjobCommand, $cronjobType
-			);
+			if ($cronjobType === 'url' || $cronjobType === 'full') {
+				CronjobValidator::validate(
+					$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek,
+					$cronjobUser, $cronjobCommand, $cronjobType
+				);
 
-			if(!$cronjobId) { // New cron job
-				exec_query(
-					'
-						INSERT INTO cron_jobs (
-							cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
-							cron_job_user, cron_job_command, cron_job_type, cron_job_status
-						) VALUES(
-							?, ?, ?, ?, ?, ?, ?, ?, ?
+				if(!$cronjobId) { // New cron job
+					exec_query(
+						'
+							INSERT INTO cron_jobs (
+								cron_job_notification, cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month,
+								cron_job_dweek, cron_job_user, cron_job_command, cron_job_type, cron_job_status
+							) VALUES(
+								?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+							)
+					',
+						array(
+							$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth,
+							$cronjobDweek, $cronjobUser, $cronjobCommand, $cronjobType, 'toadd'
 						)
-					',
-					array(
-						$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobUser,
-						$cronjobCommand, $cronjobType, 'toadd'
-					)
-				);
+					);
 
-				send_request();
-
-				write_log(
-					sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']), E_USER_NOTICE
-				);
-
-				Helper::sendJsonResponse(200, array('message' => tr('Cron job has been scheduled for addition.', true)));
-			} else { // Cron job update
-				$stmt = exec_query(
-					'
-						UPDATE
-							cron_jobs
-						SET
-							cron_job_minute = ?, cron_job_hour = ?, cron_job_dmonth = ?, cron_job_month = ?,
-							cron_job_dweek = ?, cron_job_user = ?, cron_job_command = ?, cron_job_type = ?,
-							cron_job_status = ?
-						WHERE
-							cron_job_id = ?
-						AND
-							cron_job_admin_id IS NULL
-						AND
-							cron_job_status = ?
-					',
-					array(
-						$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobUser,
-						$cronjobCommand, $cronjobType, 'tochange', $cronjobId, 'ok'
-					)
-				);
-
-				if($stmt->rowCount()) {
 					send_request();
 
 					write_log(
-						sprintf(
-							'CronJobs: Cron job with ID %s has been updated by %s', $cronjobId, $_SESSION['user_logged']
-						),
-						E_USER_NOTICE
+						sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']), E_USER_NOTICE
 					);
 
-					Helper::sendJsonResponse(
-						200,
-						array('message' => tr('Cron job with ID %s has been scheduled for update.', true, $cronjobId))
+					Helper::sendJsonResponse(200, array('message' => tr('Cron job has been scheduled for addition.', true)));
+				} else { // Cron job update
+					$stmt = exec_query(
+						'
+							UPDATE
+								cron_jobs
+							SET
+								cron_job_notification = ?, cron_job_minute = ?, cron_job_hour = ?, cron_job_dmonth = ?,
+								cron_job_month = ?, cron_job_dweek = ?, cron_job_user = ?, cron_job_command = ?,
+								cron_job_type = ?, cron_job_status = ?
+							WHERE
+								cron_job_id = ?
+							AND
+								cron_job_admin_id IS NULL
+							AND
+								cron_job_status = ?
+						',
+						array(
+							$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth,
+							$cronjobDweek, $cronjobUser, $cronjobCommand, $cronjobType, 'tochange', $cronjobId, 'ok'
+						)
 					);
+
+					if($stmt->rowCount()) {
+						send_request();
+
+						write_log(
+							sprintf(
+								'CronJobs: Cron job with ID %s has been updated by %s',
+								$cronjobId,
+								$_SESSION['user_logged']
+							),
+							E_USER_NOTICE
+						);
+
+						Helper::sendJsonResponse(
+							200,
+							array(
+								'message' => tr('Cron job with ID %s has been scheduled for update.', true, $cronjobId)
+							)
+						);
+					}
 				}
 			}
-
 		} catch(iMSCPException $e) {
 			if($e instanceof CronjobException) {
 				Helper::sendJsonResponse(400, array('message' => $e->getMessage()));
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
-
 				Helper::sendJsonResponse(
 					500, array('message' => tr('Unable to add/update cron job: %s', true, $e->getMessage()))
 				);
@@ -156,8 +161,8 @@ function getCronJob()
 			$stmt = exec_query(
 				'
 					SELECT
-						cron_job_id, cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
-						cron_job_user, cron_job_command, cron_job_type
+						cron_job_id, cron_job_type, cron_job_notification, cron_job_minute, cron_job_hour,
+						cron_job_dmonth, cron_job_month, cron_job_dweek, cron_job_user, cron_job_command
 					FROM
 						cron_jobs
 					WHERE
@@ -257,22 +262,22 @@ function getCronJobsList()
 {
 	try {
 		// Filterable, orderable columns
-		$columns = array(
-			'cron_job_id',
-			'cron_job_type',
-			"
+		$columnDefs = array(
+			'cron_job_id' => 'cron_job_id',
+			'cron_job_type'=> 'cron_job_type',
+			'cron_job_timedate' => "
 				CONCAT(
 					cron_job_minute, ' ', cron_job_hour, ' ', cron_job_dmonth, ' ', cron_job_month, ' ',
 					cron_job_dweek
 				) AS cron_job_timedate
 			",
-			'cron_job_user',
-			'cron_job_command',
-			'cron_job_status'
+			'cron_job_user' => 'cron_job_user',
+			'cron_job_command' => 'cron_job_command',
+			'cron_job_status' => 'cron_job_status',
 		);
 
-		$nbColumns = count($columns);
-
+		$columnNames = array_keys($columnDefs);
+		$nbColumns = count($columnDefs);
 		$indexColumn = 'cron_job_id';
 
 		/* DB table to use */
@@ -297,13 +302,13 @@ function getCronJobsList()
 						isset($_GET['sSortDir_' . $i]) && in_array($_GET['sSortDir_' . $i], array('asc', 'desc'))
 					) ? $_GET['sSortDir_' . $i] : 'asc';
 
-					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $sortDir . ', ';
+					$order .= $columnNames[intval($_GET['iSortCol_' . $i])] . ' ' . $sortDir . ', ';
 				}
 			}
 
 			$order = substr_replace($order, '', -2);
 
-			if($order == 'ORDER BY') {
+			if($order == 'ORDER BY ') {
 				$order = '';
 			}
 		}
@@ -315,7 +320,7 @@ function getCronJobsList()
 			$where .= 'AND (';
 
 			for($i = 0; $i < $nbColumns; $i++) {
-				$where .= $columns[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
+				$where .= $columnNames[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
 			}
 
 			$where = substr_replace($where, '', -3);
@@ -325,15 +330,17 @@ function getCronJobsList()
 		/* Individual column filtering */
 		for($i = 0; $i < $nbColumns; $i++) {
 			if(isset($_GET['bSearchable_' . $i]) && $_GET['bSearchable_' . $i] === 'true' && $_GET['sSearch_' . $i] !== '') {
-				$where .= "AND {$columns[$i]} LIKE " . quoteValue('%' . $_GET['sSearch_' . $i] . '%');
+				$where .= "AND {$columnNames[$i]} LIKE " . quoteValue('%' . $_GET['sSearch_' . $i] . '%');
 			}
 		}
+
+
 
 		/* Get data to display */
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . "
+					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columnDefs)) . "
 				FROM
 					$table
 				$where
@@ -367,12 +374,12 @@ function getCronJobsList()
 			$row = array();
 
 			for($i = 0; $i < $nbColumns; $i++) {
-				if($columns[$i] == 'cron_job_type') {
-					$row[$columns[$i]] = ucfirst($data[$columns[$i]]);
-				} elseif($columns[$i] == 'cron_job_status') {
-					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]], false);
+				if($columnNames[$i] == 'cron_job_type') {
+					$row[$columnNames[$i]] = tr(ucfirst($data[$columnNames[$i]]), true);
+				} elseif($columnNames[$i] == 'cron_job_status') {
+					$row[$columnNames[$i]] = translate_dmn_status($data[$columnNames[$i]], false);
 				} else {
-					$row[$columns[$i]] = $data[$columns[$i]];
+					$row[$columnNames[$i]] = $data[$columnNames[$i]];
 				}
 			}
 
@@ -380,11 +387,11 @@ function getCronJobsList()
 
 			if($data['cron_job_status'] == 'ok') {
 				$row['cron_job_actions'] =
-					"<span title=\"$trEditTooltip\" data-action=\"edit_cron_job\" " .
+					"<span title=\"$trEditTooltip\" data-action=\"edit_cronjob\" " .
 					"data-cron-job-id=\"" . $data['cron_job_id'] . "\" " .
 					"class=\"icon icon_edit clickable\">&nbsp;</span> "
 					.
-					"<span title=\"$trDeleteTooltip\" data-action=\"delete_cron_job\" " .
+					"<span title=\"$trDeleteTooltip\" data-action=\"delete_cronjob\" " .
 					"data-cron-job-id=\"" . $data['cron_job_id'] . "\" " .
 					"class=\"icon icon_delete clickable\">&nbsp;</span>";
 			} else {
@@ -446,7 +453,6 @@ $tpl->define_dynamic(
 	array(
 		'layout' => 'shared/layouts/ui.tpl',
 		'page_message' => 'layout',
-		'cron_job_jailed' => 'page'
 	)
 );
 
@@ -466,21 +472,10 @@ $tpl->assign(
 		'TR_PAGE_TITLE' => Helper::escapeHtml(tr('Admin / System tools / Cronjobs', true)),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'CRONJOBS_ASSET_VERSION' => Helper::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations()
+		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+		'DEFAULT_EMAIL_NOTIFICATION' => $_SESSION['user_email'],
 	)
 );
-
-/** @var PluginManager $pluginManager */
-$pluginManager = Registry::get('pluginManager');
-if($pluginManager->isPluginKnown('InstantSSH')) {
-	$info = $pluginManager->getPluginInfo('InstantSSH');
-
-	if(version_compare($info['version'], '3.0.2', '<')) {
-		$tpl->assign('CRON_JOB_JAILED', '');
-	}
-} else {
-	$tpl->assign('CRON_JOB_JAILED', '');
-}
 
 generateNavigation($tpl);
 generatePageMessage($tpl);

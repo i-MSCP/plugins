@@ -125,7 +125,6 @@ function addCronPermissions()
 					$db->commit();
 
 					write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
-
 					Helper::sendJsonResponse(200, array('message' => tr('Cron permissions were added.', true)));
 				}
 			} else { // Update cron permissions
@@ -215,7 +214,6 @@ function addCronPermissions()
 					//send_request();
 
 					write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
-
 					Helper::sendJsonResponse(200, array('message' => tr('Cron permissions were updated.', true)));
 				}
 
@@ -229,7 +227,6 @@ function addCronPermissions()
 					sprintf('CronJobs: Unable to update cron permissions for %s: %s', $adminName, $e->getMessage()),
 					E_USER_ERROR
 				);
-
 				Helper::sendJsonResponse(
 					500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 				);
@@ -251,7 +248,13 @@ function deleteCronPermissions()
 		$cronPermissionId = intval($_POST['cron_permission_id']);
 		$cronPermissionAdminId = intval($_POST['cron_permission_admin_id']);
 
+		$db = Database::getInstance();
+
 		try {
+			$db->beginTransaction();
+
+			exec_query('DELETE FROM cron_permissions WHERE cron_permission_id = ?', $cronPermissionId);
+
 			$stmt = exec_query(
 				'
 					UPDATE
@@ -259,33 +262,23 @@ function deleteCronPermissions()
 					SET
 						cron_permission_status = ?
 					WHERE
-						(
-							cron_permission_id = ?
-							OR
-							cron_permission_admin_id IN(SELECT admin_id FROM admin WHERE created_by = ?)
-						)
+						cron_permission_admin_id IN(SELECT admin_id FROM admin WHERE created_by = ?)
 				',
 				array('todelete', $cronPermissionId, $cronPermissionAdminId)
 			);
 
 			if($stmt->rowCount()) {
 				send_request();
-
-				write_log(
-					sprintf('CronJobs: Cron permissions with ID %s were scheduled for deletion', $cronPermissionId),
-					E_USER_NOTICE
-				);
-
-				Helper::sendJsonResponse(
-					200, array('message' => tr('Cron permissions were scheduled for deletion.', true))
-				);
 			}
+
+			write_log(sprintf('CronJobs: Cron permissions with ID %s were removed', $cronPermissionId),  E_USER_NOTICE);
+			Helper::sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for deletion.', true)));
 		} catch(DatabaseException $e) {
+			$db->rollBack();
 			write_log(
 				sprintf('CronJobs: Unable to delete cron permissions with ID %s: %s', $cronPermissionId, $e->getMessage()),
 				E_USER_ERROR
 			);
-
 			Helper::sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 			);
@@ -577,6 +570,7 @@ $tpl->assign(
 
 /** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
+
 if($pluginManager->isPluginKnown('InstantSSH')) {
 	$info = $pluginManager->getPluginInfo('InstantSSH');
 

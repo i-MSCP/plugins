@@ -15,6 +15,34 @@ the full cron job permission to a customer only if he has also this permission.
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
 interface. Indeed, administrators can set the user to use for the cron job execution while the customers cannot.
 
+Each cron jobs is added in the crontab file ( see crontab(5) ) which belongs to the user under which the cron command
+must be run.
+
+## Requirements
+
+* i-MSCP >= 1.1.17 (plugin api >= 0.2.13)
+* InstantSSH plugin >= 3.0.2 ( only if you want enable support for jailed cron jobs )
+
+**Note:** Activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its presence
+is required. If this plugin is already activated and if you want enable support for jailed cron jobs, just upload the
+InstantSSH plugin and once it's done, deactivate and reactivate this plugin. You must note that once enabled, support for
+the jailed cron jobs cannot be disabled and thus, deletion of the InstantSSH plugin is prohibited.
+
+## Installation
+
+1. Login into the panel as admin and go to the plugin management interface
+2. Upload the plugin archive
+3. Activate the plugin
+
+## Update
+
+1. Backup your **plugins/CronJobs/config.php** configuration file
+2. Login into the panel as admin and go to the plugin management interface
+3. Deactivate the plugin
+4. Upload the plugin archive
+5. Restore your **plugins/cronjobs/config.php** configuration file ( compare it with the new version first )
+6. Activate the plugin
+
 ### Cron job types
 
 Three types of cron jobs are available, which are in order: **Url**, **Jailed** and **Full**.
@@ -33,7 +61,6 @@ plugin will create a jailed environment which provides:
 
 * GNU Wget
 * PHP (CLI) and some modules (mysqlnd, pdo, gd, intl, json, mcrypt, mysql, mysqli, pdo_mysql, readline)
-* rsync
 * Mysql Monitor and mysqldump
 * A set of common UNIX utilities
 
@@ -51,25 +78,20 @@ InstantSSH plugin to build the jailed environment.
 The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run in a jailed
 environment. Such cron jobs should be reserved to trusted users.
 
-## Requirements
+## Crontab files
 
-* i-MSCP >= 1.1.17 (plugin api >= 0.2.13)
-* InstantSSH plugin >= 3.0.2 ( only if you want enable support for jailed cron jobs )
+The plugin handles the crontab files automatically. You must note that any manual change in a crontab file which is
+already under the control of the plugin will be automatically purged. Therefore, if you want add a cron job in a crontab
+file which is already under the control of the plugin, you must add it through the cronjobs interface of the plugin.
 
-## Installation
+An crontab file is under the control of the plugin as soon as you add a cron task for the user to which it belong to,
+through the cronjob interface provided by this plugin.
 
-1. Login into the panel as admin and go to the plugin management interface
-2. Upload the plugin archive
-3. Activate the plugin
+## Cron job precedence
 
-## Update
-
-1. Backup your **plugins/CronJobs/config.php** configuration file
-2. Login into the panel as admin and go to the plugin management interface
-3. Deactivate the plugin
-4. Upload the plugin archive
-5. Restore your **plugins/cronjobs/config.php** configuration file ( compare it with the new version first )
-6. Activate the plugin
+The jailed cron jobs take precedence over the full cron jobs. This essentially mean that if you create a jailed cron
+job for a specific user, any other cron job for this user will be also jailed, whatever the value entered for the cron
+job type.
 
 ## Usage
 

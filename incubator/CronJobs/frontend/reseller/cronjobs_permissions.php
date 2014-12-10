@@ -561,27 +561,23 @@ if ($cronPermissions) {
 		)
 	);
 
-	if($cronPermissions['cron_permission_type'] == 'url') {
+	if($cronPermissions['cron_permission_type'] === 'url') {
 		$tpl->assign(
 			array(
 				'CRON_PERMISSION_JAILED' => '',
 				'CRON_PERMISSION_FULL' => ''
 			)
 		);
-	} elseif($cronPermissions['cron_permission_type'] == 'jailed') {
-		$tpl->assign(
-			array(
-				'CRON_PERMISSION_URL' => '',
-				'CRON_PERMISSION_FULL' => ''
-			)
-		);
+	} elseif($cronPermissions['cron_permission_type'] === 'jailed') {
+		$tpl->assign('CRON_PERMISSION_FULL', '');
 	} else {
 		/** @var PluginManager $pluginManager */
 		$pluginManager = Registry::get('pluginManager');
+
 		if($pluginManager->isPluginKnown('InstantSSH')) {
 			$info = $pluginManager->getPluginInfo('InstantSSH');
 
-			if(! $pluginManager->isPluginEnabled('InstantSSH') || version_compare($info['version'], '2.0.4', '<')) {
+			if(version_compare($info['version'], '3.0.2', '<')) {
 				$tpl->assign('CRON_PERMISSION_JAILED', '');
 			}
 		} else {

@@ -23,7 +23,7 @@ return array(
 		CREATE TABLE IF NOT EXISTS cron_jobs (
 			cron_job_id INT(10) unsigned AUTO_INCREMENT NOT NULL,
 			cron_job_permission_id INT(10) unsigned DEFAULT NULL,
-			cron_job_admin_id INT(10) unsigned NOT NULL,
+			cron_job_admin_id INT(10) unsigned DEFAULT NULL,
 			cron_job_type ENUM('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
 			cron_job_notification VARCHAR(255) DEFAULT NULL,
 			cron_job_minute VARCHAR(255) NOT NULL DEFAULT '*',

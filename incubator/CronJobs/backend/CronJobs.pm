@@ -439,7 +439,7 @@ sub _writeCrontab
 		my $fh = new FileHandle;
 		$fh->autoflush(1);
 
-		if($fh->open("| /usr/bin/crontab -u $cronJobUser - 2> /dev/null")) {
+		if($fh->open("| $self->{'config'}->{'crontab_cmd_path'} -u $cronJobUser - 2> /dev/null")) {
 			print $fh "SHELL=/bin/sh\n"; # Really needed?
 
 			for my $job(@cronjobs) {
@@ -469,7 +469,7 @@ sub _writeCrontab
 
 		if(-f "$self->{'config'}->{'crontab_dir'}/$cronJobUser") {
 			my ($stdout, $stderr);
-			my $rs = execute("/usr/bin/crontab -u $cronJobUser -r", \stdout, \stderr);
+			my $rs = execute("$self->{'config'}->{'crontab_cmd_path'} -u $cronJobUser -r", \stdout, \stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;

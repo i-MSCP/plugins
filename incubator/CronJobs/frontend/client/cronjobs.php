@@ -89,10 +89,7 @@ function addCronJob($cronPermissions)
 		$cronjobType = clean_input($_POST['cron_job_type']);
 
 		try {
-			if (
-				$cronPermissions['cron_permission_type'] === 'full' ||
-				$cronPermissions['cron_permission_type'] === $cronjobType
-			) {
+			if ($cronjobType === 'url' || $cronjobType === $cronPermissions['cron_permission_type']) {
 				Cronjob::validate(
 					$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, '',
 					$cronjobCommand, $cronjobType
@@ -512,33 +509,17 @@ if ($cronPermissions) {
 		)
 	);
 
-	if ($cronPermissions['cron_permission_type'] == 'url') {
+	if ($cronPermissions['cron_permission_type'] === 'url') {
 		$tpl->assign(
 			array(
 				'CRON_JOB__JAILED' => '',
 				'CRON_JOB__FULL' => '',
-				'CRON_JOB_DEFAULT_TYPE' => 'url'
 			)
 		);
-	} elseif ($cronPermissions['cron_permission_type'] == 'jailed') {
-		$tpl->assign(
-			array(
-				'CRON_JOB__FULL' => '',
-				'CRON_JOB_DEFAULT_TYPE' => 'jailed'
-			)
-		);
+	} elseif ($cronPermissions['cron_permission_type'] === 'jailed') {
+		$tpl->assign('CRON_JOB__FULL', '');
 	} else {
-		if ($pluginManager->isPluginKnown('InstantSSH')) {
-			$info = $pluginManager->getPluginInfo('InstantSSH');
-
-			if (version_compare($info['version'], '3.0.2', '<')) {
-				$tpl->assign('CRON_JOB__JAILED', '');
-			}
-		} else {
-			$tpl->assign('CRON_JOB__JAILED', '');
-		}
-
-		$tpl->assign('CRON_JOB_DEFAULT_TYPE', 'url');
+		$tpl->assign('CRON_JOB__JAILED', '');
 	}
 
 	generateNavigation($tpl);

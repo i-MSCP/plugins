@@ -88,8 +88,7 @@
 	var oTable;
 
 	function flashMessage(type, message) {
-		$('<div />', { "class": "flash_message " + type, "text": message, "hide": true }).prependTo("#page")
-			.hide().fadeIn("fast").delay(5000).fadeOut("normal", function() { $(this).remove(); });
+		$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
 	}
 
 	function doRequest(rType, action, data) {
@@ -137,11 +136,15 @@
 					data: aoData,
 					success: fnCallback,
 					timeout: 3000,
-					error: function (xhr, textStatus, error) {
+					error: function () {
 						oTable.fnProcessingIndicator(false);
 					}
 				}).done(function () {
-					oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+					if(jQuery.fn.imscpTooltip) {
+						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+					} else {
+						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
+					}
 				});
 			}
 		});
@@ -159,73 +162,68 @@
 			}
 		});
 
-		var $page = $("#page");
+		$("#page").
+			on("click", "input:reset", function () { $("#admin_name").prop("readonly", false); $("input:hidden").val("0"); }).
+			on("click", "span[data-action]", function () { $("input:reset").click(); }).
+			on("click", "span[data-action],button", function (e) {
+				e.preventDefault();
 
-		$page.on("click", "input:reset,span[data-action]", function () {
-			$("#admin_name").prop("readonly", false);
-			$("#cron_permission_type").val("url");
-			$("#cron_permission_frequency").val("5");
-			$("#cron_permission_id,#cron_permission_admin_id").val("0");
-		});
+				var action = $(this).data("action");
 
-		$page.on("click", "span[data-action],button", function (e) {
-			e.preventDefault();
-
-			action = $(this).data("action");
-
-			switch (action) {
-				case "add_cron_permissions":
-					if($("#admin_name").val() != '') {
-						doRequest("POST", action, $("#cron_permissions_frm").serialize()).done(
-							function (data, textStatus, jqXHR) {
-								$("input:reset").trigger("click");
-								flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-								oTable.fnDraw();
-							}
-						);
-					}
-					break;
-				case "edit_cron_permissions":
-					doRequest(
-						"GET", "get_cron_permissions", { cron_permission_id: $(this).data("cron-permission-id") }
-					).done(function (data) {
-						$("#admin_name").val(data.admin_name).prop("readonly", true);
-						$("#cron_permission_type").val(data.cron_permission_type);
-						$("#cron_permission_frequency").val(data.cron_permission_frequency);
-						$("#cron_permission_id").val(data.cron_permission_id);
-						$("#cron_permission_admin_id").val(data.cron_permission_admin_id);
-					});
-					break;
-				case "delete_cron_permissions":
-					if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke cron permissions for this reseller?', true));?>")) {
+				switch (action) {
+					case "add_cron_permissions":
+						if($("#admin_name").val() != '') {
+							doRequest("POST", action, $("#cron_permissions_frm").serialize()).done(
+								function (data, textStatus, jqXHR) {
+									$("input:reset").click();
+									flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
+									oTable.fnDraw();
+								}
+							);
+						}
+						break;
+					case "edit_cron_permissions":
 						doRequest(
-							"POST", "delete_cron_permissions", {
-								cron_permission_id: $(this).data('cron-permission-id'),
-								cron_permission_admin_id: $(this).data('cron-permission-admin-id')
-							}
+							"GET", "get_cron_permissions", { cron_permission_id: $(this).data("cron-permission-id") }
 						).done(function (data) {
-							oTable.fnDraw();
-							flashMessage("success", data.message);
+							$("#admin_name").val(data.admin_name).prop("readonly", true);
+							$("#cron_permission_type").val(data.cron_permission_type);
+							$("#cron_permission_frequency").val(data.cron_permission_frequency);
+							$("#cron_permission_id").val(data.cron_permission_id);
+							$("#cron_permission_admin_id").val(data.cron_permission_admin_id);
 						});
-					}
-					break;
-				default:
-					flashMessage("error", "<?= self::escapeJs(tr('Unknown action', true));?>");
-			}
-		});
+						break;
+					case "delete_cron_permissions":
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron permissions for this reseller?', true));?>")) {
+							doRequest(
+								"POST", "delete_cron_permissions", {
+									cron_permission_id: $(this).data('cron-permission-id'),
+									cron_permission_admin_id: $(this).data('cron-permission-admin-id')
+								}
+							).done(function (data) {
+								oTable.fnDraw();
+								flashMessage("success", data.message);
+							});
+						}
+						break;
+					default:
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action', true));?>");
+				}
+			});
 
-		$(document).ajaxStart(function () { oTable.fnProcessingIndicator();});
-		$(document).ajaxStop(function () { oTable.fnProcessingIndicator(false);});
-		$(document).ajaxError(function (e, jqXHR, settings, exception) {
-			if(jqXHR.status == 403) {
-				window.location.href = "/index.php";
-			} else if (jqXHR.responseJSON != "") {
-				flashMessage("error", jqXHR.responseJSON.message);
-			} else if (exception == "timeout") {
-				flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
-			} else {
-				flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
-			}
-		});
+		$(document).
+			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxError(function (e, jqXHR, settings, exception) {
+				if(jqXHR.status == 403) {
+					window.location.href = "/index.php";
+				} else if (jqXHR.responseJSON != "") {
+					flashMessage("error", jqXHR.responseJSON.message);
+				} else if (exception == "timeout") {
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+				} else {
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
+				}
+			});
 	});
 </script>
