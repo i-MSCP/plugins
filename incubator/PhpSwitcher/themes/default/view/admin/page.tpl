@@ -5,9 +5,9 @@
 	<table class="datatable">
 		<thead>
 		<tr>
-			<th style="width:10%;">{TR_NAME}</th>
-			<th style="width:25%;">{TR_BINARY}</th>
-			<th style="width:25%;">{TR_CONFDIR}</th>
+			<th style="width:20%;">{TR_NAME}</th>
+			<th style="width:20%;">{TR_BINARY}</th>
+			<th style="width:20%;">{TR_CONFDIR}</th>
 			<th style="width:30%;">{TR_STATUS}</th>
 			<th style="width:10%;">{TR_ACTIONS}</th>
 		</tr>
@@ -71,7 +71,7 @@
 	{
 		return $("#php_dialog").dialog({
 			autoOpen: false,
-			height: 330,
+			height: "auto",
 			width: 550,
 			modal: true,
 			title: title,
@@ -86,9 +86,9 @@
 				"{TR_CANCEL}": function() { $(this).dialog("close"); }
 			},
 			open: function() {
-				if(action == 'edit') {
+				if(action == "edit") {
 					frm = $("#php_frm");
-					$.each($(this).data('data'), function(k,v) { $("#" + k, frm).val(v);})
+					$.each($(this).data("data"), function(k,v) { $("#" + k, frm).val(v);})
 				}
 			},
 			close: function() {
@@ -144,9 +144,9 @@
 		});
 
 		$("#page").on("click", "span[data-action], button", function() {
-			action = $(this).data('action');
-			versionName = $(this).data('version-name');
-			versionId = $(this).data('version-id');
+			var action = $(this).data("action");
+			var versionName = $(this).data("version-name");
+			var versionId = $(this).data("version-id");
 
 			 switch (action) {
 			 	case "add":
@@ -165,7 +165,7 @@
 				 case "delete":
 					 if(confirm("{TR_DELETE_CONFIRM}")) {
 						 doRequest( "POST", action, { version_id: versionId, version_name: versionName } ).done(
-						 	function(data) { oTable.fnDraw(); flashMessage('success', data.message); }
+						 	function(data) { oTable.fnDraw(); flashMessage("success", data.message); }
 						 );
 					 }
 					 break;
@@ -174,16 +174,17 @@
 			 }
 		});
 
-		$(document).ajaxStart(function() { oTable.fnProcessingIndicator(); });
-		$(document).ajaxStop(function() { oTable.fnProcessingIndicator(false); });
-		$(document).ajaxError(function(e, jqXHR, settings, exception) {
-			if(jqXHR.responseJSON != "") {
-				flashMessage("error", jqXHR.responseJSON.message);
-			} else if(exception == "timeout") {
-				flashMessage("error", {TR_REQUEST_TIMEOUT});
-			} else {
-				flashMessage("error", {TR_REQUEST_ERROR});
-			}
+		$(document).
+			ajaxStart(function() { oTable.fnProcessingIndicator(); }) .
+			ajaxStop(function() { oTable.fnProcessingIndicator(false); }).
+			ajaxError(function(e, jqXHR, settings, exception) {
+				if(jqXHR.responseJSON != "") {
+					flashMessage("error", jqXHR.responseJSON.message);
+				} else if(exception == "timeout") {
+					flashMessage("error", {TR_REQUEST_TIMEOUT});
+				} else {
+					flashMessage("error", {TR_REQUEST_ERROR});
+				}
+			});
 		});
-	});
 </script>

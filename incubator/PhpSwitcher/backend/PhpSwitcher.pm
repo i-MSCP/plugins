@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 =head1 NAME
 
  Plugin::PhpSwitcher
@@ -25,7 +23,6 @@
 #
 
 # TODO PHP5-FPM support
-# TODO delTmp for PHP versions which are managed by this plugin
 
 package Plugin::PhpSwitcher;
 
@@ -62,17 +59,17 @@ sub run
 	my $self = $_[0];
 
 	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
-		$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&changeListener);
-		$self->{'hooksManager'}->register('beforeHttpdRestoreDmn', \&changeListener);
-		$self->{'hooksManager'}->register('beforeHttpdAddSub', \&changeListener);
-		$self->{'hooksManager'}->register('beforeHttpdRestoreSub', \&changeListener);
+		$self->{'eventManager'}->register('beforeHttpdAddDmn', \&setPhpData);
+		$self->{'eventManager'}->register('beforeHttpdRestoreDmn', \&setPhpData);
+		$self->{'eventManager'}->register('beforeHttpdAddSub', \&setPhpData);
+		$self->{'eventManager'}->register('beforeHttpdRestoreSub', \&setPhpData);
 
-		$self->{'hooksManager'}->register('beforeHttpdDisableDmn', \&deleteListener);
-		$self->{'hooksManager'}->register('beforeHttpdDelDmn', \&deleteListener);
-		$self->{'hooksManager'}->register('beforeHttpdDisableSub', \&deleteListener);
-		$self->{'hooksManager'}->register('beforeHttpdDelSub', \&deleteListener);
+		$self->{'eventManager'}->register('beforeHttpdDisableDmn', \&removePhpConfDir);
+		$self->{'eventManager'}->register('beforeHttpdDelDmn', \&removePhpConfDir);
+		$self->{'eventManager'}->register('beforeHttpdDisableSub', \&removePhpConfDir);
+		$self->{'eventManager'}->register('beforeHttpdDelSub', \&removePhpConfDir);
 
-		$self->{'hooksManager'}->register('afterDispatchRequest', sub {
+		$self->{'eventManager'}->register('afterDispatchRequest', sub {
 			my $rs = $_[0];
 
 			unless($rs) {
@@ -122,7 +119,7 @@ sub run
 
 =item enable()
 
- Perform enable tasks
+ Process enable tasks
 
  Return int 0 on success, other on failure
 
@@ -135,7 +132,7 @@ sub enable
 
 =item disable()
 
- Perform disable tasks
+ Process disable tasks
 
  Return int 0 on success, other on failure
 
@@ -145,13 +142,13 @@ sub disable
 {
 	my $self = $_[0];
 
-	$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&deleteListener);
-	$self->{'hooksManager'}->register('beforeHttpdAddSub', \&deleteListener);
+	$self->{'eventManager'}->register('beforeHttpdAddDmn', \&removePhpConfDir);
+	$self->{'eventManager'}->register('beforeHttpdAddSub', \&removePhpConfDir);
 }
 
 =item change()
 
- Perform change tasks
+ Process change tasks
 
  Return int 0 on success, other on failure
 
@@ -161,13 +158,15 @@ sub change
 {
 	my $self = $_[0];
 
-	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
+	if($self->{'server_implementation'} eq 'apache_fcgid') {
+		# On change we simply run normal workflow to setup per customer PHP version
 		$self->run();
 	} else {
-		$self->{'hooksManager'}->register('beforeHttpdAddDmn', \&deleteListener);
-		$self->{'hooksManager'}->register('beforeHttpdAddSub', \&deleteListener);
+		# In case the admin switched to an unsupported HTTPD server implementation, we must disable the plugin
+		$self->{'eventManager'}->register('beforeHttpdAddDmn', \&removePhpConfDir);
+		$self->{'eventManager'}->register('beforeHttpdAddSub', \&removePhpConfDir);
 
-		$self->{'hooksManager'}->register('afterDispatchRequest', sub {
+		$self->{'eventManager'}->register('afterDispatchRequest', sub {
 			my $rs = $self->{'db'}->doQuery(
 				'dummy', "UPDATE plugin SET plugin_status = 'disabled' WHERE plugin_name = 'PhpSwitcher'"
 			);
@@ -189,22 +188,22 @@ sub change
 
 =over 4
 
-=item changeListener(\%data)
+=item setPhpData(\%data)
 
- Listener responsible to change customers PHP versions
+ Listener responsible to set PHP data ( confdir and binary path ) for the given domain/subdomain
 
+ Param hash \%data Data as provided by the Alias|Domain|SubAlias|Subdomain modules
  Return int 0 on success, other on failure
 
 =cut
 
-sub changeListener($)
+sub setPhpData
 {
-	my $data = $_[0];
-	my $self = __PACKAGE__->getInstance();
-	my $phpVersionAdmin = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_version_admin') : undef;
-	my $rs = 0;
+	my ($self, $data) = (__PACKAGE__->getInstance(), $_[0]);
 
-	# Get data from database only if needed
+	my $phpVersionAdmin = (defined $self->{'memcached'}) ? $self->{'memcached'}->get('php_version_admin') : undef;
+
+	# Get data from database only if they are not cached yet
 	unless(defined $phpVersionAdmin) {
 		$phpVersionAdmin = $self->{'db'}->doQuery(
 			'admin_id',
@@ -230,12 +229,10 @@ sub changeListener($)
 
 	my $adminId = $data->{'DOMAIN_ADMIN_ID'};
 
-	my $phpCgiBinVarname = ($main::imscpConfig{'CodeName'} eq 'Eagle') ? 'PHP5_FASTCGI_BIN' : 'PHP_CGI_BIN';
-
 	if($phpVersionAdmin->{$adminId}) {
 		if($phpVersionAdmin->{$adminId}->{'version_status'} eq 'todelete') { # Customer PHP version will be deleted
 			# Remove Customer's PHP configuration directory
-			$rs = iMSCP::Dir->new(
+			my $rs = iMSCP::Dir->new(
 				'dirname' => "$phpVersionAdmin->{$adminId}->{'version_confdir_path'}/$data->{'DOMAIN_NAME'}"
 			)->remove();
 			return $rs if $rs;
@@ -247,52 +244,53 @@ sub changeListener($)
 			}
 
 			# Reset back Customer's PHP version
-			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $self->{'default_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'} = $self->{'default_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
 		} elsif($phpVersionAdmin->{$adminId}->{'version_status'} eq 'tochange') { # Customer's PHP version is updated
-			# Remove Customer's previous PHP configuration directory
-			my $prevConfDir = $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
-
-			if($prevConfDir) {
-				$rs = iMSCP::Dir->new('dirname' => "$prevConfDir/$data->{'DOMAIN_NAME'}")->remove();
-				return $rs if $rs;
-
-				# Update cache
-				if($self->{'memcached'}) {
-					delete $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
-					$self->{'memcached'}->set('php_version_admin', $phpVersionAdmin);
-				}
-			}
+#			# Remove Customer's previous PHP configuration directory
+#			my $prevConfDir = $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
+#
+#			if($prevConfDir) {
+#				my $rs = iMSCP::Dir->new('dirname' => "$prevConfDir/$data->{'DOMAIN_NAME'}")->remove();
+#				return $rs if $rs;
+#
+#				# Update cache
+#				if($self->{'memcached'}) {
+#					delete $phpVersionAdmin->{$adminId}->{'version_confdir_path_prev'};
+#					$self->{'memcached'}->set('php_version_admin', $phpVersionAdmin);
+#				}
+#			}
 
 			# Set customer PHP paths according its PHP version
-			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
 		} else {
 			# Set customer PHP paths according its PHP version
-			$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
+			$self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'} = $phpVersionAdmin->{$adminId}->{'version_binary_path'};
 			$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $phpVersionAdmin->{$adminId}->{'version_confdir_path'};
 		}
 	} else {
 		# Set customer PHP paths to default PHP version
-		$self->{'httpd'}->{'config'}->{$phpCgiBinVarname} = $self->{'default_binary_path'};
+		$self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'} = $self->{'default_binary_path'};
 		$self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'} = $self->{'default_confdir_path'};
 	}
 
-	Plugin::PhpSwitcher::deleteListener($data);
+	Plugin::PhpSwitcher::removePhpConfDir($data);
 }
 
-=item deleteListener(\%data)
+=item removePhpConfDir(\%data)
 
- Listener responsible to delete customer's PHP configuration directories
+ Listener responsible to delete PHP configuration directory for the given domain/subdomain
 
+ Param hash \%data Data as provided by the Alias|Domain|SubAlias|Subdomain modules
  Return int 0 on success, other on failure
 
 =cut
 
-sub deleteListener($)
+sub removePhpConfDir
 {
-	my $data = $_[0];
-	my $self = __PACKAGE__->getInstance();
+	my ($self, $data) = (__PACKAGE__->getInstance(), $_[0]);
+
 	my $phpConfDirs = ($self->{'memcached'}) ? $self->{'memcached'}->get('php_confdirs') : undef;
 
 	unless(defined $phpConfDirs) {
@@ -313,8 +311,8 @@ sub deleteListener($)
 	}
 
 	if(%{$phpConfDirs}) {
-		for(keys %{$phpConfDirs}) {
-			my $rs = iMSCP::Dir->new('dirname' => "$_/$data->{'DOMAIN_NAME'}")->remove();
+		for my $phpConfDir(keys %{$phpConfDirs}) {
+			my $rs = iMSCP::Dir->new('dirname' => "$phpConfDir/$data->{'DOMAIN_NAME'}")->remove();
 			return $rs if $rs;
 		}
 	}
@@ -336,7 +334,7 @@ sub deleteListener($)
 
 =cut
 
-sub _init()
+sub _init
 {
 	my $self = $_[0];
 
@@ -355,12 +353,10 @@ sub _init()
 
 		$self->{'httpd'} = Servers::httpd->factory();
 
-		my $phpCgiBinVarname = ($main::imscpConfig{'CodeName'} eq 'Eagle') ? 'PHP5_FASTCGI_BIN' : 'PHP_CGI_BIN';
-
-		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{$phpCgiBinVarname};
+		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'};
 		$self->{'default_confdir_path'} = $self->{'httpd'}->{'config'}->{'PHP_STARTER_DIR'};
 
-		# Small-haking to avoid too many IO operations and conffile override on failure
+		# Small-haking to avoid too many IO operations. This also avoid conffile overriding on failure
 		my %config = %{$self->{'httpd'}->{'config'}};
 		untie %{$self->{'httpd'}->{'config'}};
 		%{$self->{'httpd'}->{'config'}} = %config;
@@ -421,3 +417,4 @@ sub _getMemcached
 =cut
 
 1;
+__END__

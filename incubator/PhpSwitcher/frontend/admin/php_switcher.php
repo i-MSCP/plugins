@@ -100,13 +100,17 @@ function phpSwitcher_add()
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
 		if ($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
-			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
+			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
 		} elseif (
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP version %s already exists. This is the default PHP version.', $versionName))
+				array(
+					'message' => tr(
+						'PHP version %s already exists. This is the default PHP version.', true, $versionName
+					)
+				)
 			);
 		}
 
@@ -169,7 +173,9 @@ function phpSwitcher_edit()
 		) {
 			_phpSwitcher_sendJsonResponse(
 				400,
-				array('message' => tr('PHP version %s already exists. This is the default PHP version.', $versionName))
+				array('message' => tr(
+					'PHP version %s already exists. This is the default PHP version.', true, $versionName)
+				)
 			);
 		}
 
@@ -212,7 +218,7 @@ function phpSwitcher_edit()
 				write_log(tr('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
 
 				_phpSwitcher_sendJsonResponse(
-					200, array('message' => tr('PHP version %s successfully scheduled for update.', $versionName))
+					200, array('message' => tr('PHP version %s successfully scheduled for update.', true, $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -220,7 +226,7 @@ function phpSwitcher_edit()
 
 			if ($e->getCode() == '23000') {
 				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP version %s already exists.', $versionName))
+					400, array('message' => tr('PHP version %s already exists.', true, $versionName))
 				);
 			} else {
 				_phpSwitcher_sendJsonResponse(
@@ -230,7 +236,7 @@ function phpSwitcher_edit()
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -272,7 +278,8 @@ function phpSwitcher_delete()
 				write_log(tr('PHP version %s has scheduled for deletion.', $versionName), E_USER_NOTICE);
 
 				_phpSwitcher_sendJsonResponse(
-					200, array('message' => tr('PHP version %s successfully scheduled for deletion.', $versionName))
+					200,
+					array('message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName))
 				);
 			}
 		} catch (iMSCP_Exception_Database $e) {
@@ -283,7 +290,7 @@ function phpSwitcher_delete()
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -412,14 +419,14 @@ function phpSwitcher_getTable()
 		);
 	}
 
-	_phpSwitcher_sendJsonResponse(400, tr('Bad request.'));
+	_phpSwitcher_sendJsonResponse(400, tr('Bad request.', true));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
 
 check_login('admin');
 
@@ -442,7 +449,7 @@ if (isset($_REQUEST['action'])) {
 				phpSwitcher_delete();
 				break;
 			default:
-				_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
+				_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 		}
 	}
 
@@ -465,9 +472,9 @@ $tpl->assign(
 		'ISP_LOGO' => layout_getUserLogo(),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'TR_ID' => tr('Id'),
-		'TR_NAME' => tr('Name'),
-		'TR_BINARY' => tr('Binary'),
-		'TR_CONFDIR' => tr('Configuration Directory'),
+		'TR_NAME' => tr('PHP version name'),
+		'TR_BINARY' => tr('PHP binary'),
+		'TR_CONFDIR' => tr('PHP configuration directory'),
 		'TR_STATUS' => tr('Status'),
 		'TR_ACTIONS' => tr('Actions'),
 		'TR_BINARY_PATH' => tr('PHP binary path'),
@@ -490,6 +497,6 @@ generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
+iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();

@@ -1,66 +1,45 @@
-## PhpSwitcher v0.0.9 plugin for i-MSCP
+# PhpSwitcher v0.0.10 plugin for i-MSCP
 
 Plugin allowing to provide many PHP versions to customers.
 
-### LICENSE
+## Introduction
 
- i-MSCP PhpSwitcher plugin
- Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
+install any PHP version itself. Those steps must be done by the administrator ( see below ).
 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
+**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
+the PHP5-FPM implementations will be also supported.
 
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
+## Requirements
 
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+* i-MSCP >= 1.1.19 ( Plugin API 0.2.14 )
+* i-MSCP Fcgid httpd server implementation ( apache_fcgid )
 
- See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+### Memcached support (Optional)
 
-### REQUIREMENTS
-
-* i-MSCP >= 1.1.2
-* i-MSCP Fcgid httpd server implementation (apache_fcgid)
-
-#### Memcached support (Optional)
-
-Debian / Ubuntu packages to install in case you want enable memcached support (recommended)
+Debian / Ubuntu packages to install in case you want enable memcached support ( recommended )
 
 - memcached
 - libcache-memcached-fast-perl
 - php5-memcached
 
-### INTRODUCTION
-
-This plugin allow to setup many PHP versions, which can be used by your customers. This plugin do not compile, nor
-install any PHP version itself. Those steps must be done by the administrator (see below).
-
-**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
-the PHP5-FPM implementations will be also supported.
-
-### INSTALLATION
+## Installation
 
 1. Login into the panel as admin and go to the plugin management interface
-2. Upload the **PhpSwitcher** plugin archive
+2. Upload the plugin archive
 3. Click on the **Update Plugins** button
 4. Activate the plugin
 
-#### Memcached Support
+### Memcached Support
 
 In order, to enable memcached support, you must:
 
-1. Install the needed packages (see the requirements section above)
+1. Install the needed packages ( see the requirements section above )
 2. Edit the **plugins/PhpSwitcher/config.php** configuration file to enable memcached support
 3. Login into the panel interface as admin and go to the plugin management interface
 4. Click on the **Update Plugins** button in the plugin management interface
 
-##### Memcached configuration parameters
+#### Memcached configuration parameters
 
 <table>
 	<tr>
@@ -85,7 +64,7 @@ In order, to enable memcached support, you must:
 	</tr>
 </table>
 
-### UPDATE
+## Update
 
 1. Backup your current config file **plugins/PhpSwitcher/config.php**
 2. Login into the panel as admin and go to the plugin management interface
@@ -93,36 +72,36 @@ In order, to enable memcached support, you must:
 4. Restore your **plugins/PhpSwitcher/config.php** (compare it with new config file first)
 5. Click on the **Update Plugins** button in the plugin management interface
 
-### SETUP NEW PHP VERSION
+## Setup a new PHP version
 
 At first, you must get, compile and install the PHP version which you want make available for your customers. For
 instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follow the following steps on Debian Wheezy
 (X86_64 arch):
 
-#### Creating build environment
+### Creating build environment
 
 	# cd /usr/local/src
 	# mkdir -p php_buildenv/php53 && cd php_buildenv/php53
 	# mkdir -p /opt/php-fcgid/5.3
 	# apt-get update && apt-get install build-essential
 
-#### Installing needed libraries
+### Installing needed libraries
 
 	# apt-get build-dep php5
 	# apt-get install libfcgi-dev libfcgi0ldbl libjpeg62-dbg libmcrypt-dev libssl-dev libc-client2007e \
 	libc-client2007e-dev libpq5
 
-##### Needed on X86_64 arch only
+#### Needed on X86_64 arch only
 
 	# ln -s /usr/lib/libc-client.a /usr/lib/x86_64-linux-gnu/libc-client.a
 
-#### Fetching PHP sources
+### Fetching PHP sources
 
-	# wget http://de.php.net/get/php-5.3.28.tar.bz2/from/this/mirror -O php.tar.bz2
+	# wget http://de.php.net/get/php-5.3.29.tar.bz2/from/this/mirror -O php.tar.bz2
 	# tar xjf php.tar.bz2
-	# cd php-5.3.28
+	# cd php-5.3.29
 
-#### Configuration
+### Configuration
 
 	# ./configure \
 	--prefix=/opt/php-fcgid/5.3 \
@@ -171,14 +150,14 @@ instance, if you want add PHP5.3 as a FastCGI application (Fcgid), you can follo
 	--with-xsl \
 	--enable-cgi
 
-**Note:** If you need more modules, you must tune the configuration options and install needed libraries.
+**Note:** If you need more modules, you must tune the configuration options and install the needed libraries.
 
-#### Compilation and installation
+### Compilation and installation
 
 	# make
 	# make install
 
-#### Checking
+### Checking
 
 Test your php binary by running the following command:
 
@@ -190,7 +169,7 @@ which should give a result such as:
 	Copyright (c) 1997-2013 The PHP Group
 	Zend Engine v2.3.0, Copyright (c) 1998-2013 Zend Technologies
 
-#### Registration through PhpSwitcher
+### Registration through PhpSwitcher
 
 1. **Login into the panel as administrator and go to the PhpSwitcher interface (settings section)**
 2. **Create a new PHP version with the following parameters:**
@@ -221,14 +200,48 @@ which should give a result such as:
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the **Domains** section.
 
-#### Troubleshootings
+### Troubleshootings
+
+#### MariaDB
 
 If you are running MariaDB on your server and if you encounter some problems while trying to install PHP build packages,
 you must temporary switch to the MySQL version as provided by your distribution. This can be done easily by using the
 i-MSCP installer.
 
-### AUTHORS AND CONTRIBUTORS
+#### Configuration error
 
- * Laurent Declercq <l.declercq@nuxwin.com> (Author)
+if you encounter an error like:
 
-**Thank you for using this plugin.**
+	configure: error: freetype.h not found
+
+Execute the following commands:
+
+	# mkdir /usr/include/freetype2/freetype
+	# ln -s /usr/include/freetype2/freetype.h /usr/include/freetype2/freetype/freetype.h
+
+and then, rerun the ./configure script.
+
+## License
+
+	i-MSCP PhpSwitcher plugin
+	Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+	
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+	
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+	
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+ See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+
+## Author
+
+ * Laurent Declercq <l.declercq@nuxwin.com>
