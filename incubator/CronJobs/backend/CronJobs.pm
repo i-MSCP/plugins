@@ -55,7 +55,7 @@ sub install
 {
 	my $self = $_[0];
 
-	if($self->{'config'}->{'jailed_cron_jobs'}) {
+	if($self->{'config'}->{'jailed_cronjobs_support'}) {
 		my $rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->make(
 			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'IMSCP_GROUP'}, 'mode' => 0750 }
 		);
@@ -80,7 +80,7 @@ sub uninstall
 {
 	my $self = $_[0];
 
-	if($self->{'config'}->{'jailed_cron_jobs'}) {
+	if($self->{'config'}->{'jailed_cronjobs_support'}) {
 		my $rootJailDir = $self->{'config'}->{'root_jail_dir'};
 
 		if(-d "$rootJailDir/jail") {
@@ -130,7 +130,7 @@ sub change
 		$rs = $self->run();
 		return $rs if $rs;
 
-		if($self->{'config'}->{'jailed_cron_jobs'}) {
+		if($self->{'config'}->{'jailed_cronjobs_support'}) {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
 			if($@) {
@@ -208,7 +208,7 @@ sub disable
 		$rs = $self->run();
 		return $rs if $rs;
 
-		if($self->{'config'}->{'jailed_cron_jobs'}) {
+		if($self->{'config'}->{'jailed_cronjobs_support'}) {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
 			if($@) {
@@ -226,7 +226,7 @@ sub disable
 
 =item run()
 
- Handle cron jobs and cron permissions
+ Handle cron jobs and cron job permissions
 
  Return int 0 on succes, other on failure
 
@@ -351,12 +351,12 @@ sub _init
 	# Load jail builder library if available
 	eval { local $SIG{'__DIE__'}; require InstantSSH::JailBuilder; };
 	unless($@) {
-		$self->{'config'}->{'jailed_cron_jobs'} = 1;
+		$self->{'config'}->{'jailed_cronjobs_support'} = 1;
 		for(qw/makejail_path makejail_confdir_path root_jail_dir/) {
 			die("Missing $_ configuration parameter") unless defined $self->{'config'}->{$_};
 		}
 	} else {
-		$self->{'config'}->{'jailed_cron_jobs'} = 0;
+		$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 	}
 
 	$self;
@@ -390,31 +390,42 @@ sub _writeCrontab
 	}
 
 	my @cronjobs = ();
+	my $cronjobNotificationPrev = 'none';
 
 	while (my $row = $sth->fetchrow_hashref()) {
 		if($row->{'cron_job_status'} ~~ ['toadd', 'tochange', 'toenable', 'ok']) {
-			my $job = '';
+			my $cronjob = '';
 
-			if(defined $row->{'cron_job_notification'}) {
-				$job .= "MAILTO='$row->{'cron_job_notification'}'\n";
+			if(defined $row->{'cron_job_notification'} && $row->{'cron_job_notification'} ne $cronjobNotificationPrev) {
+				$cronjob .= "MAILTO='$row->{'cron_job_notification'}'\n";
+				$cronjobNotificationPrev = $row->{'cron_job_notification'};
+			} elsif($cronjobNotificationPrev eq 'none' || $cronjobNotificationPrev ne '') {
+				$cronjob .= "MAILTO=''\n";
+				$cronjobNotificationPrev = '';
 			}
 
-			$job .=
+			$cronjob .=
 				$row->{'cron_job_minute'} . ' ' . $row->{'cron_job_hour'} . ' ' . $row->{'cron_job_dmonth'} . ' ' .
 				$row->{'cron_job_month'} . ' ' . $row->{'cron_job_dweek'} . ' ';
 
 			if($row->{'cron_job_type'} eq 'url') {
-				$job .= 'wget -q -t 1 -T 600 -O /dev/null ' . escapeShell($row->{'cron_job_command'}) . ' /dev/null 2>&1';
+				$cronjob .= '/usr/bin/wget -q -t 1 -T 3600 -O /dev/null ';
+				# Stay compatible with self-signed certificates
+				$cronjob .= '--no-check-certificate ' if index($row->{'cron_job_command'}, 'https') == 0;
+				$cronjob .= escapeShell($row->{'cron_job_command'}) . ' /dev/null 2>&1';
 			} else {
-				$job .= $row->{'cron_job_command'};
+				$cronjob .= $row->{'cron_job_command'};
 			}
 
-			push @cronjobs, "$job\n";
+			push @cronjobs, $cronjob . "\n";
 		}
 	}
 
 	if(@cronjobs) {
-		if($self->{'config'}->{'jailed_cron_jobs'} && $cronPermissionType ~~ ['jailed', 'unknown']) {
+		if(
+			$self->{'config'}->{'jailed_cronjobs_support'} &&
+			($cronPermissionType eq 'jailed' || $cronPermissionType ne 'unknown')
+		) {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
 			if($@) {
@@ -430,7 +441,7 @@ sub _writeCrontab
 
 				my $rs = $jailBuilder->jailUser($cronJobUser);
 				return $rs if $rs;
-			} elsif($cronPermissionType ne 'unknown') {
+			} else {
 				my $rs = $jailBuilder->unjailUser($cronJobUser);
 				return $rs if $rs;
 			}
@@ -440,14 +451,11 @@ sub _writeCrontab
 		$fh->autoflush(1);
 
 		if($fh->open("| $self->{'config'}->{'crontab_cmd_path'} -u $cronJobUser - 2> /dev/null")) {
-			print $fh "SHELL=/bin/sh\n"; # Really needed?
-
-			for my $job(@cronjobs) {
-				print $fh $job ;
-			}
+			print $fh "SHELL=/bin/sh\n";
+			print $fh $_ for @cronjobs;
 
 			unless($fh->close()) {
-				error("Unable to install crontab file");
+				error("Unable to write crontab file");
 				return 1;
 			}
 		} else {
@@ -455,7 +463,7 @@ sub _writeCrontab
 			return 1;
 		}
 	} else {
-		if($self->{'config'}->{'jailed_cron_jobs'} && $cronPermissionType ne 'unknown') {
+		if($self->{'config'}->{'jailed_cronjobs_support'} && $cronPermissionType ne 'unknown') {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
 			if($@) {
@@ -463,13 +471,13 @@ sub _writeCrontab
 				return 1;
 			}
 
-			$rs = $jailBuilder->unjailUser($cronJobUser);
+			my $rs = $jailBuilder->unjailUser($cronJobUser);
 			return $rs if $rs;
 		}
 
 		if(-f "$self->{'config'}->{'crontab_dir'}/$cronJobUser") {
 			my ($stdout, $stderr);
-			my $rs = execute("$self->{'config'}->{'crontab_cmd_path'} -u $cronJobUser -r", \stdout, \stderr);
+			my $rs = execute("$self->{'config'}->{'crontab_cmd_path'} -u $cronJobUser -r", \$stdout, \$stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
@@ -483,7 +491,7 @@ sub _writeCrontab
 
  Configure pam chroot
 
- Param bool $uninstall OPTIONAL Whether pam chroot configuration must be removed (default: false)
+ Param bool $uninstall OPTIONAL Whether pam chroot configuration must be removed ( default: false )
  Return int 0 on success, other on failure
 
 =cut

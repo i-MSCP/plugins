@@ -49,7 +49,7 @@ function addCronJob()
 		isset($_POST['cron_job_type'])
 	) {
 		$cronjobId = clean_input($_POST['cron_job_id']);
-		$cronjobNotification = clean_input($_POST['cron_job_notification']);
+		$cronjobNotification = encode_idna(clean_input($_POST['cron_job_notification']));
 		$cronjobMinute = clean_input($_POST['cron_job_minute']);
 		$cronjobHour = clean_input($_POST['cron_job_hour']);
 		$cronjobDmonth = clean_input($_POST['cron_job_dmonth']);
@@ -65,6 +65,10 @@ function addCronJob()
 					$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek,
 					$cronjobUser, $cronjobCommand, $cronjobType
 				);
+
+				if($cronjobNotification === '') {
+					$cronjobNotification = null;
+				}
 
 				if(!$cronjobId) { // New cron job
 					exec_query(

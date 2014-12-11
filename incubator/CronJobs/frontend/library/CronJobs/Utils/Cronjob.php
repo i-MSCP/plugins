@@ -99,7 +99,7 @@ final class Cronjob
 	protected static function validateAttribute($name, $value)
 	{
 		if ($value === '') {
-			throw new CronjobException(tr("Value for the '%s' cron job attribute cannot be empty", true, $name));
+			throw new CronjobException(tr("Value for the '%s' cron job attribute cannot be empty.", true, $name));
 		}
 
 		$pattern = '';
@@ -142,7 +142,7 @@ final class Cronjob
 
 		if ($value != '*' && !preg_match($longPattern, $value)) {
 			throw new CronjobException(
-				tr("Invalid value '%s' given for the '%s' cron job attribute ", true, $value, $name)
+				tr("Invalid value '%s' given for the '%s' cron job attribute.", true, $value, $name)
 			);
 		} else {
 			// Test whether the user provided a meaningful order inside a range

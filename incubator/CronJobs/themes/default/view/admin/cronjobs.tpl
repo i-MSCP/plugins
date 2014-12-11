@@ -47,7 +47,9 @@
 		<tr>
 			<td colspan="7" style="background-color: #b0def5">
 				<div class="buttons">
-					<button data-action="add_cronjob_dialog"><?= self::escapeHtml(tr('Add new cron job', true));?></button>
+					<button data-action="add_cronjob_dialog">
+						<strong><?= self::escapeHtml(tr('Add new cron job', true));?></strong>
+					</button>
 				</div>
 			</td>
 		</tr>
@@ -241,6 +243,7 @@
 					case "add_cronjob":
 						doRequest('POST', action, $("#cron_job_frm").serialize()).done(function (data) {
 							dialog.dialog("close");
+							flashMessageTarget = undefined;
 							flashMessage('success', data.message);
 							oTable.fnDraw();
 						});
