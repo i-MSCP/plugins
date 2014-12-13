@@ -1,6 +1,6 @@
 # Update errata
 
-## Update to version 3.0.2
+## Update to version 3.1.0
 
 ### New actions
 
