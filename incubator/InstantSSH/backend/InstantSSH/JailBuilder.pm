@@ -168,6 +168,24 @@ sub makeJail
 		}
 	}
 
+	# Run commands defined in the sys_run_commands option outside the jail
+	for (@{$self->{'jailCfg'}->{'sys_run_commands'}}) {
+		my ($stdout, $stderr);
+		$rs = execute($_, \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the jail_run_commands option inside the jail
+	for (@{$self->{'jailCfg'}->{'jail_run_commands'}}) {
+		my ($stdout, $stderr);
+		$rs = execute(sprintf("chroot %s %s", $self->{'jailCfg'}->{'chroot'}, $_), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
 	0;
 }
 
@@ -696,7 +714,9 @@ sub _init
 		users => [],
 		groups => [],
 		devices => [],
-		fstab => []
+		fstab => [],
+		jail_run_commands => [],
+		sys_run_commands => []
 	};
 
 	if(defined $self->{'id'} && $self->{'id'} =~ /^[a-z0-9]+/i) {
@@ -785,11 +805,13 @@ sub _buildMakejailCfgfile
 
 		$fileContent .= "chroot = \"$self->{'jailCfg'}->{'chroot'}\"\n";
 		$fileContent .= "cleanJailFirst = 1\n";
-		$fileContent .= "maxRemove = 100000\n";
+		$fileContent .= "maxRemove = 900000\n";
 		$fileContent .= "doNotCopy = []\n";
 
 		if(@{$self->{'jailCfg'}->{'preserve_files'}}) {
-			$fileContent .= 'preserve = [' . (join ', ', map { qq/"$_"/ } @{$self->{'jailCfg'}->{'preserve_files'}}) . "]\n";
+			$fileContent .= 'preserve = [' .
+				(join ', ', map { qq/"$_"/ } @{$self->{'jailCfg'}->{'preserve_files'}}) .
+			"]\n";
 		}
 
 		if(@{$self->{'jailCfg'}->{'paths'}}) {
@@ -875,7 +897,7 @@ sub _handleAppsSection()
 
 	# Handle list options from application section
 
-	for my $option(qw/devices fstab groups paths packages preserve_files users/) {
+	for my $option(qw/ devices fstab groups jail_run_commands paths packages preserve_files sys_run_commands users /) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
 				for my $item(@{$cfg->{$section}->{$option}}) {
@@ -891,7 +913,7 @@ sub _handleAppsSection()
 	}
 
 	# Handle key/value pairs options from application section
-	for my $option(qw/jail_copy_file_to mount sys_copy_file_to/) {
+	for my $option(qw/ jail_copy_file_to mount sys_copy_file_to /) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'HASH') {
 				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {

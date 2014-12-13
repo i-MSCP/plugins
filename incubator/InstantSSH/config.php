@@ -150,7 +150,9 @@ return array(
 	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
 	// preserve_files: Files that have to be preserved when a jail is being updated
 	// devices: List of devices that have to be copied inside the jail
-	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab ).
+	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab )
+	// sys_run_commands: List of commands to execute outside the jail once built or updated
+	// jail_run_commands: List of commands to execute inside the jail once built or updated
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.

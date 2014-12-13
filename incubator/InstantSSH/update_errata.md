@@ -5,26 +5,34 @@
 ### New actions
 
 A new action has been added in the admin/permissions interface, which allow the administrator to schedule rebuild of all
-jails.
+existent jails.
 
 ### Application section options
 
-#### copy_file_to
+#### Renamed copy_file_to option to jail_copy_file_to
 
 The **copy_file_to** option which allow to copy a specific file inside jails has been renamed to **jail_copy_file_to**.
 
-#### sys_copy_file_to option
+#### New fstab option
 
-A new **sys_copy_file** option has been added. This option allow to copy a specific file in the system.
+This option allow to describe fstab entries to add into the **/etc/fstab** file. The filesystem specified in the fstab
+entries are automatically mounted inside the jails by the jail builder.
 
-#### fstab option
+#### New jail_run_commands option
 
-A new **fstab** option has been added. This option allow to describe fstab entries to add into the **/etc/fstab** file.
-The filesystem specified in the fstab entries are automatically mounted inside the jails by the jail builder.
+This option allow to execute a list of commands inside the jail once built or updated.
 
-#### mount option
+#### New sys_copy_file_to option
 
-The **mount** option has been removed in favor of the new **fstab** option.
+This option allow to copy a specific file in the system.
+
+#### New sys_run_commands option
+
+This option allow to execute a list of commands outside the jail once built or updated.
+
+#### Removed mount option
+
+The **mount** option has been removed in favor of the **fstab** option.
 
 ## Update to version 3.0.0
 
