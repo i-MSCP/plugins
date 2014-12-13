@@ -26,8 +26,6 @@ package InstantSSH::JailBuilder;
 use strict;
 use warnings;
 
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::File;
 use iMSCP::Dir;
