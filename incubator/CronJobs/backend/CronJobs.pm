@@ -56,12 +56,7 @@ sub install
 	my $self = $_[0];
 
 	if($self->{'config'}->{'jailed_cronjobs_support'}) {
-		my $rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->make(
-			{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'IMSCP_GROUP'}, 'mode' => 0750 }
-		);
-		return $rs if $rs;
-
-		$rs = $self->_configurePamChroot();
+		my $rs = $self->_configurePamChroot();
 		return $rs if $rs;
 	}
 
@@ -121,7 +116,7 @@ sub change
 	my $self = $_[0];
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'disabled'");
+		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable'");
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -199,7 +194,7 @@ sub disable
 	my $self = $_[0];
 
 	if($self->{'action'} eq 'disable') {
-		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'disabled'");
+		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable'");
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -243,11 +238,13 @@ sub run
 	$sth = $dbh->prepare(
 		"
 			SELECT
-				cron_job_user, IFNULL(cron_permission_type, 'unknown') AS cron_permission_type
+				cron_job_user, cron_job_status, IFNULL(cron_permission_type, 'unknown') AS cron_permission_type
 			FROM
 				cron_jobs
 			LEFT JOIN
 				cron_permissions ON(cron_job_permission_id = cron_permission_id)
+			WHERE
+				cron_job_status IN('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
 			GROUP BY
 				cron_job_user
 		"
@@ -269,6 +266,8 @@ sub run
 	while (my $row = $sth->fetchrow_hashref()) {
 		$rs ||= $self->_writeCrontab($row->{'cron_job_user'}, $row->{'cron_permission_type'});
 
+		my $nextStatus = ($row->{'cron_job_status'} eq 'todisable') ? 'disabled' : 'ok';
+
 		my $qrs = $self->{'db'}->doQuery(
 			'dummy',
 			"
@@ -281,7 +280,7 @@ sub run
 				AND
 					cron_job_status NOT IN('disabled', 'todelete')
 			",
-			($rs ? scalar getMessageByType('error') : 'ok'),
+			($rs ? scalar getMessageByType('error') : $nextStatus),
 			$row->{'cron_job_user'}
 		);
 		unless(ref $qrs eq 'HASH') {

@@ -92,7 +92,9 @@ function addCronJob()
 						sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']), E_USER_NOTICE
 					);
 
-					Helper::sendJsonResponse(200, array('message' => tr('Cron job has been scheduled for addition.', true)));
+					Helper::sendJsonResponse(
+						200, array('message' => tr('Cron job has been scheduled for addition.', true))
+					);
 				} else { // Cron job update
 					$stmt = exec_query(
 						'

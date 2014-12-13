@@ -158,6 +158,9 @@ return array(
 		),
 		'groups' => array(
 			'root'
+		),
+		'sys_run_commands' => array(
+			'service rsyslog restart'
 		)
 	)
 );

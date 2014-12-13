@@ -63,7 +63,9 @@
 					<td><label for="cron_job_notification"><?= self::escapeHtml(tr('Cron notifications', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_notification" id="cron_job_notification" value="{DEFAULT_EMAIL_NOTIFICATION}">
-						<div><small><?= self::escapeHtml(tr('Email to which cron notifications must be sent. Leave blank to disable notifications.', true));?></small></div>
+						<div>
+							<small><?= self::escapeHtml(tr('Email to which notifications must be sent if any. Leave blank to disable notifications.', true));?></small>
+						</div>
 					</td>
 				</tr>
 				<tr>

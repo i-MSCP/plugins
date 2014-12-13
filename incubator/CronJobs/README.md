@@ -19,7 +19,7 @@ must be run.
 ## Requirements
 
 * i-MSCP >= 1.1.19 ( plugin API >= 0.2.14 )
-* InstantSSH plugin >= 3.0.2 ( only if you want enable support for jailed cron jobs )
+* InstantSSH plugin >= 3.1.0 ( only if you want enable support for jailed cron jobs )
 
 **Note:** The activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its
 presence is required. If this plugin is already activated and if you want enable support for jailed cron jobs later on,
