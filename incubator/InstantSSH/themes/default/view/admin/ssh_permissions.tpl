@@ -219,7 +219,7 @@
 						}
 						break;
 					case "rebuild_jails":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to schedule rebuild of all jailed environments?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to schedule rebuild of all jails?', true));?>")) {
 							doRequest(
 								"POST", "rebuild_jails", { }
 							).done(function (data) {
