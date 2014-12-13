@@ -881,10 +881,10 @@ sub _handleAppSection()
 
 	if(exists $cfg->{$section}->{'include_app_sections'}) {
 		if(ref $cfg->{$section}->{'include_app_sections'} eq 'ARRAY') {
-			for my $includedAppsSection(@{$cfg->{$section}->{'include_app_sections'}}) {
-				if(not grep $_ eq $includedAppsSection, @{$self->{'_app_sections'}}) {
-					$self->_handleAppSection($cfg, $includedAppsSection);
-					push @{$self->{'_app_sections'}}, $includedAppsSection;
+			for my $includedAppSection(@{$cfg->{$section}->{'include_app_sections'}}) {
+				if(not grep $_ eq $includedAppSection, @{$self->{'_app_sections'}}) {
+					$self->_handleAppSection($cfg, $includedAppSection);
+					push @{$self->{'_app_sections'}}, $includedAppSection;
 				}
 			}
 		} else {
