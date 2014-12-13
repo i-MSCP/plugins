@@ -785,7 +785,7 @@ sub _buildMakejailCfgfile
 		if(ref $cfg->{'app_sections'} eq 'ARRAY') {
 			for my $section(@{$cfg->{'app_sections'}}) {
 				if(exists $cfg->{$section}) {
-					$self->_handleAppsSection($cfg, $section);
+					$self->_handleAppSection($cfg, $section);
 				} else {
 					error("The $section application section doesn't exists");
 					return 1;
@@ -863,9 +863,9 @@ sub _buildMakejailCfgfile
 	0;
 }
 
-=item _handleAppsSection(\%config, $section)
+=item _handleAppSection(\%config, $section)
 
- Handle applications sections
+ Handle application section
 
  Param hash \%config Hash containing Jail configuration options
  Param string $section Applications section definition
@@ -873,7 +873,7 @@ sub _buildMakejailCfgfile
 
 =cut
 
-sub _handleAppsSection()
+sub _handleAppSection()
 {
 	my ($self, $cfg, $section) = @_;
 
@@ -883,7 +883,7 @@ sub _handleAppsSection()
 		if(ref $cfg->{$section}->{'include_app_sections'} eq 'ARRAY') {
 			for my $includedAppsSection(@{$cfg->{$section}->{'include_app_sections'}}) {
 				if(not grep $_ eq $includedAppsSection, @{$self->{'_app_sections'}}) {
-					$self->_handleAppsSection($cfg, $includedAppsSection);
+					$self->_handleAppSection($cfg, $includedAppsSection);
 					push @{$self->{'_app_sections'}}, $includedAppsSection;
 				}
 			}
