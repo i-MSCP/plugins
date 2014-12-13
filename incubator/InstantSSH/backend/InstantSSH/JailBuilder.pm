@@ -135,25 +135,30 @@ sub makeJail
 	}
 
 	# Mount filesystems defined in the fstab option within the jail and add the related fstab entries
-	for my $fstabEntry(@{$self->{'jailCfg'}->{'fstab'}}) {
+	for (@{$self->{'jailCfg'}->{'fstab'}}) {
 		if(
-			exists $fstabEntry->{'file_system'} && exists $fstabEntry->{'mount_point'} && exists $fstabEntry->{'type'} &&
-			exists $fstabEntry->{'options'} && exists $fstabEntry->{'dump'} && exists $fstabEntry->{'pass'}
+			exists $_->{'file_system'} && exists $_->{'mount_point'} && exists $_->{'type'} &&
+			exists $_->{'options'} && exists $_->{'dump'} && exists $_->{'pass'}
 		) {
-			$rs = $self->mount($fstabEntry);
-			return $rs if $rs;
+			if(index($_->{'file_system'}, '/') == 0 && index($_->{'mount_point'}, '/') == 0) {
+				$rs = $self->mount($_);
+				return $rs if $rs;
 
-			$rs = $self->addFstabEntry(
-				$fstabEntry->{'file_system'} . ' ' .
-				$self->{'jailCfg'}->{'chroot'} . $fstabEntry->{'mount_point'}  . ' ' .
-				$fstabEntry->{'type'} . ' ' .
-				$fstabEntry->{'options'} . ' ' .
-				$fstabEntry->{'dump'} . ' ' .
-				$fstabEntry->{'pass'}
-			);
-			return $rs if $rs;
+				$rs = $self->addFstabEntry(
+					$_->{'file_system'} . ' ' .
+					$self->{'jailCfg'}->{'chroot'} . $_->{'mount_point'}  . ' ' .
+					$_->{'type'} . ' ' .
+					$_->{'options'} . ' ' .
+					$_->{'dump'} . ' ' .
+					$_->{'pass'}
+				);
+				return $rs if $rs;
+			} else {
+				error("Any filesystem or mount point defined in the fstab option must be an absolute path");
+				return 1;
+			}
 		} else {
-			error("Missing value in fstab entry");
+			error("Missing value in fstab option");
 			return 1;
 		}
 	}
