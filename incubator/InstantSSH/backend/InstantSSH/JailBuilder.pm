@@ -141,7 +141,14 @@ sub makeJail
 			exists $_->{'options'} && exists $_->{'dump'} && exists $_->{'pass'}
 		) {
 			if(index($_->{'file_system'}, '/') == 0 && index($_->{'mount_point'}, '/') == 0) {
-				$rs = $self->mount($_);
+				$rs = $self->mount(
+					{
+						'file_system' => $_->{'file_system'},
+						'mount_point' => $self->{'jailCfg'}->{'chroot'} . $_->{'mount_point'},
+						'type' => $_->{'type'},
+						'options' => $_->{'options'}
+					}
+				);
 				return $rs if $rs;
 
 				$rs = $self->addFstabEntry(
@@ -584,7 +591,7 @@ sub mount
  	my ($self, $fstabEntry) = @_;
 
 	my $fileSystem = normalizePath($fstabEntry->{'file_system'});
-	my $mountPoint = normalizePath($self->{'jailCfg'}->{'chroot'} . '/' .  $fstabEntry->{'mount_point'});
+	my $mountPoint = normalizePath($fstabEntry->{'mount_point'});
 
 	if(execute("mount 2>/dev/null | grep -q ' $mountPoint '")) {
 		unless(-e $mountPoint) { # Don't create $newdir if it already exists
