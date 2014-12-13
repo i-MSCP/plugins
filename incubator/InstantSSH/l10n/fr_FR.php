@@ -115,7 +115,7 @@ return array(
 	'You can generate your rsa key pair by running the following command:' => 'Vous pouvez générer votre pair de clés RSA en exécutant la commande suivante:',
 	'Are you sure you want to delete this SSH user?' => 'Êtes-vous certain de vouloir supprimer ce compte SSH?',
 	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'La reconstruction des prisons a été planifiée. Selon le nombre de prisons, cela pourrait prendre du temps...',
-	'No jail to rebuild. Operation cancelled.' => 'Aucune prison a reconstruire. Opération annulée.',
+	'No jail to rebuild. Operation cancelled.' => 'Aucune prison à reconstruire. Opération annulée.',
 	'Rebuild Jails' => 'Reconstruire les prisons',
 	'Unable to schedule rebuild of jails: %s' => 'Impossible de plannifier la reconstruction des prisons: %s',
 	'Are you sure you want to schedule rebuild of all jails?' => 'Êtes-vous certain de vouloir plannifier la reconstruction de toutes les prisons?'
