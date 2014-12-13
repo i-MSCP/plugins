@@ -180,7 +180,7 @@ sub makeJail
 	# Run commands defined in the jail_run_commands option inside the jail
 	for (@{$self->{'jailCfg'}->{'jail_run_commands'}}) {
 		my ($stdout, $stderr);
-		$rs = execute(sprintf("chroot %s %s", $self->{'jailCfg'}->{'chroot'}, $_), \$stdout, \$stderr);
+		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, $_), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
 		return $rs if $rs;
