@@ -118,5 +118,5 @@ return array(
 	'No jail to rebuild. Operation cancelled.' => 'Aucune prison a reconstruire. Opération annulée.',
 	'Rebuild Jails' => 'Reconstruire les prisons',
 	'Unable to schedule rebuild of jails: %s' => 'Impossible de plannifier la reconstruction des prisons: %s',
-	'Are you sure you want to schedule rebuild of all jails?' => 'Etes-vous certain de vouloir plannifier la reconstruction de toutes les prisons?'
+	'Are you sure you want to schedule rebuild of all jails?' => 'Êtes-vous certain de vouloir plannifier la reconstruction de toutes les prisons?'
 );
