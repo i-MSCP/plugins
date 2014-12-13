@@ -2,10 +2,13 @@
 Version 3.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: sys_copy_file_to configuration parameter
+	Added: Action allowing to schedule rebuilt of all jails ( admin/ssh_permissions )
+	Added: fstab application section option
+	Added: sys_copy_file_to application section option
 	Added: php (CLI) application section
 	Fixed: Small layout issues
-	Renamed: copy_file_to parameter to jail_copy_file_to
+	Removed: mount application section option ( superseded by the fstab option )
+	Renamed: copy_file_to application section option to jail_copy_file_to
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 3.0.1

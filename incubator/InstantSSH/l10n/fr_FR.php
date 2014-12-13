@@ -113,5 +113,8 @@ return array(
 	'Enter authentication option(s)' => "Entrez les options d'authentification",
 	"You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication." => "Vous pouvez fournir un mot de passe, une clé SSH ou les deux. Toutefois, il est recommandé d'utiliser une authentification par clé.",
 	'You can generate your rsa key pair by running the following command:' => 'Vous pouvez générer votre pair de clés RSA en exécutant la commande suivante:',
-	'Are you sure you want to delete this SSH user?' => 'Êtes-vous certain de vouloir supprimer ce compte SSH?'
+	'Are you sure you want to delete this SSH user?' => 'Êtes-vous certain de vouloir supprimer ce compte SSH?',
+	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'La reconstruction des prisons a été planifiée. Selon le nombre de prisons, cela pourrait prendre du temps...',
+	'No jail to rebuild. Operation cancelled.' => 'Aucune prison a reconstruire. Opération annulée.',
+	'Rebuild Jails' => 'Reconstruire les prisons'
 );

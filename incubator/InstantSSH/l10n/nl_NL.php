@@ -113,5 +113,8 @@ return array(
 	'Enter authentication option(s)' => 'Vul aanmeldoptie(s) in',
 	"You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication." => "U kunt een wachtwoord, een SSH-key of beide aanleveren, maar het is aanbevolen om aan te melden met SSH-keys.",
 	'You can generate your rsa key pair by running the following command:' => 'U kunt een RSA-sleutel genereren door het volgende commando te geven:',
-	'Are you sure you want to delete this SSH user?' => 'Weet u zeker dat u deze SSH-gebruiker wilt aanpassen?'
+	'Are you sure you want to delete this SSH user?' => 'Weet u zeker dat u deze SSH-gebruiker wilt aanpassen?',
+	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...',
+	'No jail to rebuild. Operation cancelled.' => 'No jail to rebuild. Operation cancelled.',
+	'Rebuild Jails' => 'Rebuild Jails'
 );

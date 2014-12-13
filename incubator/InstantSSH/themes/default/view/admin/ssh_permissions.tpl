@@ -29,6 +29,15 @@
 			<td colspan="5"><?= self::escapeHtml(tr('Processing...', true));?></td>
 		</tr>
 		</tbody>
+		<tbody>
+		<tr>
+			<td colspan="5" style="background-color: #b0def5">
+				<div class="buttons">
+					<button data-action="rebuild_jails"><?= self::escapeHtml(tr('Rebuild Jails', true));?></button>
+				</div>
+			</td>
+		</tr>
+		</tbody>
 	</table>
 	<div>
 		<form name="ssh_permissions_frm" id="ssh_permissions_frm">
@@ -209,6 +218,19 @@
 							});
 						}
 						break;
+					case "rebuild_jails":
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to schedule rebuild of all jailed environments?', true));?>")) {
+							doRequest(
+								"POST", "rebuild_jails", { }
+							).done(function (data) {
+								if(data.redirect) {
+									window.location.replace(data.redirect);
+								} else {
+									flashMessage("info", data.message);
+								}
+							});
+						}
+						break;
 					default:
 						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
 				}
@@ -219,7 +241,7 @@
 			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
 			ajaxError(function (e, jqXHR, settings, exception) {
 				if(jqXHR.status == 403) {
-					window.location.href = "/index.php";
+					window.location.replace("/index.php");
 				} else if(jqXHR.status == 409) {
 					flashMessage("warning", jqXHR.responseJSON.message);
 				} else if (jqXHR.responseJSON != "") {

@@ -134,24 +134,26 @@ sub makeJail
 		}
 	}
 
-	# Mount any directory/file defined in the mount option within the jail and add the needed fstab entries
-	while(my ($oldDir, $newDir) = each(%{$self->{'jailCfg'}->{'mount'}})) {
-		if(($oldDir ~~ ['devpts', 'proc'] || index($oldDir, '/') == 0) && index($newDir, '/') == 0) {
-			$rs = $self->mount($oldDir, $self->{'jailCfg'}->{'chroot'} . $newDir);
+	# Mount filesystems defined in the fstab option within the jail and add the related fstab entries
+	for my $fstabEntry(@{$self->{'jailCfg'}->{'fstab'}}) {
+		if(
+			exists $fstabEntry->{'file_system'} && exists $fstabEntry->{'mount_point'} && exists $fstabEntry->{'type'} &&
+			exists $fstabEntry->{'options'} && exists $fstabEntry->{'dump'} && exists $fstabEntry->{'pass'}
+		) {
+			$rs = $self->mount($fstabEntry);
 			return $rs if $rs;
 
-			my $entry;
-			if($oldDir ~~ ['devpts', 'proc']) {
-				$entry = $oldDir . '-' . basename($self->{'jailCfg'}->{'chroot'}) .
-					" $self->{'jailCfg'}->{'chroot'}$newDir $oldDir defaults 0 0";
-			} else {
-				$entry = "$oldDir $self->{'jailCfg'}->{'chroot'}$newDir none bind 0 0";
-			}
-
-			$rs = $self->addFstabEntry($entry);
+			$rs = $self->addFstabEntry(
+				$fstabEntry->{'file_system'} . ' ' .
+				$self->{'jailCfg'}->{'chroot'} . $fstabEntry->{'mount_point'}  . ' ' .
+				$fstabEntry->{'type'} . ' ' .
+				$fstabEntry->{'options'} . ' ' .
+				$fstabEntry->{'dump'} . ' ' .
+				$fstabEntry->{'pass'}
+			);
 			return $rs if $rs;
 		} else {
-			error("Any path defined in the mount option must be absolute");
+			error("Missing value in fstab entry");
 			return 1;
 		}
 	}
@@ -260,7 +262,7 @@ sub jailUser
 			return 1;
 		}
 
-		debug("Adding $user entry in $securityChrootCfgFile");
+		debug("Adding '$user' entry in $securityChrootCfgFile");
 
 		my $userReg = quotemeta($user);
 		$fileContent =~ s/^$userReg\s+.*\n//gm;
@@ -292,7 +294,9 @@ sub jailUser
 		}
 
 		# Mount user homedir within the jail
-		$rs = $self->mount($homeDir, $jailedHomedir);
+		$rs = $self->mount(
+			{ 'file_system' => $homeDir, 'mount_point' => $jailedHomedir, 'type' => 'auto', 'options' => 'bind' }
+		);
 		return $rs if $rs;
 
 		# Add fstab entry for user homedir
@@ -380,7 +384,7 @@ sub unjailUser
 			return 1;
 		}
 
-		debug("Removing $user entry from $securityChrootCfgFile");
+		debug("Removing '$user' entry from $securityChrootCfgFile");
 
 		my $userReg = quotemeta($user);
 		$fileContent =~ s/^$userReg\s+.*\n//gm;
@@ -428,11 +432,11 @@ sub addPasswdFile
 							my @sysLineFields = split ':', $sysLine;
 
 							if(defined $sysLineFields[6]) {
-								debug("Adding $what user into $dest");
+								debug("Adding '$what' user into $dest");
 								$sysLineFields[5] = normalizePath($sysLineFields[5]);
 								$sysLineFields[6] = $shell . "\n" if defined $shell;
 							} else {
-								debug("Adding $what group into $dest");
+								debug("Adding '$what' group into $dest");
 							}
 
 							print $fh join ':', @sysLineFields;
@@ -477,7 +481,7 @@ sub removePasswdFile
 			close $fh;
 
 			if(open $fh, '>', $dest) {
-				debug("Removing $what user/group from $dest");
+				debug("Removing '$what' user/group from $dest");
 
 				$what = quotemeta($what);
 				@jailLines = grep $_ !~ /^$what:.*/s, @jailLines;
@@ -517,7 +521,7 @@ sub addFstabEntry
 		return 1;
 	}
 
-	debug("Adding $entry entry in $fstabFile");
+	debug("Adding '$entry' entry in $fstabFile");
 
 	my $entryReg = quotemeta($entry);
 	$fileContent =~ s/^$entryReg\n//gm;
@@ -550,7 +554,7 @@ sub removeFstabEntry
 		return 0;
 	}
 
-	debug("Removing any entry matching with $entry from $fstabFile");
+	debug("Removing any entry matching with '$entry' from $fstabFile");
 
 	my $regexp = (ref $entry eq 'Regexp') ? $entry : quotemeta($entry);
 	$fileContent =~ s/^$regexp\n//gm;
@@ -561,90 +565,83 @@ sub removeFstabEntry
 	$file->save();
 }
 
-=item mount($oldDir, $newDir)
+=item mount(\%fstabEntry)
 
- Mount the given directory or file or devpts|proc fstype in safe way
+ Mount the filesystem as specified in the given fstab entry
 
- Param string $oldDir Directory/file or devpts/proc fstype to mount
- Param string $newDir Mount point
+ Param string \%fstabEntry Hash describing an fstab entry
  Return int 0 on success, other on failure
 
 =cut
 
 sub mount
 {
- 	my ($self, $oldDir, $newDir) = @_;
+ 	my ($self, $fstabEntry) = @_;
 
-	$oldDir = normalizePath($oldDir);
-	$newDir = normalizePath($newDir);
+	my $fileSystem = normalizePath($fstabEntry->{'file_system'});
+	my $mountPoint = normalizePath($self->{'jailCfg'}->{'chroot'} . '/' .  $fstabEntry->{'mount_point'});
 
-	if($oldDir ~~ ['proc', 'devpts'] || (-d $oldDir || -f _)) {
-		if(execute("mount 2>/dev/null | grep -q ' $newDir '")) { # Don't do anything if the mount point already exists
-			unless(-e $newDir) { # Don't create $newdir if it already exists
-				my $rs = 0;
-
-				if($oldDir ~~ ['proc', 'devpts'] || -d $oldDir) {
-					$rs = iMSCP::Dir->new(
-						dirname => $newDir
-					)->make(
-						{
-							user => $main::imscpConfig{'ROOT_USER'},
-							group => $main::imscpConfig{'ROOT_GROUP'},
-							mode => 0555
-						}
-					);
-				} else {
-					my $file = iMSCP::File->new( filename => $newDir );
-					$rs = $file->save();
-					$rs ||= $file->mode(0444);
-					$rs ||= $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-				}
-
+	if(execute("mount 2>/dev/null | grep -q ' $mountPoint '")) {
+		unless(-e $mountPoint) { # Don't create $newdir if it already exists
+			if(-d $fileSystem) {
+				my $rs = iMSCP::Dir->new(
+					dirname => $mountPoint
+				)->make(
+					{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0555 }
+				);
 				return $rs if $rs;
-			} elsif(! -d _ && ! -f _) { # Enssure that $newDir is valid
-				error('Cannot mount $oldDir on $newDir: $newDir is not a directory nor a regular file');
-				return 1;
-			}
-
-			my @cmdArgs;
-			if($oldDir ~~ ['proc', 'devpts']) {
-				@cmdArgs = ('-t', $oldDir, $oldDir . '-' . basename($self->{'jailCfg'}->{'chroot'}), $newDir);
 			} else {
-				@cmdArgs = ('--bind', $oldDir, $newDir);
+				my $file = iMSCP::File->new( filename => $mountPoint );
+				my $rs = $file->save();
+				$rs ||= $file->mode(0444);
+				$rs ||= $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
+				return $rs if $rs;
 			}
-
-			my($stdout, $stderr);
-			my $rs = execute("mount @cmdArgs", \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			error($stderr) if $rs && $stderr;
-			return $rs if $rs;
+		} elsif(! -d _ && ! -f _) { # Enssure that the mount point is valid
+			error(sprintf(
+				'Cannot mount %s on %s: %s is not a directory nor a regular file', $fileSystem, $mountPoint, $mountPoint
+			));
+			return 1;
 		}
+
+		my @cmdArgs = (
+			'-o', escapeShell($fstabEntry->{'options'}),
+			'-t', $fstabEntry->{'type'},
+			escapeShell($fileSystem),
+			escapeShell($mountPoint)
+		);
+
+		my($stdout, $stderr);
+		my $rs = execute("mount @cmdArgs", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
 	}
 
 	0;
 }
 
-=item umount($dirPath)
+=item umount($path)
 
- Umount the given directory in safe way
+ Umount the given file systems in safe way
 
- Note: In case of a partial path, any directory below this path will be umounted.
+ Note: In case of a partial path, any file systems below this path will be umounted.
 
- Param string $dirPath Partial or full path of directory to umount
+ Param string $path Partial or full path to umount
  Return int 0 on success, other on failure
 
 =cut
 
 sub umount
 {
-	my ($self, $dirPath) = @_;
+	my ($self, $path) = @_;
 
-	$dirPath = normalizePath($dirPath);
+	$path = normalizePath($path);
 
 	my($stdout, $stderr, $mountPoint);
 
 	do {
-		my $rs = execute("mount 2>/dev/null | grep ' $dirPath\\(/\\| \\)' | head -n 1 | cut -d ' ' -f 3", \$stdout);
+		my $rs = execute("mount 2>/dev/null | grep ' $path\\(/\\| \\)' | head -n 1 | cut -d ' ' -f 3", \$stdout);
 		return $rs if $rs;
 
 		$mountPoint = $stdout;
@@ -689,7 +686,7 @@ sub _init
 		users => [],
 		groups => [],
 		devices => [],
-		mount => {}
+		fstab => []
 	};
 
 	if(defined $self->{'id'} && $self->{'id'} =~ /^[a-z0-9]+/i) {
@@ -868,7 +865,7 @@ sub _handleAppsSection()
 
 	# Handle list options from application section
 
-	for my $option(qw/paths packages devices preserve_files users groups/) {
+	for my $option(qw/devices fstab groups paths packages preserve_files users/) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
 				for my $item(@{$cfg->{$section}->{$option}}) {
@@ -884,7 +881,7 @@ sub _handleAppsSection()
 	}
 
 	# Handle key/value pairs options from application section
-	for my $option(qw/sys_copy_file_to jail_copy_file_to mount/) {
+	for my $option(qw/jail_copy_file_to mount sys_copy_file_to/) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'HASH') {
 				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {

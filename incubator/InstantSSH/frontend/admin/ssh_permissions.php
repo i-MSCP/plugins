@@ -32,6 +32,49 @@ use InstantSSH\CommonFunctions as Functions;
  * Functions
  */
 
+
+/**
+ * Schedule rebuild jailed environments
+ */
+function rebuildJails()
+{
+	try {
+		$stmt = execute_query(
+			'
+				SELECT
+					COUNT(ssh_permission_jailed_shell) AS cnt
+				FROM
+					instant_ssh_permissions
+				WHERE
+					ssh_permission_jailed_shell = 1
+			'
+		);
+		$row = $stmt->fetchRow(\PDO::FETCH_ASSOC);
+
+		if($row['cnt'] > 0) {
+			execute_query(
+				"UPDATE plugin SET plugin_status = 'tochange', plugin_error = null WHERE plugin_name = 'InstantSSH'"
+			);
+
+			send_request();
+
+			write_log('InstantSSH: Rebuild of jails has been scheduled.', E_USER_NOTICE);
+			set_page_message(
+				tr('Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...'),
+				'success'
+			);
+			Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+		} else {
+			Functions::sendJsonResponse(202, array('message' => tr('No jail to rebuild. Operation cancelled.', true)));
+		}
+	} catch(ExceptionDatabase $e) {
+		write_log(sprintf('InstantSSH: Unable to schedule rebuild of jails: %s', $e->getMessage()), E_USER_ERROR);
+		Functions::sendJsonResponse(
+			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+		);
+	}
+}
+
 /**
  * Get SSH permissions
  *
@@ -647,6 +690,9 @@ if(isset($_REQUEST['action'])) {
 				break;
 			case 'delete_ssh_permissions':
 				deleteSshPermissions();
+				break;
+			case 'rebuild_jails':
+				rebuildJails();
 				break;
 			default:
 				Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));

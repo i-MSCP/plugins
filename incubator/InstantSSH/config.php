@@ -150,15 +150,15 @@ return array(
 	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
 	// preserve_files: Files that have to be preserved when a jail is being updated
 	// devices: List of devices that have to be copied inside the jail
-	// mount: List of directory/file to mount within the jail, each of them specified as a key/value pair where the key
-	//        corresponds to 'oldir/oldfile' on the system or the fstype (devpts, proc) and the value to 'newdir/newfile'
-	// within the jail.
+	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab ).
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.
 	//  - Any path which doesn't exists on the system is ignored
 	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
 	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
+	//  - filesystems specified in fstab options are mounted automatically inside jail
+	//  - Mount points must be specified without the jail root path from the fstab entries
 	//
 	// Other application sections will be added in time. Feel free to provide us your own section for integration.
 
@@ -179,10 +179,31 @@ return array(
 		'devices' => array(
 			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
 		),
-		'mount' => array(
-			'devpts' => '/dev/pts',
-			'proc' => '/proc',
-			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
+		'fstab' => array(
+			 array(
+				'file_system' => '/proc',
+				'mount_point' => '/proc',
+				'type' => 'proc',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => '/dev/pts',
+				'mount_point' => '/dev/pts',
+				'type' => 'devpts',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => '/var/log/lastlog',
+				'mount_point' => '/var/log/lastlog',
+				'type' => 'auto',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			)
 		)
 	),
 
@@ -212,10 +233,31 @@ return array(
 		'devices' => array(
 			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
 		),
-		'mount' => array(
-			'devpts' => '/dev/pts',
-			'proc' => '/proc',
-			'/var/log/lastlog' => '/var/log/lastlog' # Needed for the last login message
+		'fstab' => array(
+			array(
+				'file_system' => '/proc',
+				'mount_point' => '/proc',
+				'type' => 'proc',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => '/dev/pts',
+				'mount_point' => '/dev/pts',
+				'type' => 'devpts',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => '/var/log/lastlog',
+				'mount_point' => '/var/log/lastlog',
+				'type' => 'auto',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
+			)
 		)
 	),
 
