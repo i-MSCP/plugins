@@ -24,9 +24,11 @@ use iMSCP_Database as Database;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventsAggregator;
 use iMSCP_Exception_Database as ExceptionDatabase;
+use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
 use InstantSSH\CommonFunctions as Functions;
+
 
 /***********************************************************************************************************************
  * Functions
@@ -52,18 +54,25 @@ function rebuildJails()
 		$row = $stmt->fetchRow(\PDO::FETCH_ASSOC);
 
 		if($row['cnt'] > 0) {
-			execute_query(
-				"UPDATE plugin SET plugin_status = 'tochange', plugin_error = null WHERE plugin_name = 'InstantSSH'"
-			);
+			/** @var PluginManager $pluginManager */
+			$pluginManager = Registry::get('pluginManager');
+			$ret = $pluginManager->pluginChange('InstantSSH');
 
-			send_request();
+			if($ret == PluginManager::ACTION_SUCCESS) {
+				write_log('InstantSSH: Rebuild of jails has been scheduled.', E_USER_NOTICE);
+				set_page_message(
+					tr('Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...'),
+					'success'
+				);
+				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+			} else {
+				$pluginError = ($ret == PluginManager::ACTION_FAILURE)
+					? tr('Action has failed.') : tr('Action has been stopped.');
 
-			write_log('InstantSSH: Rebuild of jails has been scheduled.', E_USER_NOTICE);
-			set_page_message(
-				tr('Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...'),
-				'success'
-			);
-			Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+				write_log(sprintf('InstantSSH: Unable to schedule rebuild of jails: %s', $pluginError), E_USER_ERROR);
+				set_page_message(tr('Unable to schedule rebuild of jails: %s', $pluginError), 'error');
+				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+			}
 		} else {
 			Functions::sendJsonResponse(202, array('message' => tr('No jail to rebuild. Operation cancelled.', true)));
 		}

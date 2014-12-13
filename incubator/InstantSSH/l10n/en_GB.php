@@ -116,5 +116,6 @@ return array(
 	'Are you sure you want to delete this SSH user?' => 'Are you sure you want to delete this SSH user?',
 	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...',
 	'No jail to rebuild. Operation cancelled.' => 'No jail to rebuild. Operation cancelled.',
-	'Rebuild Jails' => 'Rebuild Jails'
+	'Rebuild Jails' => 'Rebuild Jails',
+	'Unable to schedule rebuild of jails: %s' => 'Unable to schedule rebuild of jails: %s'
 );
