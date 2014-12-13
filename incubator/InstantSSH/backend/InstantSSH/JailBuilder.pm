@@ -38,6 +38,8 @@ use File::umask;
 
 use parent 'Common::Object';
 
+our $VERSION = '3.1.0';
+
 my $securityChrootCfgFile = '/etc/security/chroot.conf';
 my $fstabFile = '/etc/fstab';
 
