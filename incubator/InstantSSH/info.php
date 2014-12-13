@@ -22,7 +22,7 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '3.1.0',
-	'date' => '2014-12-10',
+	'date' => '2014-12-13',
 	'name' => 'InstantSSH',
 	'desc' => 'Plugin allowing to provide full or restricted shell access to your customers.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:instantssh'

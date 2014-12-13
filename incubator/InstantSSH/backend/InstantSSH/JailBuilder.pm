@@ -170,7 +170,6 @@ sub makeJail
 
 	# Run commands defined in the sys_run_commands option outside the jail
 	for (@{$self->{'jailCfg'}->{'sys_run_commands'}}) {
-		my ($stdout, $stderr);
 		$rs = execute($_, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
@@ -179,7 +178,6 @@ sub makeJail
 
 	# Run commands defined in the jail_run_commands option inside the jail
 	for (@{$self->{'jailCfg'}->{'jail_run_commands'}}) {
-		my ($stdout, $stderr);
 		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, $_), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
