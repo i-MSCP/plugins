@@ -6,24 +6,24 @@
 
 #### Renamed copy_file_to option to jail_copy_file_to
 
-The **copy_file_to** option which allow to copy a specific file inside jails has been renamed to **jail_copy_file_to**.
+The **copy_file_to** option which allow to copy a list of files inside the jails has been renamed to **jail_copy_file_to**.
 
 #### New fstab option
 
 This option allow to describe fstab entries to add into the **/etc/fstab** file. The filesystems specified in the fstab
-entries are automatically mounted inside the jails by the jail builder.
+options are automatically mounted inside the jails by the jail builder.
 
 #### New jail_run_commands option
 
-This option allow to execute a list of commands inside the jail once built or updated.
+This option allow to execute a list of commands inside the jails once built or updated.
 
 #### New sys_copy_file_to option
 
-This option allow to copy a specific file in the system.
+This option allow to copy a list of files outside the jails.
 
 #### New sys_run_commands option
 
-This option allow to execute a list of commands outside the jail once built or updated.
+This option allow to execute a list of commands outside the jails once built or updated.
 
 #### Removed mount option
 
