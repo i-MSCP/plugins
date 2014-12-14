@@ -16,7 +16,7 @@ must add it section to the **app_sections** option as follow:
 	),
 	...
 
-Once done, you must update the plugin list through the plugin interface to rebuilt of the jails.
+Once done, you must update the plugin list through the plugin interface to rebuild the jails.
 
 ### Application section options
 
