@@ -68,6 +68,12 @@ sub install
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
+	# Create configuration directory for makejail ( since version 2.1.0 )
+	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->make(
+		'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'IMSCP_GROUP'}, 'mode' => 0750
+	);
+	return $rs if $rs;
+
 	$rs = $self->_configurePamChroot();
 	return $rs if $rs;
 
