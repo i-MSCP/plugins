@@ -357,6 +357,8 @@ sub _init
 			for(qw/makejail_path makejail_confdir_path root_jail_dir/) {
 				die("Missing $_ configuration parameter") unless defined $self->{'config'}->{$_};
 			}
+		} else {
+			$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 		}
 	} else {
 		$self->{'config'}->{'jailed_cronjobs_support'} = 0;
