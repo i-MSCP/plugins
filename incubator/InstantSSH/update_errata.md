@@ -2,6 +2,22 @@
 
 ## Update to version 3.1.0
 
+### Application sections
+
+## New php section
+
+The **php** section allow to make PHP (cli) and some common PHP module available inside the jails. To enable it, you
+must add it section to the **app_sections** option as follow:
+
+	...
+	'app_sections' => array(
+		'imscpbase',
+		'php'
+	),
+	...
+
+Once done, you must update the plugin list through the plugin interface to rebuilt of the jails.
+
 ### Application section options
 
 #### Renamed copy_file_to option to jail_copy_file_to
