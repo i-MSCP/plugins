@@ -11,7 +11,7 @@ The **copy_file_to** option which allow to copy a list of files inside the jails
 #### New fstab option
 
 This option allow to describe fstab entries to add into the **/etc/fstab** file. The filesystems specified in the fstab
-options are automatically mounted inside the jails by the jail builder.
+option are automatically mounted inside the jails by the jail builder.
 
 #### New jail_run_commands option
 
