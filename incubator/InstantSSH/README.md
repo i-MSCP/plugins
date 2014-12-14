@@ -69,7 +69,7 @@ You can install these packages by executing the following commands:
 2. Login into the panel as admin and go to the plugin management interface
 3. Upload the plugin archive
 4. Configure the plugin for your needs by editing the **plugins/InstantSSH/config.php** configuration file
-4. Install the plugin
+5. Install the plugin
 
 ### Update
 
