@@ -7,7 +7,7 @@
 ## New php section
 
 The **php** section allow to make PHP (cli) and some common PHP modules available inside the jails. To enable it, you
-must add it section to the **app_sections** option as follow:
+must add it to the **app_sections** option as follow:
 
 	...
 	'app_sections' => array(
