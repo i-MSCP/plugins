@@ -21,7 +21,7 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.1',
+	'version' => '1.0.0',
 	'priority' => '10',
 	'date' => '2014-12-04',
 	'name' => 'CronJobs',

@@ -57,7 +57,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeDeletePlugin,
+				iMSCP_Events::onBeforeEnablePlugin,
+				iMSCP_Events::onAfterUninstallPlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
@@ -142,23 +143,33 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeDeletePlugin event listener
+	 * onAfterUninstallPlugin listener
 	 *
-	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeDeletePlugin($event)
+	public function onAfterUninstallPlugin()
 	{
-		if($event->getParam('pluginName') === 'InstantSSH') {
-			$pluginManager = $this->getPluginManager();
+		$pluginManager = $this->getPluginManager();
 
-			if($pluginManager->isPluginInstalled($this->getName())) {
-				set_page_message(
-					tr('InstantSSH plugin is required by the %s plugin. You cannot delete it.', $this->getName()),
-					'error'
-				);
+		if($pluginManager->isPluginKnown('InstantSSH')) {
+			//$this->getPluginManager()->unlockPlugin('InstantSSH');
+		}
+	}
 
-				$event->stopPropagation();
+	/**
+	 * onBeforeUpdatePlugin listener
+	 *
+	 * @return void
+	 */
+	public function onBeforeEnablePlugin()
+	{
+		$pluginManager = $this->getPluginManager();
+
+		if($pluginManager->isPluginKnown('InstantSSH')) {
+			$info = $pluginManager->getPluginInfo('InstantSSH');
+
+			if(version_compare($info['version'], '3.1.0', '>=')) {
+				$this->getPluginManager()->lockPlugin('InstantSSH');
 			}
 		}
 	}
@@ -369,11 +380,12 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 * Check plugin compatibility
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
 	protected function checkCompat($event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);

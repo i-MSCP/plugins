@@ -11,6 +11,7 @@
 		<tr>
 			<th><?= self::escapeHtml(tr('Reseller name', true));?></th>
 			<th><?= self::escapeHtml(tr('Type', true));?></th>
+			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
 			<th><?= self::escapeHtml(tr('Frequency', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
 			<th><?= self::escapeHtml(tr('Actions', true));?></th>
@@ -20,6 +21,7 @@
 		<tr>
 			<td><?= self::escapeHtml(tr('Reseller name', true));?></td>
 			<td><?= self::escapeHtml(tr('Type', true));?></td>
+			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
 			<td><?= self::escapeHtml(tr('Frequency', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>
@@ -27,7 +29,7 @@
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="4"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="6"><?= self::escapeHtml(tr('Processing...', true));?></td>
 		</tr>
 		</tbody>
 	</table>
@@ -47,7 +49,7 @@
 				<tr>
 					<td>
 						<label for="cron_permission_type">
-							<?= self::escapeHtml(tr('Cron job type', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Cron job type', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs.', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -62,9 +64,21 @@
 				</tr>
 				<tr>
 					<td>
+						<label for="cron_permission_max">
+							<?= self::escapeHtml(tr('Max. cron jobs', true));?><br>
+							(<small><?= self::escapeHtml(tr('0 for unlimited', true));?>)</small>
+						</label>
+					</td>
+					<td>
+						<input type="text" name="cron_permission_max" id="cron_permission_max" value="0"/>
+					</td>
+				</tr>
+				<tr>
+					<td>
 						<label for="cron_permission_frequency">
-							<?= self::escapeHtml(tr('Cron job frequency', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution (for one cron job)', true));?>">&nbsp;</span>
-							<span style="display: block">(<?= self::escapeHtml(tr('In minutes', true));?>)</span>
+							<?= self::escapeHtml(tr('Cron job frequency', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution.', true));?>">&nbsp;</span>
+							<br>
+							(<small><?= self::escapeHtml(tr('In minutes', true));?>)</small>
 						</label>
 					</td>
 					<td>
@@ -119,11 +133,12 @@
 			sAjaxSource: "/admin/cronjobs_permissions?action=get_cron_permissions_list",
 			bStateSave: true,
 			aoColumnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
+				{ bSortable: false, bSearchable: false, aTargets: [ 5 ] }
 			],
 			aoColumns: [
 				{ mData: "admin_name" },
 				{ mData: "cron_permission_type" },
+				{ mData: "cron_permission_max" },
 				{ mData: "cron_permission_frequency" },
 				{ mData: "cron_permission_status" },
 				{ mData: "cron_permission_actions" }
@@ -136,15 +151,15 @@
 					data: aoData,
 					success: fnCallback,
 					timeout: 3000,
-					error: function () {
-						oTable.fnProcessingIndicator(false);
-					}
 				}).done(function () {
 					if(jQuery.fn.imscpTooltip) {
 						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
 					} else {
 						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 					}
+				}).fail(function(jqXHR) {
+					oTable.fnProcessingIndicator(false);
+					flashMessage('error', $.parseJSON(jqXHR.responseText).message);
 				});
 			}
 		});
@@ -180,6 +195,8 @@
 									oTable.fnDraw();
 								}
 							);
+						} else {
+							flashMessage("error", "<?= self::escapeJs(tr('Please enter a reseller name.', true));?>");
 						}
 						break;
 					case "edit_cron_permissions":
@@ -188,6 +205,7 @@
 						).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop("readonly", true);
 							$("#cron_permission_type").val(data.cron_permission_type);
+							$("#cron_permission_max").val(data.cron_permission_max);
 							$("#cron_permission_frequency").val(data.cron_permission_frequency);
 							$("#cron_permission_id").val(data.cron_permission_id);
 							$("#cron_permission_admin_id").val(data.cron_permission_admin_id);

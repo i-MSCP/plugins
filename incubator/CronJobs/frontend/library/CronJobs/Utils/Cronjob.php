@@ -26,8 +26,6 @@ use Zend_Uri_Http as HttpUri;
 /**
  * Class Cronjob
  *
- * Note: Most of the code has been borrowed to the WCF framework ( @copyright 2001-2014 WoltLab GmbH )
- *
  * @package Cronjobs\Utils
  */
 final class Cronjob
@@ -35,10 +33,12 @@ final class Cronjob
 	/**
 	 *  Disallow instantiation
 	 */
-	private function __construct() { }
+	private function __construct()
+	{
+	}
 
 	/**
-	 * Validates all cron job attributes
+	 * Validates a cron command
 	 *
 	 * @throws CronjobException if the given cron job is not valid
 	 * @param string $email Cron job notification email
@@ -51,25 +51,49 @@ final class Cronjob
 	 * @param string $command Cron job command
 	 * @param string $type Cron job type
 	 */
-	public static function validate($email, $minute, $hour, $dmonth, $month, $dweek, $user, $command, $type)
+	public static function validate($email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type)
 	{
-		self::validateNotificationEmail($email);
+		$errMsgs = array();
 
 		if(in_array($type, array('url', 'jailed', 'full'))) {
-			if(
-				in_array(
-					$minute,
-					array('@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly')
-				)
-			) {
-				self::validateCommand($user, $command, $type);
+			try {
+				self::validateNotificationEmail($email);
+			} catch(CronjobException $e) {
+				$errMsgs[] = $e->getMessage();
+			}
+
+			if(in_array(
+				$minute,
+				array('@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly')
+			)) {
+				try {
+					self::validateCommand($user, $command, $type);
+					$hour = $dmonth = $month = $dweek = '';
+				} catch(CronjobException $e) {
+					$errMsgs[] = $e->getMessage();
+				}
 			} else {
-				self::validateAttribute('minute', $minute);
-				self::validateAttribute('hour', $hour);
-				self::validateAttribute('dmonth', $dmonth);
-				self::validateAttribute('month', $month);
-				self::validateAttribute('dweek', $dweek);
-				self::validateCommand($user, $command, $type);
+				foreach(
+					array(
+						'minute' => $minute, 'hour' => $hour, 'dmonth' => $dmonth, 'month' => $month, 'dweek' => $dweek
+					) as $attrName => $attrValue
+				) {
+					try {
+						self::validateField($attrName, $attrValue);
+					} catch(CronjobException $e) {
+						$errMsgs[] = $e->getMessage();
+					}
+				}
+
+				try {
+					self::validateCommand($user, $command, $type);
+				} catch(CronjobException $e) {
+					$errMsgs[] = $e->getMessage();
+				}
+			}
+
+			if(!empty($errMsgs)) {
+				throw new CronjobException(implode("<br>", $errMsgs));
 			}
 		} else {
 			throw new CronjobException(tr('Invalid cron job type: %s', true, $type));
@@ -79,27 +103,29 @@ final class Cronjob
 	/**
 	 * Validate a cron notification email
 	 *
+	 * @throws CronjobException if the email is not valid
 	 * @param string $email
-	 * @throws CronjobException
+	 * @return void
 	 */
 	protected static function validateNotificationEmail($email)
 	{
 		if($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-			throw new CronjobException(tr('Invalid email for cron notification: %s', true, $email));
+			throw new CronjobException(tr('Invalid notification email'));
 		}
 	}
 
 	/**
-	 * Validates a cron job attribute
+	 * Validates a date/time field
 	 *
-	 * @throws CronjobException if the given cron job attribute value is not valid
-	 * @param string $name Cron job attribute name
-	 * @param string $value Cron job attribute value
+	 * @throws CronjobException if the given date/time field  is not valid
+	 * @param string $name  Date/Time field name
+	 * @param string $value Date/Time field value
+	 * @return void
 	 */
-	protected static function validateAttribute($name, $value)
+	protected static function validateField($name, $value)
 	{
-		if ($value === '') {
-			throw new CronjobException(tr("Value for the '%s' cron job attribute cannot be empty.", true, $name));
+		if($value === '') {
+			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, "<strong>$name</strong>"));
 		}
 
 		$pattern = '';
@@ -108,7 +134,7 @@ final class Cronjob
 		$days = 'mon|tue|wed|thu|fri|sat|sun';
 		$namesArr = array();
 
-		switch ($name) {
+		switch($name) {
 			// check if minute attribute is a valid minute or a list of valid minutes
 			case 'minute':
 				$pattern = '[ ]*(\b[0-5]?[0-9]\b)[ ]*';
@@ -140,22 +166,20 @@ final class Cronjob
 
 		$longPattern = '/^' . $range . '(,' . $range . ')*$/i';
 
-		if ($value != '*' && !preg_match($longPattern, $value)) {
-			throw new CronjobException(
-				tr("Invalid value '%s' given for the '%s' cron job attribute.", true, $value, $name)
-			);
+		if($value != '*' && !preg_match($longPattern, $value)) {
+			throw new CronjobException(tr("Invalid value given for the %s field.", true, "<strong>$name</strong>"));
 		} else {
 			// Test whether the user provided a meaningful order inside a range
 			$testArr = explode(',', $value);
-			foreach ($testArr as $testField) {
-				if (
+			foreach($testArr as $testField) {
+				if(
 					$pattern &&
 					preg_match('/^(((' . $pattern . ')-(' . $pattern . '))(\/' . $step . ')?)+$/', $testField)
 				) {
 					$compare = explode('-', $testField);
 					$compareSlash = explode('/', $compare['1']);
 
-					if (count($compareSlash) == 2) {
+					if(count($compareSlash) == 2) {
 						$compare['1'] = $compareSlash['0'];
 					}
 
@@ -163,18 +187,18 @@ final class Cronjob
 					$left = array_search(mb_strtolower($compare['0']), $namesArr);
 					$right = array_search(mb_strtolower($compare['1']), $namesArr);
 
-					if (!$left) {
+					if(!$left) {
 						$left = $compare['0'];
 					}
 
-					if (!$right) {
+					if(!$right) {
 						$right = $compare['1'];
 					}
 
 					// now check the values
-					if (intval($left) > intval($right)) {
+					if(intval($left) > intval($right)) {
 						throw new CronjobException(
-							tr("Invalid value '%s' given for the '%s' cron job attribute.", true, $value, $name)
+							tr("Invalid value for the %s field.", true, "<strong>$name</strong>")
 						);
 					}
 				}
@@ -185,39 +209,40 @@ final class Cronjob
 	/**
 	 * Validates a cron job command
 	 *
-	 * @throws CronjobException if the cron job user or cron job command is no valid
-	 * @param string $user User under which the cron job command should be executed
-	 * @param string $command Cron job command
+	 * @throws CronjobException if the user or command is no valid
+	 * @param string $user User under which the cron command must be executed
+	 * @param string $command Cron command
 	 * @param string $type Cron job type
+	 * @çeturn void
 	 */
 	protected static function validateCommand($user, $command, $type)
 	{
 		if($user !== '') {
 			if(!posix_getgrnam($user)) {
-				throw new CronjobException(tr('Cron job user must be a valid unix user.', true));
+				throw new CronjobException(tr('User must be a valid unix user.', true));
 			}
 		} else {
-			throw new CronjobException(tr('Cron job user field cannot be empty.', true));
+			throw new CronjobException(tr('User field cannot be empty.', true));
 		}
 
 		if($command !== '') {
-			if($type == 'url') {
+			if($type === 'url') {
 				try {
 					$httpUri = HttpUri::fromString($command);
 
 					if(!$httpUri->valid($command)) {
-						throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
+						throw new CronjobException(tr('Command must be a valid HTTP URL.', true));
 					} elseif($httpUri->getUsername() || $httpUri->getPassword()) {
 						throw new CronjobException(
-							tr('Url cron job must not contain any username/password for security reasons.', true)
+							tr('Url must not contain any username/password for security reasons.', true)
 						);
 					}
 				} catch(\Exception $e) {
-					throw new CronjobException(tr('Command for Url cron job must be a valid HTTP Url.', true));
+					throw new CronjobException(tr('Command must be a valid HTTP URL.', true));
 				}
 			}
 		} else {
-			throw new CronjobException(tr('Cron job command field cannot be empty.', true));
+			throw new CronjobException(tr("Command cannot be empty.", true));
 		}
 	}
 }

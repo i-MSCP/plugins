@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-namespace CronJobs\View;
+namespace CronJobs;
 
 use Zend_Escaper_Escaper as Escaper;
 
@@ -26,7 +26,7 @@ use Zend_Escaper_Escaper as Escaper;
  * Class View
  * @package CronJobs\View
  */
-class Helper
+class CommonFunctions
 {
 	/** @var Escaper */
 	private static $escaper;
@@ -84,6 +84,9 @@ class Helper
 				break;
 			case 404:
 				header('Status: 404 Not Found');
+				break;
+			case 409:
+				header('Status: 409 Conflict');
 				break;
 			case 500:
 				header('Status: 500 Internal Server Error');

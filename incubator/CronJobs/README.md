@@ -1,4 +1,4 @@
-# i-MSCP cronjobs plugin v0.0.1
+# i-MSCP cronjobs plugin v1.0.0
 
 WARNING: This plugin is still under development, not ready for use
 
@@ -6,25 +6,25 @@ WARNING: This plugin is still under development, not ready for use
 
 This plugin provide a cron time-based job scheduler for i-MSCP. 
 
-The administrators give cron job permissions to their resellers, and the resellers give the cronjob permissions to their
-customers according their own permissions. For instance, a reseller will be able to give the full cron job permission to
-a customer only if he has also this permission.
+Administrators give cron job permissions to their resellers, and the resellers give the cron job permissions to their
+customers according their own permissions. For instance, a reseller will be able to give the full cron job
+permission to a customer only if he has also this permission.
 
-The administrators can also add their own cron jobs using their own interface which is less restricted than the customer
+Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
 interface in the sense that administrators can set the user to use for the cron job execution while the customers cannot.
 
-Each cron jobs is added in the crontab file ( see crontab(5) ) which belongs to the user under which the cron command
+Each cron job is added in the crontab file ( see crontab(5) ) which belongs to the user under which the cron command
 must be run.
 
 ## Requirements
 
-* i-MSCP >= 1.1.19 ( plugin API >= 0.2.14 )
+* i-MSCP >= 1.1.21 ( plugin API >= 0.2.15 )
 * InstantSSH plugin >= 3.1.0 ( only if you want enable support for jailed cron jobs )
 
-**Note:** The activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its
-presence is required. If this plugin is already activated and if you want enable support for jailed cron jobs later on,
-just upload the InstantSSH plugin and once it's done, deactivate and reactivate this plugin. You must note that once
-enabled, support for the jailed cron jobs cannot be disabled and thus, deletion of the InstantSSH plugin is prohibited.
+**Note:** Activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its presence
+is required. If this plugin is already activated and if you want enable support for jailed cron jobs later on, just
+upload the InstantSSH plugin, and once done, deactivate and reactivate this plugin. You must note that once the support
+ for jailed cron jobs has been detected, the deletion of the InstantSSH plugin is prohibited.
 
 ## Installation
 
@@ -43,15 +43,17 @@ enabled, support for the jailed cron jobs cannot be disabled and thus, deletion 
 
 ### Cron job types
 
-Three types of cron jobs are available, which are in order: **Url**, **Jailed** and **Full**.
+Three types of cron jobs are available, which are in order: **URL**, **Jailed** and **Full**.
 
-#### Url
+#### URL
 
-The Url cron jobs allow to schedule commands executed using GNU Wget. The commands must be a valid HTTP(s) URL.
+The URL cron jobs are always available. They allow to schedule commands executed using GNU Wget. The commands must be
+valid HTTP(s) URLs.
 
-This cron job type is always available. When the full cron jobs type is selected, the URL cron jobs are run using the
-wget command from the system, else, they are run using the wget command from the jailed environment.
-
+**Note:** When a customer has permission for jailed cron jobs, the URL cron jobs are run inside the jailed environment,
+else they are run outside the jailed environment. This is by design, and this do not change anything from the customer
+point of view.
+ 
 #### Jailed
 
 The jailed cron jobs allow to schedule commands which are run through **/bin/sh** in a jailed environment. By default
@@ -62,31 +64,31 @@ the plugin will create a jailed environment which provides:
 * Mysql Monitor and mysqldump
 * A set of common UNIX utilities
 
-Only one jailed environment is created for all jailed cron jobs. This is by design. The most important here, is that the
-cron jobs cannot broke the whole system.
+**Note:** Only one jailed environment is created for all jailed cron jobs. The most important here, is that the cron
+jobs cannot broke the whole system.
 
 ##### Availability
 
 The jailed cron jobs are available only when the [InstantSSH](../InstantSSH/README.md) plugin is also present on the
 system, whatever it is activated or not. The CronJobs plugin reuses the jail builder library which is provided by the
-InstantSSH plugin to build the jailed environment.
+InstantSSH plugin to manage the jailed environment.
 
-This cron job type doesn't apply to administrators.
+The jailed cron jobs doesn't apply to administrators.
 
 #### Full
 
-The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run in a jailed
-environment. Such cron jobs should be reserved to trusted users.
+The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run inside a
+jailed environment. Such cron jobs should be reserved to trusted users.
 
 ## Crontab files
 
 The plugin handles the crontab files automatically. You must note that any manual change made in a crontab file which is
 under the control of this plugin will be automatically overriden on next processing. Therefore, once that a crontab file
-is under the control of this plugin, you must use the cronjobs interface provided by this plugin to add, edit or delete
+is under the control of this plugin, you must use the cron jobs interface provided by this plugin to add, edit or delete
 a cron job in this file.
 
 A crontab file is under the control of this plugin as soon as you add a cron task for the user to which it belong to,
-through the cronjob interface provided by this plugin.
+through the cron jobs interface provided by this plugin.
 
 ## Plugin usage
 

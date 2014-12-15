@@ -20,9 +20,9 @@
 
 namespace CronJobs\Admin;
 
+use CronJobs\CommonFunctions as Functions;
 use CronJobs\Exception\CronjobException;
 use CronJobs\Utils\Cronjob as CronjobValidator;
-use CronJobs\View\Helper as Helper;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventsAggregator;
 use iMSCP_Exception as iMSCPException;
@@ -92,7 +92,7 @@ function addCronJob()
 						sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']), E_USER_NOTICE
 					);
 
-					Helper::sendJsonResponse(
+					Functions::sendJsonResponse(
 						200, array('message' => tr('Cron job has been scheduled for addition.', true))
 					);
 				} else { // Cron job update
@@ -129,28 +129,25 @@ function addCronJob()
 							E_USER_NOTICE
 						);
 
-						Helper::sendJsonResponse(
-							200,
-							array(
-								'message' => tr('Cron job with ID %s has been scheduled for update.', true, $cronjobId)
-							)
+						Functions::sendJsonResponse(
+							200, array('message' => tr('Cron job has been scheduled for update.', true))
 						);
 					}
 				}
 			}
 		} catch(iMSCPException $e) {
 			if($e instanceof CronjobException) {
-				Helper::sendJsonResponse(400, array('message' => $e->getMessage()));
+				Functions::sendJsonResponse(400, array('message' => $e->getMessage()));
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
-				Helper::sendJsonResponse(
+				Functions::sendJsonResponse(
 					500, array('message' => tr('Unable to add/update cron job: %s', true, $e->getMessage()))
 				);
 			}
 		}
 	}
 
-	Helper::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -182,22 +179,20 @@ function getCronJob()
 			);
 
 			if($stmt->rowCount()) {
-				Helper::sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
+				Functions::sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
-
-			Helper::sendJsonResponse(404, array('message' => tr('Cron job with ID %s not found.', true, $cronJobId)));
 		} catch(DatabaseException $e) {
 			write_log(
 				sprintf('CronJobs: Unable to get cron job with ID %s: %s', $cronJobId, $e->getMessage()), E_USER_ERROR
 			);
 
-			Helper::sendJsonResponse(
+			Functions::sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 			);
 		}
 	}
 
-	Helper::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -240,8 +235,8 @@ function deleteCronJob()
 					E_USER_NOTICE
 				);
 
-				Helper::sendJsonResponse(
-					200, array('message' => tr('Cron job with ID %s has been scheduled for deletion.', true, $cronJobId))
+				Functions::sendJsonResponse(
+					200, array('message' => tr('Cron job has been scheduled for deletion.', true, $cronJobId))
 				);
 			}
 		} catch(DatabaseException $e) {
@@ -250,13 +245,13 @@ function deleteCronJob()
 				E_USER_ERROR
 			);
 
-			Helper::sendJsonResponse(
+			Functions::sendJsonResponse(
 				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 			);
 		}
 	}
 
-	Helper::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -407,16 +402,16 @@ function getCronJobsList()
 			$output['aaData'][] = $row;
 		}
 
-		Helper::sendJsonResponse(200, $output);
+		Functions::sendJsonResponse(200, $output);
 	} catch(DatabaseException $e) {
 		write_log(sprintf('CronJobs: Unable to get cron jobs list: %s', $e->getMessage()), E_USER_ERROR);
 
-		Helper::sendJsonResponse(
+		Functions::sendJsonResponse(
 			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 		);
 	}
 
-	Helper::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /***********************************************************************************************************************
@@ -427,7 +422,7 @@ EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
 
 check_login('admin');
 
-Helper::initEscaper();
+Functions::initEscaper();
 
 if(isset($_REQUEST['action'])) {
 	if(is_xhr()) {
@@ -447,7 +442,7 @@ if(isset($_REQUEST['action'])) {
 				deleteCronJob();
 				break;
 			default:
-				Helper::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 		}
 	}
 
@@ -463,7 +458,7 @@ $tpl->define_dynamic(
 );
 
 $tpl->define_no_file_dynamic(
-	'page', Helper::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs.tpl')
+	'page', Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs.tpl')
 );
 
 if(Registry::get('config')->DEBUG) {
@@ -475,9 +470,9 @@ if(Registry::get('config')->DEBUG) {
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => Helper::escapeHtml(tr('Admin / System tools / Cronjobs', true)),
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / System tools / Cronjobs', true)),
 		'ISP_LOGO' => layout_getUserLogo(),
-		'CRONJOBS_ASSET_VERSION' => Helper::escapeUrl($assetVersion),
+		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'DEFAULT_EMAIL_NOTIFICATION' => $_SESSION['user_email'],
 	)

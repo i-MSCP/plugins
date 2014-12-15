@@ -24,6 +24,7 @@ return array(
 			cron_permission_id INT(10) unsigned AUTO_INCREMENT NOT NULL,
 			cron_permission_admin_id INT(10) unsigned NOT NULL,
 			cron_permission_type ENUM('url', 'jailed', 'full') NOT NULL DEFAULT 'url',
+			cron_permission_max INT(10) NOT NULL default '0',
 			cron_permission_frequency INT(10) NOT NULL DEFAULT '5',
 			cron_permission_status VARCHAR(255) NOT NULL,
 			PRIMARY KEY cron_permission_id (cron_permission_id),

@@ -37,9 +37,7 @@ return array(
 			PRIMARY KEY cron_job_id (cron_job_id),
 			KEY cron_job_permission_id (cron_job_permission_id),
 			KEY cron_job_admin_id (cron_job_admin_id),
-			KEY cron_job_status (cron_job_status),
-			CONSTRAINT cron_job_permission_id FOREIGN KEY (cron_job_permission_id)
-				REFERENCES cron_permissions (cron_permission_id) ON DELETE SET NULL
+			KEY cron_job_status (cron_job_status)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 	",
 	'down' => '

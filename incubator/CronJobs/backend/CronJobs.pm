@@ -409,9 +409,17 @@ sub _writeCrontab
 				$cronjobNotificationPrev = '';
 			}
 
-			$cronjob .=
-				$row->{'cron_job_minute'} . ' ' . $row->{'cron_job_hour'} . ' ' . $row->{'cron_job_dmonth'} . ' ' .
-				$row->{'cron_job_month'} . ' ' . $row->{'cron_job_dweek'} . ' ';
+			if(
+				$row->{'cron_job_minute'} ~~ [
+					'@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly'
+				]
+			) {
+				$cronjob .= $row->{'cron_job_minute'} . ' ';
+			} else {
+				$cronjob .=
+					$row->{'cron_job_minute'} . ' ' . $row->{'cron_job_hour'} . ' ' . $row->{'cron_job_dmonth'} . ' ' .
+					$row->{'cron_job_month'} . ' ' . $row->{'cron_job_dweek'} . ' ';
+			}
 
 			if($row->{'cron_job_type'} eq 'url') {
 				$cronjob .= '/usr/bin/wget -q -t 1 -T 3600 -O /dev/null ';
