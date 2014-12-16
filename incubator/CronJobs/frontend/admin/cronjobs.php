@@ -377,7 +377,7 @@ function getCronJobsList()
 			for($i = 0; $i < $nbColumns; $i++) {
 				if($columnNames[$i] == 'cron_job_type') {
 					$row[$columnNames[$i]] = ($data[$columnNames[$i]] == 'url')
-						? tr('URL command', true) : tr('SH command', true);
+						? tr('URL', true) : tr('Shell', true);
 				} elseif($columnNames[$i] == 'cron_job_status') {
 					$row[$columnNames[$i]] = translate_dmn_status($data[$columnNames[$i]], false);
 				} else {

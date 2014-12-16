@@ -119,13 +119,13 @@
 					<td>
 						<label for="cron_job_type">
 							<?= self::escapeHtml(tr('Command type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('URL commands are run via GNU Wget while SH commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('URL commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
 						<select name="cron_job_type" id="cron_job_type">
-							<option value="url"><?= self::escapeHtml(tr('URL command', true));?></option>
-							<option value="full"><?= self::escapeHtml(tr('SH command', true));?></option>
+							<option value="url"><?= self::escapeHtml(tr('URL', true));?></option>
+							<option value="full"><?= self::escapeHtml(tr('Shell', true));?></option>
 						</select>
 					</td>
 				</tr>
