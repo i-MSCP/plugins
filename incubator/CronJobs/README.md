@@ -7,7 +7,7 @@ WARNING: This plugin is still under development, not ready for use
 This plugin provide a cron time-based job scheduler for i-MSCP. 
 
 Administrators give cron permissions to their resellers, and the resellers give the cron permissions to their customers
-according their own permissions. For instance, a reseller will be able to give the **Full** cron permission to a customer
+according their own permissions. For instance, a reseller will be able to give the full cron permission to a customer
 only if he has also this permission.
 
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
@@ -50,7 +50,7 @@ Three types of cron jobs are available, which are in order: **URL**, **Jailed** 
 
 #### URL
 
-The URL cron jobs are always available. They allow to schedule commands executed via GNU Wget. The commands must be
+The URL cron jobs are always available. They allow to schedule URL commands executed via GNU Wget. The commands must be
 valid HTTP(s) URLs.
 
 **Note:** When a customer has permission for jailed cron jobs, the URL cron jobs are run inside the jailed environment,
@@ -59,8 +59,8 @@ point of view.
  
 #### Jailed
 
-The jailed cron jobs allow to schedule commands which are run through **/bin/sh** in a jailed environment. By default
-the plugin will create a jailed environment which provides:
+The jailed cron jobs allow to schedule commands which are run through the shell interpreter in a jailed environment.
+By default the plugin will create a jailed environment which provides:
 
 * GNU Wget
 * PHP (CLI) and some PHP modules ( mysqlnd, pdo, gd, intl, json, mcrypt, mysql, mysqli, pdo_mysql, readline )
