@@ -22,7 +22,7 @@ namespace CronJobs\Admin;
 
 use CronJobs\CommonFunctions as Functions;
 use CronJobs\Exception\CronjobException;
-use CronJobs\Utils\Cronjob as CronjobValidator;
+use CronJobs\Utils\CronjobValidator as CronjobValidator;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventsAggregator;
 use iMSCP_Exception as iMSCPException;
@@ -376,7 +376,8 @@ function getCronJobsList()
 
 			for($i = 0; $i < $nbColumns; $i++) {
 				if($columnNames[$i] == 'cron_job_type') {
-					$row[$columnNames[$i]] = tr(ucfirst($data[$columnNames[$i]]), true);
+					$row[$columnNames[$i]] = ($data[$columnNames[$i]] == 'url')
+						? tr('URL command', true) : tr('SH command', true);
 				} elseif($columnNames[$i] == 'cron_job_status') {
 					$row[$columnNames[$i]] = translate_dmn_status($data[$columnNames[$i]], false);
 				} else {
@@ -421,8 +422,6 @@ function getCronJobsList()
 EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
 
 check_login('admin');
-
-Functions::initEscaper();
 
 if(isset($_REQUEST['action'])) {
 	if(is_xhr()) {
@@ -474,7 +473,8 @@ $tpl->assign(
 		'ISP_LOGO' => layout_getUserLogo(),
 		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-		'DEFAULT_EMAIL_NOTIFICATION' => $_SESSION['user_email'],
+		'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
+		'CRON_PERMISSION_FREQUENCY' => tr(array('%d minute', '%d minutes', 1), true, 1)
 	)
 );
 

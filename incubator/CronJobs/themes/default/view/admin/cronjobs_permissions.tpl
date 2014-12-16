@@ -10,9 +10,8 @@
 		<thead>
 		<tr>
 			<th><?= self::escapeHtml(tr('Reseller name', true));?></th>
-			<th><?= self::escapeHtml(tr('Type', true));?></th>
-			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
-			<th><?= self::escapeHtml(tr('Frequency', true));?></th>
+			<th><?= self::escapeHtml(tr('Cron jobs type', true));?></th>
+			<th><?= self::escapeHtml(tr('Cron jobs frequency', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
 			<th><?= self::escapeHtml(tr('Actions', true));?></th>
 		</tr>
@@ -20,21 +19,20 @@
 		<tfoot>
 		<tr>
 			<td><?= self::escapeHtml(tr('Reseller name', true));?></td>
-			<td><?= self::escapeHtml(tr('Type', true));?></td>
-			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
-			<td><?= self::escapeHtml(tr('Frequency', true));?></td>
+			<td><?= self::escapeHtml(tr('Cron jobs type', true));?></td>
+			<td><?= self::escapeHtml(tr('Cron jobs frequency', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="6"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="5"><?= self::escapeHtml(tr('Loading data...', true));?></td>
 		</tr>
 		</tbody>
 	</table>
 	<div>
-		<form name="cron_permissions_frm" id="cron_permissions_frm" method="post" enctype="application/x-www-form-urlencoded">
+		<form name="cron_permissions_frm" id="cron_permissions_frm">
 			<table class="firstColFixed">
 				<thead>
 				<tr>
@@ -49,7 +47,8 @@
 				<tr>
 					<td>
 						<label for="cron_permission_type">
-							<?= self::escapeHtml(tr('Cron job type', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Cron jobs type', true));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs. Note that the URL cron jobs are always available, whatever the selected type.', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -64,33 +63,25 @@
 				</tr>
 				<tr>
 					<td>
-						<label for="cron_permission_max">
-							<?= self::escapeHtml(tr('Max. cron jobs', true));?><br>
-							(<small><?= self::escapeHtml(tr('0 for unlimited', true));?>)</small>
-						</label>
-					</td>
-					<td>
-						<input type="text" name="cron_permission_max" id="cron_permission_max" value="0"/>
-					</td>
-				</tr>
-				<tr>
-					<td>
 						<label for="cron_permission_frequency">
-							<?= self::escapeHtml(tr('Cron job frequency', true));?> <span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Cron jobs frequency', true));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution.', true));?>">&nbsp;</span>
 							<br>
-							(<small><?= self::escapeHtml(tr('In minutes', true));?>)</small>
+							( <small><?= self::escapeHtml(tr('In minutes', true));?></small> )
 						</label>
 					</td>
 					<td>
-						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5"/>
+						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5">
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2" style="text-align: right;">
-						<button data-action="add_cron_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
-						<input type="hidden" id="cron_permission_id" name="cron_permission_id" value="0"/>
-						<input type="hidden" id="cron_permission_admin_id" name="cron_permission_admin_id" value="0"/>
-						<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true));?>"/>
+					<td colspan="2">
+						<div class="buttons">
+							<button data-action="add_cron_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
+							<input type="hidden" id="cron_permission_id" name="cron_permission_id" value="0">
+							<input type="hidden" id="cron_permission_admin_id" name="cron_permission_admin_id" value="0">
+							<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true));?>">
+						</div>
 					</td>
 				</tr>
 				</tbody>
@@ -99,66 +90,63 @@
 	</div>
 </div>
 <script>
-	var oTable;
+	$(function() {
+		var $dataTable;
 
-	function flashMessage(type, message) {
-		$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
-	}
+		function flashMessage(type, message) {
+			$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).
+				prependTo(".body").trigger('message_timeout'
+			);
+		}
 
-	function doRequest(rType, action, data) {
-		return $.ajax({
-			dataType: "json",
-			type: rType,
-			url: "/admin/cronjobs_permissions?action=" + action,
-			data: data,
-			timeout: 5000
-		});
-	}
+		function doRequest(rType, action, data) {
+			return $.ajax({
+				dataType: "json",
+				type: rType,
+				url: "/admin/cronjobs_permissions?action=" + action,
+				data: data,
+				timeout: 5000
+			});
+		}
 
-	$(document).ready(function () {
-		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (oSettings, onoff) {
+		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (settings, onoff) {
 			if (typeof(onoff) == "undefined") {
 				onoff = true;
 			}
 
-			this.oApi._fnProcessingDisplay(oSettings, onoff);
+			this.oApi._fnProcessingDisplay(settings, onoff);
 		};
 
-		oTable = $(".datatable").dataTable({
-			oLanguage: {DATATABLE_TRANSLATIONS},
-			iDisplayLength: 5,
-			bProcessing: true,
-			bServerSide: true,
-			"pagingType": "simple",
-			sAjaxSource: "/admin/cronjobs_permissions?action=get_cron_permissions_list",
-			bStateSave: true,
-			aoColumnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 5 ] }
+		$dataTable = $(".datatable").dataTable({
+			language: {DATATABLE_TRANSLATIONS},
+			displayLength: 5,
+			processing: true,
+			serverSide: true,
+			pagingType: "simple",
+			ajaxSource: "/admin/cronjobs_permissions?action=get_cron_permissions_list",
+			stateSave: true,
+			columnDefs: [
+				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
 			],
-			aoColumns: [
-				{ mData: "admin_name" },
-				{ mData: "cron_permission_type" },
-				{ mData: "cron_permission_max" },
-				{ mData: "cron_permission_frequency" },
-				{ mData: "cron_permission_status" },
-				{ mData: "cron_permission_actions" }
+			columns: [
+				{ data: "admin_name" },
+				{ data: "cron_permission_type" },
+				{ data: "cron_permission_frequency" },
+				{ data: "cron_permission_status" },
+				{ data: "cron_permission_actions" }
 			],
-			fnServerData: function (sSource, aoData, fnCallback) {
+			"serverData": function (source, data, callback) {
 				$.ajax({
 					dataType: "json",
 					type: "GET",
-					url: sSource,
-					data: aoData,
-					success: fnCallback,
-					timeout: 3000,
+					url: source,
+					data: data,
+					success: callback,
+					timeout: 3000
 				}).done(function () {
-					if(jQuery.fn.imscpTooltip) {
-						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
-					} else {
-						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
-					}
+					$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 				}).fail(function(jqXHR) {
-					oTable.fnProcessingIndicator(false);
+					$dataTable.fnProcessingIndicator(false);
 					flashMessage('error', $.parseJSON(jqXHR.responseText).message);
 				});
 			}
@@ -192,7 +180,7 @@
 								function (data, textStatus, jqXHR) {
 									$("input:reset").click();
 									flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-									oTable.fnDraw();
+									$dataTable.fnDraw();
 								}
 							);
 						} else {
@@ -205,7 +193,6 @@
 						).done(function (data) {
 							$("#admin_name").val(data.admin_name).prop("readonly", true);
 							$("#cron_permission_type").val(data.cron_permission_type);
-							$("#cron_permission_max").val(data.cron_permission_max);
 							$("#cron_permission_frequency").val(data.cron_permission_frequency);
 							$("#cron_permission_id").val(data.cron_permission_id);
 							$("#cron_permission_admin_id").val(data.cron_permission_admin_id);
@@ -219,7 +206,7 @@
 									cron_permission_admin_id: $(this).data('cron-permission-admin-id')
 								}
 							).done(function (data) {
-								oTable.fnDraw();
+								$dataTable.fnDraw();
 								flashMessage("success", data.message);
 							});
 						}
@@ -230,12 +217,12 @@
 			});
 
 		$(document).
-			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
-			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxStart(function () { $dataTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { $dataTable.fnProcessingIndicator(false); }).
 			ajaxError(function (e, jqXHR, settings, exception) {
 				if(jqXHR.status == 403) {
 					window.location.href = "/index.php";
-				} else if (jqXHR.responseJSON != "") {
+				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
 					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");

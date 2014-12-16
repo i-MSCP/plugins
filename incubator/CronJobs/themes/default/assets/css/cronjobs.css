@@ -9,10 +9,6 @@
     padding-left: 20px;
 }
 
-.icon_show {
-    background-image: url("/CronJobs/themes/default/assets/images/show.png");
-}
-
 .icon_edit {
     background-image: url("/CronJobs/themes/default/assets/images/edit.png");
 }
@@ -21,7 +17,21 @@
     background-image: url("/CronJobs/themes/default/assets/images/delete.png");
 }
 
+#dialog_frm .static_info {
+    padding-left: 70px;
+    margin-bottom: 0;
+}
+
+#dialog_frm .static_info li {
+    list-style: circle;
+}
+
 small {
     font-size: 0.9em;
     color: #666666
+}
+
+.hint {
+    font-variant: small-caps;
+    font-size: small;
 }

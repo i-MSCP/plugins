@@ -48,8 +48,8 @@ function getCronPermissions()
 			$stmt = exec_query(
 				'
 					SELECT
-						cron_permission_id, cron_permission_admin_id, cron_permission_type, cron_permission_max,
-						cron_permission_frequency, admin_name
+						cron_permission_id, cron_permission_admin_id, cron_permission_type, cron_permission_frequency,
+						admin_name
 					FROM
 						cron_permissions
 					INNER JOIN
@@ -83,208 +83,182 @@ function addCronPermissions()
 {
 	if(
 		isset($_POST['cron_permission_id']) && isset($_POST['cron_permission_admin_id']) &&
-		isset($_POST['admin_name']) && isset($_POST['cron_permission_type']) && isset($_POST['cron_permission_max']) &&
+		isset($_POST['admin_name']) && isset($_POST['cron_permission_type']) &&
 		isset($_POST['cron_permission_frequency'])
 	) {
 		$cronPermissionId = intval($_POST['cron_permission_id']);
 		$cronPermissionAdminId = intval($_POST['cron_permission_admin_id']);
 		$adminName = clean_input($_POST['admin_name']);
 		$cronPermissionType = clean_input($_POST['cron_permission_type']);
-		$cronPermissionMax = clean_input($_POST['cron_permission_max']);
 		$cronPermissionFrequency = clean_input($_POST['cron_permission_frequency']);
 
-		if($adminName === '' || $cronPermissionFrequency === '' || $cronPermissionMax === '') {
-			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
-
-		} elseif(!is_number($cronPermissionMax)) {
-			Functions::sendJsonResponse(
-				400, array('message' => tr("Wrong value for the 'Max. cron jobs' field. Please, enter a number.", true))
-			);
-		} elseif(!is_number($cronPermissionFrequency)) {
-			Functions::sendJsonResponse(
-				400, array('message' => tr("Wrong value for the 'Job frequency' field. Please, enter a number.", true))
-			);
-		}
-
-		$db = Database::getInstance();
-
-		try {
-			$db->beginTransaction();
-
-			if(!$cronPermissionId) { // Add cron permissions
-				$stmt = exec_query(
-					'
-						INSERT INTO cron_permissions(
-							cron_permission_admin_id, cron_permission_type, cron_permission_max,
-							cron_permission_frequency, cron_permission_status
-						) SELECT
-							admin_id, ?, ?, ?, ?
-						FROM
-							admin
-						WHERE
-							admin_name = ?
-					',
-					array($cronPermissionType, $cronPermissionMax, $cronPermissionFrequency, 'ok', $adminName)
+		if(in_array($cronPermissionType, array('url', 'jailed', 'full'), true) && $adminName !== '') {
+			if($cronPermissionFrequency === '' || !is_number($cronPermissionFrequency)) {
+				Functions::sendJsonResponse(
+					400,
+					array(
+						'message' => tr(
+							"Wrong value for the 'Cron jobs frequency' field. Please, enter a number.", true
+						)
+					)
 				);
-				if($stmt->rowCount()) {
-					$db->commit();
+			}
 
-					write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
-					Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were added.', true)));
-				}
-			} else { // Update cron permissions
-				# We must ensure that no child item is currently processed to avoid any race condition
-				$stmt = exec_query(
-					'
-						SELECT
-							COUNT(cron_job_id) AS cnt
-						FROM
-							cron_job
-						INNER JOIN
-							admin ON(admin_id = cron_job_admin_id)
-						WHERE
-							created_by = ?
-						AND
-							cron_job_status <> ?
-					',
-					array($cronPermissionAdminId, 'ok')
-				);
+			$db = Database::getInstance();
 
-				if(!$stmt->rowCount()) {
-					$sendRequest = false;
-
+			try {
+				if(!$cronPermissionId) { // Add cron permissions
 					$stmt = exec_query(
 						'
-						UPDATE
-							cron_permissions
-						SET
-							cron_permission_type = ?, cron_permission_max = ?, cron_permission_frequency = ?,
-							cron_permission_status = ?
-						WHERE
-							cron_permission_id = ?
-						AND
-							cron_permission_admin_id = ?
-					',
-						array(
-							$cronPermissionType, $cronPermissionMax, $cronPermissionFrequency, 'ok', $cronPermissionId,
-							$cronPermissionAdminId
-						)
+							INSERT INTO cron_permissions(
+								cron_permission_admin_id, cron_permission_type, cron_permission_frequency,
+								cron_permission_status
+							) SELECT
+								admin_id, ?, ?, ?
+							FROM
+								admin
+							WHERE
+								admin_name = ?
+						',
+						array($cronPermissionType, $cronPermissionFrequency, 'ok', $adminName)
 					);
 
 					if($stmt->rowCount()) {
-						if($cronPermissionType != 'full') {
-							# Update any cron permissions (in the context of the reseller)
-							exec_query(
-								'
+						write_log(sprintf('CronJobs: Cron permissions were added for %s', $adminName), E_USER_NOTICE);
+						Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were added.', true)));
+					}
+				} else { // Update cron permissions
+					$db->beginTransaction();
+
+					# We must ensure that no child item is currently processed to avoid any race condition
+					$stmt = exec_query(
+						'
+							SELECT
+								COUNT(cron_job_id) AS nb_cron_jobs
+							FROM
+								cron_jobs
+							INNER JOIN
+								admin ON(admin_id = cron_job_admin_id)
+							WHERE
+								created_by = ?
+							AND
+								cron_job_status <> ?
+						',
+						array($cronPermissionAdminId, 'ok')
+					);
+
+					$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+
+					if($row['nb_cron_jobs'] == 0) {
+						$stmt = exec_query(
+							'
 								UPDATE
 									cron_permissions
-								INNER JOIN
-									admin ON(admin_id = cron_permission_admin_id)
 								SET
-									cron_permission_type = :cron_permission_type,
-									cron_permission_max = IF(
-										cron_permission_max>:cron_permission_max,
-										cron_permission_max,
-										cron_permission_max
-									),
-									cron_permission_frequency = IF(
-										cron_permission_frequency>:cron_permission_frequency,
-										:cron_permission_frequency,
-										cron_permission_frequency
+									cron_permission_type = ?, cron_permission_frequency = ?, cron_permission_status = ?
+								WHERE
+									cron_permission_id = ?
+							',
+							array($cronPermissionType, $cronPermissionFrequency, 'ok', $cronPermissionId)
+						);
+
+						if($stmt->rowCount()) {
+							$sendRequest = false;
+
+							if($cronPermissionType != 'full') {
+								# Update any cron permissions ( in the context of the reseller )
+								exec_query(
+									"
+										UPDATE
+											cron_permissions
+										INNER JOIN
+											admin ON(admin_id = cron_permission_admin_id)
+										SET
+											cron_permission_type = IF(
+												cron_permission_type != 'url',
+												:cron_permission_type,
+												cron_permission_type
+											),
+											cron_permission_frequency = IF(
+												cron_permission_frequency < :cron_permission_frequency,
+												:cron_permission_frequency,
+												cron_permission_frequency
+											)
+										WHERE
+											created_by = :reseller_id
+									",
+									array(
+										'cron_permission_type' => $cronPermissionType,
+										'cron_permission_frequency' => $cronPermissionFrequency,
+										'reseller_id' => $cronPermissionAdminId
 									)
-								WHERE
-									created_by = :reseller_id
-							',
-								array(
-									'cron_permission_type' => $cronPermissionType,
-									'cron_permission_max' => $cronPermissionMax,
-									'cron_permission_frequency' => $cronPermissionFrequency,
-									'reseller_id' => $cronPermissionAdminId
-								)
-							);
+								);
 
-							# Schedule deletion of any cron job (in the context of the reseller) which doesn't fit with the
-							//cron job type
-							$stmt = exec_query(
-								'
-								UPDATE
-									cron_jobs
-								INNER JOIN
-									admin ON(admin_id = cron_job_admin_id)
-								SET
-									cron_job_status = :cron_job_status
-								WHERE
-									cron_job_type != :cron_job_type
-								AND
-									created_by = :reseller_id
-							',
-								array(
-									'cron_job_status' => 'todelete',
-									'cron_job_type' => $cronPermissionType,
-									'reseller_id' => $cronPermissionAdminId
-								)
-							);
+								# Schedule change of any cron jobs ( in the context of the reseller )
+								$stmt = exec_query(
+									"
+										UPDATE
+											cron_jobs
+										INNER JOIN
+											admin ON(admin_id = cron_job_admin_id)
+										SET
+											cron_job_type = IF(cron_job_type != 'url', :cron_job_type, cron_job_type),
+											cron_job_status = :new_cron_job_status
+										WHERE
+											cron_job_status <> :cron_job_status
+										AND
+											created_by = :reseller_id
+									",
+									array(
+										'cron_job_type' => $cronPermissionType,
+										'new_cron_job_status' => 'tochange',
+										'cron_job_status' => 'todelete',
+										'reseller_id' => $cronPermissionAdminId
+									)
+								);
 
-							if($stmt->rowCount()) {
-								$sendRequest = true;
+								if($stmt->rowCount()) {
+									$sendRequest = true;
+								}
 							}
 
-							# Schedule change of any cron job (in the context of the reseller)
-							$stmt = exec_query(
-								'
-								UPDATE
-									cron_jobs
-								INNER JOIN
-									admin ON(admin_id = cron_job_admin_id)
-								SET
-									cron_job_status = ?
-								WHERE
-									created_by = ?
-								AND
-									cron_job_status <> ?
-							',
-								array('tochange', $cronPermissionAdminId, 'todelete')
-							);
+							$db->commit();
 
-							if($stmt->rowCount()) {
-								$sendRequest = true;
+							if($sendRequest) {
+								send_request();
 							}
+
+							write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
+							Functions::sendJsonResponse(
+								200, array('message' => tr('Cron permissions were updated.', true))
+							);
 						}
 
-						$db->commit();
-
-						if($sendRequest) {
-							send_request();
-						}
-
-						write_log(sprintf('Cron permissions were updated for %s', $adminName), E_USER_NOTICE);
-						Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were updated.', true)));
-					}
-
-					Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
-				} else {
-					Functions::sendJsonResponse(
-						409,
-						array(
-							'message' => tr(
-								"One or many cron jobs which belongs to the reseller's customers are currently processed. Please retry in few minutes.",
-								true
+						Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
+					} else {
+						Functions::sendJsonResponse(
+							409,
+							array(
+								'message' => tr(
+									"One or many cron jobs which belongs to the reseller's customers are currently processed. Please retry in few minutes.",
+									true
+								)
 							)
-						)
+						);
+					}
+				}
+			} catch(DatabaseException $e) {
+				$db->rollBack();
+
+				if($e->getCode() != '23000') {
+					write_log(
+						sprintf('CronJobs: Unable to update cron permissions for %s: %s', $adminName, $e->getMessage()),
+						E_USER_ERROR
+					);
+					Functions::sendJsonResponse(
+						500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 					);
 				}
-			}
-		} catch(DatabaseException $e) {
-			$db->rollBack();
-
-			if($e->getCode() != '23000') {
-				write_log(
-					sprintf('CronJobs: Unable to update cron permissions for %s: %s', $adminName, $e->getMessage()),
-					E_USER_ERROR
-				);
-				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
-				);
 			}
 		}
 	}
@@ -347,15 +321,15 @@ function deleteCronPermissions()
 				}
 
 				write_log(
-					sprintf('CronJobs: Cron permissions with ID %s were removed', $cronPermissionId), E_USER_NOTICE
+					sprintf('CronJobs: Cron permissions with ID %s were revoked', $cronPermissionId), E_USER_NOTICE
 				);
-				Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were removed.', true)));
+				Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were revoked.', true)));
 			}
 		} catch(DatabaseException $e) {
 			$db->rollBack();
 			write_log(
 				sprintf(
-					'CronJobs: Unable to delete cron permissions with ID %s: %s', $cronPermissionId, $e->getMessage()
+					'CronJobs: Unable to revoke cron permissions with ID %s: %s', $cronPermissionId, $e->getMessage()
 				),
 				E_USER_ERROR
 			);
@@ -371,14 +345,12 @@ function deleteCronPermissions()
 /**
  * Search reseller
  *
- * Note: Only reseller which doesn't have cron permissions already set are returned.
- *
  * @return void
  */
 function searchReseller()
 {
 	if(isset($_GET['term'])) {
-		$term = encode_idna(clean_input($_GET['term'])) . '%';
+		$term = clean_input($_GET['term']) . '%';
 
 		try {
 			$stmt = exec_query(
@@ -400,7 +372,7 @@ function searchReseller()
 			if($stmt->rowCount()) {
 				$responseData = array();
 				while($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-					$responseData[] = decode_idna($row['admin_name']);
+					$responseData[] = $row['admin_name'];
 				}
 			} else {
 				$responseData = array();
@@ -428,10 +400,7 @@ function getCronPermissionsList()
 {
 	try {
 		// Filterable, orderable columns
-		$columns = array(
-			'admin_name', 'cron_permission_type', 'cron_permission_max', 'cron_permission_frequency',
-			'cron_permission_status'
-		);
+		$columns = array('admin_name', 'cron_permission_type', 'cron_permission_frequency', 'cron_permission_status');
 
 		$nbColumns = count($columns);
 		$indexColumn = 'cron_permission_id';
@@ -542,12 +511,10 @@ function getCronPermissionsList()
 			$row = array();
 
 			for($i = 0; $i < $nbColumns; $i++) {
-				if($columns[$i] == 'admin_name') {
-					$row[$columns[$i]] = decode_idna($data[$columns[$i]]);
-				} elseif($columns[$i] == 'cron_permission_type') {
+				if($columns[$i] == 'cron_permission_type') {
 					$row[$columns[$i]] = ucfirst($data[$columns[$i]]);
 				} elseif($columns[$i] == 'cron_permission_frequency') {
-					$row[$columns[$i]] = ucfirst($data[$columns[$i]]) . ' ' . tr('minutes', true);
+					$row[$columns[$i]] = tr(array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]);
 				} elseif($columns[$i] == 'cron_permission_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]], false);
 				} else {
@@ -591,8 +558,6 @@ function getCronPermissionsList()
 EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
 
 check_login('admin');
-
-Functions::initEscaper();
 
 if(isset($_REQUEST['action'])) {
 	if(is_xhr()) {

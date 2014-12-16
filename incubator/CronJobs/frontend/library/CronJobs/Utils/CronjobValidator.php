@@ -27,7 +27,7 @@ use Zend_Uri_Http as HttpUri;
 /**
  * Class CronjobValidator
  *
- * Part of code in the validateField function() has been borrowed to the WoltLab project and
+ * Part of code in the validateField() function has been borrowed to the WoltLab project and
  * is copyrighted as follow:
  *
  * @author Alexander Ebert
@@ -82,15 +82,13 @@ final class CronjobValidator
 	 * @param int $minTimeInterval Minimum time interval ( in minutes ) between each cron job execution
 	 * @return void
 	 */
-	public static function validate(
-		$email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type, $minTimeInterval = 1
-	)
+	public static function validate($email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type, $minTimeInterval = 1)
 	{
 		$minTimeInterval = intval($minTimeInterval);
 		$timedateShortcut = '';
 		$errMsgs = array();
 
-		if(in_array($type, array('url', 'jailed', 'full'))) {
+		if(in_array($type, array('url', 'jailed', 'full'), true)) {
 			try {
 				self::validateNotificationEmail($email);
 			} catch(CronjobException $e) {
@@ -165,8 +163,7 @@ final class CronjobValidator
 	protected static function validateField($fieldName, $fieldValue, $minTimeInterval)
 	{
 		if($fieldValue === '') {
-			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, $fieldName)
-			);
+			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, $fieldName));
 		}
 
 		$pattern = '';
@@ -281,7 +278,7 @@ final class CronjobValidator
 			case 'month':
 				$maxEntries = 12;
 				$minEntries = 1;
-				$inMinutes = 1440 * 28; // not exactly but enough
+				$inMinutes = 1440 * 28; // Not exactly but enough
 				break;
 			case 'dweek':
 				$maxEntries = 7;
@@ -294,12 +291,11 @@ final class CronjobValidator
 
 		foreach($timeList as $entry) {
 			if(preg_match('~^(((\d+)(\-(\d+))?)|\*)(\/([1-9]\d*))?$~', $entry, $matches)) {
-
 				$loopStep = 1;
 				$loopFrom = $minEntries;
 				$loopTo = $maxEntries;
 
-				//* calculate used values
+				// Calculate used values
 				if($matches[1] != '*') {
 					$loopFrom = $matches[3];
 					$loopTo = $matches[3];
@@ -313,7 +309,7 @@ final class CronjobValidator
 					$loopStep = $matches[7];
 				}
 
-				//* Loop through values to set used times
+				// Loop through values to set used times
 				for($time = $loopFrom; $time <= $loopTo; $time = ($time + $loopStep)) {
 					$usedTimes[] = $time;
 				}
@@ -380,7 +376,7 @@ final class CronjobValidator
 		}
 
 		if($command !== '') {
-			if($type === 'url') {
+			if($type == 'url') {
 				try {
 					$httpUri = HttpUri::fromString($command);
 

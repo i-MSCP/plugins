@@ -23,8 +23,9 @@ namespace CronJobs;
 use Zend_Escaper_Escaper as Escaper;
 
 /**
- * Class View
- * @package CronJobs\View
+ * Class CommonFunctions
+ *
+ * @package CronJobs
  */
 class CommonFunctions
 {
@@ -168,3 +169,5 @@ class CommonFunctions
 		return self::$escaper->escapeCss($string);
 	}
 }
+
+CommonFunctions::initEscaper();

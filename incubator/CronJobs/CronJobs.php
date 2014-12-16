@@ -152,7 +152,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		$pluginManager = $this->getPluginManager();
 
 		if($pluginManager->isPluginKnown('InstantSSH')) {
-			//$this->getPluginManager()->unlockPlugin('InstantSSH');
+			$this->getPluginManager()->unlockPlugin('InstantSSH');
 		}
 	}
 
@@ -369,7 +369,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			if($stmt->rowCount()) {
 				$this->cronPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
 			} else {
-				$this->customerSshPermissions = array();
+				$this->cronPermissions = array();
 			}
 		}
 
