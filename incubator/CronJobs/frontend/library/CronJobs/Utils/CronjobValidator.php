@@ -21,15 +21,44 @@
 namespace CronJobs\Utils;
 
 use CronJobs\Exception\CronjobException;
+use iMSCP_Exception as iMSCPException;
 use Zend_Uri_Http as HttpUri;
 
 /**
- * Class Cronjob
+ * Class CronjobValidator
+ *
+ * Part of code in the validateField function() has been borrowed to the WoltLab project and
+ * is copyrighted as follow:
+ *
+ * @author Alexander Ebert
+ * @copyright 2001-2014 WoltLab GmbH
+ * @license GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
+ *
+ * Part of code in the validateFrequency() function has been borrowed to the ISPConfig project and
+ * is copyrighted as follow:
+ *
+ * Copyright (c) 2007, Till Brehm, projektfarm Gmbh
+ * Modified 2009, Marius Cramer, pixcept KG
+ * All rights reserved.
  *
  * @package Cronjobs\Utils
  */
-final class Cronjob
+final class CronjobValidator
 {
+	/**
+	 * @var array Timedate shortcuts map
+	 */
+	static $timedateShortcutsMap = array(
+		'@reboot' => null,
+		'@yearly' => array('0', '0', '1', '1', '*'),
+		'@annually' => array('0', '0', '1', '1', '*'),
+		'@monthly' => array('0', '0', '1', '*', '*'),
+		'@weekly' => array('0', '0', '*', '*', '0'),
+		'@daily' => array('0', '0', '*', '*', '*'),
+		'@midnight' => array('0', '0', '*', '*', '*'),
+		'@hourly' => array('0', '*', '*', '*', '*'),
+	);
+
 	/**
 	 *  Disallow instantiation
 	 */
@@ -38,7 +67,7 @@ final class Cronjob
 	}
 
 	/**
-	 * Validates a cron command
+	 * Validates a cron job
 	 *
 	 * @throws CronjobException if the given cron job is not valid
 	 * @param string $email Cron job notification email
@@ -50,9 +79,15 @@ final class Cronjob
 	 * @param string $user User under which cron job command must be executed
 	 * @param string $command Cron job command
 	 * @param string $type Cron job type
+	 * @param int $minTimeInterval Minimum time interval ( in minutes ) between each cron job execution
+	 * @return void
 	 */
-	public static function validate($email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type)
+	public static function validate(
+		$email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type, $minTimeInterval = 1
+	)
 	{
+		$minTimeInterval = intval($minTimeInterval);
+		$timedateShortcut = '';
 		$errMsgs = array();
 
 		if(in_array($type, array('url', 'jailed', 'full'))) {
@@ -62,41 +97,45 @@ final class Cronjob
 				$errMsgs[] = $e->getMessage();
 			}
 
-			if(in_array(
-				$minute,
-				array('@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly')
-			)) {
-				try {
-					self::validateCommand($user, $command, $type);
-					$hour = $dmonth = $month = $dweek = '';
-				} catch(CronjobException $e) {
-					$errMsgs[] = $e->getMessage();
+			if(isset(self::$timedateShortcutsMap[$minute])) {
+				$timedateShortcut = $minute;
+
+				if($timedateShortcut != '@reboot') {
+					list($minute, $hour, $dmonth, $month, $dweek) = self::$timedateShortcutsMap[$minute];
 				}
-			} else {
+			}
+
+			if($timedateShortcut != '@reboot') {
 				foreach(
 					array(
 						'minute' => $minute, 'hour' => $hour, 'dmonth' => $dmonth, 'month' => $month, 'dweek' => $dweek
 					) as $attrName => $attrValue
 				) {
 					try {
-						self::validateField($attrName, $attrValue);
+						self::validateField($attrName, $attrValue, $minTimeInterval);
 					} catch(CronjobException $e) {
 						$errMsgs[] = $e->getMessage();
 					}
 				}
-
-				try {
-					self::validateCommand($user, $command, $type);
-				} catch(CronjobException $e) {
-					$errMsgs[] = $e->getMessage();
-				}
 			}
+
+			try {
+				self::validateCommand($user, $command, $type);
+			} catch(CronjobException $e) {
+				$errMsgs[] = $e->getMessage();
+			}
+
+			$errMsgs = array_unique($errMsgs);
 
 			if(!empty($errMsgs)) {
 				throw new CronjobException(implode("<br>", $errMsgs));
 			}
 		} else {
 			throw new CronjobException(tr('Invalid cron job type: %s', true, $type));
+		}
+
+		if($timedateShortcut != '') {
+			$hour = $dmonth = $month = $dweek = '';
 		}
 	}
 
@@ -115,17 +154,19 @@ final class Cronjob
 	}
 
 	/**
-	 * Validates a date/time field
+	 * Validates a timedate field
 	 *
 	 * @throws CronjobException if the given date/time field  is not valid
-	 * @param string $name  Date/Time field name
-	 * @param string $value Date/Time field value
+	 * @param string $fieldName Date/Time field name
+	 * @param string $fieldValue Date/Time field value
+	 * @param int $minTimeInterval Minimum time interval ( in minutes ) between each cron job execution
 	 * @return void
 	 */
-	protected static function validateField($name, $value)
+	protected static function validateField($fieldName, $fieldValue, $minTimeInterval)
 	{
-		if($value === '') {
-			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, "<strong>$name</strong>"));
+		if($fieldValue === '') {
+			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, $fieldName)
+			);
 		}
 
 		$pattern = '';
@@ -134,26 +175,26 @@ final class Cronjob
 		$days = 'mon|tue|wed|thu|fri|sat|sun';
 		$namesArr = array();
 
-		switch($name) {
-			// check if minute attribute is a valid minute or a list of valid minutes
+		switch($fieldName) {
+			// check if minute field is a valid minute or a list of valid minutes
 			case 'minute':
 				$pattern = '[ ]*(\b[0-5]?[0-9]\b)[ ]*';
 				break;
-			// check if hour attribute is a valid hour or a list of valid hours
+			// check if hour field is a valid hour or a list of valid hours
 			case 'hour':
 				$pattern = '[ ]*(\b[01]?[0-9]\b|\b2[0-3]\b)[ ]*';
 				break;
-			// check if dmonth attribute is a valid day of month or a list of valid days of month
+			// check if dmonth field is a valid day of month or a list of valid days of month
 			case 'dmonth':
 				$pattern = '[ ]*(\b[01]?[1-9]\b|\b2[0-9]\b|\b3[01]\b)[ ]*';
 				break;
-			// check if month attribute is a valid month or a list of valid months
+			// check if month field is a valid month or a list of valid months
 			case 'month':
 				$digits = '[ ]*(\b[0-1]?[0-9]\b)[ ]*';
 				$namesArr = explode('|', $months);
 				$pattern = '(' . $digits . ')|([ ]*(' . $months . ')[ ]*)';
 				break;
-			// check if dweek attribute is a valid day of week or a list of valid days of week
+			// check if dweek field is a valid day of week or a list of valid days of week
 			case 'dweek':
 				$digits = '[ ]*(\b[0]?[0-7]\b)[ ]*';
 				$namesArr = explode('|', $days);
@@ -166,11 +207,11 @@ final class Cronjob
 
 		$longPattern = '/^' . $range . '(,' . $range . ')*$/i';
 
-		if($value != '*' && !preg_match($longPattern, $value)) {
-			throw new CronjobException(tr("Invalid value given for the %s field.", true, "<strong>$name</strong>"));
+		if($fieldValue != '*' && !preg_match($longPattern, $fieldValue)) {
+			throw new CronjobException(tr("Invalid value for the %s field.", true, $fieldName));
 		} else {
 			// Test whether the user provided a meaningful order inside a range
-			$testArr = explode(',', $value);
+			$testArr = explode(',', $fieldValue);
 			foreach($testArr as $testField) {
 				if(
 					$pattern &&
@@ -195,13 +236,126 @@ final class Cronjob
 						$right = $compare['1'];
 					}
 
-					// now check the values
+					// Now check the values
 					if(intval($left) > intval($right)) {
 						throw new CronjobException(
-							tr("Invalid value for the %s field.", true, "<strong>$name</strong>")
+							tr("Invalid value for the %s field.", true, $fieldName)
 						);
 					}
 				}
+			}
+		}
+
+		if($minTimeInterval > 1) {
+			self::validateFrequency($fieldName, $fieldValue, $minTimeInterval);
+		}
+	}
+
+	/**
+	 * Validate cron job frequency
+	 *
+	 * @throws CronjobException|iMSCPException
+	 * @param string $fieldName Date/Time field name
+	 * @param string $fieldValue Date/Time field value
+	 * @param int $minTimeInterval Minimum interval between each cron job execution
+	 */
+	protected static function validateFrequency($fieldName, $fieldValue, $minTimeInterval)
+	{
+		$maxEntries = 0;
+		$minEntries = 0;
+		$inMinutes = 1;
+
+		switch($fieldName) {
+			case 'minute':
+				$maxEntries = 59;
+				break;
+			case 'hour':
+				$maxEntries = 23;
+				$inMinutes = 60;
+				break;
+			case 'dmonth':
+				$maxEntries = 31;
+				$minEntries = 1;
+				$inMinutes = 1440;
+				break;
+			case 'month':
+				$maxEntries = 12;
+				$minEntries = 1;
+				$inMinutes = 1440 * 28; // not exactly but enough
+				break;
+			case 'dweek':
+				$maxEntries = 7;
+				$inMinutes = 1440;
+				break;
+		}
+
+		$usedTimes = array();
+		$timeList = explode(',', $fieldValue);
+
+		foreach($timeList as $entry) {
+			if(preg_match('~^(((\d+)(\-(\d+))?)|\*)(\/([1-9]\d*))?$~', $entry, $matches)) {
+
+				$loopStep = 1;
+				$loopFrom = $minEntries;
+				$loopTo = $maxEntries;
+
+				//* calculate used values
+				if($matches[1] != '*') {
+					$loopFrom = $matches[3];
+					$loopTo = $matches[3];
+
+					if(isset($matches[4])) {
+						$loopTo = $matches[5];
+					}
+				}
+
+				if(isset($matches[7])) {
+					$loopStep = $matches[7];
+				}
+
+				//* Loop through values to set used times
+				for($time = $loopFrom; $time <= $loopTo; $time = ($time + $loopStep)) {
+					$usedTimes[] = $time;
+				}
+			} else {
+				throw new iMSCPException(tr('Unable to parse time entry.', true));
+			}
+		}
+
+		$prevTime = $minFreq = -1;
+		$curtime = 0;
+
+		foreach($usedTimes as $curtime) {
+			if($prevTime != -1) {
+				$freq = $curtime - $prevTime;
+
+				if($minFreq == -1 || $freq < $minFreq) {
+					$minFreq = $freq;
+				}
+			}
+
+			$prevTime = $curtime;
+		}
+
+		// Check last against first ( needed because e.g. dweek 1,4,7 has diff 1 not 3
+		$prevTime = $usedTimes[0];
+		$freq = ($prevTime - $minEntries) + ($maxEntries - $curtime) + 1;
+
+		if($minFreq == -1 || $freq < $minFreq) {
+			$minFreq = $freq;
+		}
+
+		if($minFreq > 0 && $minFreq <= $maxEntries) {
+			$minFreq = $minFreq * $inMinutes;
+
+			if($minFreq < $minTimeInterval) {
+				throw new CronjobException(
+					tr(
+						"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution.",
+						true,
+						$minTimeInterval
+					)
+				);
 			}
 		}
 	}
