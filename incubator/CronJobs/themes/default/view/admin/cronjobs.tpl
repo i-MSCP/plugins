@@ -264,7 +264,7 @@
 		$("body").
 			on("reset", "form", function () {
 				$("input:hidden").val("0");
-				$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").prop("readonly", false);
+				$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek,#cron_job_user").prop("readonly", false);
 			}).
 			on("click", "span[data-action]", function () { $("form")[0].reset(); }).
 			on("click", "span[data-action],button[data-action]", function (e) {
@@ -295,7 +295,7 @@
 							$("#cron_job_dmonth").val(data.cron_job_dmonth);
 							$("#cron_job_month").val(data.cron_job_month);
 							$("#cron_job_dweek").val(data.cron_job_dweek);
-							$("#cron_job_user").val(data.cron_job_user);
+							$("#cron_job_user").val(data.cron_job_user).prop('readonly', true);
 							$("#cron_job_command").val(data.cron_job_command);
 							$("#cron_job_type").val(data.cron_job_type);
 							$("#cron_job_id").val(data.cron_job_id);

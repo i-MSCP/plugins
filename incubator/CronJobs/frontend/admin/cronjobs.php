@@ -102,8 +102,8 @@ function addCronJob()
 								cron_jobs
 							SET
 								cron_job_notification = ?, cron_job_minute = ?, cron_job_hour = ?, cron_job_dmonth = ?,
-								cron_job_month = ?, cron_job_dweek = ?, cron_job_user = ?, cron_job_command = ?,
-								cron_job_type = ?, cron_job_status = ?
+								cron_job_month = ?, cron_job_dweek = ?, cron_job_command = ?, cron_job_type = ?,
+								cron_job_status = ?
 							WHERE
 								cron_job_id = ?
 							AND
@@ -113,7 +113,7 @@ function addCronJob()
 						',
 						array(
 							$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth,
-							$cronjobDweek, $cronjobUser, $cronjobCommand, $cronjobType, 'tochange', $cronjobId, 'ok'
+							$cronjobDweek, $cronjobCommand, $cronjobType, 'tochange', $cronjobId, 'ok'
 						)
 					);
 
