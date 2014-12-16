@@ -268,7 +268,8 @@ function addCronPermissions($cronPermissions)
 						E_USER_ERROR
 					);
 					Functions::sendJsonResponse(
-						500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+						500,
+						array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
 					);
 				}
 			}
@@ -459,7 +460,7 @@ function getCronPermissionsList()
 		}
 
 		/* Filtering */
-		$where = $where = "WHERE created_by = $resellerId";
+		$where = $where = "WHERE created_by = " . quoteValue($resellerId);
 
 		if($_GET['sSearch'] !== '') {
 			$where .= 'AND (';
@@ -510,8 +511,7 @@ function getCronPermissionsList()
 				INNER JOIN
 					admin ON(admin_id = cron_permission_admin_id)
 				WHERE
-					created_by = $resellerId
-			"
+					created_by = " . quoteValue($resellerId)
 		);
 		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
 		$total = $resultTotal[0];
@@ -590,7 +590,7 @@ $cronjobsPlugin = $pluginManager->getPlugin('CronJobs');
 $cronPermissions = $cronjobsPlugin->getCronPermissions(intval($_SESSION['user_id']));
 unset($cronjobsPlugin);
 
-if ($cronPermissions) {
+if (!empty($cronPermissions)) {
 	if(isset($_REQUEST['action'])) {
 		if(is_xhr()) {
 			$action = clean_input($_REQUEST['action']);
@@ -620,18 +620,16 @@ if ($cronPermissions) {
 	}
 
 	$tpl = new TemplateEngine();
-	$tpl->define_dynamic(
-		array(
-			'layout' => 'shared/layouts/ui.tpl',
-			'page_message' => 'layout',
-			'cron_permission_jailed' => 'page',
-			'cron_permission_full' => 'page'
-		)
-	);
+	$tpl->define_dynamic(array(
+		'layout' => 'shared/layouts/ui.tpl',
+		'page_message' => 'layout'
+	));
 
-	$tpl->define_no_file_dynamic(
-		'page', Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/reseller/cronjobs_permissions.tpl')
-	);
+	$tpl->define_no_file_dynamic(array(
+		'page' => Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/reseller/cronjobs_permissions.tpl'),
+		'cron_permission_jailed' => 'page',
+		'cron_permission_full' => 'page'
+	));
 
 	if(Registry::get('config')->DEBUG) {
 		$assetVersion = time();
@@ -640,15 +638,13 @@ if ($cronPermissions) {
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
-	$tpl->assign(
-		array(
-			'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Permissions', true)),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-			'CRON_PERMISSION_FREQUENCY' => Functions::escapeHtml($cronPermissions['cron_permission_frequency'])
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Permissions', true)),
+		'ISP_LOGO' => layout_getUserLogo(),
+		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+		'CRON_PERMISSION_FREQUENCY' => Functions::escapeHtml($cronPermissions['cron_permission_frequency'])
+	));
 
 	if($cronPermissions['cron_permission_type'] == 'url') {
 		$tpl->assign(

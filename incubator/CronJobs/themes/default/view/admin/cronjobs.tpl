@@ -252,7 +252,7 @@
 
 				response(request.term);
 			},
-			change: function(event, ui) {
+			change: function() {
 				if($.inArray($(this).val(), shortcuts) >= 0) {
 					$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").val("").prop("readonly", true);
 				} else {

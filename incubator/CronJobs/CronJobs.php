@@ -355,7 +355,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			$stmt = exec_query(
 				'
 					SELECT
-						cron_permission_type, cron_permission_frequency
+						cron_permission_id, cron_permission_type, cron_permission_frequency
 					FROM
 						cron_permissions
 					WHERE

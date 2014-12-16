@@ -588,17 +588,15 @@ if(isset($_REQUEST['action'])) {
 }
 
 $tpl = new TemplateEngine();
-$tpl->define_dynamic(
-	array(
-		'layout' => 'shared/layouts/ui.tpl',
-		'page_message' => 'layout',
-		'cron_permission_jailed' => 'page'
-	)
-);
+$tpl->define_dynamic(array(
+	'layout' => 'shared/layouts/ui.tpl',
+	'page_message' => 'layout'
+));
 
-$tpl->define_no_file_dynamic(
-	'page', Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs_permissions.tpl')
-);
+$tpl->define_no_file_dynamic(array(
+	'page' => Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs_permissions.tpl'),
+	'cron_permission_jailed' => 'page'
+));
 
 if(Registry::get('config')->DEBUG) {
 	$assetVersion = time();
@@ -607,14 +605,12 @@ if(Registry::get('config')->DEBUG) {
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Permissions', true)),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations()
-	)
-);
+$tpl->assign(array(
+	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Permissions', true)),
+	'ISP_LOGO' => layout_getUserLogo(),
+	'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations()
+));
 
 /** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');

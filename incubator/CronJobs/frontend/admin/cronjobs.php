@@ -74,15 +74,15 @@ function addCronJob()
 					exec_query(
 						'
 							INSERT INTO cron_jobs (
-								cron_job_notification, cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month,
-								cron_job_dweek, cron_job_user, cron_job_command, cron_job_type, cron_job_status
+								cron_job_type, cron_job_notification, cron_job_minute, cron_job_hour, cron_job_dmonth,
+								cron_job_month, cron_job_dweek, cron_job_user, cron_job_command, cron_job_status
 							) VALUES(
 								?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 							)
-					',
+						',
 						array(
-							$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth,
-							$cronjobDweek, $cronjobUser, $cronjobCommand, $cronjobType, 'toadd'
+							$cronjobType, $cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth,
+							$cronjobMonth, $cronjobDweek, $cronjobUser, $cronjobCommand, 'toadd'
 						)
 					);
 
@@ -101,8 +101,8 @@ function addCronJob()
 							UPDATE
 								cron_jobs
 							SET
-								cron_job_notification = ?, cron_job_minute = ?, cron_job_hour = ?, cron_job_dmonth = ?,
-								cron_job_month = ?, cron_job_dweek = ?, cron_job_command = ?, cron_job_type = ?,
+								cron_job_type = ?, cron_job_notification = ?, cron_job_minute = ?, cron_job_hour = ?,
+								cron_job_dmonth = ?, cron_job_month = ?, cron_job_dweek = ?, cron_job_command = ?,
 								cron_job_status = ?
 							WHERE
 								cron_job_id = ?
@@ -112,8 +112,8 @@ function addCronJob()
 								cron_job_status = ?
 						',
 						array(
-							$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth,
-							$cronjobDweek, $cronjobCommand, $cronjobType, 'tochange', $cronjobId, 'ok'
+							$cronjobType, $cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth,
+							$cronjobMonth, $cronjobDweek, $cronjobCommand, 'tochange', $cronjobId, 'ok'
 						)
 					);
 
@@ -141,7 +141,7 @@ function addCronJob()
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('Unable to add/update cron job: %s', true, $e->getMessage()))
+					500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
 				);
 			}
 		}
@@ -335,8 +335,6 @@ function getCronJobsList()
 			}
 		}
 
-
-
 		/* Get data to display */
 		$rResult = execute_query(
 			'
@@ -377,7 +375,7 @@ function getCronJobsList()
 			for($i = 0; $i < $nbColumns; $i++) {
 				if($columnNames[$i] == 'cron_job_type') {
 					$row[$columnNames[$i]] = ($data[$columnNames[$i]] == 'url')
-						? tr('URL', true) : tr('Shell', true);
+						? tr('Url', true) : tr('Shell', true);
 				} elseif($columnNames[$i] == 'cron_job_status') {
 					$row[$columnNames[$i]] = translate_dmn_status($data[$columnNames[$i]], false);
 				} else {
@@ -449,12 +447,10 @@ if(isset($_REQUEST['action'])) {
 }
 
 $tpl = new TemplateEngine();
-$tpl->define_dynamic(
-	array(
-		'layout' => 'shared/layouts/ui.tpl',
-		'page_message' => 'layout',
-	)
-);
+$tpl->define_dynamic(array(
+	'layout' => 'shared/layouts/ui.tpl',
+	'page_message' => 'layout',
+));
 
 $tpl->define_no_file_dynamic(
 	'page', Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs.tpl')
@@ -467,16 +463,14 @@ if(Registry::get('config')->DEBUG) {
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / System tools / Cronjobs', true)),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-		'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
-		'CRON_PERMISSION_FREQUENCY' => tr(array('%d minute', '%d minutes', 1), true, 1)
-	)
-);
+$tpl->assign(array(
+	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / System tools / Cron Jobs', true)),
+	'ISP_LOGO' => layout_getUserLogo(),
+	'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+	'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
+	'CRON_PERMISSION_FREQUENCY' => tr(array('%d minute', '%d minutes', 1), true, 1)
+));
 
 generateNavigation($tpl);
 generatePageMessage($tpl);

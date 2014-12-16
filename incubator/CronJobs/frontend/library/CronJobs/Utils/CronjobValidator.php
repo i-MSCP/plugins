@@ -360,19 +360,21 @@ final class CronjobValidator
 	 * Validates a cron job command
 	 *
 	 * @throws CronjobException if the user or command is no valid
-	 * @param string $user User under which the cron command must be executed
+	 * @param string|null $user User under which the cron command must be executed ( NULL to skip user check )
 	 * @param string $command Cron command
 	 * @param string $type Cron job type
 	 * @çeturn void
 	 */
 	protected static function validateCommand($user, $command, $type)
 	{
-		if($user !== '') {
-			if(!posix_getgrnam($user)) {
-				throw new CronjobException(tr('User must be a valid unix user.', true));
+		if(null !== $user) {
+			if($user !== '') {
+				if(!posix_getgrnam($user)) {
+					throw new CronjobException(tr('User must be a valid unix user.', true));
+				}
+			} else {
+				throw new CronjobException(tr('User field cannot be empty.', true));
 			}
-		} else {
-			throw new CronjobException(tr('User field cannot be empty.', true));
 		}
 
 		if($command !== '') {
