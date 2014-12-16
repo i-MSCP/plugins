@@ -71,35 +71,35 @@
 					<td><label for="cron_job_minute"><?= self::escapeHtml(tr('Minute', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_minute" id="cron_job_minute">
-						<div><small><?= self::escapeHtml(tr('Minute ( 0-59 or a shortcut such as @daily ) at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Minute at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_hour"><?= self::escapeHtml(tr('Hour', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_hour" id="cron_job_hour">
-						<div><small><?= self::escapeHtml(tr('Hour ( 0-23 ) at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Hour at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_dmonth"><?= self::escapeHtml(tr('Day of month', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_dmonth" id="cron_job_dmonth">
-						<div><small><?= self::escapeHtml(tr('Day of the month ( 1-31 ) in which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Day of the month at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_month"><?= self::escapeHtml(tr('Month', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_month" id="cron_job_month">
-						<div><small><?= self::escapeHtml(tr('Month ( 1-12, or jan-dec ) in which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Month at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_dweek"><?= self::escapeHtml(tr('Day of week', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_dweek" id="cron_job_dweek">
-						<div><small><?= self::escapeHtml(tr('Weekday ( 0-6 with Sunday = 0, or mon-sun ) in which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Day of the week at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
