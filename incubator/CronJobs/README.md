@@ -93,6 +93,13 @@ a cron job in this file.
 A crontab file is under the control of this plugin as soon as you add a cron task for the user to which it belong to,
 through the cron jobs interface provided by this plugin.
 
+## Plugin translation
+
+You can translate this plugin by copying the l10n/en_GB.php language file and by translating all the array values inside
+the new file
+
+Feel free to post your language files in our forum for intergration in a later release.
+
 ## Plugin usage
 
 A small contribution for use of this plugin is requested by doing a donation on my paypal account ( paypal@nuxwin.com ).
