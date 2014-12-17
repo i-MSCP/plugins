@@ -100,6 +100,8 @@ array values inside the new file.
 
 Feel free to post your language files in our forum for intergration in a later release.
 
+**Note:** File encoding must be UTF-8
+
 ## Plugin usage
 
 A small contribution for use of this plugin is requested by doing a donation on my paypal account ( paypal@nuxwin.com ).
