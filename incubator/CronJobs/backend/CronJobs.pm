@@ -239,7 +239,7 @@ sub run
 	$sth = $dbh->prepare(
 		"
 			SELECT
-				cron_job_user, cron_job_status, IFNULL(cron_permission_type, 'unknown') AS cron_permission_type
+				cron_job_user, cron_job_status, IFNULL(cron_permission_type, 'none') AS cron_permission_type
 			FROM
 				cron_jobs
 			LEFT JOIN
@@ -409,11 +409,7 @@ sub _writeCrontab
 				$cronjobNotificationPrev = '';
 			}
 
-			if(
-				$row->{'cron_job_minute'} ~~ [
-					'@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly'
-				]
-			) {
+			if(index($row->{'cron_job_minute'}, '@') == 0) { # time/date shortcut
 				$cronjob .= $row->{'cron_job_minute'} . ' ';
 			} else {
 				$cronjob .=
@@ -437,7 +433,7 @@ sub _writeCrontab
 	if(@cronjobs) {
 		if(
 			$self->{'config'}->{'jailed_cronjobs_support'} &&
-			($cronPermissionType eq 'jailed' || $cronPermissionType ne 'unknown')
+			($cronPermissionType eq 'jailed' || $cronPermissionType ne 'none')
 		) {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
@@ -476,7 +472,7 @@ sub _writeCrontab
 			return 1;
 		}
 	} else {
-		if($self->{'config'}->{'jailed_cronjobs_support'} && $cronPermissionType ne 'unknown') {
+		if($self->{'config'}->{'jailed_cronjobs_support'} && $cronPermissionType ne 'none') {
 			my $jailBuilder;
 			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ); };
 			if($@) {

@@ -94,7 +94,7 @@ return array(
 	'Cron jobs frequency' => 'Fréquence des tâches cron',
 	'Add / Edit cron permissions' => 'Ajout / Édition des permissions cron',
 	'Enter a reseller name' => "Entrez le nom d'un revendeur",
-	'Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.' => 'Type de tâches cron autorisé. Notez que les tâches cron de type Url sont toujour disponibles, quelque soit le type sélectionné.',
+	'Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.' => 'Type de tâches cron autorisées. Notez que les tâches cron de type Url sont toujours disponibles, quelque soit le type sélectionné.',
 	'Jailed' => 'Emprisonnée',
 	'Full' => 'Complet',
 	'Minimum time interval between each cron job execution.' => "Intervale de temps minimum entre l'éxécution de chaque tâche cron.",
