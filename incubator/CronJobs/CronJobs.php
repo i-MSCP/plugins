@@ -59,12 +59,22 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAfterUninstallPlugin,
+
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
+
 				iMSCP_Events::onAfterChangeDomainStatus,
 			),
 			$this
+		);
+
+		$eventManager->registerListener(
+			array(
+				iMSCP_Events::onAfterDeleteUser,
+				iMSCP_Events::onAfterDeleteCustomer
+			),
+			array($this, 'deleteCronPermissions')
 		);
 	}
 
@@ -195,6 +205,30 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		} else {
 			exec_query(
 				'UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?', array('todisable', $customerId)
+			);
+		}
+	}
+
+	/**
+	 * Delete cron permissions ( including cron jobs ) of any user which is being deleted ( reseller, customer )
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function deleteCronPermissions($event)
+	{
+		if(($userId = $event->getParam('userId', false))) {
+			exec_query('DELETE FROM cron_permissions WHERE cron_permission_admin_id = ?', $userId);
+		} else {
+			$userId = $event->getParam('customerId', false);
+
+			exec_query(
+				'UPDATE cron_permissions SET cron_permission_status = ? WHERE cron_permission_admin_id = ?',
+				array('todelete', $userId)
+			);
+
+			exec_query(
+				"UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?",  array('todelete', $userId)
 			);
 		}
 	}
