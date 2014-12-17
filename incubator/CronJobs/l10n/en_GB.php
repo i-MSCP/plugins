@@ -85,7 +85,7 @@ return array(
 	'Revoke permissions' => 'Revoke permissions',
 	'%d minute' => array(
 		'%d minute',
-		'%d minutes', // Plural form
+		'%d minutes' // Plural form
 	),
 	'Admin / Settings / Cron Permissions' => 'Admin / Settings / Cron Permissions',
 	'List of resellers which are allowed to give cron permissions to their customers.' => 'List of resellers which are allowed to give cron permissions to their customers.',
