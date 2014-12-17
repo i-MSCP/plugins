@@ -45,7 +45,7 @@
 		<tbody>
 		<tr>
 			<td colspan="7" style="background-color: #b0def5">
-				<div class="buttons">
+				<div class="buttons" style="float: right">
 					<button data-action="add_cronjob_dialog">
 						<strong><?= self::escapeHtml(tr('Add cron job', true));?></strong>
 					</button>

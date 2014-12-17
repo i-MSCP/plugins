@@ -86,7 +86,7 @@ function addCronJob($cronPermissions)
 							INSERT INTO cron_jobs (
 								cron_job_permission_id, cron_job_admin_id, cron_job_type, cron_job_notification,
 								cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
-								cron_job_user, cron_job_command cron_job_status
+								cron_job_user, cron_job_command, cron_job_status
 							) SELECT
 								?, ?, ?, ?, ?, ?, ?, ?, ?, admin_sys_name, ?, ?
 							FROM
@@ -97,7 +97,7 @@ function addCronJob($cronPermissions)
 						array(
 							$cronPermissions['cron_permission_id'], $customerId, $cronjobType, $cronjobNotification,
 							$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobCommand,
-							'toadd'
+							'toadd', $customerId
 						)
 					);
 
@@ -156,7 +156,7 @@ function addCronJob($cronPermissions)
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller. %s', true, $e->getMessage()))
 				);
 			}
 		}
@@ -173,6 +173,7 @@ function addCronJob($cronPermissions)
 function getCronJob()
 {
 	if(isset($_GET['cron_job_id'])) {
+		$customerId = intval($_SESSION['user_id']);
 		$cronJobId = intval($_GET['cron_job_id']);
 
 		try {
@@ -186,11 +187,11 @@ function getCronJob()
 					WHERE
 						cron_job_id = ?
 					AND
-						cron_job_admin_id IS NULL
+						cron_job_admin_id =?
 					AND
 						cron_job_status = ?
 				',
-				array($cronJobId, 'ok')
+				array($cronJobId, $customerId, 'ok')
 			);
 
 			if($stmt->rowCount()) {

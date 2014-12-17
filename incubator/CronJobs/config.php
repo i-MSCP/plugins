@@ -30,7 +30,8 @@ return array(
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has
 	// enough space to host the jails.
 	//
-	// Warning: If you are changing this path, don't forget to move the jail in the new location.
+	// Warning: If you are changing this path, don't forget to move the jail in the new location, and also to
+	// edit the path from the /config/etc/rsyslog.d/imscp_cronjobs_plugin.conf file.
 	'root_jail_dir' => '/var/chroot/CronJobs',
 
 	// Makejail configuration directory ( default: <CONF_DIR>/CronJobs )
@@ -65,7 +66,6 @@ return array(
 
 	// bashshell
 	// Provide restricted GNU bash shell
-	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
 	'bashshell' => array(
 		'paths' => array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
@@ -77,11 +77,11 @@ return array(
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
 			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
+			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
 		),
-#		'copy_file_to' => array(
-#			PLUGINS_PATH . '/config/etc/profile' => '/etc/profile'
-#		),
+		'copy_file_to' => array(
+			PLUGINS_PATH . '/InstantSSHconfig/etc/profile' => '/etc/profile'
+		),
 		'include_app_sections' => array(
 			'uidbasics'
 		),
@@ -108,7 +108,7 @@ return array(
 			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump'
 		),
 		'jail_copy_file_to' => array(
-			PLUGINS_PATH . 'InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
+			PLUGINS_PATH . '/InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
 
@@ -141,6 +141,9 @@ return array(
 		),
 		'preserve_files' => array(
 			'/dev/log'
+		),
+		'sys_run_commands' => array(
+			'service rsyslog restart'
 		)
 	),
 
@@ -158,9 +161,6 @@ return array(
 		),
 		'groups' => array(
 			'root'
-		),
-		'sys_run_commands' => array(
-			'service rsyslog restart'
 		)
 	)
 );
