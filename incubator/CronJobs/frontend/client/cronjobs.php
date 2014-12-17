@@ -219,6 +219,7 @@ function getCronJob()
 function deleteCronJob()
 {
 	if(isset($_POST['cron_job_id'])) {
+		$customerId = intval($_SESSION['user_id']);
 		$cronJobId = intval($_POST['cron_job_id']);
 
 		try {
@@ -231,11 +232,11 @@ function deleteCronJob()
 					WHERE
 						cron_job_id = ?
 					AND
-						cron_job_admin_id IS NULL
+						cron_job_admin_id = ?
 					AND
 						cron_job_status = ?
 				',
-				array('todelete', $cronJobId, 'ok')
+				array('todelete', $cronJobId, $customerId, 'ok')
 			);
 
 			if($stmt->rowCount()) {
