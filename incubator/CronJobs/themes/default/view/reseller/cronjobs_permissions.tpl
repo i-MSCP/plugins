@@ -147,7 +147,7 @@
 				{ mData: "cron_permission_status" },
 				{ mData: "cron_permission_actions" }
 			],
-			"serverData": function (source, data, callback) {
+			serverData: function (source, data, callback) {
 				$.ajax({
 					dataType: "json",
 					type: "GET",
@@ -234,7 +234,7 @@
 			ajaxStop(function () { $dataTable.fnProcessingIndicator(false); }).
 			ajaxError(function (e, jqXHR, settings, exception) {
 				if(jqXHR.status == 403) {
-					window.location.href = "/index.php";
+					window.location.replace("/index.php");
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
