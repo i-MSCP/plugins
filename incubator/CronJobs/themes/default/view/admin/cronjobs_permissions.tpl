@@ -1,6 +1,5 @@
 
-<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
-
+<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
 		<?= self::escapeHtml(tr('List of resellers which are allowed to give cron permissions to their customers.', true));?>

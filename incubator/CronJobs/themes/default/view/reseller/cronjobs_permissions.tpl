@@ -1,5 +1,5 @@
-<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet"
-	  type="text/css" xmlns="http://www.w3.org/1999/html"/>
+
+<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
 		<?= self::escapeHtml(tr('List of customers which are allowed to add cron jobs.', true));?>
@@ -11,7 +11,7 @@
 			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
 			<th><?= self::escapeHtml(tr('Cron jobs type', true));?></th>
 			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
-			<th><?= self::escapeHtml(tr('Cron jobs Frequency', true));?></th>
+			<th><?= self::escapeHtml(tr('Cron jobs frequency', true));?></th>
 			<th><?= self::escapeHtml(tr('Status', true));?></th>
 			<th><?= self::escapeHtml(tr('Actions', true));?></th>
 		</tr>

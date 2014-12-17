@@ -1,8 +1,8 @@
 
-<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('This is the interface from which you can add your own cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.', true));?>
+		<?= self::escapeHtml(tr('Interface from which you can add your cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.', true));?>
 	</p>
 	<br />
 	<div class="static_info">
@@ -20,7 +20,7 @@
 			<th style="width:5%"><?= self::escapeHtml(tr('Id', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Type', true));?></th>
 			<th style="width:15%"><?= self::escapeHtml(tr('Time/Date', true));?></th>
-			<th style="width:15%"><?= self::escapeHtml(tr('Unix user', true));?></th>
+			<th style="width:15%"><?= self::escapeHtml(tr('User', true));?></th>
 			<th style="width:35%"><?= self::escapeHtml(tr('Command', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Status', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Actions', true));?></th>
@@ -31,7 +31,7 @@
 			<td><?= self::escapeHtml(tr('Id', true));?></td>
 			<td><?= self::escapeHtml(tr('Type', true));?></td>
 			<td><?= self::escapeHtml(tr('Time/Date', true));?></td>
-			<td><?= self::escapeHtml(tr('Unix user', true));?></td>
+			<td><?= self::escapeHtml(tr('User', true));?></td>
 			<td><?= self::escapeHtml(tr('Command', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>
@@ -103,7 +103,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_user"><?= self::escapeHtml(tr('Unix user', true));?></label></td>
+					<td><label for="cron_job_user"><?= self::escapeHtml(tr('User', true));?></label></td>
 					<td>
 						<input type="text" name="cron_job_user" id="cron_job_user" value="root">
 						<div><small><?= self::escapeHtml(tr('User under which the cron job must be executed.', true));?></small></div>

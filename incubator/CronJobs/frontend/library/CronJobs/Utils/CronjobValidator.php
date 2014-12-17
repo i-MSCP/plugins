@@ -368,7 +368,7 @@ final class CronjobValidator
 		if(null !== $user) {
 			if($user !== '') {
 				if(!posix_getgrnam($user)) {
-					throw new CronjobException(tr('User must be a valid unix user.', true));
+					throw new CronjobException(tr('User must be a valid UNIX user.', true));
 				}
 			} else {
 				throw new CronjobException(tr('User field cannot be empty.', true));

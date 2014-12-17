@@ -1,5 +1,5 @@
 
-<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+<link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
 		<?= self::escapeHtml(tr('This is the interface from which you can add your cron jobs.', true));?>
@@ -20,7 +20,7 @@
 			<th style="width:5%"><?= self::escapeHtml(tr('Id', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Type', true));?></th>
 			<th style="width:15%"><?= self::escapeHtml(tr('Time/Date', true));?></th>
-			<th style="width:15%"><?= self::escapeHtml(tr('Unix user', true));?></th>
+			<th style="width:15%"><?= self::escapeHtml(tr('User', true));?></th>
 			<th style="width:35%"><?= self::escapeHtml(tr('Command', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Status', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Actions', true));?></th>
@@ -31,7 +31,7 @@
 			<td><?= self::escapeHtml(tr('Id', true));?></td>
 			<td><?= self::escapeHtml(tr('Type', true));?></td>
 			<td><?= self::escapeHtml(tr('Time/Date', true));?></td>
-			<td><?= self::escapeHtml(tr('Unix user', true));?></td>
+			<td><?= self::escapeHtml(tr('User', true));?></td>
 			<td><?= self::escapeHtml(tr('Command', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>
 			<td><?= self::escapeHtml(tr('Actions', true));?></td>

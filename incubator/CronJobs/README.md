@@ -11,10 +11,10 @@ according their own permissions. For instance, a reseller will be able to give t
 only if he has also this permission.
 
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
-interface in the sense that administrators can set the unix user to use for the cron job execution while the customers
+interface in the sense that administrators can set the UNIX user to use for the cron job execution while the customers
 cannot.
 
-Each cron job is added in the crontab file ( see crontab(5) ) which belongs to the unix user under which the cron
+Each cron job is added in the crontab file ( see crontab(5) ) which belongs to the UNIX user under which the cron
 command must be run.
 
 ## Requirements

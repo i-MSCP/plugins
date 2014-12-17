@@ -371,7 +371,7 @@ sub _init
 
  Write crontab for the given user
 
- Param int $cronJobUser Unix user
+ Param int $cronJobUser UNIX user
  Param string $cronPermissionType Cron permission type
  Return int 0 on success, other on failure
 
