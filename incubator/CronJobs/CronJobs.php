@@ -228,7 +228,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			);
 
 			exec_query(
-				"UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?",  array('todelete', $userId)
+				"UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?", array('todelete', $userId)
 			);
 		}
 	}
@@ -499,7 +499,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Clear translations
+	 * Clear translations if any
 	 *
 	 * @return void
 	 */

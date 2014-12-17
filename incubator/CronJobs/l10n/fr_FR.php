@@ -110,11 +110,10 @@ return array(
 	'Unknown customer. Please enter a valid customer name.' => 'Client inconnu. Veuillez entrer un nom de client valide.',
 	'Please enter a customer name.' => "Veuillez entrer le nom d'un client.",
 	'Are you sure you want to revoke the cron permissions for this customer?' => 'Êtes-vous certain de vouloir révoquer les permissions cron pour ce client?',
-
 	'Invalid cron job type: %s' => 'Type de tâche cron invalide: %s.',
 	'Invalid notification email.' => 'Email invalide.',
-	'Value for the %s field cannot be empty.' => 'La valeur pour le champ %s ne peut être vide.',
-	'Invalid value for the %s field.' => 'Valeur invalide pour le champ %s.',
+	"Value for the '%s' field cannot be empty." => "La valeur pour le champ '%s' ne peut être vide.",
+	"Invalid value for the '%s' field." => "Valeur invalide pour le champ '%s'.",
 	'Unable to parse time entry.' => "Erreur d'analyse.",
 	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "vous excédez la limite autorisée de %s minutes qui est l'intervale de temp minimum entre l'éxécution de chaque tâche cron.",
 	'User must be a valid UNIX user.' => "L'utilisateur doit être un utilisateur UNIX valide.",

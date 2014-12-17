@@ -60,6 +60,19 @@ final class CronjobValidator
 	);
 
 	/**
+	 * @var array fields translation map
+	 */
+	static $fieldsTranslationMap = array(
+		'minute' => 'Minute',
+		'hour' => 'Hour',
+		'dmonth' => 'Day of month',
+		'month' => 'Month',
+		'dweek' => 'Day of week',
+		'user' => 'User',
+		'command' => 'Command'
+	);
+
+	/**
 	 *  Disallow instantiation
 	 */
 	private function __construct()
@@ -163,7 +176,9 @@ final class CronjobValidator
 	protected static function validateField($fieldName, $fieldValue, $minTimeInterval)
 	{
 		if($fieldValue === '') {
-			throw new CronjobException(tr("Value for the %s field cannot be empty.", true, $fieldName));
+			throw new CronjobException(
+				tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+			);
 		}
 
 		$pattern = '';
@@ -205,7 +220,9 @@ final class CronjobValidator
 		$longPattern = '/^' . $range . '(,' . $range . ')*$/i';
 
 		if($fieldValue != '*' && !preg_match($longPattern, $fieldValue)) {
-			throw new CronjobException(tr("Invalid value for the %s field.", true, $fieldName));
+			throw new CronjobException(
+				tr("Invalid value for the '%s' field.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+			);
 		} else {
 			// Test whether the user provided a meaningful order inside a range
 			$testArr = explode(',', $fieldValue);
@@ -235,7 +252,9 @@ final class CronjobValidator
 
 					// Now check the values
 					if(intval($left) > intval($right)) {
-						throw new CronjobException(tr("Invalid value for the %s field.", true, $fieldName));
+						throw new CronjobException(
+							tr("Invalid value for the '%s' field.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+						);
 					}
 				}
 			}
@@ -371,7 +390,9 @@ final class CronjobValidator
 					throw new CronjobException(tr('User must be a valid UNIX user.', true));
 				}
 			} else {
-				throw new CronjobException(tr('User field cannot be empty.', true));
+				throw new CronjobException(
+					tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap['user'], true))
+				);
 			}
 		}
 
@@ -392,7 +413,9 @@ final class CronjobValidator
 				}
 			}
 		} else {
-			throw new CronjobException(tr('Value for the %s field cannot be empty..', true, 'command'));
+			throw new CronjobException(
+				tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap['command'], true))
+			);
 		}
 	}
 }

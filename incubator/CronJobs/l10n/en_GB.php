@@ -110,11 +110,10 @@ return array(
 	'Unknown customer. Please enter a valid customer name.' => 'Unknown customer. Please enter a valid customer name.',
 	'Please enter a customer name.' => 'Please enter a customer name.',
 	'Are you sure you want to revoke the cron permissions for this customer?' => 'Are you sure you want to revoke the cron permissions for this customer?',
-
 	'Invalid cron job type: %s' => 'Invalid cron job type: %s.',
 	'Invalid notification email.' => 'Invalid notification email.',
-	'Value for the %s field cannot be empty.' => 'Value for the %s field cannot be empty.',
-	'Invalid value for the %s field.' => 'Invalid value for the %s field.',
+	"Value for the '%s' field cannot be empty." => "Value for the '%s' field cannot be empty.",
+	"Invalid value for the '%s' field." => "Invalid value for the '%s' field.",
 	'Unable to parse time entry.' => 'Unable to parse time entry.',
 	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution.",
 	'User must be a valid UNIX user.' => 'User must be a valid UNIX user.',
