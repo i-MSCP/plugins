@@ -17,7 +17,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * @translator Laurent Declercq (nuxwin) <l.declercq@nuxwin.com>
  * @translator Djawi de Boer (Novy) <djawi@djawi.nl>
  * @translator & review Thom Heemstra (theemstra) <thom@heemstra.us>
  */
@@ -119,7 +118,7 @@ return array(
 	"Value for the '%s' field cannot be empty." => "Waarde voor het veld '%s' mag niet leeg zijn.",
 	"Invalid value for the '%s' field." => "Ongeldige waarde voor het veld '%s'.",
 	'Unable to parse time entry.' => 'Kan tijdinvoer niet verwerken.',
-	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "U overschrijdt de toegestane %s minuten, wat de minimale tijdsinterval tussen elke uitvoering van een cron-job is."
+	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "U overschrijdt de toegestane %s minuten, wat de minimale tijdsinterval tussen elke uitvoering van een cron-job is.",
 	'User must be a valid UNIX user.' => 'Gebruiker dient een geldige UNIX-gebruiker te zijn.',
 	'Url must not contain any username/password for security reasons.' => 'URL mag wegens veiligheidsoverwegingen geen gebruikersnamen en/of wachtwoorden bevatten.',
 	'Command must be a valid HTTP URL.' => 'Commando dient een geldige HTTP-URL te zijn.',
