@@ -129,7 +129,7 @@ final class CronjobValidator
 				throw new CronjobException(implode("<br>", $errMsgs));
 			}
 		} else {
-			throw new CronjobException(tr('Invalid cron job type: %s', true, $type));
+			throw new CronjobException(tr('Invalid cron job type: %s.', true, $type));
 		}
 
 		if($timedateShortcut != '') {
@@ -147,7 +147,7 @@ final class CronjobValidator
 	protected static function validateNotificationEmail($email)
 	{
 		if($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-			throw new CronjobException(tr('Invalid notification email'));
+			throw new CronjobException(tr('Invalid notification email.'));
 		}
 	}
 
@@ -235,9 +235,7 @@ final class CronjobValidator
 
 					// Now check the values
 					if(intval($left) > intval($right)) {
-						throw new CronjobException(
-							tr("Invalid value for the %s field.", true, $fieldName)
-						);
+						throw new CronjobException(tr("Invalid value for the %s field.", true, $fieldName));
 					}
 				}
 			}
@@ -314,7 +312,7 @@ final class CronjobValidator
 					$usedTimes[] = $time;
 				}
 			} else {
-				throw new iMSCPException(tr('Unable to parse time entry.', true));
+				throw new iMSCPException(tr('Parsing error.', true));
 			}
 		}
 
@@ -394,7 +392,7 @@ final class CronjobValidator
 				}
 			}
 		} else {
-			throw new CronjobException(tr("Command cannot be empty.", true));
+			throw new CronjobException(tr('Value for the %s field cannot be empty..', true, 'command'));
 		}
 	}
 }

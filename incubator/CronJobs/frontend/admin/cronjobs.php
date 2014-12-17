@@ -468,8 +468,7 @@ $tpl->assign(array(
 	'ISP_LOGO' => layout_getUserLogo(),
 	'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-	'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
-	'CRON_PERMISSION_FREQUENCY' => tr(array('%d minute', '%d minutes', 1), true, 1)
+	'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : ''
 ));
 
 generateNavigation($tpl);

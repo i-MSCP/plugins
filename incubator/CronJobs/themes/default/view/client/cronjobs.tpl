@@ -2,7 +2,7 @@
 <link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('This is the interface from which you can add your own cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.', true));?>
+		<?= self::escapeHtml(tr('This is the interface from which you can add your cron jobs.', true));?>
 	</p>
 	<br />
 	<div class="static_info">
@@ -47,7 +47,7 @@
 			<td colspan="7" style="background-color: #b0def5">
 				<div class="buttons">
 					<button data-action="add_cronjob_dialog">
-						<strong><?= self::escapeHtml(tr('Add new cron job', true));?></strong>
+						<strong><?= self::escapeHtml(tr('Add cron job', true));?></strong>
 					</button>
 				</div>
 			</td>
@@ -112,12 +112,12 @@
 					<td>
 						<label for="cron_job_type">
 							<?= self::escapeHtml(tr('Command type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('URL commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Url commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
 						<select name="cron_job_type" id="cron_job_type">
-							<option value="url"><?= self::escapeHtml(tr('URL', true));?></option>
+							<option value="url"><?= self::escapeHtml(tr('Url', true));?></option>
 							<!-- BDP: cron_job_shell_type_block -->
 							<option value="{CRON_JOB_TYPE}"><?= self::escapeHtml(tr('Shell', true));?></option>
 							<!-- EDP: cron_job_shell_type_block -->
@@ -158,7 +158,7 @@
 
 		function doRequest(rType, action, data) {
 			return $.ajax({
-				dataType: "json",  type: rType,  url: "/admin/cronjobs?action=" + action,  data: data,  timeout: 5000
+				dataType: "json",  type: rType,  url: "/client/cronjobs?action=" + action,  data: data,  timeout: 5000
 			});
 		}
 
@@ -176,7 +176,7 @@
 			processing: true,
 			serverSide: true,
 			pagingType: "simple",
-			ajaxSource: "/admin/cronjobs?action=get_cronjobs_list",
+			ajaxSource: "/client/cronjobs?action=get_cronjobs_list",
 			stateSave: true,
 			columnDefs: [ { sortable: false, searchable: false, targets: [ 5, 6 ] } ],
 			columns: [
@@ -312,7 +312,7 @@
 						}
 						break;
 					default:
-						flashMessage('error', "<?= self::escapeJs(tr('Unknown action', true));?>");
+						flashMessage('error', "<?= self::escapeJs(tr('Unknown action.', true));?>");
 				}
 			});
 

@@ -47,7 +47,7 @@
 			<td colspan="7" style="background-color: #b0def5">
 				<div class="buttons">
 					<button data-action="add_cronjob_dialog">
-						<strong><?= self::escapeHtml(tr('Add new cron job', true));?></strong>
+						<strong><?= self::escapeHtml(tr('Add cron job', true));?></strong>
 					</button>
 				</div>
 			</td>
@@ -119,12 +119,12 @@
 					<td>
 						<label for="cron_job_type">
 							<?= self::escapeHtml(tr('Command type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('URL commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Url commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
 						<select name="cron_job_type" id="cron_job_type">
-							<option value="url"><?= self::escapeHtml(tr('URL', true));?></option>
+							<option value="url"><?= self::escapeHtml(tr('Url', true));?></option>
 							<option value="full"><?= self::escapeHtml(tr('Shell', true));?></option>
 						</select>
 					</td>
@@ -146,7 +146,6 @@
 				</li>
 				<li><?= self::escapeHtml(tr('When using a shortcut in the minute time field, all other time/date fields are ignored.', true));?></li>
 				<li><?= self::escapeHtml(tr('The available shortcuts are: @reboot, @yearly, @annually, @monthly, @weekly, @daily, @midnight and @hourly', true));?></li>
-				<li><?= self::escapeHtml(tr('Minimum time interval between each cron job execution: %s', true, '{CRON_PERMISSION_FREQUENCY}'));?></li>
 			</ul>
 		</div>
 	</div>
@@ -318,7 +317,7 @@
 					}
 					break;
 				default:
-					flashMessage('error', "<?= self::escapeJs(tr('Unknown action', true));?>");
+					flashMessage('error', "<?= self::escapeJs(tr('Unknown action.', true));?>");
 			}
 		});
 

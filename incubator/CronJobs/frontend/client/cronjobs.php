@@ -505,7 +505,11 @@ if (!empty($cronPermissions)) {
 		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
-		'CRON_PERMISSION_FREQUENCY' => tr(array('%d minute', '%d minutes', 1), true, 1)
+		'CRON_PERMISSION_FREQUENCY' => tr(
+			array('%d minute', '%d minutes', $cronPermissions['cron_permission_frequency']),
+			true,
+			$cronPermissions['cron_permission_frequency']
+		)
 	));
 
 	if ($cronPermissions['cron_permission_type'] == 'url') {

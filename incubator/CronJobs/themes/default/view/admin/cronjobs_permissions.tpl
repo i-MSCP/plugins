@@ -48,7 +48,7 @@
 					<td>
 						<label for="cron_permission_type">
 							<?= self::escapeHtml(tr('Cron jobs type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs. Note that the URL cron jobs are always available, whatever the selected type.', true));?>">&nbsp;</span>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.', true));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -212,7 +212,7 @@
 						}
 						break;
 					default:
-						flashMessage("error", "<?= self::escapeJs(tr('Unknown action', true));?>");
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
 				}
 			});
 

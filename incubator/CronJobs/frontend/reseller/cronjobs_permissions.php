@@ -190,7 +190,7 @@ function addCronPermissions($cronPermissions)
 								UPDATE
 									cron_permissions
 								INNER JOIN
-									admin ON(admin_id = cron_job_admin_id)
+									admin ON(admin_id = cron_permission_admin_id)
 								SET
 									cron_permission_type = ?, cron_permission_frequency = ?, cron_permission_status = ?
 								WHERE
@@ -215,7 +215,7 @@ function addCronPermissions($cronPermissions)
 										cron_job_type = IF(cron_job_type != 'url', :cron_job_type, cron_job_type),
 										cron_job_status = :new_cron_job_status
 									WHERE
-										cron_job_admin_id = :cron_job_admin_id,
+										cron_job_admin_id = :cron_job_admin_id
 									AND
 										cron_job_status <> :cron_job_status
 									AND
@@ -334,9 +334,12 @@ function deleteCronPermissions()
 				send_request();
 
 				write_log(
-					sprintf('CronJobs: Cron permissions with ID %s were scheduled for revocation', $cronPermissionId), E_USER_NOTICE
+					sprintf('CronJobs: Cron permissions with ID %s were scheduled for revocation', $cronPermissionId),
+					E_USER_NOTICE
 				);
-				Functions::sendJsonResponse(200, array('message' => tr('Cron permissions were scheduled for revocation.', true)));
+				Functions::sendJsonResponse(
+					200, array('message' => tr('Cron permissions were scheduled for revocation.', true))
+				);
 			}
 		} catch(DatabaseException $e) {
 			$db->rollBack();
@@ -534,9 +537,11 @@ function getCronPermissionsList()
 				if($columns[$i] == 'admin_name') {
 					$row[$columns[$i]] = decode_idna($data[$columns[$i]]);
 				} elseif($columns[$i] == 'cron_permission_type') {
-					$row[$columns[$i]] = ucfirst($data[$columns[$i]]);
+					$row[$columns[$i]] = tr(ucfirst($data[$columns[$i]]), true);
 				} elseif($columns[$i] == 'cron_permission_frequency') {
-					$row[$columns[$i]] = tr(array('minute', 'minutes', $data[$columns[$i]]), true, $data[$columns[$i]]);
+					$row[$columns[$i]] = tr(
+						array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]
+					);
 				} elseif($columns[$i] == 'cron_permission_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]], false);
 				} else {

@@ -512,9 +512,11 @@ function getCronPermissionsList()
 
 			for($i = 0; $i < $nbColumns; $i++) {
 				if($columns[$i] == 'cron_permission_type') {
-					$row[$columns[$i]] = ucfirst($data[$columns[$i]]);
+					$row[$columns[$i]] = tr(ucfirst($data[$columns[$i]]), true);
 				} elseif($columns[$i] == 'cron_permission_frequency') {
-					$row[$columns[$i]] = tr(array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]);
+					$row[$columns[$i]] = tr(
+						array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]
+					);
 				} elseif($columns[$i] == 'cron_permission_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]], false);
 				} else {
