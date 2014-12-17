@@ -96,7 +96,7 @@ through the cron jobs interface provided by this plugin.
 ## Plugin translation
 
 You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file and by translating all the
-array values inside the new file
+array values inside the new file.
 
 Feel free to post your language files in our forum for intergration in a later release.
 
