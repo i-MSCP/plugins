@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @translator Djawi de Boer (Novy) <djawi@djawi.nl>
- * @translator & review Thom Heemstra (theemstra) <thom@heemstra.us>
+ * @translator Thom Heemstra (theemstra) <thom@heemstra.us>
  */
 
 return array(
