@@ -192,13 +192,17 @@ function addCronPermissions($cronPermissions)
 								INNER JOIN
 									admin ON(admin_id = cron_permission_admin_id)
 								SET
-									cron_permission_type = ?, cron_permission_frequency = ?, cron_permission_status = ?
+									cron_permission_type = ?, cron_permission_max = ?, cron_permission_frequency = ?,
+									cron_permission_status = ?
 								WHERE
 									cron_permission_id = ?
 								AND
 									created_by = ?
 							',
-							array($cronPermissionType, $cronPermissionFrequency, 'ok', $cronPermissionId, $resellerId)
+							array(
+								$cronPermissionType, $cronPermissionMax, $cronPermissionFrequency, 'ok',
+								$cronPermissionId, $resellerId
+							)
 						);
 
 						if($stmt->rowCount()) {
