@@ -311,26 +311,17 @@ function deleteCronPermissions()
 					WHERE
 						cron_permission_id = ?
 					AND
+						cron_permission_admin_id = ?
+					AND
 						created_by = ?
 				',
-				array('todelete', $cronPermissionAdminId, $resellerId)
+				array('todelete', $cronPermissionId, $cronPermissionAdminId, $resellerId)
 			);
 
 			if($stmt->rowCount()) {
 				exec_query(
-					'
-						UPDATE
-							cron_jobs
-						INNER JOIN
-							admin ON(admin_id = cron_job_admin_id)
-						SET
-							cron_job_status = ?
-						WHERE
-							cron_job_admin_id = ?
-						AND
-							created_by = ?
-					',
-					array('todelete', $cronPermissionAdminId, $resellerId)
+					'UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?',
+					array('todelete', $cronPermissionAdminId)
 				);
 
 				$db->commit();
