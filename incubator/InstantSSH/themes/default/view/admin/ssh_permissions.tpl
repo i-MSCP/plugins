@@ -1,7 +1,7 @@
 
-<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet" type="text/css"/>
+<link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
-	<p class="hint" style="font-variant: small-caps;font-size: small;">
+	<p class="hint">
 		<?= self::escapeHtml(tr('This is the list of resellers which are allowed to give SSH permissions to their customers.', true));?>
 	</p>
 	<br/>
@@ -60,7 +60,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options" value="1"/>
+						<input type="checkbox" name="ssh_permission_auth_options" id="ssh_permission_auth_options" value="1">
 					</td>
 				</tr>
 				<tr>
@@ -71,15 +71,15 @@
 						</label>
 					</td>
 					<td>
-						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" checked="checked"/>
+						<input type="checkbox" name="ssh_permission_jailed_shell" id="ssh_permission_jailed_shell" value="1" checked="checked">
 					</td>
 				</tr>
 				<tr>
 					<td colspan="2" style="text-align: right;">
 						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
-						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0"/>
-						<input type="hidden" id="ssh_permission_admin_id" name="ssh_permission_admin_id" value="0"/>
-						<input type="reset" value="<?= self::escapeHtml(tr('Cancel', true));?>"/>
+						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0">
+						<input type="hidden" id="ssh_permission_admin_id" name="ssh_permission_admin_id" value="0">
+						<input type="reset" value="<?= self::escapeHtml(tr('Cancel', true));?>">
 					</td>
 				</tr>
 				</tbody>
@@ -88,23 +88,24 @@
 	</div>
 </div>
 <script>
-	var oTable;
+	$(function() {
+		var $dataTable;
 
-	function flashMessage(type, message) {
-		$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
-	}
+		function flashMessage(type, message) {
+			$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).
+				prependTo(".body").trigger('message_timeout');
+		}
 
-	function doRequest(rType, action, data) {
-		return $.ajax({
-			dataType: "json",
-			type: rType,
-			url: "/admin/ssh_permissions?action=" + action,
-			data: data,
-			timeout: 3000
-		});
-	}
+		function doRequest(rType, action, data) {
+			return $.ajax({
+				dataType: "json",
+				type: rType,
+				url: "/admin/ssh_permissions?action=" + action,
+				data: data,
+				timeout: 3000
+			});
+		}
 
-	$(document).ready(function () {
 		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (oSettings, onoff) {
 			if (typeof(onoff) == "undefined") {
 				onoff = true;
@@ -113,39 +114,39 @@
 			this.oApi._fnProcessingDisplay(oSettings, onoff);
 		};
 
-		oTable = $(".datatable").dataTable({
-			oLanguage: {DATATABLE_TRANSLATIONS},
-			iDisplayLength: 5,
-			bProcessing: true,
-			bServerSide: true,
+		$dataTable = $(".datatable").dataTable({
+			language: {DATATABLE_TRANSLATIONS},
+			displayLength: 5,
+			processing: true,
+			serverSide: true,
 			pagingType: "simple",
-			sAjaxSource: "/admin/ssh_permissions?action=get_ssh_permissions_list",
-			bStateSave: true,
-			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
-			aoColumns: [
-				{ mData: "admin_name" },
-				{ mData: "ssh_permission_auth_options" },
-				{ mData: "ssh_permission_jailed_shell" },
-				{ mData: "ssh_permission_status" },
-				{ mData: "ssh_permission_actions" }
+			ajaxSource: "/admin/ssh_permissions?action=get_ssh_permissions_list",
+			stateSave: true,
+			columnDefs: [ { sortable: false, searchable: false, targets: [ 4 ] } ],
+			columns: [
+				{ data: "admin_name" },
+				{ data: "ssh_permission_auth_options" },
+				{ data: "ssh_permission_jailed_shell" },
+				{ data: "ssh_permission_status" },
+				{ data: "ssh_permission_actions" }
 			],
-			fnServerData: function (sSource, aoData, fnCallback) {
+			serverData: function (sSource, aoData, fnCallback) {
 				$.ajax({
 					dataType: "json",
 					type: "GET",
 					url: sSource,
 					data: aoData,
 					success: fnCallback,
-					timeout: 3000,
-					error: function () {
-						oTable.fnProcessingIndicator(false);
-					}
+					timeout: 3000
 				}).done(function () {
 					if(jQuery.fn.imscpTooltip) {
-						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+						$dataTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
 					} else {
-						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
+						$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 					}
+				}).fail(function(jqXHR) {
+					$dataTable.fnProcessingIndicator(false);
+					flashMessage('error', $.parseJSON(jqXHR.responseText).message);
 				});
 			}
 		});
@@ -178,7 +179,7 @@
 								function (data, textStatus, jqXHR) {
 									$("input:reset").click();
 									flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-									oTable.fnDraw();
+									$dataTable.fnDraw();
 								}
 							);
 						} else if(!$(".flash_message").length) {
@@ -213,7 +214,7 @@
 									admin_name: $(this).data("admin-name")
 								}
 							).done(function (data) {
-								oTable.fnDraw();
+								$dataTable.fnDraw();
 								flashMessage("success", data.message);
 							});
 						}
@@ -237,14 +238,14 @@
 			});
 
 		$(document).
-			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
-			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxStart(function () { $dataTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { $dataTable.fnProcessingIndicator(false); }).
 			ajaxError(function (e, jqXHR, settings, exception) {
 				if(jqXHR.status == 403) {
 					window.location.replace("/index.php");
 				} else if(jqXHR.status == 409) {
 					flashMessage("warning", jqXHR.responseJSON.message);
-				} else if (jqXHR.responseJSON != "") {
+				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
 					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");

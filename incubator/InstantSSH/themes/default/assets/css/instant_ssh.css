@@ -16,3 +16,8 @@
 .icon_delete {
     background-image: url("/InstantSSH/themes/default/assets/images/delete.png");
 }
+
+.hint {
+    font-variant: small-caps;
+    font-size: small;
+}

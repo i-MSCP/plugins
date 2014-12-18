@@ -1,4 +1,4 @@
-## i-MSCP InstantSSH plugin v3.1.0
+## i-MSCP InstantSSH plugin v3.1.1
 
 Plugin allowing to provide full or restricted shell access to your customers.
 
@@ -43,7 +43,7 @@ See the plugin **config.php** file for further details.
 
 ### Requirements
 
-* i-MSCP >= 1.1.19 (plugin API >= 0.2.14)
+* i-MSCP >= 1.1.19 ( plugin API >= 0.2.14 )
 * openSSH server with both, passsword and key-based authentication support enabled
 
 **Note:** If you want allow only the key-based authentication, you can set the **passwordless_authentication**

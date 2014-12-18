@@ -182,7 +182,7 @@ return array(
 			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
 		),
 		'fstab' => array(
-			 array(
+			array(
 				'file_system' => '/proc',
 				'mount_point' => '/proc',
 				'type' => 'proc',
@@ -223,7 +223,7 @@ return array(
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
 			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink'
+			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
 		),
 		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',

@@ -1,7 +1,7 @@
 
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
-	<p class="hint" style="font-variant: small-caps;font-size: small;margin-bottom: 10px;">
+	<p class="hint">
 		<?= self::escapeHtml(tr('This is the list of SSH users associated with your account.', true));?>
 	</p>
 	<table class="datatable">
@@ -99,7 +99,7 @@
 								<div id="actions">
 									<button id="action" data-action="add_ssh_user"><?= self::escapeHtml(tr('Save'));?></button>
 									<input type="hidden" name="ssh_user_id" id="ssh_user_id" value="0">
-									<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true)) ;?>" />
+									<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true)) ;?>">
 								</div>
 							</tr>
 					</table>
@@ -110,23 +110,24 @@
 	</form>
 </div>
 <script>
-	var oTable;
+	$(function() {
+		var $dataTable;
 
-	function doRequest(rType, action, data) {
-		return $.ajax({
-			dataType: "json",
-			type: rType,
-			url: "/client/ssh_users?action=" + action,
-			data: data,
-			timeout: 3000
-		});
-	}
+		function flashMessage(type, message) {
+			$("<div>", { "class": type, "html": $.parseHTML(message), "hide": true }).
+				prependTo(".body").trigger('message_timeout');
+		}
 
-	function flashMessage(type, message) {
-		$("<div>", { "class": type, "html": $.parseHTML(message), "hide": true }).prependTo(".body").trigger('message_timeout');
-	}
+		function doRequest(rType, action, data) {
+			return $.ajax({
+				dataType: "json",
+				type: rType,
+				url: "/client/ssh_users?action=" + action,
+				data: data,
+				timeout: 3000
+			});
+		}
 
-	$(document).ready(function () {
 		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (oSettings, onoff) {
 			if (typeof(onoff) == "undefined") {
 				onoff = true;
@@ -135,41 +136,40 @@
 			this.oApi._fnProcessingDisplay(oSettings, onoff);
 		};
 
-		oTable = $(".datatable").dataTable({
-			oLanguage: {DATATABLE_TRANSLATIONS},
-			iDisplayLength: 5,
-			bProcessing: true,
-			bServerSide: true,
-			sAjaxSource: "/client/ssh_users?action=get_ssh_users",
-			bStateSave: true,
+		$dataTable = $(".datatable").dataTable({
+			language: {DATATABLE_TRANSLATIONS},
+			displayLength: 5,
+			processing: true,
+			serverSide: true,
+			ajaxSource: "/client/ssh_users?action=get_ssh_users",
+			stateSave: true,
 			pagingType: "simple",
-			aoColumnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 3 ] }
+			columnDefs: [
+				{ sortable: false, searchable: false, targets: [ 3 ] }
 			],
 			aoColumns: [
-				{ mData: "ssh_user_name" },
-				{ mData: "ssh_user_key_fingerprint" },
-				{ mData: "ssh_user_status" },
-				{ mData: "ssh_user_actions" }
+				{ data: "ssh_user_name" },
+				{ data: "ssh_user_key_fingerprint" },
+				{ data: "ssh_user_status" },
+				{ data: "ssh_user_actions" }
 			],
-			fnServerData: function (sSource, aoData, fnCallback) {
+			serverData: function (sSource, aoData, fnCallback) {
 				$.ajax({
 					dataType: "json",
 					type: "GET",
 					url: sSource,
 					data: aoData,
 					success: fnCallback,
-					timeout: 3000,
-					error: function (xhr, textStatus, error) {
-						alert(xhr.status);
-						oTable.fnProcessingIndicator(false);
-					}
+					timeout: 3000
 				}).done(function () {
 					if(jQuery.fn.imscpTooltip) {
-						oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+						$dataTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
 					} else {
-						oTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
+						$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 					}
+				}).fail(function(jqXHR) {
+					$dataTable.fnProcessingIndicator(false);
+					flashMessage('error', $.parseJSON(jqXHR.responseText).message);
 				});
 			}
 		});
@@ -194,7 +194,7 @@
 							function (data, textStatus, jqXHR) {
 								$("input:reset").trigger("click");
 								flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-								oTable.fnDraw();
+								$dataTable.fnDraw();
 							}
 						);
 						break;
@@ -214,7 +214,7 @@
 						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?', true));?>")) {
 							doRequest("POST", action, { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
 								function (data) {
-									oTable.fnDraw();
+									$dataTable.fnDraw();
 									flashMessage('success', data.message);
 								}
 							);
@@ -226,12 +226,12 @@
 			});
 
 		$(document).
-			ajaxStart(function () { oTable.fnProcessingIndicator(); }).
-			ajaxStop(function () { oTable.fnProcessingIndicator(false); }).
+			ajaxStart(function () { $dataTable.fnProcessingIndicator(); }).
+			ajaxStop(function () { $dataTable.fnProcessingIndicator(false); }).
 			ajaxError(function (e, jqXHR, settings, exception) {
 				if (jqXHR.status == 403) {
-					window.location.href = '/index.php';
-				} else if (jqXHR.responseJSON != "") {
+					window.location.replace("/index.php");
+				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
 					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
