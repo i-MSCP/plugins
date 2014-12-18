@@ -27,7 +27,7 @@ return array(
 	'Cron job has been scheduled for update.' => 'Cron-Job wurde zum aktualisieren angesetzt.',
 	'An unexpected error occurred: %s' => 'Es ist ein unerwarteter Fehler aufgetreten: %s',
 	'Bad request.' => 'Bad request.',
-	'Cron job has been scheduled for deletion.' => 'Cron job has been scheduled for deletion.',
+	'Cron job has been scheduled for deletion.' => 'Cron-Job wurde zum löschen angesetzt.',
 	'Edit cron job' => 'Cron-Job bearbeiten',
 	'Delete cron job' => 'Cron-Job löschen',
 	'Url' => 'Url',
