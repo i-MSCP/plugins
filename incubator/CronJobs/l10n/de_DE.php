@@ -17,7 +17,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * @translator Laurent Declercq (nuxwin) <l.declercq@nuxwin.com>
+ * @translator Ninos Ego (Ninos) <me@ninosego.de>
  */
 
 return array(
