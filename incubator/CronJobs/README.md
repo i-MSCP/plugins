@@ -23,7 +23,7 @@ command must be run.
 
 ### Requirements for jailed cron jobs support
 
-* InstantSSH plugin >= 3.1.0 ( only if you want enable support for jailed cron jobs )
+* InstantSSH plugin >= 3.1.0
 
 #### Debian / Ubuntu packages
 
