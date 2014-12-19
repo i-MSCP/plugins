@@ -82,9 +82,9 @@ return array(
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
 			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
 		),
-		'copy_file_to' => array(
-			PLUGINS_PATH . '/InstantSSHconfig/etc/profile' => '/etc/profile'
-		),
+		//'copy_file_to' => array(
+		//	PLUGINS_PATH . '/InstantSSHconfig/etc/profile' => '/etc/profile'
+		//),
 		'include_app_sections' => array(
 			'uidbasics'
 		),
@@ -110,7 +110,7 @@ return array(
 		'paths' => array(
 			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
 			'/etc/protocols', '/etc/services'
-		),
+		)
 	),
 
 	# mysqltools section
@@ -125,7 +125,7 @@ return array(
 	),
 
 	# php section
-	# Provide PHP (CLI) and common modules ( if installed on the system )
+	# Provide PHP (CLI) and PHP common modules ( if installed on the system )
 	'php' => array(
 		'paths' => array(
 			'/usr/bin/php',
@@ -144,6 +144,7 @@ return array(
 	),
 
 	# cron section
+	# Allows to run cron jobs inside jails
 	'cron' => array(
 		'paths' => array(
 			'/usr/sbin/cron', '/dev',
@@ -156,17 +157,17 @@ return array(
 			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
 		),
 		'sys_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/msmtprc' => '/config/etc/msmtprc',
+			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc',
 		),
 		'preserve_files' => array(
 			'/dev/log'
 		),
 		'sys_run_commands' => array(
-			// Restart rsyslog daemon to create socket ( /dev/log ) inside jailed environment
+			// Restart rsyslog daemon to create socket ( /dev/log ) inside jail
 			'service rsyslog restart'
 		),
 		'jail_run_command' => array(
-			// Use the msmtp SMTP client as sendmail interface inside the jailed environement
+			// Use the msmtp SMTP client as sendmail interface inside the jail
 			'ln -s /usr/bin/msmtp' => '/usr/sbin/sendmail'
 		)
 	),
