@@ -54,6 +54,9 @@ return array(
 		iMSCP_Registry::get('config')->get('USER_WEB_DIR')
 	),
 
+	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
+	'include_pkg_deps' => false,
+
 	// Selected application sections for jailed cron environment ( default: cronjobs_base )
 	//
 	// This is the list of application sections which are used to create/update the jailed environement.
@@ -101,6 +104,15 @@ return array(
 		)
 	),
 
+	// netbasics section
+	// Provide common files for jails that need any internet connectivity
+	'netbasics' => array(
+		'paths' => array(
+			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
+			'/etc/protocols', '/etc/services'
+		),
+	),
+
 	# mysqltools section
 	# Provide the MySQL command-line tool and the mysqldump program
 	'mysqltools' => array(
@@ -134,16 +146,28 @@ return array(
 	# cron section
 	'cron' => array(
 		'paths' => array(
-			'/usr/sbin/cron', '/dev'
+			'/usr/sbin/cron', '/dev',
+			'/etc/aliases', '/usr/bin/msmtp'
+		),
+		//'packages' => array(
+		//	'msmtp'
+		//),
+		'jail_copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
 		),
 		'sys_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
+			dirname(__FILE__) . '/config/etc/msmtprc' => '/config/etc/msmtprc',
 		),
 		'preserve_files' => array(
 			'/dev/log'
 		),
 		'sys_run_commands' => array(
+			// Restart rsyslog daemon to create socket ( /dev/log ) inside jailed environment
 			'service rsyslog restart'
+		),
+		'jail_run_command' => array(
+			// Use the msmtp SMTP client as sendmail interface inside the jailed environement
+			'ln -s /usr/bin/msmtp' => '/usr/sbin/sendmail'
 		)
 	),
 
@@ -154,7 +178,7 @@ return array(
 			'/usr/bin/wget',
 		),
 		'include_app_sections' => array(
-			'bashshell', 'cron', 'mysqltools', 'php',
+			'bashshell', 'netbasics', 'cron', 'mysqltools', 'php',
 		),
 		'users' => array(
 			'root'
