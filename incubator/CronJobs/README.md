@@ -14,8 +14,8 @@ Administrators can also add their own cron jobs using their own interface which 
 interface in the sense that administrators can set the UNIX user to use for the cron job execution while the customers
 cannot.
 
-Each cron job is added in the crontab file ( see crontab(5) ) which belongs to the UNIX user under which the cron
-command must be run.
+Each cron job is added in the crontab file ( see crontab(5) ) that belongs to the UNIX user under which the cron command
+must be run.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ command must be run.
 
 * msmtp
 
-You can install this package by executing the following commands:
+You can install this package by executing the following command:
 
 	# aptitude install msmtp
 
