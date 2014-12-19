@@ -20,14 +20,22 @@ command must be run.
 ## Requirements
 
 * i-MSCP >= 1.1.21 ( plugin API >= 0.2.15 )
+
+### Requirements for jailed cron jobs support
+
 * InstantSSH plugin >= 3.1.0 ( only if you want enable support for jailed cron jobs )
 
-### Jailed cron jobs support
+#### Debian / Ubuntu packages
 
-Activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its presence is
-required. If this plugin is already activated and if you want enable support for jailed cron jobs later on, just upload
-the InstantSSH plugin, and once done, deactivate and reactivate this plugin. You must note that once the support for
-jailed cron jobs has been detected, the InstantSSH plugin will be locked and thus, it deletion will is prohibited.
+* msmtp
+
+You can install this package by executing the following commands:
+
+	# aptitude install msmtp
+
+**Notes**
+  - If the msmtp package is not installed on your system, the plugin installer will throw an error
+  - The msmtp package is required to allow cron to send notifications from the jailed environment.
 
 ## Installation
 
@@ -43,6 +51,19 @@ jailed cron jobs has been detected, the InstantSSH plugin will be locked and thu
 4. Upload the plugin archive
 5. Restore your **plugins/CronJobs/config.php** configuration file ( compare it with the new version first )
 6. Activate the plugin
+
+## Activation of jailed cron jobs support
+
+If this plugin is already activated and if you want enable support for jailed cron jobs later on, you must follow these
+instructions:
+ 
+1. Be sure that all required packages as mentioned in the requirements section are installed on your system
+2. Upload the InstantSSH plugin
+3. Deactivate this plugin
+4. Re-activate this plugin
+
+**Note:** The activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its
+presence is required.
 
 ### Cron job types
 
