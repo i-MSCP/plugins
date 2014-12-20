@@ -36,7 +36,7 @@ You can install this package by executing the following command:
 	# aptitude install libpam-chroot msmtp
 
 **Notes**
-  - If support for jailed cronjob is detected and the packages are not installed on your system, an error will be throw
+  - If support for jailed cronjob is detected and a package is not installed on your system, an error will be throw
   - The msmtp package is required to allow cron to send email notifications from the jailed environment.
 
 ## Installation
@@ -113,19 +113,19 @@ a cron job in this file.
 A crontab file is under the control of this plugin as soon as you add a cron task for the user to which it belong to,
 through the cron jobs interface provided by this plugin.
 
-## Plugin interfaces access
+## Interfaces access
 
-### Cron permissions interface
+### Cron permissions interfaces
 
 * Administrators can access their cron permissions interface through the **Settings** menu
 * Resellers can access their cron permissions interface through the **Customers** menu
 
-### Cron jobs interface
+### Cron jobs interfaces
 
 * Administrators can access their cron jobs interface through the **System tools** menu
 * Customers can access their cron permissions interface through the **Webtools** menu
 
-## Plugin translation
+## Translation
 
 You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
 array values inside the new file.
@@ -134,7 +134,7 @@ Feel free to post your language files in our forum for intergration in a later r
 
 **Note:** File encoding must be UTF-8
 
-## Plugin usage
+## Usage
 
 A small contribution for use of this plugin is requested by doing a donation on my paypal account ( paypal@nuxwin.com ).
 If you do not want to contribute, you should not use that plugin.
