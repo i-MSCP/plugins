@@ -154,8 +154,7 @@ return array(
 			'/dev/urandom'
 		),
 		'sys_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
-			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
+			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf'
 		),
 		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
