@@ -78,6 +78,10 @@ return array(
 	'Client / Web Tools / Cron Jobs' => 'Klant / Webtools / Cron-jobs',
 	'This is the interface from which you can add your cron jobs.' => 'Dit is de interface waar u cron-jobs kunt toevoegen.',
 	"Wrong value for the 'Cron jobs frequency' field. Please, enter a number." => "Verkeerde waarde bij het veld 'Frequentie cron-jobs'. Gelieve een nummer in te voeren.",
+	'The cron jobs frequency is lower than your own limit which is currently set to %s minute.' => array(
+		"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
+		"The cron jobs frequency is lower than your own limit which is currently set to %s minutes." // Plural form
+	),
 	'Cron permissions were added.' => 'Cron-rechten zijn toegevoegd.',
 	'Cron permissions were updated.' => 'Cron-rechten zijn bijgewerkt.',
 	'Nothing has been changed.' => 'Er is niets veranderd.',

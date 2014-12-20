@@ -77,6 +77,10 @@ return array(
 	'Client / Web Tools / Cron Jobs' => 'Kunde / Webwerkzeuge / Cron-Jobs',
 	'This is the interface from which you can add your cron jobs.' => 'Das ist das Interface, von welchem aus Sie Ihre Cron-Jobs hinzufügen können.',
 	"Wrong value for the 'Cron jobs frequency' field. Please, enter a number." => "Falscher Wert für das Feld 'Cron-Jobs-Frequenz'. Tragen Sie bitte eine Nummer ein.",
+	'The cron jobs frequency is lower than your own limit which is currently set to %s minute.' => array(
+		"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
+		"The cron jobs frequency is lower than your own limit which is currently set to %s minutes." // Plural form
+	),
 	'Cron permissions were added.' => 'Cron-Berechtigungen wurden hinzugefügt.',
 	'Cron permissions were updated.' => 'Cron-Berechtigungen wurden aktualisiert.',
 	'Nothing has been changed.' => 'Es wurde nichts geändert.',

@@ -119,8 +119,8 @@ function addCronPermissions($cronPermissions)
 			} elseif($cronPermissionFrequency < $cronPermissions['cron_permission_frequency']) {
 				$errMsgs[] = tr(
 					array(
-						"The cron job frequency is lower than your own limit which is currently set to %s minute.",
-						"The cron job frequency is lower than your own limit which is currently set to %s minutes.",
+						"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
+						"The cron jobs frequency is lower than your own limit which is currently set to %s minutes.",
 						$cronPermissions['cron_permission_frequency']
 					),
 					true,
@@ -452,7 +452,7 @@ function getCronPermissionsList()
 
 			$order = substr_replace($order, '', -2);
 
-			if($order == 'ORDER BY') {
+			if($order == 'ORDER BY ') {
 				$order = '';
 			}
 		}

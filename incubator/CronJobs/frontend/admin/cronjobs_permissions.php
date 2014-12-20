@@ -433,7 +433,7 @@ function getCronPermissionsList()
 
 			$order = substr_replace($order, '', -2);
 
-			if($order == 'ORDER BY') {
+			if($order == 'ORDER BY ') {
 				$order = '';
 			}
 		}
