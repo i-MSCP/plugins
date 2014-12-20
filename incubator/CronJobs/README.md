@@ -123,7 +123,7 @@ through the cron jobs interface provided by this plugin.
 ### Cron jobs interfaces
 
 * Administrators can access their cron jobs interface through the **System tools** menu
-* Customers can access their cron permissions interface through the **Webtools** menu
+* Customers can access their cron jobs interface through the **Webtools** menu
 
 ## Translation
 
