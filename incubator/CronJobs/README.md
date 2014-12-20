@@ -1,7 +1,5 @@
 # i-MSCP cronjobs plugin v1.0.0
 
-WARNING: This plugin is still under development, not ready for use
-
 ## Introduction
 
 This plugin provide a cron time-based job scheduler for i-MSCP. 
