@@ -11,11 +11,10 @@ according their own permissions. For instance, a reseller will be able to give t
 only if he has also this permission.
 
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
-interface in the sense that administrators can set the UNIX user to use for the cron job execution while the customers
-cannot.
+interface in the sense that they can set the UNIX user to use for the cron job execution while the customers cannot.
 
 Each cron job is added in the crontab file ( see crontab(5) ) that belongs to the UNIX user under which the cron command
-must be run.
+must be run. For customers, this is the Web user as created by i-MSCP.
 
 ## Requirements
 
@@ -23,7 +22,9 @@ must be run.
 
 ### Requirements for jailed cron jobs support
 
-* InstantSSH plugin >= 3.1.0
+* [InstantSSH](../InstantSSH/README.md) plugin >= 3.1.0
+
+**Note:** It is not necessary to activate the InstantSSH plugin. Only his presence is required.
 
 #### Debian / Ubuntu packages
 
@@ -34,8 +35,8 @@ You can install this package by executing the following command:
 	# aptitude install msmtp
 
 **Notes**
-  - If the msmtp package is not installed on your system, the plugin installer will throw an error
-  - The msmtp package is required to allow cron to send notifications from the jailed environment.
+  - If support for jailed cronjob is detected and the msmtp package is not installed on your system, an error will throw
+  - The msmtp package is required to allow cron to send email notifications from the jailed environment.
 
 ## Installation
 
@@ -61,9 +62,6 @@ instructions:
 2. Upload the InstantSSH plugin
 3. Deactivate this plugin
 4. Re-activate this plugin
-
-**Note:** The activation of the InstantSSH plugin is not mandatory to enable support for jailed cron jobs. Only its
-presence is required.
 
 ### Cron job types
 
