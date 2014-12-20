@@ -147,16 +147,13 @@ return array(
 	# Allows to run cron jobs inside jails
 	'cron' => array(
 		'paths' => array(
-			'/usr/sbin/cron', '/dev',
-			'/etc/aliases', '/usr/bin/msmtp'
-		),
-		//'packages' => array(
-		//	'msmtp'
-		//),
-		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
+			'/usr/sbin/cron', '/dev', '/etc/aliases', '/usr/bin/msmtp'
 		),
 		'sys_copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
+			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc',
+		),
+		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc',
 		),
 		'preserve_files' => array(
@@ -166,9 +163,11 @@ return array(
 			// Restart rsyslog daemon to create socket ( /dev/log ) inside jail
 			'service rsyslog restart'
 		),
-		'jail_run_command' => array(
+		'jail_run_commands' => array(
+			# Setup maildomain inside msmtp configuration file
+			'sed -i -e "s/{HOSTNAME}/$(hostname -f)/g" /etc/msmtprc',
 			// Use the msmtp SMTP client as sendmail interface inside the jail
-			'ln -s /usr/bin/msmtp' => '/usr/sbin/sendmail'
+			'ln -s /usr/bin/msmtp /usr/sbin/sendmail'
 		)
 	),
 
