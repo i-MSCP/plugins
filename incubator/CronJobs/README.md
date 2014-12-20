@@ -24,7 +24,7 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 
 * [InstantSSH](../InstantSSH/README.md) plugin >= 3.1.0
 
-**Note:** It is not necessary to activate the InstantSSH plugin. Only his presence is required.
+**Note:** It is not necessary to activate the InstantSSH plugin. Only its presence is necessary.
 
 #### Debian / Ubuntu packages
 
