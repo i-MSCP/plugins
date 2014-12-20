@@ -28,11 +28,12 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 
 #### Debian / Ubuntu packages
 
+* libpam-chroot
 * msmtp
 
 You can install this package by executing the following command:
 
-	# aptitude install msmtp
+	# aptitude install libpam-chroot msmtp
 
 **Notes**
   - If support for jailed cronjob is detected and the msmtp package is not installed on your system, an error will throw

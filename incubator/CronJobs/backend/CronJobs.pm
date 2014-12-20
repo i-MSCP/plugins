@@ -96,7 +96,7 @@ sub uninstall
 		}
 
 		if(-f '/etc/rsyslog.d/imscp_cronjobs_plugin.conf') {
-			$rs = iMSCP::File->new( filename => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf' )->delFile();
+			my $rs = iMSCP::File->new( filename => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf' )->delFile();
 			return $rs if $rs;
 		}
 
@@ -515,17 +515,21 @@ sub _writeCrontab
 
 sub _checkRequirements
 {
-	my ($stdout, $stderr);
-	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' msmtp | cut -d ' ' -f 3", \$stdout, \$stderr
-	);
-	debug($stdout) if $stdout;
-	if($stdout ne 'installed') {
-		error("The $_ msmtp is not installed on your system");
-		return 1;
+	my $ret = 0;
+
+	for my $package (qw/libpam-chroot msmtp/) {
+		my ($stdout, $stderr);
+		my $rs = execute(
+			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
+		);
+		debug($stdout) if $stdout;
+		if($stdout ne 'installed') {
+			error("The $package package is not installed on your system");
+			$ret ||= 1;
+		}
 	}
 
-	0;
+	$ret;
 }
 
 =item _configurePamChroot($uninstall = false)
@@ -550,15 +554,8 @@ sub _configurePamChroot
 			return 1;
 		}
 
-		unless($uninstall) {
-			# Remove any pam_chroot.so lines
-			$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
-
-			my $jailDir = $self->{'config'}->{'root_jail_dir'};
-			$fileContent .= "session required pam_chroot.so debug\n";
-		} else {
-			$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
-		}
+		$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
+		$fileContent .= "session required pam_chroot.so\n" unless $uninstall;
 
 		my $rs = $file->set($fileContent);
 		return $rs if $rs;

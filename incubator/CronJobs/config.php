@@ -27,45 +27,49 @@ return array(
 
 	// Root jail directory ( default: /var/chroot/CronJobs )
 	//
-	// Full path to the root jail directory. Be sure that the partition in which this directory is living has
-	// enough space to host the jails.
+	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
+	// space to host the jail.
 	//
-	// Warning: If you are changing this path, don't forget to move the jail in the new location, and also to
-	// edit the path from the /config/etc/rsyslog.d/imscp_cronjobs_plugin.conf file.
+	// Warning: If you are changing this path, don't forget to move the jail in the new location, and also to edit the
+	// path from the config/etc/rsyslog.d/imscp_cronjobs_plugin.conf template file.
 	'root_jail_dir' => '/var/chroot/CronJobs',
 
 	// Makejail configuration directory ( default: <CONF_DIR>/CronJobs )
-	// Don't change this parameter unless you know what you are doing
+	// Don't change this parameter unless you know what you are doing.
 	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
 
 	// Makejail script path
-	// Don't change this parameter if you don't know what you are doing
+	// Don't change this parameter unless you know what you are doing.
 	'makejail_path' => PLUGINS_PATH . '/InstantSSH/bin/makejail',
 
 	// Preserved files ( default: <USER_WEB_DIR> )
 	//
-	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
-	// in this list.
+	// The plugin won't try to remove files or directories inside jail if their path begins with one of the strings in
+	// this list.
 	//
 	// This option can be also defined in the application sections (see below).
 	//
-	// WARNING: Do not remove the default entry if you don't know what you are doing.
+	// WARNING: Do not remove the default entry unless you know what you are doing.
 	'preserve_files' => array(
 		iMSCP_Registry::get('config')->get('USER_WEB_DIR')
 	),
 
-	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
-	'include_pkg_deps' => true,
+	// Whether or not files from packages required by packages listed in the packages option must be copied inside the
+	// jail
+	'include_pkg_deps' => false,
 
-	// Selected application sections for jailed cron environment ( default: cronjobs_base )
+	// Selected application sections for jailed environment ( default: cronjobs_base )
 	//
-	// This is the list of application sections which are used to create/update the jailed environement.
+	// This is the list of application sections which are used to create/update the jailed environment.
 	//
 	// By default only the cronjobs_base application section is added, which allows to build very restricted jailed
 	// environment.
 	'app_sections' => array(
-		'cronjobs_base',
+		'cronjobs_base'
 	),
+
+	// Predefined application sections for jailed shell environments
+	// See the InstantSSH configuration file for more details about available options
 
 	// bashshell
 	// Provide restricted GNU bash shell
@@ -82,9 +86,6 @@ return array(
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
 			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
 		),
-		//'copy_file_to' => array(
-		//	PLUGINS_PATH . '/InstantSSHconfig/etc/profile' => '/etc/profile'
-		//),
 		'include_app_sections' => array(
 			'uidbasics'
 		),
@@ -144,33 +145,30 @@ return array(
 	),
 
 	# cron section
-	# Allows to run cron jobs inside jails
+	# Allows to run cron jobs inside the jailed environement
 	'cron' => array(
 		'paths' => array(
-			'/usr/sbin/cron', '/dev', '/etc/aliases', '/usr/bin/msmtp'
+			'/dev', '/etc/aliases', '/usr/bin/msmtp', '/usr/sbin/cron'
 		),
 		'devices' => array(
 			'/dev/urandom'
 		),
 		'sys_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
-			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc',
+			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
 		),
 		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc',
+			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
 		),
 		'preserve_files' => array(
 			'/dev/log'
 		),
 		'sys_run_commands' => array(
-			// Restart rsyslog daemon to create socket ( /dev/log ) inside jail
-			'service rsyslog restart'
+			'service rsyslog restart' // Restart rsyslog daemon to create socket ( /dev/log ) inside jail 
 		),
 		'jail_run_commands' => array(
-			# Setup maildomain inside msmtp configuration file
-			'sed -i -e "s/{HOSTNAME}/$(hostname -f)/g" /etc/msmtprc',
-			// Use the msmtp SMTP client as sendmail interface inside the jail
-			'ln -s /usr/bin/msmtp /usr/sbin/sendmail'
+			'sed -i -e "s/{HOSTNAME}/$(hostname -f)/g" /etc/msmtprc', // Setup maildomain inside msmtp configuration file
+			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside the jail
 		)
 	),
 
@@ -181,13 +179,15 @@ return array(
 			'/usr/bin/wget',
 		),
 		'include_app_sections' => array(
-			'bashshell', 'netbasics', 'cron', 'mysqltools', 'php',
+			'bashshell', 'netbasics', 'cron', 'mysqltools', 'php'
 		),
 		'users' => array(
-			'root'
+			'root',
+			'www-data'
 		),
 		'groups' => array(
-			'root'
+			'root',
+			'www-data'
 		)
 	)
 );

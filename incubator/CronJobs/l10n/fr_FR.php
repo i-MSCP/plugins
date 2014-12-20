@@ -117,7 +117,7 @@ return array(
 	"Value for the '%s' field cannot be empty." => "La valeur pour le champ '%s' ne peut être vide.",
 	"Invalid value for the '%s' field." => "Valeur invalide pour le champ '%s'.",
 	'Unable to parse time entry.' => "Erreur d'analyse.",
-	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "vous excédez la limite autorisée de %s minutes qui est l'intervale de temp minimum entre l'éxécution de chaque tâche cron.",
+	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "Vous excédez la limite autorisée de %s minutes qui est l'intervale de temp minimum entre l'éxécution de chaque tâche cron.",
 	'User must be a valid UNIX user.' => "L'utilisateur doit être un utilisateur UNIX valide.",
 	'Url must not contain any username/password for security reasons.' => "L'Url ne doit pas contenir d'information d'authentification pour des raisons de sécurité.",
 	'Command must be a valid HTTP URL.' => 'La commande doit être une Url valide.'
