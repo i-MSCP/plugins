@@ -87,7 +87,7 @@ function addCronJob($cronPermissions)
 					) {
 						exec_query(
 							'
-							INSERT INTO cron_jobs (
+								INSERT INTO cron_jobs (
 									cron_job_permission_id, cron_job_admin_id, cron_job_type, cron_job_notification,
 									cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
 									cron_job_user, cron_job_command, cron_job_status
@@ -132,13 +132,13 @@ function addCronJob($cronPermissions)
 							WHERE
 								cron_job_id = ?
 							AND
-								cron_job_admin_id IS NULL
+								cron_job_admin_id = ?
 							AND
 								cron_job_status = ?
 						',
 						array(
 							$cronjobType, $cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth,
-							$cronjobMonth, $cronjobDweek, $cronjobCommand, 'tochange', $cronjobId, 'ok'
+							$cronjobMonth, $cronjobDweek, $cronjobCommand, 'tochange', $cronjobId, $customerId, 'ok'
 						)
 					);
 
