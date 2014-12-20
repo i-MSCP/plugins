@@ -126,7 +126,7 @@
 				</tr>
 				</tbody>
 			</table>
-			<input type="hidden" id="cron_job_id" name="cron_job_id" value="0">
+			<input type="hidden" id="cron_job_id" name="cron_job_id" value="0" tabindex="-1">
 		</form>
 		<div class="static_info">
 			<ul>
