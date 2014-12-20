@@ -36,7 +36,7 @@ You can install this package by executing the following command:
 	# aptitude install libpam-chroot msmtp
 
 **Notes**
-  - If support for jailed cronjob is detected and the msmtp package is not installed on your system, an error will throw
+  - If support for jailed cronjob is detected and the packages are not installed on your system, an error will be throw
   - The msmtp package is required to allow cron to send email notifications from the jailed environment.
 
 ## Installation
@@ -64,11 +64,11 @@ instructions:
 3. Deactivate this plugin
 4. Re-activate this plugin
 
-### Cron job types
+## Cron job types
 
 Three types of cron jobs are available, which are in order: **URL**, **Jailed** and **Full**.
 
-#### URL
+### URL
 
 The URL cron jobs are always available. They allow to schedule URL commands executed via GNU Wget. The commands must be
 valid HTTP(s) URLs.
@@ -77,7 +77,7 @@ valid HTTP(s) URLs.
 else they are run outside the jailed environment. This is by design, and this do not change anything from the customer
 point of view.
  
-#### Jailed
+### Jailed
 
 The jailed cron jobs allow to schedule commands which are run through the shell interpreter in a jailed environment.
 By default the plugin will create a jailed environment which provides:
@@ -90,7 +90,7 @@ By default the plugin will create a jailed environment which provides:
 **Note:** Only one jailed environment is created for all jailed cron jobs. The most important here, is that the cron
 jobs cannot broke the whole system.
 
-##### Availability
+#### Availability
 
 The jailed cron jobs are available only when the [InstantSSH](../InstantSSH/README.md) plugin is also present on the
 system, whatever it is activated or not. The CronJobs plugin reuses the jail builder library which is provided by the
@@ -98,7 +98,7 @@ InstantSSH plugin to manage the jailed environment.
 
 The jailed cron jobs doesn't apply to administrators.
 
-#### Full
+### Full
 
 The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run inside a
 jailed environment. Such cron jobs should be reserved to trusted users.
@@ -112,6 +112,18 @@ a cron job in this file.
 
 A crontab file is under the control of this plugin as soon as you add a cron task for the user to which it belong to,
 through the cron jobs interface provided by this plugin.
+
+## Plugin interfaces access
+
+### Cron permissions interface
+
+* Administrators can access their cron permissions interface through the **Settings** menu
+* Resellers can access their cron permissions interface through the **Customers** menu
+
+### Cron jobs interface
+
+* Administrators can access their cron jobs interface through the **System tools** menu
+* Customers can access their cron permissions interface through the **Webtools** menu
 
 ## Plugin translation
 
