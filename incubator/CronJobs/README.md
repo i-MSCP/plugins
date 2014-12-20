@@ -29,7 +29,7 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 * libpam-chroot
 * msmtp
 
-You can install this package by executing the following command:
+You can install these packages by executing the following command:
 
 	# aptitude install libpam-chroot msmtp
 
