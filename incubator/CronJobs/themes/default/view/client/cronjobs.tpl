@@ -5,7 +5,7 @@
 		<?= self::escapeHtml(tr('This is the interface from which you can add your cron jobs.', true));?>
 	</p>
 	<br />
-	<div class="static_info">
+	<div class="static_warning">
 		<?=
 			self::escapeHtml(
 				tr(
@@ -175,7 +175,7 @@
 					}
 				});
 
-				$(":input:visible").each(function(i,e) { $(e).attr("tabIndex", i); });
+				$(":input:visible").each(function(i,e) { $(e).attr("tabindex", i); });
 			}
 		}
 
@@ -253,11 +253,11 @@
 		});
 
 		$("body").
-			on('keyup', "#cron_job_minute", function() { handleTimedateInputs($(this).val()); }).
+			on('keyup, paste', "#cron_job_minute", function() { handleTimedateInputs($(this).delay(100).val()); }).
 			on("reset", "form", function () {
 				$("input:hidden").val("0");
 				$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").prop("readonly", false);
-				$(":input:visible").each(function(i,e) { $(e).attr("tabIndex", i); });
+				$(":input:visible").each(function(i,e) { $(e).attr("tabindex", i); });
 			}).
 			on("click", "span[data-action]", function () { $("form")[0].reset(); }).
 			on("click", "span[data-action],button[data-action]", function (e) {
