@@ -23,6 +23,7 @@ namespace CronJobs\CLient;
 use CronJobs\CommonFunctions as Functions;
 use CronJobs\Exception\CronjobException;
 use CronJobs\Utils\CronjobValidator as CronjobValidator;
+use iMSCP_Database as Database;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventsAggregator;
 use iMSCP_Exception as iMSCPException;
@@ -85,6 +86,18 @@ function addCronJob($cronPermissions)
 						$cronPermissions['cron_permission_max'] == 0 ||
 						$cronPermissions['cron_permission_cnb_cron_jobs'] < $cronPermissions['cron_permission_max']
 					) {
+						EventsAggregator::getInstance()->dispatch('onBeforeAddCronJob', array(
+							'cron_job_admin_id' => $customerId,
+							'cron_job_notification' => $cronjobNotification,
+							'cron_job_minute' => $cronjobMinute,
+							'cron_job_hour' => $cronjobHour,
+							'cron_job_dmonth' => $cronjobDmonth,
+							'cron_job_month' => $cronjobMonth,
+							'cron_job_dweek' => $cronjobDweek,
+							'cron_job_command' => $cronjobCommand,
+							'cron_job_type' => $cronjobType
+						));
+
 						exec_query(
 							'
 								INSERT INTO cron_jobs (
@@ -105,6 +118,19 @@ function addCronJob($cronPermissions)
 							)
 						);
 
+						EventsAggregator::getInstance()->dispatch('onAfterAddCronJob', array(
+							'cron_job_admin_id' => $customerId,
+							'cron_job_id' => Database::getInstance()->insertId(),
+							'cron_job_notification' => $cronjobNotification,
+							'cron_job_minute' => $cronjobMinute,
+							'cron_job_hour' => $cronjobHour,
+							'cron_job_dmonth' => $cronjobDmonth,
+							'cron_job_month' => $cronjobMonth,
+							'cron_job_dweek' => $cronjobDweek,
+							'cron_job_command' => $cronjobCommand,
+							'cron_job_type' => $cronjobType
+						));
+
 						send_request();
 
 						write_log(
@@ -121,6 +147,19 @@ function addCronJob($cronPermissions)
 						);
 					}
 				} else { // Cron job update
+					EventsAggregator::getInstance()->dispatch('onBeforeUpdateCronJob', array(
+						'cron_job_admin_id' => $customerId,
+						'cron_job_id' => $cronjobId,
+						'cron_job_notification' => $cronjobNotification,
+						'cron_job_minute' => $cronjobMinute,
+						'cron_job_hour' => $cronjobHour,
+						'cron_job_dmonth' => $cronjobDmonth,
+						'cron_job_month' => $cronjobMonth,
+						'cron_job_dweek' => $cronjobDweek,
+						'cron_job_command' => $cronjobCommand,
+						'cron_job_type' => $cronjobType
+					));
+
 					$stmt = exec_query(
 						'
 							UPDATE
@@ -141,6 +180,19 @@ function addCronJob($cronPermissions)
 							$cronjobMonth, $cronjobDweek, $cronjobCommand, 'tochange', $cronjobId, $customerId, 'ok'
 						)
 					);
+
+					EventsAggregator::getInstance()->dispatch('onAfterUpdateCronJob', array(
+						'cron_job_admin_id' => $customerId,
+						'cron_job_id' => $cronjobId,
+						'cron_job_notification' => $cronjobNotification,
+						'cron_job_minute' => $cronjobMinute,
+						'cron_job_hour' => $cronjobHour,
+						'cron_job_dmonth' => $cronjobDmonth,
+						'cron_job_month' => $cronjobMonth,
+						'cron_job_dweek' => $cronjobDweek,
+						'cron_job_command' => $cronjobCommand,
+						'cron_job_type' => $cronjobType
+					));
 
 					if($stmt->rowCount()) {
 						send_request();
@@ -233,6 +285,11 @@ function deleteCronJob()
 		$cronJobId = intval($_POST['cron_job_id']);
 
 		try {
+			EventsAggregator::getInstance()->dispatch('onBeforeDeleteCronJob', array(
+				'cron_job_admin_id' => $customerId,
+				'cron_job_id' => $cronJobId
+			));
+
 			$stmt = exec_query(
 				'
 					UPDATE
@@ -250,6 +307,11 @@ function deleteCronJob()
 			);
 
 			if($stmt->rowCount()) {
+				EventsAggregator::getInstance()->dispatch('onAfterDeleteCronJob', array(
+					'cron_job_admin_id' => $customerId,
+					'cron_job_id' => $cronJobId
+				));
+
 				send_request();
 
 				write_log(

@@ -427,10 +427,9 @@ sub _writeCrontab
 			}
 
 			if($row->{'cron_job_type'} eq 'url') {
-				$cronjob .= '/usr/bin/wget -q -t 1 -T 3600 -O /dev/null ';
-				# Stay compatible with self-signed certificates
-				$cronjob .= '--no-check-certificate ' if index($row->{'cron_job_command'}, 'https') == 0;
-				$cronjob .= escapeShell($row->{'cron_job_command'}) . ' /dev/null 2>&1';
+				$cronjob .= '/usr/bin/wget -t 1 --connect-timeout=5 --dns-timeout=5 --read-timeout=3600 -O /dev/null ';
+				$cronjob .= '--no-check-certificate '; # Stay compatible with self-signed certificates
+				$cronjob .= escapeShell($row->{'cron_job_command'});
 			} else {
 				$cronjob .= $row->{'cron_job_command'};
 			}

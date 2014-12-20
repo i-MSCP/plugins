@@ -17,18 +17,16 @@
 	<table class="datatable">
 		<thead>
 		<tr>
-			<th style="width:5%"><?= self::escapeHtml(tr('Id', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Type', true));?></th>
 			<th style="width:15%"><?= self::escapeHtml(tr('Time/Date', true));?></th>
 			<th style="width:15%"><?= self::escapeHtml(tr('User', true));?></th>
-			<th style="width:35%"><?= self::escapeHtml(tr('Command', true));?></th>
+			<th style="width:40%"><?= self::escapeHtml(tr('Command', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Status', true));?></th>
 			<th style="width:10%"><?= self::escapeHtml(tr('Actions', true));?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Id', true));?></td>
 			<td><?= self::escapeHtml(tr('Type', true));?></td>
 			<td><?= self::escapeHtml(tr('Time/Date', true));?></td>
 			<td><?= self::escapeHtml(tr('User', true));?></td>
@@ -39,7 +37,7 @@
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="7"><?= self::escapeHtml(tr('Loading data...', true));?></td>
+			<td colspan="6"><?= self::escapeHtml(tr('Loading data...', true));?></td>
 		</tr>
 		</tbody>
 		<tbody>
@@ -199,9 +197,8 @@
 			pagingType: "simple",
 			ajaxSource: "/admin/cronjobs?action=get_cronjobs_list",
 			stateSave: true,
-			columnDefs: [ { sortable: false, searchable: false, targets: [ 5, 6 ] } ],
+			columnDefs: [ { sortable: false, searchable: false, targets: [ 4, 5 ] } ],
 			columns: [
-				{ data: "cron_job_id" },
 				{ data: "cron_job_type" },
 				{ data: "cron_job_timedate" },
 				{ data: "cron_job_user" },

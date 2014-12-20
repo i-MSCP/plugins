@@ -38,7 +38,6 @@ return array(
 	'Interface from which you can add your cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.' => 'Interface, aus welchem Sie Ihre Cron-Jobs hinzufügen können. Dieses Interface ist nur für Administratoren. Kunden haben Ihr eigenes Interface, welches etwas eingeschränkter ist.',
 	'Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:' => 'Das Konfigurieren der Cron-Jobs benötigt ausgeprägte Kenntnisse über die Crontab-Syntax auf Unix-basierten Systemen. Weitere Informationen zu diesem Thema sind auf der folgenden Webseite erhältlich:',
 	'Newbie: Intro to cron' => 'Neuling: Einführung in die Cron',
-	'Id' => 'Id',
 	'Type' => 'Typ',
 	'Time/Date' => 'Zeit/Datum',
 	'User' => 'Benutzer',
