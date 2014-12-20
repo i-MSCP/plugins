@@ -125,7 +125,7 @@
 			ajaxSource: "/admin/cronjobs_permissions?action=get_cron_permissions_list",
 			stateSave: true,
 			columnDefs: [
-				{ bSortable: false, bSearchable: false, aTargets: [ 4 ] }
+				{ sortable: false, searchable: false, targets: [ 4 ] }
 			],
 			columns: [
 				{ data: "admin_name" },

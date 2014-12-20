@@ -138,14 +138,14 @@
 			pagingType: "simple",
 			ajaxSource: "/reseller/cronjobs_permissions?action=get_cron_permissions_list",
 			stateSave: true,
-			columnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 5 ] } ],
+			columnDefs: [ { sortable: false, searchable: false, targets: [ 5 ] } ],
 			columns: [
-				{ mData: "admin_name" },
-				{ mData: "cron_permission_type" },
-				{ mData: "cron_permission_max" },
-				{ mData: "cron_permission_frequency" },
-				{ mData: "cron_permission_status" },
-				{ mData: "cron_permission_actions" }
+				{ data: "admin_name" },
+				{ data: "cron_permission_type" },
+				{ data: "cron_permission_max" },
+				{ data: "cron_permission_frequency" },
+				{ data: "cron_permission_status" },
+				{ data: "cron_permission_actions" }
 			],
 			serverData: function (source, data, callback) {
 				$.ajax({

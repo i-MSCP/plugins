@@ -61,7 +61,7 @@
 				<tr>
 					<td><label for="cron_job_notification"><?= self::escapeHtml(tr('Email', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_notification" id="cron_job_notification" value="{DEFAULT_EMAIL_NOTIFICATION}">
+						<input type="text" name="cron_job_notification" id="cron_job_notification" value="{DEFAULT_EMAIL_NOTIFICATION}" tabindex="0">
 						<div>
 							<small><?= self::escapeHtml(tr('Email to which cron notifications must be sent if any. Leave blank to disable notifications.', true));?></small>
 						</div>
@@ -70,35 +70,35 @@
 				<tr>
 					<td><label for="cron_job_minute"><?= self::escapeHtml(tr('Minute', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_minute" id="cron_job_minute">
+						<input type="text" name="cron_job_minute" id="cron_job_minute" value="*">
 						<div><small><?= self::escapeHtml(tr('Minute at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_hour"><?= self::escapeHtml(tr('Hour', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_hour" id="cron_job_hour">
+						<input type="text" name="cron_job_hour" id="cron_job_hour" value="*">
 						<div><small><?= self::escapeHtml(tr('Hour at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_dmonth"><?= self::escapeHtml(tr('Day of month', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_dmonth" id="cron_job_dmonth">
+						<input type="text" name="cron_job_dmonth" id="cron_job_dmonth" value="*">
 						<div><small><?= self::escapeHtml(tr('Day of the month at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_month"><?= self::escapeHtml(tr('Month', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_month" id="cron_job_month">
+						<input type="text" name="cron_job_month" id="cron_job_month" value="*">
 						<div><small><?= self::escapeHtml(tr('Month at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
 				<tr>
 					<td><label for="cron_job_dweek"><?= self::escapeHtml(tr('Day of week', true));?></label></td>
 					<td>
-						<input type="text" name="cron_job_dweek" id="cron_job_dweek">
+						<input type="text" name="cron_job_dweek" id="cron_job_dweek" value="*">
 						<div><small><?= self::escapeHtml(tr('Day of the week at which the cron job must be executed.', true));?></small></div>
 					</td>
 				</tr>
@@ -131,7 +131,7 @@
 				</tr>
 				</tbody>
 			</table>
-			<input type="hidden" id="cron_job_id" name="cron_job_id" value="0">
+			<input type="hidden" id="cron_job_id" name="cron_job_id" value="0" tabindex="-1">
 		</form>
 		<div class="static_info">
 			<ul>
@@ -141,7 +141,7 @@
 							tr(
 								'You can learn more about the syntax by reading:', true
 							)
-						) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron', true)) . '</strong></a>';
+						) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html" tabindex="-1"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron', true)) . '</strong></a>';
 					?>
 				</li>
 				<li><?= self::escapeHtml(tr('When using a shortcut in the minute time field, all other time/date fields are ignored.', true));?></li>
@@ -152,10 +152,10 @@
 </div>
 <script>
 	$(function() {
-		var $dataTable, $dialog, flashMessageTarget;
+		var $dataTable, $dialog, flashMessagesTarget;
 
 		function flashMessage(type, message) {
-			target = (flashMessageTarget) ? flashMessageTarget : ".body";
+			var target = (flashMessagesTarget) ? flashMessagesTarget : ".body";
 			$("<div>", { "class": "flash_message " + type, "html": $.parseHTML(message), "hide": true }).
 				prependTo(target).trigger('message_timeout');
 		}
@@ -164,6 +164,23 @@
 			return $.ajax({
 				dataType: "json",  type: rType,  url: "/admin/cronjobs?action=" + action,  data: data,  timeout: 5000
 			});
+		}
+
+		function handleTimedateInputs(val) {
+			var $els = $("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek");
+
+			if($.inArray(val, ['@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly']) >= 0) {
+				$els.val("").prop("readonly", true).attr('tabindex', -1);
+			} else {
+				$els.prop("readonly", false);
+				$els.each(function() {
+					if($(this).val() === '') {
+						$(this).val("*");
+					}
+				});
+
+				$(":input:visible").each(function(i,e) { $(e).attr("tabIndex", i); });
+			}
 		}
 
 		jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (settings, onoff) {
@@ -230,40 +247,21 @@
 				}
 			],
 			open: function() {
-				flashMessageTarget = "#dialog_frm";
+				flashMessagesTarget = "#dialog_frm";
 			},
 			close: function() {
 				$("form")[0].reset();
-				$("#dialog_frm .flash_message").remove();
-				flashMessageTarget = undefined;
-			}
-		});
-
-		var shortcuts = ['@reboot', '@yearly', '@annually', '@monthly', '@weekly', '@daily', '@midnight', '@hourly'];
-		$("#cron_job_minute").autocomplete({
-			minLength: 0,
-			source: function(request, response) {
-				if($.inArray(request.term, shortcuts) >= 0) {
-					$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").val("").prop("readonly", true);
-				} else {
-					$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").prop("readonly", false);
-				}
-
-				response(request.term);
-			},
-			change: function() {
-				if($.inArray($(this).val(), shortcuts) >= 0) {
-					$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").val("").prop("readonly", true);
-				} else {
-					$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").prop("readonly", false);
-				}
+				$("#dialog_frm.flash_message").remove();
+				flashMessagesTarget = undefined;
 			}
 		});
 
 		$("body").
+			on('keyup', "#cron_job_minute", function() { handleTimedateInputs($(this).val()); }).
 			on("reset", "form", function () {
 				$("input:hidden").val("0");
 				$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek,#cron_job_user").prop("readonly", false);
+				$(":input:visible").each(function(i,e) { $(e).attr("tabIndex", i); });
 			}).
 			on("click", "span[data-action]", function () { $("form")[0].reset(); }).
 			on("click", "span[data-action],button[data-action]", function (e) {
@@ -279,7 +277,7 @@
 					case "add_cronjob":
 						doRequest('POST', action, $("#cron_job_frm").serialize()).done(function (data) {
 							$dialog.dialog("close");
-							flashMessageTarget = undefined;
+							flashMessagesTarget = undefined;
 							flashMessage('success', data.message);
 							$dataTable.fnDraw();
 						});
@@ -289,20 +287,16 @@
 							"GET", "get_cronjob", { cron_job_id: $(this).data('cron-job-id') }
 						).done(function (data) {
 							$("#cron_job_notification").val(data.cron_job_notification);
-							$("#cron_job_minute").val(data.cron_job_minute);
+							var $cronJobMinute = $("#cron_job_minute").val(data.cron_job_minute);
 							$("#cron_job_hour").val(data.cron_job_hour);
 							$("#cron_job_dmonth").val(data.cron_job_dmonth);
 							$("#cron_job_month").val(data.cron_job_month);
 							$("#cron_job_dweek").val(data.cron_job_dweek);
-							$("#cron_job_user").val(data.cron_job_user).prop('readonly', true);
+							$("#cron_job_user").val(data.cron_job_user).prop('readonly', true).attr('tabindex', -1);
 							$("#cron_job_command").val(data.cron_job_command);
 							$("#cron_job_type").val(data.cron_job_type);
 							$("#cron_job_id").val(data.cron_job_id);
-
-							if($.inArray($("#cron_job_minute").val(), shortcuts) >= 0) {
-								$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek").val("").prop("readonly", true);
-							}
-
+							handleTimedateInputs($cronJobMinute.val());
 							$dialog.dialog("open");
 						});
 						break;

@@ -29,6 +29,7 @@ use lib "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/InstantSSH/backend",
         "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/InstantSSH/backend/Vendor";
 
 use iMSCP::Debug;
+use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use FileHandle;
@@ -57,7 +58,10 @@ sub install
 	my $self = $_[0];
 
 	if($self->{'config'}->{'jailed_cronjobs_support'}) {
-		my $rs = $self->_configurePamChroot();
+		my $rs = _checkRequirements();
+		return $rs if $rs;
+
+		$rs = $self->_configurePamChroot();
 		return $rs if $rs;
 	}
 
@@ -88,6 +92,11 @@ sub uninstall
 			}
 
 			my $rs = $jailBuilder->removeJail();
+			return $rs if $rs;
+		}
+
+		if(-f '/etc/rsyslog.d/imscp_cronjobs_plugin.conf') {
+			$rs = iMSCP::File->new( filename => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf' )->delFile();
 			return $rs if $rs;
 		}
 
@@ -491,6 +500,29 @@ sub _writeCrontab
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
 		}
+	}
+
+	0;
+}
+
+=item _checkRequirements()
+
+ Check for requirements
+
+ Return int 0 if all requirements are meet, other otherwise
+
+=cut
+
+sub _checkRequirements
+{
+	my ($stdout, $stderr);
+	my $rs = execute(
+		"LANG=C dpkg-query --show --showformat '\${Status}' msmtp | cut -d ' ' -f 3", \$stdout, \$stderr
+	);
+	debug($stdout) if $stdout;
+	if($stdout ne 'installed') {
+		error("The $_ msmtp is not installed on your system");
+		return 1;
 	}
 
 	0;

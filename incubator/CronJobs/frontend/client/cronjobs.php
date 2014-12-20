@@ -61,9 +61,9 @@ function addCronJob($cronPermissions)
 		$cronjobCommand = clean_input($_POST['cron_job_command']);
 		$cronjobType = clean_input($_POST['cron_job_type']);
 
-		if($cronPermissions == 'url') {
+		if($cronPermissions['cron_permission_type'] == 'url') {
 			$allowedCronjobTypes = array('url');
-		} elseif($cronPermissions == 'jailed') {
+		} elseif($cronPermissions['cron_permission_type'] == 'jailed') {
 			$allowedCronjobTypes = array('url', 'jailed');
 		} else {
 			$allowedCronjobTypes = array('url', 'full');
@@ -73,7 +73,7 @@ function addCronJob($cronPermissions)
 			if (in_array($cronjobType, $allowedCronjobTypes, true)) {
 				CronjobValidator::validate(
 					$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek,
-					null, $cronjobCommand, $cronjobType
+					null, $cronjobCommand, $cronjobType, $cronPermissions['cron_permission_frequency']
 				);
 
 				if($cronjobNotification === '') {
