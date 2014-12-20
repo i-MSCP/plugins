@@ -24,6 +24,7 @@ return array(
 	'Cron permissions' => 'Permissions cron',
 	'Cron jobs' => 'Tâches cron',
 	'Cron job has been scheduled for addition.' => 'La tâche cron va être ajoutée.',
+	'Your cron jobs limit is reached.' => 'Votre limite de taches cron est atteinte.',
 	'Cron job has been scheduled for update.' => 'La tâche cron va être mise à jour.',
 	'An unexpected error occurred: %s' => "Une erreur innatendue s'est produite: %s",
 	'Bad request.' => 'Mauvaise requête.',

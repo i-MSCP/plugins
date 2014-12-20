@@ -81,35 +81,45 @@ function addCronJob($cronPermissions)
 				}
 
 				if(!$cronjobId) { // New cron job
-					exec_query(
-						'
+					if(
+						$cronPermissions['cron_permission_max'] == 0 ||
+						$cronPermissions['cron_permission_cnb_cron_jobs'] < $cronPermissions['cron_permission_max']
+					) {
+						exec_query(
+							'
 							INSERT INTO cron_jobs (
-								cron_job_permission_id, cron_job_admin_id, cron_job_type, cron_job_notification,
-								cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
-								cron_job_user, cron_job_command, cron_job_status
-							) SELECT
-								?, ?, ?, ?, ?, ?, ?, ?, ?, admin_sys_name, ?, ?
-							FROM
-								admin
-							WHERE
-								admin_id = ?
-					',
-						array(
-							$cronPermissions['cron_permission_id'], $customerId, $cronjobType, $cronjobNotification,
-							$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobCommand,
-							'toadd', $customerId
-						)
-					);
+									cron_job_permission_id, cron_job_admin_id, cron_job_type, cron_job_notification,
+									cron_job_minute, cron_job_hour, cron_job_dmonth, cron_job_month, cron_job_dweek,
+									cron_job_user, cron_job_command, cron_job_status
+								) SELECT
+									?, ?, ?, ?, ?, ?, ?, ?, ?, admin_sys_name, ?, ?
+								FROM
+									admin
+								WHERE
+									admin_id = ?
+							',
+							array(
+								$cronPermissions['cron_permission_id'], $customerId, $cronjobType, $cronjobNotification,
+								$cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek, $cronjobCommand,
+								'toadd', $customerId
+							)
+						);
 
-					send_request();
+						send_request();
 
-					write_log(
-						sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']), E_USER_NOTICE
-					);
+						write_log(
+							sprintf('CronJobs: New cron job has been added by %s', $_SESSION['user_logged']),
+							E_USER_NOTICE
+						);
 
-					Functions::sendJsonResponse(
-						200, array('message' => tr('Cron job has been scheduled for addition.', true))
-					);
+						Functions::sendJsonResponse(
+							200, array('message' => tr('Cron job has been scheduled for addition.', true))
+						);
+					} else {
+						Functions::sendJsonResponse(
+							400, array('message' => tr('Your cron jobs limit is reached.', true))
+						);
+					}
 				} else { // Cron job update
 					$stmt = exec_query(
 						'

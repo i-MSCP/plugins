@@ -25,6 +25,7 @@ return array(
 	'Cron permissions' => 'Cron-rechten',
 	'Cron jobs' => 'Cron-jobs',
 	'Cron job has been scheduled for addition.' => 'Toevoeging van cron-job is ingepland.',
+	'Your cron jobs limit is reached.' => 'Your cron jobs limit is reached.',
 	'Cron job has been scheduled for update.' => 'Bijwerking van cron-job is ingepland.',
 	'An unexpected error occurred: %s' => 'Er is een onverwachte fout opgetreden: %s',
 	'Bad request.' => 'Fout verzoek.',

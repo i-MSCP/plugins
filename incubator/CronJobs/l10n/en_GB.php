@@ -24,6 +24,7 @@ return array(
 	'Cron permissions' => 'Cron permissions',
 	'Cron jobs' => 'Cron jobs',
 	'Cron job has been scheduled for addition.' => 'Cron job has been scheduled for addition.',
+	'Your cron jobs limit is reached.' => 'Your cron jobs limit is reached.',
 	'Cron job has been scheduled for update.' => 'Cron job has been scheduled for update.',
 	'An unexpected error occurred: %s' => 'An unexpected error occurred: %s',
 	'Bad request.' => 'Bad request.',
