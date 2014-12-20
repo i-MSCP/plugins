@@ -166,7 +166,7 @@ function addCronJob($cronPermissions)
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred. Please contact your reseller. %s', true, $e->getMessage()))
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
 				);
 			}
 		}
