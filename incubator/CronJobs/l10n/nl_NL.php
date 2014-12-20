@@ -25,7 +25,7 @@ return array(
 	'Cron permissions' => 'Cron-rechten',
 	'Cron jobs' => 'Cron-jobs',
 	'Cron job has been scheduled for addition.' => 'Toevoeging van cron-job is ingepland.',
-	'Your cron jobs limit is reached.' => 'Your cron jobs limit is reached.',
+	'Your cron jobs limit is reached.' => 'U heeft uw cron-joblimiet bereikt.',
 	'Cron job has been scheduled for update.' => 'Bijwerking van cron-job is ingepland.',
 	'An unexpected error occurred: %s' => 'Er is een onverwachte fout opgetreden: %s',
 	'Bad request.' => 'Fout verzoek.',
@@ -81,8 +81,8 @@ return array(
 	"Wrong value for the 'Max. cron jobs' field. Please, enter a number." => "Wrong value for the 'Max. cron jobs' field. Please, enter a number.",
 	"Wrong value for the 'Cron jobs frequency' field. Please, enter a number." => "Verkeerde waarde bij het veld 'Frequentie cron-jobs'. Gelieve een nummer in te voeren.",
 	'The cron jobs frequency is lower than your own limit which is currently set to %s minute.' => array(
-		"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
-		"The cron jobs frequency is lower than your own limit which is currently set to %s minutes." // Plural form
+		"De frequentie van uitvoeren is lager dan uw eigen gestelde limiet, namelijk %s minuut.",
+		"De frequentie van uitvoeren is lager dan uw eigen gestelde limiet, namelijk %s minuten." // Plural form
 	),
 	'Cron permissions were added.' => 'Cron-rechten zijn toegevoegd.',
 	'Cron permissions were updated.' => 'Cron-rechten zijn bijgewerkt.',
