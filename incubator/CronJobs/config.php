@@ -175,7 +175,7 @@ return array(
 	// Provide pre-selected application sections, users and groups for jailed environment used by this plugin
 	'cronjobs_base' => array(
 		'paths' => array(
-			'/usr/bin/wget',
+			'/usr/bin/wget', '/etc/ssl/certs/*'
 		),
 		'include_app_sections' => array(
 			'bashshell', 'netbasics', 'cron', 'mysqltools', 'php'
