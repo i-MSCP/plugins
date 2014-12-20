@@ -55,7 +55,7 @@ return array(
 	),
 
 	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
-	'include_pkg_deps' => false,
+	'include_pkg_deps' => true,
 
 	// Selected application sections for jailed cron environment ( default: cronjobs_base )
 	//
@@ -148,6 +148,9 @@ return array(
 	'cron' => array(
 		'paths' => array(
 			'/usr/sbin/cron', '/dev', '/etc/aliases', '/usr/bin/msmtp'
+		),
+		'devices' => array(
+			'/dev/urandom'
 		),
 		'sys_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf',
