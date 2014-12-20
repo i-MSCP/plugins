@@ -77,6 +77,7 @@ return array(
 	'An unexpected error occurred. Please contact your reseller.' => 'Ein unerwarteter Fehler ist aufgetreten. Bitte kontaktieren Sie Ihren Reseller.',
 	'Client / Web Tools / Cron Jobs' => 'Kunde / Webwerkzeuge / Cron-Jobs',
 	'This is the interface from which you can add your cron jobs.' => 'Das ist das Interface, von welchem aus Sie Ihre Cron-Jobs hinzufügen können.',
+	"Wrong value for the 'Max. cron jobs' field. Please, enter a number." => "Wrong value for the 'Max. cron jobs' field. Please, enter a number.",
 	"Wrong value for the 'Cron jobs frequency' field. Please, enter a number." => "Falscher Wert für das Feld 'Cron-Jobs-Frequenz'. Tragen Sie bitte eine Nummer ein.",
 	'The cron jobs frequency is lower than your own limit which is currently set to %s minute.' => array(
 		"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",

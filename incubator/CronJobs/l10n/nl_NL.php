@@ -78,6 +78,7 @@ return array(
 	'An unexpected error occurred. Please contact your reseller.' => 'Er heeft zich een onverwachte fout voorgedaan. Gelieve contact op te nemen met uw wederverkoper.',
 	'Client / Web Tools / Cron Jobs' => 'Klant / Webtools / Cron-jobs',
 	'This is the interface from which you can add your cron jobs.' => 'Dit is de interface waar u cron-jobs kunt toevoegen.',
+	"Wrong value for the 'Max. cron jobs' field. Please, enter a number." => "Wrong value for the 'Max. cron jobs' field. Please, enter a number.",
 	"Wrong value for the 'Cron jobs frequency' field. Please, enter a number." => "Verkeerde waarde bij het veld 'Frequentie cron-jobs'. Gelieve een nummer in te voeren.",
 	'The cron jobs frequency is lower than your own limit which is currently set to %s minute.' => array(
 		"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
