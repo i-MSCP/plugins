@@ -4,9 +4,9 @@
 
 This plugin provide a cron time-based job scheduler for i-MSCP. 
 
-Administrators give cron permissions to their resellers, and the resellers give the cron permissions to their customers
-according their own permissions. For instance, a reseller will be able to give the full cron permission to a customer
-only if he has also this permission.
+Administrators give cron job permissions to their resellers, and the resellers give cron job permissions to their
+customers according their own permissions. For instance, a reseller will be able to give the full cron job permission to
+a customer only if he has also this permission.
 
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
 interface in the sense that they can set the UNIX user to use for the cron job execution while the customers cannot.
@@ -27,14 +27,15 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 #### Debian / Ubuntu packages
 
 * libpam-chroot
+* makejail
 * msmtp
 
 You can install these packages by executing the following command:
 
-	# aptitude install libpam-chroot msmtp
+	# aptitude install libpam-chroot makejail msmtp
 
 **Notes**
-  - If support for jailed cronjob is detected and a package is not installed on your system, an error will be throw
+  - If support for jailed cron jobs is detected and a package is not installed on your system, an error will be throw
   - The msmtp package is required to allow cron to send email notifications from the jailed environment.
 
 ## Installation
@@ -113,15 +114,24 @@ through the cron jobs interface provided by this plugin.
 
 ## Interfaces access
 
-### Cron permissions interfaces
+### Cron jobs permissions interface
 
-* Administrators can access their cron permissions interface through the **Settings** menu
-* Resellers can access their cron permissions interface through the **Customers** menu
+The cron job permissions interface allow to give cron job permissions, either to the resellers in the context of the
+administrators, or to customers in the context of resellers.
 
-### Cron jobs interfaces
+* Administrators can access the cron job permissions interface through the **Customers** menu
+* Resellers can access the cron job permissions interface through the **Customers** menu
 
-* Administrators can access their cron jobs interface through the **System tools** menu
-* Customers can access their cron jobs interface through the **Webtools** menu
+**Note:** When cron job permissions are updated, any cron job which doesn't fit with the new permissions are simply
+deleted. For instance, if the execution frequency of a specific cron job is lower than the new cron jobs frequency limit,
+the cron job is automatically removed.
+
+### Cron jobs interface
+
+The cron jobs interface allows administrators and customers to add, edit and delete cron jobs.
+
+* Administrators can access the cron jobs interface through the **System tools** menu
+* Customers can access the cron jobs interface through the **Webtools** menu
 
 ## Translation
 
@@ -166,3 +176,4 @@ If you do not want to contribute, you should not use that plugin.
 ## Author(s)
 
  * laurent declercq <l.declercq@nuxwin.com>
+

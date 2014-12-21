@@ -61,7 +61,7 @@ function addCronJob()
 		$cronjobType = clean_input($_POST['cron_job_type']);
 
 		try {
-			if ($cronjobType === 'url' || $cronjobType === 'full') {
+			if($cronjobType === 'url' || $cronjobType === 'full') {
 				CronjobValidator::validate(
 					$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek,
 					$cronjobUser, $cronjobCommand, $cronjobType
@@ -327,7 +327,7 @@ function getCronJobsList()
 		// Filterable, orderable columns
 		$columnDefs = array(
 			'cron_job_id' => 'cron_job_id',
-			'cron_job_type'=> 'cron_job_type',
+			'cron_job_type' => 'cron_job_type',
 			'cron_job_timedate' => "
 				CONCAT(
 					cron_job_minute, ' ', cron_job_hour, ' ', cron_job_dmonth, ' ', cron_job_month, ' ',

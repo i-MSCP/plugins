@@ -210,7 +210,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Delete cron permissions ( including cron jobs ) of any user which is being deleted ( reseller, customer )
+	 * Delete cron job permissions ( including cron jobs ) of any user which is being deleted ( reseller, customer )
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -378,7 +378,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Get cron permissions for the given user
+	 * Get cron job permissions for the given user
 	 *
 	 * @param int $adminId User unique identifier
 	 * @return array
@@ -445,13 +445,13 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			$navigation = iMSCP_Registry::get('navigation');
 
 			if($uiLevel == 'admin') {
-				if($page = $navigation->findOneBy('uri', '/admin/settings.php')) {
+				if($page = $navigation->findOneBy('uri', '/admin/manage_users.php')) {
 					$page->addPage(
 						array(
-							'label' => tr('Cron permissions'),
+							'label' => tr('Cron job permissions'),
 							'uri' => '/admin/cronjobs_permissions',
-							'title_class' => 'settings',
-							'order' => 9
+							'title_class' => 'users',
+							'order' => 6
 						)
 					);
 				}
@@ -471,13 +471,14 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 
 				$page->addPage(
 					array(
-						'label' => tr('Cron permissions'),
+						'label' => tr('Cron job permissions'),
 						'uri' => '/reseller/cronjobs_permissions',
 						'title_class' => 'settings',
 						'order' => 7,
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
-								return (bool)($self->getCronPermissions(intval($_SESSION['user_id'])));
+								$cronPermissions = $self->getCronPermissions(intval($_SESSION['user_id']));
+								return (bool)($cronPermissions['cron_permission_id'] !== null);
 							}
 						)
 					)
@@ -492,7 +493,8 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 						'order' => 3,
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
-								return (bool)($self->getCronPermissions(intval($_SESSION['user_id'])));
+								$cronPermissions = $self->getCronPermissions(intval($_SESSION['user_id']));
+								return (bool)($cronPermissions['cron_permission_id'] !== null);
 							}
 						)
 					)

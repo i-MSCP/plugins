@@ -41,7 +41,7 @@ use PDO;
 /**
  * Add/Update cron job
  *
- * @param array $cronPermissions Customer cron permissions
+ * @param array $cronPermissions Customer's cron job permissions
  * @return void
  */
 function addCronJob($cronPermissions)
@@ -71,7 +71,7 @@ function addCronJob($cronPermissions)
 		}
 
 		try {
-			if (in_array($cronjobType, $allowedCronjobTypes, true)) {
+			if(in_array($cronjobType, $allowedCronjobTypes, true)) {
 				CronjobValidator::validate(
 					$cronjobNotification, $cronjobMinute, $cronjobHour, $cronjobDmonth, $cronjobMonth, $cronjobDweek,
 					null, $cronjobCommand, $cronjobType, $cronPermissions['cron_permission_frequency']
@@ -356,7 +356,7 @@ function getCronJobsList()
 		// Filterable, orderable columns
 		$columnDefs = array(
 			'cron_job_id' => 'cron_job_id',
-			'cron_job_type'=> 'cron_job_type',
+			'cron_job_type' => 'cron_job_type',
 			'cron_job_timedate' => "
 				CONCAT(
 					cron_job_minute, ' ', cron_job_hour, ' ', cron_job_dmonth, ' ', cron_job_month, ' ',
@@ -529,7 +529,7 @@ $cronjobsPlugin = $pluginManager->getPlugin('CronJobs');
 $cronPermissions = $cronjobsPlugin->getCronPermissions(intval($_SESSION['user_id']));
 unset($cronjobsPlugin);
 
-if (!empty($cronPermissions)) {
+if($cronPermissions['cron_permission_id'] !== null) {
 	if(isset($_REQUEST['action'])) {
 		if(is_xhr()) {
 			$action = clean_input($_REQUEST['action']);
@@ -586,7 +586,7 @@ if (!empty($cronPermissions)) {
 		)
 	));
 
-	if ($cronPermissions['cron_permission_type'] == 'url') {
+	if($cronPermissions['cron_permission_type'] == 'url') {
 		$tpl->assign('CRON_JOB_SHELL_TYPE_BLOCK', '');
 	} else {
 		$tpl->assign('CRON_JOB_SHELL_TYPE', Functions::escapeHtmlAttr($cronPermissions['cron_permission_type']));

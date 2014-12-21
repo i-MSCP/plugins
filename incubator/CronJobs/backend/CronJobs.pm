@@ -312,7 +312,7 @@ sub run
 		}
 	}
 
-	# Handle cron permissions
+	# Handle cron job permissions
 
 	unless($rs) {
 		my $qrs = $self->{'db'}->doQuery(

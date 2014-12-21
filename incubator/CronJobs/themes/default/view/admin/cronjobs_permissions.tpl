@@ -2,7 +2,7 @@
 <link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint" style="font-variant: small-caps;font-size: small;">
-		<?= self::escapeHtml(tr('List of resellers which are allowed to give cron permissions to their customers.', true));?>
+		<?= self::escapeHtml(tr('List of resellers which are allowed to give cron job permissions to their customers.', true));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
@@ -35,7 +35,7 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron permissions', true));?></th>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions', true));?></th>
 				</tr>
 				</thead>
 				<tbody>
@@ -70,7 +70,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5">
+						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5" maxlength="10">
 					</td>
 				</tr>
 				<tr>
@@ -198,7 +198,7 @@
 						});
 						break;
 					case "delete_cron_permissions":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron permissions for this reseller?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron job permissions for this reseller?', true));?>")) {
 							doRequest(
 								"POST", "delete_cron_permissions", {
 									cron_permission_id: $(this).data('cron-permission-id'),

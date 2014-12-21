@@ -254,7 +254,7 @@
 		});
 
 		$("body").
-			on('keyup, paste', "#cron_job_minute", function() { handleTimedateInputs($(this).delay(100).val()); }).
+			on('keyup', "#cron_job_minute", function() { handleTimedateInputs($(this).val()); }).
 			on("reset", "form", function () {
 				$("input:hidden").val("0");
 				$("#cron_job_hour,#cron_job_dmonth,#cron_job_month,#cron_job_dweek,#cron_job_user").prop("readonly", false);

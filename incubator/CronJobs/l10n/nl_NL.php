@@ -22,7 +22,7 @@
  */
 
 return array(
-	'Cron permissions' => 'Cron-rechten',
+	'Cron job permissions' => 'Cron-rechten',
 	'Cron jobs' => 'Cron-jobs',
 	'Cron job has been scheduled for addition.' => 'Toevoeging van cron-job is ingepland.',
 	'Your cron jobs limit is reached.' => 'U heeft uw cron-joblimiet bereikt.',
@@ -83,24 +83,24 @@ return array(
 		"De frequentie van uitvoeren is lager dan uw eigen gestelde limiet, namelijk %s minuut.",
 		"De frequentie van uitvoeren is lager dan uw eigen gestelde limiet, namelijk %s minuten." // Plural form
 	),
-	'Cron permissions were added.' => 'Cron-rechten zijn toegevoegd.',
-	'Cron permissions were updated.' => 'Cron-rechten zijn bijgewerkt.',
+	'Cron job permissions were added.' => 'Cron-rechten zijn toegevoegd.',
+	'Cron job permissions were updated.' => 'Cron-rechten zijn bijgewerkt.',
 	'Nothing has been changed.' => 'Er is niets veranderd.',
 	"One or many cron jobs which belongs to the reseller's customers are currently processed. Please retry in few minutes." => "Eén of meerdere cron-jobs welke tot de klanten van de wederverkoper behoren worden momenteel bewerkt. Gelieve het over enkele minuten opnieuw te proberen.",
-	'CronJobs: Unable to update cron permissions for %s: %s' => 'CronJobs: Kan de cron-rechten niet bijwerken voor: %s: %s',
-	'Cron permissions were revoked.' => 'Cron-rechten zijn ingetrokken.',
+	'Cron job permissions were revoked.' => 'Cron-rechten zijn ingetrokken.',
 	'Edit permissions' => 'Rechten bewerken',
 	'Revoke permissions' => 'Rechten intrekken',
 	'%d minute' => array(
 		'%d minuut',
 		'%d minuten' // Plural form
 	),
-	'Admin / Settings / Cron Permissions' => 'Beheerder / Instellingen / Cron-rechten',
-	'List of resellers which are allowed to give cron permissions to their customers.' => 'Lijst van wederverkopers wie toestemming hebben om cron-rechten aan hun klanten te geven.', // Correction for English translation: which should be whom, which is only used for items, not persons.
+	'Unlimited' => 'Unlimited',
+	'Admin / Settings / Cron Job Permissions' => 'Beheerder / Instellingen / Cron-rechten',
+	'List of resellers which are allowed to give cron job permissions to their customers.' => 'Lijst van wederverkopers wie toestemming hebben om cron-rechten aan hun klanten te geven.', // Correction for English translation: which should be whom, which is only used for items, not persons.
 	'Reseller name' => 'Naam van wederverkoper',
 	'Cron jobs type' => 'Soorten cron-jobs',
 	'Cron jobs frequency' => 'Frequentie van cron-jobs',
-	'Add / Edit cron permissions' => 'Cron-rechten toevoegen / bewerken',
+	'Add / Edit cron job permissions' => 'Cron-rechten toevoegen / bewerken',
 	'Enter a reseller name' => 'Naam van wederverkoper invoeren',
 	'Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.' => 'Soorten toegestane cron-jobs. Merk op dat de URL-cron-jobs altijd beschikbaar zijn, welke soort dan ook geselecteerd is.',
 	'Jailed' => 'Ingesloten',
@@ -109,7 +109,7 @@ return array(
 	'In minutes' => 'In minuten',
 	'Unknown reseller. Please enter a valid reseller name.' => 'Onbekende wederverkoper. Gelieve een geldige naam in te voeren.',
 	'Please enter a reseller name.' => 'Gelieve een naam van een wederverkoper in te voeren.',
-	'Are you sure you want to revoke the cron permissions for this reseller?' => 'Weet u zeker dat u de cron-rechten voor deze wederverkoper wilt intrekken?',
+	'Are you sure you want to revoke the cron job permissions for this reseller?' => 'Weet u zeker dat u de cron-rechten voor deze wederverkoper wilt intrekken?',
 	'List of customers which are allowed to add cron jobs.' => 'Lijst van klanten wie bevoegd zijn om cron-jobs toe te voegen.',
 	'Max. cron jobs' => 'Max. cron-jobs',
 	'Customer name' => 'Naam van klant',
@@ -117,7 +117,7 @@ return array(
 	'0 for unlimited' => '0 voor ongelimiteerd',
 	'Unknown customer. Please enter a valid customer name.' => 'Onbekende klant. Gelieve een geldige naam in te voeren',
 	'Please enter a customer name.' => 'Gelieve een naam van een klant in te voeren',
-	'Are you sure you want to revoke the cron permissions for this customer?' => 'Weet u zeker dat u de cron-rechten voor deze klant wilt intrekken?',
+	'Are you sure you want to revoke the cron job permissions for this customer?' => 'Weet u zeker dat u de cron-rechten voor deze klant wilt intrekken?',
 	'Invalid cron job type: %s' => 'Ongeldig type van cron-job: %s.',
 	'Invalid notification email.' => 'Ongeldig notificatie-e-mailadres.',
 	"Value for the '%s' field cannot be empty." => "Waarde voor het veld '%s' mag niet leeg zijn.",

@@ -37,7 +37,7 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron permissions', true));?></th>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions', true));?></th>
 				</tr>
 				</thead>
 				<tbody>
@@ -72,7 +72,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="text" name="cron_permission_max" id="cron_permission_max" value="0">
+						<input type="text" name="cron_permission_max" id="cron_permission_max" value="0" maxlength="10">
 					</td>
 				</tr>
 				<tr>
@@ -84,7 +84,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="{CRON_PERMISSION_FREQUENCY}">
+						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="{CRON_PERMISSION_FREQUENCY}" maxlength="10">
 					</td>
 				</tr>
 				<tr>
@@ -212,7 +212,7 @@
 							});
 						break;
 					case "delete_cron_permissions":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron permissions for this customer?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron job permissions for this customer?', true));?>")) {
 							doRequest(
 								"POST", "delete_cron_permissions", {
 									cron_permission_id: $(this).data('cron-permission-id'),

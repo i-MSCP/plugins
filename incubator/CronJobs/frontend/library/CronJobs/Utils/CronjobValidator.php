@@ -56,7 +56,7 @@ final class CronjobValidator
 		'@weekly' => array('0', '0', '*', '*', '0'),
 		'@daily' => array('0', '0', '*', '*', '*'),
 		'@midnight' => array('0', '0', '*', '*', '*'),
-		'@hourly' => array('0', '*', '*', '*', '*'),
+		'@hourly' => array('0', '*', '*', '*', '*')
 	);
 
 	/**
@@ -91,7 +91,7 @@ final class CronjobValidator
 	 * @param string $dweek Day of week at which the cron job must be executed
 	 * @param string $user User under which cron job command must be executed
 	 * @param string $command Cron job command
-	 * @param string $type Cron job type
+	 * @param string $type Cron job type ( url, jaild or full )
 	 * @param int $minTimeInterval Minimum time interval ( in minutes ) between each cron job execution
 	 * @return void
 	 */
@@ -154,7 +154,7 @@ final class CronjobValidator
 	 * Validate a cron notification email
 	 *
 	 * @throws CronjobException if the email is not valid
-	 * @param string $email
+	 * @param string $email Email for cron notifications
 	 * @return void
 	 */
 	protected static function validateNotificationEmail($email)
