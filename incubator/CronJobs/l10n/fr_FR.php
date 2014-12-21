@@ -47,7 +47,7 @@ return array(
 	'Loading data...' => 'Chargement des données...',
 	'Add cron job' => 'Ajouter une tâche cron',
 	'Email' => 'Email',
-	'Email to which cron notifications must be sent if any. Leave blank to disable notifications.' => 'Email à laquelle les notifications provenant de cron doivent êtres envoyées. Laissez blanc pour désactiver les notifications.',
+	'Email to which cron notifications must be sent if any. Leave blank to disable notifications.' => 'Email à laquelle les notifications provenant de cron doivent êtres envoyées si besoin. Laissez blanc pour désactiver les notifications.',
 	'Minute' => 'Minute',
 	'Minute at which the cron job must be executed.' => 'Minute à laquelle la tâche cron doit être exécutée.',
 	'Hour' => 'Heure',
