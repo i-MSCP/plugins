@@ -516,7 +516,7 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for my $package (qw/libpam-chroot msmtp/) {
+	for my $package (qw/libpam-chroot makeJail msmtp/) {
 		my ($stdout, $stderr);
 		my $rs = execute(
 			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
