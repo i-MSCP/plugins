@@ -280,11 +280,7 @@ function addCronPermissions($cronPermissions)
 									INNER JOIN
 										admin ON(admin_id = cron_job_admin_id)
 									SET
-										cron_job_type = IF(
-											cron_job_type != 'url' && :cron_job_type = 'jailed',
-											:cron_job_type,
-											cron_job_type
-										),
+										cron_job_type = IF(cron_job_type != 'url', :cron_job_type, cron_job_type),
 										cron_job_status = :new_cron_job_status
 									WHERE
 										cron_job_admin_id = :cron_job_admin_id
