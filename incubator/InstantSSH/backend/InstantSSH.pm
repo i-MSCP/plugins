@@ -818,7 +818,7 @@ sub _checkRequirements
 		);
 		debug($stdout) if $stdout;
 		if($stdout ne 'installed') {
-			error("The $_ package is not installed on your system");
+			error("The $package package is not installed on your system");
 			$ret ||= 1;
 		}
 	}
@@ -860,7 +860,7 @@ sub _configurePamChroot
 			# Note: pam_motd lines must be moved below the pam_chroot declaration because we want read motd from jail
 			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd)\.so.*?\n//gm;
 
-			$fileContent .= "session required pam_chroot.so debug\n";
+			$fileContent .= "session required pam_chroot.so\n";
 			$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
 
 			# The pam_motd module shipped with libpam-modules versions oldest than 1.1.3-7 doesn't provide the
