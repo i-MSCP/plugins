@@ -70,7 +70,7 @@
 						</label>
 					</td>
 					<td>
-						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5" maxlength="10">
+						<input type="text" name="cron_permission_frequency" id="cron_permission_frequency" value="5" maxlength="5">
 					</td>
 				</tr>
 				<tr>
