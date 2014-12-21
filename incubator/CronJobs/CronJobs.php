@@ -59,12 +59,10 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAfterUninstallPlugin,
-
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
-
-				iMSCP_Events::onAfterChangeDomainStatus,
+				iMSCP_Events::onAfterChangeDomainStatus
 			),
 			$this
 		);
@@ -186,9 +184,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 
 	/**
 	 * onAfterChangeDomainStatus listener
-	 *
-	 * When a customer account is being activated, we schedule reactivation of cron feature
-	 * When a customer account is being deactivated, we schedule deactivation of cron feature
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -337,13 +332,13 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginName = $this->getName();
+		$pluginPath = PLUGINS_PATH . '/' . $this->getName();
 
 		return array(
-			'/admin/cronjobs_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cronjobs_permissions.php',
-			'/admin/cronjobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/cronjobs.php',
-			'/reseller/cronjobs_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/cronjobs_permissions.php',
-			'/client/cronjobs' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/cronjobs.php'
+			'/admin/cronjobs_permissions' => $pluginPath . '/frontend/admin/cronjobs_permissions.php',
+			'/admin/cronjobs' => $pluginPath . '/frontend/admin/cronjobs.php',
+			'/reseller/cronjobs_permissions' => $pluginPath . '/frontend/reseller/cronjobs_permissions.php',
+			'/client/cronjobs' => $pluginPath . '/frontend/client/cronjobs.php'
 		);
 	}
 
