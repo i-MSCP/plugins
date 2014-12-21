@@ -78,7 +78,7 @@ point of view.
  
 ### Jailed
 
-The jailed cron jobs allow to schedule commands which are run through the shell interpreter in a jailed environment.
+The jailed cron jobs allow to schedule Shell commands which are run through the Shell interpreter in a jailed environment.
 By default the plugin will create a jailed environment which provides:
 
 * GNU Wget
@@ -99,7 +99,7 @@ The jailed cron jobs doesn't apply to administrators.
 
 ### Full
 
-The full cron jobs are identical to the jailed cron jobs, excepted the fact that the commands are not run inside a
+The full cron jobs are identical to the jailed cron jobs, excepted the fact that the Shell commands are not run inside a
 jailed environment. Such cron jobs should be reserved to trusted users.
 
 ## Crontab files
