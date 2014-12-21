@@ -616,7 +616,7 @@ function getCronPermissionsList()
 				} elseif($columns[$i] == 'cron_permission_type') {
 					$row[$columns[$i]] = tr(ucfirst($data[$columns[$i]]), true);
 				} elseif($columns[$i] == 'cron_permission_max') {
-					$row[$columns[$i]] = ($data[$columns[$i]] == 0) ? tr('Unlimited', true) : $data[$columns[$i]] == 0;
+					$row[$columns[$i]] = ($data[$columns[$i]] == 0) ? tr('Unlimited', true) : $data[$columns[$i]];
 				} elseif($columns[$i] == 'cron_permission_frequency') {
 					$row[$columns[$i]] = tr(
 						array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]
