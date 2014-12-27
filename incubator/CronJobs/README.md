@@ -16,7 +16,7 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 
 ## Requirements
 
-* i-MSCP >= 1.1.21 ( plugin API >= 0.2.15 )
+* i-MSCP > 1.1.20 ( plugin API >= 0.2.15 )
 
 ### Requirements for jailed cron jobs support
 
