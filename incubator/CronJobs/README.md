@@ -36,7 +36,7 @@ You can install these packages by executing the following command:
 
 **Notes**
   - If support for jailed cron jobs is detected and a package is not installed on your system, an error will be throw
-  - The msmtp package is required to allow cron to send email notifications from the jailed environment.
+  - The msmtp package is required to allow cron to send email notifications from the jailed environment
 
 ## Installation
 
@@ -140,7 +140,7 @@ array values inside the new file.
 
 Feel free to post your language files in our forum for intergration in a later release.
 
-**Note:** File encoding must be UTF-8
+**Note:** File encoding must be UTF-8.
 
 ## Usage
 
