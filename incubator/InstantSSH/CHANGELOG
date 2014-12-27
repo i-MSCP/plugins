@@ -7,6 +7,8 @@ Version 3.1.1
 
 	Fixed: Missing groups command
 	Fixed: Wrong error handling
+	Fixed: Wrong variable in _checkRequirements() method ( backend )
+	Updated: Translation files
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 3.1.0
