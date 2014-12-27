@@ -175,5 +175,4 @@ If you do not want to contribute, you should not use that plugin.
 
 ## Author(s)
 
- * laurent declercq <l.declercq@nuxwin.com>
-
+ * Laurent Declercq <l.declercq@nuxwin.com>
