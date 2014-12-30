@@ -1,4 +1,4 @@
-# i-MSCP cronjobs plugin v1.0.0
+# i-MSCP cronjobs plugin v1.0.1
 
 ## Introduction
 

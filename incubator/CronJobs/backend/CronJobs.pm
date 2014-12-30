@@ -360,7 +360,10 @@ sub _init
 	# Load jail builder library if available
 	eval { local $SIG{'__DIE__'}; require InstantSSH::JailBuilder; };
 	unless($@) {
-		if(version->parse("v$InstantSSH::JailBuilder::VERSION") >= version->parse("v3.1.0")) {
+		if(
+			defined $InstantSSH::JailBuilder::VERSION &&
+			version->parse("v$InstantSSH::JailBuilder::VERSION") >= version->parse("v3.1.0")
+		) {
 			$self->{'config'}->{'jailed_cronjobs_support'} = 1;
 
 			for(qw/makejail_path makejail_confdir_path root_jail_dir/) {
