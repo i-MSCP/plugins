@@ -44,7 +44,7 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			if (
-				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<') ||
+				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<') ||
 				strtolower(iMSCP_Registry::get('config')->CodeName) == 'eagle'
 			) {
 				set_page_message(
