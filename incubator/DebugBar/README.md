@@ -1,46 +1,61 @@
-## i-MSCP DebugBar plugin v0.0.15
+# i-MSCP DebugBar plugin v0.0.16
 
-Plugin providing many debug information for i-MSCP.
+Plugin providing debug information for i-MSCP.
 
-### LICENSE
+# Introduction
 
-Copyright (C) 2010 - 2014 by Laurent Declercq <l.declercq@nuxwin.com>
+This plugin is a development helper for i-MSCP, which provides many debug information. The plugin comes with a set of
+components, each providing a particular set of debug information. A component can be or not an event listener that
+listens on one or more events throw in the application work flow.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
+Right now, the followings components are provided:
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ - Version: i-MSCP version, list of all PHP extensions available.
+ - Variables: Contents of $_GET, $_POST, $_COOKIE, $_FILES, $_SESSION and $_ENV variables.
+ - Timer: Timing information of current request, time spent in level script ; support custom timers. Also average, min and max time for requests.
+ - Files: Number and size of files included with complete list.
+ - Memory: Peak memory usage, memory usage of level scripts and the whole application ; support for custom memory markers.
+ - Database: Full listing of SQL queries and the time for each.
+ - Cache: Provide information about PHP opcode cache in use ( Experimental and not yet finished )
 
-See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
-
-### REQUIREMENTS
+## Requirements
 
 Plugin compatible with i-MSCP versions >= 1.1.0-rc4.7
 
-### INSTALLATION
+## Installation
 
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the DebugBar plugin archive
-	- Activate the plugin
+1. Login into the panel as admin and go to the plugin management interface
+2. Upload the plugin archive
+3. Activate the plugin
 
-### UPDATE
+## Update
 
-	- Backup your current plugins/DebugBar/config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the DebugBar plugin archive
-	- Restore your plugins/DebugBar/config.php file (check for any change)
-	- Update the plugin list through the plugin interface
+1. Backup the plugin configuration file
+2. Login into the panel as admin and go to the plugin management interface
+3. Deactivate the plugin
+4. Upload the plugin archive
+5. Restore the plugin configuration file ( Compare it with the new version first )
+6. Activate the plugin
 
-### CONFIGURATION
+## Configuration
 
 You can set the DebugBar components to use in the plugins/DebugBar/config.php file.
 
-### AUTHORS AND CONTRIBUTORS
+## License
 
- * Laurent Declercq <l.declercq@nuxwin.com> (Author)
+	Copyright (C) 2010-2015 by Laurent Declercq <l.declercq@nuxwin.com>
+	
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; version 2 of the License
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-**Thank you for using this plugin.**
+See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
+
+## Author
+
+ * Laurent Declercq <l.declercq@nuxwin.com> 

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2014 by Laurent Declercq
+ * Copyright (C) 2010-2015 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2015 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -33,6 +33,7 @@ return array(
 		'Timer',
 		'Memory',
 		'Files',
-		'Database'
+		'Database',
+		'Cache'
 	)
 );

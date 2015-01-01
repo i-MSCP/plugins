@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2014 by Laurent Declercq
+ * Copyright (C) 2010-2015 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,35 +20,14 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  DebugBar
- * @copyright   Copyright (C) 2010-2014 by Laurent Declercq
+ * @copyright   Copyright (C) 2010-2015 by Laurent Declercq
  * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
- * DebugBar Plugin.
- *
- * This plugin is a development helper for i-MSCP, which provides many debug information. The plugin comes with a set of
- * components, each providing a particular set of debug information.
- *
- * A component can be or not an event listener that listens on one or more events throw in the application work flow.
- *
- * For now, the DebugBar plugin come with the followings components:
- *
- *  - Version : i-MSCP version, list of all PHP extensions available.
- *  - Variables : Contents of $_GET, $_POST, $_COOKIE, $_FILES and $_SESSION and $_ENV variables.
- *  - Timer : Timing information of current request, time spent in level script ;
- *    support custom timers. Also average, min and max time for requests.
- *  - Files : Number and size of files included with complete list.
- *  - Memory : Peak memory usage, memory usage of Level scripts and the whole application ; support for custom memory
- *             markers.
- *  - Database : Full listing of SQL queries and the time for each.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  DebugBar
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
+ * Class iMSCP_Plugin_DebugBar
  */
 class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 {
@@ -259,7 +238,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
                 }
 
                 function iMSCPdebugPanel(name) {
-                    jQuery(".iMSCPdebug_panel").each(function(i){
+                    jQuery(".iMSCPdebug_panel").each(function(i) {
                         if(jQuery(this).css("display") == "block") {
                             jQuery(this).slideUp();
                         } else {
