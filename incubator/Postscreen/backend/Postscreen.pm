@@ -460,7 +460,7 @@ sub _createPostscreenAccessFile($$)
 
 =item _changeRoundcubeSmtpPort($action)
 
- Change the SMTP port in Roundcube config.inc.php from 25 to 587
+ Change the SMTP port in Roundcube main.inc.php/config.inc.php from 25 to 587
 
  Return int 0 on success, other on failure
 
@@ -470,7 +470,14 @@ sub _changeRoundcubeSmtpPort($$)
 {
 	my ($self, $action) = @_;
 
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
+	my $roundcubeMainIncFile;
+	if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
+		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
+	}
+	else {
+		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
+	}
+
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 
 	my $fileContent = $file->get();
