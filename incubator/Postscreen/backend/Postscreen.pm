@@ -37,6 +37,7 @@ use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
+use iMSCP::TemplateParser;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -487,9 +488,29 @@ sub _changeRoundcubeSmtpPort($$)
 	}
 
 	if($action eq 'add') {
-		$fileContent =~ s/=\s+25;/= 587;/sgm;
+		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
+			$fileContent =~ s/=\s+25;/= 587;/sgm;
+		}
+		else {
+			$fileContent .= "\n" .
+				"// BEGIN Plugin::Postscreen\n" .
+				"// SMTP port (default is 25; use 587 for STARTTLS or 465 for the\n" .
+				"// deprecated SSL over SMTP (aka SMTPS))\n" .
+				"\$config['smtp_port'] = 587;\n" .
+				"// END Plugin::Postscreen";
+		}
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/=\s+587;/= 25;/sgm;
+		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
+			$fileContent =~ s/=\s+587;/= 25;/sgm;
+		}
+		else {
+			$fileContent = replaceBloc(
+				"\n// BEGIN Plugin::Postscreen\n",
+				"// END Plugin::Postscreen",
+				'',
+				$fileContent
+			);
+		}
 	}
 
 	my $rs = $file->set($fileContent);
