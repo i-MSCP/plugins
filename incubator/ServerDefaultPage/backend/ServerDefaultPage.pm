@@ -33,7 +33,6 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Database;
-use iMSCP::TemplateParser;
 use iMSCP::Net;
 use Servers::httpd;
 use version;
