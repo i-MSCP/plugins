@@ -490,20 +490,19 @@ sub _changeRoundcubeSmtpPort($$)
 	if($action eq 'add') {
 		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
 			$fileContent =~ s/=\s+25;/= 587;/sgm;
-		}
-		else {
-			$fileContent .= "\n" .
-				"// BEGIN Plugin::Postscreen\n" .
-				"// SMTP port (default is 25; use 587 for STARTTLS or 465 for the\n" .
-				"// deprecated SSL over SMTP (aka SMTPS))\n" .
-				"\$config['smtp_port'] = 587;\n" .
-				"// END Plugin::Postscreen";
+		} else {
+			$fileContent .= <<EOF;
+// BEGIN Plugin::Postscreen
+// SMTP port (default is 25; use 587 for STARTTLS or 465 for the
+// deprecated SSL over SMTP (aka SMTPS))
+\$config['smtp_port'] = 587;
+// END Plugin::Postscreen
+EOF
 		}
 	} elsif($action eq 'remove') {
 		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
 			$fileContent =~ s/=\s+587;/= 25;/sgm;
-		}
-		else {
+		} else {
 			$fileContent = replaceBloc(
 				"\n// BEGIN Plugin::Postscreen\n",
 				"// END Plugin::Postscreen",
