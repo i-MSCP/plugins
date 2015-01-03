@@ -23,7 +23,7 @@ return array(
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '1.0.1',
 	'priority' => '10',
-	'date' => '2014-12-31',
+	'date' => '2014-01-03',
 	'name' => 'CronJobs',
 	'desc' => 'Plugin providing a cron time-based job scheduler for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:cronjobs'
