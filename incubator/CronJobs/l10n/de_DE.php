@@ -93,7 +93,7 @@ return array(
 		'%d Minute',
 		'%d Minuten' // Plural form
 	),
-	'Unlimited' => 'Unlimited',
+	'Unlimited' => 'Unbegrenzt',
 	'Admin / Settings / Cron Job Permissions' => 'Administrator / Einstellungen / Cron-Job-Berechtigungen',
 	'List of resellers which are allowed to give cron job permissions to their customers.' => 'Liste der Reseller, welche befugt sind, Ihren Kunden cron-Job-Berechtigungen zu geben.',
 	'Reseller name' => 'Resellername',
