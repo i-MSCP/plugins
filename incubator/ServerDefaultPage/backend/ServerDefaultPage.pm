@@ -267,8 +267,8 @@ sub _copyFolder()
 		'dirname' => $directoryDefaultDir
 	)->make(
 		{
-			'user' => $self->{'httpd'}->{'config'}->{'APACHE_USER'},
-			'group' => $self->{'httpd'}->{'config'}->{'APACHE_GROUP'},
+			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+			'group' => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
 			'mode' => '0750'
 		}
 	);
@@ -279,8 +279,8 @@ sub _copyFolder()
 	setRights(
 		$directoryDefaultDir,
 		{
-			'user' => $self->{'httpd'}->{'config'}->{'APACHE_USER'},
-			'group' => $self->{'httpd'}->{'config'}->{'APACHE_GROUP'},
+			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+			'group' => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
 			'dirmode' => '0750',
 			'filemode' => '0640',
 			'recursive' => 1
