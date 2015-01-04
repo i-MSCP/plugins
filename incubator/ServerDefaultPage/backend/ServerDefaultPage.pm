@@ -98,7 +98,7 @@ sub enable
 	for( @{$self->{'ipaddrs'}} ) {
 		push @$directives, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:80" : "[$_]:80";
 	}
-	my $rs = $self->_createConfig('ServerDefaultPage.conf', \@$directives);
+	my $rs = $self->_createConfig('00_ServerDefaultPage.conf', \@$directives);
 	return $rs if $rs;
 
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
@@ -107,10 +107,10 @@ sub enable
 			push @$directives, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:443" : "[$_]:443";
 		}
 
-		$rs = $self->_createConfig('ServerDefaultPage_ssl.conf', \@$directives);
+		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', \@$directives);
 		return $rs if $rs;
 	} else {
-		$rs = $self->_removeConfig('ServerDefaultPage_ssl.conf');
+		$rs = $self->_removeConfig('00_ServerDefaultPage_ssl.conf');
 		return $rs if $rs;
 	}
 
@@ -131,7 +131,7 @@ sub disable
 {
 	my $self = $_[0];
 
-	for('ServerDefaultPage.conf', 'ServerDefaultPage_ssl.conf') {
+	for('00_ServerDefaultPage.conf', '00_ServerDefaultPage_ssl.conf') {
 		my $rs = $self->_removeConfig($_);
 		return $rs if $rs;
 	}
@@ -196,7 +196,7 @@ sub _createConfig
 	my $ipMngr = iMSCP::Net->getInstance();
 
 	if( !defined @$directives || !@$directives ) {
-		my $port = ($vhostTplFile eq 'ServerDefaultPage.conf') ? 80 : 443;
+		my $port = ($vhostTplFile eq '00_ServerDefaultPage.conf') ? 80 : 443;
 		push @$directives, ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4') ? "$main::imscpConfig{'BASE_SERVER_IP'}:$port" : "[$main::imscpConfig{'BASE_SERVER_IP'}]:$port";
 	}
 
