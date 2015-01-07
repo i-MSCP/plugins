@@ -7,7 +7,7 @@
 =cut
 
 # i-MSCP ServerDefaultPage plugin
-# Copyright (C) 2014 by Ninos Ego <me@ninosego.de>
+# Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
