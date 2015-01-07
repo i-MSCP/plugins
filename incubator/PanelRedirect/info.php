@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PanelRedirect plugin
- * Copyright (C) 2014 by Ninos Ego <me@ninosego.de>
+ * Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
 	'version' => '1.0.2',
-	'date' => '2014-01-05',
+	'date' => '2014-01-07',
 	'name' => 'PanelRedirect',
 	'desc' => 'Plugin which redirects apache2 requests of the panel to nginx.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'

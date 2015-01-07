@@ -36,7 +36,6 @@ use iMSCP::File;
 use iMSCP::Database;
 use iMSCP::TemplateParser;
 use iMSCP::Net;
-use iMSCP::EventManager;
 use Servers::httpd;
 use JSON;
 
@@ -144,10 +143,9 @@ sub _init
 {
 	my $self = $_[0];
 
-	$self->{'eventManager'} = iMSCP::EventManager->getInstance();
-	$self->{'httpd'} = Servers::httpd->factory();
-
 	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
+		$self->{'httpd'} = Servers::httpd->factory();
+
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PanelRedirect'
 		);
@@ -216,7 +214,7 @@ sub _createConfig
 	$rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
 	return $rs if $rs;
 
-	$rs = $self->{'httpd'}->installConfFile($vhostTplFile, {
+	$self->{'httpd'}->installConfFile($vhostTplFile, {
 		destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
 	});
 }
