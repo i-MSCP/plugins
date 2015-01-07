@@ -159,16 +159,14 @@ sub _init
 {
 	my $self = $_[0];
 
-	$self->{'httpd'} = Servers::httpd->factory();
+	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
+		$self->{'httpd'} = Servers::httpd->factory();
 
-	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
-		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ServerDefaultPage'
 		);
 		unless(ref $rdata eq 'HASH') {
-			error($rdata);
-			return 1;
+			fatal($rdata);
 		}
 
 		$self->{'config'} = decode_json($rdata->{'ServerDefaultPage'}->{'plugin_config'});
@@ -214,7 +212,7 @@ sub _createConfig
 	my $rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
 	return $rs if $rs;
 
-	$rs = $self->{'httpd'}->installConfFile($vhostTplFile, {
+	$self->{'httpd'}->installConfFile($vhostTplFile, {
 		destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
 	});
 }
