@@ -22,7 +22,7 @@ return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
 	'version' => '1.0.1',
-	'date' => '2014-01-07',
+	'date' => '2014-01-09',
 	'name' => 'ServerDefaultPage',
 	'desc' => 'Plugin allowing to set a server default page.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:serverdefaultpage'

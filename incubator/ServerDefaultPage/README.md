@@ -1,10 +1,10 @@
-# ServerDefaultPage v1.0.1 plugin for i-MSCP
+# i-MSCP ServerDefaultPage plugin v1.0.2
 
 Plugin allowing to set a server default page.
 
 ## Introduction
 
-This plugin allows to set a server default page on i-MSCP.
+This plugin allows to set a server default page.
 
 ## Requirements
 

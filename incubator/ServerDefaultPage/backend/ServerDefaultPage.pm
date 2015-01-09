@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 =head1 NAME
 
  Plugin::ServerDefaultPage
@@ -58,10 +56,7 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = $_[0];
-
-	my $rs = $self->_copyFolder();
-	return $rs if $rs;
+	$_[0]->_copyFolder();
 }
 
 =item uninstall()
@@ -74,9 +69,7 @@ sub install
 
 sub uninstall
 {
-	my $self = $_[0];
-
-	$self->_removeFolder();
+	$_[0]->_removeFolder();
 }
 
 =item enable()
@@ -90,24 +83,28 @@ sub uninstall
 sub enable
 {
 	my $self = $_[0];
-	$self->_getIps();
-	
-	my $ipMngr = iMSCP::Net->getInstance();
 
-	my $directives;
-	for( @{$self->{'ipaddrs'}} ) {
-		push @$directives, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:80" : "[$_]:80";
-	}
-	my $rs = $self->_createConfig('00_ServerDefaultPage.conf', \@$directives);
+	my $rs = $self->_getIps();
 	return $rs if $rs;
 
+	my $ipMngr = iMSCP::Net->getInstance();
+
+	my $directives = [ ];
+	for( @{$self->{'ipaddrs'}} ) {
+		push @{$directives}, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:80" : "[$_]:80";
+	}
+
+	$rs = $self->_createConfig('00_ServerDefaultPage.conf', $directives);
+	return $rs if $rs;
+
+	$directives = [ ];
+
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		undef $directives;
 		for( @{$self->{'ssl_ipaddrs'}} ) {
-			push @$directives, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:443" : "[$_]:443";
+			push @{$directives}, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:443" : "[$_]:443";
 		}
 
-		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', \@$directives);
+		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
 		return $rs if $rs;
 	} else {
 		$rs = $self->_removeConfig('00_ServerDefaultPage_ssl.conf');
@@ -193,19 +190,17 @@ sub _createConfig
 
 	my $ipMngr = iMSCP::Net->getInstance();
 
-	if( !defined @$directives || !@$directives ) {
-		my $port = ($vhostTplFile eq '00_ServerDefaultPage.conf') ? 80 : 443;
-		push @$directives, ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4') ? "$main::imscpConfig{'BASE_SERVER_IP'}:$port" : "[$main::imscpConfig{'BASE_SERVER_IP'}]:$port";
-	}
-
 	$self->{'httpd'}->setData(
 		{
-			'ServerDefaultPage_Directives' => join(" ", @$directives),
+			'IPS_PORTS' => "@{$directives}",
 			'BASE_SERVER_IP' => ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4')
 				? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 			'APACHE_WWW_DIR' => $main::imscpConfig{'USER_WEB_DIR'},
 			'CONF_DIR' => $main::imscpConfig{'CONF_DIR'},
-			'BASE_SERVER_VHOST' => $main::imscpConfig{'BASE_SERVER_VHOST'}
+			'BASE_SERVER_VHOST' => $main::imscpConfig{'BASE_SERVER_VHOST'},
+			'AUTHZ_ALLOW_ALL' => (
+				version->parse("v$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('v2.4.0')
+			) ? 'Require all granted' : 'Allow from all',
 		}
 	);
 
@@ -245,9 +240,9 @@ sub _removeConfig
 
 =item _copyFolder()
 
- Copy the ServerDefaultPage folder.
+ Copy the ServerDefaultPage folder
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
@@ -255,14 +250,12 @@ sub _copyFolder()
 {
 	my $self = $_[0];
 
-	my $directoryRoot = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage";
-	my $directoryTemplates = "$directoryRoot/templates";
-	my $directoryDefaultDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
+	my $pluginDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage";
+	my $tplDir = "$pluginDir/templates";
+	my $defaultDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
 
-	my $defaultDir = iMSCP::Dir->new('dirname' => "$directoryTemplates/default");
-
-	iMSCP::Dir->new(
-		'dirname' => $directoryDefaultDir
+	my $rs = iMSCP::Dir->new(
+		dirname => $defaultDir
 	)->make(
 		{
 			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
@@ -270,12 +263,13 @@ sub _copyFolder()
 			'mode' => '0750'
 		}
 	);
+	return $rs if $rs;
 
-	my $rs = $defaultDir->rcopy($directoryDefaultDir);
+	$rs = iMSCP::Dir->new( dirname => "$tplDir/default" )->rcopy($defaultDir);
 	return $rs if $rs;
 
 	setRights(
-		$directoryDefaultDir,
+		$defaultDir,
 		{
 			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
 			'group' => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
@@ -288,22 +282,22 @@ sub _copyFolder()
 
 =item _removeFolder()
 
- Remove the ServerDefaultPage folder.
+ Remove the ServerDefaultPage folder
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
 sub _removeFolder()
 {
-	iMSCP::Dir->new('dirname' => "$main::imscpConfig{'USER_WEB_DIR'}/default")->remove();
+	iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->remove();
 }
 
 =item _getIps()
 
  Get all the used httpd Ips
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
@@ -340,8 +334,7 @@ sub _getIps()
 		return 1;
 	}
 
-	# The Base server IP must always be here because even if not used by any domain,
-	# the panel use it
+	# The Base server IP must always be here because even if not used by any domain, the panel use it
 	$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
 
 	@{$self->{'ipaddrs'}} = keys %{$rdata};
@@ -410,8 +403,7 @@ sub _getIps()
 	}
 
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		# The Base server IP must always be here because even if not used by any domain,
-        # the panel use it
+		# The Base server IP must always be here because even if not used by any domain, the panel use it
 		$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
 	}
 
@@ -429,3 +421,4 @@ sub _getIps()
 =cut
 
 1;
+__END__
