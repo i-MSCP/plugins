@@ -34,7 +34,7 @@ return array(
 	
 	// Archive plugin adds a new button to the Roundcube toolbar
 	// to move messages to an (user selectable) archive folder.
-	'archive_plugin' => 'yes', // YES to enable (default), NO to disable
+	'archive_plugin' => 'no', // YES to enable (default), NO to disable
 
 	// Calendar plugin is a full calendar for Roundcube.
 	'calendar_plugin' => 'yes', // YES to enable (default), NO to disable
@@ -57,7 +57,8 @@ return array(
 
 	// Uses the managesieve protocol and allows the user to manage his sieve mail rules.
 	// A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
-	'managesieve_plugin' => 'yes', // YES to enable (default), NO to disable
+	// This plugin only works with po server dovecot.
+	'managesieve_plugin' => 'no', // YES to enable (default), NO to disable
 
 	// The name of the script which will be used when there's no user script
 	'managesieve_script_name' => 'managesieve', // default: managesieve

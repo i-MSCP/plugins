@@ -34,8 +34,8 @@ return array(
 		'Sascha Bay'
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '0.0.9',
-	'date' => '2014-08-02',
+	'version' => '1.0.0',
+	'date' => '2015-01-09',
 	'name' => 'RoundcubePlugins',
 	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'

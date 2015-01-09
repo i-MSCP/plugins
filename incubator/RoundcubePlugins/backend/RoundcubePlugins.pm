@@ -67,6 +67,9 @@ sub install
 	my $rs = $self->_checkVersion();
 	return $rs if $rs;
 
+	$rs = $self->_checkActivatedPlugins();
+	return $rs if $rs;
+	
 	$rs = $self->_installPlugins();
 	return $rs if $rs;
 	
@@ -122,11 +125,16 @@ sub enable
 
 	my $rs = $self->_checkVersion();
 	return $rs if $rs;
+	
+	$rs = $self->_checkActivatedPlugins();
+	return $rs if $rs;
 
 	$rs = $self->_setRoundcubePlugin('add');
 	return $rs if $rs;
 	
-	$self->_restartDaemonDovecot();
+	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+		$self->_restartDaemonDovecot();
+	}
 }
 
 =item disable()
@@ -147,13 +155,15 @@ sub disable
 	$rs = $self->_unregisterCronjobPop3fetcher();
 	return $rs if $rs;
 
-	$rs = $self->_modifyDovecotConfig('archive', 'remove');
-	return $rs if $rs;
+	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+		$rs = $self->_modifyDovecotConfig('archive', 'remove');
+		return $rs if $rs;
 
-	$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
-	return $rs if $rs;
+		$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
+		return $rs if $rs;
 
-	$self->_restartDaemonDovecot();
+		$self->_restartDaemonDovecot();
+	}
 }
 
 =item uninstall()
@@ -334,7 +344,12 @@ sub _setRoundcubePlugin($$)
 	
 	my $rs = 0;
 
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
+	my $roundcubeMainIncFile;
+	if($main::imscpConfig{'CodeName'} eq 'Eagle') {
+		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
+	} else {
+		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
+	}
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 
 	my $fileContent = $file->get();
@@ -353,11 +368,15 @@ sub _setRoundcubePlugin($$)
 		if($self->{'config'}->{'archive_plugin'} eq 'yes') {
 			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'archive'" : ", 'archive'";
 			
-			$rs = $self->_modifyDovecotConfig('archive', 'add');
-			return $rs if $rs;
+			if($main::imscpConfig{'PO_SERVER'} ne 'dovecot') {
+				$rs = $self->_modifyDovecotConfig('archive', 'add');
+				return $rs if $rs;
+			}
 		} else {
-			$rs = $self->_modifyDovecotConfig('archive', 'remove');
-			return $rs if $rs;
+			if($main::imscpConfig{'PO_SERVER'} ne 'dovecot') {
+				$rs = $self->_modifyDovecotConfig('archive', 'remove');
+				return $rs if $rs;
+			}
 		}
 		if($self->{'config'}->{'calendar_plugin'} eq 'yes') {
 			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'libcalendaring', 'calendar'" : ", 'libcalendaring', 'calendar'";
@@ -411,7 +430,11 @@ sub _setRoundcubePlugin($$)
 		$fileContent =~ s/^\n# Begin Plugin::RoundcubePlugins.*Ending Plugin::RoundcubePlugins\n//sgm;
 		
 		$roundcubePluginConfig = "\n# Begin Plugin::RoundcubePlugins\n";
-		$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $roundcubePlugins . "));\n";
+		if($main::imscpConfig{'CodeName'} eq 'Eagle') {
+			$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $roundcubePlugins . "));\n";
+		} else {
+			$roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(" . $roundcubePlugins . "));\n";
+		}
 		$roundcubePluginConfig .= "# Ending Plugin::RoundcubePlugins\n";
 		
 		$fileContent .= $roundcubePluginConfig;
@@ -667,6 +690,28 @@ sub _registerCronjobPop3fetcher
 sub _unregisterCronjobPop3fetcher
 {
 	Servers::cron->factory()->deleteTask({ 'TASKID' => 'Plugin::RoundcubePlugins::pop3fetcher' });
+}
+
+=item _checkActivatedPlugins()
+
+ Check the activated plugins which are only compatible with dovecot.
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _checkActivatedPlugins
+{
+	my $self = $_[0];
+
+	if($main::imscpConfig{'PO_SERVER'} ne 'dovecot') {
+		if($self->{'config'}->{'managesieve_plugin'} eq 'yes') {
+			error("The plugin 'managesieve_plugin' is not compatible with your PO server: $main::imscpConfig{'PO_SERVER'} !");
+			return 1;
+		}
+	}
+
+	0;
 }
 
 =item _checkVersion()

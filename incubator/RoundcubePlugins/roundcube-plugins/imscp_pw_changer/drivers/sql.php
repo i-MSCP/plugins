@@ -27,7 +27,7 @@
 
 function password_save($passwd){
 	$rcmail = rcmail::get_instance();
-	$sql = "UPDATE `mail_users` SET `mail_pass` = %p, `status` = 'tochange' WHERE `mail_addr` = %u LIMIT 1";
+	$sql = "UPDATE `mail_users` SET `mail_pass` = %p WHERE `mail_addr` = %u LIMIT 1";
 
 	if ($dsn = $rcmail->config->get('password_db_dsn')) {
 	// #1486067: enable new_link option
@@ -50,89 +50,10 @@ function password_save($passwd){
 
 	if (!$db->is_error()) {
 		if ($db->affected_rows($res) == 1) {
-			send_request();
 			return PASSWORD_SUCCESS; // This is the good case: 1 row updated
 		}
 	}
 
 	return PASSWORD_ERROR;
-}
-function read_line(&$socket){
-	$line = '';
-
-	do {
-		$ch = socket_read($socket, 1);
-		$line = $line . $ch;
-	} while ($ch != "\r" && $ch != "\n");
-
-	return $line;
-}
-
-function send_request(){
-	$version = "1.0.4";
-
-	//$code = 999;
-
-	@$socket = socket_create(AF_INET, SOCK_STREAM, 0);
-	if ($socket < 0) {
-		$errno = "socket_create() failed.\n";
-		return $errno;
-	}
-
-	@$result = socket_connect($socket, '127.0.0.1', 9876);
-	if ($result == false) {
-		$errno = "socket_connect() failed.\n";
-		return $errno;
-	}
-
-	// read one line with welcome string
-	$out = read_line($socket);
-
-	list($code) = explode(' ', $out);
-	if ($code == 999) {
-		return $out;
-	}
-
-	// send hello query
-	$query = "helo  $version\r\n";
-	socket_write($socket, $query, strlen($query));
-
-	// read one line with helo answer
-	$out = read_line($socket);
-
-	list($code) = explode(' ', $out);
-	if ($code == 999) {
-		return $out;
-	}
-
-	// send reg check query
-	$query = "execute query\r\n";
-	socket_write($socket, $query, strlen($query));
-	// read one line key replay
-	$execute_reply = read_line($socket);
-
-	list($code) = explode(' ', $execute_reply);
-	if ($code == 999) {
-		return $out;
-	}
-
-	// send quit query
-	$quit_query = "bye\r\n";
-	socket_write($socket, $quit_query, strlen($quit_query));
-
-	// read quit answer
-	$quit_reply = read_line($socket);
-
-	list($code) = explode(' ', $quit_reply);
-
-	if ($code == 999) {
-		return $out;
-	}
-
-	list($answer) = explode(' ', $execute_reply);
-
-	socket_close($socket);
-
-	return $answer;
 }
 ?>
