@@ -21,7 +21,7 @@
 return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
-	'version' => '1.0.1',
+	'version' => '1.0.2',
 	'date' => '2014-01-09',
 	'name' => 'ServerDefaultPage',
 	'desc' => 'Plugin allowing to set a server default page.',
