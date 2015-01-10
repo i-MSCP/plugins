@@ -25,9 +25,8 @@ You can install these packages by running the following commands:
 1. Download the monitorix package from http://www.monitorix.org/downloads.html
 2. Install the package by running the following command:
 
-
-	dpkg -i monitorix*.deb
-	apt-get install -f
+	# dpkg -i monitorix*.deb
+	# apt-get install -f
 
 ## Installation
 
