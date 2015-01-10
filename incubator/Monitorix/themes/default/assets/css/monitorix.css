@@ -1,0 +1,50 @@
+.monitorix_wrapper img:hover {
+    opacity:0.6;
+}
+
+.monitorix-modal {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    top: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.monitorix-modal .monitorix-content {
+    background: #fff;
+    width: 895px;
+    margin: 150px auto;
+    text-align: center;
+    padding: 25px 20px 20px 20px;
+    -webkit-box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    position: relative;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    display: none; /*for jQuery fadein effect */
+}
+
+.monitorix-modal .monitorix-content img {
+    max-width: 895px;
+    max-height: 367px;
+}
+
+span.monitorix-close {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    position: absolute;
+    top: 5px;
+    right: 40px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-weight:bold;
+}
+
+span.monitorix-close:hover {
+    opacity: 1;
+}

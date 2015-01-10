@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,19 +20,36 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Monitorix
- * @copyright   2010-2014 by i-MSCP Team
+ * @copyright   2010-2015 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
+ * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'graph_color' => 'white', // choose between black or white
+	// Monitorix binary path ( default: /usr/bin/monitorix )
+	'bin_path' => '/usr/bin/monitorix',
 
-	'graph_width' => '450', // set the width for the graphic how they appears in adminpanel (proportional to 895 in px)
-	'graph_height' => '185', // set the height for the graphic how they appears in adminpanel (proportional to 367 in px)
+	// Path to monitorix CGI script ( default: /var/lib/monitorix/www/cgi/monitorix.cgi )
+	'cgi_script_path' => '/var/lib/monitorix/www/cgi/monitorix.cgi',
 
-	'graph_enabled' => array( // set which graph should be generated. This will modify the /etc/monitorix.conf
+	// Path to monitorix configuration directory
+	'confdir_path' => '/etc/monitorix',
+
+	// Color for graph background ( default: white )
+	// Possible value: black or white
+	'graph_color' => 'white',
+
+	// Graphs width, proportional to 895 px ( default: 450 )
+	'graph_width' => '450',
+
+	// Graphs height, proportional to 367 px ( default: 185 )
+	'graph_height' => '185',
+
+	// Graphs to enable/disable
+	// Be aware that some services can require further configuration ( see http://www.monitorix.org/documentation.html )
+	'graph_enabled' => array(
 		'system' => 'y',
 		'kern' => 'y',
 		'proc' => 'y',
@@ -42,13 +59,13 @@ return array(
 		'disk' => 'n',
 		'fs' => 'y',
 		'net' => 'y',
-		'netstat' => 'n',
+		'netstat' => 'y',
 		'serv' => 'y',
 		'mail' => 'n',
 		'port' => 'y',
 		'user' => 'y',
 		'ftp' => 'n',
-		'apache' => 'y',
+		'apache' => 'n',
 		'nginx' => 'n',
 		'lighttpd' => 'n',
 		'mysql' => 'n',
@@ -64,49 +81,17 @@ return array(
 		'memcached' => 'n',
 		'apcupsd' => 'n',
 		'wowza' => 'n',
-		'int' => 'y',
+		'int' => 'n'
 	),
 
-	'graph_title' => array( // set the graphic titles here
-		'system' => 'System load average and usage',
-		'kern' => 'Global kernel usage',
-		'proc' => 'Kernel usage per processor',
-		'hptemp' => 'HP ProLiant System Health',
-		'lmsens' => 'LM-Sensors and GPU temperatures',
-		'nvidia' => 'NVIDIA temperatures and usage',
-		'disk' => 'Disk drive temperatures and health',
-		'fs' => 'Filesystem usage and I/O activity',
-		'net' => 'Network traffic and usage',
-		'netstat' => 'Netstat statistics',
-		'serv' => 'System services demand',
-		'mail' => 'Mail statistics',
-		'port' => 'Network port traffic',
-		'user' => 'Users using the system',
-		'ftp' => 'FTP statistics',
-		'apache' => 'Apache statistics',
-		'nginx' => 'Nginx statistics',
-		'lighttpd' => 'Lighttpd statistics',
-		'mysql' => 'MySQL statistics',
-		'squid' => 'Squid statistics',
-		'nfss' => 'NFS server statistics',
-		'nfsc' => 'NFS client statistics',
-		'bind' => 'BIND statistics',
-		'ntp' => 'NTP statistics',
-		'fail2ban' => 'Fail2ban statistics',
-		'icecast' => 'Icecast Streaming Media Server',
-		'raspberrypi' => 'Raspberry Pi sensor statistics',
-		'phpapc' => 'Alternative PHP Cache statistics',
-		'memcached' => 'Memcached statistics',
-		'apcupsd' => 'APC UPS statistics',
-		'wowza' => 'Wowza Media Server',
-		'int' => 'Devices interrupt activity',
-	),
+	// Enable or disable Monitorix cronjob ( default: true )
+	// If disabled, the graphs will not be updated
+	'cronjob_enabled' => true,
 
-	'cronjob_enabled' => true, // TRUE to enable Monitorix plugin cronjob (default), FALSE to disable it
-
+	// Timedate at which monitorix cronjob must be run ( default: Every 30 minutes )
 	// See man CRONTAB(5) for allowed values
-	'cronjob_config' => array(
-		'minute' => '*/5',
+	'cronjob_timedate' => array(
+		'minute' => '*/30',
 		'hour' => '*',
 		'day' => '*',
 		'month' => '*',

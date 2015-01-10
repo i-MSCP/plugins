@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,18 +20,22 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  Monitorix
- * @copyright   2010-2014 by i-MSCP Team
+ * @copyright   2010-2015 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
+ * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '1.0.0',
-	'date' => '2014-07-20',
+	'author' => array(
+		'Sascha Bay',
+		'Laurent Declercq'
+	),
+	'email' => 'plugins@i-mscp.net',
+	'version' => '1.1.0',
+	'date' => '2015-01-10',
 	'name' => 'Monitorix',
-	'desc' => 'Plugin providing lightweight system monitoring tool for Linux/UNIX servers',
+	'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
 );

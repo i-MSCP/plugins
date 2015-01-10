@@ -26,6 +26,15 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
+namespace Monitorix;
+
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
+
 /***********************************************************************************************************************
  * Functions
  */
@@ -33,17 +42,17 @@
 /**
  * Generate page
  *
- * @param $tpl iMSCP_pTemplate
- * @param iMSCP_Plugin_Manager $pluginManager
+ * @param $tpl TemplateEngine
+ * @param PluginManager $pluginManager
  * @param string $graphName
  * @return void
  */
 function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
+	/** @var $cfg \iMSCP_Config_Handler_File */
+	$cfg = Registry::get('config');
 
-	$hostname = $cfg->SERVER_HOSTNAME;
+	$hostname = $cfg['SERVER_HOSTNAME'];
 
 	if (($plugin = $pluginManager->loadPlugin('Monitorix', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
@@ -53,7 +62,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 				$tpl->assign(
 					array(
 						'TR_MONITORIX_SELECT_VALUE' => '_' . $key,
-						'TR_MONITORIX_SELECT_NAME' => $pluginConfig['graph_title'][$key],
+						'TR_MONITORIX_SELECT_NAME' => tr($key),
 						'MONITORIXGRAPH_WIDTH' => $pluginConfig['graph_width'],
 						'MONITORIXGRAPH_HEIGHT' => $pluginConfig['graph_height'],
 						'MONITORIX_NAME_SELECTED' => ($graphName != '' && $graphName === $key) ? $cfg->HTML_SELECTED : '',
@@ -67,7 +76,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 		$tpl->assign(
 			'TR_MONITORIXGRAPH',
 			($graphName != '')
-				? tr("Monitorix - %s - %s", $hostname, $pluginConfig['graph_title'][$graphName])
+				? tr("Monitorix - %s - %s", $hostname, tr($graphName, true))
 				: tr("Monitorix - %s", $hostname)
 		);
 	} else {
@@ -83,22 +92,22 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 /**
  * Generate graphic list
  *
- * @param iMSCP_pTemplate $tpl
- * @param iMSCP_Plugin_Manager $pluginManager
+ * @param TemplateEngine $tpl
+ * @param PluginManager $pluginManager
  * @param $graphName
  * @param $showWhen
  */
 function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 {
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
+	/** @var $cfg \iMSCP_Config_Handler_File */
+	$cfg = Registry::get('config');
 
-	$graphDirectory = $pluginManager->getPluginDirectory() . '/Monitorix/tmp_graph';
+	$graphDirectory = $pluginManager->getPluginDirectory() . '/Monitorix/themes/default/assets/images/graphs';
 	$monitorixGraphics = array();
 
 	if ($dirHandle = @opendir($graphDirectory)) {
 		while (($file = @readdir($dirHandle)) !== FALSE) {
-			if (!is_dir($file) && preg_match("/^$graphName\d+[a-y]?[z]\.\d$showWhen\.png/", $file)) {
+			if (!is_dir($file) && preg_match("/^$graphName\\d+[a-y]?[z]\\.\\d$showWhen\\.png/", $file)) {
 				array_push($monitorixGraphics, $file);
 			}
 		}
@@ -109,7 +118,7 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 			sort($monitorixGraphics);
 
 			foreach ($monitorixGraphics as $graphValue) {
-				$tpl->assign('MONITORIXGRAPH', 'graph=' . pathinfo($graphValue, PATHINFO_FILENAME));
+				$tpl->assign('MONITORIXGRAPH', pathinfo($graphValue, PATHINFO_FILENAME) . '.png');
 				$tpl->parse('MONITORIX_GRAPH_ITEM', '.monitorix_graph_item');
 			}
 
@@ -118,7 +127,7 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 			$tpl->assign(
 				array(
 					'MONITORIXGRAPH_SELECTED' => '',
-					'MONITORIXGRAPHIC_ERROR' => tr("No graphics for your selection available!")
+					'MONITORIXGRAPHIC_ERROR' => tr("No graph for your selection is available")
 				)
 			);
 		}
@@ -146,25 +155,25 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
  * Main
  */
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 
 check_login('admin');
 
-if (iMSCP_Registry::isRegistered('pluginManager')) {
-	/** @var iMSCP_Plugin_Manager $pluginManager */
-	$pluginManager = iMSCP_Registry::get('pluginManager');
+if (Registry::isRegistered('pluginManager')) {
+	/** @var PLuginManager $pluginManager */
+	$pluginManager = Registry::get('pluginManager');
 } else {
-	throw new iMSCP_Plugin_Exception('An unexpected error occured');
+	throw new PluginException('An unexpected error occured');
 }
 
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
+/** @var $cfg \iMSCP_Config_Handler_File */
+$cfg = Registry::get('config');
 
-$tpl = new iMSCP_pTemplate();
+$tpl = new TemplateEngine();
 $tpl->define_dynamic(
 	array(
 		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/Monitorix/frontend/monitorix.tpl',
+		'page' => '../../plugins/Monitorix/themes/default/view/admin/monitorix.tpl',
 		'page_message' => 'layout',
 		'monitorix_item' => 'page',
 		'monitorix_graph_item' => 'page'
@@ -201,14 +210,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'go_show') {
 	);
 }
 
+if(Registry::get('config')->DEBUG) {
+	$assetVersion = time();
+} else {
+	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('CronJobs');
+	$assetVersion = strtotime($pluginInfo['date']);
+}
+
 $tpl->assign(
 	array(
 		'TR_PAGE_TITLE' => tr('Statistics / Monitorix'),
-		'THEME_CHARSET' => tr('encoding'),
 		'ISP_LOGO' => layout_getUserLogo(),
+		'MONITORIX_ASSET_VERSION' => tohtml($assetVersion),
 		'MONITORIXGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
 		'MONITORIXGRAPHIC_NOT_SELECTED' => tr("No monitorix graph selected."),
-		'TR_MONITORIX_SELECT_NAME_NONE' => tr('Select the graph'),
+		'TR_MONITORIX_SELECT_NAME_NONE' => tr('Select a graph'),
 		'M_DAY' => tr('Day'),
 		'M_WEEK' => tr('Week'),
 		'M_MONTH' => tr('Month'),
@@ -223,6 +239,6 @@ generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-iMSCP_Events_Manager::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
+EventManager::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();
