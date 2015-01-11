@@ -142,6 +142,7 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 
 	$tpl->assign(
 		array(
+			'M_HOUR_SELECTED' => ($showWhen === 'hour') ? $cfg->HTML_SELECTED : '',
 			'M_DAY_SELECTED' => ($showWhen === 'day') ? $cfg->HTML_SELECTED : '',
 			'M_WEEK_SELECTED' => ($showWhen === 'week') ? $cfg->HTML_SELECTED : '',
 			'M_MONTH_SELECTED' => ($showWhen === 'month') ? $cfg->HTML_SELECTED : '',
