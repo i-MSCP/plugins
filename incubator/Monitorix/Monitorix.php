@@ -39,13 +39,6 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	 */
 	public function init()
 	{
-		$pluginName = $this->getName();
-
-		/** @var Zend_Loader_StandardAutoloader $loader */
-		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
-		unset($loader);
-
 		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
 	}
 
