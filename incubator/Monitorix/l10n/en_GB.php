@@ -32,8 +32,9 @@
 return array(
 	'Monitorix' => 'Monitorix',
 	'Statistics / Monitorix' => 'Statistics / Monitorix',
-	"The requested graph doesn't exist." => "The requested graph doesn't exists.",
+	"The requested graph doesn't exists." => "The requested graph doesn't exists.",
 	'Select a graph' => 'Select a graph',
+	'Hour' => 'Hour',
 	'Day' => 'Day',
 	'Week' => 'Week',
 	'Month' => 'Month',

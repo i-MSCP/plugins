@@ -71,7 +71,7 @@ sub install
 	);
 	return $rs if $rs;
 
-	my $file = iMSCP::File->new(filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf");
+	my $file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" );
 
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
@@ -82,9 +82,7 @@ sub install
 	require iMSCP::TemplateParser;
 	iMSCP::TemplateParser->import();
 
-	$fileContent = process(
-		{ PLUGINS_DIR => $main::imscpConfig{'PLUGINS_DIR'}}, $fileContent
-	);
+	$fileContent = process( { PLUGINS_DIR => $main::imscpConfig{'PLUGINS_DIR'} }, $fileContent );
 
 	$rs = $file->set($fileContent);
 	return $rs if $rs;
@@ -139,17 +137,17 @@ sub update
 	version->import();
 
 	if(version->parse("v$fromVersion") < version->parse('v1.1.0') ) {
-		unless(-f $self->{'config'}->{'cgi_script_path'}) {
-			error("File $self->{'config'}->{'cgi_script_path'} not found");
+		unless(-f $self->{'config'}->{'cgi_path'}) {
+			error("File $self->{'config'}->{'cgi_path'} not found");
 			return 1;
 		}
 
 		# Cancel changes made by previous versions in the Monitorix CGI script
 
-		my $file = iMSCP::File->new( filename => $self->{'config'}->{'cgi_script_path'} );
+		my $file = iMSCP::File->new( filename => $self->{'config'}->{'cgi_path'} );
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $self->{'config'}->{'cgi_script_path'}");
+			error("Unable to read $self->{'config'}->{'cgi_path'}");
 			return 1;
 		}
 
@@ -216,20 +214,23 @@ sub buildGraphs
 
 	if(defined $self->{'config'}->{'graph_enabled'}) {
 		my $prevDir = getcwd();
+		my $newDir = dirname($self->{'config'}->{'cgi_path'});
 
-		unless(chdir(dirname($self->{'config'}->{'cgi_script_path'}))) {
-			error("Unable to change directory to $self->{'config'}->{'cgi_script_path'}: $!");
+		unless(chdir($newDir)) {
+			error("Unable to change directory to $newDir: $!");
 			return 1;
 		}
 
-		my $graphColor = (defined $self->{'config'}->{'graph_color'}) ? $self->{'config'}->{'graph_color'} : 'white';
+		my $graphColor = (
+			defined $self->{'config'}->{'graph_color'} && $self->{'config'}->{'graph_color'} ~~ [ 'black', 'white' ]
+		) ? $self->{'config'}->{'graph_color'} : 'white';
 
 		for my $graph(keys %{$self->{'config'}->{'graph_enabled'}}) {
-			if($self->{'config'}->{'graph_enabled'}->{$graph} eq 'y') {
-				for my $when('1day', '1week', '1month', '1year') {
+			if(lc($self->{'config'}->{'graph_enabled'}->{$graph}) eq 'y') {
+				for my $when('1hour', '1day', '1week', '1month', '1year') {
 					my @cmd = (
 						$main::imscpConfig{'CMD_PERL'},
-						$self->{'config'}->{'cgi_script_path'},
+						$self->{'config'}->{'cgi_path'},
 						'mode=localhost',
 						'graph=' . escapeShell('_' . $graph . '1'),
 						'when=' . escapeShell($when),
@@ -238,6 +239,7 @@ sub buildGraphs
 					);
 					my ($stdout, $stderr);
 					my $rs = execute("@cmd", \$stdout, \$stderr);
+					debug($stdout) if $stdout;
 					error($stderr) if $stderr && $rs;
 					return $rs if $rs;
 				}
@@ -261,7 +263,7 @@ sub buildGraphs
 			for(@files) {
 				my $file = iMSCP::File->new( filename => "$graphsDir/$_" );
 
-				if($_ !~ /^.*\d+[a-y]?[z]\.\d.*\.png/) { # Remove useless files, only zoom graphics are needed
+				if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) { # Remove useless files, only zoom graphics are needed
 					my $rs = $file->delFile();
 					return $rs if $rs;
 				} else {
@@ -296,7 +298,7 @@ sub _init()
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ ['install', 'uninstall', 'update', 'enable', 'disable', 'change', 'cron']) {
+	if($self->{'action'} ~~ [ 'install', 'uninstall', 'update', 'enable', 'disable', 'change', 'cron' ]) {
 		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Monitorix'
 		);
@@ -309,7 +311,7 @@ sub _init()
 			$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'})
 		}
 
-		for(qw/bin_path cgi_script_path confdir_path cronjob_timedate/) {
+		for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
 			die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
 		}
 	}
@@ -359,7 +361,7 @@ sub _enableGraphs
 	$file->save();
 }
 
-=item _setupApacheConfig()
+=item _setupApacheConfig($action)
 
  Enable or disable Apache config for Monitorix
 
@@ -372,28 +374,28 @@ sub _setupApacheConfig
 {
 	my ($self, $action) = @_;
 
-	my $rs = 0;
-
 	my $conffile = '/etc/apache2/conf.d/monitorix.conf';
 	my $backupConffile = '/etc/apache2/conf.d/monitorix.old';
 
 	if($action eq 'enable') {
 		if(-f $backupConffile) {
-			$rs = iMSCP::File->new( filename => $backupConffile )->moveFile($conffile );
+			my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($conffile );
 			return $rs if $rs;
 
 			$rs = $self->_scheduleApacheRestart();
+			return $rs if $rs;
 		}
 	} elsif($action eq 'disable') {
 		if(-f $conffile) {
-			$rs = iMSCP::File->new( filename => $conffile )->moveFile($backupConffile);
+			my $rs = iMSCP::File->new( filename => $conffile )->moveFile($backupConffile);
 			return $rs if $rs;
 
 			$rs = $self->_scheduleApacheRestart();
+			return $rs if $rs;
 		}
 	}
 
-	$rs;
+	0;
 }
 
 =item _restartMonitorix()
@@ -444,13 +446,13 @@ sub _addCronjob
 	my $self = $_[0];
 
 	if($self->{'config'}->{'cronjob_enabled'}) {
-		my $filePath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Monitorix/cronjob/cronjob.pl';
+		my $scriptPath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Monitorix/cronjob/cronjob.pl';
 
-		my $file = iMSCP::File->new( filename => $filePath );
+		my $file = iMSCP::File->new( filename => $scriptPath );
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $fileContent");
+			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
 
@@ -468,6 +470,7 @@ sub _addCronjob
 		return $rs if $rs;
 
 		require Servers::cron;
+
 		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'PLUGINS:Monitorix',
@@ -476,7 +479,7 @@ sub _addCronjob
 				'DAY' => $self->{'config'}->{'cronjob_timedate'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_timedate'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_timedate'}->{'dweek'},
-				'COMMAND' => "umask 027; perl $filePath >/dev/null 2>&1"
+				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $scriptPath >/dev/null 2>&1"
 			}
 		);
 	} else {
@@ -512,12 +515,12 @@ sub _checkRequirements
 	my $self = $_[0];
 
 	unless(-x $self->{'config'}->{'bin_path'}) {
-		error("$self->{'config'}->{'bin_path'} doesn't exists or is not executable");
+		error("$self->{'config'}->{'bin_path'} doesn't exists or is not an executable");
 		return 1;
 	}
 
-	unless(-f $self->{'config'}->{'cgi_script_path'}) {
-		error("$self->{'config'}->{'cgi_script_path'} doesn't exists");
+	unless(-f $self->{'config'}->{'cgi_path'}) {
+		error("$self->{'config'}->{'cgi_path'} doesn't exists");
 		return 1;
 	}
 

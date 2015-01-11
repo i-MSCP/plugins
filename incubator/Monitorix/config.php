@@ -32,7 +32,7 @@ return array(
 	'bin_path' => '/usr/bin/monitorix',
 
 	// Path to monitorix CGI script ( default: /var/lib/monitorix/www/cgi/monitorix.cgi )
-	'cgi_script_path' => '/var/lib/monitorix/www/cgi/monitorix.cgi',
+	'cgi_path' => '/var/lib/monitorix/www/cgi/monitorix.cgi',
 
 	// Path to monitorix configuration directory
 	'confdir_path' => '/etc/monitorix',

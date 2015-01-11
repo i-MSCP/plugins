@@ -48,7 +48,7 @@ You can install these packages by running the following commands:
 
 ## Configuration
 
- See [Configuration file](../Monitorix/config.php)
+See [Configuration file](../Monitorix/config.php)
  
 ## Translation
 
@@ -75,7 +75,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ```
 
-See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
+See [LICENSE](LICENSE)
 
 ## Authors and contributors
 

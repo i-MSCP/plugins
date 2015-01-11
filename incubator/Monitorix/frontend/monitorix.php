@@ -186,7 +186,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'go_show') {
 	if ($graphName == '') {
 		$tpl->assign(
 			array(
-				'M_DAY_SELECTED' => $cfg->HTML_SELECTED,
+				'M_HOUR_SELECTED' => $cfg->HTML_SELECTED,
+				'M_DAY_SELECTED' => '',
 				'M_WEEK_SELECTED' => '',
 				'M_MONTH_SELECTED' => '',
 				'M_YEAR_SELECTED' => '',
@@ -200,7 +201,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'go_show') {
 } else {
 	$tpl->assign(
 		array(
-			'M_DAY_SELECTED' => $cfg->HTML_SELECTED,
+			'M_HOUR_SELECTED' => $cfg->HTML_SELECTED,
+			'M_DAY_SELECTED' => '',
 			'M_WEEK_SELECTED' => '',
 			'M_MONTH_SELECTED' => '',
 			'M_YEAR_SELECTED' => '',
@@ -225,6 +227,7 @@ $tpl->assign(
 		'MONITORIXGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
 		'MONITORIXGRAPHIC_NOT_SELECTED' => tr("No monitorix graph selected."),
 		'TR_MONITORIX_SELECT_NAME_NONE' => tr('Select a graph'),
+		'M_HOUR' => tr('Hour'),
 		'M_DAY' => tr('Day'),
 		'M_WEEK' => tr('Week'),
 		'M_MONTH' => tr('Month'),

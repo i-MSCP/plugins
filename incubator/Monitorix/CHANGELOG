@@ -6,7 +6,7 @@ Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Dedicated monitorix configuration file ( Good practice )
-	Added: bin_path, cgi_script_path and confdir_path configuration parameters ( Good practice )
+	Added: bin_path, cgi_path and confdir_path configuration parameters ( Good practice )
 	Added: Localization support
 	Changed: Monitorix cronjob is now run every 30 minutes
 	Changed: The default monitorix configuration file is now left untouched ( Good practice )

@@ -10,6 +10,7 @@
 	</label>
 	<label>
 		<select name="show_when">
+			<option value="hour" {M_HOUR_SELECTED}>{M_HOUR}</option>
 			<option value="day" {M_DAY_SELECTED}>{M_DAY}</option>
 			<option value="week" {M_WEEK_SELECTED}>{M_WEEK}</option>
 			<option value="month" {M_MONTH_SELECTED}>{M_MONTH}</option>
