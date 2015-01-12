@@ -39,8 +39,15 @@ return array(
 	 * Don't change anything, if you don't know what you are doing!
 	 * 
 	 */
+	
+	// This value will be added to the snmpd_milters in the main.cf (inet:localhost:32767 [TCP connection], unix:/clamav/clamav-milter.ctl [Unix socket connection])
+	// Attention: If you sare using the unix socket the path is not equal with the MilterSocket value! The part "/var/spool/postfix" is not needed here
+	'PostfixMilterSocket' => 'inet:localhost:32767',
 
-	'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
+	// The following values will be added to /etc/clamav/clamav-milter.conf
+	
+	// This value must match with the Postfix milter socket (inet:32767@localhost [TCP connection], /var/spool/postfix/clamav/clamav-milter.ctl[Unix socket connection])
+	'MilterSocket' => 'inet:32767@localhost',
 
 	'FixStaleSocket' => 'true',
 
@@ -79,8 +86,12 @@ return array(
 
 	'LogClean' => 'Off',
 
+	'LogRotate' => 'true',
+	
 	// Messages larger than this value won't be scanned.
 	'MaxFileSize' => '25M',
+	
+	'SupportMultipleRecipients' => 'false',
 
 	'TemporaryDirectory' => '/tmp',
 
