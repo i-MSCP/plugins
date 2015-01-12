@@ -363,3 +363,4 @@ sub _schedulePostfixRestart
 =cut
 
 1;
+__END__
