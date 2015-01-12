@@ -1,10 +1,64 @@
-## i-MSCP ClamAV plugin v1.0.0
+# i-MSCP ClamAV plugin v1.0.0
 
-Plugin allows to use ClamAV with i-MSCP.
+Plugin which allows to use ClamAV with i-MSCP.
 
-### LICENSE
+## Requirements
 
-Copyright (C) Sascha Bay <info@space2place.de> and Rene Schuster <mail@reneschuster.de>
+* i-MSCP versions >= 1.1.0
+
+### Debian / Ubuntu packages
+
+* clamav
+* clamav-base
+* clamav-daemon
+* clamav-freshclam
+* clamav-milter
+
+You can install these packages by running the following commands:
+
+```
+# aptitude update
+# aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
+# service clamav-freshclam stop
+# freshclam
+# service clamav-freshclam start
+# service clamav-daemon restart
+```
+
+## Installation
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Install the plugin
+
+## Update
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
+
+## Configuration
+
+See [Configuration file](../ClamAV/config.php)
+
+## Testing
+
+**Eicar-Test-Signature**
+
+Send a mail to yourself from another account ( e.g. gmail or any other freemailer ) with the following content:
+
+```
+X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+```
+
+**Note:** that this should be reproduced in one line, without whitespace or line breaks.
+
+### License
+
+```
+Copyright (C) 2013-2015 Sascha Bay <info@space2place.de> and Rene Schuster <mail@reneschuster.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -14,94 +68,12 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+```
 
-See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
+See [LICENSE](LICENSE)
 
-### REQUIREMENTS
+### Authors and contributors
 
-	- i-MSCP versions >= 1.1.0
-	- See installation section for required software packages.
-	
-### Existing milter configurations
-
-	This plugin will not check for an existing milter configuration in the Postfix main.cf file.
-	If you need to add an extra milter, please ask in our forum!
-
-### INSTALLATION
-
-**1. Install the needed Debian / Ubuntu packages**
-
-Installation of clamav packages:
-
-	# aptitude update
-	# aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
-	
-Stop the clamav-freshclam daemon if it is running:
-
-	# service clamav-freshclam stop
-	
-Update the virus database:
-
-	# freshclam
-	
-Start the clamav-freshclam daemon:
-
-	# service clamav-freshclam start
-	
-Restart the clamav-daemon:
-
-	# service clamav-daemon restart
-	
-**2. Get the plugin from Plugin Store**
-
-http://i-mscp.net/filebase/index.php/Filebase/
-	
-**3. Plugin upload and installation**
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the ClamAV plugin archive
-	- Install the plugin
-
-### UPDATE
-
-**1. Get the plugin from Plugin Store**
-
-http://i-mscp.net/filebase/index.php/Filebase/
-
-**2. Backup your current plugin config**
-
-	- plugins/ClamAV/config.php
-	
-**3. Plugin upload and update**
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the ClamAV plugin archive
-	- Update the plugin list
-
-### CONFIGURATION
-
-For the different configuration options please check the plugin config file.
-
-	# plugins/ClamAV/config.php
-	
-After you made your config changes, don't forget to update the plugin list.
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Update the plugin list
-	
-### TESTING
-
-**Eicar-Test-Signature**
-
-Send yourself a mail from another account (e.g. gmail or any other freemailer) with the following content in the message:
-	
-	X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
-	
-Note that this should be reproduced in one line, without whitespace or line breaks.
-	
-### AUTHORS
-
- - Sascha Bay <info@space2place.de>
- - Rene Schuster <mail@reneschuster.de>
-
-**Thank you for using this plugin.**
+* Laurent Declercq <l.declercq@nuxwin.com> ( Contributor )
+* Rene Schuster <mail@reneschuster.de> ( Author )
+* Sascha Bay <info@space2place.de> ( Author )

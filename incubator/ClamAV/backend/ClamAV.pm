@@ -1,7 +1,5 @@
-#!/usr/bin/perl
-
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2014 by internet Multi Server Control Panel
+# Copyright (C) 2010-2015 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,6 +22,7 @@
 # @copyright   Rene Schuster <mail@reneschuster.de>
 # @author      Sascha Bay <info@space2place.de>
 # @author      Rene Schuster <mail@reneschuster.de>
+# @contributor Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -32,11 +31,13 @@ package Plugin::ClamAV;
 use strict;
 use warnings;
 
-use iMSCP::Database;
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
+use iMSCP::Database;
 use iMSCP::Dir;
-use iMSCP::Execute;
 use iMSCP::File;
+use iMSCP::Execute;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -61,18 +62,18 @@ sub install
 {
 	my $self = $_[0];
 
-	if(! -x '/usr/sbin/clamd') {
-		error('Unable to find clamav daemon. Please, install the clamav and clamav-daemon packages first.');
+	unless(-x '/usr/sbin/clamd') {
+		error('Unable to find clamav daemon.');
 		return 1;
 	}
 
-	if(! -x '/usr/bin/freshclam') {
-		error('Unable to find freshclam daemon. Please, install the clamav-freshclam package first.');
+	unless(-x '/usr/bin/freshclam') {
+		error('Unable to find freshclam daemon.');
 		return 1;
 	}
 
-	if(! -x '/usr/sbin/clamav-milter') {
-		error('Unable to find clamav-milter daemon. Please, install the clamav-milter package first.');
+	unless(-x '/usr/sbin/clamav-milter') {
+		error('Unable to find clamav-milter daemon.');
 		return 1;
 	}
 
@@ -93,8 +94,8 @@ sub change
 
 	my $rs = $self->_modifyClamavMilterSystemConfig('add');
 	return $rs if $rs;
-	
-	$self->_restartDaemon('clamav-milter', 'restart');
+
+	$self->_restartClamavMilter();
 }
 
 =item update()
@@ -124,8 +125,8 @@ sub enable
 
 	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
-	
-	$self->_restartDaemonPostfix();
+
+	$self->_schedulePostfixRestart();
 }
 
 =item disable()
@@ -143,7 +144,7 @@ sub disable
 	my $rs = $self->_modifyPostfixMainConfig('remove');
 	return $rs if $rs;
 
-	$self->_restartDaemonPostfix();
+	$self->_schedulePostfixRestart();
 }
 
 =item uninstall()
@@ -161,7 +162,7 @@ sub uninstall
 	my $rs = $self->_modifyClamavMilterSystemConfig('remove');
 	return $rs if $rs;
 
-	$self->_restartDaemon('clamav-milter', 'restart');
+	$self->_restartClamavMilter();
 }
 
 =back
@@ -185,8 +186,7 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 
-	if($self->{'action'} ~~ ['install', 'uninstall', 'change', 'update', 'enable', 'disable']) {
-		# Loading plugin configuration
+	if($self->{'action'} ~~ [ 'install', 'uninstall', 'change', 'update', 'enable', 'disable' ]) {
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
 		);
@@ -209,116 +209,60 @@ sub _init
 
 =cut
 
-sub _modifyClamavMilterSystemConfig($$)
+sub _modifyClamavMilterSystemConfig
 {
 	my ($self, $action) = @_;
 
-	my $file = iMSCP::File->new('filename' => '/etc/clamav/clamav-milter.conf');
+	if(-f '/etc/clamav/clamav-milter.conf') {
+		my $file = iMSCP::File->new( filename => '/etc/clamav/clamav-milter.conf' );
 
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read /etc/clamav/clamav-milter.conf");
+		my $fileContent = $file->get();
+		unless (defined $fileContent) {
+			error("Unable to read $file->{'filename'}");
+			return 1;
+		}
+
+		my $baseRegexp = '((?:MilterSocket|FixStaleSocket|User|AllowSupplementaryGroups|ReadTimeout|Foreground|PidFile|' .
+			'ClamdSocket|OnClean|OnInfected|OnFail|AddHeader|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
+			'LogClean|LogRotate|MaxFileSize|SupportMultipleRecipients|TemporaryDirectory|LogFile|LogTime|' .
+			'LogFileUnlock|LogFileMaxSize|MilterSocketGroup|MilterSocketMode).*)';
+
+		if($action eq 'add') {
+			$fileContent =~ s/^$baseRegexp/#$1/gm;
+
+			my $config = "\n# Begin Plugin::ClamAV\n";
+
+			for my $paramName(
+				qw /
+					MilterSocket FixStaleSocket User AllowSupplementaryGroups ReadTimeout Foreground PidFile ClamdSocket
+					OnClean OnInfected OnFail AddHeader LogSyslog LogFacility LogVerbose LogInfected LogClean MaxFileSize
+					TemporaryDirectory LogFile LogTime LogFileUnlock LogFileMaxSize MilterSocketGroup MilterSocketMode
+					RejectMsg
+				/
+			) {
+				$config .= "$paramName $self->{'config'}->{$paramName}\n";
+			}
+
+			$config .= "# Ending Plugin::ClamAV\n";
+
+			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
+				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/sgm;
+			} else {
+				$fileContent .= "$config";
+			}
+		} elsif($action eq 'remove') {
+			$fileContent =~ s/^#$baseRegexp/$1/gm;
+			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sm;
+		}
+
+		my $rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$file->save();
+	} else {
+		error('File /etc/clamav/clamav-milter.conf not found');
 		return 1;
 	}
-
-	if($action eq 'add') {
-		$fileContent =~ s/^(MilterSocket.*)/#$1/gm;
-		$fileContent =~ s/^(FixStaleSocket.*)/#$1/gm;
-		$fileContent =~ s/^(User.*)/#$1/gm;
-		$fileContent =~ s/^(AllowSupplementaryGroups.*)/#$1/gm;
-		$fileContent =~ s/^(ReadTimeout.*)/#$1/gm;
-		$fileContent =~ s/^(Foreground.*)/#$1/gm;
-		$fileContent =~ s/^(PidFile.*)/#$1/gm;
-		$fileContent =~ s/^(ClamdSocket.*)/#$1/gm;
-		$fileContent =~ s/^(OnClean.*)/#$1/gm;
-		$fileContent =~ s/^(OnInfected.*)/#$1/gm;
-		$fileContent =~ s/^(OnFail.*)/#$1/gm;
-		$fileContent =~ s/^(AddHeader.*)/#$1/gm;
-		$fileContent =~ s/^(LogSyslog.*)/#$1/gm;
-		$fileContent =~ s/^(LogFacility.*)/#$1/gm;
-		$fileContent =~ s/^(LogVerbose.*)/#$1/gm;
-		$fileContent =~ s/^(LogInfected.*)/#$1/gm;
-		$fileContent =~ s/^(LogClean.*)/#$1/gm;
-		$fileContent =~ s/^(LogRotate.*)/#$1/gm;
-		$fileContent =~ s/^(MaxFileSize.*)/#$1/gm;
-		$fileContent =~ s/^(SupportMultipleRecipients.*)/#$1/gm;
-		$fileContent =~ s/^(TemporaryDirectory.*)/#$1/gm;
-		$fileContent =~ s/^(LogFile.*)/#$1/gm;
-		$fileContent =~ s/^(LogTime.*)/#$1/gm;
-		$fileContent =~ s/^(LogFileUnlock.*)/#$1/gm;
-		$fileContent =~ s/^(LogFileMaxSize.*)/#$1/gm;
-		$fileContent =~ s/^(MilterSocketGroup.*)/#$1/gm;
-		$fileContent =~ s/^(MilterSocketMode.*)/#$1/gm;
-
-		my $clamavMilterSystemConfig = "\n# Begin Plugin::ClamAV\n";
-		$clamavMilterSystemConfig .= "MilterSocket " . $self->{'config'}->{'MilterSocket'} ."\n";
-		$clamavMilterSystemConfig .= "FixStaleSocket " . $self->{'config'}->{'FixStaleSocket'} ."\n";
-		$clamavMilterSystemConfig .= "User " . $self->{'config'}->{'User'} ."\n";
-		$clamavMilterSystemConfig .= "AllowSupplementaryGroups " . $self->{'config'}->{'AllowSupplementaryGroups'} ."\n";
-		$clamavMilterSystemConfig .= "ReadTimeout " . $self->{'config'}->{'ReadTimeout'} ."\n";
-		$clamavMilterSystemConfig .= "Foreground " . $self->{'config'}->{'Foreground'} ."\n";
-		$clamavMilterSystemConfig .= "PidFile " . $self->{'config'}->{'PidFile'} ."\n";
-		$clamavMilterSystemConfig .= "ClamdSocket " . $self->{'config'}->{'ClamdSocket'} ."\n";
-		$clamavMilterSystemConfig .= "OnClean " . $self->{'config'}->{'OnClean'} ."\n";
-		$clamavMilterSystemConfig .= "OnInfected " . $self->{'config'}->{'OnInfected'} ."\n";
-		$clamavMilterSystemConfig .= "OnFail " . $self->{'config'}->{'OnFail'} ."\n";
-		$clamavMilterSystemConfig .= "AddHeader " . $self->{'config'}->{'AddHeader'} ."\n";
-		$clamavMilterSystemConfig .= "LogSyslog " . $self->{'config'}->{'LogSyslog'} ."\n";
-		$clamavMilterSystemConfig .= "LogFacility " . $self->{'config'}->{'LogFacility'} ."\n";
-		$clamavMilterSystemConfig .= "LogVerbose " . $self->{'config'}->{'LogVerbose'} ."\n";
-		$clamavMilterSystemConfig .= "LogInfected " . $self->{'config'}->{'LogInfected'} ."\n";
-		$clamavMilterSystemConfig .= "LogClean " . $self->{'config'}->{'LogClean'} ."\n";
-		$clamavMilterSystemConfig .= "MaxFileSize " . $self->{'config'}->{'MaxFileSize'} ."\n";
-		$clamavMilterSystemConfig .= "TemporaryDirectory " . $self->{'config'}->{'TemporaryDirectory'} ."\n";
-		$clamavMilterSystemConfig .= "LogFile " . $self->{'config'}->{'LogFile'} ."\n";
-		$clamavMilterSystemConfig .= "LogTime " . $self->{'config'}->{'LogTime'} ."\n";
-		$clamavMilterSystemConfig .= "LogFileUnlock " . $self->{'config'}->{'LogFileUnlock'} ."\n";
-		$clamavMilterSystemConfig .= "LogFileMaxSize " . $self->{'config'}->{'LogFileMaxSize'} ."\n";
-		$clamavMilterSystemConfig .= "MilterSocketGroup " . $self->{'config'}->{'MilterSocketGroup'} ."\n";
-		$clamavMilterSystemConfig .= "MilterSocketMode " . $self->{'config'}->{'MilterSocketMode'} ."\n";
-		$clamavMilterSystemConfig .= "RejectMsg " . $self->{'config'}->{'RejectMsg'} ."\n";
-		$clamavMilterSystemConfig .= "# Ending Plugin::ClamAV\n";
-
-		if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
-			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$clamavMilterSystemConfig/sgm;
-		} else {
-			$fileContent .= "$clamavMilterSystemConfig";
-		}
-	} elsif($action eq 'remove') {
-		$fileContent =~ s/^(#)(MilterSocket.*)/$2/gm;
-		$fileContent =~ s/^(#)(FixStaleSocket.*)/$2/gm;
-		$fileContent =~ s/^(#)(User.*)/$2/gm;
-		$fileContent =~ s/^(#)(AllowSupplementaryGroups.*)/$2/gm;
-		$fileContent =~ s/^(#)(ReadTimeout.*)/$2/gm;
-		$fileContent =~ s/^(#)(Foreground.*)/$2/gm;
-		$fileContent =~ s/^(#)(PidFile.*)/$2/gm;
-		$fileContent =~ s/^(#)(ClamdSocket.*)/$2/gm;
-		$fileContent =~ s/^(#)(OnClean.*)/$2/gm;
-		$fileContent =~ s/^(#)(OnInfected.*)/$2/gm;
-		$fileContent =~ s/^(#)(OnFail.*)/$2/gm;
-		$fileContent =~ s/^(#)(AddHeader.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogSyslog.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogFacility.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogVerbose.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogInfected.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogClean.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogRotate.*)/$2/gm;
-		$fileContent =~ s/^(#)(MaxFileSize.*)/$2/gm;
-		$fileContent =~ s/^(#)(SupportMultipleRecipients.*)/$2/gm;
-		$fileContent =~ s/^(#)(TemporaryDirectory.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogFile.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogTime.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogFileUnlock.*)/$2/gm;
-		$fileContent =~ s/^(#)(LogFileMaxSize.*)/$2/gm;
-		$fileContent =~ s/^(#)(MilterSocketGroup.*)/$2/gm;
-		$fileContent =~ s/^(#)(MilterSocketMode.*)/$2/gm;
-		$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sgm;
-	}
-
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
-
-	$file->save();
 }
 
 =item _modifyPostfixMainConfig($action)
@@ -329,51 +273,40 @@ sub _modifyClamavMilterSystemConfig($$)
 
 =cut
 
-sub _modifyPostfixMainConfig($$)
+sub _modifyPostfixMainConfig
 {
 	my ($self, $action) = @_;
 
-	my ($rs, $stdout, $stderr);
-	
-	$rs = execute('postconf smtpd_milters', \$stdout, \$stderr);
+	my ($stdout, $stderr);
+	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
-	
-	my $smtpdMiltersOutput = $stdout;
-	
-	$rs = execute('postconf non_smtpd_milters', \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-	
-	my $nonSmtpdMiltersOutput = $stdout;
+
+	# Extract postconf values
+	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
 
 	if($action eq 'add') {
-		#Set milter_default_action to accept
-		$rs = execute('postconf -e "milter_default_action = accept"', \$stdout, \$stderr);
+		my @postconf = (
+			# milter_default_action
+			'milter_default_action=accept',
+
+			# smtpd_milters
+			($postconfValues[0] !~ /$self->{'config'}->{'PostfixMilterSocket'}/)
+				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $self->{'config'}->{'PostfixMilterSocket'}") : '',
+
+			# non_smtpd_milters
+			($postconfValues[1] !~ /\$smtpd_milters/)
+				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] \$smtpd_milters") : ''
+		);
+
+		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
-		
-		#Set smtpd_milters values
-		$rs = execute('postconf -e "' . $smtpdMiltersOutput . ' ' . $self->{'config'}->{'PostfixMilterSocket'} . '"', \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
-		
-		#Set non_smtpd_milters value if not exist
-		if($nonSmtpdMiltersOutput !~ /\$smtpd_milters/) {
-			$rs = execute(sprintf('postconf -e "%s \$smtpd_milters"', $nonSmtpdMiltersOutput), \$stdout, \$stderr);
-			#$rs = execute('postconf -e "non_smtpd_milters = \$smtpd_milters"', \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			return $rs if $rs;
-		}
-			
 	} elsif($action eq 'remove') {
-		$smtpdMiltersOutput =~ s/\s?($self->{'config'}->{'PostfixMilterSocket'})//g;
-		$rs = execute('postconf -e "' . $smtpdMiltersOutput . '"', \$stdout, \$stderr);
+		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//;
+		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -382,37 +315,38 @@ sub _modifyPostfixMainConfig($$)
 	0;
 }
 
-=item _restartDaemon($daemon, $action)
+=item _restartClamavMilter()
 
- Restart the daemon
+ Restart a ClamAV Milter
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _restartDaemon($$$)
+sub _restartClamavMilter
 {
-	my ($self, $daemon, $action) = @_;
+	my $self = $_[0];
 
 	my ($stdout, $stderr);
-	my $rs = execute("umask 022; service $daemon $action", \$stdout, \$stderr);
+	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} clamav-milter restart", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
 	$rs;
 }
 
-=item _restartDaemonPostfix()
+=item _schedulePostfixRestart()
 
- Restart the postfix daemon
+ Schedule restart of Postfix
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _restartDaemonPostfix
+sub _schedulePostfixRestart
 {
 	require Servers::mta;
+
 	Servers::mta->factory()->{'restart'} = 'yes';
 
 	0;
@@ -420,10 +354,11 @@ sub _restartDaemonPostfix
 
 =back
 
-=head1 AUTHORS
+=head1 AUTHORS AND CONTRIBUTORS
 
- Sascha Bay <info@space2place.de>
+ Laurent Declercq <l.declercq@nuxwin.com>
  Rene Schuster <mail@reneschuster.de>
+ Sascha Bay <info@space2place.de>
 
 =cut
 

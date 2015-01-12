@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,14 +29,7 @@
  */
 
 /**
- * ClamAV Plugin
- *
- * This plugin allows to use ClamAV with i-MSCP.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  ClamAV
- * @author      Sascha Bay <info@space2place.de>
+ * Class iMSCP_Plugin_ClamAV
  */
 class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 {
@@ -57,12 +50,12 @@ class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
-				
+
 				$event->stopPropagation();
 			}
 		}
