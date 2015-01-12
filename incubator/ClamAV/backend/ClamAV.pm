@@ -248,7 +248,7 @@ sub _modifyClamavMilterSystemConfig
 			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sm) {
 				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/sm;
 			} else {
-				$fileContent .= "$config";
+				$fileContent .= $config;
 			}
 		} elsif($action eq 'remove') {
 			$fileContent =~ s/^#$baseRegexp/$1/gm;
