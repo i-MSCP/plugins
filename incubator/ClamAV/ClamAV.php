@@ -24,6 +24,7 @@
  * @copyright   Rene Schuster <mail@reneschuster.de>
  * @author      Sascha Bay <info@space2place.de>
  * @author      Rene Schuster <mail@reneschuster.de>
+ * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */

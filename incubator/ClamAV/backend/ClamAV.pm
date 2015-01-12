@@ -245,8 +245,8 @@ sub _modifyClamavMilterSystemConfig
 
 			$config .= "# Ending Plugin::ClamAV\n";
 
-			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sgm) {
-				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/sgm;
+			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sm) {
+				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/sm;
 			} else {
 				$fileContent .= "$config";
 			}
