@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2014 by internet Multi Server Control Panel
+# Copyright (C) 2010-2015 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -292,7 +292,7 @@ sub _init
 	# Force plugin manager to handle retval
 	$self->{'FORCE_RETVAL'} = 'yes';
 
-    if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
+    if($self->{'action'} ~~ [ 'install', 'uninstall', 'change', 'update', 'enable', 'disable' ]) {
 		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'OpenDKIM'
@@ -816,83 +816,46 @@ sub _modifyPostfixMainConfig($$)
 {
 	my ($self, $action) = @_;
 
-	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
-
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $file->{'filename'}");
-		return 1;
-	}
-
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
+	
+	my $openDkimMilterSocket = ($self->{'config'}->{'opendkim_port'} =~ /\d{4,5}/ && $self->{'config'}->{'opendkim_port'} <= 65535)
+		? 'inet:localhost:' . $self->{'config'}->{'opendkim_port'}
+		: 'inet:localhost:12345';
+
+	# Extract postconf values
+	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
 
 	if($action eq 'add') {
-		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		my @miltersValues = split(' ', $1);
+		
 
-		my $postfixOpendkimConfig;
+		my @postconf = (
+			# milter_default_action
+			'milter_default_action=accept',
 
-		if(scalar @miltersValues >= 1) {
-			$fileContent =~ s/^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
+			# smtpd_milters
+			($postconfValues[0] !~ /$openDkimMilterSocket/)
+				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $openDkimMilterSocket") : '',
 
-			# Check the port is numeric and has min. 4 and max. 5 digits
-			if($self->{'config'}->{'opendkim_port'} =~ /\d{4,5}/ && $self->{'config'}->{'opendkim_port'} <= 65535) {
-				$postfixOpendkimConfig = "\t# Begin Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "\tinet:localhost:" . $self->{'config'}->{'opendkim_port'} ."\n";
-				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
-			} else {
-				$postfixOpendkimConfig = "\t# Begin Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "\tinet:localhost:12345\n";
-				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
-			}
-
-			$fileContent =~ s/^(non_smtpd_milters.*)/$postfixOpendkimConfig$1/gm;
-		} else {
-			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
-
-			# Check the port is numeric and has min. 4 and max. 5 digits
-			if($self->{'config'}->{'opendkim_port'} =~ /\d{4,5}/ && $self->{'config'}->{'opendkim_port'} <= 65535) {
-				$postfixOpendkimConfig = "\n# Begin Plugins::i-MSCP\n";
-				$postfixOpendkimConfig .= "milter_default_action = accept\n";
-				$postfixOpendkimConfig .= "smtpd_milters = \n";
-				$postfixOpendkimConfig .= "\t# Begin Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "\tinet:localhost:" . $self->{'config'}->{'opendkim_port'} ."\n";
-				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-				$postfixOpendkimConfig .= "# Ending Plugins::i-MSCP\n";
-			} else {
-				$postfixOpendkimConfig = "\n# Begin Plugins::i-MSCP\n";
-				$postfixOpendkimConfig .= "milter_default_action = accept\n";
-				$postfixOpendkimConfig .= "smtpd_milters = \n";
-				$postfixOpendkimConfig .= "\t# Begin Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "\tinet:localhost:12345\n";
-				$postfixOpendkimConfig .= "\t# Ending Plugin::OpenDKIM\n";
-				$postfixOpendkimConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-				$postfixOpendkimConfig .= "# Ending Plugins::i-MSCP\n";
-			}
-
-			$fileContent .= "$postfixOpendkimConfig";
-		}
+			# non_smtpd_milters
+			($postconfValues[1] !~ /\$smtpd_milters/)
+				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] \$smtpd_milters") : ''
+		);
+		
+		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		my @miltersValues = split(' ', $1);
-
-		if(scalar @miltersValues > 1) {
-			$fileContent =~ s/^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n//sgm;
-		}
-		elsif($fileContent =~ /^\t# Begin Plugin::OpenDKIM.*Ending Plugin::OpenDKIM\n/sgm) {
-			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
-		}
+		$postconfValues[0] =~ s/\s*$openDkimMilterSocket//;
+		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
 	}
-
-	$rs = $file->set($fileContent);
-	return $rs if $rs;
-
-	$file->save();
 }
 
 =item _createOpendkimFolder()

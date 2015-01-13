@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,11 @@
  */
 
 return array(
+	/**
+	 * Warning: Don't change anything, if you don't know what you are doing.
+	 * Be aware that when changing a the port of the Postfix smtpd_milter for OpenDKIM require to rerun the i-MSCP setup
+	 * script.
+	 */
 	// Port for the OpenDKIM daemon (don't use ports lower than 1000 and greater than 65535)
 	'opendkim_port' => '12345',
 

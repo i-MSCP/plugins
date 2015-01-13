@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,16 @@
  */
 class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 {
+	/**
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+	}
+	
 	/**
 	 * Register event listeners
 	 *
@@ -86,7 +96,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception(tr('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -114,8 +124,9 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
+			$this->clearTranslations();
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
 	}
 
@@ -130,6 +141,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('down');
+			$this->clearTranslations();
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
 		}
@@ -386,7 +398,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.12', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -463,5 +475,20 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	{
 		$dbConfig = iMSCP_Registry::get('dbConfig');
 		unset($dbConfig['PORT_OPENDKIM']);
+	}
+	
+	/**
+	 * Clear translations if any
+	 *
+	 * @return void
+	 */
+	protected function clearTranslations()
+	{
+		/** @var Zend_Translate $translator */
+		$translator = iMSCP_Registry::get('translator');
+
+		if($translator->hasCache()) {
+			$translator->clearCache($this->getName());
+		}
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -87,7 +87,7 @@ function opendkim_generatePage($tpl)
 				array(
 					'DOMAIN_NAME' => decode_idna($row['domain_name']),
 					'DOMAIN_KEY' => ($row['domain_text'])
-						? tohtml($row['domain_text']) : tr('Generation in progress...'),
+						? tohtml($row['domain_text']) : tr('Generation in progress.'),
 					'OPENDKIM_ID' => $row['opendkim_id'],
 					'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
 					'KEY_STATUS' => translate_dmn_status($row['opendkim_status']),
@@ -119,7 +119,7 @@ if (iMSCP_Plugin_OpenDKIM::customerHasOpenDKIM($_SESSION['user_id'])) {
 	$tpl->define_dynamic(
 		array(
 			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/OpenDKIM/frontend/client/opendkim.tpl',
+			'page' => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.tpl',
 			'page_message' => 'layout',
 			'customer_list' => 'page',
 			'domainkey_item' => 'customer_list'

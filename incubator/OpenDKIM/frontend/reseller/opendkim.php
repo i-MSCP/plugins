@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,7 +91,7 @@ function opendkim_activate($customerId)
 
 			send_request();
 
-			set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds...'), 'success');
+			set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds.'), 'success');
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 			throw $e;
@@ -279,7 +279,7 @@ function opendkim_generatePage($tpl)
 							'STATUS_ICON' => $statusIcon,
 							'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
 							'DOMAIN_KEY' => ($row2['domain_text'])
-								? tohtml($row2['domain_text']) : tr('Generation in progress...'),
+								? tohtml($row2['domain_text']) : tr('Generation in progress.'),
 							'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
 							'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
 						)
@@ -371,7 +371,7 @@ if (resellerHasCustomers()) {
 	$tpl->define_dynamic(
 		array(
 			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/OpenDKIM/frontend/reseller/opendkim.tpl',
+			'page' => '../../plugins/OpenDKIM/themes/default/view/reseller/opendkim.tpl',
 			'page_message' => 'layout',
 			'select_list' => 'page',
 			'select_item' => 'select_list',

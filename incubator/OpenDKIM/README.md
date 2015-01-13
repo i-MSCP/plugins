@@ -1,10 +1,10 @@
-## i-MSCP OpenDKIM plugin v0.0.6
+## i-MSCP OpenDKIM plugin v1.0.0
 
 Plugin providing an OpenDKIM implementation for i-MSCP.
 
 ### REQUIREMENTS
 
-	- i-MSCP version >= 1.1.11
+	- i-MSCP version >= 1.1.15
 	- See installation section for required software packages.
 
 ### Existing milter configurations
