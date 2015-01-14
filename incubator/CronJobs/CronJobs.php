@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -84,7 +84,9 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		$this->checkCompat($event);
+		if($event->getParam('pluginName') == $this->getName()) {
+			$this->checkCompat($event);
+		}
 	}
 
 	/**
@@ -99,7 +101,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch(iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -111,7 +113,9 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		$this->checkCompat($event);
+		if($event->getParam('pluginName') == $this->getName()) {
+			$this->checkCompat($event);
+		}
 	}
 
 	/**
@@ -129,7 +133,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			$this->clearTranslations();
 			$this->migrateDb('up');
 		} catch(Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -153,14 +157,17 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	/**
 	 * onAfterUninstallPlugin listener
 	 *
+	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterUninstallPlugin()
+	public function onAfterUninstallPlugin($event)
 	{
-		$pluginManager = $this->getPluginManager();
+		if($event->getParam('pluginName') == $this->getName()) {
+			$pluginManager = $this->getPluginManager();
 
-		if($pluginManager->isPluginKnown('InstantSSH')) {
-			$this->getPluginManager()->unlockPlugin('InstantSSH');
+			if($pluginManager->isPluginKnown('InstantSSH')) {
+				$this->getPluginManager()->unlockPlugin('InstantSSH');
+			}
 		}
 	}
 
@@ -246,7 +253,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				INNER JOIN
 					admin ON(admin_id = cron_permission_admin_id)
 				WHERE
-					cron_permission_status NOT IN(:ok, :toadd, :tochange, :todelete)
+					cron_permission_status NOT IN(:ok, :toadd, :tochange, :suspended, :todelete)
 				UNION
 				SELECT
 					cron_job_id AS item_id, cron_job_status AS status, 'cron job' AS item_name,
@@ -254,11 +261,14 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				FROM
 					cron_jobs
 				WHERE
-					cron_job_status NOT IN(:ok, :disabled, :toadd, :tochange, :toenable, :todisable, :todelete)
+					cron_job_status NOT IN(
+						:ok, :disabled, :suspended, :toadd, :tochange, :toenable, :todisable, :tosuspend, :todelete
+					)
 			",
 			array(
-				'ok' => 'ok', 'disabled' => 'disabled', 'toadd' => 'toadd', 'tochange' => 'tochange',
-				'toenable' => 'toenable', 'todisable' => 'todisable', 'todelete' => 'todelete'
+				'ok' => 'ok', 'disabled' => 'disabled', 'suspended' => 'suspended', 'toadd' => 'toadd',
+				'tochange' => 'tochange', 'toenable' => 'toenable', 'todisable' => 'todisable',
+				'tosuspend' => 'tosuspend', 'todelete' => 'todelete'
 			)
 		);
 
@@ -416,14 +426,12 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	protected function checkCompat($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
+		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<')) {
+			set_page_message(
+				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+			);
 
-				$event->stopPropagation();
-			}
+			$event->stopPropagation();
 		}
 	}
 

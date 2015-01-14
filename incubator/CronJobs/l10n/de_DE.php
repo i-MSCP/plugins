@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,13 +24,17 @@ return array(
 	'Cron job permissions' => 'Cron-Job-Berechtigungen',
 	'Cron jobs' => 'Cron-Jobs',
 	'Cron job has been scheduled for addition.' => 'Cron-Job wurde zum Hinzufügen angesetzt.',
+	'Cron job has been scheduled for activation.' => 'Cron-Job wurde zum Aktivieren angesetzt.',
+	'Cron job has been scheduled for deactivation.' => 'Cron-Job wurde zum Deaktivieren angesetzt.',
+	'Cron job has been scheduled for deletion.' => 'Cron-Job wurde zum Löschen angesetzt.',
 	'Your cron jobs limit is reached.' => 'Ihr cron-Job-Limit ist erreicht.',
 	'Cron job has been scheduled for update.' => 'Cron-Job wurde zum Aktualisieren angesetzt.',
 	'An unexpected error occurred: %s' => 'Es ist ein unerwarteter Fehler aufgetreten: %s',
 	'Bad request.' => 'Bad request.',
-	'Cron job has been scheduled for deletion.' => 'Cron-Job wurde zum Löschen angesetzt.',
-	'Edit cron job' => 'Cron-Job bearbeiten',
-	'Delete cron job' => 'Cron-Job löschen',
+	'Edit' => 'Bearbeiten',
+	'Deactivate' => 'Deaktivieren',
+	'Activate' => 'Aktivieren',
+	'Delete' => 'Löschen',
 	'Url' => 'Url',
 	'Shell' => 'Shell',
 	'n/a' => 'n/a',
@@ -39,7 +43,6 @@ return array(
 	'Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:' => 'Das Konfigurieren der cron-Jobs benötigt ausgeprägte Kenntnisse über die Crontab-Syntax auf Unix-basierten Systemen. Weitere Informationen zu diesem Thema sind auf der folgenden Webseite erhältlich:',
 	'Newbie: Intro to cron' => 'Neuling: Einführung in die Cron',
 	'Type' => 'Typ',
-	'Time/Date' => 'Zeit/Datum',
 	'User' => 'Benutzer',
 	'Command' => 'Befehl',
 	'Status' => 'Status',

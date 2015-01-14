@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,13 +25,17 @@ return array(
 	'Cron job permissions' => 'Cron-rechten',
 	'Cron jobs' => 'Cron-jobs',
 	'Cron job has been scheduled for addition.' => 'Toevoeging van cron-job is ingepland.',
+	'Cron job has been scheduled for activation.' => 'Cron job is gepland voor activering..',
+	'Cron job has been scheduled for deactivation.' => 'Cron job is gepland voor deactivering.',
+	'Cron job has been scheduled for deletion.' => 'Verwijdering van cron-job is ingepland.',
 	'Your cron jobs limit is reached.' => 'U heeft uw cron-joblimiet bereikt.',
 	'Cron job has been scheduled for update.' => 'Bijwerking van cron-job is ingepland.',
 	'An unexpected error occurred: %s' => 'Er is een onverwachte fout opgetreden: %s',
 	'Bad request.' => 'Fout verzoek.',
-	'Cron job has been scheduled for deletion.' => 'Verwijdering van cron-job is ingepland.',
-	'Edit cron job' => 'Cron-job wijzigen',
-	'Delete cron job' => 'Cron-job verwijderen',
+	'Edit' => 'Wijzigen',
+	'Deactivate' => 'Deactiveren',
+	'Activate' => 'Activeren',
+	'Delete' => 'Verwijderen',
 	'Url' => 'URL',
 	'Shell' => 'Shell',
 	'n/a' => 'N/B',
@@ -40,7 +44,6 @@ return array(
 	'Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:' => 'Het configureren van cron-jobs vereist een goede kennis van de crontab-syntax op op Unix-gebaseerde systemen. Meer informatie over dit onderwerp kan op de volgende webpagina worden gevonden:',
 	'Newbie: Intro to cron' => 'Voor de nieuweling: Introductie over cron',
 	'Type' => 'Type',
-	'Time/Date' => 'Tijd/Datum',
 	'User' => 'Gebruiker',
 	'Command' => 'Commando',
 	'Status' => 'Status',

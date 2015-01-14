@@ -17,32 +17,42 @@
 	<table class="datatable">
 		<thead>
 		<tr>
-			<th style="width:10%"><?= self::escapeHtml(tr('Type', true));?></th>
-			<th style="width:15%"><?= self::escapeHtml(tr('Time/Date', true));?></th>
-			<th style="width:15%"><?= self::escapeHtml(tr('User', true));?></th>
-			<th style="width:40%"><?= self::escapeHtml(tr('Command', true));?></th>
-			<th style="width:10%"><?= self::escapeHtml(tr('Status', true));?></th>
-			<th style="width:10%"><?= self::escapeHtml(tr('Actions', true));?></th>
+			<th class="columnMark">&nbsp;</th>
+			<th class="columnDate">m</th>
+			<th class="columnDate">h</th>
+			<th class="columnDate">D</th>
+			<th class="columnDate">M</th>
+			<th class="columnDate">DoW</th>
+			<th class="columnUser"><?= self::escapeHtml(tr('User', true));?></th>
+			<th class="columnType"><?= self::escapeHtml(tr('Type', true));?></th>
+			<th class="columnCommand"><?= self::escapeHtml(tr('Command', true));?></th>
+			<th class="columnStatus"><?= self::escapeHtml(tr('Status', true));?></th>
+			<th class="columnActions"><?= self::escapeHtml(tr('Actions', true));?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Type', true));?></td>
-			<td><?= self::escapeHtml(tr('Time/Date', true));?></td>
-			<td><?= self::escapeHtml(tr('User', true));?></td>
-			<td><?= self::escapeHtml(tr('Command', true));?></td>
-			<td><?= self::escapeHtml(tr('Status', true));?></td>
-			<td><?= self::escapeHtml(tr('Actions', true));?></td>
+			<td class="columnMark">&nbsp;</td>
+			<td class="columnDate">m</td>
+			<td class="columnDate">h</td>
+			<td class="columnDate">D</td>
+			<td class="columnDate">M</td>
+			<td class="columnDate">DoW</td>
+			<td class="columnUser"><?= self::escapeHtml(tr('User', true));?></td>
+			<td class="columnType"><?= self::escapeHtml(tr('Type', true));?></td>
+			<td class="columnCommand"><?= self::escapeHtml(tr('Command', true));?></td>
+			<td class="columnStatus"><?= self::escapeHtml(tr('Status', true));?></td>
+			<td class="columnActions"><?= self::escapeHtml(tr('Actions', true));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="7"><?= self::escapeHtml(tr('Loading data...', true));?></td>
+			<td colspan="11"><?= self::escapeHtml(tr('Loading data...', true));?></td>
 		</tr>
 		</tbody>
 		<tbody>
 		<tr>
-			<td colspan="6" style="background-color: #b0def5">
+			<td colspan="11" style="background-color: #b0def5">
 				<div class="buttons" style="float: right">
 					<button data-action="add_cronjob_dialog">
 						<strong><?= self::escapeHtml(tr('Add cron job', true));?></strong>
@@ -185,6 +195,12 @@
 			this.oApi._fnProcessingDisplay(settings, onoff);
 		};
 
+		/*$("thead :checkbox, tfoot :checkbox").change(
+			function ($e) {
+				$("table :checkbox").prop('checked', $(this).is(':checked'));
+			}
+		);*/
+
 		$dataTable = $(".datatable").dataTable({
 			language: {DATATABLE_TRANSLATIONS},
 			displayLength: 5,
@@ -193,14 +209,19 @@
 			pagingType: "simple",
 			ajaxSource: "/client/cronjobs?action=get_cronjobs_list",
 			stateSave: true,
-			columnDefs: [ { sortable: false, searchable: false, targets: [ 4, 5 ] } ],
+			sortMulti: false,
+			order: [[ 1, "desc" ]],
+			columnDefs: [
+				{ sortable: false, searchable: false, targets: [ 0, 10 ] }, { "class": "columnMark", targets: [ 0 ] },
+				{ "class": "columnDate", targets: [ 1, 3, 4, 5 ] }, { "class": "columnUser", targets: [ 6 ] },
+				{ "class": "columnType", targets: [ 7 ] }, { "class": "columnCommand", targets: [ 8 ] },
+				{ "class": "columnStatus", targets: [ 9 ] }, { "class": "columnActions", targets: [ 10 ] }
+			],
 			columns: [
-				{ data: "cron_job_type" },
-				{ data: "cron_job_timedate" },
-				{ data: "cron_job_user" },
-				{ data: "cron_job_command" },
-				{ data: "cron_job_status" },
-				{ data: "cron_job_actions" }
+				{ data: "cron_job_disable_enable" }, { data: "cron_job_minute" }, { data: "cron_job_hour" },
+				{ data: "cron_job_dmonth" }, { data: "cron_job_month" }, { data: "cron_job_dweek" },
+				{ data: "cron_job_user" }, { data: "cron_job_type" }, { data: "cron_job_command" },
+				{ data: "cron_job_status" }, { data: "cron_job_actions" }
 			],
 			serverData: function (source, data, callback) {
 				$.ajax({
@@ -230,7 +251,8 @@
 			buttons: [
 				{
 					text: "<?= self::escapeJs(tr('Save', true));?>",
-					"data-action": "add_cronjob"
+					"data-action": "add_cronjob",
+					click: function() { }
 				},
 				{
 					text: "<?= self::escapeJs(tr('Cancel', true));?>",
@@ -257,7 +279,10 @@
 				$(":input:visible").each(function(i,e) { $(e).attr("tabindex", i); });
 			}).
 			on("click", "span[data-action]", function () { $("form")[0].reset(); }).
-			on("click", "span[data-action],button[data-action]", function (e) {
+			on("click", "span[data-action],button[data-action],input[data-action]", function (e) {
+				var $instance = $dataTable.find("span").tooltip("instance");
+				if($instance) $instance.destroy();
+
 				$("button").blur();
 				e.preventDefault();
 
@@ -292,14 +317,23 @@
 								$dialog.dialog("open");
 							});
 						break;
+					case "disable_cronjob":
+					case "enable_cronjob":
+						doRequest(
+							"POST", action, { cron_job_id: $(this).data('cron-job-id') }
+						).done(function (data) {
+							$dataTable.fnDraw();
+							flashMessage('success', data.message);
+						});
+						break;
 					case "delete_cronjob":
 						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this cron job?', true));?>")) {
 							doRequest(
-								"POST", 'delete_cronjob', { cron_job_id: $(this).data('cron-job-id') }
+								"POST", action, { cron_job_id: $(this).data('cron-job-id') }
 							).done(function (data) {
-									$dataTable.fnDraw();
-									flashMessage('success', data.message);
-								});
+								$dataTable.fnDraw();
+								flashMessage('success', data.message);
+							});
 						}
 						break;
 					default:

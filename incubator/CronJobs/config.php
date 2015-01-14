@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -84,7 +84,8 @@ return array(
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
 			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
+			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime',
+			'/etc/timezone'
 		),
 		'include_app_sections' => array(
 			'uidbasics'
@@ -144,41 +145,57 @@ return array(
 		)
 	),
 
-	# cron section
-	# Allows to run cron jobs inside the jailed environement
-	'cron' => array(
+	# wget section
+	# Provide GNU Wget
+	'wget' => array(
 		'paths' => array(
-			'/dev', '/etc/aliases', '/usr/bin/msmtp', '/usr/sbin/cron'
+			'/etc/ssl/certs/*', '/usr/bin/wget'
 		),
 		'devices' => array(
-			'/dev/urandom'
-		),
-		'sys_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf'
+			'/dev/random', '/dev/urandom'
+		)
+	),
+
+	# msmtp section
+	# provide msmtp ( light SMTP client with support for server profiles )
+	'msmtp' => array(
+		'paths' => array(
+			'/etc/aliases',  '/usr/bin/msmtp'
 		),
 		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
+		),
+		'jail_run_commands' => array(
+			'sed -i\'\' -e \'s/{HOSTNAME}/\'$(hostname -f)\'/\' /etc/msmtprc', // Setup maildomain inside msmtp configuration file
+			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside the jail
+		)
+	),
+
+	# cron section
+	# Allows to run cron jobs inside the jailed environment
+	'cron' => array(
+		'paths' => array(
+			'/dev', '/usr/sbin/cron'
+		),
+		'include_app_sections' => array(
+			'msmtp'
+		),
+		'sys_copy_file_to' => array(
+			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf'
 		),
 		'preserve_files' => array(
 			'/dev/log'
 		),
 		'sys_run_commands' => array(
 			'service rsyslog restart' // Restart rsyslog daemon to create socket ( /dev/log ) inside jail 
-		),
-		'jail_run_commands' => array(
-			'sed -i -e "s/{HOSTNAME}/$(hostname -f)/g" /etc/msmtprc', // Setup maildomain inside msmtp configuration file
-			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside the jail
 		)
 	),
 
 	// cronjobs_base section
 	// Provide pre-selected application sections, users and groups for jailed environment used by this plugin
 	'cronjobs_base' => array(
-		'paths' => array(
-			'/usr/bin/wget', '/etc/ssl/certs/*'
-		),
 		'include_app_sections' => array(
-			'bashshell', 'netbasics', 'cron', 'mysqltools', 'php'
+			'bashshell', 'netbasics', 'cron', 'wget', 'mysqltools', 'php'
 		),
 		'users' => array(
 			'root',

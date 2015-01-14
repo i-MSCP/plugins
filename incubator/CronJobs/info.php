@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,8 @@ return array(
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '1.0.1',
 	'priority' => '10',
-	'date' => '2014-01-03',
+	'date' => '2014-01-14',
 	'name' => 'CronJobs',
-	'desc' => 'Plugin providing a cron time-based job scheduler for i-MSCP.',
+	'desc' => 'Plugin which provides a cron time-based job scheduler for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:cronjobs'
 );

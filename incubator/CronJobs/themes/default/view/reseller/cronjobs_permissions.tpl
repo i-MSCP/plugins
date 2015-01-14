@@ -37,13 +37,19 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions', true));?></th>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions', true));?>
 				</tr>
 				</thead>
 				<tbody>
 				<tr>
 					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
+					<td>
+						<input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>">
+						<label for="all_customers">
+							<input name="all_customers" id="all_customers" type="checkbox"><?= self::escapeHtml(tr('Apply to all customers', true));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Add permissions to all customers which do not have cron job permissions yet.', true));?>">&nbsp;</span>
+						</label>
+					</td>
 				</tr>
 				<tr>
 					<td>
@@ -130,6 +136,14 @@
 			this.oApi._fnProcessingDisplay(settings, onoff);
 		};
 
+		$("#all_customers").change(function() {
+			if($(this).is(':checked')) {
+				$("#admin_name").prop('readonly', true);
+			} else {
+				$("#admin_name").prop('readonly', false);
+			}
+		});
+
 		$dataTable = $(".datatable").dataTable({
 			language: {DATATABLE_TRANSLATIONS},
 			displayLength: 5,
@@ -138,6 +152,8 @@
 			pagingType: "simple",
 			ajaxSource: "/reseller/cronjobs_permissions?action=get_cron_permissions_list",
 			stateSave: true,
+			sortMulti: false,
+			order: [[ 1, "desc" ]],
 			columnDefs: [ { sortable: false, searchable: false, targets: [ 5 ] } ],
 			columns: [
 				{ data: "admin_name" },
@@ -178,7 +194,11 @@
 		});
 
 		$("#page").
-			on("click", "input:reset", function () { $("#admin_name").prop("readonly", false); $("input:hidden").val("0"); }).
+			on("click", "input:reset", function () {
+				$("#admin_name").prop("readonly", false);
+				$("input:hidden").val("0");
+				$("#all_customers").parent().show();
+			}).
 			on("click", "span[data-action]", function () { $("input:reset").click(); }).
 			on("click", "span[data-action],button", function (e) {
 				e.preventDefault();
@@ -187,7 +207,7 @@
 
 				switch (action) {
 					case "add_cron_permissions":
-						if($("#admin_name").val() != '') {
+						if($("#all_customers").is(':checked') || $("#admin_name").val() != '') {
 							doRequest("POST", action, $("#cron_permissions_frm").serialize()).done(
 								function (data, textStatus, jqXHR) {
 									$("input:reset").click();
@@ -204,6 +224,7 @@
 							"GET", "get_cron_permissions", { cron_permission_id: $(this).data("cron-permission-id") }
 						).done(function (data) {
 								$("#admin_name").val(data.admin_name).prop("readonly", true);
+								$("#all_customers").parent().hide();
 								$("#cron_permission_type").val(data.cron_permission_type);
 								$("#cron_permission_max").val(data.cron_permission_max);
 								$("#cron_permission_frequency").val(data.cron_permission_frequency);

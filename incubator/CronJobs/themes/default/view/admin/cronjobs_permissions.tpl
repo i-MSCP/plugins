@@ -124,6 +124,8 @@
 			pagingType: "simple",
 			ajaxSource: "/admin/cronjobs_permissions?action=get_cron_permissions_list",
 			stateSave: true,
+			sortMulti: false,
+			order: [[ 1, "desc" ]],
 			columnDefs: [
 				{ sortable: false, searchable: false, targets: [ 4 ] }
 			],

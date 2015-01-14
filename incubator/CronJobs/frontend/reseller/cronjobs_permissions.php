@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,9 +70,9 @@ function getCronPermissions()
 				Functions::sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 		} catch(DatabaseException $e) {
-			write_log(sprintf('CronJobs: Unable to get cron job permissions: %s', $e->getMessage()), E_USER_ERROR);
+			write_log(sprintf('CronJobs: Unable to add mass cron job permissions: %s', $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
 			);
 		}
 	}
@@ -88,7 +88,9 @@ function getCronPermissions()
  */
 function addCronPermissions($cronPermissions)
 {
-	if(
+	if(isset($_POST['all_customers'])) {
+		addMassCronPermissions($cronPermissions);
+	} elseif(
 		isset($_POST['cron_permission_id']) && isset($_POST['cron_permission_admin_id']) &&
 		isset($_POST['admin_name']) && isset($_POST['cron_permission_type']) && isset($_POST['cron_permission_max']) &&
 		isset($_POST['cron_permission_frequency'])
@@ -194,11 +196,11 @@ function addCronPermissions($cronPermissions)
 							WHERE
 								cron_job_admin_id = ?
 							AND
-								cron_job_status != ?
+								cron_job_status NOT IN(?, ?)
 							AND
 								created_by = ?
 						',
-						array($cronPermissionAdminId, 'ok', $resellerId)
+						array($cronPermissionAdminId, 'ok', 'suspended', $resellerId)
 					);
 
 					$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
@@ -345,7 +347,7 @@ function addCronPermissions($cronPermissions)
 					);
 					Functions::sendJsonResponse(
 						500,
-						array('message' => tr('An unexpected error occurred. Please contact your administrator. %s', true, $e->getMessage()))
+						array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
 					);
 				}
 			}
@@ -353,6 +355,104 @@ function addCronPermissions($cronPermissions)
 	}
 
 	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+}
+
+/**
+ * Add/Update cron job permissions
+ *
+ * @param array $cronPermissions Reseller's cron job permissions
+ * @return void
+ */
+function addMassCronPermissions($cronPermissions)
+{
+	if(isset($_POST['cron_permission_type']) && isset($_POST['cron_permission_max']) &&
+		isset($_POST['cron_permission_frequency'])
+	) {
+		$resellerId = intval($_SESSION['user_id']);
+		$cronPermissionType = clean_input($_POST['cron_permission_type']);
+		$cronPermissionMax = clean_input($_POST['cron_permission_max']);
+		$cronPermissionFrequency = clean_input($_POST['cron_permission_frequency']);
+
+		if($cronPermissions['cron_permission_type'] == 'full') {
+			$allowedCronPermissionTypes = array('url', 'jailed', 'full');
+		} elseif($cronPermissions['cron_permission_type'] == 'jailed') {
+			$allowedCronPermissionTypes = array('url', 'jailed');
+		} else {
+			$allowedCronPermissionTypes = array('url');
+		}
+
+		if(in_array($cronPermissionType, $allowedCronPermissionTypes, true)) {
+			$errMsgs = array();
+
+			if($cronPermissionMax === '' || !is_number($cronPermissionMax)) {
+				$errMsgs[] = tr("Wrong value for the 'Max. cron jobs' field. Please, enter a number.", true);
+			}
+
+			if($cronPermissionFrequency === '' || !is_number($cronPermissionFrequency)) {
+				$errMsgs[] = tr("Wrong value for the 'Cron jobs frequency' field. Please, enter a number.", true);
+			} elseif($cronPermissionFrequency < $cronPermissions['cron_permission_frequency']) {
+				$errMsgs[] = tr(
+					array(
+						"The cron jobs frequency is lower than your own limit which is currently set to %s minute.",
+						"The cron jobs frequency is lower than your own limit which is currently set to %s minutes.",
+						$cronPermissions['cron_permission_frequency']
+					),
+					true,
+					$cronPermissions['cron_permission_frequency']
+				);
+			} elseif($cronPermissionFrequency == 0) {
+				$cronPermissionFrequency = 1;
+			}
+
+			if(!empty($errMsgs)) {
+				Functions::sendJsonResponse(400, array('message' => implode('<br>', $errMsgs)));
+			}
+
+			try {
+				EventsAggregator::getInstance()->dispatch('onBeforeAddMassCronjobPermissions', array(
+					'cron_permission_type' => $cronPermissionType,
+					'cron_permission_max' => $cronPermissionMax,
+					'cron_permission_frequency' => $cronPermissionFrequency
+				));
+
+				$stmt = exec_query(
+					'
+						INSERT INTO cron_permissions(
+							cron_permission_admin_id, cron_permission_type, cron_permission_max,
+							cron_permission_frequency, cron_permission_status
+						) SELECT
+							admin_id, ?, ?, ?, ?
+						FROM
+							admin
+						WHERE
+							created_by = ?
+						AND
+							admin_id NOT IN(SELECT cron_permission_admin_id FROM cron_permissions)
+					',
+					array($cronPermissionType, $cronPermissionMax, $cronPermissionFrequency, 'ok', $resellerId)
+				);
+
+				EventsAggregator::getInstance()->dispatch('onAfterAddMassCronjobPermissions', array(
+					'cron_permission_type' => $cronPermissionType,
+					'cron_permission_max' => $cronPermissionMax,
+					'cron_permission_frequency' => $cronPermissionFrequency
+				));
+
+				if($stmt->rowCount()) {
+					write_log(sprintf('CronJobs: Mass cron job permissions were added'), E_USER_NOTICE);
+					Functions::sendJsonResponse(200, array('message' => tr('Cron job permissions were added.', true)));
+				}
+			} catch(DatabaseException $e) {
+				write_log(
+					sprintf('CronJobs: Unable to add mass cron job permissions: %s', $e->getMessage()), E_USER_ERROR
+				);
+				Functions::sendJsonResponse(
+					500,
+					array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+				);
+			}
+		}
+	}
 }
 
 /**
@@ -497,74 +597,56 @@ function getCronPermissionsList()
 	try {
 		$resellerId = intval($_SESSION['user_id']);
 
-		// Filterable, orderable columns
-		$columns = array(
+		/* Columns */
+		$cols = array(
 			'admin_name', 'cron_permission_type', 'cron_permission_max', 'cron_permission_frequency',
 			'cron_permission_status'
 		);
 
-		$nbColumns = count($columns);
-		$indexColumn = 'cron_permission_id';
+		$colsTotal = count($cols);
+		$colCnt = 'cron_permission_id';
 
 		/* DB table to use */
 		$table = 'cron_permissions';
 
-		/* Paging */
-		$limit = '';
+		/* Filtering */
+		$where = "WHERE created_by = " . quoteValue($resellerId);
+		if(isset($_GET['sSearch']) && $_GET['sSearch'] !== '') {
+			$where .= 'AND (';
 
-		if(isset($_GET['iDisplayStart']) && isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] !== '-1') {
-			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
+			for($i = 0; $i < $colsTotal; $i++) {
+				$where .= $cols[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
+			}
+
+			$where = substr_replace($where, '', -4);
+			$where .= ')';
 		}
 
 		/* Ordering */
 		$order = '';
+		if(isset($_GET['iSortingCols']) && isset($_GET['iSortCol_0'])) {
+			$colIdx = intval($_GET['iSortCol_0']);
 
-		if(isset($_GET['iSortCol_0']) && isset($_GET['iSortingCols'])) {
-			$order = 'ORDER BY ';
+			$sortDir = (
+				isset($_GET['sSortDir_' . $colIdx]) && in_array($_GET['sSortDir_' . $colIdx], array('asc', 'desc'))
+			) ? $_GET['sSortDir_' . $colIdx] : 'asc';
 
-			for($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
-				if($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
-					$sortDir = (
-						isset($_GET['sSortDir_' . $i]) && in_array($_GET['sSortDir_' . $i], array('asc', 'desc'))
-					) ? $_GET['sSortDir_' . $i] : 'asc';
-
-					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $sortDir . ', ';
-				}
-			}
-
-			$order = substr_replace($order, '', -2);
-
-			if($order == 'ORDER BY ') {
-				$order = '';
+			if(isset($cols[$colIdx])) {
+				$order .= 'ORDER BY ' . $cols[$colIdx] . ' ' . $sortDir;
 			}
 		}
 
-		/* Filtering */
-		$where = $where = "WHERE created_by = " . quoteValue($resellerId);
-
-		if($_GET['sSearch'] !== '') {
-			$where .= 'AND (';
-
-			for($i = 0; $i < $nbColumns; $i++) {
-				$where .= $columns[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
-			}
-
-			$where = substr_replace($where, '', -3);
-			$where .= ')';
-		}
-
-		/* Individual column filtering */
-		for($i = 0; $i < $nbColumns; $i++) {
-			if(isset($_GET['bSearchable_' . $i]) && $_GET['bSearchable_' . $i] === 'true' && $_GET['sSearch_' . $i] !== '') {
-				$where .= "AND {$columns[$i]} LIKE " . quoteValue('%' . $_GET['sSearch_' . $i] . '%');
-			}
+		/* Paging */
+		$limit = '';
+		if(isset($_GET['iDisplayStart']) && isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] !== '-1') {
+			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Get data to display */
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columns)) . ",
+					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $cols)) . ",
 					cron_permission_id, cron_permission_admin_id
 				FROM
 					$table
@@ -585,7 +667,7 @@ function getCronPermissionsList()
 		$resultTotal = execute_query(
 			"
 				SELECT
-					COUNT($indexColumn)
+					COUNT($colCnt)
 				FROM
 					$table
 				INNER JOIN
@@ -604,40 +686,40 @@ function getCronPermissionsList()
 			'aaData' => array()
 		);
 
-		$trEditTooltip = tr('Edit permissions', true);
+		$trEditTooltip = tr('faketitle onmouseover=alert(/ZF2!/);', true);
 		$trDeleteTooltip = tr('Revoke permissions', true);
 
 		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for($i = 0; $i < $nbColumns; $i++) {
-				if($columns[$i] == 'admin_name') {
-					$row[$columns[$i]] = decode_idna($data[$columns[$i]]);
-				} elseif($columns[$i] == 'cron_permission_type') {
-					$row[$columns[$i]] = tr(ucfirst($data[$columns[$i]]), true);
-				} elseif($columns[$i] == 'cron_permission_max') {
-					$row[$columns[$i]] = ($data[$columns[$i]] == 0) ? tr('Unlimited', true) : $data[$columns[$i]];
-				} elseif($columns[$i] == 'cron_permission_frequency') {
-					$row[$columns[$i]] = tr(
-						array('%d minute', '%d minutes', $data[$columns[$i]]), true, $data[$columns[$i]]
+			for($i = 0; $i < $colsTotal; $i++) {
+				if($cols[$i] == 'admin_name') {
+					$row[$cols[$i]] = decode_idna($data[$cols[$i]]);
+				} elseif($cols[$i] == 'cron_permission_type') {
+					$row[$cols[$i]] = tr(ucfirst($data[$cols[$i]]), true);
+				} elseif($cols[$i] == 'cron_permission_max') {
+					$row[$cols[$i]] = ($data[$cols[$i]] == 0) ? tr('Unlimited', true) : $data[$cols[$i]];
+				} elseif($cols[$i] == 'cron_permission_frequency') {
+					$row[$cols[$i]] = tr(
+						array('%d minute', '%d minutes', $data[$cols[$i]]), true, $data[$cols[$i]]
 					);
-				} elseif($columns[$i] == 'cron_permission_status') {
-					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]], false);
+				} elseif($cols[$i] == 'cron_permission_status') {
+					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]], false);
 				} else {
-					$row[$columns[$i]] = $data[$columns[$i]];
+					$row[$cols[$i]] = $data[$cols[$i]];
 				}
 			}
 
 			if($data['cron_permission_status'] == 'ok') {
 				$row['cron_permission_actions'] =
-					"<span title=\"$trEditTooltip\" data-action=\"edit_cron_permissions\" " .
-					"data-cron-permission-id=\"" . $data['cron_permission_id'] . "\" " .
-					"class=\"icon icon_edit clickable\">&nbsp;</span> "
+					'<span title="' . $trEditTooltip . '" data-action="edit_cron_permissions" ' .
+					'data-cron-permission-id="' . $data['cron_permission_id'] . '" ' .
+					'class="icon icon_edit clickable">&nbsp;</span> '
 					.
-					"<span title=\"$trDeleteTooltip\" data-action=\"delete_cron_permissions\" " .
-					"data-cron-permission-id=\"" . $data['cron_permission_id'] . "\" " .
-					"data-cron-permission-admin-id=\"" . $data['cron_permission_admin_id'] . "\" " .
-					"class=\"icon icon_delete clickable\">&nbsp;</span>";
+					'<span title="' . $trDeleteTooltip . '" data-action="delete_cron_permissions" ' .
+					'data-cron-permission-id="' . $data['cron_permission_id'] . '" ' .
+					'data-cron-permission-admin-id="' . $data['cron_permission_admin_id'] . '" ' .
+					'class="icon icon_delete clickable">&nbsp;</span>';
 			} else {
 				$row['cron_permission_actions'] = tr('n/a', true);
 			}

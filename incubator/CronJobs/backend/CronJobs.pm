@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP CronJobs plugin
-# Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 
 package Plugin::CronJobs;
+
+use strict;
+use warnings;
 
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
@@ -126,7 +129,9 @@ sub change
 	my $self = $_[0];
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable'");
+		my $rs = $self->{'db'}->doQuery(
+			'dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable' WHERE cron_job_status != 'suspended'"
+		);
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -149,7 +154,9 @@ sub change
 			}
 		}
 
-		$rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'toenable'");
+		$rs = $self->{'db'}->doQuery(
+			'dummy', "UPDATE cron_jobs SET cron_job_status = 'toenable' WHERE cron_job_status != 'suspended'"
+		);
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -175,10 +182,12 @@ sub enable
 	my $self = $_[0];
 
 	if($self->{'action'} eq 'enable') {
-		my $rs = $self->install();
+		my $rs = $self->install(); # Handle the case where support for jailed cron jobs is activated later on
 		return $rs if $rs;
 
-		$rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'toenable'");
+		$rs = $self->{'db'}->doQuery(
+			'dummy', "UPDATE cron_jobs SET cron_job_status = 'toenable' WHERE cron_job_status != 'suspended'"
+		);
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -204,7 +213,9 @@ sub disable
 	my $self = $_[0];
 
 	if($self->{'action'} eq 'disable') {
-		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable'");
+		my $rs = $self->{'db'}->doQuery(
+			'dummy', "UPDATE cron_jobs SET cron_job_status = 'todisable' WHERE cron_job_status != 'suspended'"
+		);
 		unless(ref $rs eq 'HASH') {
 			error($rs);
 			return 1;
@@ -245,7 +256,7 @@ sub run
 
 	# Handle cron jobs
 
-	$sth = $dbh->prepare(
+	my $sth = $dbh->prepare(
 		"
 			SELECT
 				cron_job_user, cron_job_status, IFNULL(cron_permission_type, 'none') AS cron_permission_type
@@ -254,7 +265,7 @@ sub run
 			LEFT JOIN
 				cron_permissions ON(cron_job_permission_id = cron_permission_id)
 			WHERE
-				cron_job_status IN('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+				cron_job_status IN('toadd', 'tochange', 'toenable', 'todisable', 'tosuspend', 'todelete')
 			GROUP BY
 				cron_job_user
 		"
@@ -274,6 +285,8 @@ sub run
 	my $rs = 0;
 
 	while (my $row = $sth->fetchrow_hashref()) {
+		$self->_loadPluginConfig();
+
 		$rs ||= $self->_writeCrontab($row->{'cron_job_user'}, $row->{'cron_permission_type'});
 
 		my $nextStatus = ($row->{'cron_job_status'} eq 'todisable') ? 'disabled' : 'ok';
@@ -288,7 +301,7 @@ sub run
 				WHERE
 					cron_job_user = ?
 				AND
-					cron_job_status NOT IN('disabled', 'todelete')
+					cron_job_status NOT IN( 'tosuspend', 'suspended', 'disabled', 'todelete')
 			",
 			($rs ? scalar getMessageByType('error') : $nextStatus),
 			$row->{'cron_job_user'}
@@ -296,6 +309,20 @@ sub run
 		unless(ref $qrs eq 'HASH') {
 			error($qrs);
 			$rs ||= 1;
+		}
+
+		unless($rs) {
+			$qrs = $self->{'db'}->doQuery(
+				'dummy',
+				"UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_user = ? AND cron_job_status = ?",
+				'suspended',
+				$row->{'cron_job_user'},
+				'tosuspend'
+			);
+			unless(ref $qrs eq 'HASH') {
+				error($qrs);
+				$rs ||= 1;
+			}
 		}
 
 		unless($rs) {
@@ -348,35 +375,58 @@ sub _init
 
 	$self->{'db'} = iMSCP::Database->factory();
 
-	my $config = $self->{'db'}->doQuery(
-		'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'CronJobs'"
-	);
-	unless(ref $config eq 'HASH') {
-		die("CronJobs: $config");
-	} else {
-		$self->{'config'} = decode_json($config->{'CronJobs'}->{'plugin_config'})
+	if($self->{'action'} ~~ [ 'install', 'uninstall', 'update', 'change', 'enable', 'disable' ]) {
+		$self->_loadPluginConfig();
 	}
 
-	# Load jail builder library if available
-	eval { local $SIG{'__DIE__'}; require InstantSSH::JailBuilder; };
-	unless($@) {
-		if(
-			defined $InstantSSH::JailBuilder::VERSION &&
-			version->parse("v$InstantSSH::JailBuilder::VERSION") >= version->parse("v3.1.0")
-		) {
-			$self->{'config'}->{'jailed_cronjobs_support'} = 1;
+	$self;
+}
 
-			for(qw/makejail_path makejail_confdir_path root_jail_dir/) {
-				die("Missing $_ configuration parameter") unless defined $self->{'config'}->{$_};
+=item _loadPluginConfig
+
+ Load plugin configuraiton
+
+ Return int 0 or die on failure
+
+=cut
+
+sub _loadPluginConfig
+{
+	my $self = $_[0];
+
+	unless($self->{'_loadedPluginConfig'}) {
+		my $config = $self->{'db'}->doQuery(
+			'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'CronJobs'"
+		);
+		unless(ref $config eq 'HASH') {
+			die("CronJobs: $config");
+		}
+
+		$self->{'config'} = decode_json($config->{'CronJobs'}->{'plugin_config'})
+
+		# Load jail builder library if available
+		eval { local $SIG{'__DIE__'}; require InstantSSH::JailBuilder; };
+		unless($@) {
+			if(
+				defined $InstantSSH::JailBuilder::VERSION &&
+				version->parse("v$InstantSSH::JailBuilder::VERSION") >= version->parse("v3.1.0")
+			) {
+				$self->{'config'}->{'jailed_cronjobs_support'} = 1;
+
+				for(qw/makejail_path makejail_confdir_path root_jail_dir/) {
+					die("Missing $_ configuration parameter") unless defined $self->{'config'}->{$_};
+				}
+			} else {
+				$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 			}
 		} else {
 			$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 		}
-	} else {
-		$self->{'config'}->{'jailed_cronjobs_support'} = 0;
+
+		$self->{'_loadedPluginConfig'} = 1;
 	}
 
-	$self;
+	0;
 }
 
 =item _writeCrontab($cronJobUser, $cronPermissionType)
@@ -395,7 +445,7 @@ sub _writeCrontab
 
 	my $dbh = $self->{'db'}->getRawDb();
 
-	$sth = $dbh->prepare('SELECT * FROM cron_jobs WHERE cron_job_user = ?');
+	my $sth = $dbh->prepare('SELECT * FROM cron_jobs WHERE cron_job_user = ?');
 	unless($sth) {
 		error("Couldn't prepare SQL statement: " . $dbh->errstr);
 		return 1;
@@ -429,6 +479,9 @@ sub _writeCrontab
 					$row->{'cron_job_month'} . ' ' . $row->{'cron_job_dweek'} . ' ';
 			}
 
+			# Percent-signs in the command, unless escaped with backslash, will be changed into newline characters
+			$row->{'cron_job_command'} =~ s/%/\\%/g;
+
 			if($row->{'cron_job_type'} eq 'url') {
 				$cronjob .= '/usr/bin/wget -t 1 --connect-timeout=5 --dns-timeout=5 --read-timeout=3600 -O /dev/null ';
 				$cronjob .= '--no-check-certificate '; # Stay compatible with self-signed certificates
@@ -455,7 +508,7 @@ sub _writeCrontab
 
 			if($cronPermissionType eq 'jailed') {
 				unless($jailBuilder->existsJail()) {
-					$rs = $jailBuilder->makeJail();
+					my $rs = $jailBuilder->makeJail();
 					return $rs if $rs;
 				}
 

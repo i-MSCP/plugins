@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP CronJobs plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -248,6 +248,140 @@ function getCronJob()
 }
 
 /**
+ * Enable cron job
+ *
+ * @return void
+ */
+function enableCronJob()
+{
+	if(isset($_POST['cron_job_id'])) {
+		$cronJobId = intval($_POST['cron_job_id']);
+
+		try {
+			EventsAggregator::getInstance()->dispatch('onBeforeEnableCronJob', array(
+				'cron_job_admin_id' => null,
+				'cron_job_id' => $cronJobId
+			));
+
+			$stmt = exec_query(
+				'
+					UPDATE
+						cron_jobs
+					SET
+						cron_job_status = ?
+					WHERE
+						cron_job_id = ?
+					AND
+						cron_job_status = ?
+				',
+				array('toenable', $cronJobId, 'suspended')
+			);
+
+			if($stmt->rowCount()) {
+				EventsAggregator::getInstance()->dispatch('onAfterEnableCronJob', array(
+					'cron_job_admin_id' => null,
+					'cron_job_id' => $cronJobId
+				));
+
+				send_request();
+
+				write_log(
+					sprintf(
+						'CronJobs: Cron job with ID %s has been scheduled for activation by %s',
+						$cronJobId,
+						$_SESSION['user_logged']
+
+					),
+					E_USER_NOTICE
+				);
+
+				Functions::sendJsonResponse(
+					200, array('message' => tr('Cron job has been scheduled for activation.', true, $cronJobId))
+				);
+			}
+		} catch(DatabaseException $e) {
+			write_log(
+				sprintf('CronJobs: Unable to activate cron job with ID %s: %s', $cronJobId, $e->getMessage()),
+				E_USER_ERROR
+			);
+
+			Functions::sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			);
+		}
+	}
+
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+}
+
+/**
+ * Disable cron job
+ *
+ * @return void
+ */
+function disableCronJob()
+{
+	if(isset($_POST['cron_job_id'])) {
+		$cronJobId = intval($_POST['cron_job_id']);
+
+		try {
+			EventsAggregator::getInstance()->dispatch('onBeforeDisableCronJob', array(
+				'cron_job_admin_id' => null,
+				'cron_job_id' => $cronJobId
+			));
+
+			$stmt = exec_query(
+				'
+					UPDATE
+						cron_jobs
+					SET
+						cron_job_status = ?
+					WHERE
+						cron_job_id = ?
+					AND
+						cron_job_status = ?
+				',
+				array('tosuspend', $cronJobId, 'ok')
+			);
+
+			if($stmt->rowCount()) {
+				EventsAggregator::getInstance()->dispatch('onAfterDisableCronJob', array(
+					'cron_job_admin_id' => null,
+					'cron_job_id' => $cronJobId
+				));
+
+				send_request();
+
+				write_log(
+					sprintf(
+						'CronJobs: Cron job with ID %s has been scheduled for deactivation by %s',
+						$cronJobId,
+						$_SESSION['user_logged']
+
+					),
+					E_USER_NOTICE
+				);
+
+				Functions::sendJsonResponse(
+					200, array('message' => tr('Cron job has been scheduled for deactivation.', true, $cronJobId))
+				);
+			}
+		} catch(DatabaseException $e) {
+			write_log(
+				sprintf('CronJobs: Unable to deactivate cron job with ID %s: %s', $cronJobId, $e->getMessage()),
+				E_USER_ERROR
+			);
+
+			Functions::sendJsonResponse(
+				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			);
+		}
+	}
+
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+}
+
+/**
  * Delete cron job
  *
  * @return void
@@ -324,84 +458,58 @@ function deleteCronJob()
 function getCronJobsList()
 {
 	try {
-		// Filterable, orderable columns
-		$columnDefs = array(
-			'cron_job_id' => 'cron_job_id',
-			'cron_job_type' => 'cron_job_type',
-			'cron_job_timedate' => "
-				CONCAT(
-					cron_job_minute, ' ', cron_job_hour, ' ', cron_job_dmonth, ' ', cron_job_month, ' ',
-					cron_job_dweek
-				) AS cron_job_timedate
-			",
-			'cron_job_user' => 'cron_job_user',
-			'cron_job_command' => 'cron_job_command',
-			'cron_job_status' => 'cron_job_status',
+		/* Columns */
+		$cols = array(
+			'cron_job_minute', 'cron_job_hour', 'cron_job_dmonth', 'cron_job_month', 'cron_job_dweek', 'cron_job_user',
+			'cron_job_type', 'cron_job_command', 'cron_job_status'
 		);
 
-		$columnNames = array_keys($columnDefs);
-		$nbColumns = count($columnDefs);
-		$indexColumn = 'cron_job_id';
+		$colsTotal = count($cols);
+		$colCnt = 'cron_job_id';
 
 		/* DB table to use */
 		$table = 'cron_jobs';
 
-		/* Paging */
-		$limit = '';
+		/* Filtering */
+		$where = 'WHERE cron_job_admin_id IS NULL';
+		if(isset($_GET['sSearch']) && $_GET['sSearch'] !== '') {
+			$where .= 'AND (';
 
-		if(isset($_GET['iDisplayStart']) && isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] !== '-1') {
-			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
+			for($i = 0; $i < $colsTotal; $i++) {
+				$where .= $cols[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
+			}
+
+			$where = substr_replace($where, '', -4);
+			$where .= ')';
 		}
 
 		/* Ordering */
 		$order = '';
+		if(isset($_GET['iSortingCols']) && isset($_GET['iSortCol_0'])) {
+			$colIdx = intval($_GET['iSortCol_0']);
 
-		if(isset($_GET['iSortCol_0']) && isset($_GET['iSortingCols'])) {
-			$order = 'ORDER BY ';
+			$sortDir = (
+				isset($_GET['sSortDir_' . $colIdx]) && in_array($_GET['sSortDir_' . $colIdx], array('asc', 'desc'))
+			) ? $_GET['sSortDir_' . $colIdx] : 'asc';
 
-			for($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
-				if($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] === 'true') {
-					$sortDir = (
-						isset($_GET['sSortDir_' . $i]) && in_array($_GET['sSortDir_' . $i], array('asc', 'desc'))
-					) ? $_GET['sSortDir_' . $i] : 'asc';
+			$colIdx--;
 
-					$order .= $columnNames[intval($_GET['iSortCol_' . $i])] . ' ' . $sortDir . ', ';
-				}
-			}
-
-			$order = substr_replace($order, '', -2);
-
-			if($order == 'ORDER BY ') {
-				$order = '';
+			if(isset($cols[$colIdx])) {
+				$order .= 'ORDER BY ' . $cols[$colIdx] . ' ' . $sortDir;
 			}
 		}
 
-		/* Filtering */
-		$where = 'WHERE cron_job_admin_id IS NULL';
-
-		if(isset($_GET['sSearch']) && $_GET['sSearch'] !== '') {
-			$where .= 'AND (';
-
-			for($i = 0; $i < $nbColumns; $i++) {
-				$where .= $columnNames[$i] . ' LIKE ' . quoteValue('%' . $_GET['sSearch'] . '%') . ' OR ';
-			}
-
-			$where = substr_replace($where, '', -3);
-			$where .= ')';
-		}
-
-		/* Individual column filtering */
-		for($i = 0; $i < $nbColumns; $i++) {
-			if(isset($_GET['bSearchable_' . $i]) && $_GET['bSearchable_' . $i] === 'true' && $_GET['sSearch_' . $i] !== '') {
-				$where .= "AND {$columnNames[$i]} LIKE " . quoteValue('%' . $_GET['sSearch_' . $i] . '%');
-			}
+		/* Paging */
+		$limit = '';
+		if(isset($_GET['iDisplayStart']) && isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] !== '-1') {
+			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Get data to display */
 		$rResult = execute_query(
 			'
 				SELECT
-					SQL_CALC_FOUND_ROWS ' . str_replace(' , ', ' ', implode(', ', $columnDefs)) . "
+					SQL_CALC_FOUND_ROWS cron_job_id, ' . str_replace(' , ', ' ', implode(', ', $cols)) . "
 				FROM
 					$table
 				$where
@@ -416,7 +524,7 @@ function getCronJobsList()
 		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
-		$resultTotal = execute_query("SELECT COUNT($indexColumn) FROM $table WHERE cron_job_admin_id IS NULL");
+		$resultTotal = execute_query("SELECT COUNT($colCnt) FROM $table WHERE cron_job_admin_id IS NULL");
 		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
 		$total = $resultTotal[0];
 
@@ -425,42 +533,65 @@ function getCronJobsList()
 			'sEcho' => intval($_GET['sEcho']),
 			'iTotalRecords' => $total,
 			'iTotalDisplayRecords' => $filteredTotal,
-			'aaData' => array()
+			'data' => array()
 		);
 
-		$trEditTooltip = tr('Edit cron job', true);
-		$trDeleteTooltip = tr('Delete cron job', true);
+		$trDeactivateTooltip = tr('Deactivate');
+		$trActivateTooltip = tr('Activate');
+		$trEditTooltip = tr('Edit', true);
+		$trDeleteTooltip = tr('Delete', true);
 
 		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for($i = 0; $i < $nbColumns; $i++) {
-				if($columnNames[$i] == 'cron_job_type') {
-					$row[$columnNames[$i]] = ($data[$columnNames[$i]] == 'url')
-						? tr('Url', true) : tr('Shell', true);
-				} elseif($columnNames[$i] == 'cron_job_status') {
-					$row[$columnNames[$i]] = translate_dmn_status($data[$columnNames[$i]], false);
+			for($i = 0; $i < $colsTotal; $i++) {
+				if($cols[$i] === 'cron_job_type') {
+					$row[$cols[$i]] = ($data[$cols[$i]] === 'url') ? tr('Url', true) : tr('Shell', true);
+				} elseif($cols[$i] == 'cron_job_status') {
+					$row[$cols[$i]] = ($data[$cols[$i]] === 'tosuspend')
+						? translate_dmn_status('todisable', false)
+						: (
+						($data[$cols[$i]] === 'suspended')
+							? translate_dmn_status('disabled', false)
+							: translate_dmn_status($data[$cols[$i]], false)
+						);
 				} else {
-					$row[$columnNames[$i]] = $data[$columnNames[$i]];
+					$row[$cols[$i]] = $data[$cols[$i]];
 				}
 			}
 
-			$row['cron_job_timedate'] = tohtml($data['cron_job_timedate']);
+			if($data['cron_job_status'] === 'ok') {
+				$row['cron_job_disable_enable'] =
+					'<span title="' . $trDeactivateTooltip . '" style="vertical-align:middle">' .
+					'<input type="checkbox" data-action="disable_cronjob" ' .
+					'data-cron-job-id="' . $data['cron_job_id'] . '" checked></span>';
 
-			if($data['cron_job_status'] == 'ok') {
 				$row['cron_job_actions'] =
-					"<span title=\"$trEditTooltip\" data-action=\"edit_cronjob\" " .
-					"data-cron-job-id=\"" . $data['cron_job_id'] . "\" " .
-					"class=\"icon icon_edit clickable\">&nbsp;</span> "
-					.
-					"<span title=\"$trDeleteTooltip\" data-action=\"delete_cronjob\" " .
-					"data-cron-job-id=\"" . $data['cron_job_id'] . "\" " .
-					"class=\"icon icon_delete clickable\">&nbsp;</span>";
+					'<span title="' . $trEditTooltip . '" data-action="edit_cronjob" ' .
+					'data-cron-job-id="' . $data['cron_job_id'] . '" class="icon icon_edit clickable">&nbsp;</span> ' .
+
+					'<span title="' . $trDeleteTooltip . '" data-action="delete_cronjob" ' .
+					'data-cron-job-id="' . $data['cron_job_id'] . '" class="icon icon_delete clickable">&nbsp;</span>';
+			} elseif($data['cron_job_status'] === 'suspended') {
+				$row['cron_job_disable_enable'] =
+					'<span title="' . $trActivateTooltip . '" style="vertical-align:middle">' .
+					'<input type="checkbox" data-action="enable_cronjob" ' .
+					'data-cron-job-id="' . $data['cron_job_id'] . '"></span>';
+
+				$row['cron_job_actions'] = tr('n/a', true);
 			} else {
+				if($data['cron_job_status'] === 'tosuspend') {
+					$row['cron_job_disable_enable'] =
+						'<span style="vertical-align: middle"><input type="checkbox" disabled></span>';
+				} else {
+					$row['cron_job_disable_enable'] =
+						'<span style="vertical-align: middle"><input type="checkbox" disabled checked></span>';
+				}
+
 				$row['cron_job_actions'] = tr('n/a', true);
 			}
 
-			$output['aaData'][] = $row;
+			$output['data'][] = $row;
 		}
 
 		Functions::sendJsonResponse(200, $output);
@@ -496,6 +627,12 @@ if(isset($_REQUEST['action'])) {
 				break;
 			case 'get_cronjob':
 				getCronJob();
+				break;
+			case'disable_cronjob':
+				disableCronJob();
+				break;
+			case 'enable_cronjob':
+				enableCronJob();
 				break;
 			case 'delete_cronjob':
 				deleteCronJob();

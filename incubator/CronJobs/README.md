@@ -1,8 +1,8 @@
-# i-MSCP cronjobs plugin v1.0.1
+# i-MSCP cronjobs plugin v1.1.0
 
 ## Introduction
 
-This plugin provide a cron time-based job scheduler for i-MSCP. 
+This plugin provide a cron time-based job scheduler for i-MSCP.
 
 Administrators give cron job permissions to their resellers, and the resellers give cron job permissions to their
 customers according their own permissions. For instance, a reseller will be able to give the full cron job permission to
@@ -32,7 +32,9 @@ must be run. For customers, this is the Web user as created by i-MSCP.
 
 You can install these packages by executing the following command:
 
-	# aptitude install libpam-chroot makejail msmtp
+```
+# aptitude install libpam-chroot makejail msmtp
+```
 
 **Notes**
   - If support for jailed cron jobs is detected and a package is not installed on your system, an error will be throw
@@ -40,26 +42,24 @@ You can install these packages by executing the following command:
 
 ## Installation
 
-1. Login into the panel as admin and go to the plugin management interface
-2. Upload the plugin archive
-3. Activate the plugin
+1. Upload the plugin through the plugin management interface
+2. Install the plugin through the plugin management interface
 
 ## Update
 
-1. Backup your **plugins/CronJobs/config.php** configuration file
-2. Login into the panel as admin and go to the plugin management interface
-3. Deactivate the plugin
-4. Upload the plugin archive
-5. Restore your **plugins/CronJobs/config.php** configuration file ( compare it with the new version first )
-6. Activate the plugin
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
 
 ## Activation of jailed cron jobs support
 
 If this plugin is already activated and if you want enable support for jailed cron jobs later on, you must follow these
 instructions:
  
-1. Be sure that all required packages as mentioned in the requirements section are installed on your system
-2. Upload the InstantSSH plugin
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the InstantSSH plugin through the plugin management interface
 3. Deactivate this plugin
 4. Re-activate this plugin
 
@@ -133,45 +133,59 @@ The cron jobs interface allows administrators and customers to add, edit and del
 * Administrators can access the cron jobs interface through the **System tools** menu
 * Customers can access the cron jobs interface through the **Webtools** menu
 
+## Configuration
+
+See [Configuration file](../CronJobs/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin interface.
+
 ## Translation
 
 You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
 array values inside the new file.
 
-Feel free to post your language files in our forum for intergration in a later release.
+Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
+repository and do a pull request if you've a github account.
 
 **Note:** File encoding must be UTF-8.
 
-## Usage
+## Plugin usage
 
 A small contribution for use of this plugin is requested by doing a donation on my paypal account ( paypal@nuxwin.com ).
 If you do not want to contribute, you should not use that plugin.
 
+## Troubleshootings
+
+See [InstantSSH Troubleshootings](https://github.com/i-MSCP/plugins/tree/master/incubator/InstantSSH#troubleshootings)
+
 ## License
 
-	i-MSCP CronJobs plugin
-	copyright (c) 2014 laurent declercq <l.declercq@nuxwin.com>
-	
-	This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either
-	version 2.1 of the License, or (at your option) any later version.
-	
-	This library is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Lesser General Public License for more details.
-	
-	You should have received a copy of the GNU Lesser General Public
-	License along with this library; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+```
+i-MSCP CronJobs plugin
+Copyright (c) 2014-2015 laurent declercq <l.declercq@nuxwin.com>
 
- see [lgpl v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "lgpl v2.1")
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+```
+
+see [LICENSE](LICENSE)
 
 ## Sponsors
 
- - [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
- - [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
+* [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
+* [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
 
 ## Author(s)
 

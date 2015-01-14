@@ -2,6 +2,19 @@ CronJobs - ChangeLog
 ====================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.1.0
+------------------------------------------------------------------------------------------------------------------------
+
+	Added: Mass permissions feature ( reseller level )
+	Added: Suspend feature ( admin and customer levels )
+	Changed: Plugin configuration is now lazy loaded ( backend )
+	Fixed: Missing timezone data inside jailed cron environment
+	Fixed: No entropy gathering module inside jailed cron environment
+	Fixed: Percent-signs in cron commands must be escaped
+	Updated: License headers for new year
+	Updated: Translation files
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 

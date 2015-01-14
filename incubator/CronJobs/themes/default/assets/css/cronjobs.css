@@ -1,12 +1,5 @@
 .icon {
-    background-position: left center;
-    background-repeat: no-repeat;
-    display: inline-block;
-    display: -moz-inline-block;
-    overflow: hidden;
-    height: 16px;
-    line-height: 18px;
-    padding-left: 20px;
+    padding-left: 16px;
 }
 
 .icon_edit {
@@ -34,4 +27,52 @@ small {
 .hint {
     font-variant: small-caps;
     font-size: small;
+}
+
+
+table th.columnMark, table td.columnMark {
+    text-align: center;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+table th .columnType, table td.columnType {
+    text-align: center;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+table th.columnDate, table td.columnDate {
+    text-align: center;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+table th.columnUser, table td.columnUser {
+    text-align: center;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+table th.columnCommand, table td.columnCommand {
+    text-align: left;
+    max-width: 30%;
+}
+
+table th.columnStatus, .columnStatus {
+    text-align: left;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+table th.columnActions, table td.columnActions {
+    text-align: left;
+    width: 1px;
+    white-space: nowrap;
+    word-wrap: normal;
 }
