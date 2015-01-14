@@ -53,7 +53,7 @@ X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 
 Be aware that the EICAR signature above must be added on a line, without whitespace nor line break.
 
-### License
+## License
 
 ```
 Copyright (C) 2013-2015 Sascha Bay <info@space2place.de> and Rene Schuster <mail@reneschuster.de>
@@ -70,7 +70,7 @@ GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
 
-### Authors and contributors
+## Authors and contributors
 
 * Laurent Declercq <l.declercq@nuxwin.com> ( Contributor )
 * Rene Schuster <mail@reneschuster.de> ( Author )
