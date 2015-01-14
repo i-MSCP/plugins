@@ -146,7 +146,7 @@ sub disable
 
  Initialize plugin
 
- Return Plugin::PanelRedirect
+ Return Plugin::PanelRedirect or die on failure
 
 =cut
 
@@ -154,14 +154,14 @@ sub _init
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
+	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
 		$self->{'httpd'} = Servers::httpd->factory();
 
-		my $rdata = iMSCP::Database->factory()->doQuery(
+		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PanelRedirect'
 		);
-		unless(ref $rdata eq 'HASH') {
-			fatal($rdata);
+		unless(ref $config eq 'HASH') {
+			die("PanelRedirect: $config");
 		}
 
 		$self->{'config'} = decode_json($rdata->{'PanelRedirect'}->{'plugin_config'});
