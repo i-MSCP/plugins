@@ -1,3 +1,9 @@
+=head1 NAME
+
+ Plugin::ClamAV
+
+=cut
+
 # i-MSCP - internet Multi Server Control Panel
 # Copyright (C) 2010-2015 by internet Multi Server Control Panel
 #
@@ -15,9 +21,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# @category    iMSCP
-# @package     iMSCP_Plugin
-# @subpackage  ClamAV
 # @copyright   Sascha Bay <info@space2place.de>
 # @copyright   Rene Schuster <mail@reneschuster.de>
 # @author      Sascha Bay <info@space2place.de>
@@ -50,67 +53,6 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item install()
-
- Perform install tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-	my $self = $_[0];
-
-	unless(-x '/usr/sbin/clamd') {
-		error('Unable to find clamav daemon.');
-		return 1;
-	}
-
-	unless(-x '/usr/bin/freshclam') {
-		error('Unable to find freshclam daemon.');
-		return 1;
-	}
-
-	unless(-x '/usr/sbin/clamav-milter') {
-		error('Unable to find clamav-milter daemon.');
-		return 1;
-	}
-
-	$self->change();
-}
-
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	my $self = $_[0];
-
-	my $rs = $self->_modifyClamavMilterSystemConfig('add');
-	return $rs if $rs;
-
-	$self->_restartClamavMilter();
-}
-
-=item update()
-
- Perform update tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	$_[0]->change();
-}
-
 =item enable()
 
  Perform enable tasks
@@ -123,7 +65,16 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_modifyPostfixMainConfig('add');
+	my $rs = $self->_checkRequirements();
+	return $rs if $rs;
+
+	my $rs = $self->_clamavMilterConfig('add');
+	return $rs if $rs;
+
+	my $rs = $self->_postfixConfig('add');
+	return $rs if $rs;
+
+	$rs = $self->_restartClamavMilter();
 	return $rs if $rs;
 
 	$self->_schedulePostfixRestart();
@@ -141,28 +92,16 @@ sub disable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_modifyPostfixMainConfig('remove');
+	my $rs = $self->_clamavMilterConfig('remove');
+	return $rs if $rs;
+
+	$rs = $self->_postfixConfig('remove');
+	return $rs if $rs;
+
+	$rs = $self->_restartClamavMilter();
 	return $rs if $rs;
 
 	$self->_schedulePostfixRestart();
-}
-
-=item uninstall()
-
- Perform uninstall tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub uninstall
-{
-	my $self = $_[0];
-
-	my $rs = $self->_modifyClamavMilterSystemConfig('remove');
-	return $rs if $rs;
-
-	$self->_restartClamavMilter();
 }
 
 =back
@@ -175,7 +114,7 @@ sub uninstall
 
  Initialize plugin
 
- Return Plugin::ClamAV
+ Return Plugin::ClamAV or die on failure
 
 =cut
 
@@ -183,33 +122,33 @@ sub _init
 {
 	my $self = $_[0];
 
-	# Force return value from plugin module
-	$self->{'FORCE_RETVAL'} = 'yes';
+	if($self->{'action'} ~~ [ 'install', 'update', 'change', 'enable', 'disable' ]) {
+		# Force return value from plugin module
+		$self->{'FORCE_RETVAL'} = 'yes';
 
-	if($self->{'action'} ~~ [ 'install', 'uninstall', 'change', 'update', 'enable', 'disable' ]) {
-		my $rdata = iMSCP::Database->factory()->doQuery(
+		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
 		);
-		unless(ref $rdata eq 'HASH') {
-			error($rdata);
-			return 1;
+		unless(ref $config eq 'HASH') {
+			die("ClamAV: $config");
 		}
 
-		$self->{'config'} = decode_json($rdata->{'ClamAV'}->{'plugin_config'});
+		$self->{'config'} = decode_json($config->{'ClamAV'}->{'plugin_config'});
 	}
 
 	$self;
 }
 
-=item _modifyClamavMilterSystemConfig($action)
+=item _clamavMilterConfig($action)
 
- Modify clamav-milter system config file
+ Add or remove clamav-milter configuration for this plugin
 
+ Param string $action Action to be performed ( add|remove )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifyClamavMilterSystemConfig
+sub _clamavMilterConfig
 {
 	my ($self, $action) = @_;
 
@@ -265,15 +204,16 @@ sub _modifyClamavMilterSystemConfig
 	}
 }
 
-=item _modifyPostfixMainConfig($action)
+=item _postfixConfig($action)
 
- Modify postfix main.cf config file
+ Add or remove postfix configuration snippet for this plugin
 
+ Param string $action Action to be performed ( add|remove )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifyPostfixMainConfig
+sub _postfixConfig
 {
 	my ($self, $action) = @_;
 
@@ -350,6 +290,33 @@ sub _schedulePostfixRestart
 	Servers::mta->factory()->{'restart'} = 'yes';
 
 	0;
+}
+
+=item _checkRequirements()
+
+ Check for requirements
+
+ Return int 0 if all requirements are meet, other otherwise
+
+=cut
+
+sub _checkRequirements
+{
+	my $ret = 0;
+
+	for my $package (qw/clamav clamav-base clamav-daemon clamav-freshclam clamav-milter/) {
+		my ($stdout, $stderr);
+		my $rs = execute(
+			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
+		);
+		debug($stdout) if $stdout;
+		if($stdout ne 'installed') {
+			error("The $package package is not installed on your system.");
+			$ret ||= 1;
+		}
+	}
+
+	$ret;
 }
 
 =back

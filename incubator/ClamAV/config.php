@@ -36,7 +36,7 @@ return array(
 	 * For more information about the different configuration options please check 'man clamav-milter.conf'.
 	 * 
 	 * Warning: Don't change anything, if you don't know what you are doing.
-	 * Be aware that when changing a the port of the Postfix smtpd_milter for ClamAV require to rerun the i-MSCP setup
+	 * Be aware that when changing the port of the Postfix smtpd_milter for ClamAV require to rerun the i-MSCP setup
 	 * script.
 	 */
 
@@ -51,7 +51,7 @@ return array(
 	'PostfixMilterSocket' => 'inet:localhost:32767',
 
 	//
-	// The following configation parameters are added in the /etc/clamav/clamav-milter.conf configuration file
+	//// The following configation parameters are added in the /etc/clamav/clamav-milter.conf configuration file
 	//
 
 	// ClamAV milter socket ( default: inet:32767@localhost )
@@ -61,11 +61,19 @@ return array(
 	//  /var/spool/postfix/clamav/clamav-milter.ctl ( for connection through socket )
 	'MilterSocket' => 'inet:32767@localhost',
 
+	// Possible values: true, false
 	'FixStaleSocket' => 'true',
+
 	'User' => 'clamav',
+
+	// Possible values: true, false
 	'AllowSupplementaryGroups' => 'true',
+
 	'ReadTimeout' => '120',
+
+	// Possible values: true, false
 	'Foreground' => 'false',
+
 	'PidFile' => '/var/run/clamav/clamav-milter.pid',
 	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
 	'OnClean' => 'Accept',
@@ -79,28 +87,38 @@ return array(
 	// Possible values: Replace (or YES), NO
 	'AddHeader' => 'Replace',
 
-	// Possible values: TRUE, FALSE
+	// Possible values: true, false
 	'LogSyslog' => 'true',
 
 	// Look at http://linux.die.net/man/3/syslog => "facility"
 	'LogFacility' => 'LOG_MAIL',
 
+	// Possible values: true, false
 	'LogVerbose' => 'false',
 
 	// Possible values: Full, Basic, Off
 	'LogInfected' => 'Basic',
 
+	// Possible values: Off, On
 	'LogClean' => 'Off',
+
+	// Possible values: true, false
 	'LogRotate' => 'true',
 	
 	// Messages larger than this value won't be scanned.
 	'MaxFileSize' => '25M',
-	
+
+	// Possible values: 'true', 'false'
 	'SupportMultipleRecipients' => 'false',
+
 	'TemporaryDirectory' => '/tmp',
 	'LogFile' => '/var/log/clamav/clamav-milter.log',
+
+	// Possible values: true, false
 	'LogTime' => 'true',
+	// Possible values: true, false
 	'LogFileUnlock' => 'false',
+
 	'LogFileMaxSize' => '0M',
 	'MilterSocketGroup' => 'clamav',
 	'MilterSocketMode' => '666',

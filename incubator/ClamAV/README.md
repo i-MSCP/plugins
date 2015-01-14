@@ -4,7 +4,7 @@ Plugin which allows to use ClamAV with i-MSCP.
 
 ## Requirements
 
-* i-MSCP versions >= 1.1.0
+* i-MSCP versions >= 1.1.22
 
 ### Debian / Ubuntu packages
 
@@ -22,14 +22,14 @@ You can install these packages by running the following commands:
 # service clamav-freshclam stop
 # freshclam
 # service clamav-freshclam start
-# service clamav-daemon restart
+# service clamav-daemon start
 ```
 
 ## Installation
 
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Upload the plugin through the plugin management interface
-3. Install the plugin
+3. Activate the plugin
 
 ## Update
 

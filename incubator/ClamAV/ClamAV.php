@@ -35,54 +35,42 @@
 class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
+	 * onBeforeEnablePluginPlugin listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function onBeforeEnablePlugin($event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.1', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
+			$this->checkCompat($event);
 		}
 	}
 
 	/**
-	 * Plugin installation
+	 * Check plugin compatibility
 	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function install(iMSCP_Plugin_Manager $pluginManager)
+	protected function checkCompat($event)
 	{
-		// Only there to tell the plugin manager that this plugin is installable
-	}
+		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
+			set_page_message(
+				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+			);
 
-	/**
-	 * Plugin uninstallation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only there to tell the plugin manager that this plugin can be uninstalled
+			$event->stopPropagation();
+		}
 	}
 }
