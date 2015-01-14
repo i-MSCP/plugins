@@ -164,7 +164,7 @@ sub _init
 			die("PanelRedirect: $config");
 		}
 
-		$self->{'config'} = decode_json($rdata->{'PanelRedirect'}->{'plugin_config'});
+		$self->{'config'} = decode_json($config->{'PanelRedirect'}->{'plugin_config'});
 	}
 
 	$self;
