@@ -38,7 +38,6 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 use iMSCP::Debug;
 use iMSCP::Database;
-use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use JSON;
@@ -311,7 +310,7 @@ sub _checkRequirements
 		);
 		debug($stdout) if $stdout;
 		if($stdout ne 'installed') {
-			error("The $package package is not installed on your system.");
+			error("The $package package is not installed on your system");
 			$ret ||= 1;
 		}
 	}
