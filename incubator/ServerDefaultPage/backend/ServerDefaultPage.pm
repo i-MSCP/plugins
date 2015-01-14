@@ -150,7 +150,7 @@ sub disable
 
  Initialize plugin
 
- Return Plugin::ServerDefaultPage
+ Return Plugin::ServerDefaultPage or die on failure
 
 =cut
 
@@ -158,7 +158,7 @@ sub _init
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
+	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
 		$self->{'httpd'} = Servers::httpd->factory();
 
 		my $config = iMSCP::Database->factory()->doQuery(
