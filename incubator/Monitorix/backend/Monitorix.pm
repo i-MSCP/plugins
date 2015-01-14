@@ -1,3 +1,9 @@
+=head1 NAME
+
+ Plugin::Monitorix
+
+=cut
+
 # i-MSCP - internet Multi Server Control Panel
 # Copyright (C) 2010-2015 by internet Multi Server Control Panel
 #
@@ -37,6 +43,7 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Database;
 use File::Basename;
+use JSON;
 use Cwd;
 
 use parent 'Common::SingletonClass';
@@ -304,12 +311,9 @@ sub _init()
 		);
 		unless(ref $config eq 'HASH') {
 			die("Monitorix: $config");
-		} else {
-			require JSON;
-			JSON->import();
-
-			$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'})
 		}
+
+		$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'})
 
 		for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
 			die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};

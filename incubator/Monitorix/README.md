@@ -4,7 +4,7 @@ Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 
 ## Requirements
 
-* i-MSCP versions >= 1.1.19 ( Plugin API 0.2.14 )
+* i-MSCP versions >= 1.1.19 ( Plugin API 0.2.16 )
 * Monitorix version >= 3.5.0
 
 ### Debian / Ubuntu packages
@@ -25,7 +25,7 @@ You can install these packages by running the following commands:
 #### Monitorix package
 
 1. Download the monitorix package from http://www.monitorix.org/downloads.html
-2. Install the package by running the following command:
+2. Install the package by running the following commands:
 
 ```
 # dpkg -i monitorix*.deb
@@ -35,8 +35,8 @@ You can install these packages by running the following commands:
 ## Installation
 
 1. Be sure that all requirements as stated in the requirements section are meets
-2. Upload the plugin through the plugin mangement interface
-3. Install the plugin
+2. Upload the plugin through the plugin management interface
+3. Install the plugin through the plugin management interface
 
 ## Update
 
@@ -49,6 +49,9 @@ You can install these packages by running the following commands:
 ## Configuration
 
 See [Configuration file](../Monitorix/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin interface.
  
 ## Translation
 
@@ -79,5 +82,5 @@ See [LICENSE](LICENSE)
 
 ## Authors and contributors
 
-* Laurent Declercq <l.declercq@nuxwin.com>
-* Sascha Bay <info@space2place.de>
+* Laurent Declercq <l.declercq@nuxwin.com> ( Contributor )
+* Sascha Bay <info@space2place.de> ( Author )

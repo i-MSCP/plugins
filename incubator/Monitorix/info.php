@@ -33,8 +33,8 @@ return array(
 		'Laurent Declercq'
 	),
 	'email' => 'plugins@i-mscp.net',
-	'version' => '1.1.0',
-	'date' => '2015-01-11',
+	'version' => '1.0.0',
+	'date' => '2015-01-14',
 	'name' => 'Monitorix',
 	'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
