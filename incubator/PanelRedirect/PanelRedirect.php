@@ -64,7 +64,7 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	 */
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
-		// Only there to tell the plugin manager that this plugin is installable
+		// Only here to tell the plugin manager that this plugin is installable
 	}
 
 	/**
@@ -75,6 +75,6 @@ class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 	 */
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
-		// Only there to tell the plugin manager that this plugin can be uninstalled
+		// Only here to tell the plugin manager that this plugin can be uninstalled
 	}
 }

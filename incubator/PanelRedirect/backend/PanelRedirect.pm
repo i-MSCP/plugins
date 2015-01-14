@@ -73,6 +73,19 @@ sub uninstall
 	$_[0]->_removeLogFolder();
 }
 
+=item update()
+
+ Process update tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	$_[0]->_createLogFolder();
+}
+
 =item enable()
 
  Process enable tasks
@@ -256,7 +269,7 @@ sub _createLogFolder()
 	iMSCP::Dir->new(
 		'dirname' => "$_[0]->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
 	)->make(
-		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => '0750' }
+		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0750 }
 	);
 }
 
@@ -284,3 +297,4 @@ sub _removeLogFolder()
 =cut
 
 1;
+__END__

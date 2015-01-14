@@ -1,4 +1,4 @@
-# i-MSCP PanelRedirect plugin v1.0.3
+# i-MSCP PanelRedirect plugin v1.0.4
 
 Plugin which redirects apache2 requests of the panel to nginx.
 
@@ -13,14 +13,15 @@ This plugin redirects any apache2 requests for the i-MSCP control panel ( made o
 ## Installation
 
 1. Upload the plugin through the plugin management interface
-2. Install the plugin through the plugin mangement interface
+2. Install the plugin
 
 ## Update
 
-1. Backup your plugin configuration file if needed
-2. Upload the plugin through the plugin management interface
-3. Restore your plugin configuration file if needed ( compare it with the new version first )
-4. Update the plugin list through the plugin management interface
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
 
 ## License
 
@@ -42,8 +43,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ```
 
-see [LICENSE](LICENSE)
+See [LICENSE](LICENSE)
 
 ## AUTHOR
 
- * Ninos Ego <me@ninosego.de>
+* Ninos Ego <me@ninosego.de>

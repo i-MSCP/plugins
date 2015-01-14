@@ -19,7 +19,7 @@
  */
 
 return array(
-	// Redirection type
-	// Available types: proxy (default), redirect
+	// Redirection type ( default: proxy )
+	// Possible values: proxy, redirect
 	'type' => 'proxy'
 );
