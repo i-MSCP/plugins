@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP InstantSSH plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -532,8 +532,6 @@ $plugin = $pluginManager->getPlugin('InstantSSH');
 $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 
 if($sshPermissions['ssh_permission_id'] !== null) {
-	Functions::initEscaper();
-
 	if(isset($_REQUEST['action'])) {
 		if(is_xhr()) {
 			$action = clean_input($_REQUEST['action']);

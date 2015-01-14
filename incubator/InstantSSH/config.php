@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP InstantSSH plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -169,7 +169,8 @@ return array(
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/ash
 	'ashshell' => array(
 		'paths' => array(
-			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log'
+			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log', '/etc/localtime',
+			'/etc/timezone'
 		),
 		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
@@ -223,7 +224,8 @@ return array(
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
 			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups'
+			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime',
+			'/etc/timezone'
 		),
 		'jail_copy_file_to' => array(
 			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
@@ -233,7 +235,7 @@ return array(
 			'uidbasics', 'editors'
 		),
 		'devices' => array(
-			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
+			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/random', '/dev/zero'
 		),
 		'fstab' => array(
 			array(

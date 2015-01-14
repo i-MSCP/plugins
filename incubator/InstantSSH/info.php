@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP InstantSSH plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '3.1.1',
-	'date' => '2014-12-27',
+	'date' => '2014-01-14',
 	'name' => 'InstantSSH',
 	'desc' => 'Plugin allowing to provide full or restricted shell access to your customers.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:instantssh'

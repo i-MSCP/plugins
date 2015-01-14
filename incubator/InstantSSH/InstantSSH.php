@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP InstantSSH plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		$this->checkCompat($event);
+		if($event->getParam('pluginName') == $this->getName()) {
+			$this->checkCompat($event);
+		}
 	}
 
 	/**
@@ -109,7 +111,9 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		$this->checkCompat($event);
+		if($event->getParam('pluginName') == $this->getName()) {
+			$this->checkCompat($event);
+		}
 	}
 
 	/**
@@ -484,14 +488,12 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	protected function checkCompat($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
+		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
+			set_page_message(
+				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+			);
 
-				$event->stopPropagation();
-			}
+			$event->stopPropagation();
 		}
 	}
 
