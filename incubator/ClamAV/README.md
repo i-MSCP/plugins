@@ -43,6 +43,9 @@ You can install these packages by running the following commands:
 
 See [Configuration file](../ClamAV/config.php)
 
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin interface.
+
 ## Eicar-Test-Signature
 
 Send a mail with the following content to one of your i-MSCP mail accounts  by using another mail account:
