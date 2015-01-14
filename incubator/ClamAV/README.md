@@ -29,7 +29,7 @@ You can install these packages by running the following commands:
 
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Upload the plugin through the plugin management interface
-3. Activate the plugin
+3. Activate the plugin through the plugin management interface
 
 ## Update
 
