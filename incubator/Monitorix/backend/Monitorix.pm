@@ -270,8 +270,8 @@ sub buildGraphs
 			for(@files) {
 				my $file = iMSCP::File->new( filename => "$graphsDir/$_" );
 
-				if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) { # Remove useless files, only zoom graphics are needed
-					my $rs = $file->delFile();
+				if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) {
+					my $rs = $file->delFile(); # Remove useless files, only zoom graphics are needed
 					return $rs if $rs;
 				} else {
 					my $rs = $file->owner($panelUname, $panelGName);
@@ -297,7 +297,7 @@ sub buildGraphs
 
  Initialize instance
 
- Return Plugin::Monitorix
+ Return Plugin::Monitorix or die on failure
 
 =cut
 
