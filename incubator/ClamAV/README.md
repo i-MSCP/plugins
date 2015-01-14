@@ -43,17 +43,15 @@ You can install these packages by running the following commands:
 
 See [Configuration file](../ClamAV/config.php)
 
-## Testing
+## Eicar-Test-Signature
 
-**Eicar-Test-Signature**
-
-Send a mail to yourself from another account ( e.g. gmail or any other freemailer ) with the following content:
+Send a mail with the following content to one of your i-MSCP mail accounts  by using another mail account:
 
 ```
 X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
 ```
 
-**Note:** that this should be reproduced in one line, without whitespace or line breaks.
+Be aware that the EICAR signature above must be added on a line, without whitespace nor line break.
 
 ### License
 
