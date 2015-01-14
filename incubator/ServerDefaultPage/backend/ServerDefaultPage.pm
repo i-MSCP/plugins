@@ -161,14 +161,14 @@ sub _init
 	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
 		$self->{'httpd'} = Servers::httpd->factory();
 
-		my $rdata = iMSCP::Database->factory()->doQuery(
+		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ServerDefaultPage'
 		);
-		unless(ref $rdata eq 'HASH') {
-			fatal($rdata);
+		unless(ref $config eq 'HASH') {
+			die("ServerDefaultPage: $config");
 		}
 
-		$self->{'config'} = decode_json($rdata->{'ServerDefaultPage'}->{'plugin_config'});
+		$self->{'config'} = decode_json($config->{'ServerDefaultPage'}->{'plugin_config'});
 	}
 
 	$self;
