@@ -68,10 +68,10 @@ sub enable
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	my $rs = $self->_clamavMilterConfig('add');
+	$rs = $self->_clamavMilterConfig('add');
 	return $rs if $rs;
 
-	my $rs = $self->_postfixConfig('add');
+	$rs = $self->_postfixConfig('add');
 	return $rs if $rs;
 
 	$rs = $self->_restartClamavMilter();
