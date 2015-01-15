@@ -28,7 +28,6 @@ return array(
 	'Cron job has been scheduled for activation.' => 'La tâche cron va être activée.',
 	'Cron job has been scheduled for deactivation.' => 'La tâche cron va être désactivée.',
 	'Cron job has been scheduled for deletion.' => 'La tâche cron va être supprimée.',
-
 	'Your cron jobs limit is reached.' => 'Votre limite de tâches cron est atteinte.',
 	'An unexpected error occurred: %s' => "Une erreur inattendue s'est produite: %s",
 	'Bad request.' => 'Mauvaise requête.',
