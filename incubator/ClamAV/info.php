@@ -37,7 +37,7 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '0.0.1',
-	'date' => '2015-01-14',
+	'date' => '2015-01-15',
 	'name' => 'ClamAV',
 	'desc' => 'Plugin which allows to use ClamAV with i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'

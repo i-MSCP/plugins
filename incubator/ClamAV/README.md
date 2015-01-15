@@ -48,7 +48,7 @@ change by updating the plugin list through the plugin interface.
 
 ## Eicar-Test-Signature
 
-Send a mail with the following content to one of your i-MSCP mail accounts  by using another mail account:
+Send a mail with the following content to one of your i-MSCP mail accounts using another mail account:
 
 ```
 X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
