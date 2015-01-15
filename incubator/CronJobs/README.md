@@ -42,8 +42,9 @@ You can install these packages by executing the following command:
 
 ## Installation
 
-1. Upload the plugin through the plugin management interface
-2. Install the plugin through the plugin management interface
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Install the plugin through the plugin management interface
 
 ## Update
 

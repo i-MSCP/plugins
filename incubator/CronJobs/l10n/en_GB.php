@@ -24,11 +24,11 @@ return array(
 	'Cron job permissions' => 'Cron job permissions',
 	'Cron jobs' => 'Cron jobs',
 	'Cron job has been scheduled for addition.' => 'Cron job has been scheduled for addition.',
+	'Cron job has been scheduled for update.' => 'Cron job has been scheduled for update.',
 	'Cron job has been scheduled for activation.' => 'Cron job has been scheduled for activation.',
 	'Cron job has been scheduled for deactivation.' => 'Cron job has been scheduled for deactivation.',
 	'Cron job has been scheduled for deletion.' => 'Cron job has been scheduled for deletion.',
 	'Your cron jobs limit is reached.' => 'Your cron jobs limit is reached.',
-	'Cron job has been scheduled for update.' => 'Cron job has been scheduled for update.',
 	'An unexpected error occurred: %s' => 'An unexpected error occurred: %s',
 	'Bad request.' => 'Bad request.',
 	'Edit' => 'Edit',
@@ -128,5 +128,5 @@ return array(
 	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution.",
 	'User must be a valid UNIX user.' => 'User must be a valid UNIX user.',
 	'Url must not contain any username/password for security reasons.' => 'Url must not contain any username/password for security reasons.',
-	'Command must be a valid HTTP URL.' => 'Command must be a valid HTTP URL.',
+	'Command must be a valid HTTP URL.' => 'Command must be a valid HTTP URL.'
 );

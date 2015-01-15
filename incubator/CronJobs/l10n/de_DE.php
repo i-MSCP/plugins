@@ -24,11 +24,11 @@ return array(
 	'Cron job permissions' => 'Cron-Job-Berechtigungen',
 	'Cron jobs' => 'Cron-Jobs',
 	'Cron job has been scheduled for addition.' => 'Cron-Job wurde zum Hinzufügen angesetzt.',
+	'Cron job has been scheduled for update.' => 'Cron-Job wurde zum Aktualisieren angesetzt.',
 	'Cron job has been scheduled for activation.' => 'Cron-Job wurde zum Aktivieren angesetzt.',
 	'Cron job has been scheduled for deactivation.' => 'Cron-Job wurde zum Deaktivieren angesetzt.',
 	'Cron job has been scheduled for deletion.' => 'Cron-Job wurde zum Löschen angesetzt.',
 	'Your cron jobs limit is reached.' => 'Ihr cron-Job-Limit ist erreicht.',
-	'Cron job has been scheduled for update.' => 'Cron-Job wurde zum Aktualisieren angesetzt.',
 	'An unexpected error occurred: %s' => 'Es ist ein unerwarteter Fehler aufgetreten: %s',
 	'Bad request.' => 'Bad request.',
 	'Edit' => 'Bearbeiten',
@@ -128,5 +128,5 @@ return array(
 	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "Sie überschreiten den erlaubten Limit von %s Minuten, welcher der minimale Zeitinterval zwischen der Ausführung jeden cron-Jobs ist.",
 	'User must be a valid UNIX user.' => 'Benutzer muss ein gültiger UNIX-Benutzer sein.',
 	'Url must not contain any username/password for security reasons.' => 'Url darf aus Sicherheitsgründen keinen Benutzer/Passwort enthalten.',
-	'Command must be a valid HTTP URL.' => 'Befehl muss eine gültige HTTP URL sein.',
+	'Command must be a valid HTTP URL.' => 'Befehl muss eine gültige HTTP URL sein.'
 );

@@ -25,11 +25,11 @@ return array(
 	'Cron job permissions' => 'Cron-rechten',
 	'Cron jobs' => 'Cron-jobs',
 	'Cron job has been scheduled for addition.' => 'Toevoeging van cron-job is ingepland.',
+	'Cron job has been scheduled for update.' => 'Bijwerking van cron-job is ingepland.',
 	'Cron job has been scheduled for activation.' => 'Cron job is gepland voor activering..',
 	'Cron job has been scheduled for deactivation.' => 'Cron job is gepland voor deactivering.',
 	'Cron job has been scheduled for deletion.' => 'Verwijdering van cron-job is ingepland.',
 	'Your cron jobs limit is reached.' => 'U heeft uw cron-joblimiet bereikt.',
-	'Cron job has been scheduled for update.' => 'Bijwerking van cron-job is ingepland.',
 	'An unexpected error occurred: %s' => 'Er is een onverwachte fout opgetreden: %s',
 	'Bad request.' => 'Fout verzoek.',
 	'Edit' => 'Wijzigen',
@@ -129,5 +129,5 @@ return array(
 	"You're exceeding the allowed limit of %s minutes, which is the minimum interval time between each cron job execution." => "U overschrijdt de toegestane %s minuten, wat de minimale tijdsinterval tussen elke uitvoering van een cron-job is.",
 	'User must be a valid UNIX user.' => 'Gebruiker dient een geldige UNIX-gebruiker te zijn.',
 	'Url must not contain any username/password for security reasons.' => 'URL mag wegens veiligheidsoverwegingen geen gebruikersnamen en/of wachtwoorden bevatten.',
-	'Command must be a valid HTTP URL.' => 'Commando dient een geldige HTTP-URL te zijn.',
+	'Command must be a valid HTTP URL.' => 'Commando dient een geldige HTTP-URL te zijn.'
 );
