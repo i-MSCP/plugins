@@ -1,4 +1,4 @@
-# i-MSCP PanelRedirect plugin v1.0.4
+# i-MSCP PanelRedirect plugin v1.0.5
 
 Plugin which redirects apache2 requests of the panel to nginx.
 

@@ -21,7 +21,7 @@
 return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
-	'version' => '1.0.4',
+	'version' => '1.0.5',
 	'date' => '2014-01-16',
 	'name' => 'PanelRedirect',
 	'desc' => 'Plugin which redirects apache2 requests of the panel to nginx.',
