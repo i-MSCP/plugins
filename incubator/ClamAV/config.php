@@ -116,6 +116,7 @@ return array(
 
 	// Possible values: true, false
 	'LogTime' => 'true',
+
 	// Possible values: true, false
 	'LogFileUnlock' => 'false',
 

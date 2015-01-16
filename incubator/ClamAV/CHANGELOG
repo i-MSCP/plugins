@@ -7,7 +7,7 @@ Version 1.0.0
 
 	Changed: Usage of postconf to edit Postfix main.cf configuration parameters
 	Fixed: CS issues
-	Fixed: Unable to restart clamav-milter ( Caused by the i-MSCP daemon  - fixed in version >= 1.1.22 )
+	Fixed: Unable to restart clamav-milter ( Caused by the i-MSCP daemon  - fixed in i-MSCP Core )
 	Updated: License headers for new year
 
 ------------------------------------------------------------------------------------------------------------------------

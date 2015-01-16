@@ -36,7 +36,7 @@ return array(
 		'Sascha Bay',
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '0.0.1',
+	'version' => '1.0.0',
 	'date' => '2015-01-15',
 	'name' => 'ClamAV',
 	'desc' => 'Plugin which allows to use ClamAV with i-MSCP.',
