@@ -117,7 +117,7 @@ sub uninstall
 
 =item update($fromVersion, $toVersion)
 
- Process plugin update tasks
+ Process update tasks
 
  Param string $fromVersion
  Param string $toVersion
