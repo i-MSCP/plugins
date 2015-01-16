@@ -301,7 +301,7 @@ sub buildGraphs
 
 =cut
 
-sub _init()
+sub _init
 {
 	my $self = $_[0];
 
@@ -313,7 +313,7 @@ sub _init()
 			die("Monitorix: $config");
 		}
 
-		$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'})
+		$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'});
 
 		for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
 			die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
@@ -413,7 +413,7 @@ sub _setupApacheConfig
 sub _restartMonitorix
 {
 	my ($stdout, $stderr);
-	my $rs = execute("umask 022; $main::imscpConfig{'SERVICE_MNGR'} monitorix restart", \$stdout, \$stderr);
+	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} monitorix restart", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 

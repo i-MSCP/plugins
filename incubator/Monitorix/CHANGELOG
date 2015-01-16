@@ -13,7 +13,7 @@ Version 1.1.0
 	Fixed: Graphs must not be loaded through PHP ( Performance issue )
 	Fixed: Monitorix CGI script must be left untouched ( Good practice )
 	Fixed: Plugin is not compatible with i-MSCP 1.2.x
-	Fixed: Unable to restart monitorix ( umask issue )
+	Fixed: Unable to restart monitorix ( umask issue - fixed in i-MSCP Core )
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
