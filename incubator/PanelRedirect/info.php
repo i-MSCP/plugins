@@ -22,7 +22,7 @@ return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
 	'version' => '1.0.4',
-	'date' => '2014-01-14',
+	'date' => '2014-01-16',
 	'name' => 'PanelRedirect',
 	'desc' => 'Plugin which redirects apache2 requests of the panel to nginx.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'

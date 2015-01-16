@@ -73,17 +73,26 @@ sub uninstall
 	$_[0]->_removeLogFolder();
 }
 
-=item update()
+=item update($fromVersion, $toVersion)
 
  Process update tasks
 
+ Param string $fromVersion
+ Param string $toVersion
  Return int 0 on success, other on failure
 
 =cut
 
 sub update
 {
-	$_[0]->_createLogFolder();
+	my ($self, $fromVersion, $toVersion) = @_;
+
+	require version;
+	version->import();
+
+	if(version->parse("v$fromVersion") < version->parse("v1.0.4")) {
+		$self->_createLogFolder();
+	}
 }
 
 =item enable()
