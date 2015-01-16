@@ -18,6 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+$config = iMSCP_Registry::get('config');
+
 return array(
 	// Path to the crontab command ( default: /usr/bin/crontab )
 	'crontab_cmd_path' => '/usr/bin/crontab',
@@ -36,7 +38,7 @@ return array(
 
 	// Makejail configuration directory ( default: <CONF_DIR>/CronJobs )
 	// Don't change this parameter unless you know what you are doing.
-	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/CronJobs',
+	'makejail_confdir_path' => $config['CONF_DIR'] . '/CronJobs',
 
 	// Makejail script path
 	// Don't change this parameter unless you know what you are doing.
@@ -51,7 +53,7 @@ return array(
 	//
 	// WARNING: Do not remove the default entry unless you know what you are doing.
 	'preserve_files' => array(
-		iMSCP_Registry::get('config')->get('USER_WEB_DIR')
+		$config['USER_WEB_DIR']
 	),
 
 	// Whether or not files from packages required by packages listed in the packages option must be copied inside the
@@ -166,7 +168,7 @@ return array(
 			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
 		),
 		'jail_run_commands' => array(
-			'sed -i\'\' -e \'s/{HOSTNAME}/\'$(hostname -f)\'/\' /etc/msmtprc', // Setup maildomain inside msmtp configuration file
+			'sed -i\'\' -e \'s/{HOSTNAME}/\'$(hostname -f)\'/\' /etc/msmtprc', // Setup maildomain in msmtp conffile
 			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside the jail
 		)
 	),
@@ -187,7 +189,7 @@ return array(
 			'/dev/log'
 		),
 		'sys_run_commands' => array(
-			'service rsyslog restart' // Restart rsyslog daemon to create socket ( /dev/log ) inside jail 
+			$config['SERVICE_MNGR'] . ' rsyslog restart' // Restart rsyslog to create socket ( /dev/log ) inside jail 
 		)
 	),
 

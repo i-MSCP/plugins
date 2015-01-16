@@ -588,7 +588,7 @@ function getCronPermissionsList()
 
 			if($data['cron_permission_status'] == 'ok') {
 				$row['cron_permission_actions'] =
-					'<span title="' . $trEditTooltip . '" data-action=\"edit_cron_permissions\" ' .
+					'<span title="' . $trEditTooltip . '" data-action="edit_cron_permissions" ' .
 					'data-cron-permission-id="' . $data['cron_permission_id'] . '" ' .
 					'class="icon icon_edit clickable">&nbsp;</span> '
 					.

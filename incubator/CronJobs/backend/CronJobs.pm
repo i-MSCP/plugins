@@ -66,6 +66,19 @@ sub install
 
 		$rs = $self->_configurePamChroot();
 		return $rs if $rs;
+
+		# If present, tells dovecot to ignore any mountpoints withing root jail directory
+		if(-x '/usr/bin/doveadm') {
+			my ($stdout, $stderr);
+			$rs = execute(
+				"doveadm mount add $self->{'config'}->{'root_jail_dir'}/jail/$main::imscpConfig{'USER_WEB_DIR'}/* ignore || true",
+				\$stdout,
+				\$stderr
+			);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
+		}
 	}
 
 	0;
@@ -101,10 +114,29 @@ sub uninstall
 		if(-f '/etc/rsyslog.d/imscp_cronjobs_plugin.conf') {
 			my $rs = iMSCP::File->new( filename => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf' )->delFile();
 			return $rs if $rs;
+
+			my ($stdout, $stderr);
+			execute("$main::imscpConfig{'SERVICE_MNGR'} rsyslog restart", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
 		}
 
 		my $rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
 		return $rs if $rs;
+
+		# If present, remove pattern wich tells dovecot to ignore any mountpoints withing root jail directory
+		if(-x '/usr/bin/doveadm') {
+			my ($stdout, $stderr);
+			$rs = execute(
+				"doveadm mount remove $self->{'config'}->{'root_jail_dir'}/jail/$main::imscpConfig{'USER_WEB_DIR'}/* || true",
+				\$stdout,
+				\$stderr
+			);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
+		}
 	}
 
 	my $rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
@@ -402,7 +434,7 @@ sub _loadPluginConfig
 			die("CronJobs: $config");
 		}
 
-		$self->{'config'} = decode_json($config->{'CronJobs'}->{'plugin_config'})
+		$self->{'config'} = decode_json($config->{'CronJobs'}->{'plugin_config'});
 
 		# Load jail builder library if available
 		eval { local $SIG{'__DIE__'}; require InstantSSH::JailBuilder; };

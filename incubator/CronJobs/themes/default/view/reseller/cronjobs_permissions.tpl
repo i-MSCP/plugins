@@ -19,7 +19,7 @@
 		<tfoot>
 		<tr>
 			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
-			<td><?= self::escapeHtml(tr('Cron job type', true));?></td>
+			<td><?= self::escapeHtml(tr('Cron jobs type', true));?></td>
 			<td><?= self::escapeHtml(tr('Max. cron jobs', true));?></td>
 			<td><?= self::escapeHtml(tr('Cron jobs frequency', true));?></td>
 			<td><?= self::escapeHtml(tr('Status', true));?></td>

@@ -54,6 +54,8 @@ You can install these packages by executing the following command:
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
 
+**Note:** Prior any update attempt, do not forget to read the [update_errata.md](update_errata.md) file.
+
 ## Activation of jailed cron jobs support
 
 If this plugin is already activated and if you want enable support for jailed cron jobs later on, you must follow these
