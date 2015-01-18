@@ -107,7 +107,7 @@ return array(
 	'Enter a reseller name' => 'Naam van wederverkoper invoeren',
 	'Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.' => 'Soorten toegestane cron-jobs. Merk op dat de URL-cron-jobs altijd beschikbaar zijn, welke soort dan ook geselecteerd is.',
 	'Jailed' => 'Ingesloten (jailed)',
-	'Full' => 'Niet ingesloten (volledig)',
+	'Full' => 'Volledig',
 	'Minimum time interval between each cron job execution.' => 'Minimale tijdsinterval tussen elke uitvoering van een cron-job.',
 	'In minutes' => 'In minuten',
 	'Unknown reseller. Please enter a valid reseller name.' => 'Onbekende wederverkoper. Gelieve een geldige naam in te voeren.',
