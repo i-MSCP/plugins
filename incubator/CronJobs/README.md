@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This plugin provide a cron time-based job scheduler for i-MSCP.
+This plugin provides a cron time-based job scheduler for i-MSCP.
 
 Administrators give cron job permissions to their resellers, and the resellers give cron job permissions to their
 customers according their own permissions. For instance, a reseller will be able to give the full cron job permission to
@@ -141,7 +141,7 @@ The cron jobs interface allows administrators and customers to add, edit and del
 See [Configuration file](../CronJobs/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin interface.
+change by updating the plugin list through the plugin management interface.
 
 ## Translation
 

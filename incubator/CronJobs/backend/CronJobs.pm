@@ -397,7 +397,7 @@ sub run
 
  Initialize instance
 
- Return Plugin::CronJobs
+ Return Plugin::CronJobs or die on failure
 
 =cut
 
