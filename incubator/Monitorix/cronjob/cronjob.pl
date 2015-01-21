@@ -37,8 +37,6 @@ use iMSCP::Bootstrapper;
 $ENV{'LC_MESSAGES'} = 'C';
 $ENV{'IMSCP_CLEAR_SCREEN'} = 0;
 
-umask(027);
-
 newDebug('monitorix-plugin-cronjob.log');
 
 iMSCP::Bootstrapper->getInstance()->boot({ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nolock' => 'yes' });

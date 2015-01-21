@@ -51,7 +51,7 @@ You can install these packages by running the following commands:
 See [Configuration file](../Monitorix/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin interface.
+change by updating the plugin list through the plugin management interface.
  
 ## Translation
 
