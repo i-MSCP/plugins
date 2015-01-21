@@ -18,6 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+$config = iMSCP_Registry::get('config');
+
 return array(
 	// SSH user name prefix ( default: imscp_ )
 	'ssh_user_name_prefix' => 'imscp_',
@@ -89,7 +91,7 @@ return array(
 
 	// Makejail configuration directory ( default: <CONF_DIR>/InstantSSH )
 	// Don't change this parameter if you don't know what you are doing
-	'makejail_confdir_path' => iMSCP_Registry::get('config')->get('CONF_DIR') . '/InstantSSH',
+	'makejail_confdir_path' => $config['CONF_DIR'] . '/InstantSSH',
 
 	// Shared jail ( default: true )
 	//
@@ -111,7 +113,7 @@ return array(
 	//
 	// WARNING: Do not remove the default entry if you don't know what you are doing.
 	'preserve_files' => array(
-		iMSCP_Registry::get('config')->get('USER_WEB_DIR')
+		$config['USER_WEB_DIR']
 	),
 
 	// Whether or not files from packages required by packages listed in packages option must be copied within the jails

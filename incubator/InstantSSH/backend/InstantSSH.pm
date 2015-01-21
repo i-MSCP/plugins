@@ -55,7 +55,7 @@ use parent 'Common::SingletonClass';
 
 =item install()
 
- Process plugin installation tasks
+ Process install tasks
 
  Return int 0 on success, other on failure
 
@@ -77,12 +77,28 @@ sub install
 	$rs = $self->_configurePamChroot();
 	return $rs if $rs;
 
-	$self->_configureBusyBox();
+	$rs = $self->_configureBusyBox();
+	return $rs if $rs;
+
+	# If present, tells dovecot to ignore any mountpoints withing root jail directory
+	if(-x '/usr/bin/doveadm') {
+		my ($stdout, $stderr);
+		$rs = execute(
+			"doveadm mount add $self->{'config'}->{'root_jail_dir'}/$main::imscpConfig{'USER_WEB_DIR'}/* ignore || true",
+			\$stdout,
+			\$stderr
+		);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	}
+
+	0;
 }
 
 =item uninstall()
 
- Process plugin uninstallation tasks
+ Process uninstall tasks
 
  Return int 0 on success, other on failure
 
@@ -112,7 +128,23 @@ sub uninstall
 	$rs = $self->_configurePamChroot('uninstall');
 	return $rs if $rs;
 
-	$self->_configureBusyBox('uninstall');
+	$rs = $self->_configureBusyBox('uninstall');
+	return $rs if $rs;
+
+	# If present, remove pattern wich tells dovecot to ignore any mountpoints withing root jail directory
+	if(-x '/usr/bin/doveadm') {
+		my ($stdout, $stderr);
+		$rs = execute(
+			"doveadm mount remove $self->{'config'}->{'root_jail_dir'}/*/$main::imscpConfig{'USER_WEB_DIR'}/* || true",
+			\$stdout,
+			\$stderr
+		);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	}
+
+	0;
 }
 
 =item update($fromVersion, $toVersion)
@@ -221,7 +253,7 @@ sub update
 
 =item change
 
- Process plugin change tasks
+ Process change tasks
 
  Return int 0, other on failure
 
@@ -445,7 +477,7 @@ sub run
 
  Initialize instance
 
- Return Plugin::InstantSSH
+ Return Plugin::InstantSSH or die on failure
 
 =cut
 

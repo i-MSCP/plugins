@@ -4,7 +4,7 @@ Plugin allowing to provide full or restricted shell access to your customers.
 
 ## Introduction
 
-This plugin allow to give your customers a full or restricted shell access.
+This plugin allows to give your customers a full or restricted shell access.
 
 A customer to which SSH permissions are given can create SSH users and use them to login on the server.
 
@@ -82,14 +82,14 @@ You can install these packages by executing the following commands:
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
 
-**Note:** Don't forget to read the [update errata](update_errata.md) file.
+**Note:** Prior any update attempt, do not forget to read the [update_errata.md](update_errata.md) file.
 
 ## Configuration
 
 See [Configuration file](../InstantSSH/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin interface.
+change by updating the plugin list through the plugin management interface.
 
 ## Translation
 
