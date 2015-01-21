@@ -54,7 +54,7 @@ use parent 'Common::SingletonClass';
 
 =item enable()
 
- Perform enable tasks
+ Process enable tasks
 
  Return int 0 on success, other on failure
 
@@ -81,7 +81,7 @@ sub enable
 
 =item disable()
 
- Perform disable tasks
+ Process disable tasks
 
  Return int 0 on success, other on failure
 
@@ -111,7 +111,7 @@ sub disable
 
 =item _init()
 
- Initialize plugin
+ Initialize instance
 
  Return Plugin::ClamAV or die on failure
 
@@ -122,9 +122,6 @@ sub _init
 	my $self = $_[0];
 
 	if($self->{'action'} ~~ [ 'install', 'update', 'change', 'enable', 'disable' ]) {
-		# Force return value from plugin module
-		$self->{'FORCE_RETVAL'} = 'yes';
-
 		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
 		);
