@@ -58,7 +58,7 @@ sub change
 
 =item update()
 
- Perform update tasks
+ Process update tasks
 
  Return int 0 on success, other on failure
 
