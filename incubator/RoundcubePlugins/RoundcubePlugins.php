@@ -172,11 +172,27 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
+			$isCompatible = true;
+
 			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
 
+				$isCompatible = false;
+			} else {
+				$config = iMSCP_Registry::get('config');
+
+				if(isset($config['WEBMAIL_PACKAGES']) && !in_array('Roundcube', getWebmailList())) {
+					set_page_message(
+						tr('This plugin require the i-MSCP Roundcube package.'), 'error'
+					);
+
+					$isCompatible = false;
+				}
+			}
+
+			if(!$isCompatible) {
 				$event->stopPropagation();
 			}
 		}
