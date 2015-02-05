@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,19 +29,12 @@
  */
 
 /**
- * RoundcubePlugins Plugin
- *
- * This plugin allows to use Roundcube Plugins with i-MSCP.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  RoundcubePlugins
- * @author      Rene Schuster <mail@reneschuster.de>
+ * Class iMSCP_Plugin_RoundcubePlugins
  */
 class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
@@ -78,8 +71,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -94,8 +87,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('down');
-		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -109,7 +102,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		$this->checkCompat($event);
 	}
-	
+
 	/**
 	 * Plugin update
 	 *
@@ -123,8 +116,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -150,7 +143,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->addDovecotSieveServicePort();
-		} catch (iMSCP_Exception_Database $e) {
+		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -166,7 +159,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->removeDovecotSieveServicePort();
-		} catch (iMSCP_Exception_Database $e) {
+		} catch(iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -178,8 +171,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	 */
 	protected function checkCompat($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
@@ -197,15 +190,14 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	protected function addDovecotSieveServicePort()
 	{
 		$dbConfig = iMSCP_Registry::get('dbConfig');
-		$pluginConfig = $this->getConfig();
-		
-		if ($pluginConfig['managesieve_plugin'] == 'yes') {
-			if (!isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
+
+		if($this->getConfigParam('managesieve_plugin', 'no') == 'yes') {
+			if(!isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
 				$dbConfig['PORT_DOVECOT-SIEVE'] = '4190;tcp;DOVECOT-SIEVE;1;127.0.0.1';
 			}
 		} else {
 			$this->removeDovecotSieveServicePort();
-		}		
+		}
 	}
 
 	/**
@@ -216,8 +208,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 	protected function removeDovecotSieveServicePort()
 	{
 		$dbConfig = iMSCP_Registry::get('dbConfig');
-		
-		if (isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
+
+		if(isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
 			unset($dbConfig['PORT_DOVECOT-SIEVE']);
 		}
 	}

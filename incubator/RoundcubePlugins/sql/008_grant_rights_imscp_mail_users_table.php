@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,14 +28,6 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-$sqlUserHost = iMSCP_Registry::get('config')->DATABASE_USER_HOST;
-$roundcubeConfig = new iMSCP_Config_Handler_File(iMSCP_Registry::get('config')->CONF_DIR . '/roundcube/roundcube.data');
+# Kept to ensure backward compatibility only
 
-return array(
-	'up' => "
-		GRANT SELECT (`mail_addr`), UPDATE (`mail_pass`, `status`) ON `mail_users` TO '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
-	",
-	'down' => "
-		REVOKE ALL PRIVILEGES ON `mail_users` FROM '" . $roundcubeConfig['DATABASE_USER'] . "'@'" . $sqlUserHost . "';
-	"
-);
+return array();

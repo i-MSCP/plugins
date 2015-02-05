@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2014 by i-MSCP Team
+# Copyright (C) 2010-2015 by i-MSCP Team
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -35,23 +35,15 @@ use lib "{IMSCP_PERLLIB_PATH}";
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
-$ENV{'LC_MESSAGES'} = 'C';
+$ENV{'LANG'} = 'C';
 $ENV{'IMSCP_CLEAR_SCREEN'} = 0;
-
-umask(027);
 
 newDebug('roundcubeplugins-plugin-cronjob-pop3fetcher.log');
 
 silent(1);
 
 iMSCP::Bootstrapper->getInstance()->boot(
-	{
-		'norequirements' => 'yes',
-		'config_readonly' => 'yes',
-		'nokeys' => 'yes',
-		'nodatabase' => 'yes',
-		'nolock' => 'yes'
-	}
+	{ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'nolock' => 'yes' }
 );
 
 my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/backend/RoundcubePlugins.pm";

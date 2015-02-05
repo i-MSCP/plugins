@@ -2,19 +2,27 @@ i-MSCP RoundcubePlugins plugin ChangeLog
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.0.1
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
+	Updated: License headers for new year
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Compatible with Roundcube 1.x (version 1.x renamed main.inc.php to config.inc.php)
-	Fixed: PO server will be checked. Some plugins only work with dovecot
-	Fixed: send_request removed from imscp_pw_changer (sql.php)
-	
+	Fixed: Plugin is not compatible with Roundcube 1.x serie
+	Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
+	Fixed: PO server implementation in use must be checked ( Some plugins don't work with Dovecot )
+	Removed: send_request() from imscp_pw_changer ( sql.php )
+
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.9
 ------------------------------------------------------------------------------------------------------------------------
 
 	Fixed: my variable $rs masks earlier declaration
-	
+
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
