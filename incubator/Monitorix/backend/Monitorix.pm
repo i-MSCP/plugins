@@ -182,14 +182,16 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_enableGraphs();
-	return $rs if $rs;
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		my $rs = $self->_enableGraphs();
+		return $rs if $rs;
 
-	$rs = $self->_restartMonitorix();
-	return $rs if $rs;
+		$rs = $self->_restartMonitorix();
+		return $rs if $rs;
 
-	$rs = $self->buildGraphs();
-	return $rs if $rs;
+		$rs = $self->buildGraphs();
+		return $rs if $rs;
+	}
 
 	$self->_addCronjob();
 }
@@ -204,7 +206,13 @@ sub enable
 
 sub disable
 {
-	$_[0]->_deleteCronjob();
+	my $self = $_[0];
+
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		$_[0]->_deleteCronjob();
+	} else {
+		0;
+	}
 }
 
 =item buildGraphs()
