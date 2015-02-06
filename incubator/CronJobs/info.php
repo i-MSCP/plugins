@@ -21,9 +21,9 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.0.1',
+	'version' => '1.1.0',
 	'priority' => '10',
-	'date' => '2014-01-14',
+	'date' => '2015-02-06',
 	'name' => 'CronJobs',
 	'desc' => 'Plugin which provides a cron time-based job scheduler for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:cronjobs'
