@@ -207,7 +207,6 @@ sub _modifyPostfixMainConfig($$)
 	my ($self, $action) = @_;
 
 	my $rs = 0;
-	my $policyService = '';
 	my $postscreenDnsblSites;
 	my $postscreenAccessList;
 
@@ -243,27 +242,6 @@ sub _modifyPostfixMainConfig($$)
 		return 1;
 	}
 
-	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:12525,\n//gm;
-	$fileContent =~ s/^\s*check_policy_service inet:127.0.0.1:10023,\n//gm;
-
-	if($self->{'config'}->{'disable_policyd-weight'} eq 'no') {
-		$policyService .= "                               check_policy_service inet:127.0.0.1:12525,\n";
-		$rs = $self->_servicePorts('show', 'PORT_POLICYD-WEIGHT');
-		return $rs if $rs;
-	} else {
-		$rs = $self->_servicePorts('hide', 'PORT_POLICYD-WEIGHT');
-		return $rs if $rs;
-	}
-
-	if($self->{'config'}->{'disable_postgrey'} eq 'no') {
-		$policyService .= "                               check_policy_service inet:127.0.0.1:10023,\n";
-		$rs = $self->_servicePorts('show', 'PORT_POSTGREY');
-		return $rs if $rs;
-	} else {
-		$rs = $self->_servicePorts('hide', 'PORT_POSTGREY');
-		return $rs if $rs;
-	}
-
 	my $postfixPostscreenConfig = "\n# Begin Plugin::Postscreen\n";
 	$postfixPostscreenConfig .= "postscreen_greet_action = ". $self->{'config'}->{'postscreen_greet_action'} ."\n";
 	$postfixPostscreenConfig .= "postscreen_dnsbl_sites = ". $postscreenDnsblSites ."\n";
@@ -277,17 +255,8 @@ sub _modifyPostfixMainConfig($$)
 		$fileContent =~ s/^\n# Begin Plugin::Postscreen.*Ending Plugin::Postscreen\n//sgm;
 		$fileContent .= "$postfixPostscreenConfig";
 	} elsif($action eq 'remove') {
-		$policyService  = "                               check_policy_service inet:127.0.0.1:12525,\n";
-		$policyService .= "                               check_policy_service inet:127.0.0.1:10023,\n";
 		$fileContent =~ s/^\n# Begin Plugin::Postscreen.*Ending Plugin::Postscreen\n//sgm;
-
-		$rs = $self->_servicePorts('show', 'PORT_POLICYD-WEIGHT');
-		return $rs if $rs;
-		$rs = $self->_servicePorts('show', 'PORT_POSTGREY');
-		return $rs if $rs;
 	}
-
-	$fileContent =~ s/(\s*reject_unlisted_recipient,\n)/$1$policyService/gm;
 
 	$rs = $file->set($fileContent);
 	return $rs if $rs;

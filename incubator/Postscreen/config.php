@@ -67,12 +67,5 @@ return array(
 
 
 	// Patch Mailgraph to count and also show the Postscreen rejects on the graphs
-	'patch_mailgraph' => 'yes', // YES to enable (default), NO to disable
-
-	// Policyd-weight is not necessary anymore and could be disabled.
-	// The main functionality of policyd-weight (RBL checks) is integrated in Postscreen (postscreen_dnsbl_sites).
-	'disable_policyd-weight' => 'yes', // YES to enable (default), NO to disable
-
-	// Postgrey is also not necessary anymore, because you eliminate up to 90% of the spam with Postscreen.
-	'disable_postgrey' => 'yes' // YES to enable (default), NO to disable
+	'patch_mailgraph' => 'yes, // YES to enable (default), NO to disable
 );
