@@ -198,12 +198,14 @@ sub _createConfig
 
 	$self->{'httpd'}->setData(
 		{
-			'BASE_SERVER_IP' => ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4')
-				? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+			'BASE_SERVER_IP' => (
+				$ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4'
+			) ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 			'BASE_SERVER_VHOST' => $main::imscpConfig{'BASE_SERVER_VHOST'},
 			'BASE_SERVER_VHOST_PREFIX' => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
-			'BASE_SERVER_VHOST_PORT' => ($main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://')
-				? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
+			'BASE_SERVER_VHOST_PORT' => (
+				$main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
+			) ? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
 			'BASE_SERVER_VHOST_HTTP_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
 			'BASE_SERVER_VHOST_HTTPS_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
 			'DEFAULT_ADMIN_ADDRESS' => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
