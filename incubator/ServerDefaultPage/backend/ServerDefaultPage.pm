@@ -195,11 +195,13 @@ sub _createConfig
 	$self->{'httpd'}->setData(
 		{
 			'IPS_PORTS' => "@{$directives}",
-			'BASE_SERVER_IP' => ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4')
-				? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+			'BASE_SERVER_IP' => (
+				$ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4'
+			) ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 			'APACHE_WWW_DIR' => $main::imscpConfig{'USER_WEB_DIR'},
-			'CONF_DIR' => $main::imscpConfig{'CONF_DIR'},
-			'BASE_SERVER_VHOST' => $main::imscpConfig{'BASE_SERVER_VHOST'},
+			'CERTIFICATE' => (
+				$self->{'config'}->{'certificate'} eq ''
+			) ? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}.pem" : $self->{'config'}->{'certificate'},
 			'AUTHZ_ALLOW_ALL' => (
 				version->parse("v$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('v2.4.0')
 			) ? 'Require all granted' : 'Allow from all',
