@@ -19,7 +19,7 @@
  */
 
 return array(
-	// Certificate for the https connection
+	// Certificate path for the https connection
 	// Leave empty for default value (panel certificate)
 	'certificate' => ''
 );
