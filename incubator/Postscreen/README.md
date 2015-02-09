@@ -1,4 +1,4 @@
-## i-MSCP Postscreen plugin v0.0.4
+## i-MSCP Postscreen plugin v0.0.5
 
 Plugin allows to use Postscreen with Postfix on i-MSCP.
 

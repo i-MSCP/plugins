@@ -117,7 +117,10 @@ sub enable
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
 
-	$self->_changeRoundcubeSmtpPort('add');
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		$self->_changeRoundcubeSmtpPort('add');
+	}
 }
 
 =item disable()
@@ -141,7 +144,10 @@ sub disable
 	$rs = $self->_restartDaemonPostfix();
 	return $rs if $rs;
 
-	$self->_changeRoundcubeSmtpPort('remove');
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		$self->_changeRoundcubeSmtpPort('remove');
+	}
 }
 
 =item uninstall()
@@ -202,7 +208,7 @@ sub _init
 
 =cut
 
-sub _modifyPostfixMainConfig($$)
+sub _modifyPostfixMainConfig
 {
 	my ($self, $action) = @_;
 
@@ -275,7 +281,7 @@ sub _modifyPostfixMainConfig($$)
 
 =cut
 
-sub _modifyPostfixMasterConfig($$)
+sub _modifyPostfixMasterConfig
 {
 	my ($self, $action) = @_;
 
@@ -316,7 +322,7 @@ sub _modifyPostfixMasterConfig($$)
 
 =cut
 
-sub _patchMailgraph($$)
+sub _patchMailgraph
 {
 	my ($self, $action) = @_;
 
@@ -362,7 +368,7 @@ sub _patchMailgraph($$)
 
 =cut
 
-sub _servicePorts($$$)
+sub _servicePorts
 {
 	my ($self, $action, $service) = @_;
 
@@ -400,7 +406,7 @@ sub _servicePorts($$$)
 
 =cut
 
-sub _createPostscreenAccessFile($$)
+sub _createPostscreenAccessFile
 {	
 	my ($self, $fileName) = @_;
 	
@@ -436,7 +442,7 @@ sub _createPostscreenAccessFile($$)
 
 =cut
 
-sub _changeRoundcubeSmtpPort($$)
+sub _changeRoundcubeSmtpPort
 {
 	my ($self, $action) = @_;
 

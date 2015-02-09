@@ -67,5 +67,5 @@ return array(
 
 
 	// Patch Mailgraph to count and also show the Postscreen rejects on the graphs
-	'patch_mailgraph' => 'yes, // YES to enable (default), NO to disable
+	'patch_mailgraph' => 'yes' // YES to enable (default), NO to disable
 );

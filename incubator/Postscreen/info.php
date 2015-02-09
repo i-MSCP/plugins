@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Rene Schuster',
 	'email' => 'mail@reneschuster.de',
-	'version' => '0.0.4',
-	'date' => '2015-01-02',
+	'version' => '0.0.5',
+	'date' => '2015-02-09',
 	'name' => 'Postscreen',
 	'desc' => 'Plugin allows to use Postscreen daemon with Postfix on i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postscreen'
