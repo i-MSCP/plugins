@@ -1,5 +1,5 @@
 <?php
-/* Author: Thom Heemstra */
+/* Author: Hans Spaans, Thom Heemstra */
 
 $labels = array();
 $labels['buttonjunk'] = 'Markeer als spam';
