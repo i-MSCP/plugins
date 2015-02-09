@@ -74,6 +74,28 @@ sub uninstall
 	$_[0]->_removeFolder();
 }
 
+=item update($fromVersion, $toVersion)
+
+ Process update tasks
+
+ Param string $fromVersion
+ Param string $toVersion
+ Return int 0 on success, other on failure
+
+=cut
+
+sub update
+{
+	my ($self, $fromVersion, $toVersion) = @_;
+
+	require version;
+	version->import();
+
+	if(version->parse("v$fromVersion") < version->parse("v1.0.6")) {
+		$self->_copyFolder();
+	}
+}
+
 =item enable()
 
  Process enable tasks
