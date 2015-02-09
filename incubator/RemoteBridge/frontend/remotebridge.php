@@ -72,7 +72,7 @@ function bridge_manageKEY()
 					);
 				} catch (iMSCP_Exception_Database $e) {
 					if ($e->getCode() == 23000) { // Duplicate entries
-						set_page_message(tr("The Remote Bridge key $bridgeKey already exist."), 'error');
+						set_page_message(tr("The Remote Bridge key $bridgeKey already exists."), 'error');
 						return false;
 					}
 				}
@@ -252,7 +252,7 @@ function bridge_generatePage($tpl)
 		$tpl->assign('ADD_BRIDGEKEY', '');
 	} else {
 		$tpl->assign('BRIDGE_LISTS', '');
-		set_page_message(tr('You have not created any remote bridge.'), 'info');
+		set_page_message(tr('You have not created any remote bridges.'), 'info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
@@ -301,7 +301,7 @@ if (iMSCP_Registry::isRegistered('pluginManager')) {
 	/** @var iMSCP_Plugin_Manager $pluginManager */
 	$pluginManager = iMSCP_Registry::get('pluginManager');
 } else {
-	throw new iMSCP_Plugin_Exception('An unexpected error occured');
+	throw new iMSCP_Plugin_Exception('An unexpected error occurred.');
 }
 
 if (isset($_REQUEST['action'])) {
@@ -351,7 +351,7 @@ $tpl->assign(
 		'TR_DELETE' => tr('Delete'),
 		'TR_ADD_BRIDGE' => tr('Add Remote Bridge'),
 		'TR_REMOTE_BRIDGE' => tr('Remote Bridge'),
-		'TR_BRIDGE_IPADDRESS' => tr('Server ipaddress'),
+		'TR_BRIDGE_IPADDRESS' => tr('Server IP-address'),
 		'TR_CONFIRM_DELETION' => tr('Please, confirm deletion of the %s Remote Bridge.', false, '%s'),
 		'TR_APPLY' => tr('Apply'),
 		'TR_CANCEL' => tr('Cancel')

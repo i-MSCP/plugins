@@ -48,7 +48,7 @@
 			<tr>
 				<td><label for="bridge_ipaddress">{TR_BRIDGE_IPADDRESS}</label></td>
 				<td>
-					<input type="text" id="bridge_ipaddress" name="bridge_ipaddress" value="{BRIDGE_IPADDRESS}" autocomplete="off"/>
+					<input type="text" id="bridge_ipaddress" name="bridge_ipaddress" value="{BRIDGE_IPADDRESS}"/>
 				</td>
 			</tr>
 		</table>
