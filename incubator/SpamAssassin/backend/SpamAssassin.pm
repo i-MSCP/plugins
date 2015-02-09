@@ -128,17 +128,20 @@ sub change
 	$rs = $self->_restartDaemon('spamass-milter', 'restart');
 	return $rs if $rs;
 
-	# Roundcube Plugins configuration
-	$rs = $self->_installRoundcubePlugins();
-	return $rs if $rs;
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		# Roundcube Plugins configuration
+		$rs = $self->_installRoundcubePlugins();
+		return $rs if $rs;
 
-	$rs = $self->_setRoundcubePluginConfig('sauserprefs');
-	return $rs if $rs;
+		$rs = $self->_setRoundcubePluginConfig('sauserprefs');
+		return $rs if $rs;
 
-	$rs = $self->_setRoundcubePluginConfig('markasjunk2');
-	return $rs if $rs;
+		$rs = $self->_setRoundcubePluginConfig('markasjunk2');
+		return $rs if $rs;
 
-	$self->_checkRoundcubePlugins();
+		$self->_checkRoundcubePlugins();
+	}
 }
 
 =item update()
@@ -172,10 +175,13 @@ sub enable
 	# Add Postfix configuration
 	my $rs = $self->_modifyPostfixMainConfig('add');
 	return $rs if $rs;
-	
-	# Activate Roundcube Plugins
-	$rs = $self->_setRoundcubePlugin('add');
-	return $rs if $rs;
+
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		# Activate Roundcube Plugins
+		$rs = $self->_setRoundcubePlugin('add');
+		return $rs if $rs;
+	}
 
 	$self->_restartDaemonPostfix();
 }
@@ -206,8 +212,11 @@ sub disable
 	return $rs if $rs;
 
 	# Deactivate Roundcube Plugins
-	$rs = $self->_setRoundcubePlugin('remove');
-	return $rs if $rs;
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		$rs = $self->_setRoundcubePlugin('remove');
+		return $rs if $rs;
+	}
 
 	# Remove Postfix configuration
 	$rs = $self->_modifyPostfixMainConfig('remove');
@@ -228,9 +237,14 @@ sub uninstall
 {
 	my $self = $_[0];
 
+	my $rs;
+
 	# Remove Roundcube Plugins
-	my $rs = $self->_removeRoundcubePlugins();
-	return $rs if $rs;
+	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+		$rs = $self->_removeRoundcubePlugins();
+		return $rs if $rs;
+	}
 
 	# Remove spamass-milter configuration
 	$rs = $self->_modifySpamassMilterDefaultConfig('remove');
