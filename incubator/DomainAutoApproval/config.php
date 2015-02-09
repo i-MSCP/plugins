@@ -26,12 +26,16 @@ return array(
 	# auto approved
 	'approval_rule' => false,
 
-	# Here, you can provide the list of user accounts (see above to known how the list is used)
+	# Here, you can provide the list of user accounts (see below to know how the list is used, remove sample entries if not used)
 	'user_accounts' => array(
-		'test.com' // Sample entry - Replace it by your own domain entries
+		'test.com', // Sample entries - Replace it by your own domain entries
+		'mytest.com'
 	),
 
 	# List of disallowed domains
 	# Any domain listed here will never be auto-approved, whatever the value of the approval rule above
-	'disalowed_domains' => array()
+	'disalowed_domains' => array( 
+		'disalloweddomain.com', // Sample entries - Replace it by your own domain entries
+		'disalloweddomain.net'
+	)
 );
