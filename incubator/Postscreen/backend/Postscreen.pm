@@ -447,7 +447,7 @@ sub _changeRoundcubeSmtpPort
 	my ($self, $action) = @_;
 
 	my $roundcubeMainIncFile;
-	if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
+	if($main::imscpConfig{'CodeName'} eq 'Eagle') {
 		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
 	}
 	else {

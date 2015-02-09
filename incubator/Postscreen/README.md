@@ -36,7 +36,7 @@ Please read the [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_REA
 
 ### REQUIREMENTS
 
-	- i-MSCP versions >= 1.1.0
+	- i-MSCP versions >= 1.1.22 or >= 1.2.1
 	- Postfix version >= 2.8
 	- See installation section for required software packages.
 
