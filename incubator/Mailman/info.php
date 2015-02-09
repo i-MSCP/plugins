@@ -25,5 +25,5 @@ return array(
 	'date' => '2014-08-03',
 	'name' => 'Mailman',
 	'desc' => 'Plugin allowing to manage mailing-lists using Mailman.',
-	'url' => 'http://i-mscp.net'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailman'
 );
