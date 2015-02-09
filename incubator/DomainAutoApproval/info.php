@@ -25,5 +25,5 @@ return array(
 	'date' => '2014-08-25',
 	'name' => 'DomainAutoApproval',
 	'desc' => 'Plugin allowing auto-approval of new domain aliases',
-	'url' => 'https://github.com/i-MSCP/plugins/tree/master/DomainAutoApproval'
+	'url' => 'https://github.com/i-MSCP/plugins/blob/master/incubator/DomainAutoApproval/README.md'
 );
