@@ -36,8 +36,6 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
 	/**
 	 * Plugin installation
 	 *
-	 * This method is automatically called by the plugin manager when the plugin is being installed.
-	 *
 	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
@@ -86,7 +84,7 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin listener
+	 * onAfterEditUser listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
