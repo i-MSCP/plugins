@@ -4,8 +4,10 @@
 
 =cut
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2015 by internet Multi Server Control Panel
+# i-MSCP Monitorix plugin
+#
+# Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,8 +27,8 @@
 # @package     iMSCP_Plugin
 # @subpackage  Monitorix
 # @copyright   2010-2015 by i-MSCP | http://i-mscp.net
+# @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @author      Sascha Bay <info@space2place.de>
-# @contributor Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -42,7 +44,9 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Database;
+use iMSCP::TemplateParser;
 use File::Basename;
+use version;
 use JSON;
 use Cwd;
 
@@ -85,9 +89,6 @@ sub install
 		error("Unable to read $file->{'filename'}");
 		return 1;
 	}
-
-	require iMSCP::TemplateParser;
-	iMSCP::TemplateParser->import();
 
 	$fileContent = process( { PLUGINS_DIR => $main::imscpConfig{'PLUGINS_DIR'} }, $fileContent );
 
@@ -140,10 +141,7 @@ sub update
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	require version;
-	version->import();
-
-	if(version->parse("v$fromVersion") < version->parse('v1.1.0') ) {
+	if(version->parse("v$fromVersion") < version->parse('v1.1.1')) {
 		unless(-f $self->{'config'}->{'cgi_path'}) {
 			error("File $self->{'config'}->{'cgi_path'} not found");
 			return 1;
@@ -154,17 +152,49 @@ sub update
 		my $file = iMSCP::File->new( filename => $self->{'config'}->{'cgi_path'} );
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $self->{'config'}->{'cgi_path'}");
+			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
 
-		$fileContent =~ s/^open\(IN.*/open(IN, "< monitorix.conf.path");/;
+		$fileContent =~ s%/var/lib/monitorix/www/cgi/monitorix.conf.path%monitorix.conf.path%;
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
 
 		$rs = $file->save();
 		return $rs if $rs;
+
+		# Cancel changes made by previous plugin versions in the monitorix.conf file
+
+		if(-f "$self->{'config'}->{'confdir_path'}/monitorix.conf") {
+			$file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/monitorix.conf" );
+
+			$fileContent = $file->get();
+			unless(defined $fileContent) {
+				error("Unable to read $file->{'filename'}");
+				return 1;
+			}
+
+			$fileContent = replaceBloc(
+				"# Start_BaseDir Added by Plugins::Monitorix\n",
+				"# Added by Plugins::Monitorix End_BaseDir\n",
+				"base_dir = /var/lib/monitorix/www/\n",
+				$fileContent
+			);
+
+			$fileContent = replaceBloc(
+				"# Start_ImgDir Added by Plugins::Monitorix\n",
+				"# Added by Plugins::Monitorix End_ImgDir\n",
+				"imgs_dir = imgs/\n",
+				$fileContent
+			);
+
+			$rs = $file->set($fileContent);
+			return $rs if $rs;
+
+			$rs = $file->save();
+			return $rs if $rs;
+		}
 	}
 
 	0;
@@ -273,9 +303,7 @@ sub buildGraphs
 		my $graphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/themes/default/assets/images/graphs';
 
 		if(-d $graphsDir) {
-			my @files = iMSCP::Dir->new( dirname => $graphsDir, fileType => '.png' )->getFiles();
-
-			for(@files) {
+			for(iMSCP::Dir->new( dirname => $graphsDir, fileType => '.png' )->getFiles()) {
 				my $file = iMSCP::File->new( filename => "$graphsDir/$_" );
 
 				if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) {
@@ -343,27 +371,24 @@ sub _enableGraphs
 {
 	my $self = $_[0];
 
-	my $conffile = "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf";
+	my $confFile = "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf";
 
-	unless(-f $conffile) {
-		error("File $conffile not found.");
+	unless(-f $confFile) {
+		error("File $confFile not found.");
 		return 1;
 	}
 
-	my $file = iMSCP::File->new( filename => $conffile );
+	my $file = iMSCP::File->new( filename => $confFile );
 
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error('Unable to read $conffile');
+		error('Unable to read $confFile');
 		return 1;
 	}
 
 	my $graphs = "<graph_enable>\n";
-	$graphs .= "\t_${_} = $self->{'config'}->{'graph_enabled'}->{$_}\n" for keys %{$self->{'config'}->{'graph_enabled'}};
+	$graphs .= "\t$_ = $self->{'config'}->{'graph_enabled'}->{$_}\n" for keys %{$self->{'config'}->{'graph_enabled'}};
 	$graphs .= "</graph_enable>\n";
-
-	require iMSCP::TemplateParser;
-	iMSCP::TemplateParser->import();
 
 	$fileContent = replaceBloc("<graph_enable>\n", "</graph_enable>\n", $graphs, $fileContent);
 
@@ -386,20 +411,20 @@ sub _setupApacheConfig
 {
 	my ($self, $action) = @_;
 
-	my $conffile = '/etc/apache2/conf.d/monitorix.conf';
+	my $confFile = '/etc/apache2/conf.d/monitorix.conf';
 	my $backupConffile = '/etc/apache2/conf.d/monitorix.old';
 
 	if($action eq 'enable') {
 		if(-f $backupConffile) {
-			my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($conffile );
+			my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($confFile );
 			return $rs if $rs;
 
 			$rs = $self->_scheduleApacheRestart();
 			return $rs if $rs;
 		}
 	} elsif($action eq 'disable') {
-		if(-f $conffile) {
-			my $rs = iMSCP::File->new( filename => $conffile )->moveFile($backupConffile);
+		if(-f $confFile) {
+			my $rs = iMSCP::File->new( filename => $confFile )->moveFile($backupConffile);
 			return $rs if $rs;
 
 			$rs = $self->_scheduleApacheRestart();
@@ -447,7 +472,7 @@ sub _scheduleApacheRestart
 
 =item _addCronjob()
 
- Add cronjob for Monitorix
+ Add cronjob
 
  Return int 0 on success, other on failure
 
@@ -467,9 +492,6 @@ sub _addCronjob
 			error("Unable to read $file->{'filename'}");
 			return 1;
 		}
-
-		require iMSCP::TemplateParser;
-		iMSCP::TemplateParser->import();
 
 		$fileContent = process(
 			{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $fileContent
@@ -516,7 +538,7 @@ sub _deleteCronjob
 
 =item _checkRequirements
 
- Check requirements for monitorix plugin
+ Check requirements
 
  Return int 0 if all requirements are meet, 1 otherwise
 
@@ -541,7 +563,7 @@ sub _checkRequirements
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
  Laurent Declercq <l.declercq@nuxwin.com>
  Sascha Bay <info@space2place.de>

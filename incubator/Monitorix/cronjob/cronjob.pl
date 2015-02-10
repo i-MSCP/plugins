@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2015 by internet Multi Server Control Panel
+# i-MSCP Monitorix plugin
+#
+# Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,8 +23,8 @@
 # @package     iMSCP_Plugin
 # @subpackage  Monitorix
 # @copyright   2010-2015 by i-MSCP | http://i-mscp.net
+# @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @author      Sascha Bay <info@space2place.de>
-# @contributor Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
@@ -51,7 +53,7 @@ if($@) {
 	$rs = 1;
 } else {
 	my $pluginClass = "Plugin::Monitorix";
-	$rs = $pluginClass->getInstance( 'action' => 'cron' )->buildGraphs();
+	$rs = $pluginClass->getInstance( action => 'cron' )->buildGraphs();
 }
 
 exit $rs;

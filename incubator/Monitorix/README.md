@@ -1,4 +1,4 @@
-# i-MSCP Monitorix plugin v1.1.0
+# i-MSCP Monitorix plugin v1.1.1
 
 Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 
@@ -29,7 +29,6 @@ You can install these packages by running the following commands:
 
 ```
 # dpkg -i monitorix*.deb
-# apt-get install -f
 ```
 
 ## Installation
@@ -66,6 +65,7 @@ repository and do a pull request if you've a github account.
 ## License
 
 ```
+Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
 Copyright (C) Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
@@ -80,7 +80,7 @@ GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
 
-## Authors and contributors
+## Authors
 
-* Laurent Declercq <l.declercq@nuxwin.com> ( Contributor )
-* Sascha Bay <info@space2place.de> ( Author )
+* Laurent Declercq <l.declercq@nuxwin.com>
+* Sascha Bay <info@space2place.de>

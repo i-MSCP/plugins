@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP Monitorix plugin
+ *
+ * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,8 +23,8 @@
  * @package     iMSCP_Plugin
  * @subpackage  Monitorix
  * @copyright   2010-2015 by i-MSCP Team
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @author      Sascha Bay <info@space2place.de>
- * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -48,7 +50,12 @@ return array(
 	'graph_height' => '185',
 
 	// Graphs to enable/disable
-	// Be aware that some services can require further configuration ( see http://www.monitorix.org/documentation.html )
+	//
+	// WARNING:
+	// Be aware that some graphs require further configuration ( see http://www.monitorix.org/documentation.html )
+	// The default configuration as provided by the Monitorix package doesn't work with all systems. In most cases,
+	// enabling a graph is not sufficient. Default enabled graphs are know to work out of box. Other require further
+	// configuration which is curently not done automatically by this plugin.
 	'graph_enabled' => array(
 		'system' => 'y',
 		'kern' => 'y',
@@ -57,8 +64,8 @@ return array(
 		'lmsens' => 'n',
 		'nvidia' => 'n',
 		'disk' => 'n',
-		'fs' => 'y',
-		'net' => 'y',
+		'fs' => 'n',
+		'net' => 'n',
 		'netstat' => 'y',
 		'serv' => 'y',
 		'mail' => 'n',

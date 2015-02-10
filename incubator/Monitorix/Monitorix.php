@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP Monitorix plugin
+ *
+ * Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,8 +23,8 @@
  * @package     iMSCP_Plugin
  * @subpackage  Monitorix
  * @copyright   2010-2015 by i-MSCP Team
+ * @author      Laurent Declercq <l.declercq@nuxwin.com>
  * @author      Sascha Bay <info@space2place.de>
- * @contributor Laurent Declercq <l.declercq@nuxwin.com>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
@@ -43,7 +45,7 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
@@ -171,7 +173,7 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	protected function checkCompat($event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
