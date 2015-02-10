@@ -87,15 +87,14 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
 	 * onAfterEditUser listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
 	public function onAfterEditUser($event)
 	{
 		$userId = $event->getParam('userId', false);
 
 		if($userId) {
-			exec_query(
-				'UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array($_POST['password'], $userId)
-			);
+			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array($_POST['password'], $userId));
 		}
 	}
 }
