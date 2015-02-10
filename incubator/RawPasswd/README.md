@@ -1,6 +1,6 @@
 # RawPasswd Plugin
 
-Plugin which allows to store i-MSCP frontEnd user's password in plain text into the i-MSCP database.
+Plugin which allows to store i-MSCP frontEnd user's passwords in plain text into the i-MSCP database.
  
 ## Requirements
 
