@@ -360,44 +360,6 @@ sub _patchMailgraph
 	0;
 }
 
-=item  _servicePorts($action, $service)
-
- Show or hide the service ports
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _servicePorts
-{
-	my ($self, $action, $service) = @_;
-
-	my $newValue;
-
-	my $rdata = iMSCP::Database->factory()->doQuery('name', 'SELECT `name`, `value` FROM `config` WHERE `name` = ?', $service);
-
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-	my ($c1, $c2, $c3, $c4, $c5) = split(/;/, $rdata->{$service}->{'value'});
-
-	if($action eq 'show') {
-		$newValue = $c1.";".$c2.";".$c3.";1;".$c5;
-	} elsif($action eq 'hide') {
-		$newValue = $c1.";".$c2.";".$c3.";0;".$c5;
-	}
-
-	my @sql = ('UPDATE `config` SET `value` = ? WHERE `name` = ?', $newValue, $service);
-	$rdata = iMSCP::Database->factory->doQuery('dummy', @sql);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-
-	0;
-}
-
 =item _createPostscreenAccessFile($fileName)
 
  Create the Postscreen Access File
