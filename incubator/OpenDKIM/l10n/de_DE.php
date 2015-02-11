@@ -48,7 +48,7 @@ return array(
 	'No domain with OpenDKIM support has been found.' => 'Keine Domain mit OpenDKIM Unterstützung gefunden.',
 	'Domain' => 'Domain',
 	'Name' => 'Name',
-	'Unable to update: %s' => 'Fehler während der Installation: %s',
+	'Unable to install: %s' => 'Fehler während der Installation: %s',
 	'Unable to update: %s' => 'Fehler während des Updates: %s',
 	'Unable to uninstall: %s' => 'Fehler während der Deinstallation: %s',
 	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => 'Ihre i-MSCP Version ist nicht kompatibel mit diesem Plugin. Bitte aktuallisieren i-MSCP auf eine neuere Version.',
