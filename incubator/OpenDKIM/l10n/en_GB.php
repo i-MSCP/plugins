@@ -48,8 +48,8 @@ return array(
 	'No domain with OpenDKIM support has been found.' => 'No domain with OpenDKIM support has been found.',
 	'Domain' => 'Domain',
 	'Name' => 'Name',
-	'Unable to update: %s' => 'Unable to install: %s',
-	'Unable to update: %s' => 'Unable to uninstall: %s',
+	'Unable to install: %s' => 'Unable to install: %s',
+	'Unable to update: %s' => 'Unable to update: %s',
 	'Unable to uninstall: %s' => 'Unable to uninstall: %s',
 	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => 'Your i-MSCP version is not compatible with this plugin. Try with a newer version.',
 	'OpenDKIM' => 'OpenDKIM'
