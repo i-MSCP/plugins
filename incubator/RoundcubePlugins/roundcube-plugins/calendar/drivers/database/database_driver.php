@@ -8,7 +8,7 @@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2012, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -42,14 +42,12 @@ class database_driver extends calendar_driver
   private $calendars = array();
   private $calendar_ids = '';
   private $free_busy_map = array('free' => 0, 'busy' => 1, 'out-of-office' => 2, 'outofoffice' => 2, 'tentative' => 3);
+  private $sensitivity_map = array('public' => 0, 'private' => 1, 'confidential' => 2);
   private $server_timezone;
   
   private $db_events = 'events';
   private $db_calendars = 'calendars';
   private $db_attachments = 'attachments';
-  private $sequence_events = 'event_ids';
-  private $sequence_calendars = 'calendar_ids';
-  private $sequence_attachments = 'attachment_ids';
 
 
   /**
@@ -61,16 +59,11 @@ class database_driver extends calendar_driver
     $this->rc = $cal->rc;
     $this->server_timezone = new DateTimeZone(date_default_timezone_get());
     
-    // load library classes
-    require_once($this->cal->home . '/lib/Horde_Date_Recurrence.php');
-    
     // read database config
-    $this->db_events = $this->rc->config->get('db_table_events', $this->db_events);
-    $this->db_calendars = $this->rc->config->get('db_table_calendars', $this->db_calendars);
-    $this->db_attachments = $this->rc->config->get('db_table_attachments', $this->db_attachments);
-    $this->sequence_events = $this->rc->config->get('db_sequence_events', $this->sequence_events);
-    $this->sequence_calendars = $this->rc->config->get('db_sequence_calendars', $this->sequence_calendars);
-    $this->sequence_attachments = $this->rc->config->get('db_sequence_attachments', $this->sequence_attachments);
+    $db = $this->rc->get_dbh();
+    $this->db_events = $this->rc->config->get('db_table_events', $db->table_name($this->db_events));
+    $this->db_calendars = $this->rc->config->get('db_table_calendars', $db->table_name($this->db_calendars));
+    $this->db_attachments = $this->rc->config->get('db_table_attachments', $db->table_name($this->db_attachments));
     
     $this->_read_calendars();
   }
@@ -94,6 +87,7 @@ class database_driver extends calendar_driver
         $arr['showalarms'] = intval($arr['showalarms']);
         $arr['active']     = !in_array($arr['id'], $hidden);
         $arr['name']       = html::quote($arr['name']);
+        $arr['listname']   = html::quote($arr['name']);
         $this->calendars[$arr['calendar_id']] = $arr;
         $calendar_ids[] = $this->rc->db->quote($arr['calendar_id']);
       }
@@ -113,7 +107,7 @@ class database_driver extends calendar_driver
   {
     // attempt to create a default calendar for this user
     if (empty($this->calendars)) {
-      if ($this->create_calendar(array('name' => 'Default', 'color' => 'cc0000')))
+      if ($this->create_calendar(array('name' => 'Default', 'color' => 'cc0000', 'showalarms' => true)))
         $this->_read_calendars();
     }
 
@@ -129,6 +123,28 @@ class database_driver extends calendar_driver
     }
 
     // 'personal' is unsupported in this driver
+
+    // append the virtual birthdays calendar
+    if ($this->rc->config->get('calendar_contact_birthdays', false)) {
+      $prefs = $this->rc->config->get('birthday_calendar', array('color' => '87CEFA'));
+      $hidden = array_filter(explode(',', $this->rc->config->get('hidden_calendars', '')));
+
+      $id = self::BIRTHDAY_CALENDAR_ID;
+      if (!$active || !in_array($id, $hidden)) {
+        $calendars[$id] = array(
+          'id'         => $id,
+          'name'       => $this->cal->gettext('birthdays'),
+          'listname'   => $this->cal->gettext('birthdays'),
+          'color'      => $prefs['color'],
+          'showalarms' => (bool)$this->rc->config->get('calendar_birthdays_alarm_type'),
+          'active'     => !in_array($id, $hidden),
+          'group'      => 'x-birthdays',
+          'readonly'   => true,
+          'default'    => false,
+          'children'   => false,
+        );
+      }
+    }
 
     return $calendars;
   }
@@ -154,7 +170,7 @@ class database_driver extends calendar_driver
     );
     
     if ($result)
-      return $this->rc->db->insert_id($this->sequence_calendars);
+      return $this->rc->db->insert_id($this->db_calendars);
     
     return false;
   }
@@ -166,6 +182,17 @@ class database_driver extends calendar_driver
    */
   public function edit_calendar($prop)
   {
+    // birthday calendar properties are saved in user prefs
+    if ($prop['id'] == self::BIRTHDAY_CALENDAR_ID) {
+      $prefs['birthday_calendar'] = $this->rc->config->get('birthday_calendar', array('color' => '87CEFA'));
+      if (isset($prop['color']))
+        $prefs['birthday_calendar']['color'] = $prop['color'];
+      if (isset($prop['showalarms']))
+        $prefs['calendar_birthdays_alarm_type'] = $prop['showalarms'] ? $this->alarm_types[0] : '';
+      $this->rc->user->save_prefs($prefs);
+      return true;
+    }
+
     $query = $this->rc->db->query(
       "UPDATE " . $this->db_calendars . "
        SET   name=?, color=?, showalarms=?
@@ -202,9 +229,9 @@ class database_driver extends calendar_driver
   /**
    * Delete the given calendar with all its contents
    *
-   * @see calendar_driver::remove_calendar()
+   * @see calendar_driver::delete_calendar()
    */
-  public function remove_calendar($prop)
+  public function delete_calendar($prop)
   {
     if (!$this->calendars[$prop['id']])
       return false;
@@ -218,6 +245,19 @@ class database_driver extends calendar_driver
     );
 
     return $this->rc->db->affected_rows($query);
+  }
+
+  /**
+   * Search for shared or otherwise not listed calendars the user has access
+   *
+   * @param string Search string
+   * @param string Section/source to search
+   * @return array List of calendars
+   */
+  public function search_calendars($query, $source)
+  {
+    // not implemented
+    return array();
   }
 
   /**
@@ -241,8 +281,8 @@ class database_driver extends calendar_driver
 
       $this->rc->db->query(sprintf(
         "INSERT INTO " . $this->db_events . "
-         (calendar_id, created, changed, uid, %s, %s, all_day, recurrence, title, description, location, categories, free_busy, priority, sensitivity, attendees, alarms, notifyat)
-         VALUES (?, %s, %s, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         (calendar_id, created, changed, uid, %s, %s, all_day, recurrence, title, description, location, categories, url, free_busy, priority, sensitivity, status, attendees, alarms, notifyat)
+         VALUES (?, %s, %s, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           $this->rc->db->quote_identifier('start'),
           $this->rc->db->quote_identifier('end'),
           $this->rc->db->now(),
@@ -257,16 +297,18 @@ class database_driver extends calendar_driver
         strval($event['title']),
         strval($event['description']),
         strval($event['location']),
-        strval($event['categories']),
+        join(',', (array)$event['categories']),
+        strval($event['url']),
         intval($event['free_busy']),
         intval($event['priority']),
         intval($event['sensitivity']),
+        strval($event['status']),
         $event['attendees'],
         $event['alarms'],
         $event['notifyat']
       );
 
-      $event_id = $this->rc->db->insert_id($this->sequence_events);
+      $event_id = $this->rc->db->insert_id($this->db_events);
 
       if ($event_id) {
         $event['id'] = $event_id;
@@ -382,6 +424,11 @@ class database_driver extends calendar_driver
               $event['end'] = clone $event['start'];
               $event['end']->add(new DateInterval('PT'.$new_duration.'S'));
             }
+            // dates did not change, use the ones from master
+            else if ($event['start'] == $old['start'] && $event['end'] == $old['end']) {
+              $event['start'] = $master['start'];
+              $event['end'] = $master['end'];
+            }
             break;
         }
       }
@@ -401,24 +448,35 @@ class database_driver extends calendar_driver
    */
   private function _save_preprocess($event)
   {
-    // shift dates to server's timezone
-    $event['start'] = clone $event['start'];
-    $event['start']->setTimezone($this->server_timezone);
-    $event['end'] = clone $event['end'];
-    $event['end']->setTimezone($this->server_timezone);
+    // shift dates to server's timezone (except for all-day events)
+    if (!$event['allday']) {
+      $event['start'] = clone $event['start'];
+      $event['start']->setTimezone($this->server_timezone);
+      $event['end'] = clone $event['end'];
+      $event['end']->setTimezone($this->server_timezone);
+    }
     
     // compose vcalendar-style recurrencue rule from structured data
     $rrule = $event['recurrence'] ? libcalendaring::to_rrule($event['recurrence']) : '';
     $event['_recurrence'] = rtrim($rrule, ';');
     $event['free_busy'] = intval($this->free_busy_map[strtolower($event['free_busy'])]);
-    
+    $event['sensitivity'] = intval($this->sensitivity_map[strtolower($event['sensitivity'])]);
+
+    if ($event['free_busy'] == 'tentative') {
+        $event['status'] = 'TENTATIVE';
+    }
+
     if (isset($event['allday'])) {
       $event['all_day'] = $event['allday'] ? 1 : 0;
     }
-    
+
     // compute absolute time to notify the user
     $event['notifyat'] = $this->_get_notification($event);
-    
+
+    if (is_array($event['valarms'])) {
+        $event['alarms'] = $this->serialize_alarms($event['valarms']);
+    }
+
     // process event attendees
     $_attendees = '';
     foreach ((array)$event['attendees'] as $attendee) {
@@ -440,10 +498,10 @@ class database_driver extends calendar_driver
    */
   private function _get_notification($event)
   {
-    if ($event['alarms'] && $event['start'] > new DateTime()) {
+    if ($event['valarms'] && $event['start'] > new DateTime()) {
       $alarm = libcalendaring::get_next_alarm($event);
 
-      if ($alarm['time'] && $alarm['action'] == 'DISPLAY')
+      if ($alarm['time'] && in_array($alarm['action'], $this->alarm_types))
         return date('Y-m-d H:i:s', $alarm['time']);
     }
 
@@ -460,11 +518,13 @@ class database_driver extends calendar_driver
   {
     $event = $this->_save_preprocess($event);
     $sql_set = array();
-    $set_cols = array('start', 'end', 'all_day', 'recurrence_id', 'sequence', 'title', 'description', 'location', 'categories', 'free_busy', 'priority', 'sensitivity', 'attendees', 'alarms', 'notifyat');
+    $set_cols = array('start', 'end', 'all_day', 'recurrence_id', 'sequence', 'title', 'description', 'location', 'categories', 'url', 'free_busy', 'priority', 'sensitivity', 'status', 'attendees', 'alarms', 'notifyat');
     foreach ($set_cols as $col) {
       if (is_object($event[$col]) && is_a($event[$col], 'DateTime'))
         $sql_set[] = $this->rc->db->quote_identifier($col) . '=' . $this->rc->db->quote($event[$col]->format(self::DB_DATE_FORMAT));
-      else if (isset($event[$col]))
+      else if (is_array($event[$col]))
+        $sql_set[] = $this->rc->db->quote_identifier($col) . '=' . $this->rc->db->quote(join(',', $event[$col]));
+      else if (array_key_exists($col, $event))
         $sql_set[] = $this->rc->db->quote_identifier($col) . '=' . $this->rc->db->quote($event[$col]);
     }
     
@@ -540,11 +600,11 @@ class database_driver extends calendar_driver
         $next_start->setTimezone($this->server_timezone);
         $next_end = clone $next_start;
         $next_end->add($duration);
-        $notify_at = $this->_get_notification(array('alarms' => $event['alarms'], 'start' => $next_start, 'end' => $next_end));
+        $notify_at = $this->_get_notification(array('alarms' => $event['alarms'], 'start' => $next_start, 'end' => $next_end, 'status' => $event['status']));
         $query = $this->rc->db->query(sprintf(
           "INSERT INTO " . $this->db_events . "
-           (calendar_id, recurrence_id, created, changed, uid, %s, %s, all_day, recurrence, title, description, location, categories, free_busy, priority, sensitivity, alarms, notifyat)
-            SELECT calendar_id, ?, %s, %s, uid, ?, ?, all_day, recurrence, title, description, location, categories, free_busy, priority, sensitivity, alarms, ?
+           (calendar_id, recurrence_id, created, changed, uid, %s, %s, all_day, recurrence, title, description, location, categories, url, free_busy, priority, sensitivity, status, alarms, attendees, notifyat)
+            SELECT calendar_id, ?, %s, %s, uid, ?, ?, all_day, recurrence, title, description, location, categories, url, free_busy, priority, sensitivity, status, alarms, attendees, ?
             FROM  " . $this->db_events . " WHERE event_id=? AND calendar_id IN (" . $this->calendar_ids . ")",
             $this->rc->db->quote_identifier('start'),
             $this->rc->db->quote_identifier('end'),
@@ -684,10 +744,16 @@ class database_driver extends calendar_driver
   public function get_event($event, $writeable = false, $active = false, $personal = false)
   {
     $id = is_array($event) ? ($event['id'] ? $event['id'] : $event['uid']) : $event;
+    $cal = is_array($event) ? $event['calendar'] : null;
     $col = is_array($event) && is_numeric($id) ? 'event_id' : 'uid';
 
     if ($this->cache[$id])
       return $this->cache[$id];
+
+    // get event from the address books birthday calendar
+    if ($cal == self::BIRTHDAY_CALENDAR_ID) {
+      return $this->get_birthday_event($id);
+    }
 
     if ($active) {
       $calendars = $this->calendars;
@@ -725,12 +791,12 @@ class database_driver extends calendar_driver
    *
    * @see calendar_driver::load_events()
    */
-  public function load_events($start, $end, $query = null, $calendars = null)
+  public function load_events($start, $end, $query = null, $calendars = null, $virtual = 1, $modifiedsince = null)
   {
     if (empty($calendars))
       $calendars = array_keys($this->calendars);
-    else if (is_string($calendars))
-      $calendars = explode(',', $calendars);
+    else if (!is_array($calendars))
+      $calendars = explode(',', strval($calendars));
       
     // only allow to select from calendars of this use
     $calendar_ids = array_map(array($this->rc->db, 'quote'), array_intersect($calendars, array_keys($this->calendars)));
@@ -743,16 +809,21 @@ class database_driver extends calendar_driver
       $sql_add = 'AND (' . join(' OR ', $sql_query) . ')';
     }
     
+    if (!$virtual)
+      $sql_add .= ' AND e.recurrence_id = 0';
+    
+    if ($modifiedsince)
+      $sql_add .= ' AND e.changed >= ' . $this->rc->db->quote(date('Y-m-d H:i:s', $modifiedsince));
+    
     $events = array();
     if (!empty($calendar_ids)) {
       $result = $this->rc->db->query(sprintf(
-        "SELECT e.*, (SELECT COUNT(attachment_id) FROM " . $this->db_attachments . " 
-           WHERE event_id = e.event_id OR event_id = e.recurrence_id) AS _attachments
-         FROM " . $this->db_events . " AS e
+        "SELECT e.*, (SELECT COUNT(attachment_id) FROM " . $this->db_attachments . "
+            WHERE event_id = e.event_id OR event_id = e.recurrence_id) AS _attachments
+         FROM " . $this->db_events . " e
          WHERE e.calendar_id IN (%s)
-         AND e.start <= %s AND e.end >= %s
-         %s
-         GROUP BY e.event_id",
+            AND e.start <= %s AND e.end >= %s
+            %s",
          join(',', $calendar_ids),
          $this->rc->db->fromunixtime($end),
          $this->rc->db->fromunixtime($start),
@@ -763,8 +834,27 @@ class database_driver extends calendar_driver
         $events[] = $this->_read_postprocess($event);
       }
     }
-    
+
+    // add events from the address books birthday calendar
+    if (in_array(self::BIRTHDAY_CALENDAR_ID, $calendars) && empty($query)) {
+      $events = array_merge($events, $this->load_birthday_events($start, $end, $search, $modifiedsince));
+    }
+
     return $events;
+  }
+
+  /**
+   * Get number of events in the given calendar
+   *
+   * @param  mixed   List of calendar IDs to count events (either as array or comma-separated string)
+   * @param  integer Date range start (unix timestamp)
+   * @param  integer Date range end (unix timestamp)
+   * @return array   Hash array with counts grouped by calendar ID
+   */
+  public function count_events($calendars, $start, $end = null)
+  {
+      // not implemented
+      return array();
   }
 
   /**
@@ -773,13 +863,16 @@ class database_driver extends calendar_driver
   private function _read_postprocess($event)
   {
     $free_busy_map = array_flip($this->free_busy_map);
+    $sensitivity_map = array_flip($this->sensitivity_map);
     
     $event['id'] = $event['event_id'];
     $event['start'] = new DateTime($event['start']);
     $event['end'] = new DateTime($event['end']);
     $event['allday'] = intval($event['all_day']);
-    $event['changed'] = strtotime($event['changed']);
+    $event['created'] = new DateTime($event['created']);
+    $event['changed'] = new DateTime($event['changed']);
     $event['free_busy'] = $free_busy_map[$event['free_busy']];
+    $event['sensitivity'] = $sensitivity_map[$event['sensitivity']];
     $event['calendar'] = $event['calendar_id'];
     $event['recurrence_id'] = intval($event['recurrence_id']);
     
@@ -791,6 +884,8 @@ class database_driver extends calendar_driver
           $rr[2] = intval($rr[2]);
         else if ($rr[1] == 'UNTIL')
           $rr[2] = date_create($rr[2]);
+        else if ($rr[1] == 'RDATE')
+          $rr[2] = array_map('date_create', explode(',', $rr[2]));
         else if ($rr[1] == 'EXDATE')
           $rr[2] = array_map('date_create', explode(',', $rr[2]));
         $event['recurrence'][$rr[1]] = $rr[2];
@@ -813,7 +908,15 @@ class database_driver extends calendar_driver
       }
       $event['attendees'] = $attendees;
     }
-
+    else {
+      $event['attendees'] = array();
+    }
+    
+    // decode serialized alarms
+    if ($event['alarms']) {
+      $event['valarms'] = $this->unserialize_alarms($event['alarms']);
+    }
+    
     unset($event['event_id'], $event['calendar_id'], $event['notifyat'], $event['all_day'], $event['_attachments']);
     return $event;
   }
@@ -1022,6 +1125,80 @@ class database_driver extends calendar_driver
     );
     
     return $this->rc->db->affected_rows($query);
+  }
+
+  /**
+   * Helper method to serialize the list of alarms into a string
+   */
+  private function serialize_alarms($valarms)
+  {
+      foreach ((array)$valarms as $i => $alarm) {
+          if ($alarm['trigger'] instanceof DateTime) {
+              $valarms[$i]['trigger'] = '@' . $alarm['trigger']->format('c');
+          }
+      }
+
+      return $valarms ? json_encode($valarms) : null;
+  }
+
+  /**
+   * Helper method to decode a serialized list of alarms
+   */
+  private function unserialize_alarms($alarms)
+  {
+      // decode json serialized alarms
+      if ($alarms && $alarms[0] == '[') {
+          $valarms = json_decode($alarms, true);
+          foreach ($valarms as $i => $alarm) {
+              if ($alarm['trigger'][0] == '@') {
+                  try {
+                      $valarms[$i]['trigger'] = new DateTime(substr($alarm['trigger'], 1));
+                  }
+                  catch (Exception $e) {
+                      unset($valarms[$i]);
+                  }
+              }
+          }
+      }
+      // convert legacy alarms data
+      else if (strlen($alarms)) {
+          list($trigger, $action) = explode(':', $alarms, 2);
+          if ($trigger = libcalendaring::parse_alarm_value($trigger)) {
+              $valarms = array(array('action' => $action, 'trigger' => $trigger[3] ?: $trigger[0]));
+          }
+      }
+
+      return $valarms;
+  }
+
+  /**
+   * Handler for user_delete plugin hook
+   */
+  public function user_delete($args)
+  {
+      $db = $this->rc->db;
+      $user = $args['user'];
+      $event_ids = array();
+
+      $events = $db->query(
+          "SELECT event_id FROM " . $this->db_events . " AS ev" .
+          " LEFT JOIN " . $this->db_calendars . " cal ON (ev.calendar_id = cal.calendar_id)".
+          " WHERE user_id=?",
+          $user->ID);
+
+      while ($row = $db->fetch_assoc($events)) {
+          $event_ids[] = $row['event_id'];
+      }
+
+      if (!empty($event_ids)) {
+          foreach (array($this->db_attachments, $this->db_events) as $table) {
+              $db->query(sprintf("DELETE FROM $table WHERE event_id IN (%s)", join(',', $event_ids)));
+          }
+      }
+
+      foreach (array($this->db_calendars, 'itipinvitations') as $table) {
+          $db->query("DELETE FROM $table WHERE user_id=?", $user->ID);
+      }
   }
 
 }

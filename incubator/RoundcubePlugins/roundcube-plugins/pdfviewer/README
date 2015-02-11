@@ -30,18 +30,22 @@ directory:
 $ cd <roundcubedir>/plugins/pdfviewer
 $ cp -r <pdfjsdir>/build/generic/web viewer
 $ cp <pdfjsdir>/build/generic/build/pdf.js viewer/pdf.js
+$ cp <pdfjsdir>/build/generic/build/pdf.worker.js viewer/pdf.worker.js
 $ rm viewer/*.pdf
 
 Then apply the pdfjs-viewer.diff patch to adjust the viewer for the use
 within Roundcube:
 
-$ patch -p1 < pdfjs-viewer.diff
+$ patch -p0 < pdfjs-viewer.diff
 
 Optionally, compress the scripts using Google's Closure Compiler [1]
 or the YUI Compressor [2].
 
 $ <roundcubedir>/bin/jsshrink.sh viewer/pdf.js ECMASCRIPT5
 $ <roundcubedir>/bin/jsshrink.sh viewer/viewer.js ECMASCRIPT5
+
+This will create minimized versions in viewer/*.min.js which are
+linked by the viewer.html template.
 
 [1] http://closure-compiler.googlecode.com/
 [2] http://developer.yahoo.com/yui/compressor/

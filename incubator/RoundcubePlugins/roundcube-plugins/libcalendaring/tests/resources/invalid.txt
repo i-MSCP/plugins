@@ -1,0 +1,2 @@
+Some text file that has nothing to do with the iCal format.
+Just to test the sanity checks before attempting to parse iCal files.

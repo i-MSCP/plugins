@@ -79,6 +79,9 @@ return array(
 	// Roundcube inline pdf viewer.
 	'pdfviewer_plugin' => 'yes', // YES to enable (default), NO to disable
 
+	// Roundcube inline odf viewer.
+	'odfviewer_plugin' => 'yes', // YES to enable (default), NO to disable
+
 	// Plugin pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
 	'pop3fetcher_plugin' => 'yes', // YES to enable (default), NO to disable
 

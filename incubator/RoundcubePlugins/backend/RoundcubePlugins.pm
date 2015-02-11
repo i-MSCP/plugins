@@ -432,6 +432,10 @@ sub _setRoundcubePlugin
 			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'pdfviewer'" : ", 'pdfviewer'";
 		}
 
+		if($self->{'config'}->{'odfviewer_plugin'} eq 'yes') {
+			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'odfviewer'" : ", 'odfviewer'";
+		}
+
 		if($self->{'config'}->{'zipdownload_plugin'} eq 'yes') {
 			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'zipdownload'" : ", 'zipdownload'";
 		}

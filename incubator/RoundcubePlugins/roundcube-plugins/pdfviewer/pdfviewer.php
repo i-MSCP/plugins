@@ -6,7 +6,7 @@
  * Render PDF files directly in the preview window
  * by using the JavaScript PDF Reader pdf.js by andreasgal (http://mozilla.github.com/pdf.js)
  *
- * @version 0.1
+ * @version 0.1.2
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2013, Kolab Systems AG
@@ -83,7 +83,7 @@ class pdfviewer extends rcube_plugin
     public function part_structure($args)
     {
         if (!empty($args['structure']->parts)) {
-            foreach ($args['structure']->parts as $i => $part) {
+            foreach (array_keys($args['structure']->parts) as $i) {
                 $this->fix_mime_part($args['structure']->parts[$i], $args['object']);
             }
         }
@@ -107,7 +107,7 @@ class pdfviewer extends rcube_plugin
 
         // try to fix invalid application/octet-stream mimetypes for PDF attachments
         if ($part->mimetype == 'application/octet-stream' && preg_match('/\.pdf$/', strval($part->filename))) {
-            $body = $part->body ? $part->body : $message->get_part_content($part->mime_id, null, true, 2048);
+            $body = $message->get_part_body($part->mime_id, false, 2048);
             $real_mimetype = rcube_mime::file_content_type($body, $part->filename, $part->mimetype, true, true);
             if (in_array($real_mimetype, $this->pdf_mimetypes)) {
                 $part->mimetype = $real_mimetype;
@@ -122,10 +122,10 @@ class pdfviewer extends rcube_plugin
      */
     private function abs_url($relpath = '')
     {
-        $webroot = '';
+        $webroot = '/';
 
         if (dirname($_SERVER['SCRIPT_NAME']) != '/')
-            $webroot .= dirname($_SERVER['SCRIPT_NAME']) . '/';
+            $webroot = dirname($_SERVER['SCRIPT_NAME']) . '/';
 
         return $webroot . preg_replace('!^\./!', '', $relpath);
     }

@@ -4,7 +4,7 @@
  * This plugin displays an icon showing the status
  * of dkim verification of the message
  *
- * @version 0.8.2
+ * @version 0.8.3
  * @author Julien vehent
  * @mail julien@linuxwall.info
  *
@@ -12,6 +12,8 @@
  * http://www.wladik.net
  *
  * Changelog:
+ *  20140219 - Dutch translation by Filip Vervloesem
+ *  20140105 - from Savinov Artem: Add small fix if dkim and domainkey signature exists
  *  20120915 - Portuguese – Brazil translation by Brivaldo Jr
  *             Russian translation, by Подшивалов Антон
  *             Fix header match to include `d` and process only one regex
@@ -51,7 +53,7 @@ class dkimstatus extends rcube_plugin
 
     function image($image, $alt, $title)
     {
-        return '<img src="plugins/dkimstatus/images/'.$image.'" alt="'.$this->gettext($alt).'" title="'.$this->gettext($alt).$title.'" /> ';
+        return '<img src="plugins/dkimstatus/images/'.$image.'" alt="'.$this->gettext($alt).'" title="'.$this->gettext($alt).htmlentities($title).'" /> ';
     }
 
     function message_headers($p)
@@ -74,22 +76,35 @@ class dkimstatus extends rcube_plugin
 
                     $results = $p['headers']->others['authentication-results'];
 
-                    if(preg_match("/dkim=([a-zA-Z0-9]*)/", $results, $m)) {
-                        $status = ($m[1]);
+                    if (is_array($results)) {
+                        foreach ($results as $result) {
+                            if(preg_match("/dkim=([a-zA-Z0-9]*)/", $result, $m)) {
+                                $status = ($m[1]);
+                                $res=$result;
+                                break;
+                            }
+                            if(preg_match("/domainkeys=([a-zA-Z0-9]*)/", $result, $m)) {
+                                $status = ($m[1]);
+                                $res=$result;
+                            }
+                        }
+                        $results=$res;
+                    } else {
+                        if(preg_match("/dkim=([a-zA-Z0-9]*)/", $results, $m)) {
+                            $status = ($m[1]);
+                        }
+                        if(preg_match("/domainkeys=([a-zA-Z0-9]*)/", $results, $m)) {
+                            $status = ($m[1]);
+                        }
                     }
-
-                    if(preg_match("/domainkeys=([a-zA-Z0-9]*)/", $results, $m)) {
-                        $status = ($m[1]);
-                    }
-
 
                     if($status == 'pass') {
 
                         /* Verify if its an author's domain signature or a third party
                         */
 
-                        if(preg_match("/[@][a-zA-Z0-9]+([.][a-zA-Z0-9]+)?\.[a-zA-Z]{2,4}/", $p['headers']->from, $m)) {
-                            $authordomain = $m[0];
+                        if(preg_match("/[@]([a-zA-Z0-9_-]+([.][a-zA-Z0-9_-]+)?\.[a-zA-Z]{2,4})/", $p['headers']->from, $m)) {
+                            $authordomain = $m[1];
                             if(preg_match("/header\.(d|i|from)=(([a-zA-Z0-9]+[_\.\-]?)+)?($authordomain)/", $results)) {
                                 $image = 'authorsign.png';
                                 $alt = 'verifiedsender';

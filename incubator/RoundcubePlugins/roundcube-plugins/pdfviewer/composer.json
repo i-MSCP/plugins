@@ -1,0 +1,25 @@
+{
+    "name": "kolab/pdfviewer",
+    "type": "roundcube-plugin",
+    "description": "Inline PDF viewer plugin",
+    "homepage": "http://git.kolab.org/roundcubemail-plugins-kolab/",
+    "license": "AGPLv3",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Thomas Bruederli",
+            "email": "bruederli@kolabsys.com",
+            "role": "Lead"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://plugins.roundcube.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "roundcube/plugin-installer": ">=0.1.3"
+    }
+}

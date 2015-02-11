@@ -1,11 +1,19 @@
 <?php
-
-$labels = array();
-
+/**
+ * Localizations for the Kolab calendaring utilities plugin
+ *
+ * Copyright (C) 2014, Kolab Systems AG
+ *
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/libcalendaring/
+ */
+$labels['until'] = 'Повторять';
+$labels['at'] = 'в';
 $labels['alarmemail'] = 'Послать e-mail';
 $labels['alarmdisplay'] = 'Показать сообщение';
+$labels['alarmaudio'] = 'Проиграть мелодию';
 $labels['alarmdisplayoption'] = 'Сообщение';
 $labels['alarmemailoption'] = 'Email';
+$labels['alarmaudiooption'] = 'Мелодия';
 $labels['alarmat'] = 'на $datetime';
 $labels['trigger@'] = 'на дату';
 $labels['trigger-M'] = 'минут до';
@@ -14,8 +22,9 @@ $labels['trigger-D'] = 'дней до';
 $labels['trigger+M'] = 'минут после';
 $labels['trigger+H'] = 'часов после';
 $labels['trigger+D'] = 'дней после';
-$labels['addalarm'] = 'добавить уведомление';
-
+$labels['triggerattime'] = 'в';
+$labels['addalarm'] = 'Добавить уведомление';
+$labels['removealarm'] = 'Удалить уведомление';
 $labels['alarmtitle'] = 'Предстоящие события';
 $labels['dismissall'] = 'Отменить все';
 $labels['dismiss'] = 'Отменить';
@@ -25,5 +34,98 @@ $labels['repeatinhr'] = 'Повторить через 1 час';
 $labels['repeatinhrs'] = 'Повторить через $hrs часов';
 $labels['repeattomorrow'] = 'Повторить завтра';
 $labels['repeatinweek'] = 'Повторить через неделю';
-
 $labels['showmore'] = 'Показать больше...';
+$labels['frequency'] = 'Повторить';
+$labels['never'] = 'никогда';
+$labels['daily'] = 'ежедневно';
+$labels['weekly'] = 'еженедельно';
+$labels['monthly'] = 'ежемесячно';
+$labels['yearly'] = 'ежегодно';
+$labels['rdate'] = 'on dates';
+$labels['every'] = 'Каждый(ую)';
+$labels['days'] = 'день';
+$labels['weeks'] = 'неделю';
+$labels['months'] = 'месяц';
+$labels['years'] = 'год в:';
+$labels['bydays'] = 'В';
+$labels['untildate'] = 'до';
+$labels['each'] = 'Каждого';
+$labels['onevery'] = 'В';
+$labels['onsamedate'] = 'В ту же самую дату';
+$labels['forever'] = 'всегда';
+$labels['recurrencend'] = 'Повторять';
+$labels['untilenddate'] = 'до';
+$labels['forntimes'] = '$nr раз(а)';
+$labels['first'] = 'первый(ую)';
+$labels['second'] = 'вторый(ую)';
+$labels['third'] = 'третий(ую)';
+$labels['fourth'] = 'четвертый(ую)';
+$labels['last'] = 'последний(ую)';
+$labels['dayofmonth'] = 'День месяца';
+$labels['addrdate'] = 'Add repeat date';
+$labels['except'] = 'исключая';
+$labels['itipinvitation'] = 'Приглашение на';
+$labels['itipupdate'] = 'Обновление';
+$labels['itipcancellation'] = 'Отменённый:';
+$labels['itipreply'] = 'Ответить';
+$labels['itipaccepted'] = 'Принять';
+$labels['itiptentative'] = 'Может быть';
+$labels['itipdeclined'] = 'Отклонить';
+$labels['itipdelegated'] = 'Представитель';
+$labels['itipneeds-action'] = 'Отложить';
+$labels['itipcomment'] = 'Ваш ответ';
+$labels['itipeditresponse'] = 'Введите текст ответа';
+$labels['itipsendercomment'] = 'Комментарий отправителя:';
+$labels['itipsuppressreply'] = 'Не отправлять ответ';
+$labels['itipobjectnotfound'] = 'Объект, указанный в данном сообщении не был найден в вашем аккаунте.';
+$labels['itipsubjectaccepted'] = '"$title" принято $name';
+$labels['itipsubjecttentative'] = '"$title" предварительно принято $name';
+$labels['itipsubjectdeclined'] = '"$title" отклонено $name';
+$labels['itipsubjectin-process'] = '"$title" обрабатывается $name';
+$labels['itipsubjectcompleted'] = '"$title" завершена $name';
+$labels['itipsubjectcancel'] = 'Ваше участие в "$title" было отменено';
+$labels['itipsubjectdelegated'] = '"$title" было поручено $name';
+$labels['itipsubjectdelegatedto'] = '"$title" было поручено Вам $name';
+$labels['itipnewattendee'] = 'Это ответ от нового участника';
+$labels['updateattendeestatus'] = 'Обновить статус участника';
+$labels['acceptinvitation'] = 'Вы принимаете это приглашение?';
+$labels['acceptattendee'] = 'Принять участника';
+$labels['declineattendee'] = 'Отказать участнику';
+$labels['declineattendeeconfirm'] = 'Введите сообщение для отклонённого участника (не обязательно):';
+$labels['youhaveaccepted'] = 'Вы приняли это приглашение';
+$labels['youhavetentative'] = 'Вы предварительно приняли это приглашение';
+$labels['youhavedeclined'] = 'Вы отклонили это приглашение';
+$labels['youhavedelegated'] = 'Вы делегировали это приглашение';
+$labels['youhavein-process'] = 'Вы работаете над этим заданием';
+$labels['youhavecompleted'] = 'Вы завершили это задание';
+$labels['youhaveneeds-action'] = 'Ваш ответ на это приглашение всё ещё ожидается';
+$labels['youhavepreviouslyaccepted'] = 'Вы уже приняли это приглашение';
+$labels['youhavepreviouslytentative'] = 'Вы уже предварительно приняли это приглашение';
+$labels['youhavepreviouslydeclined'] = 'Вы уже отказались от этого приглашения';
+$labels['youhavepreviouslydelegated'] = 'Вы уже делегировали это приглашение';
+$labels['youhavepreviouslyin-process'] = 'Вы уже предоставили отчет о проделанной работе на это задание';
+$labels['youhavepreviouslycompleted'] = 'Вы уже завершили это задание';
+$labels['youhavepreviouslyneeds-action'] = 'Ваш ответ на это приглашение всё ещё ожидается';
+$labels['attendeeaccepted'] = 'Участник принял приглашение';
+$labels['attendeetentative'] = 'Участник предварительно принял приглашение';
+$labels['attendeedeclined'] = 'Участник отказался от приглашения';
+$labels['attendeedelegated'] = 'Участник делегировал приглашение $delegatedto';
+$labels['attendeein-process'] = 'Участник в процессе';
+$labels['attendeecompleted'] = 'Участник завершил';
+$labels['notanattendee'] = 'Вы не указаны как участник этого объекта';
+$labels['outdatedinvitation'] = 'Это приглашение было заменено новой версией';
+$labels['importtocalendar'] = 'Сохранить в мой календарь';
+$labels['removefromcalendar'] = 'Удалить из моего календаря';
+$labels['updatemycopy'] = 'Обновить мою копию';
+$labels['openpreview'] = 'Открыть предпросмотр';
+$labels['deleteobjectconfirm'] = 'Вы действительно хотите удалить этот объект?';
+$labels['declinedeleteconfirm'] = 'Вы хотите так же удалить этот объект со своего аккаунта?';
+$labels['delegateinvitation'] = 'Приглашение представителей';
+$labels['delegateto'] = 'Поручить';
+$labels['delegatersvpme'] = 'Сообщать мне об изменениях в этом событии';
+$labels['delegateinvalidaddress'] = 'Пожалуйста, введите правильный email адрес представителя';
+$labels['savingdata'] = 'Сохранение данных...';
+$labels['expandattendeegroup'] = 'Заменить участниками группы';
+$labels['expandattendeegroupnodata'] = 'Не удаётся заменить участниками группы. Ни одного не найдено.';
+$labels['expandattendeegrouperror'] = 'Не удаётся заменить участниками группы. Возможно, в ней слишком много участников.';
+$labels['expandattendeegroupsizelimit'] = 'Группа содержит слишком много участников для замены.';

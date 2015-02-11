@@ -1,6 +1,36 @@
 Roundcube Webmail ContextMenu
 =============================
 
+Version 2.1 (2015-01-06, rc-1.1)
+=================================================
+ * Add specific menu for adding contact to group
+ * Update after dev-accessibility merged to RC master
+ * Support multi-folder search results (66536974fe)
+ * Fix possible CSRF in readfolder action
+ * Add option to move/copy contacts in address book
+
+Version 2.0 (2014-04-30, rc-1.0)
+=================================================
+ * Remove IE6 support
+ * Remove rcm_contextmenu_register_command, use commands from toolbars
+ * Remove specially created manus, generate context menu dynamically from UI
+ * Much better menu generation, improve loading times
+
+Version 1.13 (2014-02-01, rc-1.0)
+=================================================
+ * Add menu to contact list on compose screen (requires b3c034c)
+
+Version 1.12 (2013-12-01, rc-1.0)
+=================================================
+ * Update depreciated moveto command to move
+ * Update config file var names to match core
+
+Version 1.11 (2013-05-19, rc-1.0)
+=================================================
+ * Add export option to address book menu
+ * Add contextmenu_show JS event
+ **** code branching/tagging no longer sync'd to roundcube versions ****
+
 Version 1.10 (2013-03-03, rc-0.9)
 =================================================
  * Add remove selected contacts from group option

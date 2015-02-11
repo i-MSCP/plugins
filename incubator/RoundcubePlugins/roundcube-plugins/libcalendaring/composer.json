@@ -1,0 +1,25 @@
+{
+    "name": "kolab/libcalendaring",
+    "type": "roundcube-plugin",
+    "description": "Library providing common functions for calendaring plugins",
+    "homepage": "http://git.kolab.org/roundcubemail-plugins-kolab/",
+    "license": "AGPLv3",
+    "version": "3.2.4",
+    "authors": [
+        {
+            "name": "Thomas Bruederli",
+            "email": "bruederli@kolabsys.com",
+            "role": "Lead"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://plugins.roundcube.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "roundcube/plugin-installer": ">=0.1.3"
+    }
+}
