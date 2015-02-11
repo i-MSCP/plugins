@@ -43,10 +43,7 @@ class iMSCP_Plugin_ServerDefaultPage extends iMSCP_Plugin_Action
 	public function onBeforeInstallPlugin($event)
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
-			if (
-				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<') ||
-				strtolower(iMSCP_Registry::get('config')->CodeName) == 'eagle'
-			) {
+			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
