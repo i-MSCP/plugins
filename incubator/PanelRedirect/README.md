@@ -8,7 +8,7 @@ This plugin redirects any apache2 requests for the i-MSCP control panel ( made o
 
 ## Requirements
 
-* i-MSCP >= 1.2.0
+* i-MSCP >= 1.2.2
 
 ## Installation
 
