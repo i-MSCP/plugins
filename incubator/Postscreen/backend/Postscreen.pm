@@ -93,7 +93,34 @@ sub change
 
 sub update
 {
-	$_[0]->change();
+	my ($self, $fromVersion, $toVersion) = @_;
+
+	require version;
+	version->import();
+
+	if(version->parse("v$fromVersion") < version->parse("v0.0.6")) {
+		my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
+
+		my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
+
+		my $fileContent = $file->get();
+		unless (defined $fileContent) {
+			error("Unable to read $roundcubeMainIncFile");
+			return 1;
+		}
+
+		$fileContent = replaceBloc(
+			"\n// BEGIN Plugin::Postscreen\n",
+			"// END Plugin::Postscreen",
+			'',
+			$fileContent
+		);
+
+		my $rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$file->save();
+	}
 }
 
 =item enable()
@@ -118,7 +145,7 @@ sub enable
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		$self->_changeRoundcubeSmtpPort('add');
 	}
 }
@@ -145,7 +172,7 @@ sub disable
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		$self->_changeRoundcubeSmtpPort('remove');
 	}
 }
@@ -408,13 +435,7 @@ sub _changeRoundcubeSmtpPort
 {
 	my ($self, $action) = @_;
 
-	my $roundcubeMainIncFile;
-	if($main::imscpConfig{'CodeName'} eq 'Eagle') {
-		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/main.inc.php";
-	}
-	else {
-		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
-	}
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/public/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "config/config.inc.php";
 
 	my $file = iMSCP::File->new('filename' => $roundcubeMainIncFile);
 
@@ -425,28 +446,21 @@ sub _changeRoundcubeSmtpPort
 	}
 
 	if($action eq 'add') {
-		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
-			$fileContent =~ s/=\s+25;/= 587;/sgm;
-		} else {
-			$fileContent .= <<EOF;
-// BEGIN Plugin::Postscreen
+		$fileContent .= <<EOF;
+
+# Begin Plugin::Postscreen
 // SMTP port (default is 25; use 587 for STARTTLS or 465 for the
 // deprecated SSL over SMTP (aka SMTPS))
 \$config['smtp_port'] = 587;
-// END Plugin::Postscreen
+# End Plugin::Postscreen
 EOF
-		}
 	} elsif($action eq 'remove') {
-		if( $main::imscpConfig{'CodeName'} eq 'Eagle' ) {
-			$fileContent =~ s/=\s+587;/= 25;/sgm;
-		} else {
-			$fileContent = replaceBloc(
-				"\n// BEGIN Plugin::Postscreen\n",
-				"// END Plugin::Postscreen",
-				'',
-				$fileContent
-			);
-		}
+		$fileContent = replaceBloc(
+			"\n\n# Begin Plugin::Postscreen\n",
+			"# End Plugin::Postscreen",
+			'',
+			$fileContent
+		);
 	}
 
 	my $rs = $file->set($fileContent);
