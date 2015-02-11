@@ -353,14 +353,7 @@ sub _setRoundcubePlugin
 
 	my $rs = 0;
 
-	my $roundcubeMainIncFile;
-	if($main::imscpConfig{'CodeName'} eq 'Eagle') {
-		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-			'config/main.inc.php';
-	} else {
-		$roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-			'config/config.inc.php';
-	}
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . 'config/config.inc.php';
 
 	my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
 
@@ -461,13 +454,7 @@ sub _setRoundcubePlugin
 		$fileContent =~ s/^\n# Begin Plugin::RoundcubePlugins.*Ending Plugin::RoundcubePlugins\n//sgm;
 		
 		$roundcubePluginConfig = "\n# Begin Plugin::RoundcubePlugins\n";
-
-		if($main::imscpConfig{'CodeName'} eq 'Eagle') {
-			$roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(" . $roundcubePlugins . "));\n";
-		} else {
-			$roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(" . $roundcubePlugins . "));\n";
-		}
-
+		$roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(" . $roundcubePlugins . "));\n";
 		$roundcubePluginConfig .= "# Ending Plugin::RoundcubePlugins\n";
 
 		$fileContent .= $roundcubePluginConfig;

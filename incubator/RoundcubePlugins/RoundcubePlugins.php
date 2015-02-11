@@ -174,7 +174,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
 		if($event->getParam('pluginName') == $this->getName()) {
 			$isCompatible = true;
 
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
