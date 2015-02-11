@@ -129,7 +129,7 @@ sub change
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		# Roundcube Plugins configuration
 		$rs = $self->_installRoundcubePlugins();
 		return $rs if $rs;
@@ -177,7 +177,7 @@ sub enable
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		# Activate Roundcube Plugins
 		$rs = $self->_setRoundcubePlugin('add');
 		return $rs if $rs;
@@ -213,7 +213,7 @@ sub disable
 
 	# Deactivate Roundcube Plugins
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		$rs = $self->_setRoundcubePlugin('remove');
 		return $rs if $rs;
 	}
@@ -241,7 +241,7 @@ sub uninstall
 
 	# Remove Roundcube Plugins
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if($main::imscpConfig{'CodeName'} eq 'Eagle' || 'Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ @packages) {
 		$rs = $self->_removeRoundcubePlugins();
 		return $rs if $rs;
 	}

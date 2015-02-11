@@ -19,7 +19,7 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ### REQUIREMENTS
 
-	- i-MSCP version >= 1.1.22 for the 1.1.x serie or >= 1.2.1 for the 1.2.x serie ( Plugin API >= 0.2.16 )
+	- i-MSCP >= 1.2.2
 	- SpamAssassin 3.3.x or 3.4.x
 	- Roundcube >= 0.9.x
 	- See installation section for required software packages.
