@@ -59,6 +59,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 
 	if (($plugin = $pluginManager->loadPlugin('Monitorix', false, false)) !== null) {
 		$pluginConfig = $plugin->getConfig();
+		$htmlSelected = $cfg['HTML_SELECTED'];
 
 		foreach ($pluginConfig['graph_enabled'] as $key => $value) {
 			if ($value == 'y') {
@@ -68,7 +69,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 						'TR_MONITORIX_SELECT_NAME' => tr($key),
 						'MONITORIXGRAPH_WIDTH' => $pluginConfig['graph_width'],
 						'MONITORIXGRAPH_HEIGHT' => $pluginConfig['graph_height'],
-						'MONITORIX_NAME_SELECTED' => ($graphName != '' && $graphName === $key) ? $cfg->HTML_SELECTED : '',
+						'MONITORIX_NAME_SELECTED' => ($graphName !== '' && $graphName === $key) ? $htmlSelected : '',
 					)
 				);
 
@@ -93,7 +94,7 @@ function monitorix_generateSelect($tpl, $pluginManager, $graphName = '')
 }
 
 /**
- * Generate graphic list
+ * Generate graph list
  *
  * @param TemplateEngine $tpl
  * @param PluginManager $pluginManager
@@ -143,13 +144,15 @@ function monitorix_selectedGraphic($tpl, $pluginManager, $graphName, $showWhen)
 		);
 	}
 
+	$htmlSelected = $cfg['HTML_SELECTED'];
+
 	$tpl->assign(
 		array(
-			'M_HOUR_SELECTED' => ($showWhen === 'hour') ? $cfg->HTML_SELECTED : '',
-			'M_DAY_SELECTED' => ($showWhen === 'day') ? $cfg->HTML_SELECTED : '',
-			'M_WEEK_SELECTED' => ($showWhen === 'week') ? $cfg->HTML_SELECTED : '',
-			'M_MONTH_SELECTED' => ($showWhen === 'month') ? $cfg->HTML_SELECTED : '',
-			'M_YEAR_SELECTED' => ($showWhen === 'year') ? $cfg->HTML_SELECTED : '',
+			'M_HOUR_SELECTED' => ($showWhen === 'hour') ? $htmlSelected : '',
+			'M_DAY_SELECTED' => ($showWhen === 'day') ? $htmlSelected : '',
+			'M_WEEK_SELECTED' => ($showWhen === 'week') ? $htmlSelected : '',
+			'M_MONTH_SELECTED' => ($showWhen === 'month') ? $htmlSelected : '',
+			'M_YEAR_SELECTED' => ($showWhen === 'year') ? $htmlSelected : '',
 			'MONITORIXGRAPH_NOT_SELECTED' => ''
 		)
 	);
@@ -219,7 +222,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'go_show') {
 if(Registry::get('config')->DEBUG) {
 	$assetVersion = time();
 } else {
-	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('CronJobs');
+	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('Monitorix');
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 

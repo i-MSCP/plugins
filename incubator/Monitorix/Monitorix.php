@@ -125,7 +125,7 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 		try {
 			$this->clearTranslations();
 		} catch(Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 

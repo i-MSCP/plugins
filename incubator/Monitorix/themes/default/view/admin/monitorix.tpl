@@ -63,7 +63,7 @@
 	</tbody>
 </table>
 
-<link href="/Monitorix/themes/default/assets/css/monitorix.css?v={MONITORIX_ASSET_VERSION}" rel="stylesheet">
+<link rel="stylesheet" href="/Monitorix/themes/default/assets/css/monitorix.css?v={MONITORIX_ASSET_VERSION}">
 
 <script>
 	$(function() {
@@ -75,9 +75,13 @@
 	});
 	
 	function open_modal(src) {
-		$('body').append('<div class="monitorix-modal"><div class="monitorix-content"><span class="monitorix-close">CLOSE</span><img src="'+src+'"></div></div>');
+		$('body').append(
+			'<div class="monitorix-modal"><div class="monitorix-content">' +
+			'<span class="monitorix-close">CLOSE</span><img src="' + src + '"></div></div>'
+		);
 
-		$('.monitorix-content').fadeIn(200);
+		var $monitorixContent = $('.monitorix-content');
+		$monitorixContent.fadeIn(200);
 
 		$('.monitorix-close, .monitorix-modal').bind('click', function() {
 			$('.monitorix-modal').fadeOut(200, function() {
@@ -85,7 +89,7 @@
 			});
 		});
 
-		$('.monitorix-content').bind('click', function(event){
+		$monitorixContent.bind('click', function(event){
 			event.stopPropagation();
 		});
 	}
