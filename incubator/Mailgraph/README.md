@@ -1,11 +1,42 @@
-## i-MSCP Mailgraph plugin v0.0.5
+# i-MSCP Mailgraph plugin v0.0.5
 
-Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail)
+Plugin which provides statistical graphics for SMTP traffic ( Postfix and Sendmail )
 
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
+## Requirements
 
-### LICENSE
+* i-MSCP versions >= 1.1.11
+
+### Debian / Ubuntu package
+
+* mailgraph
+
+You can install this package by running the following command:
+
+```
+# aptitude install mailgraph
+```
+
+## Installation
+
+1. Upload the plugin through the plugin management interface
+2. Activate the plugin through the plugin management interface
+
+## Update
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
+
+## Configuration
+
+See [Configuration file](../Mailgraph/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin management interface.
+
+## License
 
 Copyright (C) Sascha Bay <info@space2place.de>
 
@@ -20,38 +51,7 @@ GNU General Public License for more details.
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
-### REQUIREMENTS
+## Authors and contributors
 
- - i-MSCP versions >= 1.1.11
- - mailgraph Debian package
-
-### INSTALLATION AND UPDATE
-
-### REQUIREMENTS
-
-Plugin compatible with i-MSCP versions >= 1.1.11
-
-### INSTALLATION
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the Mailgraph plugin archive
-	- Activate the plugin
-
-### UPDATE
-
-	- Backup your current plugins/Mailgraph/config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the Mailgraph plugin archive
-	- Restore your plugins/Mailgraph/config.php file (check for any change)
-	- Update the plugin list through the plugin interface
-
-### CONFIGURATION
-
- See the plugins/Mailgraph/config.php file.
-
-### AUTHORS AND CONTRIBUTORS
-
- - Sascha Bay <info@space2place.de> (Author)
- - Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
-
-**Thank you for using this plugin.**
+* Sascha Bay <info@space2place.de> (Author)
+* Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
