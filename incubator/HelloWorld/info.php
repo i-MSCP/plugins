@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by Laurent Declercq
+ * Copyright (C) 2010-2015 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.5',
-	'date' => '2014-11-17',
+	'date' => '2015-02-12',
 	'name' => 'HelloWorld',
 	'desc' => 'A plugin sample that say Hello World when the i-MSCP login page is loaded',
 	'url' => 'http://i-mscp.net'

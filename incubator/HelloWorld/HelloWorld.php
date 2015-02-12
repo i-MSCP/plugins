@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by Laurent Declercq
+ * Copyright (C) 2010-2015 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,11 +31,6 @@
  *
  * This plugin is only intended to be used in documentation to explain how to create a plugin for i-MSCP. This plugin
  * simply say 'Hello World' when the login page is loaded.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  HelloWorld
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
  */
 class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 {
