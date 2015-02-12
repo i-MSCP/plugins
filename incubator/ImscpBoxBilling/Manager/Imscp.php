@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP ImscpBoxBilling plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,8 +20,6 @@
 
 /**
  * Class Server_Manager_Imscp
- *
- * @author Laurent Declercq <l.declercq@nuxwin.com>
  */
 class Server_Manager_Imscp extends Server_Manager
 {
