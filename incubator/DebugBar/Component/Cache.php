@@ -154,7 +154,7 @@ class iMSCP_Plugin_DebugBar_Component_Cache implements iMSCP_Plugin_DebugBar_Com
 	}
 
 	/**
-	 * Handle component actions
+	 * Handle actions
 	 *
 	 * @throws iMSCP_Exception
 	 */
@@ -162,6 +162,7 @@ class iMSCP_Plugin_DebugBar_Component_Cache implements iMSCP_Plugin_DebugBar_Com
 	{
 		if(!empty($this->cacheInfo) && isset($_GET['debug_bar_action'])) {
 			$action = clean_input($_GET['debug_bar_action']);
+
 			switch($action) {
 				case 'reset_cache':
 					if(opcache_reset()) {
