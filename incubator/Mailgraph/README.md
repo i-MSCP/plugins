@@ -38,6 +38,7 @@ change by updating the plugin list through the plugin management interface.
 
 ## License
 
+```
 Copyright (C) Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
@@ -48,6 +49,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+```
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
