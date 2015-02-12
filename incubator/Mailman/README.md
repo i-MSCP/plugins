@@ -1,59 +1,71 @@
-## i-MSCP Mailman plugin v0.0.3
+# i-MSCP Mailman plugin v0.0.3
 
-Plugin allowing to manage mailing-lists through i-MSCP using Mailman.
+Plugin which allows to manage mailing-lists through i-MSCP using Mailman.
 
-### Requirements
+## Requirements
 
- - i-MSCP versions >= 1.1.11 (plugin API >= 0.2.10)
- - Mailman (as provided by debian/ubuntu packages)
+* i-MSCP versions >= 1.1.11 ( plugin API >= 0.2.10 )
 
-### Installation
+### Debian / Ubuntu packages
 
-**1.** Install needed Debian/Ubuntu package
+* mailman
 
-	# aptitude update && aptitude install mailman
+You can install this package by running the following commands:
 
-**2.** Create the mailman site list
+```
+# aptitude update && aptitude install mailman
+# newlist mailman
+# service mailman restart
+```
 
-	# newlist mailman
+## Installation
 
-This is really needed. Without this list, mailman will refuse to start.
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Install the plugin
 
-**3.** Restart mailman
+## Update
 
-	# service mailman restart
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
 
-**4.** Plugin upload and installation
+## Known bugs
 
- - Download the Mailman plugin archive through the plugin store
- - Login into the panel as admin and go to the plugin management interface
- - Upload the Mailman plugin archive
- - Install the plugin
+* [Debian Related - wrong permissions, causes archiving to fail](http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=603904 "Wrong permissions, causes archiving to fail")
 
-### Update
+## License
 
- - Download the Mailman plugin archive through the plugin store
- - Login into the panel as admin and go to the plugin management interface
- - Upload the Mailman plugin archive
+```
+i-MSCP Mailman plugin
+Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
 
-### Known bugs
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
- - [Debian Related - wrong permissions, causes archiving to fail](http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=603904 "Wrong permissions, causes archiving to fail")
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-### License
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+```
 
-The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
-license in **[LICENSE.txt](LICENSE.txt)**.
+see [LICENSE](LICENSE)
 
-### Sponsors
+## Sponsors
 
 The development of this plugin has been sponsored by:
 
- - [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
- - [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
+* [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
+* [Retail Service Management](http://www.retailservicesystems.com "Retail Service Management")
 
-### Author
+## Author
 
-Laurent Declercq <l.declercq@nuxwin.com>
-
-**Thank you for using this plugin.**
+* Laurent Declercq <l.declercq@nuxwin.com>

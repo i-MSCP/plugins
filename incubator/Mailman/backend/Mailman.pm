@@ -1,4 +1,8 @@
-#!/usr/bin/perl
+=head1 NAME
+
+ Plugin::Mailman
+
+=cut
 
 =head1 NAME
 
@@ -1031,7 +1035,9 @@ sub _listExists
 {
 	my ($self, $data) = @_;
 
-	my @cmdArgs = (escapeShell("^$data->{'mailman_list_name'}\$"));
+	my $listName = lc($data->{'mailman_list_name'});
+
+	my @cmdArgs = (escapeShell("^$listName\$"));
 
 	(execute("/usr/lib/mailman/bin/list_lists -b | grep -q @cmdArgs")) ? 0 : 1;
 }
@@ -1065,3 +1071,4 @@ sub _checkRequirements
 =cut
 
 1;
+__END__

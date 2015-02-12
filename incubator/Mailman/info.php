@@ -22,8 +22,8 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.3',
-	'date' => '2014-08-03',
+	'date' => '2015-02-12',
 	'name' => 'Mailman',
-	'desc' => 'Plugin allowing to manage mailing-lists using Mailman.',
-	'url' => 'http://i-mscp.net'
+	'desc' => 'Plugin which allows to manage mailing-lists using Mailman.',
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailman'
 );
