@@ -20,7 +20,7 @@
  * @category    iMSCP
  * @package     iMSCP_Plugin
  * @subpackage  AdminerSQL
- * @copyright   2010-2013 by i-MSCP Team
+ * @copyright   2010-2015 by i-MSCP Team
  * @author      Sascha Bay <info@space2place.de>
  * @link        http://www.i-mscp.net i-MSCP Home Site
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -29,8 +29,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '0.0.4',
-	'date' => '2014-07-24',
+	'version' => '0.0.5',
+	'date' => '2015-02-12',
 	'name' => 'AdminerSQL',
 	'desc' => 'Plugin allowing to manage i-MSCP databases through Adminer.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
