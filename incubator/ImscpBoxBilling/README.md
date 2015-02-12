@@ -32,7 +32,7 @@ as filled out while creating the server.
 ## License
 
 ```
-i-MSCP CronJobs plugin
+i-MSCP ImscpBoxBilling plugin
 Copyright (c) 2014-2015 laurent declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or
