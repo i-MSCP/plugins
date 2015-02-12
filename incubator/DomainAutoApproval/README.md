@@ -1,36 +1,53 @@
-## DomainAutoApproval v1.0.2 plugin for i-MSCP
+# DomainAutoApproval v1.0.2 plugin for i-MSCP
 
 Plugin allowing auto-approval of new domain aliases.
 
-### Requirements
+## Requirements
 
 Plugin compatible with i-MSCP versions >= 1.1.4
 
-### Installation
+## Installation
 
-  * Login into the panel as admin and go to the plugin management interface
-  * Upload the plugin archive
-  * Activate the plugin
+1. Upload the plugin through the plugin management interface
+2. Activate the plugin through the plugin management interface
 
-### Update
+## Update
 
-  * Backup your current plugins configuration file
-  * Login into the panel as admin and go to the plugin management interface
-  * Upload the plugin archive
-  * Restore your plugin configuration file (check for any change)
-  * Update the plugin list
+1. Backup your plugin configuration file if needed
+2. Upload the plugin through the plugin management interface
+3. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Update the plugin list through the plugin management interface
 
-### Configuration
+## Configuration
 
-See [i-MSCP Wiki](http://wiki.i-mscp.net/doku.php?id=plugins:management "Plugin Management Interface") for more information about i-MSCP plugins management.
+See [Configuration file](../DomainAutoApproval/config.php)
 
-### License
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin management interface.
 
-The files in this archive are released under the **GNU LESSER GENERAL PUBLIC LICENSE**. You can find a copy of this
-license in **[LICENSE.txt](LICENSE.txt)**.
+## License
 
-### Author
+```
+i-MSCP CronJobs plugin
+copyright (c) 2012-2015 laurent declercq <l.declercq@nuxwin.com>
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+```
+
+see [LICENSE](LICENSE)
+
+## Author
 
  * Laurent Declercq <l.declercq@nuxwin.com> (Author)
-
-**Thank you for using this plugin.**

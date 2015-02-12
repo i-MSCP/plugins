@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DomainAutoApproval plugin
- * Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,8 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '1.0.2',
-	'date' => '2014-08-25',
+	'date' => '2015-02-12',
 	'name' => 'DomainAutoApproval',
 	'desc' => 'Plugin allowing auto-approval of new domain aliases',
-	'url' => 'https://github.com/i-MSCP/plugins/tree/master/DomainAutoApproval'
+	'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
 );

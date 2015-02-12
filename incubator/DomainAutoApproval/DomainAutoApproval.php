@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DomainAutoApproval plugin
- * Copyright (C) 2013 - 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -51,8 +51,10 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	/**
 	 * onAfterAddDomainAlias listener
 	 *
+	 * @throws iMSCP_Exception
+	 * @throws iMSCP_Exception_Database
 	 * @param iMSCP_Events_Event $event
-	 * @return void
+	 * @throws Exception
 	 */
 	public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
 	{
@@ -64,7 +66,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 
 			# Only domain aliases which are not listed in the disalowed_domains list are auto-approved
 			if (!in_array(decode_idna($domainAliasNameAscii), $disallowedDomains)) {
-				$username = decode_idna($_SESSION['user_logged']);
+				$username = decode_idna($userIdentity->admin_name);
 
 				$approvalRule = $this->getConfigParam('approval_rule', true); // Keep compatibility with old config file
 				$userAccounts = (array)$this->getConfigParam('user_accounts', array());
