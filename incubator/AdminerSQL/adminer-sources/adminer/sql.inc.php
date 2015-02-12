@@ -121,10 +121,13 @@ if (!$error && $_POST) {
 								}
 
 							} elseif (is_object($result)) {
-								$orgtables = select($result, $connection2);
+								$limit = $_POST["limit"];
+								$orgtables = select($result, $connection2, array(), $limit);
 								if (!$_POST["only_errors"]) {
 									echo "<form action='' method='post'>\n";
-									echo "<p>" . ($result->num_rows ? lang('%d row(s)', $result->num_rows) : "") . $time;
+									$num_rows = $result->num_rows;
+									echo "<p>" . ($num_rows ? ($limit && $num_rows > $limit ? lang('%d / ', $limit) : "") . lang('%d row(s)', $num_rows) : "");
+									echo $time;
 									$id = "export-$commands";
 									$export = ", <a href='#$id' onclick=\"return !toggle('$id');\">" . lang('Export') . "</a><span id='$id' class='hidden'>: "
 										. html_select("output", $adminer->dumpOutput(), $adminer_export["output"]) . " "
@@ -199,14 +202,14 @@ if (!isset($_GET["import"])) {
 	textarea("query", $q, 20);
 	echo ($_POST ? "" : "<script type='text/javascript'>focus(document.getElementsByTagName('textarea')[0]);</script>\n");
 	echo "<p>$execute\n";
+	echo lang('Limit rows') . ": <input type='number' name='limit' class='size' value='" . h($_POST ? $_POST["limit"] : $_GET["limit"]) . "'>\n";
 	
 } else {
 	echo "<fieldset><legend>" . lang('File upload') . "</legend><div>";
 	echo (ini_bool("file_uploads")
-		? '<input type="file" name="sql_file[]" multiple> (&lt; ' . ini_get("upload_max_filesize") . 'B)' // ignore post_max_size because it is for all form fields together and bytes computing would be necessary
+		? "SQL (&lt; " . ini_get("upload_max_filesize") . "B): <input type='file' name='sql_file[]' multiple>\n$execute" // ignore post_max_size because it is for all form fields together and bytes computing would be necessary
 		: lang('File uploads are disabled.')
 	);
-	echo "\n$execute";
 	echo "</div></fieldset>\n";
 	echo "<fieldset><legend>" . lang('From server') . "</legend><div>";
 	echo lang('Webserver file %s', "<code>adminer.sql" . (extension_loaded("zlib") ? "[.gz]" : "") . "</code>");

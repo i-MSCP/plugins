@@ -57,26 +57,26 @@ if ($auth) {
 		auth_error(lang('Too many unsuccessful logins, try again in %d minute(s).', ceil($next_attempt / 60)));
 	}
 	session_regenerate_id(); // defense against session fixation
-	$driver = $auth["driver"];
+	$vendor = $auth["driver"];
 	$server = $auth["server"];
 	$username = $auth["username"];
 	$password = (string) $auth["password"];
 	$db = $auth["db"];
-	set_password($driver, $server, $username, $password);
-	$_SESSION["db"][$driver][$server][$username][$db] = true;
+	set_password($vendor, $server, $username, $password);
+	$_SESSION["db"][$vendor][$server][$username][$db] = true;
 	if ($auth["permanent"]) {
-		$key = base64_encode($driver) . "-" . base64_encode($server) . "-" . base64_encode($username) . "-" . base64_encode($db);
+		$key = base64_encode($vendor) . "-" . base64_encode($server) . "-" . base64_encode($username) . "-" . base64_encode($db);
 		$private = $adminer->permanentLogin(true);
 		$permanent[$key] = "$key:" . base64_encode($private ? encrypt_string($password, $private) : "");
 		cookie("adminer_permanent", implode(" ", $permanent));
 	}
 	if (count($_POST) == 1 // 1 - auth
-		|| DRIVER != $driver
+		|| DRIVER != $vendor
 		|| SERVER != $server
 		|| $_GET["username"] !== $username // "0" == "00"
 		|| DB != $db
 	) {
-		redirect(auth_url($driver, $server, $username, $db));
+		redirect(auth_url($vendor, $server, $username, $db));
 	}
 	
 } elseif ($_POST["logout"]) {
@@ -114,12 +114,16 @@ function unset_permanent() {
 	cookie("adminer_permanent", implode(" ", $permanent));
 }
 
+/** Renders an error message and a login form
+* @param string plain text
+* @return null exits
+*/
 function auth_error($error) {
 	global $adminer, $has_token;
+	$error = h($error);
 	$session_name = session_name();
-	if (!$_COOKIE[$session_name] && $_GET[$session_name] && ini_bool("session.use_only_cookies")) {
-		$error = lang('Session support must be enabled.');
-	} elseif (isset($_GET["username"])) {
+	if (isset($_GET["username"])) {
+		header("HTTP/1.1 403 Forbidden"); // 401 requires sending WWW-Authenticate header
 		if (($_COOKIE[$session_name] || $_GET[$session_name]) && !$has_token) {
 			$error = lang('Session expired, please login again.');
 		} else {
@@ -133,6 +137,9 @@ function auth_error($error) {
 			}
 			unset_permanent();
 		}
+	}
+	if (!$_COOKIE[$session_name] && $_GET[$session_name] && ini_bool("session.use_only_cookies")) {
+		$error = lang('Session support must be enabled.');
 	}
 	$params = session_get_cookie_params();
 	cookie("adminer_key", ($_COOKIE["adminer_key"] ? $_COOKIE["adminer_key"] : rand_string()), $params["lifetime"]);
@@ -184,7 +191,7 @@ if ($_POST) {
 		}
 		$error = (!$_POST["token"] && $max_vars
 			? lang('Maximum number of allowed fields exceeded. Please increase %s.', "'$ini'")
-			: lang('Invalid CSRF token. Send the form again.')
+			: lang('Invalid CSRF token. Send the form again.') . ' ' . lang('If you did not send this request from Adminer then close this page.')
 		);
 	}
 	

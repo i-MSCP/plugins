@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by Sascha Bay
+# Copyright (C) 2010-2015 by Sascha Bay
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 # @category    i-MSCP
 # @package     iMSCP_Plugin
 # @subpackage  AdminerSQL
-# @copyright   2010-2013 by Sascha Bay
+# @copyright   2010-2015 by Sascha Bay
 # @author      Sascha Bay <info@space2place.de>
 # @contributor Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -30,6 +30,8 @@ package Plugin::AdminerSQL;
 
 use strict;
 use warnings;
+
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
 use iMSCP::Debug;
 use iMSCP::Database;
