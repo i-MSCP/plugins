@@ -46,7 +46,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onClientScriptStart,
 				iMSCP_Events::onAfterDeleteCustomer,
-				//iMSCP_Events::onBeforeAddMail
+				iMSCP_Events::onBeforeAddMail
 			),
 			$this
 		);
