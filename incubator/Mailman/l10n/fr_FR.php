@@ -45,5 +45,6 @@ return array(
 	'Url' => 'Url',
 	'Please, confirm the deletion of the %s mailing list.' => 'Veuillez confirmer la suppression de la liste: %s',
 	'Save' => 'Sauvegarder',
-	'Cancel' => 'Annuler'
+	'Cancel' => 'Annuler',
+	'This mail account is already used for mailing list.' => 'Ce compte e-mail est déjà utilisé pour une liste de diffusion.'
 );

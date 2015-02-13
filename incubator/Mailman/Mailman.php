@@ -201,19 +201,33 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeAddMail($event)
 	{
-		$localParts = array(
-			'-admin', '-bounces', '-confirm', '-join', '-leave', '-owner', '-request', '-subscribe', '-unsubscribe',
-			strtolower($event->getParam('mailUsername', ''))
+		$stmt = exec_query(
+			'SELECT mailman_list_name FROM mailman WHERE mailman_admin_id = ?', intval($_SESSION['user_id'])
 		);
 
-		$stmt = execute_query(
-			'SELECT COUNT(mailman_id) as cnt FROM mailman WHERE mailman_list_name IN (' . explode(',', $localParts) . ')'
-		);
-		$row = $stmt->rowCount();
+		if($stmt->rowCount()) {
+			$match = false;
+			$mailUsername = strtolower($event->getParam('mailUsername', ''));
+			$reservedMailUsernames = array(
+				'', '-admin', '-bounces', '-confirm', '-join', '-leave', '-owner', '-request', '-subscribe',
+				'-unsubscribe'
+			);
 
-		if($row['cnt'] > 0) {
-			set_page_message('This mail account is already used for mailing list');
-			redirectTo('mail_accounts.php');
+			while($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+				foreach($reservedMailUsernames as $reservedMailUsername) {
+					$candidate = $row['mailman_list_name'] . $reservedMailUsername;
+
+					if($candidate == $mailUsername) {
+						$match = true;
+						break;
+					}
+				}
+			}
+
+			if($match) {
+				set_page_message(tr('This mail account is already used for mailing list.'), 'error');
+				redirectTo('mail_accounts.php');
+			}
 		}
 	}
 

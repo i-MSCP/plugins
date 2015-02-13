@@ -45,5 +45,6 @@ return array(
 	'Url' => 'Url',
 	'Please, confirm the deletion of the %s mailing list.' => 'Please, confirm the deletion of the %s mailing list.',
 	'Save' => 'Save',
-	'Cancel' => 'Cancel'
+	'Cancel' => 'Cancel',
+	'This mail account is already used for mailing list.' => 'This mail account is already used for mailing list.'
 );
