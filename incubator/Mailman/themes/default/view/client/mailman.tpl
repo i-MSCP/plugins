@@ -31,7 +31,7 @@
 </div>
 
 <div id="list_dialog">
-	<form name="list_frm" id="list_frm" action="mailman.php" method="post" autocomplete="off">
+	<form name="list_frm" id="list_frm" action="/client/mailman.php" method="post" autocomplete="off">
 		<table>
 			<tr>
 				<td><label for="list_name">{TR_LIST_NAME}</label></td>
@@ -60,25 +60,35 @@
 </div>
 
 <script>
-	$(document).ready(function () {
-		$('.datatable').dataTable({ "oLanguage": {DATATABLE_TRANSLATIONS}, "iDisplayLength": 5 });
+	function confirm_deletion(list_name) {
+		return confirm(sprintf('{TR_CONFIRM_DELETION}', list_name));
+	}
 
-		$('#list_dialog').dialog({
+	$(function () {
+		$(".datatable").dataTable(
+			{
+				language: {DATATABLE_TRANSLATIONS},
+				displayLength: 5,
+				pagingType: "simple",
+				stateSave: true
+			}
+		);
+
+		$("#list_dialog").dialog({
 			bgiframe: true,
-			title: '{TR_MAIL_LIST}',
-			hide: 'blind',
-			show: 'slide',
+			title: "{TR_MAIL_LIST}",
+			hide: "blind",
+			show: "slide",
 			focus: false,
 			autoOpen: {LIST_DIALOG_OPEN},
-			width: '650',
+			width: 650,
 			modal: true,
-			dialogClass: 'body',
 			buttons: {
-				"{TR_APPLY}": function () {
-					$('#list_frm').submit();
+				"{TR_SAVE}": function () {
+					$("#list_frm").submit();
 				},
 				"{TR_CANCEL}": function () {
-					$('#list_frm').find("input[type=text], input[type=password]").val("");
+					$("#list_frm").find("input[type=text], input[type=password]").val("");
 					$("#list_name").attr("readonly", false);
 					$(this).dialog("close");
 				}
@@ -93,14 +103,10 @@
 			$("#list_dialog").dialog("option", "position", { my: "center", at: "center", of: window });
 		});
 
-		// PHP Editor settings button
-		$('#add_list').button({ icons: { primary: 'ui-icon-gear'}}).click(function (e) {
-			$('#list_dialog').dialog('open');
+		$("#add_list").button({ icons: { primary: "ui-icon-gear"}}).click(function () {
+			$("button").blur();
+			$("#list_dialog").dialog("open");
 			return false;
 		});
 	});
-
-	function confirm_deletion(list_name) {
-		return confirm(sprintf('{TR_CONFIRM_DELETION}', list_name));
-	}
 </script>

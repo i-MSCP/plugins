@@ -5,6 +5,10 @@ Mailman - ChangeLog
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
+	Added: Localization support
+	Fixed: Wrong regexp for list names validation
+	Fixed: List names must be lowered in Plugin::Mailman::_listExists() method
+	Fixed: Postfix entries are not re-added on update
 	Updated: License headers
 
 ------------------------------------------------------------------------------------------------------------------------

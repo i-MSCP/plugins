@@ -24,7 +24,17 @@
 class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+	}
+
+	/**
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
@@ -33,8 +43,10 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		$eventsManager->registerListener(
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterDeleteCustomer
+				iMSCP_Events::onAfterDeleteCustomer,
+				//iMSCP_Events::onBeforeAddMail
 			),
 			$this
 		);
@@ -64,8 +76,69 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+		} catch(iMSCP_Plugin_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * onBeforeUpdatePlugin listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUpdatePlugin($event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
+	 * Plugin update
+	 *
+	 * @throws iMSCP_Plugin_Exception When update fail
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function update(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
+			$this->clearTranslations();
+			$this->migrateDb('up');
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Plugin uninstallation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
+			$this->clearTranslations();
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	 * Plugin deletion
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function delete(iMSCP_Plugin_Manager $pluginManager)
+	{
+		try {
+			$this->clearTranslations();
+			$this->migrateDb('down');
+		} catch(Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -78,18 +151,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	public function onBeforeEnablePlugin($event)
 	{
 		$this->checkCompat($event);
-	}
-
-	/**
-	 * Plugin uninstallation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only there to tell the plugin manager that this plugin can be uninstalled
 	}
 
 	/**
@@ -115,15 +176,12 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * onBeforeAddSubdomain event listener
 	 *
-	 * This listener is responsible to check that the subdomain which is being added is not reserved for mailing list
-	 * usage. In case the domain is reserved, the process is avorted by forcing redirection with an error message.
-	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
 	public function onBeforeAddSubdomain($event)
 	{
-		if ($event->getParam('subdomainType') == 'dmn') {
+		if($event->getParam('subdomainType') == 'dmn') {
 			$subdomain = $event->getParam('subdomainName');
 			$stmt = exec_query('SELECT domain_name FROM domain WHERE domain_id = ?', $event->getParam('parentDomainId'));
 			$row = $stmt->fetchRow();
@@ -136,9 +194,31 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onAfterDeleteCustomer event listener
+	 * onBeforeAddMail event listener
 	 *
-	 * This listener is responsible to schedule deletion of any maling list which belong to the deleted customer.
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeAddMail($event)
+	{
+		$localParts = array(
+			'-admin', '-bounces', '-confirm', '-join', '-leave', '-owner', '-request', '-subscribe', '-unsubscribe',
+			strtolower($event->getParam('mailUsername', ''))
+		);
+
+		$stmt = execute_query(
+			'SELECT COUNT(mailman_id) as cnt FROM mailman WHERE mailman_list_name IN (' . explode(',', $localParts) . ')'
+		);
+		$row = $stmt->rowCount();
+
+		if($row['cnt'] > 0) {
+			set_page_message('This mail account is already used for mailing list');
+			redirectTo('mail_accounts.php');
+		}
+	}
+
+	/**
+	 * onAfterDeleteCustomer event listener
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -153,9 +233,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 
 	/**
 	 * Get status of item with errors
-	 *
-	 * This method is automatically called by the i-MSCP debugger to show any error which belong to the mailman
-	 * entities. This allow the admin to schedule change of those entity manually.
 	 *
 	 * @return array
 	 */
@@ -173,7 +250,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 			",
 			array('ok', 'toadd', 'torestore', 'toenable', 'todisable', 'todelete'));
 
-		if ($stmt->rowCount()) {
+		if($stmt->rowCount()) {
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 		}
 
@@ -183,9 +260,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	/**
 	 * Set status of the given plugin entity to 'tochange'
 	 *
-	 * This method is automatically called by i-MSCP when the admin set the status of a mailman entity to 'tochange'
-	 * through the debugger.
-	 *
 	 * @param string $table Table name
 	 * @param string $field Status field name
 	 * @param int $itemId Mailman item unique identifier
@@ -193,7 +267,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function changeItemStatus($table, $field, $itemId)
 	{
-		if ($table == 'mailman' && $field == 'mailman_status') {
+		if($table == 'mailman' && $field == 'mailman_status') {
 			# We are using the 'toadd' status because the 'tochange' status is used for email and password update only
 			exec_query('UPDATE mailman SET mailman_status = ?  WHERE mailman_id = ?', array('toadd', $itemId));
 		}
@@ -221,11 +295,11 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	protected function setupNavigation()
 	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
+		if(iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if (($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
+			if(($page = $navigation->findOneBy('uri', '/client/mail_accounts.php'))) {
 				$page->addPage(
 					array(
 						'label' => tohtml(tr('Mailing Lists')),
@@ -248,14 +322,11 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		/** @var iMSCP_Config_Handler_File $cfg */
 		$cfg = iMSCP_Registry::get('config');
 
-		if (!isset($cfg['MTA_SERVER']) || $cfg['MTA_SERVER'] != 'postfix') {
+		if(!isset($cfg['MTA_SERVER']) || $cfg['MTA_SERVER'] != 'postfix') {
 			set_page_message(tr('Mailman plugin require i-MSCP Postfix server implementation'), 'error');
 			return false;
-		} elseif (!isset($cfg['HTTPD_SERVER']) || strpos($cfg['HTTPD_SERVER'], 'apache_') === false) {
+		} elseif(!isset($cfg['HTTPD_SERVER']) || strpos($cfg['HTTPD_SERVER'], 'apache_') === false) {
 			set_page_message(tr('Mailman plugin require i-MSCP Apache server implementation'), 'error');
-			return false;
-		} elseif (!isset($cfg['NAMED_SERVER']) || $cfg['NAMED_SERVER'] != 'bind') {
-			set_page_message(tr('Mailman plugin require i-MSCP bind9 server implementation'), 'error');
 			return false;
 		}
 
@@ -266,13 +337,14 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 * Check plugin compatibility
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
 	protected function checkCompat($event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (
-				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<') ||
-				! $this->checkRequirements()
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(
+				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<') ||
+				!$this->checkRequirements()
 			) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
@@ -280,6 +352,21 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 
 				$event->stopPropagation();
 			}
+		}
+	}
+
+	/**
+	 * Clear translations if any
+	 *
+	 * @return void
+	 */
+	protected function clearTranslations()
+	{
+		/** @var Zend_Translate $translator */
+		$translator = iMSCP_Registry::get('translator');
+
+		if($translator->hasCache()) {
+			$translator->clearCache($this->getName());
 		}
 	}
 }

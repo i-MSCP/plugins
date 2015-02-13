@@ -1,10 +1,10 @@
-# i-MSCP Mailman plugin v0.0.3
+# i-MSCP Mailman plugin v1.0.0
 
 Plugin which allows to manage mailing-lists through i-MSCP using Mailman.
 
 ## Requirements
 
-* i-MSCP versions >= 1.1.11 ( plugin API >= 0.2.10 )
+* i-MSCP versions >= 1.2.2 ( plugin API >= 0.2.17 )
 
 ### Debian / Ubuntu packages
 
@@ -22,7 +22,7 @@ You can install this package by running the following commands:
 
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Upload the plugin through the plugin management interface
-3. Install the plugin
+3. Install the plugin through the plugin management interface
 
 ## Update
 
@@ -31,6 +31,16 @@ You can install this package by running the following commands:
 3. Upload the plugin through the plugin management interface
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
+
+## Translation
+
+You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
+array values inside the new file.
+
+Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
+repository and do a pull request if you've a github account.
+
+**Note:** File encoding must be UTF-8.
 
 ## Known bugs
 

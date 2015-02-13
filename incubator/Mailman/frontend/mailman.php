@@ -18,51 +18,54 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/***********************************************************************************************************************
- * Functions
- */
+namespace Mailman;
+
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Exception_Database as DatabaseException;
+use iMSCP_pTemplate as TemplateEngine;
+use PDO;
 
 /**
  * Add or update a mailing list
  *
  * @return boolean TRUE on success, FALSE otherwise
  */
-function mailman_manageList()
+function addList()
 {
 	if (
 		isset($_POST['list_id']) && isset($_POST['list_name']) && isset($_POST['admin_email']) &&
 		isset($_POST['admin_password']) && isset($_POST['admin_password_confirm'])
 	) {
 		$error = false;
-		$listId = clean_input($_POST['list_id']);
-		$listName = clean_input($_POST['list_name']);
+		$listId = intval($_POST['list_id']);
+		$listName = strtolower(clean_input($_POST['list_name']));
 		$adminEmail = clean_input($_POST['admin_email']);
 		$adminPassword = clean_input($_POST['admin_password']);
 		$adminPasswordConfirm = clean_input($_POST['admin_password_confirm']);
 
-		if (!preg_match('/^[a-z0-9-_]+$/i', $listName) || $listName == 'mailman') {
-			set_page_message(tr('List name is either reserved or not valid'), 'error');
+		if (preg_match('/[^a-z0-9-_]/', $listName) || $listName == 'mailman') {
+			set_page_message(tr('List name is either reserved or not valid.'), 'error');
 			$error = true;
 		}
 
 		if (!chk_email($adminEmail)) {
-			set_page_message(tr("Email is not valid"), 'error');
+			set_page_message(tr("Email is not valid."), 'error');
 			$error = true;
 		}
 
-		if ($adminPassword != $adminPasswordConfirm) {
-			set_page_message(tr("Passwords do not match"), 'error');
+		if ($adminPassword !== $adminPasswordConfirm) {
+			set_page_message(tr("Passwords do not match."), 'error');
 			$error = true;
 		} elseif (!checkPasswordSyntax($adminPassword)) {
 			$error = true;
 		}
 
 		if (!$error) {
-			if ($listId === '-1') { // New email list
+			if (!$listId) { // Add list
 				try {
 					$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
-					# Add email list data into the mailman table
 					exec_query(
 						'
 							INSERT INTO mailman (
@@ -74,16 +77,14 @@ function mailman_manageList()
 						',
 						array($mainDmnProps['domain_admin_id'], $adminEmail, $adminPassword, $listName, 'toadd')
 					);
-				} catch (iMSCP_Exception_Database $e) {
+				} catch (DatabaseException $e) {
 					if ($e->getCode() == 23000) { // Duplicate entries
-						set_page_message(
-							tr("This list already exist. Please, choose other name.", $listName), 'warning'
-						);
+						set_page_message(tr("This list already exist. Please, choose other name.", $listName), 'warning');
 
 						return false;
 					}
 				}
-			} else { // List update
+			} else { // Update list
 				$stmt = exec_query(
 					'
 						UPDATE
@@ -105,7 +106,6 @@ function mailman_manageList()
 				}
 			}
 
-			// Send request to i-MSCP daemon
 			send_request();
 
 			return true;
@@ -121,11 +121,10 @@ function mailman_manageList()
 /**
  * Delete the given mailing list
  *
- * @throws iMSCP_Exception_Database
  * @param int $listId Mailing list unique identifier
  * @return void
  */
-function mailman_deleteList($listId)
+function deleteList($listId)
 {
 	$mainDmnProps = get_domain_default_props($_SESSION['user_id']);
 
@@ -138,17 +137,16 @@ function mailman_deleteList($listId)
 		showBadRequestErrorPage();
 	}
 
-	// Send request to i-MSCP daemon
 	send_request();
 }
 
 /**
  * Generate page.
  *
- * @param $tpl iMSCP_pTemplate
+ * @param $tpl TemplateEngine
  * @return void
  */
-function mailman_generatePage($tpl)
+function generatePage($tpl)
 {
 	$stmt = exec_query(
 		'
@@ -207,7 +205,7 @@ function mailman_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('EMAIL_LISTS', '');
-		set_page_message(tr('You do not have created any mailing list yet.'), 'info');
+		set_page_message(tr('You do not have created any mailing list yet.'), 'static_info');
 	}
 
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'edit') {
@@ -240,48 +238,50 @@ function mailman_generatePage($tpl)
 				'ADMIN_EMAIL' => isset($_REQUEST['admin_email']) ? tohtml($_REQUEST['admin_email']) : '',
 				'ADMIN_PASSWORD' => '',
 				'ADMIN_PASSWORD_CONFIRM' => '',
-				'LIST_ID' => '-1',
+				'LIST_ID' => '0',
 				'ACTION' => 'add'
 			)
 		);
 	}
+
+	generatePageMessage($tpl);
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 
 check_login('user');
 
 if (isset($_REQUEST['action'])) {
 	$action = clean_input($_REQUEST['action']);
 
-	if ($action == 'add') {
-		if (mailman_manageList()) {
-			set_page_message(tr('Mailing list successfully scheduled for creation'), 'success');
+	if ($action === 'add') {
+		if (addList()) {
+			set_page_message(tr('Mailing list successfully scheduled for creation.'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif ($action == 'edit') {
-		if (!empty($_POST) && mailman_manageList()) {
+	} elseif ($action === 'edit') {
+		if (!empty($_POST) && addList()) {
 			set_page_message(tr('Mailing list successfully scheduled for update'), 'success');
 			redirectTo('mailman.php');
 		}
-	} elseif ($action == 'delete' && isset($_REQUEST['list_id'])) {
-		mailman_deleteList(clean_input($_REQUEST['list_id']));
-		set_page_message(tr('Mailing list successfully scheduled for deletion'), 'success');
+	} elseif ($action === 'delete' && isset($_REQUEST['list_id'])) {
+		deleteList(clean_input($_REQUEST['list_id']));
+		set_page_message(tr('Mailing list successfully scheduled for deletion.'), 'success');
 		redirectTo('mailman.php');
 	} else {
 		showBadRequestErrorPage();
 	}
 }
 
-$tpl = new iMSCP_pTemplate();
+$tpl = new TemplateEngine();
 $tpl->define_dynamic(
 	array(
 		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/Mailman/frontend/mailman.tpl',
+		'page' => '../../plugins/Mailman/themes/default/view/client/mailman.tpl',
 		'page_message' => 'layout',
 		'email_lists' => 'page',
 		'email_list' => 'email_lists'
@@ -290,8 +290,7 @@ $tpl->define_dynamic(
 
 $tpl->assign(
 	array(
-		'TR_PAGE_TITLE' => tr('Admin / Settings / Mailman'),
-		'THEME_CHARSET' => tr('encoding'),
+		'TR_PAGE_TITLE' => tr('Client / Email / Mailman'),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'TR_MAIL_LISTS' => tojs(tr('Mailing List', false)),
@@ -308,18 +307,17 @@ $tpl->assign(
 		'TR_ADMIN_PASSWORD_CONFIRM' => tr('Password confirmation'),
 		'TR_URL' => tr('Url'),
 		'TR_CONFIRM_DELETION' => tr('Please, confirm the deletion of the %s mailing list.', false, '%s'),
-		'TR_APPLY' => tojs(tr('Apply', false)),
+		'TR_SAVE' => tojs(tr('Save', false)),
 		'TR_CANCEL' => tojs(tr('Cancel', false))
 	)
 );
 
 generateNavigation($tpl);
-mailman_generatePage($tpl);
-generatePageMessage($tpl);
+generatePage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
+EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();
 
