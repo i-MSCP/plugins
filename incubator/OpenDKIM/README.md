@@ -4,7 +4,7 @@ Plugin providing an OpenDKIM implementation for i-MSCP.
 
 ### REQUIREMENTS
 
-	- i-MSCP version >= 1.1.15
+	- i-MSCP version >= 1.2.3
 	- See installation section for required software packages.
 
 ### Existing milter configurations

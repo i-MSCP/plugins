@@ -319,7 +319,7 @@ sub _init
 
 =cut
  
-sub _addOpendkimDomainKey($$$$)
+sub _addOpendkimDomainKey
 {
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
@@ -445,7 +445,7 @@ sub _addOpendkimDomainKey($$$$)
 
 =cut
 
-sub _deleteOpendkimDomainKey($$$$$)
+sub _deleteOpendkimDomainKey
 {
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
@@ -500,36 +500,6 @@ sub _deleteOpendkimDomainKey($$$$$)
 		$aliasId,
 		'OpenDKIM_Plugin'
 	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-
-	# Schedule domain change if needed
-	#
-	# Even if the OpenDKIM feature is being deactivated for a particular domain, we must not force rebuild of related
-	# configuration file when the domain has a status other than 'ok'. For instance, a domain which is disbaled
-	# should stay disabled. In such a case, the OpenDNS entry (TXT DNS resource record) will be removed when the
-	# domain will be re-activated.
-
-	if($aliasId eq '0') {
-		$rdata = $db->doQuery(
-			'dummy',
-			'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status = ?',
-			'tochange',
-			$domainId,
-			'ok'
-		);
-	} else {
-		$rdata = $db->doQuery(
-			'dummy',
-			'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? AND alias_status = ?',
-			'tochange',
-			$aliasId,
-			'ok'
-		);
-	}
-
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
@@ -609,29 +579,6 @@ sub _addOpendkimDnsEntries
 					error($rdata2);
 					return 1;
 				}
-
-				if($aliasId eq '0') {
-					$rdata2 = $db->doQuery(
-						'dummy',
-						'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status = ?',
-						'tochange',
-						$domainId,
-						'ok'
-					);
-				} else {
-					$rdata2 = $db->doQuery(
-						'dummy',
-						'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? AND alias_status = ?',
-						'tochange',
-						$aliasId,
-						'ok'
-					);
-				}
-
-				unless(ref $rdata2 eq 'HASH') {
-					error($rdata2);
-					return 1;
-				}
 			} else {
 				error("OpenDKIM directory for the domain $rdata->{$_}->{'domain_name'} doesn't exist.");
 			}
@@ -669,45 +616,6 @@ sub _removeOpendkimDnsEntries
 		return 1;
 	}
 
-	# Schedule domain change if needed
-	#
-	# Even if the OpenDKIM feature is being deactivated for a particular domain, we must not force rebuild of related
-	# configuration file when the domain has a status other than 'ok'. For instance, a domain which is disbaled
-	# should stay disabled. In such a case, the OpenDNS entry (TXT DNS resource record) will be removed when the
-	# domain will be re-activated.
-
-	if(%{$rdata}) {
-		for(keys %{$rdata}) {
-			my $domainId = $rdata->{$_}->{'domain_id'};
-			my $aliasId = $rdata->{$_}->{'alias_id'};
-
-			my $rdata2;
-			
-			if($aliasId eq '0') {
-				$rdata2 = $db->doQuery(
-					'dummy',
-					'UPDATE domain SET domain_status = ? WHERE domain_id = ? AND domain_status = ?',
-					'tochange',
-					$domainId,
-					'ok'
-				);
-			} else {
-				$rdata2 = $db->doQuery(
-					'dummy',
-					'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ? AND alias_status = ?',
-					'tochange',
-					$aliasId,
-					'ok'
-				);
-			}
-
-			unless(ref $rdata2 eq 'HASH') {
-				error($rdata2);
-				return 1;
-			}
-		}
-	}
-
 	0;
 }
 
@@ -719,7 +627,7 @@ sub _removeOpendkimDnsEntries
 
 =cut
 
-sub _modifyOpendkimConfig($$)
+sub _modifyOpendkimConfig
 {
 	my ($self, $action) = @_;
 
@@ -763,7 +671,7 @@ sub _modifyOpendkimConfig($$)
 
 =cut
 
-sub _modifyOpendkimDefaultConfig($$)
+sub _modifyOpendkimDefaultConfig
 {
 	my ($self, $action) = @_;
 
@@ -812,7 +720,7 @@ sub _modifyOpendkimDefaultConfig($$)
 
 =cut
 
-sub _modifyPostfixMainConfig($$)
+sub _modifyPostfixMainConfig
 {
 	my ($self, $action) = @_;
 
@@ -892,7 +800,7 @@ sub _createOpendkimFolder
 
 =cut
 
-sub _createOpendkimFile($$)
+sub _createOpendkimFile
 {
 	my ($self, $fileName) = @_;
 
