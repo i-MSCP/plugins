@@ -414,9 +414,9 @@ sub _addOpendkimDomainKey
 		'domain_id',
 		'
 			INSERT INTO domain_dns (
-				domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
+				domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by, domain_dns_status
 			) VALUES (
-				?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?
 			)
 		',
 		$domainId,
@@ -425,7 +425,8 @@ sub _addOpendkimDomainKey
 		'IN',
 		'TXT',
 		$txtRecord,
-		'OpenDKIM_Plugin'
+		'OpenDKIM_Plugin',
+		'toadd'
 	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
@@ -495,7 +496,8 @@ sub _deleteOpendkimDomainKey
 
 	my $rdata = $db->doQuery(
 		'dummy',
-		'DELETE FROM domain_dns WHERE domain_id = ? AND alias_id = ? AND owned_by = ?',
+		'UPDATE domain_dns SET domain_dns_status = ? WHERE domain_id = ? AND alias_id = ? AND owned_by = ?'
+		'todelete',
 		$domainId,
 		$aliasId,
 		'OpenDKIM_Plugin'
@@ -562,9 +564,9 @@ sub _addOpendkimDnsEntries
 					'domain_id',
 					'
 						INSERT INTO domain_dns (
-							domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by
+							domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by, domain_dns_status
 						) VALUES (
-							?, ?, ?, ?, ?, ?, ?
+							?, ?, ?, ?, ?, ?, ?, ?
 						)
 					',
 					$domainId,
@@ -573,7 +575,8 @@ sub _addOpendkimDnsEntries
 					'IN',
 					'TXT',
 					$txtRecord,
-					'OpenDKIM_Plugin'
+					'OpenDKIM_Plugin',
+					'toadd'
 				);
 				unless(ref $rdata2 eq 'HASH') {
 					error($rdata2);
@@ -602,7 +605,12 @@ sub _removeOpendkimDnsEntries
 
 	my $db = iMSCP::Database->factory();
 
-	my $rdata = $db->doQuery('dummy', 'DELETE FROM domain_dns WHERE owned_by = ?', 'OpenDKIM_Plugin');
+	my $rdata = $db->doQuery(
+		'dummy',
+		'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?',
+		'todelete',
+		'OpenDKIM_Plugin'
+	);
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
