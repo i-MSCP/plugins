@@ -496,7 +496,7 @@ sub _deleteOpendkimDomainKey
 
 	my $rdata = $db->doQuery(
 		'dummy',
-		'UPDATE domain_dns SET domain_dns_status = ? WHERE domain_id = ? AND alias_id = ? AND owned_by = ?'
+		'UPDATE domain_dns SET domain_dns_status = ? WHERE domain_id = ? AND alias_id = ? AND owned_by = ?',
 		'todelete',
 		$domainId,
 		$aliasId,
