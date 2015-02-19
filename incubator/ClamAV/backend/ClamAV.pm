@@ -232,8 +232,8 @@ sub _postfixConfig
 				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $self->{'config'}->{'PostfixMilterSocket'}") : '',
 
 			# non_smtpd_milters
-			($postconfValues[1] !~ /\$smtpd_milters/)
-				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] \$smtpd_milters") : ''
+			($postconfValues[1] !~ /$self->{'config'}->{'PostfixMilterSocket'}/)
+				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] $self->{'config'}->{'PostfixMilterSocket'}") : ''
 		);
 
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
@@ -241,8 +241,17 @@ sub _postfixConfig
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//;
-		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
+		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//g;
+		$postconfValues[1] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//g;
+
+		my @postconf = (
+			# smtpd_milters
+			'smtpd_milters=' . escapeShell($postconfValues[0]),
+
+			# non_smtpd_milters
+			'non_smtpd_milters=' . escapeShell($postconfValues[1])
+		);
+		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
