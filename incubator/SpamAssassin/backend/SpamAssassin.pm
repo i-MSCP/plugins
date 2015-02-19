@@ -173,7 +173,7 @@ sub enable
 #	return $rs if $rs;
 
 	# Add Postfix configuration
-	my $rs = $self->_modifyPostfixMainConfig('add');
+	my $rs = $self->_postfixConfig('add');
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
@@ -219,7 +219,7 @@ sub disable
 	}
 
 	# Remove Postfix configuration
-	$rs = $self->_modifyPostfixMainConfig('remove');
+	$rs = $self->_postfixConfig('remove');
 	return $rs if $rs;
 
 	$self->_restartDaemonPostfix();;
@@ -575,82 +575,61 @@ sub _modifySpamassassinDefaultConfig
 	$file->save();
 }
 
-=item _modifyPostfixMainConfig($action)
+=item _postfixConfig($action)
 
- Modify postfix main.cf config file
+ Add or remove postfix configuration snippet for this plugin
 
+ Param string $action Action to be performed ( add|remove )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _modifyPostfixMainConfig
+sub _postfixConfig
 {
 	my ($self, $action) = @_;
 
-	my $file = iMSCP::File->new('filename' => '/etc/postfix/main.cf');
-
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read /etc/postfix/main.cf");
-		return 1;
-	}
-
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
-	if($action eq 'add') {
-		$stdout =~ /^smtpd_milters\s?=\s?(.*)/gm;
-		my @miltersValues = split(' ', $1);
-
-		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
-		$milterSocket =~ s%/var/spool/postfix(.*)%$1%sgm;
-
-		if(scalar @miltersValues >= 1) {
-			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
-			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-
-			my $postfixSpamassassinConfig = "\t# Begin Plugin::SpamAssassin\n";
-			$postfixSpamassassinConfig .= "\tunix:" . $milterSocket . "\n";
-			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin\n";
-
-			my $milterConnectMacros = "\n# Begin Plugin::SpamAssassin::Macros\n";
-			$milterConnectMacros .= "milter_connect_macros = j {daemon_name} v {if_name} _\n";
-			$milterConnectMacros .= "# Ending Plugin::SpamAssassin::Macros";
-
-			$fileContent =~ s/^(non_smtpd_milters.*)/$postfixSpamassassinConfig$1$milterConnectMacros/gm;
-		} else {
-			my $postfixSpamassassinConfig = "\n# Begin Plugins::i-MSCP\n";
-			$postfixSpamassassinConfig .= "milter_default_action = accept\n";
-			$postfixSpamassassinConfig .= "smtpd_milters = \n";
-			$postfixSpamassassinConfig .= "\t# Begin Plugin::SpamAssassin\n";
-			$postfixSpamassassinConfig .= "\tunix:" . $milterSocket . "\n";
-			$postfixSpamassassinConfig .= "\t# Ending Plugin::SpamAssassin\n";
-			$postfixSpamassassinConfig .= "non_smtpd_milters = \$smtpd_milters\n";
-			$postfixSpamassassinConfig .= "# Begin Plugin::SpamAssassin::Macros\n";
-			$postfixSpamassassinConfig .= "milter_connect_macros = j {daemon_name} v {if_name} _\n";
-			$postfixSpamassassinConfig .= "# Ending Plugin::SpamAssassin::Macros\n";
-			$postfixSpamassassinConfig .= "# Ending Plugins::i-MSCP\n";
-			
-			$fileContent .= "$postfixSpamassassinConfig";
-		}
-	} elsif($action eq 'remove') {
-		$stdout =~ /^smtpd_milters\s*=\s*(.*)/gm;
-		my @miltersValues = split(' ', $1);
-		
-		if(scalar @miltersValues > 1) {
-			$fileContent =~ s/^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
-			$fileContent =~ s/^# Begin Plugin::SpamAssassin::Macros.*Ending Plugin::SpamAssassin::Macros\n//sgm;
-		} elsif($fileContent =~ /^\t# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n/sgm) {
-			$fileContent =~ s/^\n# Begin Plugins::i-MSCP.*Ending Plugins::i-MSCP\n//sgm;
-		}
-	}
-
-	$rs = $file->set($fileContent);
 	return $rs if $rs;
 
-	$file->save();
+	# Extract postconf values
+	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
+
+	my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
+	$milterSocket =~ s/\s*\/var\/spool\/postfix/unix:/;
+
+	if($action eq 'add') {
+		my @postconf = (
+			# milter_default_action
+			'milter_default_action=accept',
+
+			# smtpd_milters
+			($postconfValues[0] !~ /$milterSocket/)
+				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $milterSocket") : '',
+
+			# non_smtpd_milters
+			($postconfValues[1] !~ /\$smtpd_milters/)
+				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] \$smtpd_milters") : '',
+
+			# milter_connect_macros
+			'milter_connect_macros=' . escapeShell("j {daemon_name} v {if_name} _")
+		);
+
+		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	} elsif($action eq 'remove') {
+		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//;
+		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	}
+
+	0;
 }
 
 =item _restartDaemon($daemon, $action)
