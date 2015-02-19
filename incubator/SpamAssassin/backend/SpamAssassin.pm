@@ -610,8 +610,8 @@ sub _postfixConfig
 				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $milterSocket") : '',
 
 			# non_smtpd_milters
-			($postconfValues[1] !~ /\$smtpd_milters/)
-				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] \$smtpd_milters") : '',
+			($postconfValues[1] !~ /$milterSocket/)
+				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] $milterSocket") : '',
 
 			# milter_connect_macros
 			'milter_connect_macros=' . escapeShell("j {daemon_name} v {if_name} _")
@@ -622,8 +622,18 @@ sub _postfixConfig
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		$postconfValues[0] =~ s/\s*$self->{'config'}->{'spamassMilterSocket'}//;
-		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
+		$postconfValues[0] =~ s/\s*$milterSocket//g;
+		$postconfValues[1] =~ s/\s*$milterSocket//g;
+
+		my @postconf = (
+			# smtpd_milters
+			'smtpd_milters=' . escapeShell($postconfValues[0]),
+
+			# non_smtpd_milters
+			'non_smtpd_milters=' . escapeShell($postconfValues[1])
+		);
+
+		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
