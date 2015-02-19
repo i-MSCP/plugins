@@ -392,7 +392,7 @@ sub _init
 	# Set SpamAssassin host
 	$self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
 
-	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable']) {
+	if($self->{'action'} ~~ [ 'install', 'update', 'change', 'enable', 'disable' ]) {
 		# Loading plugin configuration
 		my $rdata = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'SpamAssassin'
@@ -589,7 +589,7 @@ sub _postfixConfig
 	my ($self, $action) = @_;
 
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf smtpd_milters non_smtpd_milters milter_connect_macros', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -597,8 +597,7 @@ sub _postfixConfig
 	# Extract postconf values
 	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
 
-	my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
-	$milterSocket =~ s/\s*\/var\/spool\/postfix/unix:/;
+	(my $milterSocket = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 
 	if($action eq 'add') {
 		my @postconf = (
@@ -614,7 +613,8 @@ sub _postfixConfig
 				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] $milterSocket") : '',
 
 			# milter_connect_macros
-			'milter_connect_macros=' . escapeShell("j {daemon_name} v {if_name} _")
+			($postconfValues[2] !~ /j \{daemon_name\} v \{if_name\} _/)
+				? 'milter_connect_macros=' . escapeShell("j {daemon_name} v {if_name} _") : ''
 		);
 
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
@@ -624,15 +624,18 @@ sub _postfixConfig
 	} elsif($action eq 'remove') {
 		$postconfValues[0] =~ s/\s*$milterSocket//g;
 		$postconfValues[1] =~ s/\s*$milterSocket//g;
+		$postconfValues[2] =~ s/\s*j \{daemon_name\} v \{if_name\} _//g;
 
 		my @postconf = (
 			# smtpd_milters
 			'smtpd_milters=' . escapeShell($postconfValues[0]),
 
 			# non_smtpd_milters
-			'non_smtpd_milters=' . escapeShell($postconfValues[1])
-		);
+			'non_smtpd_milters=' . escapeShell($postconfValues[1]),
 
+			# milter_connect_macros
+			'milter_connect_macros=' . escapeShell($postconfValues[2])
+		);
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
