@@ -622,7 +622,7 @@ sub _postfixConfig
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//;
+		$postconfValues[0] =~ s/\s*$self->{'config'}->{'spamassMilterSocket'}//;
 		$rs = execute('postconf -e smtpd_milters=' . escapeShell($postconfValues[0]), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
