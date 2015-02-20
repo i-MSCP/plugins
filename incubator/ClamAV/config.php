@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP ClamAV plugin
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,34 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  ClamAV
- * @copyright   Sascha Bay <info@space2place.de>
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
- * @author      Rene Schuster <mail@reneschuster.de>
- * @contributor Laurent Declercq <l.declercq@nuxwin.com>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
 	/**
-	 * Here you can adjust the clamav-milter configuration options.
+	 * Clamav-milter configuration options
 	 * 
 	 * For more information about the different configuration options please check 'man clamav-milter.conf'.
 	 * 
-	 * Warning: Don't change anything, if you don't know what you are doing.
-	 * Be aware that when changing the port of the Postfix smtpd_milter for ClamAV require to rerun the i-MSCP setup
-	 * script.
+	 * Warning: Don't change anything if you don't know what you are doing. Be aware that when changing the port of the
+	 * Postfix smtpd_milter for ClamAV require to rerun the i-MSCP setup script.
 	 */
 
 	// Postfix smtpd_milter for ClamAV ( default: inet:localhost:32767 )
-	//
-	// Warning: If you are using the unix socket, the path is not equal with the MilterSocket value.
-	// The part "/var/spool/postfix" is not needed here.
 	//
 	// Possible values:
 	//  inet:localhost:32767 ( for connection through TCP )

@@ -4,8 +4,10 @@
 
 =cut
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2015 by internet Multi Server Control Panel
+# i-MSCP ClamAV plugin
+# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,14 +22,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @copyright   Sascha Bay <info@space2place.de>
-# @copyright   Rene Schuster <mail@reneschuster.de>
-# @author      Sascha Bay <info@space2place.de>
-# @author      Rene Schuster <mail@reneschuster.de>
-# @contributor Laurent Declercq <l.declercq@nuxwin.com>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::ClamAV;
 
@@ -180,8 +174,8 @@ sub _clamavMilterConfig
 
 			$config .= "# Ending Plugin::ClamAV\n";
 
-			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/sm) {
-				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/sm;
+			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/ms) {
+				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/ms;
 			} else {
 				$fileContent .= $config;
 			}
@@ -222,18 +216,16 @@ sub _postfixConfig
 	# Extract postconf values
 	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
 
+	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
+
+	# Reset milter ( See #IP-1278 )
+	s%\s*(?:$milterValue|inet:localhost:32767|unix:/clamav/clamav-milter.ctl)%%g for @postconfValues;
+
 	if($action eq 'add') {
 		my @postconf = (
-			# milter_default_action
 			'milter_default_action=accept',
-
-			# smtpd_milters
-			($postconfValues[0] !~ /$self->{'config'}->{'PostfixMilterSocket'}/)
-				? 'smtpd_milters=' . escapeShell("$postconfValues[0] $self->{'config'}->{'PostfixMilterSocket'}") : '',
-
-			# non_smtpd_milters
-			($postconfValues[1] !~ /$self->{'config'}->{'PostfixMilterSocket'}/)
-				? 'non_smtpd_milters=' . escapeShell("$postconfValues[1] $self->{'config'}->{'PostfixMilterSocket'}") : ''
+			'smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue"),
+			'non_smtpd_milters=' . escapeShell("$postconfValues[1] $milterValue")
 		);
 
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
@@ -241,15 +233,8 @@ sub _postfixConfig
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		$postconfValues[0] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//g;
-		$postconfValues[1] =~ s/\s*$self->{'config'}->{'PostfixMilterSocket'}//g;
-
 		my @postconf = (
-			# smtpd_milters
-			'smtpd_milters=' . escapeShell($postconfValues[0]),
-
-			# non_smtpd_milters
-			'non_smtpd_milters=' . escapeShell($postconfValues[1])
+			'smtpd_milters=' . escapeShell($postconfValues[0]), 'non_smtpd_milters=' . escapeShell($postconfValues[1])
 		);
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
