@@ -4,7 +4,8 @@ Plugin which allows to use ClamAV with i-MSCP.
 
 ## Requirements
 
-* i-MSCP version >= 1.1.22 for the 1.1.x serie or >= 1.2.1 for the 1.2.x serie ( Plugin API >= 0.2.16 )
+* i-MSCP version >= 1.2.2 ( Plugin API >= 0.2.17 )
+* i-MSCP Postfix server implementation
 
 ### Debian / Ubuntu packages
 
