@@ -257,7 +257,7 @@ sub _init
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
 		);
 		unless(ref $config eq 'HASH') {
-			error($config);
+			die("Postscreen: $config");
 			return 1;
 		}
 
