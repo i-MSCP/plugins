@@ -1,11 +1,11 @@
 # i-MSCP Postgrey plugin v1.1.0
 
-Plugin which allows to run Postgrey policy server for Postfix with i-MSCP
+Plugin which allows to run Postgrey policy server for Postfix with i-MSCP.
 
 ## Introduction
 
-Posgtrey policy server, which implements greylisting, is a spam filtering method that rejects email from external servers
-on the first try. Spammers don't usually retry sending their messages, whereas legitimate mail servers do.
+Posgtrey policy server, which implements greylisting, is a spam filtering method that rejects email from external
+servers on the first try. Spammers don't usually retry sending their messages, whereas legitimate mail servers do.
 
 Homepage: http://postgrey.schweikert.ch/
 
@@ -41,7 +41,7 @@ You can install this package by running the following command:
 ## License
 
 ```
-i-MSCP InstantSSH plugin
+i-MSCP Postgrey plugin
 Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or
