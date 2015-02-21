@@ -115,7 +115,7 @@ sub disable
 
 	# Remove Postgrey policy server
 	my @smtpRestrictions = grep {
-		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'info'}->{'config_prev'}$/
+		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}$/
 	} split ', ', $postconfValues;
 
 	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
