@@ -1,6 +1,6 @@
-# i-MSCP Postgrey plugin
+# i-MSCP Postgrey plugin v1.1.0
 
-Plugin which allows to run postgrey policy server for Postfix with i-MSCP
+Plugin which allows to run Postgrey policy server for Postfix with i-MSCP
 
 ## Introduction
 
@@ -26,12 +26,17 @@ You can install this package by running the following command:
 
 ## Installation
 
-1. Upload the plugin through the plugin management interface
-2. Enable the plugin
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Activate the plugin through the plugin management interface
 
 ## Update
 
-1. Upload the plugin archive through the plugin management interface
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
 
 ## License
 

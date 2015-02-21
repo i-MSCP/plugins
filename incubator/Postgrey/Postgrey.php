@@ -46,6 +46,42 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 	}
 
 	/**
+	 * Plugin activation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function enable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		$postgreyServicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1';
+
+		/** @var iMSCP_Config_Handler_Db $dbConfig */
+		$dbConfig = iMSCP_Registry::get('dbConfig');
+
+		if(!isset($dbConfig['PORT_POSTGREY'])) {
+			$dbConfig['PORT_POSTGREY'] = $postgreyServicePort;
+		} else {
+			unset($dbConfig['PORT_POSTGREY']);
+			$dbConfig['PORT_POSTGREY'] = $postgreyServicePort;
+		}
+	}
+
+	/**
+	 * Plugin deactivation
+	 *
+	 * @throws iMSCP_Plugin_Exception
+	 * @param iMSCP_Plugin_Manager $pluginManager
+	 * @return void
+	 */
+	public function disable(iMSCP_Plugin_Manager $pluginManager)
+	{
+		/** @var iMSCP_Config_Handler_Db $dbConfig */
+		$dbConfig = iMSCP_Registry::get('dbConfig');
+		unset($dbConfig['PORT_POSTGREY']);
+	}
+
+	/**
 	 * Check plugin compatibility
 	 *
 	 * @param iMSCP_Events_Event $event

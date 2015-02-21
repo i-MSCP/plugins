@@ -26,9 +26,13 @@ package Plugin::Postgrey;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
+use iMSCP::Database;
 use iMSCP::Execute;
 use iMSCP::Service;
+use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -65,7 +69,7 @@ sub enable
 	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
 
 	my @smtpRestrictions = split ', ', $postconfValues;
-	s/^permit$/check_policy_service inet:127.0.0.1:10023/ for @smtpRestrictions;
+	s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}/ for @smtpRestrictions;
 	push @smtpRestrictions, 'permit';
 
 	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
@@ -95,6 +99,8 @@ sub enable
 
 sub disable
 {
+	my $self = $_[0];
+
 	my ($stdout, $stderr);
 	my $rs = execute('postconf smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -104,7 +110,9 @@ sub disable
 	# Extract postconf values
 	chomp($stdout);
 	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
-	my @smtpRestrictions = grep { $_ !~ /^check_policy_service\s+inet:127.0.0.1:10023$/} split ', ', $postconfValues;
+	my @smtpRestrictions = grep {
+		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}$/
+	} split ', ', $postconfValues;
 
 	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
 
@@ -137,7 +145,18 @@ sub _init
 {
 	my $self = $_[0];
 
-	$self->{'FORCE_RETVAL'} = 'yes';
+	if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
+		$self->{'FORCE_RETVAL'} = 'yes';
+
+		my $config = iMSCP::Database->factory->doQuery(
+			'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'Postgrey'"
+		);
+		unless(ref $config eq 'HASH') {
+			die("Postgrey: $config");
+		}
+
+		$self->{'config'} = decode_json($config->{'Postgrey'}->{'plugin_config'});
+	}
 
 	$self;
 }
