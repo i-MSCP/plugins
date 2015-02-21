@@ -32,6 +32,7 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
 use iMSCP::Service;
+use Servers::mta;
 use JSON;
 use parent 'Common::SingletonClass';
 
@@ -124,7 +125,6 @@ sub disable
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	require Servers::mta;
 	Servers::mta->factory()->{'restart'} = 1;
 
 	0;
