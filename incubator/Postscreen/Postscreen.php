@@ -1,7 +1,8 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * i-MSCP Postscreen plugin
+ * @copyright 2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2013-2015 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,54 +17,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Postscreen
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Rene Schuster <mail@reneschuster.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
- * Postscreen Plugin
- *
- * This plugin allows to use Postscreen with Postfix on i-MSCP.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Postscreen
- * @author      Rene Schuster <mail@reneschuster.de>
+ * Class iMSCP_Plugin_Postscreen
  */
 class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
+	 * @return void
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeInstallPlugin, $this);
+		$eventsManager->registerListener(
+			array(
+				iMSCP_Events::onBeforeInstallPlugin,
+				iMSCP_Events::onBeforeUpdatePlugin,
+			), $this
+		);
 	}
 
 	/**
 	 * onBeforeInstallPlugin event listener
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function onBeforeInstallPlugin(iMSCP_Events_Event $event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-				
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -88,5 +73,34 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		// Only there to tell the plugin manager that this plugin can be uninstalled
+	}
+
+	/**
+	 * onBeforeUpdatePlugin
+	 *
+	 * @param iMSCP_Events_Event $event
+	 */
+	public function onBeforeUpdatePlugin(iMSCP_Events_Event $event)
+	{
+		$this->checkCompat($event);
+	}
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	protected function checkCompat(iMSCP_Events_Event $event)
+	{
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
+			}
+		}
 	}
 }

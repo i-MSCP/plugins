@@ -1,7 +1,8 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * i-MSCP Postscreen plugin
+ * @copyright 2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,22 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Postscreen
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Rene Schuster <mail@reneschuster.de> 
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
-	'author' => 'Rene Schuster',
-	'email' => 'mail@reneschuster.de',
+	'author' => array(
+		'Laurent Declercq',
+		'Rene Schuster',
+	),
+	'email' => 'team@i-mscp.net',
 	'version' => '0.0.5',
-	'date' => '2015-02-11',
+	'date' => '2015-02-21',
 	'name' => 'Postscreen',
-	'desc' => 'Plugin allows to use Postscreen daemon with Postfix on i-MSCP',
+	'desc' => 'Plugin which allows to use Postscreen daemon with Postfix on i-MSCP',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postscreen'
 );

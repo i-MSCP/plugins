@@ -1,7 +1,8 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * i-MSCP Postscreen plugin
+ * @copyright 2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2013-2015 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,30 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  Postscreen
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Rene Schuster <mail@reneschuster.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
-return array(	
+return array(
 	// For the different Postscreen options please check man postscreen or
-	// visit the online documentation:  http://www.postfix.org/postscreen.8.html
+	//visit the online documentation: http://www.postfix.org/postscreen.8.html
 
+	// Pregreet test ( default: enforce )
+	//
+	// See http://www.postfix.org/POSTSCREEN_README.html#pregreet
+	// Possible values: ignore, enforce, drop
+	'postscreen_greet_action' => 'enforce',
 
-	// Pregreet test  http://www.postfix.org/POSTSCREEN_README.html#pregreet
-	// 
-	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
-	'postscreen_greet_action' => 'enforce', // options: ignore, enforce (default), drop
-
-
-	// DNSBL tests  http://www.postfix.org/POSTSCREEN_README.html#dnsbl
-	// 
-	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_sites
+	// Postscreen dnsbl sites ( default: zen.spamhaus.org*2, dnsbl-1.uceprotect.net*1, bl.spamcop.net*1,
+	//                                   list.dnswl.org=127.0.[0..255].[1..3]*-2 )
+	//
+	// See http://www.postfix.org/POSTSCREEN_README.html#dnsbl
+	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_sites
 	'postscreen_dnsbl_sites' => array(
 		'zen.spamhaus.org*2',
 		'dnsbl-1.uceprotect.net*1',
@@ -47,25 +41,28 @@ return array(
 		'list.dnswl.org=127.0.[0..255].[1..3]*-2'
 	),
 
-	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_threshold
+	// Postscreen dnsbl threshold ( default: 3 )
+	//
+	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_threshold
 	'postscreen_dnsbl_threshold' => '3',
 
-	// http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
-	'postscreen_dnsbl_action' => 'enforce', // options: ignore, enforce (default), drop
+	// Postscreen dnsbl action ( default: enforce )
+	//
+	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
+	// Possible values: options: ignore, enforce, drop
+	'postscreen_dnsbl_action' => 'enforce',
 
-
-	// Permanent white/blacklist
+	// Permanent white/blacklist ( default: permit_mynetworks, cidr:/etc/postfix/postscreen_access.cidr )
 	// 
-	// http://www.postfix.org/postconf.5.html#postscreen_access_list 
+	// See http://www.postfix.org/postconf.5.html#postscreen_access_list
 	'postscreen_access_list' => array(
 		'permit_mynetworks',
 		'cidr:/etc/postfix/postscreen_access.cidr'
 	),
 
-	// http://www.postfix.org/postconf.5.html#postscreen_blacklist_action
-	'postscreen_blacklist_action' => 'enforce', // options: ignore, enforce (default), drop
-
-
-	// Patch Mailgraph to count and also show the Postscreen rejects on the graphs
-	'patch_mailgraph' => 'yes' // YES to enable (default), NO to disable
+	// Postscreen blacklist action ( default: enforce )
+	//
+	// See http://www.postfix.org/postconf.5.html#postscreen_blacklist_action
+	// Possible values: ignore, enforce, drop
+	'postscreen_blacklist_action' => 'enforce'
 );
