@@ -67,8 +67,9 @@ sub enable
 	# Extract postconf values
 	chomp($stdout);
 	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
-
 	my @smtpRestrictions = split ', ', $postconfValues;
+
+	# Add Postgrey policy server
 	s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}/ for @smtpRestrictions;
 	push @smtpRestrictions, 'permit';
 
@@ -110,6 +111,8 @@ sub disable
 	# Extract postconf values
 	chomp($stdout);
 	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
+
+	# Remove Postgrey policy server
 	my @smtpRestrictions = grep {
 		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}$/
 	} split ', ', $postconfValues;
