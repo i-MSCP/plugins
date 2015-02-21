@@ -1,6 +1,6 @@
 =head1 NAME
 
- Plugin::CronJobs
+ Plugin::Postgrey
 
 =cut
 
