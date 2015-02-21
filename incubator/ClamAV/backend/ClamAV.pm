@@ -149,29 +149,33 @@ sub _clamavMilter
 
 		my $fileContent = $file->get();
 		unless (defined $fileContent) {
-			error("Unable to read $file->{'filename'}");
+			error("Unable to read $file->{'filename'} file");
 			return 1;
 		}
 
-		my $baseRegexp = '((?:MilterSocket|FixStaleSocket|User|AllowSupplementaryGroups|ReadTimeout|Foreground|PidFile|' .
-			'ClamdSocket|OnClean|OnInfected|OnFail|AddHeader|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
-			'LogClean|LogRotate|MaxFileSize|SupportMultipleRecipients|TemporaryDirectory|LogFile|LogTime|' .
-			'LogFileUnlock|LogFileMaxSize|MilterSocketGroup|MilterSocketMode|VirusAction).*)';
+		my $baseRegexp = '((?:MilterSocket|MilterSocketGroup|MilterSocketMode|FixStaleSocket|User|' .
+			'AllowSupplementaryGroups|ReadTimeout|Foreground|Chroot|PidFile|TemporaryDirectory|ClamdSocket|LocalNet|' .
+			'Whitelist|SkipAuthenticated|MaxFileSize|OnClean|OnInfected|OnFail|RejectMsg|AddHeader|ReportHostname|' .
+			'VirusAction|LogFile|LogFileUnlock|LogFileMaxSize|LogTime|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
+			'LogClean|LogRotate|SupportMultipleRecipients|).*)';
 
 		if($action eq 'configure') {
 			$fileContent =~ s/^$baseRegexp/#$1/gm;
 
 			my $configSnippet = "# Begin Plugin::ClamAV\n";
 
-			for my $paramName(
+			for my $option(
 				qw /
-					MilterSocket FixStaleSocket User AllowSupplementaryGroups ReadTimeout Foreground PidFile ClamdSocket
-					OnClean OnInfected OnFail AddHeader LogSyslog LogFacility LogVerbose LogInfected LogClean MaxFileSize
-					TemporaryDirectory LogFile LogTime LogFileUnlock LogFileMaxSize MilterSocketGroup MilterSocketMode
-					RejectMsg VirusAction
+					MilterSocket MilterSocketGroup MilterSocketModeFixStaleSocket User AllowSupplementaryGroups
+					ReadTimeout Foreground Chroot PidFile TemporaryDirectory ClamdSocket LocalNet Whitelist
+					SkipAuthenticated MaxFileSize OnClean OnInfected OnFail RejectMsg AddHeader ReportHostname
+					VirusAction LogFile LogFileUnlock LogFileMaxSize LogTime LogSyslog LogFacility LogVerbose
+					LogInfected LogClean LogRotate SupportMultipleRecipients
 				/
 			) {
-				$configSnippet .= "$paramName $self->{'config'}->{$paramName}\n";
+				if(exists $self->{'config'}->{$option}) {
+					$configSnippet .= "$option $self->{'config'}->{$option}\n";
+				}
 			}
 
 			$configSnippet .= "# Ending Plugin::ClamAV\n";
@@ -190,6 +194,7 @@ sub _clamavMilter
 			}
 		} elsif($action eq 'deconfigure') {
 			$fileContent = replaceBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', '', $fileContent);
+			$fileContent =~ s/^#$baseRegexp/$1/gm;
 		}
 
 		my $rs = $file->set($fileContent);

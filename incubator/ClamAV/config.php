@@ -37,83 +37,54 @@ return array(
 	//  unix:/clamav/clamav-milter.ctl ( for connection through socket )
 	'PostfixMilterSocket' => 'inet:localhost:32767',
 
-	//
-	//// The following configation parameters are added in the /etc/clamav/clamav-milter.conf configuration file
-	//
+	/**
+	 * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
+	 *
+	 * Note: If one options is missing, just add it with it name and it will be automatically added.
+	 *
+	 * See man clamav-milter.conf for further details about these options.
+	 */
 
-	// ClamAV milter socket ( default: inet:32767@localhost )
-	//
-	// Possible values:
-	//  inet:32767@localhost ( for connection through TCP )
-	//  /var/spool/postfix/clamav/clamav-milter.ctl ( for connection through socket )
+	// Main options
+
 	'MilterSocket' => 'inet:32767@localhost',
-
-	// Possible values: true, false
-	'FixStaleSocket' => 'true',
-
-	'User' => 'clamav',
-
-	// Possible values: true, false
-	'AllowSupplementaryGroups' => 'true',
-
-	'ReadTimeout' => '120',
-
-	// Possible values: true, false
-	'Foreground' => 'false',
-
-	'PidFile' => '/var/run/clamav/clamav-milter.pid',
-	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
-	'OnClean' => 'Accept',
-
-	// Action to be performed on infected messages ( default: Reject )
-	// Possible values: Reject, Quarantine
-	'OnInfected' => 'Reject',
-
-	'OnFail' => 'Defer',
-
-	// Possible values: Replace (or YES), NO
-	'AddHeader' => 'Replace',
-
-	// Possible values: true, false
-	'LogSyslog' => 'true',
-
-	// Look at http://linux.die.net/man/3/syslog => "facility"
-	'LogFacility' => 'LOG_MAIL',
-
-	// Possible values: true, false
-	'LogVerbose' => 'false',
-
-	// Possible values: Full, Basic, Off
-	'LogInfected' => 'Basic',
-
-	// Possible values: Off, On
-	'LogClean' => 'Off',
-
-	// Possible values: true, false
-	'LogRotate' => 'true',
-	
-	// Messages larger than this value won't be scanned.
-	'MaxFileSize' => '25M',
-
-	// Possible values: 'true', 'false'
-	'SupportMultipleRecipients' => 'false',
-
-	'TemporaryDirectory' => '/tmp',
-	'LogFile' => '/var/log/clamav/clamav-milter.log',
-
-	// Possible values: true, false
-	'LogTime' => 'true',
-
-	// Possible values: true, false
-	'LogFileUnlock' => 'false',
-
-	'LogFileMaxSize' => '0M',
 	'MilterSocketGroup' => 'clamav',
 	'MilterSocketMode' => '666',
+	'FixStaleSocket' => 'true',
+	'User' => 'clamav',
+	'AllowSupplementaryGroups' => 'true',
+	'ReadTimeout' => '120',
+	'Foreground' => 'false',
+	'PidFile' => '/var/run/clamav/clamav-milter.pid',
+	'TemporaryDirectory' => '/tmp',
 
-	// The string "%v", if present, will be replaced with the virus name. ( useful together with "OnInfected => Reject" )
+	// Clamd options
+
+	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
+
+	// Exclusions
+
+	'MaxFileSize' => '25M',
+
+	// Actions
+
+	'OnClean' => 'Accept',
+	'OnInfected' => 'Reject',
+	'OnFail' => 'Defer',
 	'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v',
+	'AddHeader' => 'Replace',
+	'VirusAction' => '',
 
-	// Command to execute when an infected message is found ( default: '' )
-	'VirusAction' => ''
+	// 'VirusAction' => ''
+	'LogFile' => '/var/log/clamav/clamav-milter.log',
+	'LogFileUnlock' => 'false',
+	'LogFileMaxSize' => '0M',
+	'LogTime' => 'true',
+	'LogSyslog' => 'true',
+	'LogFacility' => 'LOG_MAIL',
+	'LogVerbose' => 'false',
+	'LogInfected' => 'Basic',
+	'LogClean' => 'Off',
+	'LogRotate' => 'true',
+	'SupportMultipleRecipients' => 'false'
 );
