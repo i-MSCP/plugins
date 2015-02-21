@@ -115,7 +115,7 @@ sub disable
 
 	# Remove Postgrey policy server
 	my @smtpRestrictions = grep {
-		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}$/
+		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'info'}->{'config_prev'}$/
 	} split ', ', $postconfValues;
 
 	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
@@ -152,13 +152,15 @@ sub _init
 		$self->{'FORCE_RETVAL'} = 'yes';
 
 		my $config = iMSCP::Database->factory->doQuery(
-			'plugin_name', "SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = 'Postgrey'"
+			'plugin_name',
+			"SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = 'Postgrey'"
 		);
 		unless(ref $config eq 'HASH') {
 			die("Postgrey: $config");
 		}
 
 		$self->{'config'} = decode_json($config->{'Postgrey'}->{'plugin_config'});
+		$self->{'config_prev'} = decode_json($config->{'Postgrey'}->{'plugin_config_prev'});
 	}
 
 	$self;
