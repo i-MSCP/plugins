@@ -62,11 +62,11 @@ return array(
 
 	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
 
-	// Exclusions
+	// Exclusions options
 
 	'MaxFileSize' => '25M',
 
-	// Actions
+	// Actions options
 
 	'OnClean' => 'Accept',
 	'OnInfected' => 'Reject',
@@ -75,7 +75,8 @@ return array(
 	'AddHeader' => 'Replace',
 	'VirusAction' => '',
 
-	// 'VirusAction' => ''
+	// Logging options
+
 	'LogFile' => '/var/log/clamav/clamav-milter.log',
 	'LogFileUnlock' => 'false',
 	'LogFileMaxSize' => '0M',
