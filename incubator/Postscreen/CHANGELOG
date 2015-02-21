@@ -6,11 +6,10 @@ Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: LICENSE file
+	Fixed: Don't harcode service configuration file paths
+	Fixed: Don't replace smtp service already in master.cf file ( Last definition has higher precedence )
 	Removed: Compatibility to i-MSCP Eagle
 	Removed: Mailgraph patch ( Non compliant to the i-MSCP development policy )
-	Fixed: Do not replace smtp service already in master.cf file ( Last definition has higher precedence )
-	Fixed: Don't harcode service configuration file path
-	CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
