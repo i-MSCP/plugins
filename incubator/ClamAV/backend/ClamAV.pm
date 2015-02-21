@@ -34,6 +34,8 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::Execute;
+use iMSCP::Service;
+use iMSCP::TemplateParser;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -61,10 +63,10 @@ sub enable
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	$rs = $self->_clamavMilterConfig('add');
+	$rs = $self->_clamavMilter('configure');
 	return $rs if $rs;
 
-	$rs = $self->_postfixConfig('add');
+	$rs = $self->_postfix('configure');
 	return $rs if $rs;
 
 	$rs = $self->_restartClamavMilter();
@@ -85,10 +87,10 @@ sub disable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_clamavMilterConfig('remove');
+	my $rs = $self->_clamavMilter('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_postfixConfig('remove');
+	$rs = $self->_postfix('deconfigure');
 	return $rs if $rs;
 
 	$rs = $self->_restartClamavMilter();
@@ -129,16 +131,16 @@ sub _init
 	$self;
 }
 
-=item _clamavMilterConfig($action)
+=item _clamavMilter($action)
 
- Add or remove clamav-milter configuration for this plugin
+ Configure or deconfigure clamav-milter
 
- Param string $action Action to be performed ( add|remove )
+ Param string $action Action to be performed ( configure|deconfigure )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _clamavMilterConfig
+sub _clamavMilter
 {
 	my ($self, $action) = @_;
 
@@ -154,34 +156,40 @@ sub _clamavMilterConfig
 		my $baseRegexp = '((?:MilterSocket|FixStaleSocket|User|AllowSupplementaryGroups|ReadTimeout|Foreground|PidFile|' .
 			'ClamdSocket|OnClean|OnInfected|OnFail|AddHeader|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
 			'LogClean|LogRotate|MaxFileSize|SupportMultipleRecipients|TemporaryDirectory|LogFile|LogTime|' .
-			'LogFileUnlock|LogFileMaxSize|MilterSocketGroup|MilterSocketMode).*)';
+			'LogFileUnlock|LogFileMaxSize|MilterSocketGroup|MilterSocketMode|VirusAction).*)';
 
-		if($action eq 'add') {
+		if($action eq 'configure') {
 			$fileContent =~ s/^$baseRegexp/#$1/gm;
 
-			my $config = "\n# Begin Plugin::ClamAV\n";
+			my $configSnippet = "# Begin Plugin::ClamAV\n";
 
 			for my $paramName(
 				qw /
 					MilterSocket FixStaleSocket User AllowSupplementaryGroups ReadTimeout Foreground PidFile ClamdSocket
 					OnClean OnInfected OnFail AddHeader LogSyslog LogFacility LogVerbose LogInfected LogClean MaxFileSize
 					TemporaryDirectory LogFile LogTime LogFileUnlock LogFileMaxSize MilterSocketGroup MilterSocketMode
-					RejectMsg
+					RejectMsg VirusAction
 				/
 			) {
-				$config .= "$paramName $self->{'config'}->{$paramName}\n";
+				$configSnippet .= "$paramName $self->{'config'}->{$paramName}\n";
 			}
 
-			$config .= "# Ending Plugin::ClamAV\n";
+			$configSnippet .= "# Ending Plugin::ClamAV\n";
 
-			if ($fileContent =~ /^# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/ms) {
-				$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n/$config/ms;
+			if(getBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', $fileContent) ne '') {
+				$fileContent = replaceBloc(
+					'# Begin Plugin::ClamAV\n',
+					'# Ending Plugin::ClamAV\n',
+					'# Begin Plugin::ClamAV\n' .
+						$configSnippet .
+					'# Ending Plugin::ClamAV\n',
+					$fileContent
+				)
 			} else {
-				$fileContent .= $config;
+				$fileContent .= $configSnippet
 			}
-		} elsif($action eq 'remove') {
-			$fileContent =~ s/^#$baseRegexp/$1/gm;
-			$fileContent =~ s/^\n# Begin Plugin::ClamAV.*Ending Plugin::ClamAV\n//sm;
+		} elsif($action eq 'deconfigure') {
+			$fileContent = replaceBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', '', $fileContent);
 		}
 
 		my $rs = $file->set($fileContent);
@@ -194,16 +202,16 @@ sub _clamavMilterConfig
 	}
 }
 
-=item _postfixConfig($action)
+=item _postfix($action)
 
- Add or remove postfix configuration snippet for this plugin
+ Configure or deconfigure postfix
 
- Param string $action Action to be performed ( add|remove )
+ Param string $action Action to be performed ( configure|deconfigure )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _postfixConfig
+sub _postfix
 {
 	my ($self, $action) = @_;
 
@@ -221,7 +229,7 @@ sub _postfixConfig
 	# Reset milter ( See #IP-1278 )
 	s%\s*(?:$milterValue|inet:localhost:32767|unix:/clamav/clamav-milter.ctl)%%g for @postconfValues;
 
-	if($action eq 'add') {
+	if($action eq 'configure') {
 		my @postconf = (
 			'milter_default_action=accept',
 			'smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue"),
@@ -232,7 +240,7 @@ sub _postfixConfig
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
-	} elsif($action eq 'remove') {
+	} elsif($action eq 'deconfigure') {
 		my @postconf = (
 			'smtpd_milters=' . escapeShell($postconfValues[0]), 'non_smtpd_milters=' . escapeShell($postconfValues[1])
 		);
@@ -255,14 +263,7 @@ sub _postfixConfig
 
 sub _restartClamavMilter
 {
-	my $self = $_[0];
-
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} clamav-milter restart", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-
-	$rs;
+	iMSCP::Service->getInstance()->restart('clamav-milter', 'retval');
 }
 
 =item _schedulePostfixRestart()

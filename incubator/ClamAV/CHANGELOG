@@ -7,6 +7,7 @@ Version 1.0.1
 
 	Fixed: Do not directly refer to smtpd_milters in non_smtpd_milters to avoid conflict with other plugins
 	Fixed #IP-1278: Old setting not removed on upgrade
+	Fixed #IP-1282: Add config Parameter "VirusAction"
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0

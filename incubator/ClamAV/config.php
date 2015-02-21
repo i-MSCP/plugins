@@ -112,5 +112,8 @@ return array(
 	'MilterSocketMode' => '666',
 
 	// The string "%v", if present, will be replaced with the virus name. ( useful together with "OnInfected => Reject" )
-	'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v' 
+	'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v',
+
+	// Command to execute when an infected message is found ( default: '' )
+	'VirusAction' => ''
 );
