@@ -38,7 +38,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provide the backend part of the CronJobs plugin.
+ This package provide the backend part of the Postgrey plugin.
 
 =head1 PUBLIC METHODS
 
