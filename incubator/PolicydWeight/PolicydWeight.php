@@ -54,6 +54,11 @@ class iMSCP_Plugin_PolicydWeight extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
+		# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
+		if($pluginManager->isPluginKnown('Postgrey') && $pluginManager->isPluginEnabled('Postgrey')) {
+			$pluginManager->setPluginStatus('Postgrey', 'tochange');
+		}
+
 		$servicePort = $this->getConfigParam('policyd_weight_port', 12525) . ';tcp;POLICYD_WEIGHT;1;127.0.0.1';
 
 		/** @var iMSCP_Config_Handler_Db $dbConfig */
