@@ -148,7 +148,7 @@ sub disable()
 
  Initialize instance
 
- Return Plugin::ClamAV or die on failure
+ Return Plugin::AdminerSQL or die on failure
 
 =cut
 
@@ -173,7 +173,7 @@ sub _init
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 Authors and Contributors
 
  Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>
