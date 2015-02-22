@@ -43,8 +43,6 @@ You can install this package by running the following command:
 
 ## Configuration
 
-### Plugin
-
 See [Configuration file](../PolicydWeight/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
