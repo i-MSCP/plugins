@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP ClamAV plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
@@ -28,7 +28,7 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '1.0.0',
-	'date' => '2015-02-21',
+	'date' => '2015-02-22',
 	'name' => 'ClamAV',
 	'desc' => 'Plugin which allows to use ClamAV with i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'

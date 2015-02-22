@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP ClamAV plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
@@ -41,11 +41,9 @@ class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeEnablePlugin($event)
+	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			$this->checkCompat($event);
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -54,14 +52,16 @@ class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	protected function checkCompat($event)
+	protected function checkCompat(iMSCP_Events_Event $event)
 	{
-		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
-			set_page_message(
-				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-			);
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
 
-			$event->stopPropagation();
+				$event->stopPropagation();
+			}
 		}
 	}
 }

@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP ClamAV plugin
-# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #
@@ -117,15 +117,17 @@ sub _init
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ [ 'install', 'update', 'change', 'enable', 'disable' ]) {
+	if($self->{'action'} ~~ [ 'enable', 'disable', 'update', 'change' ]) {
 		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'ClamAV'
+			'plugin_name',
+			'SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?', 'ClamAV'
 		);
 		unless(ref $config eq 'HASH') {
 			die("ClamAV: $config");
 		}
 
 		$self->{'config'} = decode_json($config->{'ClamAV'}->{'plugin_config'});
+		$self->{'config_prev'} = decode_json($config->{'ClamAV'}->{'plugin_config_prev'});
 	}
 
 	$self;
@@ -230,9 +232,9 @@ sub _postfix
 	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
 
 	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
+	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
 
-	# Reset milter ( See #IP-1278 )
-	s%\s*(?:$milterValue|inet:localhost:32767|unix:/clamav/clamav-milter.ctl)%%g for @postconfValues;
+	s/\s*$milterValuePrev//g for @postconfValues;
 
 	if($action eq 'configure') {
 		my @postconf = (
@@ -317,7 +319,7 @@ sub _checkRequirements
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
  Laurent Declercq <l.declercq@nuxwin.com>
  Rene Schuster <mail@reneschuster.de>
