@@ -1,6 +1,10 @@
-#!/usr/bin/perl
+=head1 NAME
 
-# i-MSCP - internet Multi Server Control Panel
+ Plugin::AdminerSQL
+
+=cut
+
+# i-MSCP AdminerSQL plugin
 # Copyright (C) 2010-2015 by Sascha Bay
 #
 # This program is free software; you can redistribute it and/or
@@ -16,15 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @category    i-MSCP
-# @package     iMSCP_Plugin
-# @subpackage  AdminerSQL
-# @copyright   2010-2015 by Sascha Bay
-# @author      Sascha Bay <info@space2place.de>
-# @contributor Laurent Declercq <l.declercq@nuxwin.com>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::AdminerSQL;
 
@@ -38,7 +33,7 @@ use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Execute;
-
+use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -59,45 +54,31 @@ use parent 'Common::SingletonClass';
 
 sub enable()
 {
-	my $rs = 0;
-	
-	# Load plugin configuration
-	my $rdata = iMSCP::Database->factory()->doQuery(
-		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
-	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-
-	require JSON;
-	JSON->import();
-
-	my $config = decode_json($rdata->{'AdminerSQL'}->{'plugin_config'});
+	my $self = $_[0];
 
 	my $productionDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
-	my $sourcesPath = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/AdminerSQL/adminer-sources";
+	my $sourcesPath = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/adminer-sources";
 	my $compileCmd = "$main::imscpConfig{'CMD_PHP'} $sourcesPath/compile.php";
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
 	# Copy needed css file
-	unless($config->{'theme'} eq 'default') {
-		my $file = iMSCP::File->new('filename' => "$sourcesPath/designs/$config->{'theme'}/adminer.css");
-		$rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
+	unless($self->{'config'}->{'theme'} eq 'default') {
+		my $file = iMSCP::File->new( filename => "$sourcesPath/designs/$self->{'config'}->{'theme'}/adminer.css" );
+		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
 		return $rs if $rs;
 	} else {
-		my $file = iMSCP::File->new('filename' => "$sourcesPath/adminer/static/default_sik.css");
-		$rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
+		my $file = iMSCP::File->new( filename => "$sourcesPath/adminer/static/default_sik.css" );
+		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
 		return $rs if $rs;
 	}
 
-	my $driver = ($config->{'driver'} eq 'all') ? '' : $config->{'driver'};
-	my $language = ($config->{'language'} eq 'all') ? '' : $config->{'language'};
+	my $driver = ($self->{'config'}->{'driver'} eq 'all') ? '' : $self->{'config'}->{'driver'};
+	my $language = ($self->{'config'}->{'language'} eq 'all') ? '' : $self->{'config'}->{'language'};
 
 	# Compile Adminer PHP file
 	my ($stdout, $stderr);
-	$rs = execute("$compileCmd $driver $language", \$stdout, \$stderr);
+	my $rs = execute("$compileCmd $driver $language", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -116,12 +97,12 @@ sub enable()
 	);
 	return $rs if $rs;
 
-	my $version = '-' . $config->{'adminer_version'};
+	my $version = '-' . $self->{'config'}->{'adminer_version'};
 	$driver = ($driver ne '') ? '-' . $driver : '';
 	$language = ($language ne '') ? '-' . $language : '';
 
 	# Move compiled Adminer PHP file into production directory
-	my $file = iMSCP::File->new('filename' => "$sourcesPath/adminer$version$driver$language.php");
+	my $file = iMSCP::File->new( filename => "$sourcesPath/adminer$version$driver$language.php" );
 
 	$rs = $file->owner($panelUName, $panelGName);
 	return $rs if $rs;
@@ -133,7 +114,7 @@ sub enable()
 	return $rs if $rs;
 
 	# Move compiled Adminer editor PHP file into production directory
-	$file = iMSCP::File->new('filename' => "$sourcesPath/editor$version$driver$language.php");
+	$file = iMSCP::File->new( filename => "$sourcesPath/editor$version$driver$language.php" );
 
 	$rs = $file->owner($panelUName, $panelGName);
 	return $rs if $rs;
@@ -154,11 +135,40 @@ sub enable()
 
 sub disable()
 {
-	if(-d "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer") {
-		iMSCP::Dir->new('dirname' => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer")->remove();
-	} else {
-		0;
+	iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
+}
+
+=back
+
+=head1 PRIVATE METHODS
+
+=over 4
+
+=item _init()
+
+ Initialize instance
+
+ Return Plugin::ClamAV or die on failure
+
+=cut
+
+sub _init
+{
+	my $self = $_[0];
+
+	if($self->{'action'} ~~ [ 'enable', 'disable', 'update', 'change' ]) {
+		my $config = iMSCP::Database->factory()->doQuery(
+			'plugin_name',
+			'SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
+		);
+		unless(ref $config eq 'HASH') {
+			die("AdminerSQL: $config");
+		}
+
+		$self->{'config'} = decode_json($config->{'AdminerSQL'}->{'plugin_config'});
 	}
+
+	$self;
 }
 
 =back
@@ -171,3 +181,4 @@ sub disable()
 =cut
 
 1;
+__END__

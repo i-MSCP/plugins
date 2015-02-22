@@ -1,9 +1,35 @@
-## i-MSCP AdminerSQL plugin v0.0.5
+## i-MSCP AdminerSQL plugin v1.0.0
 
-Plugin allowing to manage i-MSCP databases through Adminer.
+Plugin which allows to manage i-MSCP databases through Adminer.
 
-### LICENSE
+## Requirements
 
+* i-MSCP version >= 1.2.3 ( Plugin API 1.0.0 )
+
+## Installation
+
+1. Upload the plugin through the plugin management interface
+2. Activate the plugin
+
+## Update
+
+1. Backup your plugin configuration file if needed
+2. Login into the panel as admin and go to the plugin management interface
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
+
+## Configuration
+
+See [Configuration file](../AdminerSQL/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin management interface.
+
+## License
+
+```
+i-MSCP AdminerSQL plugin
 Copyright (C) Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
@@ -14,34 +40,11 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+```
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
-### REQUIREMENTS
+## AUTHORS AND CONTRIBUTORS
 
-Plugin compatible with i-MSCP versions >= 1.1.0-rc4.7
-
-### INSTALLATION
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the AdminerSQL plugin archive
-	- Activate the plugin
-
-### UPDATE
-
-	- Backup your current plugins/AdminerSQL/config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the AdminerSQL plugin archive
-	- Restore your plugins/AdminerSQL/config.php file (check for any change)
-	- Update the plugin list through the plugin interface
-
-### CONFIGURATION
-
-You can set the SQL driver, language and theme in the plugins/AdminerSQL/config.php configuration file.
-
-### AUTHORS AND CONTRIBUTORS
-
- * Sascha Bay <info@space2place.de> (Author)
- * Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
-
-**Thank you for using this plugin.**
+* Sascha Bay <info@space2place.de>
+* Laurent Declercq <l.declercq@nuxwin.com>

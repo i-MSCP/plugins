@@ -1,6 +1,6 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
+ * i-MSCP AdminerSQL plugin
  * Copyright (C) 2010-2015 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
@@ -16,26 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  AdminerSQL
- * @copyright   2010-2015 by i-MSCP Team
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  AdminerSQL
- * @author      Sascha Bay <info@space2place.de>
+ * Class iMSCP_Plugin_AdminerSQL
  */
 class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s).
+	 * Register a callback for the given event(s)
 	 *
 	 * @param iMSCP_Events_Manager_Interface $eventsManager
 	 */
@@ -56,17 +45,9 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 *
 	 * @param iMSCP_Events_Event $event
 	 */
-	public function onBeforeEnablePlugin($event)
+	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
 	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
+		$this->checkCompat($event);
 	}
 
 	/**
@@ -96,13 +77,13 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	protected function setupNavigation($level)
 	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
+		if(iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			switch ($level) {
+			switch($level) {
 				case 'admin':
-					if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
+					if(($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
 						$page->addPages(
 							array(
 								array(
@@ -121,7 +102,7 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 
 					break;
 				case 'client':
-					if (($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
+					if(($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
 						$page->addPage(
 							array(
 								'label' => tr('AdminerSQL'),
@@ -131,7 +112,7 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 						);
 					}
 
-					if (($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
+					if(($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
 						$page->addPage(
 							array(
 								'label' => tr('AdminerSQL'),
@@ -140,6 +121,25 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 							)
 						);
 					}
+			}
+		}
+	}
+
+	/**
+	 * Check plugin compatibility
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	protected function checkCompat(iMSCP_Events_Event $event)
+	{
+		if($event->getParam('pluginName') == $this->getName()) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
+				set_page_message(
+					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
+				);
+
+				$event->stopPropagation();
 			}
 		}
 	}
