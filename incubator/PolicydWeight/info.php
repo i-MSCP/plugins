@@ -20,7 +20,7 @@
 
 return array(
 	'author' => 'Laurent Declercq',
-	'email' => 'team@i-mscp.net',
+	'email' => 'l.declercq@nuxwin.com',
 	'version' => '1.0.0',
 	'date' => '2015-02-22',
 	'name' => 'PolicydWeight',
