@@ -59,16 +59,16 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 			$pluginManager->setPluginStatus('PolicydWeight', 'tochange');
 		}
 
-		$postgreyServicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1';
+		$servicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1';
 
 		/** @var iMSCP_Config_Handler_Db $dbConfig */
 		$dbConfig = iMSCP_Registry::get('dbConfig');
 
 		if(!isset($dbConfig['PORT_POSTGREY'])) {
-			$dbConfig['PORT_POSTGREY'] = $postgreyServicePort;
+			$dbConfig['PORT_POSTGREY'] = $servicePort;
 		} else {
 			unset($dbConfig['PORT_POSTGREY']);
-			$dbConfig['PORT_POSTGREY'] = $postgreyServicePort;
+			$dbConfig['PORT_POSTGREY'] = $servicePort;
 		}
 	}
 
