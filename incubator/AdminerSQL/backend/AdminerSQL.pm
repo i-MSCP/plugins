@@ -158,8 +158,7 @@ sub _init
 
 	if($self->{'action'} ~~ [ 'enable', 'disable', 'update', 'change' ]) {
 		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name',
-			'SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
+			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
 		);
 		unless(ref $config eq 'HASH') {
 			die("AdminerSQL: $config");
