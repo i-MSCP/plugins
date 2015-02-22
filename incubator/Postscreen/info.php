@@ -26,8 +26,8 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '0.0.5',
-	'date' => '2015-02-21',
+	'date' => '2015-02-22',
 	'name' => 'Postscreen',
-	'desc' => 'Plugin which allows to use Postscreen daemon with Postfix on i-MSCP',
+	'desc' => 'Plugin which allows to use Postscreen daemon for Postfix with i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postscreen'
 );

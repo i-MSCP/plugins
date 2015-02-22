@@ -249,9 +249,6 @@ sub _init
 	my $self = $_[0];
 
 	if($self->{'action'} ne 'run') {
-		# Force return value from plugin module
-		$self->{'FORCE_RETVAL'} = 'yes';
-
 		# Loading plugin configuration
 		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
