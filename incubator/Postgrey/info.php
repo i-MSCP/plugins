@@ -25,5 +25,6 @@ return array(
 	'date' => '2015-02-21',
 	'name' => 'Postgrey',
 	'desc' => 'Plugin which allows to run Postgrey policy server for Postfix with i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postgrey'
+	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postgrey',
+	'priority' => 10
 );

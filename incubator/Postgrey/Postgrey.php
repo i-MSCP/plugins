@@ -54,6 +54,11 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
+		# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
+		if($pluginManager->isPluginKnown('PolicydWeight') && $pluginManager->isPluginEnabled('PolicydWeight')) {
+			$pluginManager->setPluginStatus('PolicydWeight', 'tochange');
+		}
+
 		$postgreyServicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1';
 
 		/** @var iMSCP_Config_Handler_Db $dbConfig */
