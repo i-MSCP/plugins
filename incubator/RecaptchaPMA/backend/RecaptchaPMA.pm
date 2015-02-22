@@ -1,7 +1,11 @@
-#!/usr/bin/perl
+=head1 NAME
 
-# i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2014 by Sascha Bay
+ Plugin::RecaptchaPMA
+
+=cut
+
+# i-MSCP RecaptchaPMA plugin
+# Copyright (C) 2010-2015 by Sascha Bay
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,14 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @category    i-MSCP
-# @package     iMSCP_Plugin
-# @subpackage  RecaptchaPMA
-# @copyright   Sascha Bay <info@space2place.de>
-# @author      Sascha Bay <info@space2place.de>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::RecaptchaPMA;
 
@@ -32,9 +28,10 @@ use warnings;
 
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 
-use iMSCP::Database;
 use iMSCP::Debug;
+use iMSCP::Database;
 use iMSCP::File;
+use iMSCP::TemplateParser;
 use JSON;
 use version;
 
@@ -42,40 +39,11 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This plugin is designed to activate the reCAPTCHA for the phpMyAdmin login.
+ This package provide the backend part of the RecaptchaPMA plugin.
 
 =head1 PUBLIC METHODS
 
 =over 4
-
-=item change()
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-	$_[0]->update();
-}
-
-=item update()
-
- Perform update tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	my $self = $_[0];
-
-	my $rs = $self->_modifyPmaConfig('add');
-	return $rs if $rs;
-}
 
 =item enable()
 
@@ -87,10 +55,7 @@ sub update
 
 sub enable()
 {
-	my $self = $_[0];
-
-	my $rs = $self->_modifyPmaConfig('add');
-	return $rs if $rs;
+	$_[0]->_pmaConfig('configure');
 }
 
 =item disable()
@@ -103,19 +68,8 @@ sub enable()
 
 sub disable()
 {
-	my $self = $_[0];
-
-	my $rs = $self->_modifyPmaConfig('remove');
-	return $rs if $rs;
+	$_[0]->_pmaConfig('deconfigure');
 }
-
-=item _modifyPmaConfig($action)
-
- Modify phpMyAdmin config file
-
- Return int 0 on success, other on failure
-
-=cut
 
 =head1 PRIVATE METHODS
 
@@ -125,7 +79,7 @@ sub disable()
 
  Initialize plugin
 
- Return Plugin::RecaptchaPMA
+ Return Plugin::RecaptchaPMA or die on failure
 
 =cut
 
@@ -133,16 +87,15 @@ sub _init
 {
 	my $self = $_[0];
 
-	# Force return value from plugin module
-	$self->{'FORCE_RETVAL'} = 'yes';
+	if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
+		$self->{'FORCE_RETVAL'} = 'yes';
 
-	if($self->{'action'} ~~ ['install', 'change', 'update', 'enable', 'disable']) {
 		# Loading plugin configuration
-		my $rdata = iMSCP::Database->factory()->doQuery(
+		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RecaptchaPMA'
 		);
-		unless(ref $rdata eq 'HASH') {
-			error($rdata);
+		unless(ref $config eq 'HASH') {
+			die($config);
 			return 1;
 		}
 
@@ -152,33 +105,49 @@ sub _init
 	$self;
 }
 
-sub _modifyPmaConfig($$)
+=item _pmaConfig($action)
+
+ Configure or deconfigure PMA
+
+ Param string $action Action to perform ( configure|deconfigure)
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _pmaConfig
 {
 	my ($self, $action) = @_;
 	my $recaptchaPmaConfig;
 
-	my $pmaConfigFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php";
-
-	my $file = iMSCP::File->new('filename' => $pmaConfigFile);
-
+	my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php" );
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read $main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php");
+		error("Unable to read $file->{'filename'} file");
 		return 1;
 	}
 
-	if($action eq 'add') {
-		$recaptchaPmaConfig = "\n# Begin Plugin::RecaptchaPMA\n";
-		$recaptchaPmaConfig .= "\$cfg['CaptchaLoginPublicKey'] = '" . $self->{'config'}->{'reCaptchaLoginPublicKey'} . "';\n";
-		$recaptchaPmaConfig .= "\$cfg['CaptchaLoginPrivateKey'] = '" . $self->{'config'}->{'reCaptchaLoginPrivateKey'} . "';\n";
-		$recaptchaPmaConfig .= "# Ending Plugin::RecaptchaPMA\n";
-		if ($fileContent =~ /# Begin Plugin::RecaptchaPMA.*# Ending Plugin::RecaptchaPMA\n/sgm) {
-			$fileContent =~ s/\n# Begin Plugin::RecaptchaPMA.*# Ending Plugin::RecaptchaPMA\n/$recaptchaPmaConfig/sgm;
+	if($action eq 'configure') {
+		my $configSnippet = <<EOF;
+# Begin Plugin::RecaptchaPMA
+\$cfg['CaptchaLoginPublicKey'] = "$self->{'config'}->{'reCaptchaLoginPublicKey'}";
+\$cfg['CaptchaLoginPrivateKey'] = "$self->{'config'}->{'reCaptchaLoginPrivateKey'}";
+# Ending Plugin::RecaptchaPMA
+EOF
+
+		if(getBloc("# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $fileContent) ne '') {
+			$fileContent = replaceBloc(
+				"# Begin Plugin::RecaptchaPMA\n",
+				"# Ending Plugin::RecaptchaPMA\n",
+				$configSnippet,
+				$fileContent
+			);
 		} else {
-			$fileContent .= $recaptchaPmaConfig;
+			$fileContent .= $configSnippet;
 		}
-	} elsif($action eq 'remove') {
-		$fileContent =~ s/\n# Begin Plugin::RecaptchaPMA.*# Ending Plugin::RecaptchaPMA\n//sgm;
+	} elsif($action eq 'deconfigure') {
+		$fileContent = replaceBloc(
+			"# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", '', $fileContent
+		);
 	}
 
 	my $rs = $file->set($fileContent);
@@ -189,10 +158,11 @@ sub _modifyPmaConfig($$)
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
  Sascha Bay <info@space2place.de>
 
 =cut
 
 1;
+__END__

@@ -1,13 +1,37 @@
-## i-MSCP RecaptchaPMA plugin v1.0
+# i-MSCP RecaptchaPMA plugin v1.1.0
 
-This plugin is designed to activate the reCAPTCHA for the phpMyAdmin login.
+This plugin add reCAPTCHA support to phpMyAdmin.
 
-If you install this plugin manually, make sure it is installed in
-gui/plugins/ - if the folder is called different it will not work!
+## Requirements
 
-### LICENSE
+* i-MSCP version >= 1.1.11
+* Account on https://www.google.com/recaptcha/
 
-Copyright (C) Sascha Bay <info@space2place.de>
+## Installation
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Activate the plugin through the plugin management interface
+
+## Update
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
+
+## Configuration
+
+See [Configuration file](../RecaptchaPMA/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin management interface.
+
+## License
+
+```
+Copyright (C) 2014-2015 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,34 +41,10 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+```
 
-See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
+See [LICENSE](LICENSE)
 
-### REQUIREMENTS
+## Authors
 
-	- i-MSCP versions >= 1.1.11
-	- Account on https://www.google.com/recaptcha/
-
-### INSTALLATION
-
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the RecaptchaPMA plugin archive
-	- Activate the plugin
-	
-### UPDATE
-
-	- Backup your current plugins/RecaptchaPMA/config.php file
-	- Login into the panel as admin and go to the plugin management interface
-	- Upload the RecaptchaPMA plugin archive
-	- Restore your plugins/RecaptchaPMA/config.php file (check for any change)
-	- Update the plugin list through the plugin interface
-	
-### CONFIGURATION
-
-See the plugins/RecaptchaPMA/config.php file.
-
-### AUTHORS AND CONTRIBUTORS
-
- - Sascha Bay <info@space2place.de> (Author)
-
-**Thank you for using this plugin.**
+* Sascha Bay <info@space2place.de> (Author)
