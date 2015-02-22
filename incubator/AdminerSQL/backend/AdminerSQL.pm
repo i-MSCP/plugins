@@ -156,7 +156,7 @@ sub _init
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ [ 'enable', 'disable', 'update', 'change' ]) {
+	if($self->{'action'} ~~ [ 'enable', 'update', 'change' ]) {
 		my $config = iMSCP::Database->factory()->doQuery(
 			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
 		);
