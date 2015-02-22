@@ -44,7 +44,7 @@ GNU General Public License for more details.
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
-## AUTHORS AND CONTRIBUTORS
+## Authors and contributors
 
 * Sascha Bay <info@space2place.de>
 * Laurent Declercq <l.declercq@nuxwin.com>
