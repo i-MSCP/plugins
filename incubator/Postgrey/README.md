@@ -11,7 +11,7 @@ Homepage: http://postgrey.schweikert.ch/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.2 ( Plugin API 1.0.0 )
+* i-MSCP version >= 1.2.3 ( Plugin API 1.0.0 )
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
@@ -37,6 +37,13 @@ You can install this package by running the following command:
 3. Upload the plugin through the plugin management interface
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
+
+## Configuration
+
+See [Configuration file](../Postgrey/config.php)
+
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
+change by updating the plugin list through the plugin management interface.
 
 ## License
 
