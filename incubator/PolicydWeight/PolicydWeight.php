@@ -54,16 +54,16 @@ class iMSCP_Plugin_PolicydWeight extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		$policydWeightServicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POLICYD_WEIGHT;1;127.0.0.1';
+		$servicePort = $this->getConfigParam('policyd_weight_port', 12525) . ';tcp;POLICYD_WEIGHT;1;127.0.0.1';
 
 		/** @var iMSCP_Config_Handler_Db $dbConfig */
 		$dbConfig = iMSCP_Registry::get('dbConfig');
 
 		if(!isset($dbConfig['PORT_POLICYD_WEIGHT'])) {
-			$dbConfig['PORT_POLICYD_WEIGHT'] = $policydWeightServicePort;
+			$dbConfig['PORT_POLICYD_WEIGHT'] = $servicePort;
 		} else {
 			unset($dbConfig['PORT_POLICYD_WEIGHT']);
-			$dbConfig['PORT_POLICYD_WEIGHT'] = $policydWeightServicePort;
+			$dbConfig['PORT_POLICYD_WEIGHT'] = $servicePort;
 		}
 	}
 
