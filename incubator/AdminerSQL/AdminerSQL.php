@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * Copyright (C) 2010-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
