@@ -35,8 +35,9 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 		$eventsManager->registerListener(
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin,
-			), $this
+				iMSCP_Events::onBeforeUpdatePlugin
+			),
+			$this
 		);
 	}
 
@@ -54,7 +55,6 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	/**
 	 * Plugin installation
 	 *
-	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
@@ -66,7 +66,6 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	/**
 	 * Plugin uninstallation
 	 *
-	 * @throws iMSCP_Plugin_Exception
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
