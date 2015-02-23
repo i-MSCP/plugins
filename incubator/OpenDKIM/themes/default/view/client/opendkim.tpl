@@ -16,8 +16,7 @@
 		<td><label for="keyid_{OPENDKIM_ID}">{DOMAIN_NAME}</label></td>
 		<td>{DNS_NAME}</td>
 		<td>
-			<textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key"
-					  style="width: 98%;height: 80px; resize: none;">{DOMAIN_KEY}</textarea>
+			<textarea id="keyid_{OPENDKIM_ID}" name="opendkim_key" style="width: 98%;height: 80px; resize: none;">{DOMAIN_KEY}</textarea>
 		</td>
 	</tr>
 	<!-- EDP: domainkey_item -->

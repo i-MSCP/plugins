@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP OpenDKIM plugin
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,16 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  OpenDKIM
- * @copyright   2010-2015 by i-MSCP Team
- * @copyright   Sascha Bay <info@space2place.de>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
- *
- * @translator  Sascha Bay (TheCry) <info@space2place.de>
+ * @translator  Sascha Bay <info@space2place.de>
  */
 
 return array(
@@ -38,7 +31,6 @@ return array(
 	'Deactivate OpenDKIM' => 'Deactivate OpenDKIM',
 	'No customer with OpenDKIM support has been found.' => 'No customer with OpenDKIM support has been found.',
 	'Customers / OpenDKIM' => 'Customers / OpenDKIM',
-	'encoding' => 'encoding',
 	'Select a customer' => 'Select a customer',
 	'Activate OpenDKIM for this customer' => 'Activate OpenDKIM for this customer',
 	'Domain Name' => 'Domain Name',
@@ -48,9 +40,5 @@ return array(
 	'No domain with OpenDKIM support has been found.' => 'No domain with OpenDKIM support has been found.',
 	'Domain' => 'Domain',
 	'Name' => 'Name',
-	'Unable to install: %s' => 'Unable to install: %s',
-	'Unable to update: %s' => 'Unable to update: %s',
-	'Unable to uninstall: %s' => 'Unable to uninstall: %s',
-	'Your i-MSCP version is not compatible with this plugin. Try with a newer version.' => 'Your i-MSCP version is not compatible with this plugin. Try with a newer version.',
 	'OpenDKIM' => 'OpenDKIM'
 );

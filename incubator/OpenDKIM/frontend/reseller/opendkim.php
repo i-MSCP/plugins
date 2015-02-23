@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP OpenDKIM plugin
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,14 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  OpenDKIM
- * @copyright   Sascha Bay <info@space2place.de>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /***********************************************************************************************************************
@@ -33,8 +27,10 @@
 /**
  * Activate OpenDKIM for the given customer
  *
+ * @throws iMSCP_Exception
+ * @throws iMSCP_Exception_Database
  * @param int $customerId Customer unique identifier
- * @return void
+ * @throws Exception
  */
 function opendkim_activate($customerId)
 {
@@ -62,30 +58,27 @@ function opendkim_activate($customerId)
 
 		try {
 			$db->beginTransaction();
+
 			exec_query(
 				'INSERT INTO opendkim (admin_id, domain_id, domain_name, opendkim_status) VALUES (?, ?, ?, ?)',
 				array($customerId, $row['domain_id'], $row['domain_name'], 'toadd')
 			);
 
-			$stmt = exec_query(
-				'SELECT alias_id, alias_name FROM domain_aliasses WHERE domain_id = ? AND alias_status = ?',
-				array($row['domain_id'], 'ok')
+			exec_query(
+				'
+					INSERT INTO
+						opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
+					SELECT
+						?, domain_id, alias_id, alias_name, ?
+					FROM
+						domain_aliasses
+					WHERE
+						domain_id = ?
+					AND
+						alias_status = ?
+				',
+				array($customerId, 'toadd', $row['domain_id'], 'ok')
 			);
-
-			if ($stmt->rowCount()) {
-				while ($row2 = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-					exec_query(
-						'
-							INSERT INTO  opendkim (
-								admin_id, domain_id, alias_id, domain_name, opendkim_status
-							) VALUES (
-								?, ?, ?, ?, ?
-							)
-						',
-						array($customerId, $row['domain_id'], $row2['alias_id'], $row2['alias_name'], 'toadd')
-					);
-				}
-			}
 
 			$db->commit();
 
@@ -328,7 +321,7 @@ function opendkim_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('CUSTOMER_LIST', '');
-		set_page_message(tr('No customer with OpenDKIM support has been found.'), 'info');
+		set_page_message(tr('No customer with OpenDKIM support has been found.'), 'static_info');
 	}
 }
 
@@ -388,7 +381,6 @@ if (resellerHasCustomers()) {
 	$tpl->assign(
 		array(
 			'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-			'THEME_CHARSET' => tr('encoding'),
 			'ISP_LOGO' => layout_getUserLogo(),
 			'TR_SELECT_NAME' => tr('Select a customer'),
 			'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),

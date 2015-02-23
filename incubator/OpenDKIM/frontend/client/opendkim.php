@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2015 by i-MSCP Team
+ * i-MSCP OpenDKIM plugin
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,14 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  OpenDKIM
- * @copyright   Sascha Bay <info@space2place.de>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /***********************************************************************************************************************
@@ -86,8 +80,7 @@ function opendkim_generatePage($tpl)
 			$tpl->assign(
 				array(
 					'DOMAIN_NAME' => decode_idna($row['domain_name']),
-					'DOMAIN_KEY' => ($row['domain_text'])
-						? tohtml($row['domain_text']) : tr('Generation in progress.'),
+					'DOMAIN_KEY' => ($row['domain_text']) ? tohtml($row['domain_text']) : tr('Generation in progress.'),
 					'OPENDKIM_ID' => $row['opendkim_id'],
 					'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
 					'KEY_STATUS' => translate_dmn_status($row['opendkim_status']),
@@ -99,7 +92,7 @@ function opendkim_generatePage($tpl)
 		}
 	} else {
 		$tpl->assign('CUSTOMER_LIST', '');
-		set_page_message(tr('No domain with OpenDKIM support has been found.'), 'info');
+		set_page_message(tr('No domain with OpenDKIM support has been found.'), 'static_info');
 	}
 }
 
@@ -114,7 +107,7 @@ $cfg = iMSCP_Registry::get('config');
 
 check_login('user');
 
-if (iMSCP_Plugin_OpenDKIM::customerHasOpenDKIM($_SESSION['user_id'])) {
+if (iMSCP_Plugin_OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
 	$tpl = new iMSCP_pTemplate();
 	$tpl->define_dynamic(
 		array(
@@ -129,7 +122,6 @@ if (iMSCP_Plugin_OpenDKIM::customerHasOpenDKIM($_SESSION['user_id'])) {
 	$tpl->assign(
 		array(
 			'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-			'THEME_CHARSET' => tr('encoding'),
 			'ISP_LOGO' => layout_getUserLogo(),
 			'TR_DOMAIN_NAME' => tr('Domain'),
 			'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
