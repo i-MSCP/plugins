@@ -54,21 +54,17 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
-		if($pluginManager->isPluginKnown('PolicydWeight') && $pluginManager->isPluginEnabled('PolicydWeight')) {
-			$pluginManager->pluginChange('PolicydWeight');
-		}
+		try {
+			# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
+			if($pluginManager->isPluginKnown('PolicydWeight') && $pluginManager->isPluginEnabled('PolicydWeight')) {
+				$pluginManager->pluginChange('PolicydWeight');
+			}
 
-		$servicePort = $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1';
-
-		/** @var iMSCP_Config_Handler_Db $dbConfig */
-		$dbConfig = iMSCP_Registry::get('dbConfig');
-
-		if(!isset($dbConfig['PORT_POSTGREY'])) {
-			$dbConfig['PORT_POSTGREY'] = $servicePort;
-		} else {
-			unset($dbConfig['PORT_POSTGREY']);
-			$dbConfig['PORT_POSTGREY'] = $servicePort;
+			iMSCP_Registry::get('dbConfig')->set(
+				'PORT_POSTGREY', $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1'
+			);
+		} catch(iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -81,9 +77,11 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 	 */
 	public function disable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		/** @var iMSCP_Config_Handler_Db $dbConfig */
-		$dbConfig = iMSCP_Registry::get('dbConfig');
-		unset($dbConfig['PORT_POSTGREY']);
+		try {
+			iMSCP_Registry::get('dbConfig')->del('PORT_POSTGREY');
+		} catch(iMSCP_Exception $e) {
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+		}
 	}
 
 	/**

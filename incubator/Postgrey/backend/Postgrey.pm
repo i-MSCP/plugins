@@ -85,7 +85,6 @@ sub enable
 	$rs = iMSCP::Service->getInstance()->restart('postgrey', '-f postgrey');
 	return $rs if $rs;
 
-	require Servers::mta;
 	Servers::mta->factory()->{'restart'} = 1;
 
 	0;
