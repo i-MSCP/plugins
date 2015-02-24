@@ -93,7 +93,6 @@ sub enable
 	$rs = iMSCP::Service->getInstance()->restart('policyd-weight', '-f policyd-weight');
 	return $rs if $rs;
 
-	require Servers::mta;
 	Servers::mta->factory()->{'restart'} = 1;
 
 	0;
