@@ -79,7 +79,7 @@ class iMSCP_Plugin_PolicydWeight extends iMSCP_Plugin_Action
 	{
 		try {
 			iMSCP_Registry::get('dbConfig')->del('PORT_POLICYD_WEIGHT');
-		} catch(iMSCP_Exception_Database $e) {
+		} catch(iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
