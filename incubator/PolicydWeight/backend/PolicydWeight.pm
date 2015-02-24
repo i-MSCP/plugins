@@ -38,7 +38,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provide the backend part of the PolicydWeight plugin.
+ This package provides the backend part of the PolicydWeight plugin.
 
 =head1 PUBLIC METHODS
 
