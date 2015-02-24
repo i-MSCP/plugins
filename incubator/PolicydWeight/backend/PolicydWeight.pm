@@ -147,7 +147,7 @@ sub disable
 
  Initialize instance
 
- Return Plugin::Postgrey or die on failure
+ Return Plugin::PolicydWeight or die on failure
 
 =cut
 
