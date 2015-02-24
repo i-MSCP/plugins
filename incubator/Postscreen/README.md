@@ -1,4 +1,4 @@
-# i-MSCP Postscreen plugin v0.0.6
+# i-MSCP Postscreen plugin v1.0.0
 
 Plugin which allows to use Postscreen daemon for Postfix with i-MSCP.
 

@@ -93,7 +93,7 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	protected function checkCompat(iMSCP_Events_Event $event)
 	{
 		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
+			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
 				set_page_message(
 					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
 				);
