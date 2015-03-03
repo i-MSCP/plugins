@@ -51,25 +51,7 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(
-			array(
-				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin,
-				iMSCP_Events::onAdminScriptStart
-			),
-			$this
-		);
-	}
-
-	/**
-	 * onBeforeInstallPlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeInstallPlugin($event)
-	{
-		$this->checkCompat($event);
+		$eventsManager->registerListener(iMSCP_Events::onAdminScriptStart, $this);
 	}
 
 	/**
@@ -101,17 +83,6 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeUpdatePlugin($event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
 	 * Plugin update
 	 *
 	 * @throws iMSCP_Plugin_Exception When update fail
@@ -127,17 +98,6 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 		} catch(Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**
@@ -163,24 +123,6 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 			'/admin/monitorix.php' => $pluginDir . '/frontend/monitorix.php',
 			'/admin/monitorixgraphics.php' => $pluginDir . '/frontend/monitorixgraphics.php'
 		);
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	protected function checkCompat($event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.16', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
 	}
 
 	/**

@@ -34,6 +34,7 @@ return array(
 	),
 	'email' => 'plugins@i-mscp.net',
 	'version' => '1.1.2',
+	'require_api' => '1.0.0',
 	'date' => '2015-02-12',
 	'name' => 'Monitorix',
 	'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
