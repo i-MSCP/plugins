@@ -16,14 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  DebugBar
- * @copyright   Copyright (C) 2010-2015 by Laurent Declercq
- * @author      Laurent Declercq <l.declercq@nuxwin.com>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
@@ -61,8 +53,6 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
-
 		if(!is_xhr()) { // Do not act on AJAX request
 			$components = $this->getConfigParam('components');
 
@@ -94,24 +84,6 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
 					);
 				}
-			}
-		}
-	}
-
-	/**
-	 * onBeforeEnablePlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
 			}
 		}
 	}
