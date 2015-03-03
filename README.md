@@ -1,7 +1,7 @@
 # i-MSCP plugin incubator
 
-This repository contain the i-MSCP plugins which are officialy maintained by the i-MSCP development team.
+This repository contains the plugins which are officialy maintained by the i-MSCP development team.
 
-Once they have been released, you can find our plugins in our [plugin store](http://i-mscp.net/filebase/index.php/Filebase/).
+Once released, the plugins are available for download through our plugin [plugin store](http://i-mscp.net/filebase/index.php/Filebase/)..
 
-Be aware that no support will be provided for usage of a plugin which is not released yet.
+**BE AWARE** that **NO SUPPORT** is provided for plugin which are not released yet.
