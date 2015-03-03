@@ -24,28 +24,6 @@
 class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s)
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 * @return void
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
-	}
-
-	/**
-	 * onBeforeEnablePlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
 	 * Plugin activation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -81,25 +59,6 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 			iMSCP_Registry::get('dbConfig')->del('PORT_POSTGREY');
 		} catch(iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat(iMSCP_Events_Event $event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
 		}
 	}
 }

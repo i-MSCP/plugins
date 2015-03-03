@@ -11,7 +11,7 @@ Homepage: http://postgrey.schweikert.ch/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3 ( Plugin API 1.0.0 )
+* i-MSCP version >= 1.2.3
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
