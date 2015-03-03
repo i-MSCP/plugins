@@ -1,10 +1,10 @@
-# i-MSCP RoundcubePlugins plugin v1.1.0
+# i-MSCP RoundcubePlugins plugin v1.2.0
 
 Plugin allows to use Roundcube Plugins with i-MSCP.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.2
+* i-MSCP version >= 1.2.3
 * Dovecot ( Only needed if you want use the managesieve Roundcube plugin )
 * Roundcube 0.9.x
 

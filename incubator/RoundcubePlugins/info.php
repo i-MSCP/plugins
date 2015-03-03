@@ -35,6 +35,7 @@ return array(
 	),
 	'email' => 'team@i-mscp.net',
 	'version' => '1.1.0',
+	'require_api' => '1.0.0',
 	'date' => '2015-02-11',
 	'name' => 'RoundcubePlugins',
 	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
