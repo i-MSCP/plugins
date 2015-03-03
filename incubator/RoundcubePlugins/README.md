@@ -92,6 +92,10 @@ desktop notification ( using webkitNotifications feature ).
 
 This plugin adds support for inline PDF viewer.
 
+### OdfViewer
+
+This plugin adds support for inline ODF viewer.
+
 ### Pop3Fetcher
 
 This plugin allows to add pop3 accounts and automatically fetch emails from them.
