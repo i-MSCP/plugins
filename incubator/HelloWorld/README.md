@@ -1,4 +1,4 @@
-# i-MSCP HelloWorld plugin v0.0.5
+# i-MSCP HelloWorld plugin v1.1.0
 
 Plugin which simply says 'Hello World' when login page is loaded.
 
@@ -9,7 +9,7 @@ API such as the backend part, nor the integrated tools such as those which help 
 
 ## Requirements
 
-* i-MSCP versions >= 1.1.0-rc4.7
+* i-MSCP version >= 1.2.3
 
 ## Installation
 
