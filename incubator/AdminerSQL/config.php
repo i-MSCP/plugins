@@ -1,7 +1,8 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- * Copyright (C) 2010-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +20,7 @@
  */
 
 return array(
+	// Adminer version
 	'adminer_version' => '4.2.0',
 
 	// Available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, no, pl, pt, ro, ru, sk, sl,

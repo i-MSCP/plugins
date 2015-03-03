@@ -1,7 +1,8 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- * Copyright (C) 2010-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,22 +33,11 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	{
 		$eventsManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onClientScriptStart
 			),
 			$this
 		);
-	}
-
-	/**
-	 * onBeforeEnablePlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**
@@ -121,25 +111,6 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 							)
 						);
 					}
-			}
-		}
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat(iMSCP_Events_Event $event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
 			}
 		}
 	}

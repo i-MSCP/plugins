@@ -5,7 +5,8 @@
 =cut
 
 # i-MSCP AdminerSQL plugin
-# Copyright (C) 2010-2015 Sascha Bay <info@space2place.de>
+# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -90,9 +91,7 @@ sub enable()
 	return $rs if $rs;
 
 	# Create production directory
-	$rs = iMSCP::Dir->new(
-		'dirname' => $productionDir
-	)->make(
+	$rs = iMSCP::Dir->new( dirname => $productionDir )->make(
 		{ 'user' => $panelUName, 'group' => $panelGName, 'mode' => 0550 }
 	);
 	return $rs if $rs;
@@ -172,7 +171,7 @@ sub _init
 
 =back
 
-=head1 Authors and Contributors
+=head1 AUTHORS
 
  Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>
