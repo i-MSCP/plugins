@@ -25,34 +25,6 @@
 class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 {
 	/**
-	 * Register a callback for the given event(s)
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 * @return void
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(
-			array(
-				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin
-			),
-			$this
-		);
-	}
-
-	/**
-	 * onBeforeInstallPlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeInstallPlugin(iMSCP_Events_Event $event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
 	 * Plugin installation
 	 *
 	 * @param iMSCP_Plugin_Manager $pluginManager
@@ -72,34 +44,5 @@ class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		// Only there to tell the plugin manager that this plugin can be uninstalled
-	}
-
-	/**
-	 * onBeforeUpdatePlugin
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeUpdatePlugin(iMSCP_Events_Event $event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat(iMSCP_Events_Event $event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
 	}
 }

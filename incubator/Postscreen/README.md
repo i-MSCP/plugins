@@ -20,7 +20,7 @@ In any case, be aware that if you use this plugin, your clients must no longer s
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3 ( Plugin API 1.0.0 )
+* i-MSCP version >= 1.2.3
 * i-MSCP Postfix server implementation
 * Postfix version >= 2.8
 
