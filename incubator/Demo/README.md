@@ -1,4 +1,4 @@
-# i-MSCP Demo plugin v1.1.0
+# i-MSCP Demo plugin v1.1.1
 
 Plugin which allows to create an i-MSCP Demo server in few minutes.
 
@@ -12,7 +12,7 @@ The demo plugin allows to setup an i-MSCP demo server in few minutes. It allow t
 
 ## Requirements
 
-Plugin compatible with i-MSCP versions >= 1.1.0
+* i-MSCP version >= 1.2.3
 
 ## Installation
 
@@ -39,7 +39,7 @@ configuration file contains a simple PHP associative array (See the sample below
 
 To describe an user account, you must add a new section like below in the configuration file:
 
-```
+```php
 ...
 	'user_accounts' => array(
 		array(
@@ -66,7 +66,7 @@ plugin context. You can see all integrated events by reading the iMSCP_Events cl
 
 To disable one or more actions, you must add a new section like below in the plugin configuration file:
 
-```
+```php
 ...
 	'disabled_actions' => array(
 		'onBeforeAddFtp',
@@ -87,7 +87,7 @@ The plugin also allows to disable a specific list of pages, each of them defined
 is needed when a page doesn't trigger any events allowing to stop sensible actions. For instance, the software installer
 pages doesn't trigger any events. Thus, the only way to disable the sensible actions is to fully disable those pages.
 
-```
+```php
 ...
 	'disabled_pages' => array(
 		'^/admin/software.*',
@@ -99,7 +99,7 @@ pages doesn't trigger any events. Thus, the only way to disable the sensible act
 
 ### Configuration file sample
 
-```
+```php
 // Configuration file sample for the demo plugin
 
 return array(
@@ -208,8 +208,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ```
 
-See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+See [LICENSE](LICENSE)
 
 ## Author
 
- * Laurent Declercq <l.declercq@nuxwin.com>
+* Laurent Declercq <l.declercq@nuxwin.com>

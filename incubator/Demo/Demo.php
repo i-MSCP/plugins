@@ -123,7 +123,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeUpdatePluginList($event)
+	public function onBeforeUpdatePluginList(iMSCP_Events_Event $event)
 	{
 		if($event->getParam('pluginName') !== $this->getName()) {
 			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
@@ -161,23 +161,13 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeEnablePlugin($event)
+	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.4', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
+		$pluginManager = iMSCP_Registry::get('pluginManager');
 
-				$event->stopPropagation();
-			}
-		} else {
-			$pluginManager = iMSCP_Registry::get('pluginManager');
-
-			if($pluginManager->isPluginEnabled($this->getName())) {
-				set_page_message(tr('This action is not permitted in demo version.'), 'warning');
-				$event->stopPropagation();
-			}
+		if($pluginManager->isPluginEnabled($this->getName())) {
+			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
+			$event->stopPropagation();
 		}
 	}
 
@@ -187,7 +177,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeDisablePlugin($event)
+	public function onBeforeDisablePlugin(iMSCP_Events_Event $event)
 	{
 		if($event->getParam('pluginName') !== $this->getName()) {
 			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
@@ -201,7 +191,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeUpdatePlugin($event)
+	public function onBeforeUpdatePlugin(iMSCP_Events_Event $event)
 	{
 		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
 		$event->stopPropagation();
@@ -213,7 +203,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeDeletePlugin($event)
+	public function onBeforeDeletePlugin(iMSCP_Events_Event $event)
 	{
 		set_page_message(tr('This action is not permitted in demo version.'), 'warning');
 		$event->stopPropagation();
@@ -225,7 +215,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeProtectPlugin($event)
+	public function onBeforeProtectPlugin(iMSCP_Events_Event $event)
 	{
 		if($event->getParam('pluginName') !== $this->getName()) {
 			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
@@ -239,7 +229,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeEditUser($event)
+	public function onBeforeEditUser(iMSCP_Events_Event $event)
 	{
 		$eventName = $event->getName();
 
@@ -256,7 +246,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeDeleteUser($event)
+	public function onBeforeDeleteUser(iMSCP_Events_Event $event)
 	{
 		$eventName = $event->getName();
 
@@ -273,7 +263,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeDeleteCustomer($event)
+	public function onBeforeDeleteCustomer(iMSCP_Events_Event $event)
 	{
 		$eventName = $event->getName();
 
@@ -332,7 +322,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	protected function protectDemoUser($event)
+	protected function protectDemoUser(iMSCP_Events_Event $event)
 	{
 		$stmt = exec_query('SELECT admin_name FROM admin WHERE admin_id = ?', $event->getParam('userId'));
 
@@ -362,7 +352,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onLoginScriptEnd($event)
+	public function onLoginScriptEnd(iMSCP_Events_Event $event)
 	{
 		if($this->getConfigParam('user_accounts') && ($jsCode = $this->getCredentialsDialog()) != '') {
 			/** @var $tpl iMSCP_pTemplate */
