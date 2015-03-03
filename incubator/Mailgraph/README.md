@@ -1,10 +1,10 @@
-# i-MSCP Mailgraph plugin v0.0.5
+# i-MSCP Mailgraph plugin v1.0.0
 
 Plugin which provides statistical graphics for SMTP traffic ( Postfix and Sendmail )
 
 ## Requirements
 
-* i-MSCP versions >= 1.1.11
+* i-MSCP version >= 1.2.3
 
 ### Debian / Ubuntu package
 
@@ -39,7 +39,8 @@ change by updating the plugin list through the plugin management interface.
 ## License
 
 ```
-Copyright (C) Sascha Bay <info@space2place.de>
+Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -53,7 +54,7 @@ GNU General Public License for more details.
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
-## Authors and contributors
+## Authors
 
-* Sascha Bay <info@space2place.de> (Author)
-* Laurent Declercq <l.declercq@nuxwin.com> (Contributor)
+* Sascha Bay <info@space2place.de>
+* Laurent Declercq <l.declercq@nuxwin.com>

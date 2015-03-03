@@ -5,6 +5,7 @@
 =cut
 
 # i-MSCP Mailgraph plugin
+# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2010-2015 by Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
@@ -661,7 +662,7 @@ sub _unregisterCronjob
 
 =back
 
-=head1 AUTHORS AND CONTRIBUTORS
+=head1 AUTHORS
 
  Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>

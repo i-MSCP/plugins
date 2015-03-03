@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
+ * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2010-2015 by Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +23,7 @@ return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
 	'version' => '0.0.5',
+	'require_api' => '1.0.0',
 	'date' => '2014-06-11',
 	'name' => 'Mailgraph',
 	'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail).',
