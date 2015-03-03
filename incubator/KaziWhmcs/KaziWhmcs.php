@@ -24,57 +24,6 @@
 class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
 {
     /**
-     * Register event listeners
-     *
-     * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
-     * @return void
-     */
-    public function register(iMSCP_Events_Manager_Interface $eventManager)
-    {
-        $eventManager->registerListener(
-            array(
-                iMSCP_Events::onBeforeInstallPlugin,
-                iMSCP_Events::onBeforeUpdatePlugin,
-                iMSCP_Events::onBeforeEnablePlugin
-            ),
-            $this
-        );
-    }
-
-    /**
-     * onBeforeInstallPlugin listener
-     *
-     * @param iMSCP_Events_Event $event
-     * @return void
-     */
-    public function onBeforeInstallPlugin($event)
-    {
-        $this->checkCompat($event);
-    }
-
-    /**
-     * onBeforeUpdatePlugin listener
-     *
-     * @param iMSCP_Events_Event $event
-     * @return void
-     */
-    public function onBeforeUpdatePlugin($event)
-    {
-        $this->checkCompat($event);
-    }
-
-    /**
-     * onBeforeEnablePlugin listener
-     *
-     * @param iMSCP_Events_Event $event
-     * @return void
-     */
-    public function onBeforeEnablePlugin($event)
-    {
-        $this->checkCompat($event);
-    }
-
-    /**
      * Get routes
      *
      * @return array An array which map routes to action scripts
@@ -82,25 +31,8 @@ class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
     public function getRoutes()
     {
         return array(
-            $this->getConfigParam('api_endpoint', '/kaziWhmcs') => PLUGINS_PATH . '/' .  $this->getName() . '/whmcs.php'
+            $this->getConfigParam('api_endpoint', '/kaziWhmcs') => $this->getPluginManager()->getPluginDirectory() .
+                '/' .  $this->getName() . '/whmcs.php'
         );
-    }
-
-    /**
-     * Check plugin compatibility
-     *
-     * @param iMSCP_Events_Event $event
-     */
-    protected function checkCompat($event)
-    {
-        if ($event->getParam('pluginName') == $this->getName()) {
-            if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.10', '<')) {
-                set_page_message(
-                    tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-                );
-
-                $event->stopPropagation();
-            }
-        }
     }
 }
