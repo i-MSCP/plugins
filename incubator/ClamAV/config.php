@@ -26,8 +26,7 @@ return array(
 	 * 
 	 * For more information about the different configuration options please check 'man clamav-milter.conf'.
 	 * 
-	 * Warning: Don't change anything if you don't know what you are doing. Be aware that when changing the port of the
-	 * Postfix smtpd_milter for ClamAV require to rerun the i-MSCP setup script.
+	 * Warning: Don't change anything if you don't know what you are doing.
 	 */
 
 	// Postfix smtpd_milter for ClamAV ( default: inet:localhost:32767 )

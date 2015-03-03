@@ -36,6 +36,7 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
+use Servers::mta;
 use JSON;
 
 use parent 'Common::SingletonClass';
@@ -69,10 +70,12 @@ sub enable
 	$rs = $self->_postfix('configure');
 	return $rs if $rs;
 
-	$rs = $self->_restartClamavMilter();
+	$rs = iMSCP::Service->getInstance()->restart('clamav-milter', '-f clamav-milter');
 	return $rs if $rs;
 
-	$self->_schedulePostfixRestart();
+	Servers::mta->factory()->{'restart'} = 'yes';
+
+	0;
 }
 
 =item disable()
@@ -93,10 +96,12 @@ sub disable
 	$rs = $self->_postfix('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_restartClamavMilter();
+	$rs = iMSCP::Service->getInstance()->restart('clamav-milter', '-f clamav-milter');
 	return $rs if $rs;
 
-	$self->_schedulePostfixRestart();
+	Servers::mta->factory()->{'restart'} = 'yes';
+
+	0;
 }
 
 =back
@@ -148,7 +153,6 @@ sub _clamavMilter
 
 	if(-f '/etc/clamav/clamav-milter.conf') {
 		my $file = iMSCP::File->new( filename => '/etc/clamav/clamav-milter.conf' );
-
 		my $fileContent = $file->get();
 		unless (defined $fileContent) {
 			error("Unable to read $file->{'filename'} file");
@@ -159,7 +163,7 @@ sub _clamavMilter
 			'AllowSupplementaryGroups|ReadTimeout|Foreground|Chroot|PidFile|TemporaryDirectory|ClamdSocket|LocalNet|' .
 			'Whitelist|SkipAuthenticated|MaxFileSize|OnClean|OnInfected|OnFail|RejectMsg|AddHeader|ReportHostname|' .
 			'VirusAction|LogFile|LogFileUnlock|LogFileMaxSize|LogTime|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
-			'LogClean|LogRotate|SupportMultipleRecipients|).*)';
+			'LogClean|LogRotate|SupportMultipleRecipients).*)';
 
 		if($action eq 'configure') {
 			$fileContent =~ s/^$baseRegexp/#$1/gm;
@@ -175,7 +179,7 @@ sub _clamavMilter
 					LogInfected LogClean LogRotate SupportMultipleRecipients
 				/
 			) {
-				if(exists $self->{'config'}->{$option}) {
+				if(exists $self->{'config'}->{$option} && $self->{'config'}->{$option} ne '') {
 					$configSnippet .= "$option $self->{'config'}->{$option}\n";
 				}
 			}
@@ -186,16 +190,14 @@ sub _clamavMilter
 				$fileContent = replaceBloc(
 					'# Begin Plugin::ClamAV\n',
 					'# Ending Plugin::ClamAV\n',
-					'# Begin Plugin::ClamAV\n' .
-						$configSnippet .
-					'# Ending Plugin::ClamAV\n',
+					$configSnippet,
 					$fileContent
 				)
 			} else {
 				$fileContent .= $configSnippet
 			}
 		} elsif($action eq 'deconfigure') {
-			$fileContent = replaceBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', '', $fileContent);
+			$fileContent = replaceBloc("# Begin Plugin::ClamAV\n", "# Ending Plugin::ClamAV\n", '', $fileContent);
 			$fileContent =~ s/^#$baseRegexp/$1/gm;
 		}
 
@@ -223,71 +225,40 @@ sub _postfix
 	my ($self, $action) = @_;
 
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
-	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
+	my @postconfValues = split "\n", $stdout;
 
 	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
 	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
 
-	s/\s*$milterValuePrev//g for @postconfValues;
+	s/\s*(?:$milterValuePrev|$milterValue)//g for @postconfValues;
 
 	if($action eq 'configure') {
 		my @postconf = (
 			'milter_default_action=accept',
 			'smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue"),
-			'non_smtpd_milters=' . escapeShell("$postconfValues[1] $milterValue")
+			'non_smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue")
 		);
 
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
 	} elsif($action eq 'deconfigure') {
 		my @postconf = (
-			'smtpd_milters=' . escapeShell($postconfValues[0]), 'non_smtpd_milters=' . escapeShell($postconfValues[1])
+			'smtpd_milters=' . escapeShell($postconfValues[0]),
+			'non_smtpd_milters=' . escapeShell($postconfValues[1])
 		);
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
 	}
 
-	0;
-}
-
-=item _restartClamavMilter()
-
- Restart a ClamAV Milter
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _restartClamavMilter
-{
-	iMSCP::Service->getInstance()->restart('clamav-milter', 'retval');
-}
-
-=item _schedulePostfixRestart()
-
- Schedule restart of Postfix
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _schedulePostfixRestart
-{
-	require Servers::mta;
-
-	Servers::mta->factory()->{'restart'} = 'yes';
-
-	0;
+	$rs;
 }
 
 =item _checkRequirements()

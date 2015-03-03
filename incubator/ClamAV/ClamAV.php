@@ -25,43 +25,4 @@
  */
 class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 {
-	/**
-	 * Register a callback for the given event(s)
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat(iMSCP_Events_Event $event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '1.0.0', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
-	}
 }

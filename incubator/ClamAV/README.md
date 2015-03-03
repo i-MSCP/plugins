@@ -1,10 +1,10 @@
-# i-MSCP ClamAV plugin v1.0.1
+# i-MSCP ClamAV plugin v1.1.0
 
 Plugin which allows to use ClamAV with i-MSCP.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3 ( Plugin API >= 1.0.0 )
+* i-MSCP version >= 1.2.3
 * i-MSCP Postfix server implementation
 
 ### Debian / Ubuntu packages
@@ -18,8 +18,7 @@ Plugin which allows to use ClamAV with i-MSCP.
 You can install these packages by running the following commands:
 
 ```
-# aptitude update
-# aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
+# aptitude update && nstall clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
 # service clamav-freshclam stop
 # freshclam
 # service clamav-freshclam start

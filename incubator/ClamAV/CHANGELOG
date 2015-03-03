@@ -2,12 +2,13 @@ ClamAV - ChangeLog
 ==================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.0.1
+Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Fixed: Do not refer to smtpd_milters using the $smtpd_milters to avoid conflict with other plugins
 	Fixed #IP-1278: Old setting not removed on upgrade
 	Fixed #IP-1282: Add config Parameter "VirusAction"
+	Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
