@@ -21,7 +21,8 @@
 return array(
 	'author' => 'Sascha Bay',
 	'email' => 'info@space2place.de',
-	'version' => '1.1.0',
+	'version' => '1.0.0',
+	'require_api' => '1.0.0',
 	'date' => '2015-02-21',
 	'name' => 'RecaptchaPMA',
 	'desc' => "This plugin add reCAPTCHA support to phpMyAdmin.",

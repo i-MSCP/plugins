@@ -4,7 +4,7 @@ This plugin add reCAPTCHA support to phpMyAdmin.
 
 ## Requirements
 
-* i-MSCP version >= 1.1.11
+* i-MSCP version >= 1.2.3
 * Account on https://www.google.com/recaptcha/
 
 ## Installation
@@ -45,6 +45,6 @@ GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
 
-## Authors
+## Author
 
-* Sascha Bay <info@space2place.de> (Author)
+* Sascha Bay <info@space2place.de>
