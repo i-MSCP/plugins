@@ -14,7 +14,7 @@ Homepage: http://www.policyd-weight.org/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3 ( Plugin API 1.0.0 )
+* i-MSCP version >= 1.2.3
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
