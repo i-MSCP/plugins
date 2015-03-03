@@ -31,21 +31,9 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		$eventsManager->registerListener(iMSCP_Events::onBeforeEnablePlugin, $this);
-
 		# We register this listener with low priority to let any other plugin which listen on the same event a chance
 		# to act before the redirect
 		$eventsManager->registerListener(iMSCP_Events::onAfterAddDomainAlias, $this, -99);
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**
@@ -61,14 +49,14 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 		$userIdentity = iMSCP_Authentication::getInstance()->getIdentity();
 
 		if ($userIdentity->admin_type == 'user') {
-			$disallowedDomains = (array)$this->getConfigParam('disalowed_domains', array()); # List of disallowed domains
+			$disallowedDomains = (array)$this->getConfigParam('ignored_domains', array());
 			$domainAliasNameAscii = $event->getParam('domainAliasName');
 
-			# Only domain aliases which are not listed in the disalowed_domains list are auto-approved
+			# Only domain aliases which are not listed in the ignored_domains list are auto-approved
 			if (!in_array(decode_idna($domainAliasNameAscii), $disallowedDomains)) {
 				$username = decode_idna($userIdentity->admin_name);
 
-				$approvalRule = $this->getConfigParam('approval_rule', true); // Keep compatibility with old config file
+				$approvalRule = $this->getConfigParam('approval_rule', true);
 				$userAccounts = (array)$this->getConfigParam('user_accounts', array());
 
 				if ($approvalRule) {
@@ -113,7 +101,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 						$username = decode_idna($username);
 
 						write_log(
-							sprintf('DomainAutoApproval: %s domain alias has been auto-approved', $domainAliasName),
+							sprintf('DomainAutoApproval: The %s domain alias has been auto-approved', $domainAliasName),
 							E_USER_NOTICE
 						);
 
@@ -133,25 +121,6 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 						throw $e;
 					}
 				}
-			}
-		}
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat($event)
-	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.8', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
 			}
 		}
 	}

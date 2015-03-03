@@ -1,10 +1,10 @@
 # DomainAutoApproval v1.0.2 plugin for i-MSCP
 
-Plugin allowing auto-approval of new domain aliases.
+Plugin which allows auto-approval of new domain aliases.
 
 ## Requirements
 
-Plugin compatible with i-MSCP versions >= 1.1.4
+* i-MSCP version >= 1.2.3
 
 ## Installation
 
@@ -28,7 +28,7 @@ change by updating the plugin list through the plugin management interface.
 ## License
 
 ```
-i-MSCP CronJobs plugin
+i-MSCP DomainAutoApproval plugin
 copyright (c) 2012-2015 laurent declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or

@@ -29,7 +29,7 @@ return array(
 	// Here, you can provide the list of user accounts ( read above to know how the list is used )
 	'user_accounts' => array(),
 
-	// List of disallowed domains
-	// Any domain listed here will never be auto-approved, whatever the value of the approval rule above
-	'disalowed_domains' => array()
+	// List of ignored domains
+	// Any domain listed here will be ignored by this plugin, whatever the value of the approval rule above
+	'ignored_domains' => array()
 );
