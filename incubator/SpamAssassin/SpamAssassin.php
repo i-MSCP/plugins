@@ -1,7 +1,8 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * i-MSCP SpamAssassin plugin
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,57 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  SpamAssassin
- * @copyright   Sascha Bay <info@space2place.de>
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
- * @author      Rene Schuster <mail@reneschuster.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 /**
- * SpamAssassin Plugin
- *
- * This plugin allows to use SpamAssassin with i-MSCP.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  SpamAssassin
- * @author      Sascha Bay <info@space2place.de>
+ * Class iMSCP_Plugin_SpamAssassin
  */
 class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 {
-	/**
-	 * Register a callback for the given event(s).
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(
-			array(
-				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin
-			),
-			$this
-		);
-	}
-
-	/**
-	 * onBeforeInstallPlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeInstallPlugin($event)
-	{
-		$this->checkCompat($event);
-	}
-
 	/**
 	 * Plugin installation
 	 *
@@ -114,28 +71,6 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeUpdatePlugin event listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeUpdatePlugin($event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->checkCompat($event);
-	}
-
-	/**
 	 * Plugin disable
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -166,24 +101,6 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			$this->dbMigrate($pluginManager, 'up');
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	protected function checkCompat($event)
-	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
 		}
 	}
 
@@ -268,7 +185,6 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	protected function removeSpamAssassinServicePort()
 	{
 		$dbConfig = iMSCP_Registry::get('dbConfig');
-		
 		unset($dbConfig['PORT_SPAMASSASSIN']);
 	}
 }

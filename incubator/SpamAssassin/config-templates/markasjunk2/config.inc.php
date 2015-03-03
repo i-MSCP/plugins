@@ -135,9 +135,9 @@ $rcmail_config['markasjunk2_sauserprefs_config'] = '../sauserprefs/config.inc.ph
 // see the README for an example
 // TEST CAREFULLY BEFORE USE ON REAL MESSAGES
 $rcmail_config['markasjunk2_spam_patterns'] = array(
-												'patterns' => array(),
-												'replacements' => array()
-												);
+	'patterns' => array(),
+	'replacements' => array()
+);
 
 // Patterns to match and replace headers for spam messages
 // Replacement method uses preg_replace - http://www.php.net/manual/function.preg-replace.php
@@ -145,8 +145,6 @@ $rcmail_config['markasjunk2_spam_patterns'] = array(
 // see the README for an example
 // TEST CAREFULLY BEFORE USE ON REAL MESSAGES
 $rcmail_config['markasjunk2_ham_patterns'] = array(
-												'patterns' => array(),
-												'replacements' => array()
-												);
-
-?>
+	'patterns' => array(),
+	'replacements' => array()
+);

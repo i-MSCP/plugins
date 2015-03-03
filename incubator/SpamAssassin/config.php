@@ -1,7 +1,8 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * i-MSCP SpamAssassin plugin
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,16 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  SpamAssassin
- * @copyright   Sascha Bay <info@space2place.de>
- * @copyright   Rene Schuster <mail@reneschuster.de>
- * @author      Sascha Bay <info@space2place.de>
- * @author      Rene Schuster <mail@reneschuster.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 
 return array(
@@ -42,7 +33,6 @@ return array(
 	 * - Make sure you know if you need/want the checks or not before enabling them,
 	 *   because each SpamAssassin plugin needs resources and also time to be executed.
 	 */
-
 
 	// On this plugin implementation rejecting SPAM is totally legal, because the SPAM check will be done
 	// before the MTA accepts the mail message (before-queue filter with spamass-milter).
@@ -107,7 +97,6 @@ return array(
 	// This plugin will try to guess the language used in the message text.
 	'use_lang_check' => 'no', // YES, NO (default)
 
-
 	/*
 	 * 3rd party SpamAssasin Plugins
 	 */
@@ -117,7 +106,6 @@ return array(
 
 	// Plugin iXhash2 - http://mailfud.org/iXhash2/
 	'iXhash2' => 'no', // YES, NO (default)
-
 
 	/*
 	 * Roundcube Plugins
@@ -136,7 +124,6 @@ return array(
 	// Check webmail/plugins/sauserprefs/config.inc.php for all options.
 	// Don't change anything, if you don't know what you are doing!
 	'sauserprefs_dont_override' => "'{headers}', 'use_razor1'", // default: "'{headers}', 'use_razor1'"
-
 
 	/*
 	 * SpamAssassin and spamass-milter default configuration
