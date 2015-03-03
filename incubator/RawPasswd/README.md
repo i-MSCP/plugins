@@ -4,7 +4,7 @@ Plugin which allows to store i-MSCP frontEnd user's passwords in plain text into
  
 ## Requirements
 
-* Not defined yet
+* i-MSCP version >= 1.2.3
 
 ## Installation
 

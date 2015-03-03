@@ -89,7 +89,7 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterEditUser($event)
+	public function onAfterEditUser(iMSCP_Events_Event $event)
 	{
 		$userId = $event->getParam('userId', false);
 
