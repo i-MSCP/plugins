@@ -29,7 +29,7 @@ configuration option to **TRUE** in the plugin configuration file.
 You can install these packages by executing the following commands:
 
 ```bash
-# aptitude update && aptitude -y install build-essential busybox-static libpam-chroot makejail
+# aptitude update && aptitude install build-essential busybox-static libpam-chroot makejail
 ```
 
 **Notes**
