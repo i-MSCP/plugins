@@ -60,14 +60,14 @@ sub enable
 	return $rs if $rs;
 
 	my ($stdout, $stderr);
-	$rs = execute('postconf smtpd_recipient_restrictions', \$stdout, \$stderr);
+	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
 	chomp($stdout);
-	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
+	my $postconfValues = $stdout;
 	my @smtpRestrictions = split ', ', $postconfValues;
 
 	# Add Postgrey policy server
@@ -103,14 +103,14 @@ sub disable
 	my $self = $_[0];
 
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_recipient_restrictions', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
 	chomp($stdout);
-	(my $postconfValues = $stdout) =~ s/^.*=\s*(.*)/$1/;
+	my $postconfValues = $stdout;
 
 	# Remove Postgrey policy server
 	my @smtpRestrictions = grep {

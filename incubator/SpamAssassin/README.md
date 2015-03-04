@@ -4,10 +4,9 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 
 ## Requirements
 
- i-MSCP version >= 1.2.3
- SpamAssassin 3.3.x or 3.4.x
- Roundcube >= 0.9.x
- See installation section for required software packages.
+* i-MSCP version >= 1.2.3
+* SpamAssassin 3.3.x or 3.4.x
+* Roundcube >= 0.9.x
 
 ### Debian / Ubuntu packages 
 
@@ -46,7 +45,6 @@ See [Configuration file](../ClamAV/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
-
 
 ## 3rd party SpamAssasin plugins
 
@@ -176,13 +174,13 @@ These are the $GLOBAL default values which will be imported during plugin instal
 </table>
 
 
-The $GLOBAL values will be used as long as the user has no specific entries in the table.
-If you want to change some $GLOBAL options, please do that directly in the database.
+The $GLOBAL values will be used as long as the user has no specific entries in the table. If you want to change some
+$GLOBAL options, please do that directly in the database.
 
 #### Per-Domain SpamAssassin preferences
 
-You could also specify domain specific entries, which will be used as default only for that domain,
-until the user has no individual entry in the userpref table. Here are some examples for the domain **example.com**:
+You could also specify domain specific entries, which will be used as default only for that domain, until the user has
+no individual entry in the userpref table. Here are some examples for the domain **example.com**:
 
 <table>
 	<tr>
@@ -209,8 +207,8 @@ until the user has no individual entry in the userpref table. Here are some exam
 
 #### Per-User SpamAssassin preferences
 
-If you enabled the Roundcube Plugin **sauserprefs** in the config.php file, then the user can change his 
-SpamAssassin preferences under Roundcube -> Settings -> Spam.
+If you enabled the Roundcube Plugin **sauserprefs** in the config.php file, then the user can change his SpamAssassin
+preferences under Roundcube -> Settings -> Spam.
 
 The user preferences will also be stored in the **userpref** table with the mail address as username.
 
@@ -243,7 +241,7 @@ Send a mail with the following content to one of your i-MSCP mail accounts:
 	XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
 ```
 
-Be aware that the GTUBE signature above must be added on a line, without whitespace nor line break.
+Be aware that the **GTUBE** signature above must be added on a line, without whitespace nor line break.
 
 ## License
 

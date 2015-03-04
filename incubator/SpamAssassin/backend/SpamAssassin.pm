@@ -570,13 +570,13 @@ sub _postfixConfig
 	my ($self, $action) = @_;
 
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters non_smtpd_milters milter_connect_macros', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters milter_connect_macros', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
-	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
+	my @postconfValues = split "\n", $stdout;
 
 	(my $milterSocket = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 

@@ -598,13 +598,13 @@ sub _postfixMainConfig
 	my ($self, $action) = @_;
 
 	my ($stdout, $stderr);
-	my $rs = execute('postconf smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
-	s/^.*=\s*(.*)/$1/ for ( my @postconfValues = split "\n", $stdout );
+	my @postconfValues = split "\n", $stdout;
 
 	my $milterValue = 'inet:localhost:' . $self->{'config'}->{'opendkim_port'};
 	my $milterValuePrev = 'inet:localhost:' . $self->{'config_prev'}->{'opendkim_port'};
@@ -623,7 +623,8 @@ sub _postfixMainConfig
 		error($stderr) if $stderr && $rs;
 	} elsif($action eq 'deconfigure') {
 		my @postconf = (
-			'smtpd_milters=' . escapeShell($postconfValues[0]), 'non_smtpd_milters=' . escapeShell($postconfValues[1])
+			'smtpd_milters=' . escapeShell($postconfValues[0]),
+			'non_smtpd_milters=' . escapeShell($postconfValues[1])
 		);
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
