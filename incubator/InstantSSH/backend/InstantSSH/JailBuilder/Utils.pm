@@ -293,7 +293,7 @@ sub copyDevice($$;$)
 
 		# Create the device inside the jail
 		system("mknod $chrootpath $type $major $minor > /dev/null 2>&1") == 0 or die(
-			"InstantSSH::JailBuilder::Utils: Unable to create the $chrootpath device: $!"
+			"InstantSSH::JailBuilder::Utils: Unable to create the $chrootpath device"
 		);
 
 		# Copy time and permissions
