@@ -21,7 +21,7 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '3.2.0',
+	'version' => '3.1.2',
 	'require_api' => '1.0.0',
 	'date' => '2015-02-27',
 	'name' => 'InstantSSH',

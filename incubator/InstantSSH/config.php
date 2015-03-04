@@ -120,7 +120,7 @@ return array(
 	//
 	// This is the list of application sections which are used to create/update the jails ( see below ).
 	'app_sections' => array(
-		'bashshell', 'netutils', 'editors', 'mysqltools', 'php', 'composer'
+		'bashshell', 'netutils', 'editors', 'mysqltools', 'php'
 	),
 
 	// Application sections definitions
