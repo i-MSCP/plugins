@@ -126,7 +126,7 @@ Oct 13 21:04:31 lucid sshd[1509]: PAM adding faulty module: /lib/security/pam_ch
 
 You can fix this easily by following this procedure:
 
-```bash
+```shell
 # cd /usr/local/src
 # mkdir libpam-chroot
 # cd libpam-chroot
