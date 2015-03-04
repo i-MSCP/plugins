@@ -16,9 +16,9 @@ Version 3.2.0
 	Changed: Default jailed shell is now bash ( previously it was ash )
 	Fixed: Plugin configuration should be lazy-loaded
 	Fixed: Wrong mount point passed to doveadm ( Dovecot )
+	Renamed: jail_run_commands application section option to create_jail_commands
 	Removed: Support for i-MSCP 1.1.x serie
 	Renamed: sys_run_commands application section option to create_sys_commands
-	Renamed: jail_run_commands application section option to create_jail_commands
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 3.1.2
