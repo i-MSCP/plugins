@@ -28,7 +28,7 @@ configuration option to **TRUE** in the plugin configuration file.
 
 You can install these packages by executing the following commands:
 
-```
+```bash
 # aptitude update && aptitude -y install build-essential busybox-static libpam-chroot makejail
 ```
 
@@ -126,7 +126,7 @@ Oct 13 21:04:31 lucid sshd[1509]: PAM adding faulty module: /lib/security/pam_ch
 
 You can fix this easily by following this procedure:
 
-```
+```bash
 # cd /usr/local/src
 # mkdir libpam-chroot
 # cd libpam-chroot
@@ -149,7 +149,7 @@ CFLAGS=-fPIC -O2 -Wall -Werror -pedantic -fno-stack-protector
 
 Rebuild and reinstall the package as follow:
 
-```
+```bash
 # dpkg-buildpackage -uc -us
 # cd ..
 # dpkg -i libpam-chroot*.deb
