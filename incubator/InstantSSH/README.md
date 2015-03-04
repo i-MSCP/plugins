@@ -1,6 +1,6 @@
-# i-MSCP InstantSSH plugin v3.1.2
+# i-MSCP InstantSSH plugin v3.2.0
 
-Plugin allowing to provide full or restricted shell access to your customers.
+Plugin which allows to provide full or restricted shell access to i-MSCP customers.
 
 ## Introduction
 
@@ -9,8 +9,53 @@ This plugin allows to give your customers a full or restricted shell access.
 A customer to which SSH permissions are given can create SSH users and use them to login on the server.
 
 For each customer, you can set the maximum number of allowed SSH users and choose if they can override the default
-authentication options. The authentication options are those specified in the documentation of the authorized_keys file
-(see man authorized_keys).
+authentication options. The authentication options are those specified in the documentation of the authorized_keys file.
+
+## Requirements
+
+* i-MSCP version >= 1.2.3
+* openSSH server with both, passsword and key-based authentication support enabled
+
+**Note:** If you want allow only the key-based authentication, you can set the **passwordless_authentication**
+configuration option to **TRUE** in the plugin configuration file.
+
+### Debian / Ubuntu packages
+
+* build-essential
+* busybox-static or busybox
+* libpam-chroot
+* makejail
+
+You can install these packages by executing the following commands:
+
+```
+# aptitude update && aptitude -y install build-essential busybox-static libpam-chroot makejail
+```
+
+**Notes**
+
+* If a package is not installed on your system, the plugin installer will throw an error
+* If you have any problem with the PAM chroot module read the **Troubleshooting** section below
+
+## Installation
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Upload the plugin through the plugin management interface
+3. Install the plugin through the plugin management interface
+
+## Update
+
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin archive through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
+
+**Note:** Prior any update attempt, do not forget to read the [update_errata.md](update_errata.md) file.
+
+## Configuration
+
+### Authentication options
 
 Default authentication options are set as follow:
 
@@ -38,55 +83,12 @@ Several commands can be added into the jails by simply adding the required appli
 configuration option.
 
 The default configuration comes with a set of preselected application sections which allow to setup very restricted
-jailed shell environments. These environments are setup using busybox which combines tiny versions of many common UNIX
-utilities into a single small executable.
+jailed shell environments.
 
-See the plugin **config.php** file for further details.
+Be aware that the creation of the jailed environments may take time, depending on many factors such as the type of your
+server, the number of file to copy inside the jails and so on...
 
-## Requirements
-
-* i-MSCP >= 1.1.19 ( plugin API >= 0.2.14 )
-* openSSH server with both, passsword and key-based authentication support enabled
-
-**Note:** If you want allow only the key-based authentication, you can set the **passwordless_authentication**
-configuration option to **TRUE** in the plugin configuration file.
-
-### Debian / Ubuntu packages
-
-* busybox
-* libpam-chroot
-* makejail
-
-You can install these packages by executing the following commands:
-
-```
-# aptitude install busybox libpam-chroot makejail
-```
-
-**Notes**
-
-* If a package is not installed on your system, the plugin installer throws an error
-* If you have any problem with the PAM chroot module read the **Troubleshooting** section below
-
-## Installation
-
-1. Be sure that all requirements as stated in the requirements section are meets
-2. Upload the plugin through the plugin management interface
-3. Install the plugin through the plugin management interface
-
-## Update
-
-1. Be sure that all requirements as stated in the requirements section are meets
-2. Backup your plugin configuration file if needed
-3. Upload the plugin archive through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
-5. Update the plugin list through the plugin management interface
-
-**Note:** Prior any update attempt, do not forget to read the [update_errata.md](update_errata.md) file.
-
-## Configuration
-
-See [Configuration file](../InstantSSH/config.php)
+See [Configuration file](../InstantSSH/config.php) for further details.
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.

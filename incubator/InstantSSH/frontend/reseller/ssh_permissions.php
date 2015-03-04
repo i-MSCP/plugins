@@ -22,7 +22,7 @@ namespace InstantSSH\Admin;
 
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
-use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as ExceptionDatabase;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
@@ -127,7 +127,7 @@ function addSshPermissions($sshPermissions)
 			$db->beginTransaction();
 
 			if(!$sshPermId) { // Add SSH permissions
-				$response = EventsAggregator::getInstance()->dispatch('onBeforeAddSshPermissions', array(
+				$response = EventManager::getInstance()->dispatch('onBeforeAddSshPermissions', array(
 					'ssh_permission_max_user' => $sshPermMaxUsers,
 					'ssh_permission_auth_options' => $sshPermAuthOptions,
 					'ssh_permission_jailed_shell' => $sshPermJailedShell,
@@ -159,7 +159,7 @@ function addSshPermissions($sshPermissions)
 					if($stmt->rowCount()) {
 						$db->commit();
 
-						EventsAggregator::getInstance()->dispatch('onAfterAddSshPermissions', array(
+						EventManager::getInstance()->dispatch('onAfterAddSshPermissions', array(
 							'ssh_permission_id' => $db->insertId(),
 							'ssh_permission_max_user' => $sshPermMaxUsers,
 							'ssh_permission_auth_options' => $sshPermAuthOptions,
@@ -177,7 +177,7 @@ function addSshPermissions($sshPermissions)
 					);
 				}
 			} elseif($sshPermAdminId) { // Update SSH permissions
-				$response = EventsAggregator::getInstance()->dispatch('onBeforeUpdateSshPermissions', array(
+				$response = EventManager::getInstance()->dispatch('onBeforeUpdateSshPermissions', array(
 					'ssh_permission_id' => $sshPermId,
 					'ssh_permission_admin_id' => $sshPermAdminId,
 					'ssh_permission_max_user' => $sshPermMaxUsers,
@@ -247,7 +247,7 @@ function addSshPermissions($sshPermissions)
 									register_shutdown_function('send_request');
 								}
 
-								EventsAggregator::getInstance()->dispatch('onAfterUpdateSshPermissions', array(
+								EventManager::getInstance()->dispatch('onAfterUpdateSshPermissions', array(
 									'ssh_permission_id' => $sshPermId,
 									'ssh_permission_admin_id' => $sshPermAdminId,
 									'ssh_permission_max_user' => $sshPermMaxUsers,
@@ -317,7 +317,7 @@ function deleteSshPermissions()
 		$sshPermAdminId = intval($_POST['ssh_permission_admin_id']);
 		$adminName = clean_input($_POST['admin_name']);
 
-		$response = EventsAggregator::getInstance()->dispatch('onBeforeDeleteSshPermissions', array(
+		$response = EventManager::getInstance()->dispatch('onBeforeDeleteSshPermissions', array(
 			'ssh_permission_id' => $sshPermId,
 			'ssh_permission_admin_id' => $sshPermAdminId,
 			'admin_name' => $adminName,
@@ -353,7 +353,7 @@ function deleteSshPermissions()
 					if($stmt->rowCount()) {
 						$db->commit();
 
-						EventsAggregator::getInstance()->dispatch('onAfterDeleteSshPermissions', array(
+						EventManager::getInstance()->dispatch('onAfterDeleteSshPermissions', array(
 							'ssh_permission_id' => $sshPermId,
 							'ssh_permission_admin_id' => $sshPermAdminId,
 							'admin_name' => $adminName,
@@ -616,7 +616,7 @@ function getSshPermissionsList()
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onResellerScriptStart);
+EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 check_login('reseller');
 
 /** @var \iMSCP_Plugin_Manager $pluginManager */
@@ -695,7 +695,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	EventsAggregator::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
+	EventManager::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 } else {

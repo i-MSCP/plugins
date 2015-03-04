@@ -1,0 +1,5 @@
+# Options for syslogproxyd
+SYSLOGPROXYD_OPTIONS="-n"
+
+# List of log sockets to create, each comma separated
+SYSLOGPROXYD_SOCKETS=""

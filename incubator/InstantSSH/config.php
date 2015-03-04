@@ -65,7 +65,7 @@ return array(
 
 	// Shell for SSH users ( default: /bin/bash for full SSH access ; /bin/ash for restricted SSH access )
 	//
-	// See man shells for further details. Do not change the default values if you do not know what you are doing.
+	// See man shells for further details.
 	'shells' => array(
 		// Shell for full SSH access
 		'full' => '/bin/bash',
@@ -74,23 +74,19 @@ return array(
 		// BusyBox built-in shell ; Don't forget to set it back to something else if you do not use the BusyBox built-in
 		// shell. /bin/ash is a link that point to the /bin/busybox executable. This link is automatically created by the
 		// plugin. The /bin/ash shell is also automatically added in the /etc/shells file.
-		'jailed' => '/bin/ash'
+		'jailed' => '/bin/bash'
 	),
 
 	// Root jail directory ( default: /var/chroot/InstantSSH )
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
-	//
-	// Warning: If you are changing this path, don't forget to move the jails in the new location.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
 	// Makejail script path
-	// Don't change this parameter if you don't know what you are doing
 	'makejail_path' => __DIR__ . '/bin/makejail',
 
 	// Makejail configuration directory ( default: <CONF_DIR>/InstantSSH )
-	// Don't change this parameter if you don't know what you are doing
 	'makejail_confdir_path' => $config['CONF_DIR'] . '/InstantSSH',
 
 	// Shared jail ( default: true )
@@ -109,80 +105,130 @@ return array(
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.
 	//
-	// This option can be also defined in the application sections (see below).
+	// This option can be also defined in the application sections ( see below ).
 	//
 	// WARNING: Do not remove the default entry if you don't know what you are doing.
 	'preserve_files' => array(
 		$config['USER_WEB_DIR']
 	),
 
-	// Whether or not files from packages required by packages listed in packages option must be copied within the jails
+	// Whether or not files from packages listed in the 'packages' option of the application sections must be copied
+	// within the jails
 	'include_pkg_deps' => false,
 
-	// Selected application sections for jailed shell environments ( default: imscpbase )
+	// Application sections ( default: 'bashshell', 'netutils', 'editors', 'mysqltools', 'php' )
 	//
 	// This is the list of application sections which are used to create/update the jails ( see below ).
-	//
-	// By default only the imscpbase application section is added, which allows to build very restricted jailed shell
-	// environments using BusyBox. The imscpbase application section also include the editors and the mysqltools sections
 	'app_sections' => array(
-		'imscpbase'
+		'bashshell', 'netutils', 'editors', 'mysqltools', 'php', 'composer'
 	),
 
-	// Predefined application sections for jailed shell environments
+	// Application sections definitions
 	//
-	// Below, you can find the predefined application sections. Those sections are used to create and update the jails.
-	// You can select as many sections as you want by adding them into the app_sections configuration option above.
+	// Below, you can find the application sections for jailed shell environments. Those sections are used to create and
+	// update the jails. You can select as many sections as you want by adding them into the app_sections configuration
+	// option above.
 	//
 	// It is not recommended to change a section without understanding its meaning and how it is working. Once you know
-	// how the sections are defined, you can define your own sections.
+	// how the sections are defined, you can change them and even define your own sections.
 	//
 	// Application section options
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//
-	// The following options can be defined in application sections
+	// The following options can be defined in application sections:
 	//
-	// paths: List of paths which have to be copied inside the jails. Be aware that copy is not recursive
-	// packages: List of debian packages. Files from those packages will be copied inside the jails
-	// sys_copy_file_to:  List of files to copy outside the jails, each of them specified as a key/value pairs where the
-	//                    key is the source file path and the value, the destination path
+	// paths: List of paths which have to be copied inside the jails. Be aware that copy is not recursive.
+	// packages: List of debian packages. Files from those packages will be copied inside the jails.
+	// discard_packages: List of debian packages which must be discarded. ( Only relevant if the global include_pkg_deps
+	//                   configuration option is set to true ).
+	// sys_copy_file_to: List of files to copy outside the jails, each of them specified as a key/value pairs where the
+	//                   key is the source file path and the value, the destination path.
 	// jail_copy_file_to: List of files to copy inside the jails, each of them specified as a key/value pairs where the
-	//                    key is the source file path and the value, the destination path
-	// include_apps_sections: List of applications sections that have to be included
-	// users: List of users that have to be added inside the jail (eg. in passwd/shadow files)
-	// groups: List of groups that have to be added inside the jail (eg. in group/gshadow files)
-	// preserve_files: Files that have to be preserved when  the jails are being updated
-	// devices: List of devices that have to be copied inside the jails
-	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab )
-	// sys_run_commands: List of commands to execute outside the jails once built or updated
-	// jail_run_commands: List of commands to execute inside the jails once built or updated
+	//                    key is the source file path and the value, the destination path.
+	// include_apps_sections: List of applications sections that have to be included.
+	// users: List of users that have to be added inside the jail ( eg. in passwd/shadow files ).
+	// groups: List of groups that have to be added inside the jail ( eg. in group/gshadow files ).
+	// preserve_files: Files that have to be preserved when the jails are being updated.
+	// devices: List of devices that have to be copied inside the jails.
+	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab ).
+	// create_sys_commands: List of commands to execute outside the jail once built or updated.
+	// create_sys_commands_args: List of commands to execute outside the jail once built or updated. Any listed
+	//                           command will receive the full jail path as argument.
+	// destroy_sys_commands: List of command to execute outside the jail before it get destroyed.
+	// destroy_sys_commands_args: List of command to execute outside the jail before it get destroyed. Any listed
+	//                            command will receive the full jail path as argument.
+	// create_jail_commands: List of commands to execute inside the jail once built or updated.
+	// create_jail_commands_args: List of commands to execute inside the jail once built or updated. Any listed
+	//                            command will receive the full jail path as argument.
+	// destroy_jail_commands: List of commands to execute inside the jail before it get destroyed.
+	// destroy_jail_commands_args: List of commands to execute inside the jail before it get destroyed. Any listed
+	//                             command will receive the full jail path as argument.
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.
-	//  - Any path which doesn't exists on the system is ignored
-	//  - Any package listed in a package option must be already installed on the system, else an error is thrown
-	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error
-	//  - filesystems specified in the fstab option are mounted automatically inside the jails
-	//  - Mount points must be specified without the jail root paths in the fstab entries
-	//
-	// Other application sections will be added in time. Feel free to provide us your own section for integration.
+	//  - Any path which doesn't exists on the system is ignored.
+	//  - Any package listed in a package option must be already installed on the system, else an error is thrown.
+	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error.
+	//  - filesystems specified in the fstab option are mounted automatically inside the jails.
+	//  - Mount points defined in the fstab option must be specified without the jail root path.
 
-	// ashshell section
-	// Provide restricted ash shell  ( BusyBox built-in shell and common UNIX utilities )
+	// common files for all jails that need user/group information
+	'uidbasics' => array(
+		'paths' => array(
+			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf',
+			'/lib/libnsl.so.1', '/lib64/libnsl.so.1', '/lib/i386-linux-gnu/libnsl.so.1',
+			'/lib/x86_64-linux-gnu/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2',
+			'/lib/i386-linux-gnu/libnss*.so.2', '/lib/x86_64-linux-gnu/libnss*.so.2',
+		)
+	),
+
+	// common files for all jails that need any internet connectivity
+	'netbasics' => array(
+		'paths' => array(
+			'/etc/resolv.conf', '/etc/host.conf', '/etc/hosts', '/etc/protocols', '/etc/services', '/etc/ssl/certs/*',
+			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/lib/i386-linux-gnu/libnss_dns.so.2',
+			'/lib/x86_64-linux-gnu/libnss_dns.so.2'
+		)
+	),
+
+	// timezone information and log sockets
+	'logbasics' => array(
+		'paths' => array(
+			'/dev', '/etc/localtime'
+		),
+		'preserve_files' => array(
+			'/dev/log'
+		),
+		'create_sys_commands_args' => array(
+			$config['CMD_PERL'] . ' ' . __DIR__ . '/bin/syslogproxyd add'
+		),
+		'destroy_sys_commands_args' => array(
+			$config['CMD_PERL'] . ' ' . __DIR__ . '/bin/syslogproxyd remove'
+		)
+	),
+
+	// restricted ash shell ( BusyBox built-in shell and common UNIX utilities )
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/ash
 	'ashshell' => array(
+		'users' => array(
+			'root', 'www-data'
+		),
+		'group' => array(
+			'root', 'www-data'
+		),
 		'paths' => array(
-			'/bin/ash', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log', '/etc/localtime',
-			'/etc/timezone'
+			'/bin/ash', '/bin/busybox', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log',
+			'/etc/localtime', '/etc/timezone'
 		),
 		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
-			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+			__DIR__ . '/config/etc/motd' => '/etc/motd',
+			__DIR__ . '/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'busybox', 'uidbasics', 'editors'
+			'busybox', 'uidbasics', 'logbasics'
 		),
 		'devices' => array(
-			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/zero'
+			'/dev/null', '/dev/ptmx', '/dev/random', '/dev/urandom', '/dev/zero'
 		),
 		'fstab' => array(
 			array(
@@ -212,10 +258,15 @@ return array(
 		)
 	),
 
-	// bashshell
 	// Provide restricted GNU bash shell
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
 	'bashshell' => array(
+		'users' => array(
+			'root', 'www-data'
+		),
+		'group' => array(
+			'root', 'www-data'
+		),
 		'paths' => array(
 			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
 			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
@@ -226,18 +277,17 @@ return array(
 			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
 			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
 			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime',
-			'/etc/timezone'
+			'/usr/bin/pbzip2', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime', '/etc/timezone'
 		),
 		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/motd' => '/etc/motd',
-			dirname(__FILE__) . '/config/etc/profile' => '/etc/profile'
+			__DIR__ . '/config/etc/motd' => '/etc/motd',
+			__DIR__ . '/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'editors'
+			'uidbasics', 'logbasics'
 		),
 		'devices' => array(
-			'/dev/null', '/dev/ptmx', '/dev/urandom', '/dev/random', '/dev/zero'
+			'/dev/null', '/dev/ptmx', '/dev/random', '/dev/urandom', '/dev/zero'
 		),
 		'fstab' => array(
 			array(
@@ -267,111 +317,80 @@ return array(
 		)
 	),
 
-	// uidbasics section
-	// Provide common files for jails that need user/group information
-	'uidbasics' => array(
-		'paths' => array(
-			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf', '/lib/libnsl.so.1',
-			'/lib64/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2', '/lib/i386-linux-gnu/libnsl.so.1',
-			'/lib/i386-linux-gnu/libnss*.so.2', '/lib/x86_64-linux-gnu/libnsl.so.1',
-			'/lib/x86_64-linux-gnu/libnss*.so.2'
-		)
-	),
-
-	// netbasics section
-	// Provide common files for jails that need any internet connectivity
-	'netbasics' => array(
-		'paths' => array(
-			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
-			'/etc/protocols', '/etc/services'
-		),
-	),
-
-	// busybox section
-	// Provide BusyBox which combines tiny versions of many common UNIX utilities into a single small executable
-	'busybox' => array(
-		'paths' => array(
-			'/bin/busybox'
-		)
-	),
-
-	// netutils section
-	// Provide wget, lynx, ftp, ssh, sftp, scp, rsync
+	// Provide curl, wget, lynx, ftp, ssh, sftp, scp, rsync,
 	'netutils' => array(
 		'paths' => array(
-			'/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/wget', '/etc/lynx-cur/*'
+			'/usr/bin/curl', '/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/wget', '/etc/lynx-cur/*'
 		),
 		'include_app_sections' => array(
 			'netbasics', 'scp', 'sftp', 'ssh', 'rsync'
+		),
+		'devices' => array(
+			'/dev/random', '/dev/urandom'
 		)
 	),
 
-	# scp section
-	# Provide ssh secure copy
+	# ssh secure copy
 	'scp' => array(
 		'paths' => array(
 			'/usr/bin/scp'
 		),
 		'include_app_sections' => array(
-			'netbasics', 'uidbasics'
+			'netbasics'
 		),
 		'devices' => array(
 			'/dev/urandom'
 		)
 	),
 
-	# sftp section
-	# Provide ssh secure ftp
+	# ssh secure ftp
 	'sftp' => array(
 		'paths' => array(
 			'/usr/bin/sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
 		),
 		'include_app_sections' => array(
-			'netbasics', 'uidbasics'
+			'netbasics'
 		),
 		'devices' => array(
 			'/dev/urandom', '/dev/null'
 		)
 	),
 
-	# ssh section
-	# Provide ssh secure shell
+	# ssh secure shell
 	'ssh' => array(
 		'paths' => array(
 			'/usr/bin/ssh'
 		),
 		'include_app_sections' => array(
-			'netbasics', 'uidbasics'
+			'netbasics'
 		),
 		'devices' => array(
 			'/dev/urandom', '/dev/tty', '/dev/null'
 		)
 	),
 
-	# rsync section
-	# Provide rsync
+	# rsync
 	'rsync' => array(
 		'paths' => array(
 			'/usr/bin/rsync'
 		),
 		'include_app_sections' => array(
-			'netbasics', 'uidbasics'
+			'uidbasics', 'netbasics'
 		)
 	),
 
-	# mysqltools section
-	# Provide the MySQL command-line tool and the mysqldump program
+	# MySQL command-line tools ( mysql, mysqldump )
 	'mysqltools' => array(
 		'paths' => array(
-			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump'
+			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump', '/lib/libgcc_s.so.1',
+			'/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1', '/lib/x86_64-linux-gnu/libgcc_s.so.1'
 		),
 		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
+			__DIR__ . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
 
-	// editors section
-	// Provide common editors
+	// common editors
 	'editors' => array(
 		'paths' => array(
 			'/usr/bin/nano', '/usr/bin/vi', '/usr/bin/vim'
@@ -381,44 +400,44 @@ return array(
 		)
 	),
 
-	// terminfo section
-	// Provide terminfo databases
+	// terminfo databases
 	'terminfo' => array(
 		'packages' => array(
-			'ncurses-base' // Package which provide terminfo data files to support the most common types of terminal
+			// This package contains terminfo data files to support the most common types of terminal, including ansi,
+			// dumb, linux, rxvt, screen, sun, vt100, vt102, vt220, vt52, and xterm.
+			'ncurses-base'
 		)
 	),
 
-	# php section
-	# Provide PHP (CLI) and common modules ( if installed on the system )
+	# PHP (CLI)
 	'php' => array(
 		'paths' => array(
 			'/usr/bin/php',
 			'/etc/php5/cli/php.ini',
-			'/etc/php5/cli/conf.d/*mysqlnd.ini', '/usr/lib/php5/*/mysqlnd.so',
-			'/etc/php5/cli/conf.d/*pdo.ini', '/usr/lib/php5/*/pdo.so',
-			'/etc/php5/cli/conf.d/*gd.ini', '/usr/lib/php5/*/gd.so',
-			'/etc/php5/cli/conf.d/*intl.ini', '/usr/lib/php5/*/intl.so',
-			'/etc/php5/cli/conf.d/*json.ini', '/usr/lib/php5/*/json.so',
-			'/etc/php5/cli/conf.d/*mcrypt.ini', '/usr/lib/php5/*/mcrypt.so',
-			'/etc/php5/cli/conf.d/*mysql.ini', '/usr/lib/php5/*/mysql.so',
-			'/etc/php5/cli/conf.d/*mysqli.ini', '/usr/lib/php5/*/mysqli.so',
-			'/etc/php5/cli/conf.d/*pdo_mysql.ini', '/usr/lib/php5/*/pdo_mysql.so',
-			'/etc/php5/cli/conf.d/*readline.ini', '/usr/lib/php5/*/readline.so'
+			'/etc/php5/cli/conf.d/*',
+			PHP_EXTENSION_DIR . '/*'
+		),
+		'include_app_sections' => array(
+			'netutils'
+		),
+		'packages' => array(
+			// This package contains data required for the implementation of standard local time for many representative
+			// locations around the globe.
+			'tzdata'
 		)
 	),
 
-	// imscpbase section
-	// Provide pre-selected application sections, users and groups for i-MSCP jailed shell environments
-	'imscpbase' => array(
+	# composer ( see https://getcomposer.org )
+	'composer' => array(
+		'paths' => array(
+			'/usr/local/bin'
+		),
 		'include_app_sections' => array(
-			'ashshell', 'mysqltools'
+			'php'
 		),
-		'users' => array(
-			'root', 'www-data'
-		),
-		'groups' => array(
-			'root', 'www-data'
+		'create_jail_commands' => array(
+			"curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin",
+			'mv /usr/local/bin/composer.phar /usr/local/bin/composer'
 		)
 	)
 );

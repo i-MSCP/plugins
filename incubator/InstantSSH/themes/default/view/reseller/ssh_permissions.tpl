@@ -162,7 +162,7 @@
 
 		$("#admin_name").autocomplete({
 			source: "/reseller/ssh_permissions?action=search_customer",
-			minLength: 2,
+			minLength: 1,
 			delay: 500,
 			autoFocus: true,
 			change: function (event, ui) {

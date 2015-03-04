@@ -22,7 +22,7 @@ namespace InstantSSH\Admin;
 
 use Crypt_RSA as CryptRsa;
 use iMSCP_Events as Events;
-use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as ExceptionDatabase;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
@@ -201,7 +201,7 @@ function addSshUser($pluginManager, $sshPermissions)
 					$sshPermissions['ssh_permission_max_users'] == 0 ||
 					$sshPermissions['ssh_permission_cnb_users'] < $sshPermissions['ssh_permission_max_users']
 				) {
-					$response = EventsAggregator::getInstance()->dispatch('onBeforeAddSshUser', array(
+					$response = EventManager::getInstance()->dispatch('onBeforeAddSshUser', array(
 						'ssh_user_permission_id' => $sshPermissions['ssh_permission_id'],
 						'ssh_user_admin_id' => $_SESSION['user_id'],
 						'ssh_user_name' => $sshUserName,
@@ -250,7 +250,7 @@ function addSshUser($pluginManager, $sshPermissions)
 					);
 				}
 			} else { // Update SSH user
-				$response = EventsAggregator::getInstance()->dispatch('onBeforeUpdateSshUser', array(
+				$response = EventManager::getInstance()->dispatch('onBeforeUpdateSshUser', array(
 					'ssh_user_permission_id' => $sshPermissions['ssh_permission_id'],
 					'ssh_user_admin_id' => $_SESSION['user_id'],
 					'ssh_user_name' => $sshUserName,
@@ -328,7 +328,7 @@ function deleteSshUser()
 		$sshUserId = intval($_POST['ssh_user_id']);
 		$sshUserName = clean_input($_POST['ssh_user_name']);
 
-		$response = EventsAggregator::getInstance()->dispatch('onBeforeDeleteSshUser', array(
+		$response = EventManager::getInstance()->dispatch('onBeforeDeleteSshUser', array(
 			'ssh_user_id' => $sshUserId,
 			'ssh_user_name' => $sshUserName
 		));
@@ -341,7 +341,7 @@ function deleteSshUser()
 				);
 
 				if($stmt->rowCount()) {
-					EventsAggregator::getInstance()->dispatch('onAfterDeleteSshUser', array(
+					EventManager::getInstance()->dispatch('onAfterDeleteSshUser', array(
 						'ssh_user_id' => $sshUserId,
 						'ssh_user_name' => $sshUserName
 					));
@@ -522,7 +522,8 @@ function getSshUsers()
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onClientScriptStart);
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
+
 check_login('user');
 
 /** @var \iMSCP_Plugin_Manager $pluginManager */
@@ -606,7 +607,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
 
-	EventsAggregator::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
+	EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 
 	$tpl->prnt();
 } else {

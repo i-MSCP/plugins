@@ -60,8 +60,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	{
 		$eventManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeInstallPlugin,
-				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
@@ -71,19 +69,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			),
 			$this
 		);
-	}
-
-	/**
-	 * onBeforeInstallPlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeInstallPlugin($event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			$this->checkCompat($event);
-		}
 	}
 
 	/**
@@ -100,19 +85,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 			$this->migrateDb('up');
 		} catch(Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * onBeforeUpdatePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeUpdatePlugin($event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			$this->checkCompat($event);
 		}
 	}
 
@@ -237,7 +209,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterChangeDomainStatus($event)
+	public function onAfterChangeDomainStatus(iMSCP_Events_Event $event)
 	{
 		exec_query(
 			'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_admin_id = ?',
@@ -251,7 +223,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterDeleteUser($event)
+	public function onAfterDeleteUser(iMSCP_Events_Event $event)
 	{
 		exec_query('DELETE FROM instant_ssh_permissions WHERE ssh_permission_admin_id = ?', $event->getParam('userId'));
 	}
@@ -262,7 +234,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterDeleteCustomer($event)
+	public function onAfterDeleteCustomer(iMSCP_Events_Event $event)
 	{
 		exec_query(
 			'DELETE FROM instant_ssh_permissions WHERE ssh_permission_admin_id = ?', $event->getParam('customerId')
@@ -479,22 +451,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		}
 
 		return $this->customerSshPermissions;
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	protected function checkCompat($event)
-	{
-		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
-			set_page_message(
-				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-			);
-
-			$event->stopPropagation();
-		}
 	}
 
 	/**

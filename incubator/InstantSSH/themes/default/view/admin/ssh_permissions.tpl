@@ -153,7 +153,7 @@
 
 		$("#admin_name").autocomplete({
 			source: "/admin/ssh_permissions?action=search_reseller",
-			minLength: 2,
+			minLength: 1,
 			delay: 500,
 			autoFocus: true,
 			change: function (event, ui) {

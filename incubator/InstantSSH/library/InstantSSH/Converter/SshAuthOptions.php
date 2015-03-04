@@ -25,7 +25,7 @@ use iMSCP_Exception;
 /**
  * Class SshAuthOptions
  *
- * Class allowing to convert an authentication options string to an array of authentication option and vice-versa.
+ * Class which allows to convert an authentication options string to an array of authentication option and vice-versa.
  *
  * @package InstantSSH\Converter
  */

@@ -38,7 +38,7 @@ use File::umask;
 
 use parent 'Common::Object';
 
-our $VERSION = '3.1.0';
+our $VERSION = '3.2.0';
 
 my $securityChrootCfgFile = '/etc/security/chroot.conf';
 my $fstabFile = '/etc/fstab';
@@ -67,9 +67,7 @@ sub makeJail
 	my ($cfg, $jailId) = ($self->{'config'}, $self->{'id'});
 
 	#  Create the jail directory if it doesn't already exists or set it permissions
-	my $rs = iMSCP::Dir->new(
-		dirname => $self->{'jailCfg'}->{'chroot'}
-	)->make(
+	my $rs = iMSCP::Dir->new( dirname => $self->{'jailCfg'}->{'chroot'} )->make(
 		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0755 }
 	);
 	return $rs if $rs;
@@ -170,17 +168,37 @@ sub makeJail
 		}
 	}
 
-	# Run commands defined in the sys_run_commands option outside the jail
-	for (@{$self->{'jailCfg'}->{'sys_run_commands'}}) {
+	# Run commands defined in the create_sys_commands option outside the jail
+	for (@{$self->{'jailCfg'}->{'create_sys_commands'}}) {
 		$rs = execute($_, \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
 		return $rs if $rs;
 	}
 
-	# Run commands defined in the jail_run_commands option inside the jail
-	for (@{$self->{'jailCfg'}->{'jail_run_commands'}}) {
-		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, $_), \$stdout, \$stderr);
+	# Run commands defined in the create_sys_commands option outside the jail
+	for (@{$self->{'jailCfg'}->{'create_sys_commands_args'}}) {
+		my @cmd = ($_, escapeShell($self->{'jailCfg'}->{'chroot'}));
+		$rs = execute("@cmd", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the create_jail_commands option inside the jail
+	for (@{$self->{'jailCfg'}->{'create_jail_commands'}}) {
+		(my $cmd = $_) =~ s/\|/| chroot $self->{'jailCfg'}->{'chroot'}/g;
+		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, $cmd), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the create_jail_commands_args option inside the jail
+	for (@{$self->{'jailCfg'}->{'create_jail_commands_args'}}) {
+		(my $cmd = $_) =~ s/\|/| chroot $self->{'jailCfg'}->{'chroot'}/g;
+		my @cmd = ($cmd, escapeShell($self->{'jailCfg'}->{'chroot'}));
+		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, "@cmd"), \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $rs && $stderr;
 		return $rs if $rs;
@@ -217,6 +235,46 @@ sub removeJail
 		return $rs if $rs;
 	}
 
+	# Run commands defined in the destroy_sys_commands option outside the jail
+	for (@{$self->{'jailCfg'}->{'destroy_sys_commands'}}) {
+		my ($stdout, $stderr);
+		$rs = execute($_, \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the destroy_sys_commands option outside the jail
+	for (@{$self->{'jailCfg'}->{'destroy_sys_commands_args'}}) {
+		my @cmd = ($_, escapeShell($self->{'jailCfg'}->{'chroot'}));
+		my ($stdout, $stderr);
+		$rs = execute("@cmd", \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the destroy_jail_commands option inside the jail
+	for (@{$self->{'jailCfg'}->{'destroy_jail_commands'}}) {
+		(my $cmd = $_) =~ s/\|/| chroot $self->{'jailCfg'}->{'chroot'}/g;
+		my ($stdout, $stderr);
+		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, $cmd), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
+	# Run commands defined in the destroy_jail_commands option inside the jail
+	for (@{$self->{'jailCfg'}->{'destroy_jail_commands_args'}}) {
+		(my $cmd = $_) =~ s/\|/| chroot $self->{'jailCfg'}->{'chroot'}/g;
+		my @cmd = ($cmd, escapeShell($self->{'jailCfg'}->{'chroot'}));
+		my ($stdout, $stderr);
+		$rs = execute(sprintf('chroot %s %s', $self->{'jailCfg'}->{'chroot'}, "@cmd"), \$stdout, \$stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		return $rs if $rs;
+	}
+
 	# Remove jail
 	iMSCP::Dir->new( dirname => $self->{'jailCfg'}->{'chroot'} )->remove();
 }
@@ -249,21 +307,18 @@ sub jailUser
 	my ($self, $user, $shell) = @_;
 
 	my @pwEntry = getpwnam($user);
-
 	unless(@pwEntry) {
 		error("Unable to find $user unix user");
 		return 1;
 	}
 
 	my $group = getgrgid($pwEntry[3]);
-
 	unless(defined $group) {
 		error("Unable to find $user unix user group");
 		return 1;
 	}
 
 	my $homeDir = $pwEntry[7];
-
 	unless(defined $homeDir) {
 		error("Unable to find $user unix user homedir");
 		return 1;
@@ -283,10 +338,9 @@ sub jailUser
 	# Add user into security chroot file
 	if(-f $securityChrootCfgFile) {
 		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
-
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error('Unable to read file $securityChrootCfgFile');
+			error("Unable to read $file->{'filename'} file");
 			return 1;
 		}
 
@@ -350,14 +404,12 @@ sub unjailUser
 	my ($self, $user, $userOnly) = @_;
 
 	my @pwEntry = getpwnam($user);
-
 	unless(@pwEntry) {
 		error("Unable to find $user unix user");
 		return 1;
 	}
 
 	my $homeDir = $pwEntry[7];
-
 	unless(defined $homeDir) {
 		error("Unable to find $user unix user homedir");
 		return 1;
@@ -405,10 +457,9 @@ sub unjailUser
 	# Remove user from security chroot file if any
 	if(-f $securityChrootCfgFile) {
 		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
-
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read file $securityChrootCfgFile");
+			error("Unable to read $file->{'filename'} file");
 			return 1;
 		}
 
@@ -542,10 +593,9 @@ sub addFstabEntry
 	my ($self, $entry) = @_;
 
 	my $file = iMSCP::File->new( filename => $fstabFile );
-
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error("Unable to read file $fstabFile");
+		error("Unable to read $file->{'filename'} file");
 		return 1;
 	}
 
@@ -575,10 +625,9 @@ sub removeFstabEntry
 	my ($self, $entry) = @_;
 
 	my $file = iMSCP::File->new( filename => $fstabFile );
-
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error("Unable to read file $fstabFile");
+		error("Unable to read $file->{'filename'} file");
 		return 0;
 	}
 
@@ -612,9 +661,7 @@ sub mount
 	if(execute("mount 2>/dev/null | grep -q ' $mountPoint '")) {
 		unless(-e $mountPoint) { # Don't create $newdir if it already exists
 			if(-d $fileSystem) {
-				my $rs = iMSCP::Dir->new(
-					dirname => $mountPoint
-				)->make(
+				my $rs = iMSCP::Dir->new( dirname => $mountPoint )->make(
 					{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0555 }
 				);
 				return $rs if $rs;
@@ -695,7 +742,7 @@ sub umount
 
  Initialize instance
 
- Return InstantSSH:JailBuilder (die on failure)
+ Return InstantSSH:JailBuilder or die on failure
 
 =cut
 
@@ -709,14 +756,21 @@ sub _init
 		sys_copy_file_to => {},
 		jail_copy_file_to => {},
 		packages => [],
+		discard_packages => [],
 		include_pkg_deps => 0,
 		preserve_files => [],
 		users => [],
 		groups => [],
 		devices => [],
 		fstab => [],
-		jail_run_commands => [],
-		sys_run_commands => []
+		create_sys_commands => [],
+		create_sys_commands_args => [],
+		destroy_sys_commands => [],
+		destroy_sys_commands_args => [],
+		create_jail_commands => [],
+		create_jail_commands_args => [],
+		destroy_jail_commands => [],
+		destroy_jail_commands_args => []
 	};
 
 	if(defined $self->{'id'} && $self->{'id'} =~ /^[a-z0-9]+/i) {
@@ -747,7 +801,7 @@ sub _init
 				die("InstantSSH::JailBuilder: The root_jail_dir option is not defined");
 			}
 		} else {
-			die("InstantSSH::JailBuilder: Missing config parameter");
+			die("InstantSSH::JailBuilder: Missing or wrong config parameter");
 		}
 	} else {
 		die("InstantSSH::JailBuilder: Missing or wrong id parameter");
@@ -821,6 +875,12 @@ sub _buildMakejailCfgfile
 		if(@{$self->{'jailCfg'}->{'packages'}}) {
 			$fileContent .= 'packages = [' . (join ', ', map { qq/"$_"/ } @{$self->{'jailCfg'}->{'packages'}}) . "]\n";
 			$fileContent .= "useDepends = $self->{'jailCfg'}->{'include_pkg_deps'}\n";
+
+			if(@{$self->{'jailCfg'}->{'discard_packages'}}) {
+				$fileContent .= 'blockDepends = [' .
+					(join ', ', map { qq/"$_"/ } @{$self->{'jailCfg'}->{'discard_packages'}}) .
+				"]\n";
+			}
 		}
 
 		if(@{$self->{'jailCfg'}->{'users'}}) {
@@ -858,7 +918,7 @@ sub _buildMakejailCfgfile
 		$rs = $file->mode(0640);
 		return $rs if $rs;
 	} else {
-		error("The app_sections option is not defined");
+		error('The app_sections option is not defined');
 		return 1;
 	}
 
@@ -890,14 +950,20 @@ sub _handleAppSection()
 				}
 			}
 		} else {
-			error("The include_app_sections option must be an array");
+			error('The include_app_sections option must be an array');
 			return 1;
 		}
 	}
 
 	# Handle list options from application section
 
-	for my $option(qw/ devices fstab groups jail_run_commands paths packages preserve_files sys_run_commands users /) {
+	for my $option(
+		qw/
+			paths packages discard_packages users groups preserve_files devices fstab
+			create_sys_commands create_sys_commands_args destroy_sys_commands destroy_sys_commands_args
+			create_jail_commands create_jail_commands_args destroy_jail_commands destroy_jail_commands_args
+		/
+	) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
 				for my $item(@{$cfg->{$section}->{$option}}) {
@@ -913,7 +979,7 @@ sub _handleAppSection()
 	}
 
 	# Handle key/value pairs options from application section
-	for my $option(qw/ jail_copy_file_to mount sys_copy_file_to /) {
+	for my $option(qw/ sys_copy_file_to jail_copy_file_to /) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'HASH') {
 				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {

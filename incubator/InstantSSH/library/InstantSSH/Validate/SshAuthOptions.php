@@ -26,7 +26,7 @@ use Zend_Validate_Abstract as ValidateAbstract;
 /**
  * Class KeyOptions
  *
- * Class allowing to validate SSH authentication options (see man authorized_keys).
+ * Class which allows to validate SSH authentication options (see man authorized_keys).
  *
  * @package InstantSSH\Validate
  */

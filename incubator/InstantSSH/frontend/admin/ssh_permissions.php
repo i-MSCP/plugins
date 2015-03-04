@@ -22,18 +22,16 @@ namespace InstantSSH\Admin;
 
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
-use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as ExceptionDatabase;
 use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
 use InstantSSH\CommonFunctions as Functions;
 
-
 /***********************************************************************************************************************
  * Functions
  */
-
 
 /**
  * Schedule rebuild jailed environments
@@ -42,14 +40,18 @@ function rebuildJails()
 {
 	try {
 		$stmt = execute_query(
-			'
+			"
 				SELECT
 					COUNT(ssh_permission_jailed_shell) AS cnt
 				FROM
 					instant_ssh_permissions
+				INNER JOIN
+					admin ON(admin_id = ssh_permission_admin_id)
 				WHERE
 					ssh_permission_jailed_shell = 1
-			'
+				AND
+					admin_type <> 'reseller'
+			"
 		);
 		$row = $stmt->fetchRow(\PDO::FETCH_ASSOC);
 
@@ -158,7 +160,7 @@ function addSshPermissions()
 			$db->beginTransaction();
 
 			if(!$sshPermId) { // Add SSH permissions
-				$response = EventsAggregator::getInstance()->dispatch('onBeforeAddSshPermissions', array(
+				$response = EventManager::getInstance()->dispatch('onBeforeAddSshPermissions', array(
 					'ssh_permission_max_user' => $sshPermMaxUsers,
 					'ssh_permission_auth_options' => $sshPermAuthOptions,
 					'ssh_permission_jailed_shell' => $sshPermJailedShell,
@@ -185,7 +187,7 @@ function addSshPermissions()
 					);
 
 					if($stmt->rowCount()) {
-						EventsAggregator::getInstance()->dispatch('onAfterAddSshPermissions', array(
+						EventManager::getInstance()->dispatch('onAfterAddSshPermissions', array(
 							'ssh_permission_id' => $db->insertId(),
 							'ssh_permission_max_user' => $sshPermMaxUsers,
 							'ssh_permission_auth_options' => $sshPermAuthOptions,
@@ -205,7 +207,7 @@ function addSshPermissions()
 					);
 				}
 			} elseif($sshPermAdminId) { // Update SSH permissions
-				$response = EventsAggregator::getInstance()->dispatch('onBeforeUpdateSshPermissions', array(
+				$response = EventManager::getInstance()->dispatch('onBeforeUpdateSshPermissions', array(
 					'ssh_permission_id' => $sshPermId,
 					'ssh_permission_admin_id' => $sshPermAdminId,
 					'ssh_permission_max_user' => $sshPermMaxUsers,
@@ -299,7 +301,7 @@ function addSshPermissions()
 									register_shutdown_function('send_request');
 								}
 
-								EventsAggregator::getInstance()->dispatch('onAfterUpdateSshPermissions', array(
+								EventManager::getInstance()->dispatch('onAfterUpdateSshPermissions', array(
 									'ssh_permission_id' => $sshPermId,
 									'ssh_permission_admin_id' => $sshPermAdminId,
 									'ssh_permission_max_user' => $sshPermMaxUsers,
@@ -369,7 +371,7 @@ function deleteSshPermissions()
 		$sshPermAdminId = intval($_POST['ssh_permission_admin_id']);
 		$adminName = clean_input($_POST['admin_name']);
 
-		$response = EventsAggregator::getInstance()->dispatch('onBeforeDeleteSshPermissions', array(
+		$response = EventManager::getInstance()->dispatch('onBeforeDeleteSshPermissions', array(
 			'ssh_permission_id' => $sshPermId,
 			'ssh_permission_admin_id' => $sshPermAdminId,
 			'admin_name' => $adminName,
@@ -419,7 +421,7 @@ function deleteSshPermissions()
 					if($stmt->rowCount()) {
 						$db->commit();
 
-						EventsAggregator::getInstance()->dispatch('onAfterDeleteSshPermissions', array(
+						EventManager::getInstance()->dispatch('onAfterDeleteSshPermissions', array(
 							'ssh_permission_id' => $sshPermId,
 							'ssh_permission_admin_id' => $sshPermAdminId,
 							'admin_name' => $adminName,
@@ -676,7 +678,8 @@ function getSshPermissionsList()
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
+
 check_login('admin');
 
 if(isset($_REQUEST['action'])) {
@@ -737,6 +740,6 @@ generateNavigation($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
 
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
+EventManager::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 
 $tpl->prnt();

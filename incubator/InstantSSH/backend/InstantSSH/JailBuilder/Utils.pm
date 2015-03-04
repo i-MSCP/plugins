@@ -36,7 +36,7 @@ our @EXPORT_OK = qw(normalizePath resolveRealpath copyTimeAndPermissions createP
 
 =head1 DESCRIPTION
 
- This package is part of the i-MSCP InstantSSH plugin. It provide high level utility functions for file handling.
+ This package is part of the i-MSCP InstantSSH plugin. It provides high level utility functions for file handling.
 
 =head1 PUBLIC FUNCTIONS
 
@@ -96,7 +96,7 @@ sub normalizePath($)
  Param string $path Path to resolve
  Param string $chroot OPTIONAL Chroot path (default: '')
  Param bool $includeFile OPTIONAL Include file or not (default: false)
- Return string Real path (die on failure)
+ Return string Real path or die on failure
 
 =cut
 
@@ -151,7 +151,7 @@ sub resolveRealpath($$;$)
  Param string $dst Destination file to which time and permissions mubt be copied
  Param bool $allowSuid OPTIONAL Whether setuid/setgid permissions must be copied (default: false)
  Param bool $copyOwnership OPTIONAL whether user/group must be copied (default: false)
- Return undef (die on failure)
+ Return undef or die on failure
 
 =cut
 
@@ -192,7 +192,7 @@ sub copyTimeAndPermissions($$;$$)
  Param bool $copyPermissions OPTIONAL Whether or not permissions must be copied (default: true)
  Param bool $allowSuid OPTIONAL Whether or not setuid/setgid permissions must be copied (default: false)
  Param bool $copyOwnership OPTIONAL Whether or not user/group must be copied (default: false)
- Return string (die on failure)
+ Return string or die on failure
 
 =cut
 
@@ -263,7 +263,7 @@ sub createParentPath($$;$$$)
  Param string $chroot Path of the chroot in which device must be copied
  Param string $path Path of the device to copy
  Param bool $copyOwnership OPTIONAL Whether or not ownership must be copied (default: false)
- Return undef (die on failure)
+ Return undef or die on failure
 
 =cut
 

@@ -1,5 +1,28 @@
 # Update errata
 
+## Update to version 3.2.0
+
+### Application section options
+
+Many application section options were renamed. See the [CHANGELOG](CHANGELOG) for further details.
+
+### Syslog proxy daemon ( syslogproxyd )
+
+A syslog proxy daemon has been added, which allows to create log sockets ( /dev/log ) inside jails, whatever the syslog
+daemon implementation (rsyslog, syslog-ng...) provided by the distribution. If one of your applications section require
+log socket, you must just include the logbasics application section as follow:
+
+```php
+...
+include_app_sections => array(
+	'logbasics'
+)
+...
+```
+
+**Note:** The syslog proxy daemon can create up to 100 log sockets. In near future, we'll remove this limitation by
+using dynamic memory allocation.
+
 ## Update to version 3.1.2
 
 ### Dovecot 2.x
@@ -15,7 +38,7 @@ mounted under the root directory of the jailed environments. However Dovecot wil
 mountpoints which were detected previously. You can easily fix that issue by running the following command on your
 system:
 
-```
+```bash
 # doveadm mount remove /var/chroot/InstantSSH/*/var/www/virtual/*
 ```
 
@@ -30,12 +53,14 @@ system:
 The **php** section allow to make PHP (cli) and some common PHP modules available inside the jails. To enable it, you
 must add it to the **app_sections** option as follow:
 
-	...
+```php
+...
 	'app_sections' => array(
 		'imscpbase',
 		'php'
 	),
-	...
+...
+```
 
 Once done, you must update the plugin list through the plugin interface to rebuild the jails.
 
