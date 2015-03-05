@@ -144,7 +144,6 @@ sub removeLogSocket($)
 	if(defined $fileContent) {
 		if($fileContent =~ /SYSLOGPROXYD_SOCKETS="(.*)"/) {
 			my @logSockets = grep { $_ ne $logSocketPath && $_ ne '' } split /\s+/, $1;
-			push @logSockets, $logSocketPath;
 			$fileContent =~ s/SYSLOGPROXYD_SOCKETS=".*"/SYSLOGPROXYD_SOCKETS="@logSockets"/;
 
 			$fh = FileHandle->new($syslogproxydDefaultFileDest, 'w') or die(

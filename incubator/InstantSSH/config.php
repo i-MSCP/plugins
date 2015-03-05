@@ -213,7 +213,7 @@ return array(
 		'users' => array(
 			'root', 'www-data'
 		),
-		'group' => array(
+		'groups' => array(
 			'root', 'www-data'
 		),
 		'paths' => array(
@@ -225,7 +225,7 @@ return array(
 			__DIR__ . '/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'busybox', 'uidbasics', 'logbasics'
+			'busybox', 'uidbasics', 'logbasics', 'terminfo'
 		),
 		'devices' => array(
 			'/dev/null', '/dev/ptmx', '/dev/random', '/dev/urandom', '/dev/zero'
@@ -264,7 +264,7 @@ return array(
 		'users' => array(
 			'root', 'www-data'
 		),
-		'group' => array(
+		'groups' => array(
 			'root', 'www-data'
 		),
 		'paths' => array(
@@ -284,7 +284,7 @@ return array(
 			__DIR__ . '/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'logbasics'
+			'uidbasics', 'logbasics', 'terminfo'
 		),
 		'devices' => array(
 			'/dev/null', '/dev/ptmx', '/dev/random', '/dev/urandom', '/dev/zero'

@@ -43,8 +43,12 @@ do_start()
 	# Return
 	#   0 if daemon has been started
 	#   1 if daemon was already running
-	#   other if daemon could not be started or a failure occured
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_ARGS
+	#   2 if daemon could not be started
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+		|| return 1
+
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_ARGS \
+		|| return 2
 }
 
 do_stop()
@@ -52,8 +56,9 @@ do_stop()
 	# Return
 	#   0 if daemon has been stopped
 	#   1 if daemon was already stopped
-	#   other if daemon could not be stopped or a failure occurred
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $DAEMON
+	#   2 if daemon could not be stopped
+	#   other if a failure occurred
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
 }
 
 case "$1" in

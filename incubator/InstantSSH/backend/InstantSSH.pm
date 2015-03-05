@@ -221,12 +221,7 @@ sub change
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
 		my $jailBuilder;
-		eval {
-			$jailBuilder = InstantSSH::JailBuilder->new(
-				id => 'shared_jail',
-				config => ($self->{'config'}->{'shared_jail'}) ? $self->{'config'} : $self->{'config_prev'}
-			);
-		};
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config_prev'} ); };
 		if($@) {
 			error("Unable to create JailBuilder object: $@");
 			return 1;
@@ -649,11 +644,12 @@ sub _deleteSshUser
 		debug($stdout) if $stdout;
 		debug($stderr) if $stderr;
 
+		my $config = ($self->{'action'} eq 'change') ? $self->{'config_prev'} : $self->{'config'};
+
 		my $jailBuilder;
 		eval {
 			$jailBuilder = InstantSSH::JailBuilder->new(
-				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $pUserName,
-				config => ($self->{'action'} eq 'change') ? $self->{'config_prev'} : $self->{'config'}
+				id => ($config->{'shared_jail'}) ? 'shared_jail' : $pUserName, config => $config
 			);
 		};
 		if($@) {
@@ -662,16 +658,17 @@ sub _deleteSshUser
 		}
 
 		# Unjail user if needed
+		# TODO review according current action
 		$rs = $jailBuilder->unjailUser($data->{'ssh_user_name'}, ($data->{'nb_ssh_users'} eq '0') ? undef : 'userOnly');
 		return $rs if $rs;
 
-		if($jailBuilder->existsJail() && ($data->{'nb_ssh_users'} eq '0' || $self->{'action'} eq 'change')) {
+		if($jailBuilder->existsJail() && $data->{'nb_ssh_users'} eq '0') {
 			# Remove parent user from jail if any
 			$rs = $jailBuilder->removePasswdFile('/etc/passwd', $pUserName);
 			return $rs if $rs;
 
 			# Remove per customer jail if any
-			unless($self->{'config'}->{'shared_jail'}) {
+			unless($config->{'shared_jail'}) {
 				$rs = $jailBuilder->removeJail();
 				return $rs if $rs;
 			}
