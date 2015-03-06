@@ -27,14 +27,16 @@ use strict;
 use warnings;
 
 use iMSCP::Debug;
-use iMSCP::File;
 use iMSCP::Dir;
-use iMSCP::Rights;
 use iMSCP::Execute;
+use iMSCP::File;
+use iMSCP::Rights;
+
 use InstantSSH::JailBuilder::Utils qw(copyDevice normalizePath);
+
 use File::Basename;
-use List::MoreUtils qw(uniq);
 use File::umask;
+use List::MoreUtils qw(uniq);
 
 use parent 'Common::Object';
 

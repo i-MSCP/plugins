@@ -31,18 +31,20 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use lib "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend",
         "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend/Vendor";
 
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::Dir;
-use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
+use iMSCP::File;
 use iMSCP::ProgramFinder;
+
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
+
+use JSON;
 use Unix::PasswdFile;
 use Unix::ShadowFile;
-use JSON;
 use version;
 
 use parent 'Common::SingletonClass';
@@ -229,7 +231,7 @@ sub change
 
 		if($self->{'config'}->{'shared_jail'}) {
 			if($jailBuilder->existsJail()) {
-				my $rs = $jailBuilder->makeJail(); # Update jail
+				my $rs = $jailBuilder->makeJail(); # Update shared jail
 				return $rs if $rs;
 			}
 		} else {
@@ -321,7 +323,7 @@ sub run
 					AND
 						t2.ssh_user_permission_id IS NOT NULL
 					AND
-						t2.ssh_user_status NOT IN('todisable', 'todelete', 'disabled')
+						t2.ssh_user_status <> 'todelete'
 				)
 			LEFT JOIN
 				instant_ssh_permissions AS t3 ON(t3.ssh_permission_id = t1.ssh_user_permission_id)
@@ -350,8 +352,6 @@ sub run
 	my ($rs, $ret) = (0, 0);
 
 	while (my $data = $sth->fetchrow_hashref()) {
-		$self->_loadPluginConfig();
-
 		$data->{'ssh_user_status'} = 'todelete' unless defined $data->{'ssh_user_permission_id'};
 
 		my @sql;
@@ -417,45 +417,11 @@ sub _init
 
 	$self->{'db'} = iMSCP::Database->factory();
 
-	if($self->{'action'} ~~ [ 'install', 'uninstall', 'update', 'change', 'enable', 'disable' ]) {
-		$self->_loadPluginConfig();
+	for(qw/makejail_confdir_path root_jail_dir shared_jail shells/) {
+		die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
 	}
 
 	$self;
-}
-
-=item _loadPluginConfig
-
- Load plugin configuraiton
-
- Return int 0 or die on failure
-
-=cut
-
-sub _loadPluginConfig
-{
-	my $self = $_[0];
-
-	unless($self->{'_loadedPluginConfig'}) {
-		my $config = $self->{'db'}->doQuery(
-			'plugin_name',
-			"SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = 'InstantSSH'"
-		);
-		unless(ref $config eq 'HASH') {
-			die("InstantSSH: $config");
-		}
-
-		$self->{'config'} = decode_json($config->{'InstantSSH'}->{'plugin_config'});
-		$self->{'config_prev'} = decode_json($config->{'InstantSSH'}->{'plugin_config_prev'});
-
-		for(qw/makejail_confdir_path root_jail_dir shared_jail shells/) {
-			die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
-		}
-
-		$self->{'_loadedPluginConfig'} = 1;
-	}
-
-	0;
 }
 
 =item _addSshUser(\%data)
@@ -658,11 +624,17 @@ sub _deleteSshUser
 		}
 
 		# Unjail user if needed
-		# TODO review according current action
-		$rs = $jailBuilder->unjailUser($data->{'ssh_user_name'}, ($data->{'nb_ssh_users'} eq '0') ? undef : 'userOnly');
+		$rs = $jailBuilder->unjailUser(
+			$data->{'ssh_user_name'},
+			($data->{'nb_ssh_users'} eq '0' || $self->{'action'} eq 'change' || $self->{'info'}->{'__need_change__'})
+				? undef : 'userOnly'
+		);
 		return $rs if $rs;
 
-		if($jailBuilder->existsJail() && $data->{'nb_ssh_users'} eq '0') {
+		if(
+			($data->{'nb_ssh_users'} eq '0' || $self->{'action'} eq 'change' || $self->{'info'}->{'__need_change__'}) &&
+			$jailBuilder->existsJail()
+		) {
 			# Remove parent user from jail if any
 			$rs = $jailBuilder->removePasswdFile('/etc/passwd', $pUserName);
 			return $rs if $rs;

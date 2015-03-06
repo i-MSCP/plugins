@@ -376,19 +376,6 @@ sub _init
 	$self->{'SA_DATABASE_USER'} = 'sa_user';
 	$self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
 
-	if($self->{'action'} ~~ [ 'install', 'update', 'change', 'enable', 'disable' ]) {
-		# Loading plugin configuration
-		my $rdata = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'SpamAssassin'
-		);
-		unless(ref $rdata eq 'HASH') {
-			error($rdata);
-			return 1;
-		}
-
-		$self->{'config'} = decode_json($rdata->{'SpamAssassin'}->{'plugin_config'});
-	}
-
 	$self;
 }
 

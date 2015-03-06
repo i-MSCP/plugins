@@ -237,18 +237,6 @@ sub _init
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
 
-	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
-		# Loading plugin configuration
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RoundcubePlugins'
-		);
-		unless(ref $config eq 'HASH') {
-			die("RoundcubePlugins: $config");
-		}
-
-		$self->{'config'} = decode_json($config->{'RoundcubePlugins'}->{'plugin_config'});
-	}
-
 	$self;
 }
 

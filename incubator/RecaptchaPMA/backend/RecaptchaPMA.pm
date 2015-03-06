@@ -89,17 +89,6 @@ sub _init
 
 	if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
 		$self->{'FORCE_RETVAL'} = 'yes';
-
-		# Loading plugin configuration
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'RecaptchaPMA'
-		);
-		unless(ref $config eq 'HASH') {
-			die($config);
-			return 1;
-		}
-
-		$self->{'config'} = decode_json($rdata->{'RecaptchaPMA'}->{'plugin_config'});
 	}
 
 	$self;

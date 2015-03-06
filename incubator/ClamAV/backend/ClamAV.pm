@@ -110,34 +110,6 @@ sub disable
 
 =over 4
 
-=item _init()
-
- Initialize instance
-
- Return Plugin::ClamAV or die on failure
-
-=cut
-
-sub _init
-{
-	my $self = $_[0];
-
-	if($self->{'action'} ~~ [ 'enable', 'disable', 'update', 'change' ]) {
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name',
-			'SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?', 'ClamAV'
-		);
-		unless(ref $config eq 'HASH') {
-			die("ClamAV: $config");
-		}
-
-		$self->{'config'} = decode_json($config->{'ClamAV'}->{'plugin_config'});
-		$self->{'config_prev'} = decode_json($config->{'ClamAV'}->{'plugin_config_prev'});
-	}
-
-	$self;
-}
-
 =item _clamavMilter($action)
 
  Configure or deconfigure clamav-milter

@@ -22,15 +22,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @category    i-MSCP
-# @package     iMSCP_Plugin
-# @subpackage  Monitorix
-# @copyright   2010-2015 by i-MSCP | http://i-mscp.net
-# @author      Laurent Declercq <l.declercq@nuxwin.com>
-# @author      Sascha Bay <info@space2place.de>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::Monitorix;
 
@@ -341,19 +332,8 @@ sub _init
 {
 	my $self = $_[0];
 
-	if($self->{'action'} ~~ [ 'install', 'uninstall', 'update', 'enable', 'disable', 'change', 'cron' ]) {
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Monitorix'
-		);
-		unless(ref $config eq 'HASH') {
-			die("Monitorix: $config");
-		}
-
-		$self->{'config'} = decode_json($config->{'Monitorix'}->{'plugin_config'});
-
-		for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
-			die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
-		}
+	for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
+		die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
 	}
 
 	$self;
@@ -483,13 +463,13 @@ sub _addCronjob
 	my $self = $_[0];
 
 	if($self->{'config'}->{'cronjob_enabled'}) {
-		my $scriptPath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Monitorix/cronjob/cronjob.pl';
+		my $scriptPath = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/cronjob/cronjob.pl';
 
 		my $file = iMSCP::File->new( filename => $scriptPath );
 
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'}");
+			error("Unable to read $file->{'filename'} file");
 			return 1;
 		}
 

@@ -43,7 +43,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 	}
 );
 
-my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/Mailgraph/backend/Mailgraph.pm";
+my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Mailgraph/backend/Mailgraph.pm";
 my $rs = 0;
 
 eval { require $pluginFile; };

@@ -291,21 +291,6 @@ sub _init
 
 	$self->{'db'} = iMSCP::Database->factory();
 
-	if($self->{'action'} ~~ [ 'install', 'uninstall', 'change', 'update', 'enable', 'disable' ]) {
-		my $config = $self->{'db'}->doQuery(
-			'plugin_name',
-			'SELECT plugin_name, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
-			'OpenDKIM'
-		);
-		unless(ref $config eq 'HASH') {
-			error("OpenDKIM: $config");
-			return 1;
-		}
-
-		$self->{'config'} = decode_json($config->{'OpenDKIM'}->{'plugin_config'});
-		$self->{'config_prev'} = decode_json($config->{'OpenDKIM'}->{'plugin_config_prev'});
-	}
-
 	$self;
 }
 

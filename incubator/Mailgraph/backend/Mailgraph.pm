@@ -136,7 +136,7 @@ sub _buildMailgraph
 
 	return 0 if ! -f $mailgraphRRD;
 
-	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
 	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xPoints = 540;
@@ -253,7 +253,7 @@ sub _createMailgraphPicture
 	error($errorMsg) if $errorMsg;
 	return 1 if $errorMsg;
 
-	my $file = iMSCP::File->new('filename' => $setOutputfile);
+	my $file = iMSCP::File->new( filename => $setOutputfile );
 
 	my $panelUname =
 	my $panelGName =
@@ -282,7 +282,7 @@ sub _buildMailgraphVirus
 
 	return 0 if ! -f $mailgraphRRD || ! -f $mailgraphVirusRRD;
 
-	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
 	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xPoints = 540;
@@ -452,7 +452,7 @@ sub _buildMailgraphGreylist
 
 	return 0 if ! -f $mailgraphRRD;
 
-	my $imgGraphsDir = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/tmp_graph';
+	my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
 	my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
 	my $xPoints = 540;
@@ -570,7 +570,7 @@ sub _createMailgraphGreylistPicture
 	error($errorMsg) if $errorMsg;
 	return 1 if ($errorMsg);
 
-	my $file = iMSCP::File->new('filename' => $setOutputfile);
+	my $file = iMSCP::File->new( filename => $setOutputfile );
 
 	my $panelUname =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
@@ -591,28 +591,12 @@ sub _createMailgraphGreylistPicture
 
 sub _registerCronjob
 {
-	require iMSCP::Database;
+	if($self->{'config'}->{'cronjob_enabled'}) {
+		my $cronjobFilePath = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/cronjob.pl';
 
-	my $rdata = iMSCP::Database->factory()->doQuery(
-		'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Mailgraph'
-	);
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
-
-	require JSON;
-	JSON->import();
-
-	my $cronjobConfig = decode_json($rdata->{'Mailgraph'}->{'plugin_config'});
-
-	if($cronjobConfig->{'cronjob_enabled'}) {
-		my $cronjobFilePath = $main::imscpConfig{'GUI_ROOT_DIR'} . '/plugins/Mailgraph/cronjob.pl';
-
-		my $cronjobFile = iMSCP::File->new('filename' => $cronjobFilePath);
-
+		my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
 		my $cronjobFileContent = $cronjobFile->get();
-		return 1 if ! defined $cronjobFileContent;
+		return 1 unless defined $cronjobFileContent;
 
 		require iMSCP::TemplateParser;
 		iMSCP::TemplateParser->import();
@@ -632,11 +616,11 @@ sub _registerCronjob
 		Servers::cron->factory()->addTask(
 			{
 				'TASKID' => 'PLUGINS:Mailgraph',
-				'MINUTE' => $cronjobConfig->{'cronjob_config'}->{'minute'},
-				'HOUR' => $cronjobConfig->{'cronjob_config'}->{'hour'},
-				'DAY' => $cronjobConfig->{'cronjob_config'}->{'day'},
-				'MONTH' => $cronjobConfig->{'cronjob_config'}->{'month'},
-				'DWEEK' => $cronjobConfig->{'cronjob_config'}->{'dweek'},
+				'MINUTE' => $self->{'config'}->{'cronjob_config'}->{'minute'},
+				'HOUR' => $self->{'config'}->{'cronjob_config'}->{'hour'},
+				'DAY' => $self->{'config'}->{'cronjob_config'}->{'day'},
+				'MONTH' => $self->{'config'}->{'cronjob_config'}->{'month'},
+				'DWEEK' => $self->{'config'}->{'cronjob_config'}->{'dweek'},
 				'COMMAND' => "umask 027; perl $cronjobFilePath >/dev/null 2>&1"
 			}
 		);

@@ -8,9 +8,9 @@ Many application section options were renamed. See the [CHANGELOG](CHANGELOG) fo
 
 ### Syslog proxy daemon ( syslogproxyd )
 
-A syslog proxy daemon has been added, which allows to create log sockets ( /dev/log ) inside jails, whatever the syslog
-daemon implementation (rsyslog, syslog-ng...) provided by the distribution. If one of your applications section require
-log socket, you must just include the logbasics application section as follow:
+A syslog proxy daemon has been added, which allows to create log sockets ( /dev/log ) inside jails, whatever the Syslog
+daemon implementation ( rsyslog, syslog-ng... ) in use. If one of your applications section require log socket, you must
+just include the logbasics application section as follow:
 
 ```php
 ...
@@ -20,7 +20,7 @@ include_app_sections => array(
 ...
 ```
 
-**Note:** The syslog proxy daemon can create up to 100 log sockets. In near future, we'll remove this limitation by
+**Note:** The syslog proxy daemon can create up to 100 log sockets ATM. In near future, we'll remove this limitation by
 using dynamic memory allocation.
 
 ## Update to version 3.1.2

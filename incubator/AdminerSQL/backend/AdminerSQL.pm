@@ -139,38 +139,6 @@ sub disable()
 
 =back
 
-=head1 PRIVATE METHODS
-
-=over 4
-
-=item _init()
-
- Initialize instance
-
- Return Plugin::AdminerSQL or die on failure
-
-=cut
-
-sub _init
-{
-	my $self = $_[0];
-
-	if($self->{'action'} ~~ [ 'enable', 'update', 'change' ]) {
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'AdminerSQL'
-		);
-		unless(ref $config eq 'HASH') {
-			die("AdminerSQL: $config");
-		}
-
-		$self->{'config'} = decode_json($config->{'AdminerSQL'}->{'plugin_config'});
-	}
-
-	$self;
-}
-
-=back
-
 =head1 AUTHORS
 
  Sascha Bay <info@space2place.de>

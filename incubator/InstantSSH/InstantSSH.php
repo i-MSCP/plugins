@@ -45,7 +45,6 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 		/** @var Zend_Loader_StandardAutoloader $loader */
 		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
 		$loader->registerNamespace($pluginName, __DIR__ . '/library/' . $pluginName);
-		unset($loader);
 
 		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
 	}

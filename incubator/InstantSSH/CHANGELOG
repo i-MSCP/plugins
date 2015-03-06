@@ -10,14 +10,14 @@ Version 3.2.0
 	Added: destroy_jail_commands and destroy_jail_commands_args application section options
 	Added: destroy_sys_commands and destroy_sys_commands_args application section options
 	Added: discard_packages application section option
-	Added: logbasics application section ( Allows to create log sockets inside jails )
-	Added: Syslog proxy daemon which allows to create log sockets inside jails
+	Added: logbasics application section ( Allows to create log socket inside jails )
+	Added: Syslog proxy daemon which allows to create log socket inside jails
 	Fixed: Missing libgcc_s.so.1 shared library in some environments ( mysqltools application section )
 	Changed: Default jailed shell is now bash ( previously it was ash )
 	Fixed: Plugin configuration should be lazy-loaded
 	Fixed: Wrong mount point passed to doveadm ( Dovecot )
-	Renamed: jail_run_commands application section option to create_jail_commands
 	Removed: Support for i-MSCP 1.1.x serie
+	Renamed: jail_run_commands application section option to create_jail_commands
 	Renamed: sys_run_commands application section option to create_sys_commands
 
 ------------------------------------------------------------------------------------------------------------------------

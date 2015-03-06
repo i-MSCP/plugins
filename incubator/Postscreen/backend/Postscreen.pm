@@ -236,34 +236,6 @@ sub disable
 
 =over 4
 
-=item _init()
-
- Initialize instance
-
- Return Plugin::Postscreen
-
-=cut
-
-sub _init
-{
-	my $self = $_[0];
-
-	if($self->{'action'} ne 'run') {
-		# Loading plugin configuration
-		my $config = iMSCP::Database->factory()->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'Postscreen'
-		);
-		unless(ref $config eq 'HASH') {
-			die("Postscreen: $config");
-			return 1;
-		}
-
-		$self->{'config'} = decode_json($config->{'Postscreen'}->{'plugin_config'});
-	}
-
-	$self;
-}
-
 =item _postfixMainCf($action)
 
  Modify postfix main.cf config file
