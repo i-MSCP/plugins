@@ -25,11 +25,11 @@ package InstantSSH::JailBuilder::Utils;
 
 use strict;
 use warnings;
-
-use File::Basename;
-use File::stat ();
-use File::Spec ();
 use Fcntl qw(:mode);
+use File::Basename;
+use File::Spec ();
+use File::stat ();
+
 use base qw(Exporter);
 
 our @EXPORT_OK = qw(normalizePath resolveRealpath copyTimeAndPermissions createParentPath copyDevice);
@@ -132,7 +132,7 @@ sub resolveRealpath($$;$)
 				my $tmp = normalizePath(File::Spec->join(dirname($ret), $realpath));
 
 				if(length($chroot) > 0 && substr($chroot, 0, length($chroot)) ne $chroot) {
-					die('InstantSSH::JailBuilder::Utils: Symlink $tmp points outside jail');
+					die("InstantSSH::JailBuilder::Utils: Symlink $tmp points outside jail");
 				}
 
 				$ret = $tmp;

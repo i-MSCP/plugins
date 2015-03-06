@@ -36,7 +36,6 @@ use iMSCP::Execute;
 use iMSCP::Database;
 use Servers::cron;
 use version;
-use JSON;
 
 use parent 'Common::SingletonClass';
 

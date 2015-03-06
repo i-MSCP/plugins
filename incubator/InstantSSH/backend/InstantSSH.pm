@@ -42,7 +42,6 @@ use iMSCP::ProgramFinder;
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
 
-use JSON;
 use Unix::PasswdFile;
 use Unix::ShadowFile;
 use version;

@@ -32,7 +32,6 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::TemplateParser;
-use JSON;
 use version;
 
 use parent 'Common::SingletonClass';

@@ -38,7 +38,6 @@ use iMSCP::Database;
 use iMSCP::TemplateParser;
 use File::Basename;
 use version;
-use JSON;
 use Cwd;
 
 use parent 'Common::SingletonClass';

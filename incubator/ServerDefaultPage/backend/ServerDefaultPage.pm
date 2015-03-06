@@ -36,7 +36,6 @@ use iMSCP::Database;
 use iMSCP::Net;
 use Servers::httpd;
 use version;
-use JSON;
 
 use parent 'Common::SingletonClass';
 

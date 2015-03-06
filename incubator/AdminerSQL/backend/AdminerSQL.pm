@@ -34,7 +34,6 @@ use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Execute;
-use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION

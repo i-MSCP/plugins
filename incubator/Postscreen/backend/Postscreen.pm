@@ -35,7 +35,6 @@ use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::TemplateParser;
-use JSON;
 
 use parent 'Common::SingletonClass';
 

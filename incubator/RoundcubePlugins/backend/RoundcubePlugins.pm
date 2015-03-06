@@ -45,7 +45,6 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::TemplateParser;
 use Servers::cron;
-use JSON;
 use version;
 use parent 'Common::SingletonClass';
 

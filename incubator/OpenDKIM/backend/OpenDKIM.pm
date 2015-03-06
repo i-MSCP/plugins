@@ -38,7 +38,6 @@ use iMSCP::Execute;
 use iMSCP::TemplateParser;
 use iMSCP::Service;
 use Servers::mta;
-use JSON;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
