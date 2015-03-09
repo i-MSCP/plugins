@@ -408,8 +408,15 @@ return array(
 	# MySQL command-line tools ( mysql, mysqldump )
 	'mysqltools' => array(
 		'paths' => array(
-			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump', '/lib/libgcc_s.so.1',
-			'/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1', '/lib/x86_64-linux-gnu/libgcc_s.so.1'
+			'mysql', 'mysqldump', '/lib/libgcc_s.so.1', '/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1',
+			'/lib/x86_64-linux-gnu/libgcc_s.so.1'
+		),
+		'create_dirs' => array(
+			'/etc/mysql' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'jail_copy_file_to' => array(
 			__DIR__ . '/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
@@ -437,7 +444,7 @@ return array(
 	# PHP (CLI)
 	'php' => array(
 		'paths' => array(
-			'php', '/etc/php5/cli/php.ini', '/etc/php5/cli/conf.d/*', PHP_EXTENSION_DIR, '/usr/share/zoneinfo'
+			'php', '/etc/php5/cli', PHP_EXTENSION_DIR, '/usr/share/zoneinfo'
 		),
 		'include_app_sections' => array(
 			'netutils'
@@ -446,8 +453,12 @@ return array(
 
 	# composer ( see https://getcomposer.org )
 	'composer' => array(
-		'paths' => array(
-			'/usr/local/bin'
+		'create_dirs' => array(
+			'/usr/local/bin' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'include_app_sections' => array(
 			'php'
