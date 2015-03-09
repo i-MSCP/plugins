@@ -71,9 +71,6 @@ return array(
 		'full' => '/bin/bash',
 
 		// Shell for restricted SSH access
-		// BusyBox built-in shell ; Don't forget to set it back to something else if you do not use the BusyBox built-in
-		// shell. /bin/ash is a link that point to the /bin/busybox executable. This link is automatically created by the
-		// plugin. The /bin/ash shell is also automatically added in the /etc/shells file.
 		'jailed' => '/bin/bash'
 	),
 
@@ -116,11 +113,11 @@ return array(
 	// within the jails
 	'include_pkg_deps' => false,
 
-	// Application sections ( default: 'bashshell', 'netutils', 'editors', 'mysqltools', 'php' )
+	// Application sections ( default: 'bashshell', 'netutils', 'editors', 'mysqltools' )
 	//
 	// This is the list of application sections which are used to create/update the jails ( see below ).
 	'app_sections' => array(
-		'bashshell', 'netutils', 'editors', 'mysqltools', 'php'
+		'bashshell', 'netutils', 'editors', 'mysqltools'
 	),
 
 	// Application sections definitions
@@ -130,49 +127,52 @@ return array(
 	// option above.
 	//
 	// It is not recommended to change a section without understanding its meaning and how it is working. Once you know
-	// how the sections are defined, you can change them and even define your own sections.
+	// how the sections are defined, you can define your own sections.
 	//
 	// Application section options
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//
 	// The following options can be defined in application sections:
 	//
-	// paths: List of paths which have to be copied inside the jails. Be aware that copy is not recursive.
-	// packages: List of debian packages. Files from those packages will be copied inside the jails.
-	// discard_packages: List of debian packages which must be discarded. ( Only relevant if the global include_pkg_deps
+	// paths: List of paths to create inside the jails.
+	// create_dirs: List of directories to create inside jail where each key is a directory path and the value, an
+	//              an associative array describing directory permissions ( user, group and mode ).
+	// packages: List of debian packages. Files from those packages will be copied inside jail.
+	// discard_packages: List of debian packages to discard. ( Only relevant if the global include_pkg_deps
 	//                   configuration option is set to true ).
-	// sys_copy_file_to: List of files to copy outside the jails, each of them specified as a key/value pairs where the
+	// sys_copy_file_to: List of files to copy outside the jail, each of them specified as a key/value pair where the
 	//                   key is the source file path and the value, the destination path.
-	// jail_copy_file_to: List of files to copy inside the jails, each of them specified as a key/value pairs where the
-	//                    key is the source file path and the value, the destination path.
-	// include_apps_sections: List of applications sections that have to be included.
-	// users: List of users that have to be added inside the jail ( eg. in passwd/shadow files ).
-	// groups: List of groups that have to be added inside the jail ( eg. in group/gshadow files ).
-	// preserve_files: Files that have to be preserved when the jails are being updated.
-	// devices: List of devices that have to be copied inside the jails.
+	// jail_copy_file_to: List of files to copy inside jail, each of them specified as a key/value pair where the key is
+	//                    the source file path and the value, the destination path.
+	// include_apps_sections: List of applications sections to include.
+	// users: List of users to add inside the jail ( eg. in passwd/shadow files ).
+	// groups: List of groups to add inside the jail ( eg. in group/gshadow files ).
+	// preserve_files: List of files to preserve when the jails are updated.
+	// devices: List of devices to copy inside jail.
 	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab ).
 	// create_sys_commands: List of commands to execute outside the jail once built or updated.
-	// create_sys_commands_args: List of commands to execute outside the jail once built or updated. Any listed
-	//                           command will receive the full jail path as argument.
-	// destroy_sys_commands: List of command to execute outside the jail before it get destroyed.
-	// destroy_sys_commands_args: List of command to execute outside the jail before it get destroyed. Any listed
-	//                            command will receive the full jail path as argument.
-	// create_jail_commands: List of commands to execute inside the jail once built or updated.
-	// create_jail_commands_args: List of commands to execute inside the jail once built or updated. Any listed
-	//                            command will receive the full jail path as argument.
-	// destroy_jail_commands: List of commands to execute inside the jail before it get destroyed.
-	// destroy_jail_commands_args: List of commands to execute inside the jail before it get destroyed. Any listed
-	//                             command will receive the full jail path as argument.
+	// create_sys_commands_args: List of commands to execute outside the jail once built or updated. Any listed command
+	//                           will receive the full jail path as argument.
+	// destroy_sys_commands: List of command to execute outside jail before it get destroyed.
+	// destroy_sys_commands_args: List of command to execute outside jail before it get destroyed. Any listed command
+	//                            will receive the full jail path as argument.
+	// create_jail_commands: List of commands to execute inside jail once built or updated.
+	// create_jail_commands_args: List of commands to execute inside jail once built or updated. Any listed command will
+	//                            receive the full jail path as argument.
+	// destroy_jail_commands: List of commands to execute inside jail before it get destroyed.
+	// destroy_jail_commands_args: List of commands to execute inside jail before it get destroyed. Any listed command
+	//                             will receive the full jail path as argument.
 	//
 	// Notes:
 	//  - The paths and devices options both support the glob patterns.
+	//  - Directories specified in paths option are copied recursively.
 	//  - Any path which doesn't exists on the system is ignored.
-	//  - Any package listed in a package option must be already installed on the system, else an error is thrown.
-	//  - Any device must exists on the system, else an error is thrown. You must use glob patterns to avoid any error.
-	//  - filesystems specified in the fstab option are mounted automatically inside the jails.
+	//  - Any package listed in a package option must be already installed on the system, else an error is raised.
+	//  - Any device must exists on the system, else an error is raised. You can use glob patterns to avoid error.
+	//  - filesystems specified in the fstab option are mounted automatically inside jail.
 	//  - Mount points defined in the fstab option must be specified without the jail root path.
 
-	// common files for all jails that need user/group information
+	// common files for jails that need user/group information
 	'uidbasics' => array(
 		'paths' => array(
 			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf',
@@ -182,10 +182,10 @@ return array(
 		)
 	),
 
-	// common files for all jails that need any internet connectivity
+	// common files for jails that need internet connectivity
 	'netbasics' => array(
 		'paths' => array(
-			'/etc/resolv.conf', '/etc/host.conf', '/etc/hosts', '/etc/protocols', '/etc/services', '/etc/ssl/certs/*',
+			'/etc/resolv.conf', '/etc/host.conf', '/etc/hosts', '/etc/protocols', '/etc/services', '/etc/ssl/certs',
 			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/lib/i386-linux-gnu/libnss_dns.so.2',
 			'/lib/x86_64-linux-gnu/libnss_dns.so.2'
 		)
@@ -194,7 +194,14 @@ return array(
 	// timezone information and log sockets
 	'logbasics' => array(
 		'paths' => array(
-			'/dev', '/etc/localtime'
+			'/etc/localtime'
+		),
+		'create_dir' => array(
+			'/dev/log' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'preserve_files' => array(
 			'/dev/log'
@@ -217,8 +224,19 @@ return array(
 			'root', 'www-data'
 		),
 		'paths' => array(
-			'/bin/ash', '/bin/busybox', '/bin/false', '/tmp', '/usr/bin/dircolors', '/usr/bin/tput', '/var/log',
-			'/etc/localtime', '/etc/timezone'
+			'ash', 'busybox', 'dircolors', 'false', 'tput', '/etc/localtime', '/etc/timezone', '/usr/lib/locale/C.UTF-8'
+		),
+		'create_dirs' => array(
+			'/tmp' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 01777
+			),
+			'/var/log' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'jail_copy_file_to' => array(
 			__DIR__ . '/config/etc/motd' => '/etc/motd',
@@ -268,16 +286,24 @@ return array(
 			'root', 'www-data'
 		),
 		'paths' => array(
-			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
-			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
-			'/bin/gzip', '/bin/ln', '/bin/mktemp', '/bin/more', '/bin/mv', '/bin/pwd', '/bin/rm', '/bin/rmdir',
-			'/bin/sed', '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/basename', '/usr/bin/touch', '/bin/true',
-			'/bin/uncompress', '/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput',
-			'/tmp', '/var/log', '/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less',
-			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
-			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
-			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime', '/etc/timezone'
+			'sh', 'bash', 'ls', 'cat', 'chmod', 'mkdir', 'cp', 'cpio', 'date', 'dd', 'echo', 'egrep', 'false', 'fgrep',
+			'grep', 'gunzip', 'gzip', 'ln', 'mktemp', 'more', 'mv', 'pwd', 'rm', 'rmdir', 'sed', 'sleep', 'sync', 'tar',
+			'basename', 'touch', 'true', 'uncompress', 'zcat', '/etc/issue', '/etc/bash.bashrc', 'dircolors', 'tput',
+			'awk', 'bzip2', 'bunzip2', 'ldd', 'less', 'clear', 'cut', 'du', 'find', 'head', 'md5sum', 'nice', 'sort',
+			'tac', 'tail', 'tr', 'wc', 'watch', 'whoami', 'id', 'hostname', 'lzma', 'xz', 'pbzip2', 'env', 'readlink',
+			'groups', '/etc/localtime', '/etc/timezone', '/usr/lib/locale/C.UTF-8'
+		),
+		'create_dirs' => array(
+			'/tmp' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 01777
+			),
+			'/var/log' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'jail_copy_file_to' => array(
 			__DIR__ . '/config/etc/motd' => '/etc/motd',
@@ -320,7 +346,7 @@ return array(
 	// Provide curl, wget, lynx, ftp, ssh, sftp, scp, rsync,
 	'netutils' => array(
 		'paths' => array(
-			'/usr/bin/curl', '/usr/bin/ftp', '/usr/bin/lynx', '/usr/bin/wget', '/etc/lynx-cur/*'
+			'curl', 'ftp', 'lynx', 'wget', '/etc/lynx-cur'
 		),
 		'include_app_sections' => array(
 			'netbasics', 'scp', 'sftp', 'ssh', 'rsync'
@@ -333,7 +359,7 @@ return array(
 	# ssh secure copy
 	'scp' => array(
 		'paths' => array(
-			'/usr/bin/scp'
+			'scp'
 		),
 		'include_app_sections' => array(
 			'netbasics'
@@ -346,7 +372,7 @@ return array(
 	# ssh secure ftp
 	'sftp' => array(
 		'paths' => array(
-			'/usr/bin/sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
+			'sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
 		),
 		'include_app_sections' => array(
 			'netbasics'
@@ -359,7 +385,7 @@ return array(
 	# ssh secure shell
 	'ssh' => array(
 		'paths' => array(
-			'/usr/bin/ssh'
+			'ssh'
 		),
 		'include_app_sections' => array(
 			'netbasics'
@@ -372,7 +398,7 @@ return array(
 	# rsync
 	'rsync' => array(
 		'paths' => array(
-			'/usr/bin/rsync'
+			'rsync'
 		),
 		'include_app_sections' => array(
 			'uidbasics', 'netbasics'
@@ -393,7 +419,8 @@ return array(
 	// common editors
 	'editors' => array(
 		'paths' => array(
-			'/usr/bin/nano', '/usr/bin/vi', '/usr/bin/vim'
+			'joe', 'nano', 'vi', 'vim', '/etc/vim', '/etc/vimrc', '/etc/joe', '/usr/share/vim',
+			'/etc/nanorc', '/usr/share/nano'
 		),
 		'include_app_sections' => array(
 			'terminfo'
@@ -402,28 +429,18 @@ return array(
 
 	// terminfo databases
 	'terminfo' => array(
-		'packages' => array(
-			// This package contains terminfo data files to support the most common types of terminal, including ansi,
-			// dumb, linux, rxvt, screen, sun, vt100, vt102, vt220, vt52, and xterm.
-			'ncurses-base'
+		'paths' => array(
+			'/etc/terminfo', '/lib/terminfo', '/usr/share/terminfo'
 		)
 	),
 
 	# PHP (CLI)
 	'php' => array(
 		'paths' => array(
-			'/usr/bin/php',
-			'/etc/php5/cli/php.ini',
-			'/etc/php5/cli/conf.d/*',
-			PHP_EXTENSION_DIR . '/*'
+			'php', '/etc/php5/cli/php.ini', '/etc/php5/cli/conf.d/*', PHP_EXTENSION_DIR, '/usr/share/zoneinfo'
 		),
 		'include_app_sections' => array(
 			'netutils'
-		),
-		'packages' => array(
-			// This package contains data required for the implementation of standard local time for many representative
-			// locations around the globe.
-			'tzdata'
 		)
 	),
 

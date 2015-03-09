@@ -7,13 +7,15 @@
 #
 # WARNING:
 # This is a modified version shipped with the i-MSCP InstantSSH plugin
-# Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # Modifications:
-# - Fixed: for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283
+# - Changed: Relative paths are now resolved using PATH environment variable
+# - Changed: Directories are now copied recursively
+# - Fixed: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=680283
 # - Fixed: Do not try to umount /proc if it is umounted
 # - Fixed: Deprecation warning: The popen2 module is deprecated. Use the subprocess module.
-# - Disabled: Loading of default configuration file (eg. /etc/makejail/makejail.conf)
+# - Disabled: Loading of default configuration file ( eg. /etc/makejail/makejail.conf )
 
 # Required unusual external programs:
 # strace (package strace)
@@ -98,6 +100,7 @@ installedFiles={}
 indentLevel=0
 doNotKillPids=[]
 tmpOut=None
+statcache = {}
 
 import stat
 import sys
@@ -865,6 +868,67 @@ def initRunningPids():
 		pid=int(string.split(psLine)[config.psColumns[0]-1])
 		doNotKillPids.append(pid)
 
+def cachedlstat(path):
+
+	ret = statcache.get(path, None)
+
+	if ret is None:
+		statcache[path] = ret = os.lstat(path)
+
+	return ret
+
+def findFileInPath(filename):
+	searchPath = os.getenv('PATH')
+	paths = string.split(searchPath, ':')
+
+	for path in paths:
+		joined = os.path.join(path, filename)
+
+		if os.path.exists(joined):
+			return os.path.abspath(joined)
+
+	return None
+
+def findFilesInPath(paths):
+	paths2 = []
+
+	for tmp in paths:
+		if (tmp[0] == '/'):
+			paths2.append(tmp)
+		else:
+			tmp2 = findFileInPath(tmp)
+
+			if (tmp2):
+				paths2.append(tmp2)
+
+	return paths2
+
+def resolvePaths(paths, tryGlobMatching=0, files=[]):
+	for file in paths:
+		if (file in files):
+			continue
+
+		try:
+			sb = cachedlstat(file)
+		except OSError, e:
+			if(e.errno == 2):
+				if (tryGlobMatching == 1):
+					ret = glob.glob(file)
+
+					if (len(ret) > 0):
+						files = resolvePaths(ret, tryGlobMatching=0, files=files)
+			else:
+				abort("Failed to investigate source file '%s': %s" % (file, e.strerror))
+			continue
+
+		if(stat.S_ISDIR(sb.st_mode)):
+			for entry in os.listdir(file):
+				files = resolvePaths([os.path.join(file, entry)], tryGlobMatching=0, files=files)
+		else:
+			files.append(file)
+
+	return files
+
 def makeChroot():
 	global tmpOut
 
@@ -872,7 +936,6 @@ def makeChroot():
 	if not(os.path.isdir(config.chroot)):
 		sys.stderr.write("ERROR: The chroot location defined '%s' does not exist. Please create it and run makejail again.\n" % config.chroot)
 		sys.exit(1)
-
 
 	# In the strace output, the command attempt to access
 	# the directory where this script was started outside
@@ -902,12 +965,8 @@ def makeChroot():
 		addPackageToJail(package)
 
 	# === Copy specific paths
-	for globExpression in config.forceCopy:
-		debug("Adding files matching '%s'" % globExpression)
-		moveIndent(1)
-		for file in glob.glob(globExpression):
-			addFileToJail(file)
-		moveIndent(-1)
+	for file in resolvePaths(findFilesInPath(config.forceCopy), tryGlobMatching=1):
+		addFileToJail(file)
 
 	chrootCommands=[]
 	if config.testCommandsInsideJail:

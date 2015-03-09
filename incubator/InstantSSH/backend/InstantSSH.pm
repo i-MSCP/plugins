@@ -222,7 +222,12 @@ sub change
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
 		my $jailBuilder;
-		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config_prev'} ); };
+		eval {
+			$jailBuilder = InstantSSH::JailBuilder->new(
+				id => 'shared_jail',
+				config => ($self->{'config'}->{'shared_jail'}) ? $self->{'config'} : $self->{'config_prev'}
+			);
+		};
 		if($@) {
 			error("Unable to create JailBuilder object: $@");
 			return 1;

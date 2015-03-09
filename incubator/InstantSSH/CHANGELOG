@@ -6,6 +6,7 @@ Version 3.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: composer application section ( see https://getcomposer.org )
+	Added: create_dirs application section option
 	Added: create sys_commands_args and create jails_commands_args application section options
 	Added: destroy_jail_commands and destroy_jail_commands_args application section options
 	Added: destroy_sys_commands and destroy_sys_commands_args application section options
@@ -14,6 +15,8 @@ Version 3.2.0
 	Added: Syslog proxy daemon which allows to create log socket inside jails
 	Fixed: Missing libgcc_s.so.1 shared library in some environments ( mysqltools application section )
 	Changed: Default jailed shell is now bash ( previously it was ash )
+	Changed: Directories are now copied recursively ( paths application section option )
+	Changed: Relative paths are now resolved using the PATH environment variable ( paths applications section option )
 	Fixed: Plugin configuration should be lazy-loaded
 	Fixed: Wrong mount point passed to doveadm ( Dovecot )
 	Removed: Support for i-MSCP 1.1.x serie

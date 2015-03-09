@@ -87,15 +87,38 @@ sub makeJail
 	return $rs if $rs;
 
 	# Create/update jail
-	my ($stdout, $stderr);
-	$rs = execute("python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
+	my $stderr;
+	$rs = execute(
+		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
+	);
 	error($stderr) if $rs && $stderr;
 	error('Unable to create/update jail for unknown reason') if $rs && !$stderr;
 	return $rs if $rs;
 
 	{
-		local $UMASK = 022;
+		local $UMASK = 0022;
+
+		# Create directories defined in the create_dirs option within the jails
+		while(my ($dir, $perms) = each(%{$self->{'jailCfg'}->{'create_dirs'}})) {
+			if(index($dir, '/') == 0) {
+				if(ref $perms eq 'HASH') {
+					$rs = iMSCP::Dir->new( dirname => $self->{'jailCfg'}->{'chroot'} . $dir )->make(
+						{
+							user => (exists $perms->{'user'}) ? $perms->{'user'} : $main::imscpConfig{'ROOT_USER'},
+							group => (exists $perms->{'group'}) ? $perms->{'group'} : $main::imscpConfig{'ROOT_GROUP'},
+							mode => (exists $perms->{'mode'}) ? $perms->{'mode'} : 0755
+						}
+					);
+					return $rs if $rs;
+				} else {
+					error("Values for the directory paths defined in the create_dirs option must be an associative array");
+					return 1;
+				}
+			} else {
+				error("Directory paths defined in the create_dirs option must be absolute");
+				return 1;
+			}
+		}
 
 		# Copy files defined in the sys_copy_file_to option within the system
 		while(my ($src, $dst) = each(%{$self->{'jailCfg'}->{'sys_copy_file_to'}})) {
@@ -169,6 +192,8 @@ sub makeJail
 			return 1;
 		}
 	}
+
+	my $stdout;
 
 	# Run commands defined in the create_sys_commands option outside the jail
 	for (@{$self->{'jailCfg'}->{'create_sys_commands'}}) {
@@ -755,6 +780,7 @@ sub _init
 	$self->{'jailCfg'} = {
 		chroot => '',
 		paths => [],
+		create_dirs => {},
 		sys_copy_file_to => {},
 		jail_copy_file_to => {},
 		packages => [],
@@ -990,7 +1016,7 @@ sub _handleAppSection()
 	}
 
 	# Handle key/value pairs options from application section
-	for my $option(qw/ sys_copy_file_to jail_copy_file_to /) {
+	for my $option(qw/ create_dirs sys_copy_file_to jail_copy_file_to /) {
 		if(exists $cfg->{$section}->{$option}) {
 			if(ref $cfg->{$section}->{$option} eq 'HASH') {
 				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {

@@ -3,7 +3,7 @@
 
 HOME=$(readlink -f $HOME)
 cd $HOME
-export LANG=C
+export LANG=C.UTF-8
 
 HOSTNAME=$(basename $HOME);
 

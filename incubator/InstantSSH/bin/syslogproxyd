@@ -33,6 +33,8 @@ use Cwd qw(chdir realpath);
 use File::Spec;
 use FindBin qw($Bin);
 
+$ENV{'LANG'} = 'C.UTF-8';
+
 my $syslogproxySrc = realpath("$Bin/../vendor/syslogproxyd");
 my $syslogproxyInitFileSrc = realpath("$Bin/../config/etc/init.d/syslogproxyd");
 my $syslogproxyInitFileDest = '/etc/init.d/syslogproxyd';
@@ -71,6 +73,10 @@ sub install
 
 	my $basename = basename($syslogproxyInitFileDest);
 	system("update-rc.d $basename defaults") == 0 or die "Unable to install $basename init script links\n";
+
+	if(-x '/bin/systemctl') {
+		system('/bin/systemctl daemon-reload') == 0 or die "Unable to reload systemd daemon\n";
+	}
 }
 
 # Uninstall syslogproxyd
@@ -79,7 +85,7 @@ sub uninstall
 	if(-f $syslogproxyInitFileDest) {
 		my $basename = basename($syslogproxyInitFileDest);
 
-		system("service $basename stop") == 0 or die "Unable to stop $basename service: $?\n";
+		system("service $basename stop") == 0 or die "Unable to stop $basename service\n";
 		system("update-rc.d -f $basename remove") == 0 or die "Unable to remove $basename init script links\n";
 
 		unlink($syslogproxyInitFileDest) or die "Unable to remove $basename init script: $!\n";
@@ -91,6 +97,10 @@ sub uninstall
 
 	if(-x $sylogproxydBin) {
 		unlink($sylogproxydBin) or die "Unable to remove $sylogproxydBin: $!\n";
+	}
+
+	if(-x '/bin/systemctl') {
+		system('/bin/systemctl daemon-reload') == 0 or die "Unable to reload systemd daemon\n";
 	}
 }
 
