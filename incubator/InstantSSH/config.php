@@ -196,7 +196,7 @@ return array(
 		'paths' => array(
 			'/etc/localtime'
 		),
-		'create_dir' => array(
+		'create_dirs' => array(
 			'/dev/log' => array(
 				'user' => 'root',
 				'group' => 'root',
