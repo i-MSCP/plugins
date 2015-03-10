@@ -192,7 +192,7 @@ sub makeJail
 				);
 				return $rs if $rs;
 			} else {
-				error("Wrong file_system or mount point defined in fstab option");
+				error("Wrong file system or mount point defined in fstab option");
 				return 1;
 			}
 		} else {
