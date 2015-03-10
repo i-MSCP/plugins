@@ -89,15 +89,10 @@ sub makeJail
 	return $rs if $rs;
 
 	# Create/update jail
-	#my $stderr;
-	#$rs = execute(
-	#	"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
-	#);
-	my ($stdout, $stderr);
+	my $stderr;
 	$rs = execute(
-		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py", \$stdout, \$stderr
+		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
 	);
-	debug($stdout) if $stdout;
 	error($stderr) if $rs && $stderr;
 	error('Unable to create/update jail for unknown reason') if $rs && !$stderr;
 	return $rs if $rs;
@@ -206,7 +201,7 @@ sub makeJail
 		}
 	}
 
-	#my $stdout;
+	my $stdout;
 
 	# Run commands defined in the create_sys_commands option outside the jail
 	for (@{$self->{'jailCfg'}->{'create_sys_commands'}}) {
