@@ -778,7 +778,7 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for my $package (qw/libpam-chroot makejail/) {
+	for my $package (qw/bash build-essential busybox-static libpam-chroot psmisc python strace/) {
 		my ($stdout, $stderr);
 		my $rs = execute(
 			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr

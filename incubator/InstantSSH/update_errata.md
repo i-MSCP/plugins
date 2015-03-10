@@ -4,7 +4,7 @@
 
 ### Application section options
 
-Many application section options were renamed. See the [CHANGELOG](CHANGELOG) for further details.
+Many application section options were added or renamed. See the [CHANGELOG](CHANGELOG) for further details.
 
 ### Syslog proxy daemon ( syslogproxyd )
 

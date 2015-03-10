@@ -26,6 +26,8 @@ package InstantSSH::JailBuilder;
 use strict;
 use warnings;
 
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
@@ -87,10 +89,15 @@ sub makeJail
 	return $rs if $rs;
 
 	# Create/update jail
-	my $stderr;
+	#my $stderr;
+	#$rs = execute(
+	#	"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
+	#);
+	my ($stdout, $stderr);
 	$rs = execute(
-		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
+		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py", \$stdout, \$stderr
 	);
+	debug($stdout) if $stdout;
 	error($stderr) if $rs && $stderr;
 	error('Unable to create/update jail for unknown reason') if $rs && !$stderr;
 	return $rs if $rs;
@@ -163,7 +170,13 @@ sub makeJail
 			exists $_->{'file_system'} && exists $_->{'mount_point'} && exists $_->{'type'} &&
 			exists $_->{'options'} && exists $_->{'dump'} && exists $_->{'pass'}
 		) {
-			if(index($_->{'file_system'}, '/') == 0 && index($_->{'mount_point'}, '/') == 0) {
+			if(
+				(
+					index($_->{'file_system'}, '/') == 0 ||
+					$_->{'file_system'} ~~ [ 'proc', 'sysfs', 'devtmpfs', 'tmpfs', 'devpts' ]
+				) &&
+				index($_->{'mount_point'}, '/') == 0
+			) {
 				$rs = $self->mount(
 					{
 						'file_system' => $_->{'file_system'},
@@ -184,7 +197,7 @@ sub makeJail
 				);
 				return $rs if $rs;
 			} else {
-				error("Any filesystem or mount point defined in the fstab option must be an absolute path");
+				error("Wrong file_system or mount point defined in fstab option");
 				return 1;
 			}
 		} else {
@@ -193,7 +206,7 @@ sub makeJail
 		}
 	}
 
-	my $stdout;
+	#my $stdout;
 
 	# Run commands defined in the create_sys_commands option outside the jail
 	for (@{$self->{'jailCfg'}->{'create_sys_commands'}}) {
@@ -686,8 +699,8 @@ sub mount
 	my $mountPoint = normalizePath($fstabEntry->{'mount_point'});
 
 	if(execute("mount 2>/dev/null | grep -q ' $mountPoint '")) {
-		unless(-e $mountPoint) { # Don't create $newdir if it already exists
-			if(-d $fileSystem) {
+		unless(-e $mountPoint) {
+			if(-d $fileSystem || $fileSystem ~~ [ 'proc', 'sysfs', 'devtmpfs', 'tmpfs', 'devpts' ]) {
 				my $rs = iMSCP::Dir->new( dirname => $mountPoint )->make(
 					{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0555 }
 				);
@@ -699,7 +712,7 @@ sub mount
 				$rs ||= $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
 				return $rs if $rs;
 			}
-		} elsif(! -d _ && ! -f _) { # Enssure that the mount point is valid
+		} elsif(! -d _ && ! -f _) {
 			error(sprintf(
 				'Cannot mount %s on %s: %s is not a directory nor a regular file', $fileSystem, $mountPoint, $mountPoint
 			));

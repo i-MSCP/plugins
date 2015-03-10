@@ -119,5 +119,12 @@ return array(
 	'No jail to rebuild. Operation cancelled.' => 'Es ist kein Jail zum Neuerstellen vorhanden. Die Operation wurde abgebrochen.',
 	'Rebuild Jails' => 'Erstelle Jails neu',
 	'Unable to schedule rebuild of jails: %s' => 'Die Jails konnten nicht zum Neuerstellen angesetzt werden: %s',
-	'Are you sure you want to schedule rebuild of all jails?' => 'Sind Sie sich sicher, alle Jails zum Neuerstellen ansetzen zu wollen?'
+	'Are you sure you want to schedule rebuild of all jails?' => 'Sind Sie sich sicher, alle Jails zum Neuerstellen ansetzen zu wollen?',
+	"The '%value%' authentication option cannot be defined multiple times" => "The '%value%' authentication option cannot be defined multiple times",
+	"The '%value%' authentication option is valid but has been disabled on this system" => "The '%value%' authentication option is valid but has been disabled on this system",
+	'Invalid authentication option given. String expected' => 'Invalid authentication option given. String expected',
+	"The '%value%' authentication option value is invalid" => "The '%value%' authentication option value is invalid",
+	"Value is missing for the '%value%' authentication option" => "Value is missing for the '%value%' authentication option",
+	"Missing end quote for the '%value%' authentication option" => "Missing end quote for the '%value%' authentication option",
+	'Unknown or malformed authentication option has been detected' => 'Unknown or malformed authentication option has been detected'
 );

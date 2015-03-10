@@ -3,7 +3,8 @@
  *
  *  Created on: 21 Jan 2012
  *      Author: martin
- *  Modified by Laurent Declercq <l.declercq@nuxwin.com> for i-MSCP
+ *  Updated on: 2015
+ *      Author: Laurent Declercq <l.declercq@nuxwin.com>
  */
 
 //===================

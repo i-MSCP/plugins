@@ -35,7 +35,7 @@ use FindBin qw($Bin);
 
 $ENV{'LANG'} = 'C.UTF-8';
 
-my $syslogproxySrc = realpath("$Bin/../vendor/syslogproxyd");
+my $syslogproxySrc = realpath("$Bin/../syslogproxyd");
 my $syslogproxyInitFileSrc = realpath("$Bin/../config/etc/init.d/syslogproxyd");
 my $syslogproxyInitFileDest = '/etc/init.d/syslogproxyd';
 my $syslogproxydDefaultFileSrc = realpath("$Bin/../config/etc/default/syslogproxyd");

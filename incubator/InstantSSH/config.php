@@ -175,10 +175,10 @@ return array(
 	// common files for jails that need user/group information
 	'uidbasics' => array(
 		'paths' => array(
-			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf',
-			'/lib/libnsl.so.1', '/lib64/libnsl.so.1', '/lib/i386-linux-gnu/libnsl.so.1',
-			'/lib/x86_64-linux-gnu/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2',
-			'/lib/i386-linux-gnu/libnss*.so.2', '/lib/x86_64-linux-gnu/libnss*.so.2',
+			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf', '/lib/libnsl.so.1',
+			'/lib64/libnsl.so.1', '/lib/i386-linux-gnu/libnsl.so.1', '/lib/x86_64-linux-gnu/libnsl.so.1',
+			'/lib/libnss*.so.2', '/lib64/libnss*.so.2', '/lib/i386-linux-gnu/libnss*.so.2',
+			'/lib/x86_64-linux-gnu/libnss*.so.2',
 		)
 	),
 
@@ -194,10 +194,10 @@ return array(
 	// timezone information and log sockets
 	'logbasics' => array(
 		'paths' => array(
-			'/etc/localtime'
+			'/etc/localtime', '/etc/timezone'
 		),
 		'create_dirs' => array(
-			'/dev/log' => array(
+			'/dev' => array(
 				'user' => 'root',
 				'group' => 'root',
 				'mode' => 0755
@@ -207,10 +207,10 @@ return array(
 			'/dev/log'
 		),
 		'create_sys_commands_args' => array(
-			$config['CMD_PERL'] . ' ' . __DIR__ . '/bin/syslogproxyd add'
+			'perl ' . __DIR__ . '/bin/syslogproxyd add'
 		),
 		'destroy_sys_commands_args' => array(
-			$config['CMD_PERL'] . ' ' . __DIR__ . '/bin/syslogproxyd remove'
+			'perl ' . __DIR__ . '/bin/syslogproxyd remove'
 		)
 	),
 
@@ -224,7 +224,7 @@ return array(
 			'root', 'www-data'
 		),
 		'paths' => array(
-			'ash', 'busybox', 'dircolors', 'false', 'tput', '/etc/localtime', '/etc/timezone', '/usr/lib/locale/C.UTF-8'
+			'ash', 'busybox', 'dircolors', 'false', 'tput', '/usr/lib/locale/C.UTF-8'
 		),
 		'create_dirs' => array(
 			'/tmp' => array(
@@ -250,18 +250,26 @@ return array(
 		),
 		'fstab' => array(
 			array(
-				'file_system' => '/proc',
-				'mount_point' => '/proc',
-				'type' => 'proc',
-				'options' => 'bind',
+				'file_system' => 'devpts',
+				'mount_point' => '/dev/pts',
+				'type' => 'devpts',
+				'options' => 'gid=5,mode=620',
 				'dump' => '0',
 				'pass' => '0'
 			),
 			array(
-				'file_system' => '/dev/pts',
-				'mount_point' => '/dev/pts',
-				'type' => 'devpts',
-				'options' => 'bind',
+				'file_system' => 'proc',
+				'mount_point' => '/proc',
+				'type' => 'proc',
+				'options' => 'defaults',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => 'sysfs',
+				'mount_point' => '/sys',
+				'type' => 'sysfs',
+				'options' => 'defaults',
 				'dump' => '0',
 				'pass' => '0'
 			),
@@ -276,7 +284,7 @@ return array(
 		)
 	),
 
-	// Provide restricted GNU bash shell
+	// restricted GNU bash shell
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
 	'bashshell' => array(
 		'users' => array(
@@ -291,7 +299,7 @@ return array(
 			'basename', 'touch', 'true', 'uncompress', 'zcat', '/etc/issue', '/etc/bash.bashrc', 'dircolors', 'tput',
 			'awk', 'bzip2', 'bunzip2', 'ldd', 'less', 'clear', 'cut', 'du', 'find', 'head', 'md5sum', 'nice', 'sort',
 			'tac', 'tail', 'tr', 'wc', 'watch', 'whoami', 'id', 'hostname', 'lzma', 'xz', 'pbzip2', 'env', 'readlink',
-			'groups', '/etc/localtime', '/etc/timezone', '/usr/lib/locale/C.UTF-8'
+			'groups', '/usr/lib/locale/C.UTF-8'
 		),
 		'create_dirs' => array(
 			'/tmp' => array(
@@ -317,18 +325,26 @@ return array(
 		),
 		'fstab' => array(
 			array(
-				'file_system' => '/proc',
-				'mount_point' => '/proc',
-				'type' => 'proc',
-				'options' => 'bind',
+				'file_system' => 'devpts',
+				'mount_point' => '/dev/pts',
+				'type' => 'devpts',
+				'options' => 'gid=5,mode=620',
 				'dump' => '0',
 				'pass' => '0'
 			),
 			array(
-				'file_system' => '/dev/pts',
-				'mount_point' => '/dev/pts',
-				'type' => 'devpts',
-				'options' => 'bind',
+				'file_system' => 'proc',
+				'mount_point' => '/proc',
+				'type' => 'proc',
+				'options' => 'defaults',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => 'sysfs',
+				'mount_point' => '/sys',
+				'type' => 'sysfs',
+				'options' => 'defaults',
 				'dump' => '0',
 				'pass' => '0'
 			),
@@ -343,7 +359,7 @@ return array(
 		)
 	),
 
-	// Provide curl, wget, lynx, ftp, ssh, sftp, scp, rsync,
+	// Provide curl, wget, lynx, ftp, ssh, sftp, scp, rsync
 	'netutils' => array(
 		'paths' => array(
 			'curl', 'ftp', 'lynx', 'wget', '/etc/lynx-cur'
@@ -356,7 +372,14 @@ return array(
 		)
 	),
 
-	# ssh secure copy
+	//  htpasswd utility
+	'apacheutils' => array(
+		'paths' => array(
+			'htpasswd'
+		)
+	),
+
+	// ssh secure copy
 	'scp' => array(
 		'paths' => array(
 			'scp'
@@ -369,7 +392,7 @@ return array(
 		)
 	),
 
-	# ssh secure ftp
+	// ssh secure ftp
 	'sftp' => array(
 		'paths' => array(
 			'sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
@@ -382,7 +405,7 @@ return array(
 		)
 	),
 
-	# ssh secure shell
+	// ssh secure shell
 	'ssh' => array(
 		'paths' => array(
 			'ssh'
@@ -395,7 +418,7 @@ return array(
 		)
 	),
 
-	# rsync
+	// rsync
 	'rsync' => array(
 		'paths' => array(
 			'rsync'
@@ -405,7 +428,7 @@ return array(
 		)
 	),
 
-	# MySQL command-line tools ( mysql, mysqldump )
+	// MySQL command-line tools ( mysql, mysqldump )
 	'mysqltools' => array(
 		'paths' => array(
 			'mysql', 'mysqldump', '/lib/libgcc_s.so.1', '/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1',
@@ -426,8 +449,19 @@ return array(
 	// common editors
 	'editors' => array(
 		'paths' => array(
-			'joe', 'nano', 'vi', 'vim', '/etc/vim', '/etc/vimrc', '/etc/joe', '/usr/share/vim',
-			'/etc/nanorc', '/usr/share/nano'
+			'joe', 'nano', 'vi', 'vim', '/etc/vim', '/etc/vimrc', '/etc/joe', '/usr/share/vim', '/etc/nanorc',
+			'/usr/share/nano'
+		),
+		'include_app_sections' => array(
+			'terminfo'
+		)
+	),
+
+	// Midnight Commander
+	// Warning: Need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
+	'midnightcommander' => array(
+		'paths' => array(
+			'mc', 'mcedit', 'mcview', '/usr/share/mc', '/etc/mc', '/usr/lib/mc'
 		),
 		'include_app_sections' => array(
 			'terminfo'
@@ -441,7 +475,26 @@ return array(
 		)
 	),
 
-	# PHP (CLI)
+	// Git ( Fast Version Control System )
+	'git' => array(
+		'paths' => array(
+			'/usr/bin/git*', '/usr/lib/git-core', 'basename', 'uname'
+		),
+		'include_app_sections' => array(
+			'editors', 'netbasics', 'perl'
+		)
+	),
+
+	// perl interpreter and libraries
+	'perl' => array(
+		'paths' => array(
+			'perl', '/etc/perl', '/usr/lib/perl', '/usr/lib/perl5', '/usr/share/perl', '/usr/share/perl5',
+			'/usr/lib/i386-linux-gnu/perl5', '/user/lib/i386-linux-gnu/perl', '/usr/lib/x86_64-linux-gnu/perl5',
+			'/usr/lib/x86_64-linux-gnu/perl'
+		)
+	),
+
+	// PHP (CLI) and extensions
 	'php' => array(
 		'paths' => array(
 			'php', '/etc/php5/cli', PHP_EXTENSION_DIR, '/usr/share/zoneinfo'
@@ -451,7 +504,8 @@ return array(
 		)
 	),
 
-	# composer ( see https://getcomposer.org )
+	// composer ( see https://getcomposer.org )
+	// Warning: Need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
 	'composer' => array(
 		'create_dirs' => array(
 			'/usr/local/bin' => array(

@@ -134,11 +134,13 @@ def abort(s):
 
 def compileRegExp(pattern):
 	global compiledRegExps
+
 	if compiledRegExps.has_key(pattern):
 		compiled=compiledRegExps[pattern]
 	else:
 		compiled=re.compile(pattern)
 		compiledRegExps[pattern]=compiled
+
 	return compiled
 
 def matchPattern(pattern,line,nextLine=None):
@@ -676,7 +678,6 @@ def sleep(delay):
 		time.sleep(delay)
 
 def addMissingFilesFromProcess(items,testCommandsOutsideJail=[]):
-
 	straceTempFileName=tempfile.mktemp("trace")
 
 	if not(type(items) in (types.ListType,types.TupleType)):
@@ -869,7 +870,6 @@ def initRunningPids():
 		doNotKillPids.append(pid)
 
 def cachedlstat(path):
-
 	ret = statcache.get(path, None)
 
 	if ret is None:
@@ -967,6 +967,9 @@ def makeChroot():
 	# === Copy specific paths
 	for file in resolvePaths(findFilesInPath(config.forceCopy), tryGlobMatching=1):
 		addFileToJail(file)
+
+	# Flush stat cache
+	statcache = {}
 
 	chrootCommands=[]
 	if config.testCommandsInsideJail:

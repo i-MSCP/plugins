@@ -118,5 +118,12 @@ return array(
 	'No jail to rebuild. Operation cancelled.' => "Aucune prison n'a été trouvée. Opération annulée.",
 	'Rebuild Jails' => 'Reconstruire les prisons',
 	'Unable to schedule rebuild of jails: %s' => 'Impossible de plannifier la reconstruction des prisons: %s',
-	'Are you sure you want to schedule rebuild of all jails?' => 'Êtes-vous certain de vouloir plannifier la reconstruction de toutes les prisons?'
+	'Are you sure you want to schedule rebuild of all jails?' => 'Êtes-vous certain de vouloir plannifier la reconstruction de toutes les prisons?',
+	"The '%value%' authentication option cannot be defined multiple times" => "L'option d'authentification '%value%' ne peut pas être définie plusieurs fois",
+	"The '%value%' authentication option is valid but has been disabled on this system" => "L'option d'authentification '%value%' est valid mais a été désactivée sur ce system",
+	"Invalid authentication option given. String expected" => "Option d'authentification invalide. Chaîne attendue",
+	"The '%value%' authentication option value is invalid" => "La valeur pour l'option d'authentification '%value%' n'est pas valide",
+	"Value is missing for the '%value%' authentication option" => "Valeur absente pour l'option d'authentification '%value%'",
+	"Missing end quote for the '%value%' authentication option" => "Quote de fermeture absent pour l'option d'authentification '%value%'",
+	'Unknown or malformed authentication option has been detected' => "Une option d'authentification malformée ou invalide a été détectée"
 );

@@ -21,15 +21,19 @@ configuration option to **TRUE** in the plugin configuration file.
 
 ### Debian / Ubuntu packages
 
+* bash
+* binstats
 * build-essential
 * busybox-static or busybox
 * libpam-chroot
-* makejail
+* psmisc
+* python
+* strace
 
 You can install these packages by executing the following commands:
 
 ```bash
-# aptitude update && aptitude install build-essential busybox-static libpam-chroot makejail
+# aptitude update && aptitude install bash build-essential busybox-static libpam-chroot psmisc python strace
 ```
 
 **Notes**
@@ -76,7 +80,7 @@ appearing in the the default authentication string must also be specified in the
 
 ### Jailed shells
 
-The Jailed shells allow you to provide SSH access to your customers in a restricted environment from which they can
+The jailed shells allow you to provide SSH access to your customers in a restricted environment from which they can
 theoretically not escape. It's the preferable way to give an SSH access to an un-trusted customer.
 
 Several commands can be added into the jails by simply adding the required application sections to the **app_sections**
@@ -99,7 +103,7 @@ You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) la
 array values inside the new file.
 
 Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
-repository and do a pull request if you've a github account.
+repository and do a pull request if you've a GitHub account.
 
 **Note:** File encoding must be UTF-8.
 
@@ -114,8 +118,8 @@ plugin.
 
 ### PAM chroot module
 
-The **PAM chroot** module shipped with some libpam-chroot package versions (eg. Ubuntu Lucid) doesn't work as expected.
-For instance, You can see the following logs in the /var/log/auth.log file:
+The **PAM chroot** module shipped with some libpam-chroot package versions doesn't work as expected. For instance, You
+can see the following logs in the /var/log/auth.log file:
 
 ```
 ...
