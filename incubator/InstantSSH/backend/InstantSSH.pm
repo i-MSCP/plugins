@@ -169,8 +169,8 @@ sub update
 			return $rs if $rs;
 		}
 
-		if(-f '/var/lib/dovecot/mounts') {
-			$rs = iMSCP::File->new( filename => '/var/lib/dovecot/mounts' )->delFile();
+		if(-f '/var/run/dovecot/mounts') {
+			$rs = iMSCP::File->new( filename => '/var/run/dovecot/mounts' )->delFile();
 			return $rs if $rs;
 		}
 
