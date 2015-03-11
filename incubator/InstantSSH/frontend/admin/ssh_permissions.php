@@ -727,7 +727,7 @@ if(Registry::get('config')->DEBUG) {
 }
 
 EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
-	/** @var $e \iMSCP_Events_Event instantSSH */
+	/** @var $e \iMSCP_Events_Event */
 	$e->getParam('translations')->InstantSSH = array(
 		'datatable' => getDataTablesPluginTranslations(false)
 	);
