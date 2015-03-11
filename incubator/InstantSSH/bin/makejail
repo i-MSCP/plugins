@@ -119,7 +119,7 @@ import select
 import fcntl
 
 # Search paths ( global variable )
-searchPaths = string.split(os.getenv('PATH'), ':')
+searchPaths = string.split(os.getenv('PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ':')
 
 # May be useful to parse correctly some program outputs
 os.environ["LANG"]="C"
