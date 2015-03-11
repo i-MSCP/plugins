@@ -11,6 +11,7 @@ Version 3.2.0
 	Added: destroy_jail_commands and destroy_jail_commands_args application section options
 	Added: destroy_sys_commands and destroy_sys_commands_args application section options
 	Added: discard_packages application section option
+	Added: dovecot_rm_mount helper script ( allows to remove dovecot mount points )
 	Added: logbasics application section
 	Added: Syslog proxy daemon which allows to create log socket inside jails
 	Changed: Default jailed shell is now bash ( previously it was ash )

@@ -281,6 +281,10 @@ return array(
 				'dump' => '0',
 				'pass' => '0'
 			)
+		),
+		'destroy_sys_commands_args' => array(
+			'perl ' . __DIR__ . '/bin/dovecot_rm_mount /var/log/lastlog',
+			'perl ' . __DIR__ . '/bin/dovecot_rm_mount ' . $config['USER_WEB_DIR'] . '/*'
 		)
 	),
 
@@ -356,6 +360,10 @@ return array(
 				'dump' => '0',
 				'pass' => '0'
 			)
+		),
+		'destroy_sys_commands_args' => array(
+			'perl ' . __DIR__ . '/bin/dovecot_rm_mount /var/log/lastlog',
+			'perl ' . __DIR__ . '/bin/dovecot_rm_mount ' . $config['USER_WEB_DIR'] . '/*'
 		)
 	),
 
@@ -458,7 +466,7 @@ return array(
 	),
 
 	// Midnight Commander
-	// Warning: Need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
+	// Warning: User will need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
 	'midnightcommander' => array(
 		'paths' => array(
 			'mc', 'mcedit', 'mcview', '/usr/share/mc', '/etc/mc', '/usr/lib/mc'
@@ -505,7 +513,7 @@ return array(
 	),
 
 	// composer ( see https://getcomposer.org )
-	// Warning: Need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
+	// Warning: User will need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
 	'composer' => array(
 		'create_dirs' => array(
 			'/usr/local/bin' => array(

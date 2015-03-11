@@ -726,12 +726,18 @@ if(Registry::get('config')->DEBUG) {
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 
+EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
+	/** @var $e \iMSCP_Events_Event instantSSH */
+	$e->getParam('translations')->InstantSSH = array(
+		'datatable' => getDataTablesPluginTranslations(false)
+	);
+});
+
 $tpl->assign(
 	array(
 		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions', true)),
 		'ISP_LOGO' => layout_getUserLogo(),
 		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
 	)
 );

@@ -88,7 +88,7 @@
 									<ul style="list-style-type:none;">
 									<li><?= self::escapeHtml(tr("You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication.", true));?></li>
 									<li>
-										<?= self::escapeHtml(tr('You can generate your rsa key pair by running the following command:', true))?>
+										<?= self::escapeHtml(tr('On Linux, you can generate your rsa key pair by running the following command:', true))?>
 										<span class="disabled" style="border:1px solid #cccccc;padding: 2px 5px;">ssh-keygen -t rsa -C user@domain.tld</span>
 									</li>
 									</ul>
@@ -137,7 +137,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: {DATATABLE_TRANSLATIONS},
+			language: imscp_i18n.InstantSSH.datatable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,

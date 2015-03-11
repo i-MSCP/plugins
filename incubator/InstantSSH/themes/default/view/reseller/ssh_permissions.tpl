@@ -123,7 +123,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: {DATATABLE_TRANSLATIONS},
+			language: imscp_i18n.InstantSSH.datatable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,

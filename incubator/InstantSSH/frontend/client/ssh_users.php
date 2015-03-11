@@ -576,12 +576,18 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
+	EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
+		/** @var $e \iMSCP_Events_Event instantSSH */
+		$e->getParam('translations')->InstantSSH = array(
+			'datatable' => getDataTablesPluginTranslations(false)
+		);
+	});
+
 	$tpl->assign(
 		array(
 			'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Domains / SSH Users', true)),
 			'ISP_LOGO' => layout_getUserLogo(),
 			'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-			'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
 			'SSH_USERNAME_PREFIX' => $plugin->getConfigParam('ssh_user_name_prefix', 'imscp_'),
 			'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)

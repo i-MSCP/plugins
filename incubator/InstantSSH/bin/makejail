@@ -118,6 +118,9 @@ import time
 import select
 import fcntl
 
+# Search paths ( global variable )
+searchPaths = string.split(os.getenv('PATH'), ':')
+
 # May be useful to parse correctly some program outputs
 os.environ["LANG"]="C"
 
@@ -878,14 +881,11 @@ def cachedlstat(path):
 	return ret
 
 def findFileInPath(filename):
-	searchPath = os.getenv('PATH')
-	paths = string.split(searchPath, ':')
+	for path in searchPaths:
+		fullPath = os.path.join(path, filename)
 
-	for path in paths:
-		joined = os.path.join(path, filename)
-
-		if os.path.exists(joined):
-			return os.path.abspath(joined)
+		if os.path.exists(fullPath):
+			return os.path.abspath(fullPath)
 
 	return None
 

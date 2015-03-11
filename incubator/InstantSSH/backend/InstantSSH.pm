@@ -39,6 +39,8 @@ use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use iMSCP::File;
 use iMSCP::ProgramFinder;
 
+use Servers::po;
+
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
 
@@ -83,23 +85,7 @@ sub install
 	$rs = $self->_busyBox('configure');
 	return $rs if $rs;
 
-	$rs = $self->_syslogproxyd('install');
-	return $rs if $rs;
-
-	# If present, tells dovecot to ignore any mountpoints withing root jail directory
-	if(iMSCP::ProgramFinder::find('doveadm')) {
-		my ($stdout, $stderr);
-		$rs = execute(
-			"doveadm mount add $self->{'config'}->{'root_jail_dir'}/*$main::imscpConfig{'USER_WEB_DIR'}/* ignore || true",
-			\$stdout,
-			\$stderr
-		);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
-	}
-
-	0;
+	$self->_syslogproxyd('install');
 }
 
 =item uninstall()
@@ -147,23 +133,7 @@ sub uninstall
 	$rs = $self->_busyBox('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_syslogproxyd('uninstall');
-	return $rs if $rs;
-
-	# If present, remove pattern wich tells dovecot to ignore any mountpoints withing root jail directory
-	if(iMSCP::ProgramFinder::find('doveadm')) {
-		my ($stdout, $stderr);
-		$rs = execute(
-			"doveadm mount remove $self->{'config'}->{'root_jail_dir'}/*$main::imscpConfig{'USER_WEB_DIR'}/* || true",
-			\$stdout,
-			\$stderr
-		);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
-	}
-
-	0;
+	$self->_syslogproxyd('uninstall');
 }
 
 =item update($fromVersion, $toVersion)
@@ -192,17 +162,19 @@ sub update
 		}
 	}
 
-	# Remove the mistaken mount point which was added in previous versions
+	# Remove the mistaken mount points which were added in previous versions
 	if(version->parse("v$fromVersion") < version->parse("v3.2.0") && iMSCP::ProgramFinder::find('doveadm')) {
-		my ($stdout, $stderr);
-		$rs = execute(
-			"doveadm mount remove $self->{'config_prev'}->{'root_jail_dir'}/$main::imscpConfig{'USER_WEB_DIR'}/* || true",
-			\$stdout,
-			\$stderr
-		);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
+		if(-f '/var/lib/dovecot/mounts') {
+			$rs = iMSCP::File->new( filename => '/var/lib/dovecot/mounts' )->delFile();
+			return $rs if $rs;
+		}
+
+		if(-f '/var/lib/dovecot/mounts') {
+			$rs = iMSCP::File->new( filename => '/var/lib/dovecot/mounts' )->delFile();
+			return $rs if $rs;
+		}
+
+		Servers::po->factory()->{'restart'} = 'yes';
 	}
 
 	0;

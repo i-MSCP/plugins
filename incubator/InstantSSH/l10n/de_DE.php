@@ -113,7 +113,7 @@ return array(
 	'Authentication options' => 'Authentifizierungsoptionen',
 	'Enter authentication option(s)' => 'Authentifizierungsoption(en) eintragen',
 	"You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication." => "Sie können entweder ein Kennwort, einen SSH-Schlüssel oder beides bieten. Allerdings ist es empfehlenswert, schlüsselbasierte Authentifizierungen zu bevorzugen.",
-	'You can generate your rsa key pair by running the following command:' => 'Sie können Ihr RSA-Schlüsselpaar mit folgendem Befehl erzeugen:',
+	'On Linux, you can generate your rsa key pair by running the following command:' => 'Sie können Ihr RSA-Schlüsselpaar mit folgendem Befehl erzeugen:',
 	'Are you sure you want to delete this SSH user?' => 'Sind Sie sicher, diesen SSH-Benutzer löschen zu wollen?',
 	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'Neuerstellung der Jails wurde angesetzt. Abhängig von der Anzahl der Jails könnte diese einige Zeit in Anspruch nehmen...',
 	'No jail to rebuild. Operation cancelled.' => 'Es ist kein Jail zum Neuerstellen vorhanden. Die Operation wurde abgebrochen.',

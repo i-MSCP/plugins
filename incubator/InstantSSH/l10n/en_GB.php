@@ -112,7 +112,7 @@ return array(
 	'Authentication options' => 'Authentication options',
 	'Enter authentication option(s)' => 'Enter authentication option(s)',
 	"You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication." => "You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication.",
-	'You can generate your rsa key pair by running the following command:' => 'You can generate your rsa key pair by running the following command:',
+	'On Linux, you can generate your rsa key pair by running the following command:' => 'You can generate your rsa key pair by running the following command:',
 	'Are you sure you want to delete this SSH user?' => 'Are you sure you want to delete this SSH user?',
 	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...',
 	'No jail to rebuild. Operation cancelled.' => 'No jail to rebuild. Operation cancelled.',

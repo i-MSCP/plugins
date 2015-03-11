@@ -112,7 +112,7 @@ return array(
 	'Authentication options' => 'Autentiserings alternativ',
 	'Enter authentication option(s)' => 'Enter authentication option(s)',
 	"You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication." => "Du kan ge antingen ett lösenord, en SSH-nyckel eller båda. Men det är rekommenderat att föredra nyckelbaserad autentisering.",
-	'You can generate your rsa key pair by running the following command:' => 'Du kan skapa din RSA-nyckelpar genom att köra följande kommando:',
+	'On Linux, you can generate your rsa key pair by running the following command:' => 'Du kan skapa din RSA-nyckelpar genom att köra följande kommando:',
 	'Are you sure you want to delete this SSH user?'=> 'Är du säker på att du vill ta bort denna SSH användare?',
 	'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...' => 'Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...',
 	'No jail to rebuild. Operation cancelled.' => 'No jail to rebuild. Operation cancelled.',
