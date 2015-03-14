@@ -46,54 +46,6 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item install()
-
- Process install tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-	$_[0]->_createLogFolder();
-}
-
-=item uninstall()
-
- Process uninstall tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub uninstall
-{
-	$_[0]->_removeLogFolder();
-}
-
-=item update($fromVersion, $toVersion)
-
- Process update tasks
-
- Param string $fromVersion
- Param string $toVersion
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-	my ($self, $fromVersion, $toVersion) = @_;
-
-	require version;
-	version->import();
-
-	if(version->parse("v$fromVersion") < version->parse("v1.0.4")) {
-		$self->_createLogFolder();
-	}
-}
-
 =item enable()
 
  Process enable tasks
@@ -117,6 +69,9 @@ sub enable
 		return $rs if $rs;
 	}
 
+	$rs = $self->_createLogFolder();
+	return $rs if $rs;
+
 	$self->{'httpd'}->{'restart'} = 'yes';
 
 	0;
@@ -138,6 +93,9 @@ sub disable
 		my $rs = $self->_removeConfig($_);
 		return $rs if $rs;
 	}
+
+	$rs = $self->_removeLogFolder();
+	return $rs if $rs;
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
