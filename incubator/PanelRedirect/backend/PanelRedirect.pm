@@ -61,6 +61,9 @@ sub enable
 	my $rs = $self->_createConfig('PanelRedirect.conf');
 	return $rs if $rs;
 
+	$rs = $self->_createLogFolder();
+	return $rs if $rs;
+
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
 		$rs = $self->_createConfig('PanelRedirect_ssl.conf');
 		return $rs if $rs;
@@ -68,9 +71,6 @@ sub enable
 		$rs = $self->_removeConfig('PanelRedirect_ssl.conf');
 		return $rs if $rs;
 	}
-
-	$rs = $self->_createLogFolder();
-	return $rs if $rs;
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
@@ -89,13 +89,13 @@ sub disable
 {
 	my $self = $_[0];
 
+	my $rs = $self->_removeLogFolder();
+	return $rs if $rs;
+
 	for('PanelRedirect.conf', 'PanelRedirect_ssl.conf') {
-		my $rs = $self->_removeConfig($_);
+		$rs = $self->_removeConfig($_);
 		return $rs if $rs;
 	}
-
-	$rs = $self->_removeLogFolder();
-	return $rs if $rs;
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
