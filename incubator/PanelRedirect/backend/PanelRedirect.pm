@@ -58,10 +58,10 @@ sub enable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_createConfig('PanelRedirect.conf');
+	my $rs = $self->_createLogFolder();
 	return $rs if $rs;
 
-	$rs = $self->_createLogFolder();
+	$rs = $self->_createConfig('PanelRedirect.conf');
 	return $rs if $rs;
 
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
