@@ -5,7 +5,6 @@
 =cut
 
 # i-MSCP Monitorix plugin
-#
 # Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #

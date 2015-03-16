@@ -5,7 +5,8 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2015 by internet Multi Server Control Panel
+# Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,16 +21,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# @category    i-MSCP
-# @package     iMSCP_Plugin
-# @subpackage  RoundcubePlugins
-# @copyright   Rene Schuster <mail@reneschuster.de>
-# @copyright   Sascha Bay <info@space2place.de>
-# @author      Rene Schuster <mail@reneschuster.de>
-# @author      Sascha Bay <info@space2place.de>
-# @link        http://i-mscp.net i-MSCP Home Site
-# @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
 package Plugin::RoundcubePlugins;
 

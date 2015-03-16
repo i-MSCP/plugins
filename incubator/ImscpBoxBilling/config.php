@@ -19,11 +19,11 @@
  */
 
 return array(
-    /**
-     * API endpoint
-     *
-     * If you change this value, do not forget to edit the Server_Manager_Imscp::API_ENDPOINT constant from the
-     * Manager/Imscp file
-     */
-    'api_endpoint' => '/boxbilling'
+	/**
+	 * API endpoint
+	 *
+	 * If you change this value, do not forget to edit the Server_Manager_Imscp::API_ENDPOINT constant from the
+	 * Manager/Imscp file
+	 */
+	'api_endpoint' => '/boxbilling'
 );

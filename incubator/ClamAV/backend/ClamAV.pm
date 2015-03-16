@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP ClamAV plugin
-# Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #

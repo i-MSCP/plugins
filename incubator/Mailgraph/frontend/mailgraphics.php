@@ -19,53 +19,59 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/***********************************************************************************************************************
- * Main
- */
+namespace Mailgraph;
+
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
 
 check_login('admin');
 
 $whichGraph = (isset($_GET['graph']) && $_GET['graph'] != '') ? clean_input($_GET['graph']) : '';
 
+/** @var PluginManager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
+
+$pluginDir = $pluginManager->pluginGetDirectory();
+
 switch ($whichGraph) {
 	case 'mailgraph_day':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_day.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png');
 		break;
 	case 'mailgraph_week':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_week.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_week.png');
 		break;
 	case 'mailgraph_month':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_month.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_month.png');
 		break;
 	case 'mailgraph_year':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_year.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_year.png');
 		break;
 	case 'mailgraph_virus_day':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_day.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_day.png');
 		break;
 	case 'mailgraph_virus_week':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_week.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_week.png');
 		break;
 	case 'mailgraph_virus_month':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_month.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_month.png');
 		break;
 	case 'mailgraph_virus_year':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_virus_year.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_year.png');
 		break;
 	case 'mailgraph_greylist_day':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png');
 		break;
 	case 'mailgraph_greylist_week':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png');
 		break;
 	case 'mailgraph_greylist_month':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png');
 		break;
 	case 'mailgraph_greylist_year':
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png');
 		break;
 	default:
-		$imgPng = imagecreatefrompng(PLUGINS_PATH . '/Mailgraph/frontend/noimage.png');
+		$imgPng = imagecreatefrompng($pluginDir . '/Mailgraph/frontend/noimage.png');
 }
 
 /* Output image to browser */

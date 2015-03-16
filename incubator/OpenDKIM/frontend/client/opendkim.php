@@ -20,6 +20,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+namespace OpenDKIM;
+
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Plugin_OpenDKIM as OpenDKIM;
+use iMSCP_pTemplate as TemplateEngine;
+use PDO;
+
 /***********************************************************************************************************************
  * Functions
  */
@@ -27,7 +35,7 @@
 /**
  * Generate page
  *
- * @param $tpl iMSCP_pTemplate
+ * @param $tpl TemplateEngine
  * @return void
  */
 function opendkim_generatePage($tpl)
@@ -100,44 +108,34 @@ function opendkim_generatePage($tpl)
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
-
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
-
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 check_login('user');
 
-if (iMSCP_Plugin_OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
-	$tpl = new iMSCP_pTemplate();
-	$tpl->define_dynamic(
-		array(
-			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.tpl',
-			'page_message' => 'layout',
-			'customer_list' => 'page',
-			'domainkey_item' => 'customer_list'
-		)
-	);
+if (OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
+	$tpl = new TemplateEngine();
+	$tpl->define_dynamic(array(
+		'layout' => 'shared/layouts/ui.tpl',
+		'page' => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.tpl',
+		'page_message' => 'layout',
+		'customer_list' => 'page',
+		'domainkey_item' => 'customer_list'
+	));
 
-	$tpl->assign(
-		array(
-			'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'TR_DOMAIN_NAME' => tr('Domain'),
-			'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
-			'TR_DNS_NAME' => tr('Name'),
-			'TR_KEY_STATUS' => tr('Status')
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
+		'ISP_LOGO' => layout_getUserLogo(),
+		'TR_DOMAIN_NAME' => tr('Domain'),
+		'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
+		'TR_DNS_NAME' => tr('Name'),
+		'TR_KEY_STATUS' => tr('Status')
+	));
 
 	generateNavigation($tpl);
 	opendkim_generatePage($tpl);
 	generatePageMessage($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
-	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
-
+	EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 	$tpl->prnt();
 } else {
 	showBadRequestErrorPage();

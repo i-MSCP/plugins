@@ -39,4 +39,4 @@ See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 
 ## Author
 
- * Laurent Declercq <l.declercq@nuxwin.com>
+* Laurent Declercq <l.declercq@nuxwin.com>

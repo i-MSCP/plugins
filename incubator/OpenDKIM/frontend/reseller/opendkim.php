@@ -20,6 +20,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+namespace OpenDKIM;
+
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Exception_Database as DatabaseException;
+use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
+use PDO;
+
 /***********************************************************************************************************************
  * Functions
  */
@@ -27,10 +37,8 @@
 /**
  * Activate OpenDKIM for the given customer
  *
- * @throws iMSCP_Exception
- * @throws iMSCP_Exception_Database
+ * @throws DatabaseException
  * @param int $customerId Customer unique identifier
- * @throws Exception
  */
 function opendkim_activate($customerId)
 {
@@ -54,7 +62,7 @@ function opendkim_activate($customerId)
 
 	if ($stmt->rowCount()) {
 		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-		$db = iMSCP_Database::getInstance();
+		$db = Database::getInstance();
 
 		try {
 			$db->beginTransaction();
@@ -85,7 +93,7 @@ function opendkim_activate($customerId)
 			send_request();
 
 			set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds.'), 'success');
-		} catch (iMSCP_Exception_Database $e) {
+		} catch (DatabaseException $e) {
 			$db->rollBack();
 			throw $e;
 		}
@@ -121,7 +129,7 @@ function opendkim_deactivate($customerId)
 /**
  * Generate customer list for which OpenDKIM can be activated
  *
- * @param $tpl iMSCP_pTemplate
+ * @param $tpl TemplateEngine
  * @return void
  */
 function _opendkim_generateCustomerList($tpl)
@@ -163,15 +171,14 @@ function _opendkim_generateCustomerList($tpl)
 /**
  * Generate page
  *
- * @param iMSCP_pTemplate $tpl
+ * @param TemplateEngine $tpl
  * @return void
  */
 function opendkim_generatePage($tpl)
 {
 	_opendkim_generateCustomerList($tpl, $_SESSION['user_id']);
 
-	/** @var $cfg iMSCP_Config_Handler_File */
-	$cfg = iMSCP_Registry::get('config');
+	$cfg = Registry::get('config');
 
 	$rowsPerPage = $cfg['DOMAIN_ROWS_PER_PAGE'];
 
@@ -329,12 +336,8 @@ function opendkim_generatePage($tpl)
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptStart);
-
+EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 check_login('reseller');
-
-/** @var $cfg iMSCP_Config_Handler_File */
-$cfg = iMSCP_Registry::get('config');
 
 if (resellerHasCustomers()) {
 	if (isset($_REQUEST['action'])) {
@@ -360,48 +363,42 @@ if (resellerHasCustomers()) {
 		}
 	}
 
-	$tpl = new iMSCP_pTemplate();
-	$tpl->define_dynamic(
-		array(
-			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/OpenDKIM/themes/default/view/reseller/opendkim.tpl',
-			'page_message' => 'layout',
-			'select_list' => 'page',
-			'select_item' => 'select_list',
-			'customer_list' => 'page',
-			'customer_item' => 'customer_list',
-			'key_item' => 'customer_item',
-			'scroll_prev_gray' => 'customer_list',
-			'scroll_prev' => 'customer_list',
-			'scroll_next_gray', 'customer_list',
-			'scroll_next' => 'customer_list'
-		)
-	);
+	$tpl = new TemplateEngine();
+	$tpl->define_dynamic(array(
+		'layout' => 'shared/layouts/ui.tpl',
+		'page' => '../../plugins/OpenDKIM/themes/default/view/reseller/opendkim.tpl',
+		'page_message' => 'layout',
+		'select_list' => 'page',
+		'select_item' => 'select_list',
+		'customer_list' => 'page',
+		'customer_item' => 'customer_list',
+		'key_item' => 'customer_item',
+		'scroll_prev_gray' => 'customer_list',
+		'scroll_prev' => 'customer_list',
+		'scroll_next_gray', 'customer_list',
+		'scroll_next' => 'customer_list'
+	));
 
-	$tpl->assign(
-		array(
-			'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'TR_SELECT_NAME' => tr('Select a customer'),
-			'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),
-			'TR_DOMAIN_NAME' => tr('Domain Name'),
-			'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
-			'TR_STATUS' => tr('Status'),
-			'TR_DNS_NAME' => tr('Name'),
-			'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?', true)),
-			'TR_PREVIOUS' => tr('Previous'),
-			'TR_NEXT' => tr('Next')
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
+		'ISP_LOGO' => layout_getUserLogo(),
+		'TR_SELECT_NAME' => tr('Select a customer'),
+		'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),
+		'TR_DOMAIN_NAME' => tr('Domain Name'),
+		'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
+		'TR_STATUS' => tr('Status'),
+		'TR_DNS_NAME' => tr('Name'),
+		'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?', true)),
+		'TR_PREVIOUS' => tr('Previous'),
+		'TR_NEXT' => tr('Next')
+	));
 
 	generateNavigation($tpl);
 	opendkim_generatePage($tpl);
 	generatePageMessage($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
-	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptEnd, array('templateEngine' => $tpl));
-
+	EventManager::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
 	$tpl->prnt();
 } else {
 	showBadRequestErrorPage();

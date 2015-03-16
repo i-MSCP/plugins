@@ -19,12 +19,12 @@
  */
 
 return array(
-    'author' => 'Laurent Declercq',
-    'email' => 'l.declercq@nuxwin.com',
-    'version' => '0.0.7',
-    'require_api' => '1.0.0',
-    'date' => '2015-02-12',
-    'name' => 'KaziWhmcs',
-    'desc' => 'Plugin allowing server provisioning through the WHMCS billing software.',
-    'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/KaziWhmcs'
+	'author' => 'Laurent Declercq',
+	'email' => 'l.declercq@nuxwin.com',
+	'version' => '0.0.7',
+	'require_api' => '1.0.0',
+	'date' => '2015-02-12',
+	'name' => 'KaziWhmcs',
+	'desc' => 'Plugin allowing server provisioning through the WHMCS billing software.',
+	'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/KaziWhmcs'
 );

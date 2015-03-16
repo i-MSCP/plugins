@@ -118,7 +118,9 @@ change by updating the plugin list through the plugin interface.
 ## License
 
 ```
-Copyright (C) Rene Schuster <mail@reneschuster.de> and Sascha Bay <info@space2place.de>
+i-MSCP - internet Multi Server Control Panel
+Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

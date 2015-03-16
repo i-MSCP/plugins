@@ -42,12 +42,11 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	public function register(iMSCP_Events_Manager_Interface $eventsManager)
 	{
-		/** @var iMSCP_Plugin_Manager $pluginManager */
-		$pluginManager = iMSCP_Registry::get('pluginManager');
+		$pluginManager = $this->getPluginManager();
 
 		$pluginName = $this->getName();
 
-		if($pluginManager->isPluginKnown($pluginName) && $pluginManager->isPluginEnabled($pluginName)) {
+		if($pluginManager->pluginIsKnown($pluginName) && $pluginManager->pluginIsEnabled($pluginName)) {
 			$events = $this->getConfigParam('disabled_actions', array());
 
 			if(is_array($events)) {
@@ -163,9 +162,9 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
 	{
-		$pluginManager = iMSCP_Registry::get('pluginManager');
+		$pluginManager = $this->getPluginManager();
 
-		if($pluginManager->isPluginEnabled($this->getName())) {
+		if($pluginManager->pluginIsEnabled($this->getName())) {
 			set_page_message(tr('This action is not permitted in demo version.'), 'warning');
 			$event->stopPropagation();
 		}

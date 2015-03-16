@@ -19,12 +19,12 @@
  */
 
 return array(
-    'author' => 'Laurent Declercq',
-    'email' => 'l.declercq@nuxwin.com',
-    'version' => '0.0.3',
-    'require_api' => '1.0.0',
-    'date' => '2015-02-26',
-    'name' => 'ImscpBoxBilling',
-    'desc' => 'Plugin allowing server provisioning through the BoxBilling software.',
-    'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/ImscpBoxBilling'
+	'author' => 'Laurent Declercq',
+	'email' => 'l.declercq@nuxwin.com',
+	'version' => '0.0.3',
+	'require_api' => '1.0.0',
+	'date' => '2015-02-26',
+	'name' => 'ImscpBoxBilling',
+	'desc' => 'Plugin allowing server provisioning through the BoxBilling software.',
+	'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/ImscpBoxBilling'
 );

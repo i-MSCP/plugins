@@ -25,32 +25,31 @@
  */
 function hook_imscp_update_username($vars)
 {
-    if (!empty($vars['products'])) {
-        register_shutdown_function(
-            function ($products) {
-                foreach ($products as $product) {
-                    if (isset($product['domain'])) {
-                        full_query(
-                            "
-                                UPDATE
-                                    tblhosting AS t1
-                                JOIN
-                                    tblservers AS t2 ON(t2.id = t1.server)
-                                SET
-                                    t1.username = '" . $product['domain'] . "',
-                                    t1.lastupdate = NOW()
-                                WHERE
-                                    t1.domain = '" . $product['domain'] . "'
-                                AND
-                                    t2.type = 'imscp'
-                            "
-                        );
-                    }
-                }
-            },
-            $vars['products']
-        );
-    }
+	if(!empty($vars['products'])) {
+		register_shutdown_function(
+			function ($products) {
+				foreach($products as $product) {
+					if(isset($product['domain'])) {
+						full_query(
+							"
+								UPDATE
+									tblhosting AS t1
+								JOIN
+									tblservers AS t2 ON(t2.id = t1.server)
+								SET
+									t1.username = '" . $product['domain'] . "', t1.lastupdate = NOW()
+								WHERE
+									t1.domain = '" . $product['domain'] . "'
+								AND
+									t2.type = 'imscp'
+							"
+						);
+					}
+				}
+			},
+			$vars['products']
+		);
+	}
 }
 
 add_hook('OverrideOrderNumberGeneration', 1, 'hook_imscp_update_username');

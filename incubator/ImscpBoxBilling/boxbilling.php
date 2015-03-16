@@ -35,12 +35,12 @@ function imscpboxbilling_login($username, $password)
 
 	$authentication = iMSCP_Authentication::getInstance();
 
-	init_login($authentication->getEvents());
+	init_login($authentication->getEventManager());
 
-	$authResult = $authentication
-		->setUsername($username)
-		->setPassword($password)
-		->authenticate();
+	$_POST['uname'] = $username;
+	$_POST['upass'] = $password;
+
+	$authResult = $authentication->authenticate();
 
 	if(!$authResult->isValid()) {
 		if(($messages = $authResult->getMessages())) {
@@ -202,13 +202,14 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
 					exec_query(
 						"
-                          INSERT INTO admin (
-                            admin_name, admin_pass, admin_type, domain_created, created_by, fname, lname, firm, zip,
-                            city, state, country, email, phone, fax, street1, street2, customer_id, gender, admin_status
-                          ) VALUES (
-                            ?, ?, 'user', unix_timestamp(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                         )
-                        ",
+							INSERT INTO admin (
+								admin_name, admin_pass, admin_type, domain_created, created_by, fname, lname, firm, zip,
+								city, state, country, email, phone, fax, street1, street2, customer_id, gender,
+								admin_status
+							) VALUES (
+								?, ?, 'user', unix_timestamp(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+							)
+						",
 						array(
 							$adminUsername, cryptPasswordWithSalt($adminPassword), $resellerId, $firstName, $lastName,
 							$firm, $zip, $city, $state, $country, $email, $phone, $fax, $street1, $street2, $customerId,
@@ -220,17 +221,18 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
 					exec_query(
 						'
-                          INSERT INTO domain (
-                            domain_name, domain_admin_id, domain_created, domain_expires, domain_mailacc_limit,
-                            domain_ftpacc_limit, domain_traffic_limit, domain_sqld_limit, domain_sqlu_limit, domain_status,
-                            domain_alias_limit, domain_subd_limit, domain_ip_id, domain_disk_limit, domain_disk_usage,
-                            domain_php, domain_cgi, allowbackup, domain_dns, domain_software_allowed, phpini_perm_system,
-                            phpini_perm_allow_url_fopen, phpini_perm_display_errors, phpini_perm_disable_functions,
-                            domain_external_mail, web_folder_protection, mail_quota
-                          ) VALUES (
-                            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                          )
-                        ',
+							INSERT INTO domain (
+								domain_name, domain_admin_id, domain_created, domain_expires, domain_mailacc_limit,
+								domain_ftpacc_limit, domain_traffic_limit, domain_sqld_limit, domain_sqlu_limit,
+								domain_status, domain_alias_limit, domain_subd_limit, domain_ip_id, domain_disk_limit,
+								domain_disk_usage, domain_php, domain_cgi, allowbackup, domain_dns,
+								domain_software_allowed, phpini_perm_system, phpini_perm_allow_url_fopen,
+								phpini_perm_display_errors, phpini_perm_disable_functions, domain_external_mail,
+								web_folder_protection, mail_quota
+							) VALUES (
+								?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+							)
+						',
 						array(
 							$domainNameAscii, $adminId, time(), $domainExpire, $nbMailUsers, $nbFtpUsers,
 							$monthlyTrafficLimit, $nbSqlDb, $nbSqlUsers, 'toadd', $nbAliases, $nbSubdomains, $resellerIp,
@@ -346,19 +348,13 @@ function imscpboxbilling_suspendAccount($domainName)
 			change_domain_status($row['domain_admin_id'], 'deactivate');
 
 			write_log(
-				sprintf(
-					"ImscpBoxBilling: The '%s' customer account has been suspended through BoxBilling", $domainName
-				),
+				sprintf("ImscpBoxBilling: The '%s' customer account has been suspended through BoxBilling", $domainName),
 				E_USER_NOTICE
 			);
 
 			exit('success');
 		} catch(Exception $e) {
-			die(
-			sprintf(
-				"ImscpBoxBilling: Unable to suspend the '%s' customer account: %s", $domainName, $e->getMessage()
-			)
-			);
+			die(sprintf("ImscpBoxBilling: Unable to suspend the '%s' customer account: %s", $domainName, $e->getMessage()));
 		}
 	}
 
@@ -392,13 +388,9 @@ function imscpboxbilling_unsuspendAccount($domainName)
 
 			exit('success');
 		} catch(Exception $e) {
-			die(
-			sprintf(
-				"ImscpBoxBilling: Unable to unsuspend the '%s' customer account; %s",
-				$domainName,
-				$e->getMessage()
-			)
-			);
+			die(sprintf(
+				"ImscpBoxBilling: Unable to unsuspend the '%s' customer account; %s", $domainName, $e->getMessage()
+			));
 		}
 	}
 
@@ -424,21 +416,15 @@ function imscpboxbilling_cancelAccount($domainName)
 			deleteCustomer($row['domain_admin_id'], true);
 
 			write_log(
-				sprintf(
-					"ImscpBoxBilling: The '%s' customer account has been deleted through BoxBilling", $domainName
-				),
+				sprintf("ImscpBoxBilling: The '%s' customer account has been deleted through BoxBilling", $domainName),
 				E_USER_NOTICE
 			);
 
 			exit('success');
 		} catch(Exception $e) {
-			die(
-			sprintf(
-				"ImscpBoxBilling: Unable to cancel the '%s' customer account; %s",
-				$domainName,
-				$e->getMessage()
-			)
-			);
+			die(sprintf(
+				"ImscpBoxBilling: Unable to cancel the '%s' customer account; %s", $domainName, $e->getMessage()
+			));
 		}
 	}
 

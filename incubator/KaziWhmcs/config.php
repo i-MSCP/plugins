@@ -19,16 +19,16 @@
  */
 
 return array(
-    /**
-     * API endpoint
-     *
-     * If you change this value, do not forget to edit the KAZIWHMCS_API_ENDPOINT constant from the
-     * modules/servers/imscp/imscp.php file.
-     */
-    'api_endpoint' => '/kaziwhmcs',
+	/**
+	 * API endpoint
+	 *
+	 * If you change this value, do not forget to edit the KAZIWHMCS_API_ENDPOINT constant from the
+	 * modules/servers/imscp/imscp.php file.
+	 */
+	'api_endpoint' => '/kaziwhmcs',
 
-    /**
-     * Disable/Enable welcome email sent by i-MSCP to customer when a new account is created (default is disabled)
-     */
-    'imscp_welcome_msg' => false
+	/**
+	 * Disable/Enable welcome email sent by i-MSCP to customer when a new account is created (default is disabled)
+	 */
+	'imscp_welcome_msg' => false
 );

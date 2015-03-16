@@ -17,7 +17,7 @@ Plugin which allows to use ClamAV with i-MSCP.
 
 You can install these packages by running the following commands:
 
-```
+```bash
 # aptitude update && nstall clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
 # service clamav-freshclam stop
 # freshclam
@@ -58,7 +58,7 @@ Be aware that the EICAR signature above must be added on a line, without whitesp
 
 ### Expected result in /var/log/mail.log
 
-```
+```bash
 root@precise:/etc/postfix# tail -fn0 /var/log/mail.log
 Feb 20 03:26:16 precise postfix/smtpd[19062]: connect from unknown[192.168.5.100]
 Feb 20 03:26:16 precise postfix/smtpd[19062]: Anonymous TLS connection established from unknown[192.168.5.100]: TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits)
@@ -73,7 +73,7 @@ Feb 20 03:26:16 precise postfix/cleanup[19158]: 0A618260345: milter-reject: END-
 
 ```
 i-MSCP ClamAV plugin
-Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
 Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 
