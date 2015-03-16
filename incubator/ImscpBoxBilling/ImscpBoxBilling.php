@@ -31,8 +31,8 @@ class iMSCP_Plugin_ImscpBoxBilling extends iMSCP_Plugin_Action
 	public function getRoutes()
 	{
 		return array(
-			$this->getConfigParam('api_endpoint', '/boxbilling') =>
-				$this->getPluginManager()->getPluginDirectory() . '/' . $this->getName() . '/boxbilling.php'
+			$this->getConfigParam('api_endpoint', '/boxbilling') => $this->getPluginManager()->pluginGetDirectory() .
+				'/' . $this->getName() . '/boxbilling.php'
 		);
 	}
 }

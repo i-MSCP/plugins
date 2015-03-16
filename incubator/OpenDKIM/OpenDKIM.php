@@ -241,7 +241,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
 			'/reseller/opendkim.php' => $pluginDir . '/frontend/reseller/opendkim.php',

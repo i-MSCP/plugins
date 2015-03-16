@@ -281,7 +281,7 @@ function kaziwhmcs_createAccount($hostingPlanProperties, $resellerIp)
                     /** @var iMSCP_Plugin_Manager $pluginManager */
                     $pluginManager = iMSCP_Registry::get('pluginManager');
 
-                    if($pluginManager->getPlugin('KaziWhmcs')->getConfigParam('imscp_welcome_msg', false)) {
+                    if($pluginManager->pluginGet('KaziWhmcs')->getConfigParam('imscp_welcome_msg', false)) {
                         send_add_user_auto_msg(
                             $resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName,
                             tr('Customer', true)

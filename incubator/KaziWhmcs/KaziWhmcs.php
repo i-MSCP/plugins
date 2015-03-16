@@ -23,16 +23,16 @@
  */
 class iMSCP_Plugin_KaziWhmcs extends iMSCP_Plugin_Action
 {
-    /**
-     * Get routes
-     *
-     * @return array An array which map routes to action scripts
-     */
-    public function getRoutes()
-    {
-        return array(
-            $this->getConfigParam('api_endpoint', '/kaziWhmcs') => $this->getPluginManager()->getPluginDirectory() .
-                '/' .  $this->getName() . '/whmcs.php'
-        );
-    }
+	/**
+	 * Get routes
+	 *
+	 * @return array An array which map routes to action scripts
+	 */
+	public function getRoutes()
+	{
+		return array(
+			$this->getConfigParam('api_endpoint', '/kaziWhmcs') => $this->getPluginManager()->pluginGetDirectory() .
+				'/' . $this->getName() . '/whmcs.php'
+		);
+	}
 }

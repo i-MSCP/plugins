@@ -76,10 +76,9 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
 	/**
 	 * Implements the onafterQueryExecute listener
 	 *
-	 * @param  iMSCP_Database_Events_Database $event
 	 * @return void
 	 */
-	public function onAfterQueryExecute($event)
+	public function onAfterQueryExecute()
 	{
 		$this->_queries[$this->_queryIndex]['time'] = ((microtime(true)) - $this->_queries[$this->_queryIndex]['time']);
 		$this->_totalTimeElapsed += $this->_queries[$this->_queryIndex]['time'];

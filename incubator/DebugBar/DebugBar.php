@@ -170,15 +170,15 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
             <style type="text/css" media="screen">
                 #iMSCPdebug_debug h4 {margin:0.5em;font-weight:bold;}
                 #iMSCPdebug_debug strong {font-weight:bold;}
-                #iMSCPdebug_debug { font: 1em Geneva, Arial, Helvetica, sans-serif; position:fixed; bottom:5px; left:0px; color:#fff; z-index: 255;}
+                #iMSCPdebug_debug { font: 1em Geneva, Arial, Helvetica, sans-serif; position:fixed; bottom:5px; left:0; color:#fff; z-index: 255;}
                 #iMSCPdebug_debug a {color:red;}
                 #iMSCPdebug_debug span {color:#fff;}
                 #iMSCPdebug_debug p {margin:0;}
-                #iMSCPdebug_debug ol {margin:10px 0px; padding:0 25px}
+                #iMSCPdebug_debug ol {margin:10px 0; padding:0 25px}
                 #iMSCPdebug_debug li {margin:0 0 10px 0;}
                 #iMSCPdebug_debug .clickable { cursor:pointer }
                 #iMSCPdebug_toggler { font-weight:bold; background:' . $color . '; }
-                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0px; background:' . $color .'; padding: 6px 5px; }
+                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0; background:' . $color .'; padding: 6px 5px; }
                 .iMSCPdebug_last { border: 1px solid #ccc; }
                 .iMSCPdebug_panel { text-align:left; position:absolute;bottom:21px;width:600px; max-height:400px; overflow:auto; display:none; background:' . $color . '; padding:0.5em; border: 1px solid #ccc; }
                 .iMSCPdebug_panel .pre {font: 1em Geneva, Arial, Helvetica, sans-serif; margin:0 0 0 22px}

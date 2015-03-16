@@ -117,7 +117,7 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
 			'/admin/monitorix.php' => $pluginDir . '/frontend/monitorix.php',

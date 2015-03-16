@@ -35,8 +35,7 @@ use lib "{IMSCP_PERLLIB_PATH}";
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
-$ENV{'LANG'} = 'C';
-$ENV{'IMSCP_CLEAR_SCREEN'} = 0;
+$ENV{'LANG'} = 'C.UTF-8';
 
 newDebug('roundcubeplugins-plugin-cronjob-pop3fetcher.log');
 

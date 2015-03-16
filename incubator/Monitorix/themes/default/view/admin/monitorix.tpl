@@ -52,7 +52,7 @@
 			<div class="monitorix_wrapper">
 				<!-- BDP: monitorix_graph_item -->
 				<a href="/Monitorix/themes/default/assets/images/graphs/{MONITORIXGRAPH}" class="open">
-					<img src="/Monitorix/themes/default/assets/images/graphs/{MONITORIXGRAPH}" width="{MONITORIXGRAPH_WIDTH}" height="{MONITORIXGRAPH_HEIGHT}" style="float:left;margin: 0px 5px 5px 0px;border:1px dashed #000;"/>
+					<img src="/Monitorix/themes/default/assets/images/graphs/{MONITORIXGRAPH}" width="{MONITORIXGRAPH_WIDTH}" height="{MONITORIXGRAPH_HEIGHT}" style="float:left;margin: 0 5px 5px 0;border:1px dashed #000;"/>
 				</a>
 				<!-- EDP: monitorix_graph_item -->
 			</div>

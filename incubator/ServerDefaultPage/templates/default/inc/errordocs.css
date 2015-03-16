@@ -40,7 +40,7 @@ a {
     background-size: auto, 100% 100%, auto;
     border: 1px solid silver;
     border-radius: 20px;
-    box-shadow: 0px 0px 5px 0px rgba(50, 50, 50, 0.75);
+    box-shadow: 0 0 5px 0 rgba(50, 50, 50, 0.75);
     height: auto;
     left: 50%;
     margin-left: -227px;

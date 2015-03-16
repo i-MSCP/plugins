@@ -26,7 +26,7 @@ use lib "{IMSCP_PERLLIB_PATH}";
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
-$ENV{'LC_MESSAGES'} = 'C';
+$ENV{'LANG'} = 'C.UTF-8';
 
 newDebug('spamassassin-plugin-cronjob-clean-awl-db.log');
 

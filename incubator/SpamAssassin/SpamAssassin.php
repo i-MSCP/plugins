@@ -34,7 +34,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	public function install(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'up');
+			$this->migrateDb('up');
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(
 				sprintf('Unable to create database schema: %s', $e->getMessage()), $e->getCode(), $e
@@ -98,63 +98,10 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
 	{
 		try {
-			$this->dbMigrate($pluginManager, 'up');
+			$this->migrateDb('up');
 		} catch (iMSCP_Exception_Database $e) {
 			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * Migrate database
-	 *
-	 * @throws iMSCP_Exception_Database When migration fail
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @param string $migrationMode Migration mode (up|down)
-	 * @return void
-	 */
-	protected function dbMigrate(iMSCP_Plugin_Manager $pluginManager, $migrationMode = 'up')
-	{
-		$pluginName = $this->getName();
-		$pluginInfo = $pluginManager->getPluginInfo($pluginName);
-		$dbSchemaVersion = (isset($pluginInfo['db_schema_version'])) ? $pluginInfo['db_schema_version'] : '000';
-		$migrationFiles = array();
-
-		/** @var $migrationFileInfo DirectoryIterator */
-		foreach (new DirectoryIterator(dirname(__FILE__) . '/sql-data') as $migrationFileInfo) {
-			if (!$migrationFileInfo->isDot()) {
-				$migrationFiles[] = $migrationFileInfo->getRealPath();
-			}
-		}
-
-		natsort($migrationFiles);
-
-		if($migrationMode != 'up') {
-			$migrationFiles = array_reverse($migrationFiles);
-		}
-
-		try {
-			foreach ($migrationFiles as $migrationFile) {
-				if (preg_match('%(\d+)\_.*?\.php$%', $migrationFile, $match)) {
-					if(
-						($migrationMode == 'up' && $match[1] > $dbSchemaVersion) ||
-						($migrationMode == 'down' && $match[1] <= $dbSchemaVersion)
-					) {
-						$migrationFilesContent = include($migrationFile);
-						if(isset($migrationFilesContent[$migrationMode])) {
-							execute_query($migrationFilesContent[$migrationMode]);
-							$dbSchemaVersion = $match[1];
-						}
-					}
-				}
-			}
-		} catch(iMSCP_Exception_Database $e) {
-			$pluginInfo['db_schema_version'] =  $dbSchemaVersion;
-			$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
-			throw $e;
-		}
-
-		$pluginInfo['db_schema_version'] =  ($migrationMode == 'up') ? $dbSchemaVersion : '000';
-		$pluginManager->updatePluginInfo($pluginName, $pluginInfo);
 	}
 
 	/**

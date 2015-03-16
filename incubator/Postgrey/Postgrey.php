@@ -34,7 +34,7 @@ class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 	{
 		try {
 			# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
-			if($pluginManager->isPluginKnown('PolicydWeight') && $pluginManager->isPluginEnabled('PolicydWeight')) {
+			if($pluginManager->pluginIsKnown('PolicydWeight') && $pluginManager->pluginIsEnabled('PolicydWeight')) {
 				$pluginManager->pluginChange('PolicydWeight');
 			}
 

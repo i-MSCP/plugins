@@ -26,8 +26,7 @@ use lib "{IMSCP_PERLLIB_PATH}";
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
-$ENV{'LC_MESSAGES'} = 'C';
-$ENV{'IMSCP_CLEAR_SCREEN'} = 0;
+$ENV{'LANG'} = 'C.UTF-8';
 
 newDebug('mailgraph-plugin-cronjob.log');
 

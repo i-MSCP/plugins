@@ -64,7 +64,7 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginDir = PLUGINS_PATH . '/' . $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
 			'/admin/mailgraph.php' => $pluginDir . '/frontend/mailgraph.php',

@@ -82,7 +82,7 @@ class iMSCP_Plugin_DebugBar_Component_Cache implements iMSCP_Plugin_DebugBar_Com
 			$panel .= '<p><strong>Memory consumption:</strong> ' . bytesHuman($info['memory_usage']['used']) . ' (' . tr('Used') . ') - '
 				. bytesHuman($info['memory_usage']['free']) . ' (' . tr('Free') . ')</p>';
 			$panel .= '<br>';
-			$panel .= '<div class="buttons"><a href="?debug_bar_action=reset_cache" type="submit" class="link_as_button" value="debug_bar_action_reset_cache">Reset Cache</a></div>';
+			$panel .= '<div class="buttons"><a href="?debug_bar_action=reset_cache" type="submit" class="link_as_button">Reset Cache</a></div>';
 		} else {
 			$panel = "Cache info are not available or cache type is not supported.";
 		}
