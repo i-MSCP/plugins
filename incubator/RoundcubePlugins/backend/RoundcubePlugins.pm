@@ -723,7 +723,7 @@ sub _checkVersion
 	# TODO Should be done on PHP side
 	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
-	if(version->new($self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}) > version->new('1.1.0')) {
+	if(version->parse("v$self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}") > version->parse('v1.1.0')) {
 		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
 		return 1;
 	}
