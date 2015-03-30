@@ -130,7 +130,7 @@ sub update
 	my $rs = $self->install();
 	return $rs if $rs;
 
-	if(version->parse("v$fromVersion") < version->parse('v1.1.1')) {
+	if(version->parse($fromVersion) < version->parse("1.1.1")) {
 		unless(-f $self->{'config'}->{'cgi_path'}) {
 			error("File $self->{'config'}->{'cgi_path'} not found");
 			return 1;
