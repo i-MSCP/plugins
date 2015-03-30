@@ -90,7 +90,7 @@ sub update
 	require version;
 	version->import();
 
-	if(version->parse("v$fromVersion") < version->parse("v1.0.6")) {
+	if(version->parse($fromVersion) < version->parse("1.0.6")) {
 		$self->_copyFolder();
 	}
 }
@@ -215,7 +215,7 @@ sub _createConfig
 				$self->{'config'}->{'certificate'} eq ''
 			) ? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}.pem" : $self->{'config'}->{'certificate'},
 			'AUTHZ_ALLOW_ALL' => (
-				version->parse("v$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('v2.4.0')
+				version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0')
 			) ? 'Require all granted' : 'Allow from all',
 		}
 	);
