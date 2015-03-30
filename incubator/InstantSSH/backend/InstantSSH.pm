@@ -155,7 +155,7 @@ sub update
 
 	# Update from versions older than 2.1.0
 	#  - Remove old makejail files if any
-	if(version->parse("$fromVersion") < version->parse("2.1.0") && -d '/etc/makejail') {
+	if(version->parse($fromVersion) < version->parse("2.1.0") && -d '/etc/makejail') {
 		for my $file(iMSCP::Dir->new( dirname => '/etc/makejail', fileType => 'InstantSSH.*\\.py' )->getFiles()) {
 			$rs = iMSCP::File->new( filename => "/etc/makejail/$file" )->delFile();
 			return $rs if $rs;
@@ -163,7 +163,7 @@ sub update
 	}
 
 	# Remove the mistaken mount points which were added in previous versions
-	if(version->parse("$fromVersion") < version->parse("3.2.0") && iMSCP::ProgramFinder::find('doveadm')) {
+	if(version->parse($fromVersion) < version->parse("3.2.0") && iMSCP::ProgramFinder::find('doveadm')) {
 		if(-f '/var/lib/dovecot/mounts') {
 			$rs = iMSCP::File->new( filename => '/var/lib/dovecot/mounts' )->delFile();
 			return $rs if $rs;
