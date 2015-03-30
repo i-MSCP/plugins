@@ -35,7 +35,7 @@ use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::TemplateParser;
-
+use version;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -89,10 +89,7 @@ sub update
 {
 	my ($self, $fromVersion, $toVersion) = @_;
 
-	require version;
-	version->import();
-
-	if(version->parse("v$fromVersion") < version->parse("v0.0.6")) {
+	if(version->parse($fromVersion) < version->parse("0.0.6")) {
 		my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
 			"config/config.inc.php";
 
