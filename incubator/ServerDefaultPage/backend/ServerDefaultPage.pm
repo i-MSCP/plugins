@@ -87,9 +87,6 @@ sub update
 {
 	my ($self, $fromVersion, $toVersion) = @_;
 
-	require version;
-	version->import();
-
 	if(version->parse($fromVersion) < version->parse("1.0.6")) {
 		$self->_copyFolder();
 	}
