@@ -563,7 +563,7 @@ sub _modifyDovecotConfig
 	}
 
 	if($plugin eq 'archive') {
-		if(version->new($version) > version->new('2.1.0')) {
+		if(version->parse($version) > version->parse("2.1.0")) {
 			if($action eq 'add') {
 				$fileContent =~ s/\n\t# Begin Plugin::RoundcubePlugin::archive.*Ending Plugin::RoundcubePlugin::archive\n//sgm;
 				$fileContent =~ s/^(namespace\s+inbox\s+\{.*?)(\})/$1\n\t# Begin Plugin::RoundcubePlugin::archive\n\tmailbox Archive \{\n\t\tauto = subscribe\n\t\tspecial_use = \\Archive\n\t\}\n\t# Ending Plugin::RoundcubePlugin::archive\n$2/sgm;
@@ -590,7 +590,7 @@ sub _modifyDovecotConfig
 			$fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::2nd.*(\tmail_plugins\s+=.*?)\s+sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd\n/$1\n/sgm;
 			$fileContent =~ s/^(protocol\s+lda.*?)(\tmail_plugins\s+=.*?)$/$1\t# Begin Plugin::RoundcubePlugin::managesieve::2nd\n$2 sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd/sgm;
 
-			if(version->new($version) < version->new('2.0.0')) {
+			if(version->parse($version) < version->parse("2.0.0")) {
 				$fileContent =~ s/^# Begin Plugin::RoundcubePlugin::managesieve::3nd.*(protocols\s+=.*?)\s+managesieve.*Ending Plugin::RoundcubePlugin::managesieve::3nd\n/$1\n/sgm;
 				$fileContent =~ s/^(protocols\s+=.*?)$/# Begin Plugin::RoundcubePlugin::managesieve::3nd\n$1 managesieve\n\nprotocol managesieve {\n\tlisten = localhost:4190\n}\n# Ending Plugin::RoundcubePlugin::managesieve::3nd/sgm;
 			}
@@ -598,7 +598,7 @@ sub _modifyDovecotConfig
 			$fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::1st.*Ending Plugin::RoundcubePlugin::managesieve::1st\n//sgm;
 			$fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::2nd.*(\tmail_plugins\s*=.*?)\s+sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd\n/$1\n/sgm;
 			
-			if(version->new($version) < version->new('2.0.0')) {
+			if(version->parse($version) < version->parse("2.0.0")) {
 				$fileContent =~ s/^# Begin Plugin::RoundcubePlugin::managesieve::3nd.*(protocols\s+=.*?)\s+managesieve.*Ending Plugin::RoundcubePlugin::managesieve::3nd\n/$1\n/sgm;
 			}
 		}	
@@ -723,7 +723,7 @@ sub _checkVersion
 	# TODO Should be done on PHP side
 	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
-	if(version->parse("v$self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}") > version->parse('v1.1.0')) {
+	if(version->parse("$self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}") > version->parse("1.1.0")) {
 		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
 		return 1;
 	}
