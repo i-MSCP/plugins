@@ -441,7 +441,7 @@ sub _loadPluginConfig
 		unless($@) {
 			if(
 				defined $InstantSSH::JailBuilder::VERSION &&
-				version->parse("v$InstantSSH::JailBuilder::VERSION") >= version->parse("v3.1.0")
+				version->parse("$InstantSSH::JailBuilder::VERSION") >= version->parse("3.1.0")
 			) {
 				$self->{'config'}->{'jailed_cronjobs_support'} = 1;
 
