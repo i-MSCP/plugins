@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PhpSwitcher plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+namespace PhpSwitcher;
+
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Exception_Database as DatabaseException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Plugin_PhpSwitcher as PhpSwitcher;
+use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
+use PDO;
+
 /***********************************************************************************************************************
  * Functions
  */
@@ -29,13 +41,13 @@
  * @param array $data JSON data
  * @return void
  */
-function _phpSwitcher_sendJsonResponse($statusCode = 200, array $data = array())
+function sendJsonResponse($statusCode = 200, array $data = array())
 {
 	header('Cache-Control: no-cache, must-revalidate');
 	header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 	header('Content-type: application/json');
 
-	switch ($statusCode) {
+	switch($statusCode) {
 		case 400:
 			header('Status: 400 Bad Request');
 			break;
@@ -61,30 +73,26 @@ function _phpSwitcher_sendJsonResponse($statusCode = 200, array $data = array())
  *
  * @return void
  */
-function phpSwitcher_get()
+function get()
 {
-	if (isset($_GET['version_id']) && isset($_GET['version_name'])) {
+	if(isset($_GET['version_id']) && isset($_GET['version_name'])) {
 		$versionId = intval($_REQUEST['version_id']);
 		$versionName = clean_input($_REQUEST['version_name']);
 
 		try {
 			$stmt = exec_query('SELECT * FROM php_switcher_version WHERE version_id = ?', $versionId);
 
-			if ($stmt->rowCount()) {
-				_phpSwitcher_sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
+			if($stmt->rowCount()) {
+				sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 
-			_phpSwitcher_sendJsonResponse(
-				404, array('message' => tr('PHP version %s has not been found.', $versionName))
-			);
-		} catch (iMSCP_Exception_Database $e) {
-			_phpSwitcher_sendJsonResponse(
-				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-			);
+			sendJsonResponse(404, array('message' => tr('PHP version %s has not been found.', $versionName)));
+		} catch(DatabaseException $e) {
+			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -92,19 +100,19 @@ function phpSwitcher_get()
  *
  * @return void
  */
-function phpSwitcher_add()
+function add()
 {
-	if (isset($_POST['version_name']) && isset($_POST['version_binary_path']) && isset($_POST['version_confdir_path'])) {
+	if(isset($_POST['version_name']) && isset($_POST['version_binary_path']) && isset($_POST['version_confdir_path'])) {
 		$versionName = clean_input($_POST['version_name']);
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
-		if ($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
-			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
-		} elseif (
+		if($versionName == '' || $versionBinaryPath == '' || $versionConfdirPath == '') {
+			sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+		} elseif(
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
-			_phpSwitcher_sendJsonResponse(
+			sendJsonResponse(
 				400,
 				array(
 					'message' => tr(
@@ -126,28 +134,28 @@ function phpSwitcher_add()
 				array($versionName, $versionBinaryPath, $versionConfdirPath)
 			);
 
-			iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher')->flushCache();
+			/** @var PluginManager $pluginManager */
+			$pluginManager = Registry::get('pluginManager');
 
-			write_log(tr('PHP version %s has been created.'), E_USER_NOTICE);
+			/** @var PhpSwitcher $plugin */
+			$plugin = $pluginManager->pluginGet('PhpSwitcher');
 
-			_phpSwitcher_sendJsonResponse(
-				200, array('message' => tr('PHP version %s successfully created.', $versionName))
-			);
+			$plugin->flushCache();
 
-		} catch (iMSCP_Exception_Database $e) {
-			if ($e->getCode() == '23000') {
-				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP version %s already exists.', $versionName))
-				);
+			write_log('PHP version %s has been added.', E_USER_NOTICE);
+
+			sendJsonResponse(200, array('message' => tr('PHP version %s successfully added.', $versionName)));
+
+		} catch(DatabaseException $e) {
+			if($e->getCode() == '23000') {
+				sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', $versionName)));
 			} else {
-				_phpSwitcher_sendJsonResponse(
-					500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-				);
+				sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 			}
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.')));
+	sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -155,9 +163,9 @@ function phpSwitcher_add()
  *
  * @return void
  */
-function phpSwitcher_edit()
+function edit()
 {
-	if (
+	if(
 		isset($_POST['version_id']) && isset($_POST['version_name']) && isset($_POST['version_binary_path']) &&
 		isset($_POST['version_confdir_path'])
 	) {
@@ -166,12 +174,12 @@ function phpSwitcher_edit()
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 		$versionConfdirPath = clean_input($_POST['version_confdir_path']);
 
-		if ($versionBinaryPath == '' || $versionConfdirPath == '') {
-			_phpSwitcher_sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif (
+		if($versionBinaryPath == '' || $versionConfdirPath == '') {
+			sendJsonResponse(400, array('message' => tr('All fields are required.')));
+		} elseif(
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
-			_phpSwitcher_sendJsonResponse(
+			sendJsonResponse(
 				400,
 				array('message' => tr(
 					'PHP version %s already exists. This is the default PHP version.', true, $versionName)
@@ -179,7 +187,7 @@ function phpSwitcher_edit()
 			);
 		}
 
-		$db = iMSCP_Database::getRawInstance();
+		$db = Database::getRawInstance();
 
 		try {
 			$db->beginTransaction();
@@ -199,44 +207,43 @@ function phpSwitcher_edit()
 				array($versionName, $versionBinaryPath, $versionConfdirPath, 'tochange', $versionId, 'ok')
 			);
 
-			if ($stmt->rowCount()) {
+			if($stmt->rowCount()) {
 				$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
-				/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
-				$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+				/** @var PluginManager $pluginManager */
+				$pluginManager = Registry::get('pluginManager');
 
-				if ($stmt->rowCount()) {
-					$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+				/** @var PhpSwitcher $plugin */
+				$plugin = $pluginManager->pluginGet('PhpSwitcher');
+
+				if($stmt->rowCount()) {
+					$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
 				}
 
 				$db->commit();
 
-				$pluginManager->flushCache();
+				$plugin->flushCache();
 
 				send_request();
 
-				write_log(tr('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
+				write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
 
-				_phpSwitcher_sendJsonResponse(
+				sendJsonResponse(
 					200, array('message' => tr('PHP version %s successfully scheduled for update.', true, $versionName))
 				);
 			}
-		} catch (iMSCP_Exception_Database $e) {
+		} catch(DatabaseException $e) {
 			$db->rollBack();
 
-			if ($e->getCode() == '23000') {
-				_phpSwitcher_sendJsonResponse(
-					400, array('message' => tr('PHP version %s already exists.', true, $versionName))
-				);
+			if($e->getCode() == '23000') {
+				sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', true, $versionName)));
 			} else {
-				_phpSwitcher_sendJsonResponse(
-					500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-				);
+				sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 			}
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -244,53 +251,54 @@ function phpSwitcher_edit()
  *
  * @return void
  */
-function phpSwitcher_delete()
+function delete()
 {
-	if (isset($_POST['version_id']) && isset($_POST['version_name'])) {
+	if(isset($_POST['version_id']) && isset($_POST['version_name'])) {
 		$versionId = intval(clean_input($_POST['version_id']));
 		$versionName = clean_input($_POST['version_name']);
 
-		$db = iMSCP_Database::getRawInstance();
+		$db = Database::getRawInstance();
 
 		try {
 			$db->beginTransaction();
 
 			$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
 
-			/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
-			$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+			/** @var PluginManager $pluginManager */
+			$pluginManager = Registry::get('pluginManager');
 
-			if ($stmt->rowCount()) {
-				$pluginManager->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+			/** @var PhpSwitcher $plugin */
+			$plugin = $pluginManager->pluginGet('PhpSwitcher');
+
+			if($stmt->rowCount()) {
+				$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
 			}
 
 			$stmt = exec_query(
 				'UPDATE php_switcher_version SET version_status = ? WHERE version_id = ?', array('todelete', $versionId)
 			);
 
-			if ($stmt->rowCount()) {
+			if($stmt->rowCount()) {
 				$db->commit();
 
 				//$pluginManager->flushCache();
 
 				send_request();
 
-				write_log(tr('PHP version %s has scheduled for deletion.', $versionName), E_USER_NOTICE);
+				write_log('PHP version %s has scheduled for deletion.', $versionName, E_USER_NOTICE);
 
-				_phpSwitcher_sendJsonResponse(
+				sendJsonResponse(
 					200,
 					array('message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName))
 				);
 			}
-		} catch (iMSCP_Exception_Database $e) {
+		} catch(DatabaseException $e) {
 			$db->rollBack();
-			_phpSwitcher_sendJsonResponse(
-				500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-			);
+			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 		}
 	}
 
-	_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 }
 
 /**
@@ -298,7 +306,7 @@ function phpSwitcher_delete()
  *
  * @return void
  */
-function phpSwitcher_getTable()
+function getTable()
 {
 	try {
 		$columns = array('version_id', 'version_name', 'version_binary_path', 'version_confdir_path', 'version_status');
@@ -312,25 +320,25 @@ function phpSwitcher_getTable()
 		/* Paging */
 		$limit = '';
 
-		if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
+		if(isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
 			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Ordering */
 		$order = '';
 
-		if (isset($_GET['iSortCol_0'])) {
+		if(isset($_GET['iSortCol_0'])) {
 			$order = 'ORDER BY ';
 
-			for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
-				if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
+			for($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
+				if($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
 					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $_GET['sSortDir_' . $i] . ', ';
 				}
 			}
 
 			$order = substr_replace($order, '', -2);
 
-			if ($order == 'ORDER BY') {
+			if($order == 'ORDER BY') {
 				$order = '';
 			}
 		}
@@ -338,10 +346,10 @@ function phpSwitcher_getTable()
 		/* Filtering */
 		$where = '';
 
-		if ($_REQUEST['sSearch'] != '') {
+		if($_REQUEST['sSearch'] != '') {
 			$where .= 'WHERE (';
 
-			for ($i = 0; $i < $nbColumns; $i++) {
+			for($i = 0; $i < $nbColumns; $i++) {
 				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
 			}
 
@@ -350,8 +358,8 @@ function phpSwitcher_getTable()
 		}
 
 		/* Individual column filtering */
-		for ($i = 0; $i < $nbColumns; $i++) {
-			if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
+		for($i = 0; $i < $nbColumns; $i++) {
+			if(isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
 				$where .= "AND {$columns[$i]} LIKE " . quoteValue("%{$_GET["sSearch_$i"]}%");
 			}
 		}
@@ -385,10 +393,10 @@ function phpSwitcher_getTable()
 		$trEditTooltip = tr('Edit this PHP version');
 		$trDeleteTooltip = tr('Delete this PHP version');
 
-		while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
+		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for ($i = 0; $i < $nbColumns; $i++) {
+			for($i = 0; $i < $nbColumns; $i++) {
 				if($columns[$i] == 'version_status') {
 					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
 				} elseif($columns[$i] != 'version_id') {
@@ -412,91 +420,81 @@ function phpSwitcher_getTable()
 			$output['aaData'][] = $row;
 		}
 
-		_phpSwitcher_sendJsonResponse(200, $output);
-	} catch (iMSCP_Exception_Database $e) {
-		_phpSwitcher_sendJsonResponse(
-			500, array('message' => tr('An unexpected error occured: %s', true, $e->getMessage()))
-		);
+		sendJsonResponse(200, $output);
+	} catch(DatabaseException $e) {
+		sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 	}
 
-	_phpSwitcher_sendJsonResponse(400, tr('Bad request.', true));
+	sendJsonResponse(400, tr('Bad request.', true));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onAdminScriptStart);
-
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 check_login('admin');
 
-if (isset($_REQUEST['action'])) {
-	if (is_xhr()) {
-		switch (clean_input($_REQUEST['action'])) {
+if(isset($_REQUEST['action'])) {
+	if(is_xhr()) {
+		switch(clean_input($_REQUEST['action'])) {
 			case 'table':
-				phpSwitcher_getTable();
+				getTable();
 				break;
 			case 'add':
-				phpSwitcher_add();
+				add();
 				break;
 			case 'get':
-				phpSwitcher_get();
+				get();
 				break;
 			case 'edit':
-				phpSwitcher_edit();
+				edit();
 				break;
 			case 'delete':
-				phpSwitcher_delete();
+				delete();
 				break;
 			default:
-				_phpSwitcher_sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+				sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 		}
 	}
 
 	showBadRequestErrorPage();
 }
 
-$tpl = new iMSCP_pTemplate();
-$tpl->define_dynamic(
-	array(
-		'layout' => 'shared/layouts/ui.tpl',
-		'page' => '../../plugins/PhpSwitcher/themes/default/view/admin/page.tpl',
-		'page_message' => 'layout'
-	)
-);
+$tpl = new TemplateEngine();
+$tpl->define_dynamic(array(
+	'layout' => 'shared/layouts/ui.tpl',
+	'page' => '../../plugins/PhpSwitcher/themes/default/view/admin/page.tpl',
+	'page_message' => 'layout'
+));
 
-$tpl->assign(
-	array(
-		'THEME_CHARSET' => tr('encoding'),
-		'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
-		'TR_ID' => tr('Id'),
-		'TR_NAME' => tr('PHP version name'),
-		'TR_BINARY' => tr('PHP binary'),
-		'TR_CONFDIR' => tr('PHP configuration directory'),
-		'TR_STATUS' => tr('Status'),
-		'TR_ACTIONS' => tr('Actions'),
-		'TR_BINARY_PATH' => tr('PHP binary path'),
-		'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),
-		'TR_PROCESSING_DATA' => tr('Processing...'),
-		'TR_ADD_NEW_VERSION' => tr('Add new version'),
-		'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
-		'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
-		'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
-		'TR_NEW' => tojs(tr('New PHP version', true)),
-		'TR_EDIT' => tojs(tr('Edit %%s version', true)),
-		'TR_SAVE' => tojs(tr('Save', true)),
-		'TR_CANCEL' => tojs(tr('Cancel', true)),
-		'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version? All configuration files for domains which belong to this PHP version will be scheduled for regeneration.', true))
-	)
-);
+$tpl->assign(array(
+	'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
+	'ISP_LOGO' => layout_getUserLogo(),
+	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
+	'TR_ID' => tr('Id'),
+	'TR_NAME' => tr('PHP version'),
+	'TR_BINARY' => tr('PHP binary'),
+	'TR_CONFDIR' => tr('PHP configuration directory'),
+	'TR_STATUS' => tr('Status'),
+	'TR_ACTIONS' => tr('Actions'),
+	'TR_BINARY_PATH' => tr('PHP binary path'),
+	'TR_CONFDIR_PATH' => tr('PHP configuration directory path'),
+	'TR_PROCESSING_DATA' => tr('Processing...'),
+	'TR_ADD_NEW_VERSION' => tr('Add new PHP version'),
+	'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
+	'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
+	'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
+	'TR_NEW' => tojs(tr('New PHP version', true)),
+	'TR_EDIT' => tojs(tr('Edit %%s version', true)),
+	'TR_SAVE' => tojs(tr('Save', true)),
+	'TR_CANCEL' => tojs(tr('Cancel', true)),
+	'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version? All configuration files for domains which belong to this PHP version will be scheduled for regeneration.', true))
+));
 
 generateNavigation($tpl);
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
-
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onAdminScriptEnd, array('templateEngine' => $tpl));
-
+EventManager::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 $tpl->prnt();

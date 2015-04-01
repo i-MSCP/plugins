@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PhpSwitcher plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,22 +22,34 @@
  * Functions
  */
 
+namespace PhpSwitcher;
+
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Aggregator as EventManager;
+use iMSCP_Exception_Database as DatabaseException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Plugin_PhpSwitcher as PhpSwitcher;
+use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
+use PDO;
+
 /**
  * Set PHP version
  *
  * @return void
  */
-function phpSwitcher_changePhpVersion()
+function changePhpVersion()
 {
-	if (isset($_POST['version_id'])) {
+	if(isset($_POST['version_id'])) {
 		$versionId = intval($_POST['version_id']);
 
-		$db = iMSCP_Database::getRawInstance();
+		$db = Database::getRawInstance();
 
 		try {
 			$db->beginTransaction();
 
-			if (!$versionId) {
+			if(!$versionId) {
 				exec_query('DELETE FROM php_switcher_version_admin WHERE admin_id = ?', $_SESSION['user_id']);
 			} else {
 				exec_query(
@@ -58,22 +70,25 @@ function phpSwitcher_changePhpVersion()
 				);
 			}
 
-			/** @var iMSCP_Plugin_PhpSwitcher $pluginManager */
-			$pluginManager = iMSCP_Registry::get('pluginManager')->getPlugin('PhpSwitcher');
+			/** @var PluginManager $pluginManager */
+			$pluginManager = Registry::get('pluginManager');
 
-			$pluginManager->scheduleDomainsChange(array($_SESSION['user_id']));
+			/** @var PhpSwitcher $plugin */
+			$plugin = $pluginManager->pluginGet('PhpSwitcher');
+
+			$plugin->scheduleDomainsChange(array($_SESSION['user_id']));
 
 			$db->commit();
 
-			$pluginManager->flushCache(array('php_version_admin'));
+			$plugin->flushCache(array('php_version_admin'));
 
 			send_request();
 
-			write_log(tr('%s updated its PHP version.', idn_to_utf8($_SESSION['user_logged'])), E_USER_NOTICE);
+			write_log('%s updated its PHP version.', decode_idna($_SESSION['user_logged']), E_USER_NOTICE);
 			set_page_message(tr('PHP version successfully scheduled for update. Please be patient.'), 'success');
-		} catch (iMSCP_Exception_Database $e) {
+		} catch(DatabaseException $e) {
 			$db->rollBack();
-			set_page_message(tr('An unexpected error occured.', 'error'));
+			set_page_message(tr('An unexpected error occurred.', 'error'));
 		}
 	} else {
 		showBadRequestErrorPage();
@@ -83,9 +98,9 @@ function phpSwitcher_changePhpVersion()
 /**
  * Generate page
  *
- * @param iMSCP_pTemplate $tpl
+ * @param TemplateEngine $tpl
  */
-function phpSwitcher_generatePage($tpl)
+function generatePage($tpl)
 {
 	$stmt = exec_query(
 		'
@@ -106,7 +121,7 @@ function phpSwitcher_generatePage($tpl)
 	$selectedVersion = 0;
 	$versions = array();
 
-	foreach ($rows as $version => $data) {
+	foreach($rows as $version => $data) {
 		$selectedVersion = $data[0]['current_version'];
 		$versions[$version] = array('version_id' => $data[0]['version_id']);
 	}
@@ -117,7 +132,7 @@ function phpSwitcher_generatePage($tpl)
 
 	ksort($versions);
 
-	foreach ($versions as $version => $data) {
+	foreach($versions as $version => $data) {
 		$tpl->assign(
 			array(
 				'VERSION_ID' => $data['version_id'],
@@ -134,45 +149,37 @@ function phpSwitcher_generatePage($tpl)
  * Main
  */
 
-iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptStart);
-
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 check_login('user');
 
-if (customerHasFeature('php')) {
-	if (isset($_POST['version_id'])) {
-		phpSwitcher_changePhpVersion();
+if(customerHasFeature('php')) {
+	if(isset($_POST['version_id'])) {
+		changePhpVersion();
 		redirectTo('/client/phpswitcher');
 	}
 
-	$tpl = new iMSCP_pTemplate();
-	$tpl->define_dynamic(
-		array(
-			'layout' => 'shared/layouts/ui.tpl',
-			'page' => '../../plugins/PhpSwitcher/themes/default/view/client/page.tpl',
-			'page_message' => 'layout',
-			'version_option' => 'page'
-		)
-	);
+	$tpl = new TemplateEngine();
+	$tpl->define_dynamic(array(
+		'layout' => 'shared/layouts/ui.tpl',
+		'page' => '../../plugins/PhpSwitcher/themes/default/view/client/page.tpl',
+		'page_message' => 'layout',
+		'version_option' => 'page'
+	));
 
-	$tpl->assign(
-		array(
-			'THEME_CHARSET' => tr('encoding'),
-			'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'TR_HINT' => tr('Please choose the PHP version you want use below.'),
-			'TR_VERSION' => tr('Version'),
-			'TR_UPDATE' => tr('Update')
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => tr('Client / Settings / PHP Switcher'),
+		'ISP_LOGO' => layout_getUserLogo(),
+		'TR_HINT' => tr('Please choose the PHP version you want use below.'),
+		'TR_VERSION' => tr('Version'),
+		'TR_UPDATE' => tr('Update')
+	));
 
 	generateNavigation($tpl);
 	generatePageMessage($tpl);
-	phpSwitcher_generatePage($tpl);
+	generatePage($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
-	iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onClientScriptEnd, array('templateEngine' => $tpl));
-
+	EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 	$tpl->prnt();
 } else {
 	showNotFoundErrorPage();

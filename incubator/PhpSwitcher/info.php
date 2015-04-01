@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PhpSwitcher plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,9 @@ return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.10',
-	'date' => '2014-12-11',
+	'require_api' => '1.0.0',
+	'date' => '2015-04-01',
 	'name' => 'PhpSwitcher',
-	'desc' => 'Plugin allowing to provide many PHP versions to customers.',
+	'desc' => 'Plugin which allows to provide many PHP versions to customers.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:phpswitcher'
 );

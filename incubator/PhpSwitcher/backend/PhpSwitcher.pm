@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP PhpSwitcher plugin
-# Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -58,7 +58,7 @@ sub run
 {
 	my $self = $_[0];
 
-	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
+	if($self->{'server_implementation'} ~~ [ 'apache_fcgid' ]) {
 		$self->{'eventManager'}->register('beforeHttpdAddDmn', \&setPhpData);
 		$self->{'eventManager'}->register('beforeHttpdRestoreDmn', \&setPhpData);
 		$self->{'eventManager'}->register('beforeHttpdAddSub', \&setPhpData);
@@ -70,7 +70,7 @@ sub run
 		$self->{'eventManager'}->register('beforeHttpdDelSub', \&removePhpConfDir);
 
 		$self->{'eventManager'}->register('afterDispatchRequest', sub {
-			my $rs = $_[0];
+			my $rs = shift;
 
 			unless($rs) {
 				my $ret = $self->{'db'}->doQuery(
@@ -341,16 +341,7 @@ sub _init
 	$self->{'server_implementation'} = $main::imscpConfig{'HTTPD_SERVER'};
 	$self->{'db'} = iMSCP::Database->factory();
 
-	if($self->{'server_implementation'} ~~ ['apache_fcgid']) {
-		my $pluginConfig = $self->{'db'}->doQuery(
-			'plugin_name', 'SELECT plugin_name, plugin_config FROM plugin WHERE plugin_name = ?', 'PhpSwitcher'
-		);
-		unless(ref $pluginConfig eq 'HASH') {
-			fatal($pluginConfig);
-		} else {
-			$self->{'config'} = decode_json($pluginConfig->{'PhpSwitcher'}->{'plugin_config'});
-		}
-
+	if($self->{'server_implementation'} ~~ [ 'apache_fcgid' ]) {
 		$self->{'httpd'} = Servers::httpd->factory();
 
 		$self->{'default_binary_path'} = $self->{'httpd'}->{'config'}->{'PHP_CGI_BIN'};

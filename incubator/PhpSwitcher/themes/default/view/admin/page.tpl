@@ -54,7 +54,7 @@
 </div>
 
 <script>
-	var oTable;
+	var $dataTable;
 
 	function doRequest(rType, action, data)
 	{
@@ -80,7 +80,7 @@
 					doRequest('POST', action, $("#php_frm").serialize()).done(function(data) {
 						$("#php_dialog").dialog("close");
 						flashMessage('success', data.message);
-						oTable.fnDraw();
+						$dataTable.fnDraw();
 					});
 				},
 				"{TR_CANCEL}": function() { $(this).dialog("close"); }
@@ -113,22 +113,23 @@
 			this.oApi._fnProcessingDisplay(oSettings, onoff);
 		};
 
-		oTable = $(".datatable").dataTable({
-			oLanguage: {DATATABLE_TRANSLATIONS},
+		$dataTable = $(".datatable").dataTable({
+			language: {DATATABLE_TRANSLATIONS},
 			iDisplayLength: 5,
-			bProcessing: true,
-			bServerSide: true,
-			sAjaxSource: "/admin/phpswitcher?action=table",
-			bStateSave: true,
-			aoColumnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
-			aoColumns: [
+			processing: true,
+			serverSide: true,
+			pagingType: "simple",
+			ajaxSource: "/admin/phpswitcher?action=table",
+			stateSave: true,
+			columnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
+			columns: [
 				{ mData: "version_name" },
 				{ mData: "version_binary_path" },
 				{ mData: "version_confdir_path" },
 				{ mData: "version_status" },
 				{ mData: "actions" }
 			],
-			fnServerData: function (sSource, aoData, fnCallback) {
+			serverData: function (sSource, aoData, fnCallback) {
 				$.ajax( {
 					dataType: "json",
 					type: "GET",
@@ -136,9 +137,9 @@
 					data: aoData,
 					success: fnCallback,
 					timeout: 5000,
-					error: function(xhr, textStatus, error) { oTable.fnProcessingIndicator(false); }
+					error: function(xhr, textStatus, error) { $dataTable.fnProcessingIndicator(false); }
 				}).done(function() {
-					oTable.find("span").imscpTooltip({ extraClass: "tooltip_icon tooltip_notice" });
+					$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 				});
 			}
 		});
@@ -165,7 +166,7 @@
 				 case "delete":
 					 if(confirm("{TR_DELETE_CONFIRM}")) {
 						 doRequest( "POST", action, { version_id: versionId, version_name: versionName } ).done(
-						 	function(data) { oTable.fnDraw(); flashMessage("success", data.message); }
+						 	function(data) { $dataTable.fnDraw(); flashMessage("success", data.message); }
 						 );
 					 }
 					 break;
@@ -175,8 +176,8 @@
 		});
 
 		$(document).
-			ajaxStart(function() { oTable.fnProcessingIndicator(); }) .
-			ajaxStop(function() { oTable.fnProcessingIndicator(false); }).
+			ajaxStart(function() { $dataTable.fnProcessingIndicator(); }) .
+			ajaxStop(function() { $dataTable.fnProcessingIndicator(false); }).
 			ajaxError(function(e, jqXHR, settings, exception) {
 				if(jqXHR.responseJSON != "") {
 					flashMessage("error", jqXHR.responseJSON.message);

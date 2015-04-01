@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PhpSwitcher plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,16 @@
 class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 {
 	/**
+	 * Plugin initialization
+	 *
+	 * @return void
+	 */
+	public function init()
+	{
+		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+	}
+
+	/**
 	 * Register a callback for the given event(s)
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
@@ -34,22 +44,31 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
-				iMSCP_Events::onBeforeEnablePlugin,
-				iMSCP_Events::onAdminScriptStart,
-				iMSCP_Events::onClientScriptStart
+				iMSCP_Events::onBeforeEnablePlugin
 			),
-			$this
+			array($this, 'checkRequirements')
+		);
+
+		$eventManager->registerListener(
+			array(iMSCP_Events::onAdminScriptStart, iMSCP_Events::onClientScriptStart), array($this, 'setupNavigation')
 		);
 	}
 
 	/**
-	 * onBeforeInstallPlugin listener
+	 * Check plugin requirements
 	 *
 	 * @param iMSCP_Events_Event $event
+	 * @return void
 	 */
-	public function onBeforeInstallPlugin($event)
+	public function checkRequirements(iMSCP_Events_Event $event)
 	{
-		$this->checkCompat($event);
+		if ($event->getParam('pluginName') == $this->getName()) {
+			$config = iMSCP_Registry::get('config');
+			if ($config['HTTPD_SERVER'] != 'apache_fcgid') {
+				set_page_message(tr('This plugin require the apache fcgid i-MSCP server implementation.'), 'error');
+				$event->stopPropagation();
+			}
+		}
 	}
 
 	/**
@@ -64,18 +83,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(sprintf('Unable to install: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * onBeforeUpdatePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	public function onBeforeUpdatePlugin($event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**
@@ -83,29 +92,16 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 *
 	 * @throws iMSCP_Plugin_Exception When update fail
 	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @param string $fromVersion Version from which plugin update is initiated
-	 * @param string $toVersion Version to which plugin is updated
 	 * @return void
 	 */
-	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+	public function update(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
 			$this->migrateDb('up');
 			$this->flushCache();
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * onBeforeEnablePlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 *
-	 */
-	public function onBeforeEnablePlugin($event)
-	{
-		$this->checkCompat($event);
 	}
 
 	/**
@@ -129,11 +125,10 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			}
 
 			$db->commit();
-
 			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
-			throw new iMSCP_Plugin_Exception(tr('Unable to enable: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -162,7 +157,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
-			throw new iMSCP_Plugin_Exception(tr('Unable to disable: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -179,7 +174,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$this->migrateDb('down');
 			$this->flushCache();
 		} catch (iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to uninstall: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -190,65 +185,48 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginName = $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
-			'/admin/phpswitcher' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/php_switcher.php',
-			'/client/phpswitcher' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/php_switcher.php',
+			'/admin/phpswitcher' => $pluginDir . '/frontend/admin/php_switcher.php',
+			'/client/phpswitcher' => $pluginDir . '/frontend/client/php_switcher.php',
 		);
 	}
 
 	/**
-	 * onAdminScriptStart event listener
+	 * Setup plugin navigation
 	 *
+	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAdminScriptStart()
+	public function setupNavigation(iMSCP_Events_Event $event)
 	{
-		$this->setupNavigation('admin');
-	}
+		$eventName = $event->getName();
 
-	/**
-	 * onAdminScriptStart event listener
-	 *
-	 * @return void
-	 */
-	public function onClientScriptStart()
-	{
-		$this->setupNavigation('client');
-	}
+		if (iMSCP_Registry::isRegistered('navigation')) {
+			/** @var Zend_Navigation $navigation */
+			$navigation = iMSCP_Registry::get('navigation');
 
-	/**
-	 * Flush memcached
-	 *
-	 * @param array $keys OPTIONAL Keys to flush in cache
-	 * @return void
-	 */
-	public function flushCache(array $keys = array())
-	{
-		if (class_exists('Memcached')) {
-			$memcachedConfig = $this->getConfigParam('memcached', array());
-
-			if (!empty($memcachedConfig['enabled'])) {
-				if (isset($memcachedConfig['hostname']) && isset($memcachedConfig['port'])) {
-					$memcached = new Memcached($this->getName());
-					$memcached->setOption(Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
-
-					if (!count($memcached->getServerList())) {
-						$memcached->addServer($memcachedConfig['hostname'], $memcachedConfig['port']);
-					}
-
-					$prefix = substr(sha1($this->getName()), 0, 8) . '_';
-
-					if(!empty($keys)) {
-						foreach($keys as $key) {
-							$memcached->delete($prefix . $key);
-						}
-					} else {
-						$memcached->delete($prefix . 'php_version_admin');
-						$memcached->delete($prefix . 'php_confdirs');
-					}
-				}
+			if ($eventName == 'onAdminScriptStart' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
+				$page->addPage(
+					array(
+						'label' => tr('PHP Switcher'),
+						'uri' => '/admin/phpswitcher',
+						'title_class' => 'settings',
+						'order' => 8
+					)
+				);
+			} elseif (
+				$eventName == 'onClientScriptStart' && customerHasFeature('php') &&
+				($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))
+			) {
+				$page->addPage(
+					array(
+						'label' => tr('PHP Switcher'),
+						'uri' => '/client/phpswitcher',
+						'title_class' => 'domains'
+					)
+				);
 			}
 		}
 	}
@@ -319,71 +297,36 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Check plugin compatibility
+	 * Flush memcached
 	 *
-	 * @param iMSCP_Events_Event $event
-	 */
-	protected function checkCompat($event)
-	{
-		if ($event->getParam('pluginName') == $this->getName()) {
-			if (version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.14', '<')) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			} else {
-				$coreConfig = iMSCP_Registry::get('config');
-
-				//if(!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid', 'apache_php_fpm'))) {
-				if (!in_array($coreConfig['HTTPD_SERVER'], array('apache_fcgid'))) {
-					set_page_message(
-						tr(
-							//'This plugin require that PHP run as FastCGI application (Fcgid or PHP5-FPM). You can switch to one of these implementation by running the i-MSCP installer as follow: %s',
-							'This plugin require that PHP run as FastCGI application (Fcgid). You can switch to this httpd server implementation by running the i-MSCP installer as follow: %s',
-							'<br /><br /><strong>perl imscp-autoinstall -dr httpd</strong><br />'
-						),
-						'error'
-					);
-
-					$event->stopPropagation();
-				}
-			}
-		}
-	}
-
-	/**
-	 * Setup plugin navigation
-	 *
-	 * @param string $uiLevel UI level
+	 * @param array $keys OPTIONAL Keys to flush in cache
 	 * @return void
 	 */
-	protected function setupNavigation($uiLevel)
+	public function flushCache(array $keys = array())
 	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
-			/** @var Zend_Navigation $navigation */
-			$navigation = iMSCP_Registry::get('navigation');
+		if (class_exists('Memcached')) {
+			$memcachedConfig = $this->getConfigParam('memcached', array());
 
-			if ($uiLevel == 'admin' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
-				$page->addPage(
-					array(
-						'label' => tr('PHP Switcher'),
-						'uri' => '/admin/phpswitcher',
-						'title_class' => 'settings',
-						'order' => 8
-					)
-				);
-			} elseif (
-				$uiLevel == 'client' && customerHasFeature('php') &&
-				($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))
-			) {
-				$page->addPage(
-					array(
-						'label' => tr('PHP Switcher'),
-						'uri' => '/client/phpswitcher',
-						'title_class' => 'domains'
-					)
-				);
+			if (!empty($memcachedConfig['enabled'])) {
+				if (isset($memcachedConfig['hostname']) && isset($memcachedConfig['port'])) {
+					$memcached = new Memcached($this->getName());
+					$memcached->setOption(Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
+
+					if (!count($memcached->getServerList())) {
+						$memcached->addServer($memcachedConfig['hostname'], $memcachedConfig['port']);
+					}
+
+					$prefix = substr(sha1($this->getName()), 0, 8) . '_';
+
+					if (!empty($keys)) {
+						foreach ($keys as $key) {
+							$memcached->delete($prefix . $key);
+						}
+					} else {
+						$memcached->delete($prefix . 'php_version_admin');
+						$memcached->delete($prefix . 'php_confdirs');
+					}
+				}
 			}
 		}
 	}
