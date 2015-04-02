@@ -18,9 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-# This script allows to fetch, configure, compile and install a set of PHP versions on Debian/Ubuntu.
-# Compilation is made using a dedicated Makefile which define specific targets for each PHP version and
-# by applying a set of patch pulled from Debian packages.
+# This script allows to download, configure, compile and install a set of PHP versions on Debian/Ubuntu distributions.
+# Work is made using a dedicated Makefile which defines specific targets for each PHP version, and by applying a set of
+# patches which were pulled from the php5 Debian source package. Not all patches were imported. Only those which allow
+# to compile php5 on Debian without drawback, and those which fixes important bugs were imported.
 
 use strict;
 use warnings;
@@ -65,11 +66,11 @@ newDebug('phpswitcher-php-compiler.log');
 # Parse command line options
 iMSCP::Getopt->parseNoDefault(sprintf("Usage: perl %s [OPTION...] PHP_VERSION...", basename($0)) . qq {
 
-PhpSwitcher ( PHP compiler )
+Upstream PHP version compiler
 
-This script allows to configure, compile and install upstream PHP versions on Debian/Ubuntu distributions. This is done by using a dedicated Makefile which defines specific targets for each PHP version, and by applying a set of patches pulled from Debian packages.
+This script allows to configure, compile and install upstream PHP versions on Debian/Ubuntu distributions. Work is done by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile which defines specific targets for each PHP version.
 
-Configuration options for each PHP version are identical to those used in Debian package excepted the fact that all extensions are configured statically.
+Configuration options for each PHP version are identical to those used in Debian package excepted the fact that all extensions are compiled statically.
 
 PHP VERSIONS:
  Available PHP versions are: 'php-5.2', 'php-5.3', 'php-5.4', 'php-5.5', 'php-5.6' or 'all' for all versions.
@@ -101,7 +102,7 @@ eval {
             my $phpLongVersion;
 
             for my $url(values %UPSTREAMSRCURLS) {
-                ($phpLongVersion) = $url =~ /($phpVersion\.\d+)\.tar.gz/;
+                ($phpLongVersion) = $url =~ /($phpVersion\.\d+)\.tar\.gz/;
                 last if $phpLongVersion;
             }
 
@@ -161,7 +162,7 @@ sub setOptions
             debug(sprintf('Base installation directory set to %s', $value));
             $INSTALLDIR = $value;
         } else {
-            die('Directory speficied by the --installdir directory must exists.');
+            die('Directory speficied by the --installdir option must exists.');
         }
     }
 }
@@ -267,6 +268,8 @@ sub configure
     my ($phpShortVersion) = $phpVersion =~ /(php-5\.[2-6])/;
 
     debug(sprintf('Executing the configure-$phpShortVersion-stamp target for %s', $phpShortVersion, $phpVersion));
+
+    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$INSTALLDIR";
 
     my $stderr;
     (execute("make -f $MAINTDIR/Makefile configure-$phpShortVersion-stamp", undef, \$stderr) == 0) or fatal(
