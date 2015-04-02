@@ -44,7 +44,7 @@ umask 022;
 my $BUILDDIR = '/usr/local/src/phpswitcher';
 
 # Base installation directory ( default; /opt )
-my $INSTALLDIR = '/opt';
+my $INSTALLDIR = '/opt/phpswitcher';
 
 # PhpSwitcher compiler maintenance directory
 my $MAINTDIR = '/var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/phpswitcher';
@@ -70,14 +70,14 @@ Upstream PHP version compiler
 
 This script allows to configure, compile and install upstream PHP versions on Debian/Ubuntu distributions. Work is done by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile which defines specific targets for each PHP version.
 
-Configuration options for each PHP version are identical to those used in Debian package excepted the fact that all extensions are compiled statically.
+Configuration options for each PHP version are almost identical to those used in Debian package excepted the fact that all extensions are compiled statically.
 
 PHP VERSIONS:
- Available PHP versions are: 'php-5.2', 'php-5.3', 'php-5.4', 'php-5.5', 'php-5.6' or 'all' for all versions.
+ Supported PHP versions are: 'php-5.2', 'php-5.3', 'php-5.4', 'php-5.5', 'php-5.6' or 'all' for all versions.
 
 OPTIONS:
  -b,    --builddir      Build directory ( /usr/local/src/phpswitcher ).
- -i,    --installdir    Base installation directory ( /opt ).
+ -i,    --installdir    Base installation directory ( /opt/phpswitcher ).
  -v,    --verbose       Enable verbose mode.},
  'builddir|b=s' => sub { setOptions(@_); },
  'installdir|i=s' => sub { setOptions(@_); },
@@ -162,7 +162,7 @@ sub setOptions
             debug(sprintf('Base installation directory set to %s', $value));
             $INSTALLDIR = $value;
         } else {
-            die('Directory speficied by the --installdir option must exists.');
+            die("Directory speficied by the --installdir option must exists.\n");
         }
     }
 }
@@ -174,7 +174,7 @@ sub installBuildDependencies
 
     my ($stdout, $stderr);
     (execute('apt-get build-dep php5 && apt-get install quilt', \$stdout, \$stderr) == 0) or fatal(
-       sprintf("An unexpected error occurred during installation of build dependencies: %s\n", $stderr)
+       sprintf("An error occurred during installation of build dependencies: %s\n", $stderr)
     );
 
     debug($stdout) if $stdout;
@@ -194,7 +194,7 @@ sub fetchUpstreamSource
     unless(-f $archPath) {
         my ($stdout, $stderr);
         (execute("wget -O $archPath $UPSTREAMSRCURLS{$phpShortVersion}", \$stdout, \$stderr) == 0) or fatal(
-            sprintf("An unexpected error occurred during fetch of %s upstream sources\n: %s", $phpVersion, $stderr)
+            sprintf("An error occurred during fetch of %s upstream sources\n: %s", $phpVersion, $stderr)
         );
 
         debug($stdout) if $stdout;
@@ -210,7 +210,7 @@ sub fetchUpstreamSource
 
     my ($stdout, $stderr);
     (execute("tar -xzf $archPath -C $BUILDDIR/", \$stdout, \$stderr) == 0) or fatal(
-        sprintf("An unexpected error occurred during extraction of upstream sources: %s\n", $stderr)
+        sprintf("An error occurred during extraction of upstream sources: %s\n", $stderr)
     );
 
     debug($stdout) if $stdout;
@@ -246,7 +246,7 @@ sub patchUpstreamSource
     debug(sprintf('Applying Debian patches on %s upstream source', $phpVersion));
 
     $ENV{'QUILT_PATCHES'} = "phpswitcher/$phpShortVersion";
-    $ENV{'QUILT_PUSH_ARGS'} = '--color=auto';
+    $ENV{'QUILT_PUSH_ARGS'} = '--color=no';
     $ENV{'QUILT_DIFF_ARGS'} = '--no-timestamps --no-index -p ab --color=auto';
     $ENV{'QUILT_REFRESH_ARGS'} = '--no-timestamps --no-index -p ab';
     $ENV{'QUILT_DIFF_OPTS'} = '-p';
@@ -269,7 +269,7 @@ sub configure
 
     debug(sprintf('Executing the configure-$phpShortVersion-stamp target for %s', $phpShortVersion, $phpVersion));
 
-    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$INSTALLDIR";
+    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$INSTALLDIR/$phpShortVersion";
 
     my $stderr;
     (execute("make -f $MAINTDIR/Makefile configure-$phpShortVersion-stamp", undef, \$stderr) == 0) or fatal(
