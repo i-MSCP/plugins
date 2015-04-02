@@ -470,7 +470,6 @@ $tpl->define_dynamic(array(
 
 $tpl->assign(array(
 	'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
-	'ISP_LOGO' => layout_getUserLogo(),
 	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 	'TR_ID' => tr('Id'),
 	'TR_NAME' => tr('PHP version'),

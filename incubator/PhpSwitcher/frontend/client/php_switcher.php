@@ -168,7 +168,6 @@ if(customerHasFeature('php')) {
 
 	$tpl->assign(array(
 		'TR_PAGE_TITLE' => tr('Client / Settings / PHP Switcher'),
-		'ISP_LOGO' => layout_getUserLogo(),
 		'TR_HINT' => tr('Please choose the PHP version you want use below.'),
 		'TR_VERSION' => tr('Version'),
 		'TR_UPDATE' => tr('Update')
