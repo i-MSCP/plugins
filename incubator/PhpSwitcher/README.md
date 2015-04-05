@@ -28,37 +28,35 @@ Debian / Ubuntu packages to install in case you want enable memcached support ( 
 
 ## Update
 
-1. Backup your current config file **plugins/PhpSwitcher/config.php**
-2. Login into the panel as admin and go to the plugin management interface
-3. Upload the **PhpSwitcher** plugin archive
-4. Restore your **plugins/PhpSwitcher/config.php** (compare it with new config file first)
-5. Click on the **Update Plugins** button in the plugin management interface
+1. Be sure that all requirements as stated in the requirements section are meets
+2. Backup your plugin configuration file if needed
+3. Upload the plugin through the plugin management interface
+4. Restore your plugin configuration file if needed ( compare it with the new version first )
+5. Update the plugin list through the plugin management interface
 
-## Plugin configuration
+## Configuration
 
 ### Setup new PHP version
 
 At first, you must download, configure, compile and install the PHP version which you want make available for your
-customers. You can either process manually or by using the PHP compiler which is shipped with the plugin ( see below ).
+customers. You can either do the job manually, or by using the PHP compiler that is shipped with this plugin ( see below ).
 
 #### PHP compiler
 
-The PHP compiler is a script that allows to download, configure, compile and install one or many PHP versions in one step.
-The script is available in the **PhpSwitcher/PhpCompiler** directory.
+The PHP compiler is a perl script that allows to download, configure, compile and install one or many PHP versions in one
+step. The script is available in the **PhpSwitcher/PhpCompiler** directory.
 
 For instance, if you want to install the **php-5.3** version, you can run the script as follow:
  
- ```shell
- # perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl php-5.3
- ```
+```shell
+# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl php-5.3
+```
 
 Or if you want install all PHP versions which can be compiled by this script, you can run it as follow:
 
 ```shell
 # perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl all
 ```
-
-Supported PHP versions are: **php-5.2**, **php-5.3**, **php-5.4**, **php-5.5** and **php-5.6**.
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
 the **/opt/phpswitcher** directory but you can change this behavior by using command line options.
@@ -68,6 +66,17 @@ To get more information about available command line options, you can run:
 ```shell
 # perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --help
 ```
+
+##### Supported PHP versions
+
+Supported PHP versions are: **php-5.2**, **php-5.3**, **php-5.4**, **php-5.5** and **php-5.6**.
+
+The versions that are supported by the PHP compiler are the last versions which were available when this plugin version
+has been released. This means that by default, the PHP versions provided by this script can be lower than the last
+released versions on the PHP site. In such case, you can use the **--force-last** command line option which tells the
+PHP compiler to download the last released versions for the specified PHP versions. However, you must be aware that the
+PHP compiler could fail to apply the set of Debian patches on new versions. In such a case, you should create a ticket
+on our bug tracker using the output that is provided by the PHP compiler.
 
 #### Registration through PhpSwitcher
 
@@ -100,14 +109,14 @@ To get more information about available command line options, you can run:
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the **Domains** section.
 
+**Note:** You must of course adjust the parameters above according the PHP version you want to add.
+
 ### Memcached Support
 
 In order, to enable memcached support, you must:
 
 1. Be sure that all requirements as stated in the requirements section are meets
-2. Backup your plugin configuration file if needed
-3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+2. Enable memcached support by editing the plugin configuration file ( see below for available parameters )
 5. Update the plugin list through the plugin management interface
 
 #### Memcached configuration parameters
@@ -166,8 +175,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ```
 
- See [LGPL v2.1](http://www.gnu.org/licenses/lgpl-2.1.txt "LGPL v2.1")
+ See [LICENSE](LICENSE)
 
 ## Author
 
- * Laurent Declercq <l.declercq@nuxwin.com>
+* Laurent Declercq <l.declercq@nuxwin.com>
