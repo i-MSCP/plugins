@@ -2,8 +2,8 @@
 +++ php5/scripts/phpize.in
 @@ -6,10 +6,16 @@ datarootdir='@datarootdir@'
  exec_prefix="`eval echo @exec_prefix@`"
- phpdir="$prefix/lib/php5/build"
- includedir="$prefix/include/php5"
+ phpdir="`eval echo @libdir@`/build"
+ includedir="`eval echo @includedir@`/php"
 +aclocaldir="$prefix/share/aclocal"
  builddir="`pwd`"
  SED="@SED@"

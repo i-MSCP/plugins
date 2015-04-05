@@ -1,13 +1,17 @@
+# Please, do not change anything if you don't know what you're doing
+# The patches which were disabled are not relevants for us. Thus, don't
+# try to enable them.
+# For any trouble, please create a ticket at http://youtrack.i-mscp.net
 001-libtool_fixes.patch
 002-static_openssl.patch
-006-debian_quirks.patch
+#006-debian_quirks.patch
 libtool2.2.patch
 033-we_WANT_libtool.patch
 044-strtod_arm_fix.patch
-#php-5.4.9-phpinfo.patch
+php-5.4.9-phpinfo.patch
 #053-extension_api.patch
 #057-no_apache_installed.patch
-#100-recode_is_shared.patch
+100-recode_is_shared.patch
 112-proc_open.patch
 #113-php.ini_securitynotes.patch
 php-5.4.7-libdb.patch

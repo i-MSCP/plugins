@@ -25,6 +25,6 @@ return array(
 	'require_api' => '1.0.0',
 	'date' => '2015-04-01',
 	'name' => 'PhpSwitcher',
-	'desc' => 'Plugin which allows to provide many PHP versions to customers.',
+	'desc' => 'This plugin allows to setup additional PHP versions which can be used by your customers',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:phpswitcher'
 );

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This plugin allows to setup many PHP versions, which can be used by your customers.
+This plugin allows to setup additional PHP versions which can be used by your customers.
 
 **Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
 the PHP5-FPM implementations will be also supported.
@@ -34,17 +34,16 @@ Debian / Ubuntu packages to install in case you want enable memcached support ( 
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
 
-## Configuration
-
-### Setup new PHP version
+## Setup new PHP version
 
 At first, you must download, configure, compile and install the PHP version which you want make available for your
-customers. You can either do the job manually, or by using the PHP compiler that is shipped with this plugin ( see below ).
+customers. You can either do the job manually, or by using the PHP compiler ( recommended ) that is shipped with this
+plugin ( see below ).
 
-#### PHP compiler
+### PHP compiler
 
-The PHP compiler is a perl script that allows to download, configure, compile and install one or many PHP versions in one
-step. The script is available in the **PhpSwitcher/PhpCompiler** directory.
+The PHP compiler is a Perl script that allows to download, configure, compile, install additional PHP versions in one
+step. The script is located in the **PhpSwitcher/PhpCompiler** directory.
 
 For instance, if you want to install the **php-5.3** version, you can run the script as follow:
  
@@ -59,7 +58,7 @@ Or if you want install all PHP versions which can be compiled by this script, yo
 ```
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
-the **/opt/phpswitcher** directory but you can change this behavior by using command line options.
+the **/opt/phpswitcher** subtree but you can change this behavior by using command line options.
 
 To get more information about available command line options, you can run:
 
@@ -67,21 +66,23 @@ To get more information about available command line options, you can run:
 # perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --help
 ```
 
-##### Supported PHP versions
+#### Supported PHP versions
 
 Supported PHP versions are: **php-5.2**, **php-5.3**, **php-5.4**, **php-5.5** and **php-5.6**.
 
-The versions that are supported by the PHP compiler are the last versions which were available when this plugin version
-has been released. This means that by default, the PHP versions provided by this script can be lower than the last
-released versions on the PHP site. In such case, you can use the **--force-last** command line option which tells the
-PHP compiler to download the last released versions for the specified PHP versions. However, you must be aware that the
-PHP compiler could fail to apply the set of Debian patches on new versions. In such a case, you should create a ticket
-on our bug tracker using the output that is provided by the PHP compiler.
+The versions supported by the PHP compiler are the last versions which were available when this plugin version has been
+released. This means that by default, the PHP versions provided by this script can be lower than the last released
+versions on the PHP site. In such case, you can use the **--force-last** command line option which tells the
+PHP compiler to download the last released versions. However, you must be aware that the PHP compiler could fail to
+apply the set of Debian patches on new versions. In such a case, you should create a ticket on our bug tracker using the
+output that is provided by the PHP compiler.
 
-#### Registration through PhpSwitcher
+## Configuration
+
+### Registering a PHP version in PhpSwitcher
 
 1. Login into the panel as administrator and go to the PhpSwitcher interface ( settings section )
-2. Create a new PHP version with the following parameters:
+2. Create a new PHP version with that kind of parameters:
 
 <table>
 	<tr>
@@ -90,19 +91,19 @@ on our bug tracker using the output that is provided by the PHP compiler.
 		<th>Description</th>
 	</tr>
 	<tr>
-		<td>Name</td>
-		<td>PHP-5.3 (Fcgid)</td>
-		<td>This is the unique name for the new PHP version</td>
+		<td>PHP version</td>
+		<td>PHP5.3 (Fcgid)</td>
+		<td>This is an unique name for the new PHP version</td>
 	</tr>
 	<tr>
 		<td>PHP binary path</td>
-		<td>/opt/phpswitcher/php-5.3/bin/php-cgi</td>
+		<td>/opt/phpswitcher/php5.3/bin/php-cgi</td>
 		<td>This is the path of the PHP binary</td>
 	</tr>
 	<tr>
-		<td>PHP configuration directory</td>
+		<td>PHP configuration directory path</td>
 		<td>/var/www/fcgi</td>
-		<td>This is the directory in which customers's PHP configuration files will be stored</td>
+		<td>This is the base directory in which customers's PHP configuration files are stored</td>
 	</tr>
 </table>
 
@@ -110,6 +111,33 @@ Once it's done and if all goes well, your customers should be able to switch to 
 PhpSwitcher interface, which is available in the **Domains** section.
 
 **Note:** You must of course adjust the parameters above according the PHP version you want to add.
+
+### PHP configuration
+
+This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
+
+First, it is important to note that it is useless to try to edit a PHP .ini file which is located under the **/etc/php5**
+directory. Indeed, .ini files located under that directory are only relevant for PHP versions which are provided by
+your distribution. For the same reasons, it is useless to try to enable or disable a PHP module using the command line
+tools ( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on .ini files that are
+provided by your distribution.
+
+By default, the PHP compiler installs additional PHP versions in it own subtree which is **/opt/phpswitcher/**. Thus, if
+you want modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
+subtree. The following layout apply for PHP .ini files:
+
+- The default php.ini file is located at **/opt/phpswitcher/<php_version>/etc/php/php.ini**
+- Additional .ini files if any are loaded from the **/opt/phpswitcher/<php_version>/etc/php/conf.d** directory
+- PHP .ini files for i-MSCP customers are located at **/var/www/fcgi/<domain.tld>/php5**
+
+##### PHP extensions ( modules )
+
+For better performances and further convenience, most of PHP extensions are compiled as shared modules by the PHP
+compiler. When installing a new PHP version, the PHP compiler create a specific .ini file in which all available PHP
+modules are enabled. This file is is located at **/opt/phpswitcher/<php_version>/etc/conf.d/modules.ini**.
+
+Here, a single file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
+disable a specific module, you must just comment out the related line in the modules.ini file and restart Apache2.
 
 ### Memcached Support
 

@@ -54,7 +54,7 @@ my %SHORT_TO_LONG_VERSION = (
     '5.6' => '5.6.7'
 );
 
-# PHP URL patterns for PHP archives
+# URL patterns for PHP archives
 my @URL_PATTERNS = (
     'http://de1.php.net/distributions/php-%s.tar.gz',
     'http://de2.php.net/distributions/php-%s.tar.gz',
