@@ -215,7 +215,7 @@ sub getLongVersion
     do {
         my $url = sprintf('http://museum.php.net/php5/php-%s.tar.gz', "$sVersion.$tiny");
         my ($stdout, $stderr);
-        $ret = execute("wget -t 3 -T 3 --spider $url", \$stdout, \$stderr);
+        $ret = execute("wget -t 1 --spider $url", \$stdout, \$stderr);
         debug($stdout) if $stdout;
         debug($stderr) if $stderr;
         unless($ret) {
@@ -230,7 +230,7 @@ sub getLongVersion
             do {
                 my $url = sprintf($urlPattern, "$sVersion.$tiny");
                 my ($stdout, $stderr);
-                $ret = execute("wget -t 3 -T 3 --spider $url", \$stdout, \$stderr);
+                $ret = execute("wget -t 1 --spider $url", \$stdout, \$stderr);
                 debug($stdout) if $stdout;
                 debug($stderr) if $stderr;
                 unless($ret) {
@@ -273,11 +273,7 @@ sub downloadSource
 
         my ($stdout, $stderr);
         (
-            execute(
-                "wget --dns-timeout=3 --connect-timeout=3 -O $archPath $LONG_VERSION_TO_URL{$lVersion}",
-                \$stdout,
-                \$stderr
-            ) == 0
+            execute("wget -t 1 -O $archPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
         ) or fatal(
             sprintf("An error occurred while downloading the php-%s source archive\n: %s", $lVersion, $stderr)
         );
