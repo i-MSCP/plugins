@@ -137,18 +137,16 @@ installBuildDep() unless $DOWNLOAD_ONLY;
 for my $sVersion(@sVersions) {
     print output(sprintf('Processing PHP %s version', $sVersion), 'info');
 
-    next unless (my $lVersion = getPhpLongVersion($sVersion));
+    next unless (my $lVersion = getLongVersion($sVersion));
 
-    downloadAndExtractSource($lVersion);
+    downloadSource($lVersion);
 
     unless($DOWNLOAD_ONLY) {
         my $srcDir = File::Spec->join($BUILD_DIR, "php-$lVersion");
         chdir $srcDir or fatal(sprintf('Unable to change dir to %s', $srcDir));
         undef $srcDir;
 
-        applyDebianPatches($lVersion);
-        configure($lVersion);
-        compile($lVersion);
+        applyPatches($lVersion);
         install($lVersion);
 
         print output(sprintf('PHP %s has been successfully installed', $lVersion), 'ok');
@@ -196,7 +194,7 @@ sub installBuildDep
     print output(sprintf('Build dependencies were successfully installed'), 'ok');
 }
 
-sub getPhpLongVersion
+sub getLongVersion
 {
     my $sVersion = shift;
     my $lVersion = $SHORT_TO_LONG_VERSION{$sVersion};
@@ -259,7 +257,7 @@ sub getPhpLongVersion
     $lVersion;
 }
 
-sub downloadAndExtractSource
+sub downloadSource
 {
     my $lVersion = shift;
     my ($sVersion) = $lVersion =~ /^(\d\.\d)/;
@@ -306,7 +304,7 @@ sub downloadAndExtractSource
     }
 }
 
-sub applyDebianPatches
+sub applyPatches
 {
     my $lVersion = shift;
     my ($sVersion) = $lVersion =~ /^(\d\.\d)/;
@@ -326,56 +324,20 @@ sub applyDebianPatches
     print output(sprintf('Debian patches successfully applied on php-%s source', $lVersion), 'ok');
 }
 
-sub configure
-{
-    my $lVersion = shift;
-    my ($sVersion) = $lVersion =~ /^(\d\.\d)/;
-    my $target = 'configure-php' . $sVersion . '-stamp';
-    my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
-
-    print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
-
-    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$installDir parallel=$PARALLEL_JOBS";
-
-    my $stderr;
-    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
-        sprintf("An error occurred during php-%s configuration process: %s\n", $lVersion, $stderr)
-    );
-
-    print output(sprintf('%s make target successfully executed for php-%s', $target, $lVersion), 'ok');
-}
-
-sub compile
-{
-    my $lVersion = shift;
-    my ($sVersion) = $lVersion =~ /^(\d\.\d)/;
-    my $target = 'build-php' . $sVersion . '-stamp';
-
-    print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
-
-    my $stderr;
-    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
-        sprintf("An error occurred during php-%s compilation process: %s\n", $lVersion, $stderr)
-    );
-
-    print output(sprintf('%s make target successfully executed for php-%s', $target, $lVersion), 'ok');
-}
-
 sub install
 {
     my $lVersion = shift;
     my ($sVersion) = $lVersion =~ /^(\d\.\d)/;
-    my $target = 'install-php' . $sVersion . '-stamp';
+    my $target = 'install-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    # Remove previous directory if any
-    iMSCP::Dir->new( dirname =>  $installDir )->remove();
+    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
 
     my $stderr;
-    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
-        sprintf("An error occurred during php-%s installation process: %s\n", $lVersion, $stderr)
+    (execute("make -f $MAINT_DIR/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(
+        sprintf("An error occurred during php-%s compilation process: %s\n", $lVersion, $stderr)
     );
 
     # Copy modules.ini file

@@ -21,7 +21,7 @@
 # compatibility to upstream
 PHP5_COMPAT=no
 
-# enable dpkg build flags
+# Enable dpkg build flags
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
@@ -39,19 +39,22 @@ else
 endif
 
 PROG_SENDMAIL = /usr/sbin/sendmail
+
 ifeq (,$(findstring noopt,$(PHPSWITCHER_BUILD_OPTIONS)))
   CFLAGS += -O2
 else
   CFLAGS += -O0
 endif
+
 #CFLAGS += -Wall -fsigned-char -fno-strict-aliasing
 CFLAGS += -fsigned-char -fno-strict-aliasing
+
 # LFS support
 ifneq (yes,$(PHP5_COMPAT))
   CFLAGS += $(shell getconf LFS_CFLAGS)
 endif
 
-# Enable IEEE-conformant floating point math on alphas (not the default)
+# Enable IEEE-conformant floating point math on alphas ( not the default )
 ifeq (alpha-linux-gnu,$(DEB_HOST_GNU_TYPE))
   CFLAGS += -mieee
 endif
@@ -59,7 +62,7 @@ endif
 # Enable producing of debugging information
 #CFLAGS += -g
 
-# some other helpful (for readability at least) shorthand variables
+# phpize build directory
 PHPIZE_BUILDDIR = lib/php/build
 
 # support new (>= 2.2) and older versions of libtool
@@ -67,28 +70,16 @@ LIBTOOL_DIRS = /usr/share/libtool/config /usr/share/libtool
 LTMAIN = $(firstword $(wildcard $(foreach d,$(LIBTOOL_DIRS),$d/ltmain.sh)))
 LTMAIN_DIR = $(dir $(LTMAIN))
 
+# Set number of parallel jobs
 ifneq (,$(filter parallel=%,$(PHPSWITCHER_BUILD_OPTIONS)))
 	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(PHPSWITCHER_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-ifneq (,$(filter prefix=%,$(PHPSWITCHER_BUILD_OPTIONS)))
-	PREFIX = $(patsubst prefix=%,%,$(filter prefix=%,$(PHPSWITCHER_BUILD_OPTIONS)))
-else
-	PREFIX = /usr/local
-endif
+# install prefix
+PREFIX ?= /usr/local
 
-MYSQL_CONGIG = \
-	--with-mysql=shared,/usr \
-	--with-mysqli=shared,/usr/bin/mysql_config \
-	--with-pdo-mysql=shared,/usr
-
-MYSQLND_CONFIG = \
-	--enable-mysqlnd=shared \
-	--with-mysql=shared,mysqlnd \
-	--with-mysqli=shared,mysqlnd \
-	--with-pdo-mysql=shared,mysqlnd
-
+# Common configuration ( apply to all PHP versions )
 COMMON_CONFIG = \
 	--build=$(DEB_BUILD_GNU_TYPE) \
 	--host=$(DEB_HOST_GNU_TYPE) \
@@ -131,7 +122,6 @@ COMMON_CONFIG = \
 	--with-kerberos=/usr \
 	--with-layout=GNU \
 	--with-libedit=shared \
-	--with-libevent-dir=/usr \
 	--with-libxml-dir=/usr \
 	--with-ldap=shared,/usr \
 	--with-ldap-sasl=/usr \
@@ -168,6 +158,20 @@ COMMON_CONFIG = \
 	--without-t1lib \
 	$(CONFIGURE_DTRACE_ARGS)
 
+# MySQL configuration ( apply to PHP versions which don't support native MySQL driver )
+MYSQL_CONGIG = \
+	--with-mysql=shared,/usr \
+	--with-mysqli=shared,/usr/bin/mysql_config \
+	--with-pdo-mysql=shared,/usr
+
+# MySQL native driver configuration ( apply only to PHP versions which support it )
+MYSQLND_CONFIG = \
+	--enable-mysqlnd=shared \
+	--with-mysql=shared,mysqlnd \
+	--with-mysqli=shared,mysqlnd \
+	--with-pdo-mysql=shared,mysqlnd
+
+# Compile both interbase and pdo_firebird extensions only if supported
 ifneq ($(DEB_HOST_ARCH),$(filter $(DEB_HOST_ARCH),hurd-i386 m68k hppa ppc64))
   COMMON_CONFIG += --with-interbase=shared,/usr --with-pdo-firebird=shared,/usr
 else
@@ -177,45 +181,85 @@ endif
 prepared: prepared-stamp
 prepared-stamp:
 	./buildconf --force
+
 	touch prepared-stamp
 
-configure: configure-php5.2-stamp configure-php5.3-stamp configure-php5.4-stamp configure-php5.5-stamp configure-php5.6-stamp
-configure-php5.6-stamp: prepared-stamp
-	if [ -d php5.6-build ]; then rm -rf php5.6-build; fi
-	-mkdir php5.6-build
-	cd php5.6-build && \
+unprepared:
+	rm -f prepared-stamp
+
+configure-php5.5: configure-php5.5-stamp common-configure
+configure-php5.5-stamp: prepared-stamp
+	if [ -d cgi-build ]; then rm -rf cgi-build; fi
+	-mkdir cgi-build
+	cd cgi-build && \
 	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
 		$(COMMON_CONFIG) \
 		$(MYSQLND_CONFIG) \
 		--enable-cgi
-	cd php5.6-build && \
+
+	touch configure-php5.5-stamp
+
+configure-php5.6: configure-php5.6-stamp common-configure
+configure-php5.6-stamp: prepared-stamp
+	if [ -d cgi-build ]; then rm -rf cgi-build; fi
+	-mkdir cgi-build
+	cd cgi-build && \
+	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
+		$(COMMON_CONFIG) \
+		$(MYSQLND_CONFIG) \
+		--enable-cgi
+
+	touch configure-php5.6-stamp
+
+common-configure: common-configure-stamp
+common-configure-stamp:
+	cd cgi-build && \
 	cp ../Zend/zend_ini_scanner.c ../Zend/zend_language_scanner.c \
 	   ../Zend/zend_ini_parser.h ../Zend/zend_language_parser.h \
 	   ../Zend/zend_ini_parser.c ../Zend/zend_language_parser.c \
 	   Zend/
-	touch configure-php5.6-stamp
 
-build: build-php5.2-stamp build-php5.3-stamp build-php5.4-stamp build-php5.5-stamp build-php5.6-stamp
-build-php5.6-stamp: configure-php5.6-stamp
-	cd php5.6-build && $(MAKE)
+	touch common-configure-stamp
+
+build-php5.5: build-php5.5-stamp
+build-php5.5-stamp: configure-php5.5
+	cd cgi-build && $(MAKE)
+
+	touch build-php5.5-stamp
+
+build-php5.6: build-php5.6-stamp
+build-php5.6-stamp: configure-php5.6
+	cd cgi-build && $(MAKE)
+
 	touch build-php5.6-stamp
 
-install: install-php5.2-stamp install-php5.3-stamp install-php5.4-stamp install-php5.5-stamp install-php5.6-stamp
-install-php5.6-stamp: build-php5.6-stamp
-	cd php5.6-build && $(MAKE) install
+install-php5.5: install-php5.5-stamp common-install
+install-php5.5-stamp: build-php5.5
+	cd cgi-build && $(MAKE) install
+
+	touch install-php5.5-stamp
+
+install-php5.6: install-php5.6-stamp common-install
+install-php5.6-stamp: build-php5.6
+	cd cgi-build && $(MAKE) install
+
+	touch install-php5.6-stamp
+
+common-install: common-install-stamp
+common-install-stamp:
 	mkdir -p $(PREFIX)/etc/php/conf.d
 	cp -f /usr/share/misc/config.guess $(PREFIX)/$(PHPIZE_BUILDDIR)/config.guess
 	cp -f /usr/share/misc/config.sub $(PREFIX)/$(PHPIZE_BUILDDIR)/config.sub
 	cp -f /usr/share/aclocal/libtool.m4 $(PREFIX)/$(PHPIZE_BUILDDIR)/libtool.m4
 	cp -f $(LTMAIN_DIR)ltmain.sh $(PREFIX)/$(PHPIZE_BUILDDIR)/ltmain.sh
 	cp -f /usr/bin/shtool $(PREFIX)/$(PHPIZE_BUILDDIR)/shtool
-	touch install-php5.6-stamp
 
-unprepared:
-	rm -f prepared-stamp
+	touch common-install-stamp
 
 clean: unprepared
-	rm -f configure-php5.6-stamp build-php5.6-stamp install-php5.6-stamp
-	rm -rf php5.6-build
+	rm -f common-configure-stamp common-install-stamp
+	rm -f configure-php5.*-stamp build-php5.*-stamp install-php5.*-stamp
+	rm -rf cgi-build
 
-.PHONY: build clean install configure
+.NOTPARALLEL:
+.PHONY: configure-php5.6 build-php5.6 install-php5.6 clean
