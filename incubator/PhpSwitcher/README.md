@@ -77,6 +77,24 @@ PHP compiler to download the last released versions. However, you must be aware 
 apply the set of Debian patches on new versions. In such a case, you should create a ticket on our bug tracker using the
 output that is provided by the PHP compiler.
 
+#### Parallel Execution ( GNU make )
+
+For faster compilation, the parallel exuction feature which is provided by GNU make is enabled by default. This feature
+allows to execute many recipes simultaneously. By default, 4 recipes are executed at once. On some systems where the
+resources are poor, you could have to lower this value. This can be achieved using the **--parallel-jobs** command line
+option which takes a number as value:
+
+For instance:
+
+```
+# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --parallel-job 2 --help
+```
+
+will tell to GNU make to not run more than two recipes at once.
+
+
+See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/html_node/Parallel.html) for further details.
+
 ## Configuration
 
 ### Registering a PHP version in PhpSwitcher
