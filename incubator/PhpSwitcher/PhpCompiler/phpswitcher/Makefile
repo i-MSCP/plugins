@@ -130,6 +130,7 @@ COMMON_CONFIG = \
 	--with-jpeg-dir=shared,/usr \
 	--with-kerberos=/usr \
 	--with-layout=GNU \
+	--with-php libedit=shared \
 	--with-libxml-dir=/usr \
 	--with-ldap=shared,/usr \
 	--with-ldap-sasl=/usr \

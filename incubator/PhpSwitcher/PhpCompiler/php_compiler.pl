@@ -56,7 +56,7 @@ my %SHORT_TO_LONG_VERSION = (
 #    '5.2' => '5.2.17',
 #    '5.3' => '5.3.29',
 #    '5.4' => '5.4.39',
-#    '5.5' => '5.5.23',
+    '5.5' => '5.5.23',
     '5.6' => '5.6.7'
 );
 
@@ -182,7 +182,13 @@ sub installBuildDep
     print output(sprintf('Installing build dependencies...'), 'info');
 
     my ($stdout, $stderr);
-    (execute('apt-get -y build-dep php5 && apt-get -y install shtool quilt wget systemtap-sdt-dev libvpx-dev', \$stdout, \$stderr) == 0) or fatal(
+    (
+        execute(
+            'apt-get -y build-dep php5 && apt-get -y install shtool quilt wget systemtap-sdt-dev libvpx-dev libedit-dev',
+            \$stdout,
+            \$stderr
+        ) == 0
+    ) or fatal(
        sprintf("An error occurred while installing build dependencies: %s\n", $stderr)
     );
     debug($stdout) if $stdout;
