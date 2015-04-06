@@ -191,6 +191,11 @@ sub installBuildDep
     );
     debug($stdout) if $stdout;
 
+    # Fix: "for can not be used when making a shared object; recompile with –fPIC .. libc-client.a" compile time error
+    # Be sure that we do not have any /usr/lib/x86_64-linux-gnu/libc-client.a symlink to /usr/lib/libc-client.a since
+    # this is not supported when using the --with--pic option
+    unlink '/usr/lib/x86_64-linux-gnu/libc-client.a' if -s '/usr/lib/x86_64-linux-gnu/libc-client.a';
+
     print output(sprintf('Build dependencies were successfully installed'), 'ok');
 }
 
