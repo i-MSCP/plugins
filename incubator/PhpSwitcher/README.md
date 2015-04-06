@@ -87,10 +87,10 @@ option which takes a number as value:
 For instance:
 
 ```
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --parallel-job 2 --help
+# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --parallel-job 2 php5.3
 ```
 
-will tell to GNU make to not run more than two recipes at once.
+will tell to GNU make to not run more than 2 recipes at once.
 
 
 See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/html_node/Parallel.html) for further details.
