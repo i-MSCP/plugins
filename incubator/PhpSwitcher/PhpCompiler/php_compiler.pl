@@ -374,7 +374,7 @@ sub install
 
     # Copy modules.ini file
     (
-        iMSCP::File->new( filename => "$MAINT_DIR/php$sVersion/modules.ini" )->copy(
+        iMSCP::File->new( filename => "$MAINT_DIR/php$sVersion/modules.ini" )->copyFile(
             "$installDir/etc/php/conf.d", { preserve => 'no' }
         ) == 0
     ) or fatal(
