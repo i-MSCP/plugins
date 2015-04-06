@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 # i-MSCP PhpSwitcher plugin
 # Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
 #
@@ -16,7 +15,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-#
 
 use strict;
 use warnings;
@@ -25,11 +23,11 @@ use File::Basename;
 use File::Spec;
 use iMSCP::Bootstrapper;
 use iMSCP::Debug;
+use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::Getopt;
 use iMSCP::Service;
-
 use version;
 
 umask 022;
@@ -37,13 +35,21 @@ umask 022;
 $ENV{'LANG'} = 'C.UTF-8';
 
 # Quilt common configuration
-$ENV{'QUILT_PUSH_ARGS'} = '--color=no';
-$ENV{'QUILT_DIFF_ARGS'} = '--no-timestamps --no-index -p ab --color=auto';
+$ENV{'QUILT_PUSH_ARGS'} = '--color=never';
+$ENV{'QUILT_DIFF_ARGS'} = '--no-timestamps --no-index -p ab --color=never';
 $ENV{'QUILT_REFRESH_ARGS'} = '--no-timestamps --no-index -p ab';
 $ENV{'QUILT_DIFF_OPTS'} = '-p';
 
-# PhpSwitcher compiler maintenance directory
-my $MAINTENANCE_DIR = '/var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/phpswitcher';
+# Setup log file
+newDebug('phpswitcher-php-compiler.log');
+
+# Bootstrap i-MSCP backend
+iMSCP::Bootstrapper->getInstance()->boot(
+    { 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
+);
+
+# Compiler maintenance directory
+my $MAINT_DIR = $main::imscpConfig{'PLUGINS_DIR'} . '/PhpSwitcher/PhpCompiler/phpswitcher';
 
 # Map short PHP versions to last known PHP versions
 my %SHORT_TO_LONG_VERSION = (
@@ -72,8 +78,7 @@ my %LONG_VERSION_TO_URL = ();
 # Default values for non-boolean command line options
 my $BUILD_DIR = '/usr/local/src/phpswitcher';
 my $INSTALL_DIR = '/opt/phpswitcher';
-
-newDebug('phpswitcher-php-compiler.log');
+my $PARALLEL_JOBS = 4;
 
 # Parse command line options
 iMSCP::Getopt->parseNoDefault(sprintf("\nUsage: perl %s [OPTION...] PHP_VERSION...", basename($0)) . qq {
@@ -92,17 +97,14 @@ OPTIONS:
  -i,    --installdir    Base installation directory ( /opt/phpswitcher ).
  -d,    --download-only Download only.
  -f,    --force-last    Force use of the last available PHP versions.
+ -p,    --parallel-jobs Number of parallel jobs for make ( default: 4 ).
  -v,    --verbose       Enable verbose mode.},
  'builddir|b=s' => sub { setOptions(@_); },
  'installdir|i=s' => sub { setOptions(@_); },
  'download-only|d' => \ my $DOWNLOAD_ONLY,
  'force-last|f' => \ my $FORCE_LAST,
+ 'parallel-jobs|p=i' => sub { setOptions(@_); },
  'verbose|v' => sub { setVerbose(@_); }
-);
-
-# Bootstrap i-MSCP backend
-iMSCP::Bootstrapper->getInstance()->boot(
-    { 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
 );
 
 my @sVersions = ();
@@ -114,7 +116,7 @@ eval {
         for my $sVersion(@ARGV) {
             $sVersion = lc $sVersion;
 
-            if($sVersion =~ /^php(5\.[2-6])$/) {
+            if($sVersion =~ /^php(5\.[2-6])$/ && exists $SHORT_TO_LONG_VERSION{$1}) {
                 push @sVersions, $1;
             } else {
                 die(sprintf("Invalid PHP version parameter: %s\n", $sVersion));
@@ -142,7 +144,7 @@ for my $sVersion(@sVersions) {
     unless($DOWNLOAD_ONLY) {
         my $srcDir = File::Spec->join($BUILD_DIR, "php-$lVersion");
         chdir $srcDir or fatal(sprintf('Unable to change dir to %s', $srcDir));
-        undef $srcDir,
+        undef $srcDir;
 
         applyDebianPatches($lVersion);
         configure($lVersion);
@@ -152,6 +154,9 @@ for my $sVersion(@sVersions) {
         print output(sprintf('PHP %s has been successfully installed', $lVersion), 'ok');
     }
 }
+
+my $srvMngr = iMSCP::Service->getInstance();
+exit $srvMngr->reload('apache2') unless $DOWNLOAD_ONLY || ! $srvMngr->isRunning('apache2');
 
 sub setOptions
 {
@@ -167,6 +172,8 @@ sub setOptions
         } else {
             die("Directory speficied by the --installdir option must exists.\n");
         }
+    } elsif($option eq 'parallel-jobs') {
+        $PARALLEL_JOBS = $value;
     }
 }
 
@@ -175,7 +182,7 @@ sub installBuildDep
     print output(sprintf('Installing build dependencies...'), 'info');
 
     my ($stdout, $stderr);
-    (execute('apt-get -y build-dep php5 && apt-get -y install shtool quilt', \$stdout, \$stderr) == 0) or fatal(
+    (execute('apt-get -y build-dep php5 && apt-get -y install shtool quilt wget systemtap-sdt-dev libvpx-dev', \$stdout, \$stderr) == 0) or fatal(
        sprintf("An error occurred while installing build dependencies: %s\n", $stderr)
     );
     debug($stdout) if $stdout;
@@ -188,7 +195,7 @@ sub getPhpLongVersion
     my $sVersion = shift;
     my $lVersion = $SHORT_TO_LONG_VERSION{$sVersion};
     my $versionIsAlive = (version->parse($sVersion) > version->parse('5.3'));
-    my ($tiny) = $lVersion =~ /\.(\d+)$/;
+    my ($tiny) = $lVersion =~ /(\d+)$/;
 
     if($FORCE_LAST) {
         print output(sprintf('Scanning PHP site for last PHP %s.x version...', $sVersion), 'info');
@@ -301,13 +308,14 @@ sub applyDebianPatches
     print output(sprintf('Applying Debian patches on php-%s source...', $lVersion), 'info');
 
     # Make quilt aware of patches location
-    $ENV{'QUILT_PATCHES'} = "/var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/phpswitcher/php-$sVersion";
+    $ENV{'QUILT_PATCHES'} = "$MAINT_DIR/php$sVersion";
 
     my ($stdout, $stderr);
     (execute("quilt push -a", \$stdout, \$stderr) == 0) or fatal(sprintf(
         sprintf("An error occurred while applying Debian patches on php-%s source: %s\n", $lVersion, $stderr)
     ));
     debug($stdout) if $stdout;
+    error($stderr) if $stderr;
 
     print output(sprintf('Debian patches successfully applied on php-%s source', $lVersion), 'ok');
 }
@@ -321,10 +329,10 @@ sub configure
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$installDir";
+    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "prefix=$installDir parallel=$PARALLEL_JOBS";
 
     my $stderr;
-    (execute("make -f $MAINTENANCE_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
+    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
         sprintf("An error occurred during php-%s configuration process: %s\n", $lVersion, $stderr)
     );
 
@@ -340,7 +348,7 @@ sub compile
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
     my $stderr;
-    (execute("make -f $MAINTENANCE_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
+    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
         sprintf("An error occurred during php-%s compilation process: %s\n", $lVersion, $stderr)
     );
 
@@ -360,11 +368,18 @@ sub install
     iMSCP::Dir->new( dirname =>  $installDir )->remove();
 
     my $stderr;
-    (execute("make -f $MAINTENANCE_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
+    (execute("make -f $MAINT_DIR/Makefile $target", undef, \$stderr) == 0) or fatal(
         sprintf("An error occurred during php-%s installation process: %s\n", $lVersion, $stderr)
+    );
+
+    # Copy modules.ini file
+    (
+        iMSCP::File->new( filename => "$MAINT_DIR/php$sVersion/modules.ini" )->copy(
+            "$installDir/etc/php/conf.d", { preserve => 'no' }
+        ) == 0
+    ) or fatal(
+        sprintf("An error occurred during php-%s installation process: Unable to copy the PHP modules.ini file\n", $lVersion)
     );
 
     print output(sprintf('%s make target successfully executed for php-%s', $target, $lVersion), 'ok');
 }
-
-1;

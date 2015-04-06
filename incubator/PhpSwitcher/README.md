@@ -45,10 +45,10 @@ plugin ( see below ).
 The PHP compiler is a Perl script that allows to download, configure, compile, install additional PHP versions in one
 step. The script is located in the **PhpSwitcher/PhpCompiler** directory.
 
-For instance, if you want to install the **php-5.3** version, you can run the script as follow:
+For instance, if you want to install the **php5.3** version, you can run the script as follow:
  
 ```shell
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl php-5.3
+# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl php5.3
 ```
 
 Or if you want install all PHP versions which can be compiled by this script, you can run it as follow:
@@ -68,7 +68,7 @@ To get more information about available command line options, you can run:
 
 #### Supported PHP versions
 
-Supported PHP versions are: **php-5.2**, **php-5.3**, **php-5.4**, **php-5.5** and **php-5.6**.
+Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
 The versions supported by the PHP compiler are the last versions which were available when this plugin version has been
 released. This means that by default, the PHP versions provided by this script can be lower than the last released
@@ -116,28 +116,29 @@ PhpSwitcher interface, which is available in the **Domains** section.
 
 This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
 
-First, it is important to note that it is useless to try to edit a PHP .ini file which is located under the **/etc/php5**
+First, it is important to note that it is useless to try to edit a PHP .ini file that is located under the **/etc/php5**
 directory. Indeed, .ini files located under that directory are only relevant for PHP versions which are provided by
 your distribution. For the same reasons, it is useless to try to enable or disable a PHP module using the command line
 tools ( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on .ini files that are
 provided by your distribution.
 
-By default, the PHP compiler installs additional PHP versions in it own subtree which is **/opt/phpswitcher/**. Thus, if
+By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/phpswitcher**. Thus, if
 you want modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
 subtree. The following layout apply for PHP .ini files:
 
-- The default php.ini file is located at **/opt/phpswitcher/<php_version>/etc/php/php.ini**
-- Additional .ini files if any are loaded from the **/opt/phpswitcher/<php_version>/etc/php/conf.d** directory
-- PHP .ini files for i-MSCP customers are located at **/var/www/fcgi/<domain.tld>/php5**
+- The default php.ini file is located at **/opt/phpswitcher/\<php_version\>/etc/php/php.ini**
+- Additional .ini files if any are loaded from the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d** directory
+- PHP .ini files for i-MSCP customers are located at **/var/www/fcgi/\<domain.tld\>/php5**
 
 ##### PHP extensions ( modules )
 
-For better performances and further convenience, most of PHP extensions are compiled as shared modules by the PHP
-compiler. When installing a new PHP version, the PHP compiler create a specific .ini file in which all available PHP
-modules are enabled. This file is is located at **/opt/phpswitcher/<php_version>/etc/conf.d/modules.ini**.
+For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
+version, the PHP compiler create a specific .ini file that enable all available PHP extensions. This file is is located
+at **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini**.
 
-Here, a single file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
-disable a specific module, you must just comment out the related line in the modules.ini file and restart Apache2.
+Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
+disable a specific module, you must just comment out the related line in the modules.ini file with a semicolon and
+restart the Web server.
 
 ### Memcached Support
 

@@ -122,7 +122,7 @@ COMMON_CONFIG = \
 	--with-enchant=shared,/usr \
 	--with-freetype-dir=shared,/usr \
 	--with-gettext \
-	--with-gd=shared,/usr  \
+	--with-gd=shared  \
 	--with-gmp=shared,/usr \
 	--with-iconv \
 	--with-imap=shared,/usr \
@@ -179,7 +179,7 @@ prepared-stamp:
 
 configure: configure-php5.2-stamp configure-php5.3-stamp configure-php5.4-stamp configure-php5.5-stamp configure-php5.6-stamp
 configure-php5.6-stamp: prepared-stamp
-	if [ -d php5.6-build ]; then rm -rf php-5.6-build; fi
+	if [ -d php5.6-build ]; then rm -rf php5.6-build; fi
 	-mkdir php5.6-build
 	cd php5.6-build && \
 	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
@@ -201,6 +201,7 @@ build-php5.6-stamp: configure-php5.6-stamp
 install: install-php5.2-stamp install-php5.3-stamp install-php5.4-stamp install-php5.5-stamp install-php5.6-stamp
 install-php5.6-stamp: build-php5.6-stamp
 	cd php5.6-build && $(MAKE) install
+	mkdir -p $(PREFIX)/etc/php/conf.d
 	cp -f /usr/share/misc/config.guess $(PREFIX)/$(PHPIZE_BUILDDIR)/config.guess
 	cp -f /usr/share/misc/config.sub $(PREFIX)/$(PHPIZE_BUILDDIR)/config.sub
 	cp -f /usr/share/aclocal/libtool.m4 $(PREFIX)/$(PHPIZE_BUILDDIR)/libtool.m4
@@ -212,8 +213,7 @@ unprepared:
 	rm -f prepared-stamp
 
 clean: unprepared
-	rm -f configure-php5.6-stamp build-php5.6-stamp
-	rm -f install-stamp
+	rm -f configure-php5.6-stamp build-php5.6-stamp install-php5.6-stamp
 	rm -rf php5.6-build
 
 .PHONY: build clean install configure
