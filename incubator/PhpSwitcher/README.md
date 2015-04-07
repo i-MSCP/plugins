@@ -42,7 +42,7 @@ plugin ( see below ).
 
 ### PHP compiler
 
-The PHP compiler is a Perl script that allows to download, configure, compile, install additional PHP versions in one
+The PHP compiler is a Perl script that allows to download, configure, compile and install additional PHP versions in one
 step. The script is located in the **PhpSwitcher/PhpCompiler** directory.
 
 For instance, if you want to install the **php5.3** version, you can run the script as follow:
@@ -166,11 +166,11 @@ subtree. The following layout apply for the PHP .ini files:
 
 For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
 version, the PHP compiler create a specific .ini file that enable most of available PHP extensions. This file is is
-located at **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini**.
+located at **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**.
 
 Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
-enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini** file
-and then, restart the Web server.
+enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**
+file and then, restart the Web server.
 
 ### Memcached Support
 
