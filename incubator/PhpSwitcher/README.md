@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This plugin allows to setup additional PHP versions which can be used by your customers.
+This plugin allows to setup additional PHP versions for your customers.
 
 **Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
 the PHP5-FPM implementations will be also supported.
@@ -14,7 +14,7 @@ the PHP5-FPM implementations will be also supported.
 
 ### Memcached support ( Optional )
 
-Debian / Ubuntu packages to install in case you want enable memcached support ( recommended )
+Debian / Ubuntu packages to install in case you want enable memcached support:
 
 - memcached
 - libcache-memcached-fast-perl
@@ -34,9 +34,9 @@ Debian / Ubuntu packages to install in case you want enable memcached support ( 
 4. Restore your plugin configuration file if needed ( compare it with the new version first )
 5. Update the plugin list through the plugin management interface
 
-## Setup new PHP version
+## Setup new PHP versions
 
-At first, you must download, configure, compile and install the PHP version which you want make available for your
+At first, you must download, configure, compile and install the PHP versions which you want make available for your
 customers. You can either do the job manually, or by using the PHP compiler ( recommended ) that is shipped with this
 plugin ( see below ).
 
@@ -68,14 +68,24 @@ To get more information about available command line options, you can run:
 
 #### Supported PHP versions
 
+The versions supported by the PHP compiler are the last which were available when this plugin version has been released.
+This means that by default, the PHP versions provided by this script can be lower than the last that have been released
+on the PHP site. In such case, you can use the **--force-last** command line option which tells the PHP compiler to
+download the last released versions. However, you must be aware that the PHP compiler could fail to apply the set of
+Debian patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
+
 Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
-The versions supported by the PHP compiler are the last versions which were available when this plugin version has been
-released. This means that by default, the PHP versions provided by this script can be lower than the last released
-versions on the PHP site. In such case, you can use the **--force-last** command line option which tells the
-PHP compiler to download the last released versions. However, you must be aware that the PHP compiler could fail to
-apply the set of Debian patches on new versions. In such a case, you should create a ticket on our bug tracker using the
-output that is provided by the PHP compiler.
+#### Build dependencies
+
+The PHP compiler installs the build dependencies for you but you must ensure that your **/etc/apt/sources.list** contains
+the needed source ( deb-src ) repositories which belong to your distribution. If this is not the case, you can look at:
+
+- [Debian sources.list generator](http://debgen.simplylinux.ch/)
+- [Ubuntu sources.list generator](http://repogen.simplylinux.ch/generate.php)
+
+In the  case where a package that provides a build dependency isn't available on your system, the PHP compiler will go
+ahead and thus, the configuration process will fail.
 
 #### Parallel Execution ( GNU make )
 
@@ -90,8 +100,7 @@ For instance:
 # perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --parallel-job 2 php5.3
 ```
 
-will tell to GNU make to not run more than 2 recipes at once.
-
+will tell GNU make to not run more than 2 recipes at once.
 
 See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/html_node/Parallel.html) for further details.
 
@@ -99,8 +108,11 @@ See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/htm
 
 ### Registering a PHP version in PhpSwitcher
 
+Once you have compiled and installed a new PHP version, you need to register it into the PhpSwitcher plugin to make it
+available for your customers. This task must be done as follow:
+
 1. Login into the panel as administrator and go to the PhpSwitcher interface ( settings section )
-2. Create a new PHP version with that kind of parameters:
+2. Create a new PHP version as follow:
 
 <table>
 	<tr>
@@ -128,43 +140,46 @@ See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/htm
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
 PhpSwitcher interface, which is available in the **Domains** section.
 
-**Note:** You must of course adjust the parameters above according the PHP version you want to add.
+**Note:** You must of course adjust the parameters above according the PHP version that you want to add.
 
 ### PHP configuration
 
 This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
 
 First, it is important to note that it is useless to try to edit a PHP .ini file that is located under the **/etc/php5**
-directory. Indeed, .ini files located under that directory are only relevant for PHP versions which are provided by
-your distribution. For the same reasons, it is useless to try to enable or disable a PHP module using the command line
-tools ( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on .ini files that are
+directory for a PHP version which has been installed by the PHP compiler. Indeed, the .ini files located under that
+directory are only relevant for the PHP versions which are provided by your distribution.
+
+For the same reasons, it is useless to try to enable or disable a PHP module using the command line tools
+( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on the .ini files that are
 provided by your distribution.
 
 By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/phpswitcher**. Thus, if
-you want modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
-subtree. The following layout apply for PHP .ini files:
+you want to modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
+subtree. The following layout apply for the PHP .ini files:
 
 - The default php.ini file is located at **/opt/phpswitcher/\<php_version\>/etc/php/php.ini**
-- Additional .ini files if any are loaded from the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d** directory
-- PHP .ini files for i-MSCP customers are located at **/var/www/fcgi/\<domain.tld\>/php5**
+- Additional .ini files if any are located in the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d** directory
+- PHP .ini files for i-MSCP customers are located under the **/var/www/fcgi/\<domain.tld\>/php5** directory
 
 ##### PHP extensions ( modules )
 
 For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
-version, the PHP compiler create a specific .ini file that enable all available PHP extensions. This file is is located
-at **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini**.
+version, the PHP compiler create a specific .ini file that enable most of available PHP extensions. This file is is
+located at **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini**.
 
 Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
-disable a specific module, you must just comment out the related line in the modules.ini file with a semicolon and
-restart the Web server.
+enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/conf.d/modules.ini** file
+and then, restart the Web server.
 
 ### Memcached Support
 
-In order, to enable memcached support, you must:
+The PhpSwitcher plugin backend side can make usage of memcached for a faster data retrieval. In order to enable memcached
+support, you must:
 
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Enable memcached support by editing the plugin configuration file ( see below for available parameters )
-5. Update the plugin list through the plugin management interface
+3. Update the plugin list through the plugin management interface
 
 #### Memcached configuration parameters
 
