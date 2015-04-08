@@ -18,7 +18,7 @@ defined by the Fcgid httpd server implementation that is provided by i-MSCP ( **
 
 ### PHP compiler
 
-A PHP compiler has been added. This is a Perl script which allow to download, configure, compile and install one or many
-PHP version in one step. That is now the recommended way to install/update PHP versions for use with this plugin.
+A PHP compiler has been added. This is a Perl script which allows to download, configure, compile and install one or
+many PHP versions in one step. That is now the recommended way to install/update PHP versions for use with this plugin.
 
 See the [README.md](README.md#php-compiler) for further details.
