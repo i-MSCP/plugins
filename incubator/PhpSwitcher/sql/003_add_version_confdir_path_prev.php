@@ -28,6 +28,6 @@ return array(
 			version_binary_path
 	',
 	'down' => '
-		ALTER TABLE php_switcher_version DROP COLUMN version_confdir_path_prev
+		ALTER TABLE php_switcher_version DROP version_confdir_path_prev
 	'
 );

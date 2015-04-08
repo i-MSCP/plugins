@@ -7,7 +7,6 @@
 		<tr>
 			<th style="width:20%;">{TR_NAME}</th>
 			<th style="width:20%;">{TR_BINARY}</th>
-			<th style="width:20%;">{TR_CONFDIR}</th>
 			<th style="width:30%;">{TR_STATUS}</th>
 			<th style="width:10%;">{TR_ACTIONS}</th>
 		</tr>
@@ -16,7 +15,6 @@
 		<tr>
 			<td>{TR_NAME}</td>
 			<td>{TR_BINARY}</td>
-			<td>{TR_CONFDIR}</td>
 			<td>{TR_STATUS}</td>
 			<td>{TR_ACTIONS}</td>
 		</tr>
@@ -43,10 +41,6 @@
 			<tr>
 				<td><label for="version_binary_path">{TR_BINARY_PATH}</label></td>
 				<td><input type="text" name="version_binary_path" id="version_binary_path" maxlength="255" value=""></td>
-			</tr>
-			<tr>
-				<td><label for="version_confdir_path">{TR_CONFDIR_PATH}</span></label></td>
-				<td><input type="text" name="version_confdir_path" id="version_confdir_path" maxlength="255" value=""></td>
 			</tr>
 		</table>
 		<input type="hidden" name="version_id" id="version_id" value="">
@@ -121,11 +115,10 @@
 			pagingType: "simple",
 			ajaxSource: "/admin/phpswitcher?action=table",
 			stateSave: true,
-			columnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 4 ] } ],
+			columnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 3 ] } ],
 			columns: [
 				{ mData: "version_name" },
 				{ mData: "version_binary_path" },
-				{ mData: "version_confdir_path" },
 				{ mData: "version_status" },
 				{ mData: "actions" }
 			],

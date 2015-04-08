@@ -80,8 +80,6 @@ function changePhpVersion()
 
 			$db->commit();
 
-			$plugin->flushCache(array('php_version_admin'));
-
 			send_request();
 
 			write_log('%s updated its PHP version.', decode_idna($_SESSION['user_logged']), E_USER_NOTICE);

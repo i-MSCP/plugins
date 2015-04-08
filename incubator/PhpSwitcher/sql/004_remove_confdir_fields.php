@@ -19,11 +19,23 @@
  */
 
 return array(
-	// Allow to use memcached server for better performances
-	// Default is disabled. See the README.md file for instructions.
-	'memcached' => array(
-		'enabled' => false,
-		'hostname' => '127.0.0.1',
-		'port' => 11211
-	)
+	'up' => '
+		ALTER TABLE php_switcher_version DROP version_confdir_path_prev;
+		ALTER TABLE php_switcher_version DROP version_confdir_path;
+	',
+	'down' => '
+		ALTER TABLE
+			php_switcher_version
+		ADD
+			version_confdir_path_prev varchar(255) COLLATE utf8_unicode_ci NULL DEFAULT NULL
+		AFTER
+			version_binary_path;
+
+		ALTER TABLE
+			php_switcher_version
+		ADD
+			version_confdir_path varchar(255) COLLATE utf8_unicode_ci NOT NULL
+		AFTER
+			version_confdir_path_prev;
+	'
 );

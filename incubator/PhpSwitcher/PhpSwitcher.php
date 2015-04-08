@@ -97,8 +97,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function update(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			$this->clearTranslations();
 			$this->migrateDb('up');
-			$this->flushCache();
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -125,7 +125,6 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			}
 
 			$db->commit();
-			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -153,8 +152,6 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			}
 
 			$db->commit();
-
-			$this->flushCache();
 		} catch (iMSCP_Exception_Database $e) {
 			$db->rollBack();
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
@@ -171,8 +168,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
 	{
 		try {
+			$this->clearTranslations();
 			$this->migrateDb('down');
-			$this->flushCache();
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -297,37 +294,17 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Flush memcached
+	 * Clear translations if any
 	 *
-	 * @param array $keys OPTIONAL Keys to flush in cache
 	 * @return void
 	 */
-	public function flushCache(array $keys = array())
+	protected function clearTranslations()
 	{
-		if (class_exists('Memcached')) {
-			$memcachedConfig = $this->getConfigParam('memcached', array());
+		/** @var Zend_Translate $translator */
+		$translator = iMSCP_Registry::get('translator');
 
-			if (!empty($memcachedConfig['enabled'])) {
-				if (isset($memcachedConfig['hostname']) && isset($memcachedConfig['port'])) {
-					$memcached = new Memcached($this->getName());
-					$memcached->setOption(Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
-
-					if (!count($memcached->getServerList())) {
-						$memcached->addServer($memcachedConfig['hostname'], $memcachedConfig['port']);
-					}
-
-					$prefix = substr(sha1($this->getName()), 0, 8) . '_';
-
-					if (!empty($keys)) {
-						foreach ($keys as $key) {
-							$memcached->delete($prefix . $key);
-						}
-					} else {
-						$memcached->delete($prefix . 'php_version_admin');
-						$memcached->delete($prefix . 'php_confdirs');
-					}
-				}
-			}
+		if ($translator->hasCache()) {
+			$translator->clearCache($this->getName());
 		}
 	}
 }

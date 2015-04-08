@@ -12,14 +12,6 @@ the PHP5-FPM implementations will be also supported.
 * i-MSCP version >= 1.2.3
 * i-MSCP Fcgid httpd server implementation ( apache_fcgid )
 
-### Memcached support ( Optional )
-
-Debian / Ubuntu packages to install in case you want enable memcached support:
-
-- memcached
-- libcache-memcached-fast-perl
-- php5-memcached
-
 ## Installation
 
 1. Be sure that all requirements as stated in the requirements section are meets
@@ -29,10 +21,8 @@ Debian / Ubuntu packages to install in case you want enable memcached support:
 ## Update
 
 1. Be sure that all requirements as stated in the requirements section are meets
-2. Backup your plugin configuration file if needed
-3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
-5. Update the plugin list through the plugin management interface
+2. Upload the plugin through the plugin management interface
+3. Update the plugin list through the plugin management interface
 
 ## Setup new PHP versions
 
@@ -130,11 +120,6 @@ available for your customers. This task must be done as follow:
 		<td>/opt/phpswitcher/php5.3/bin/php-cgi</td>
 		<td>This is the path of the PHP binary</td>
 	</tr>
-	<tr>
-		<td>PHP configuration directory path</td>
-		<td>/var/www/fcgi</td>
-		<td>This is the base directory in which customers's PHP configuration files are stored</td>
-	</tr>
 </table>
 
 Once it's done and if all goes well, your customers should be able to switch to this new PHP version using their own
@@ -172,46 +157,12 @@ Here, a single .ini file is used for ease. This is not as in Debian where an .in
 enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**
 file and then, restart the Web server.
 
-### Memcached Support
-
-The PhpSwitcher plugin backend side can make usage of memcached for a faster data retrieval. In order to enable memcached
-support, you must:
-
-1. Be sure that all requirements as stated in the requirements section are meets
-2. Enable memcached support by editing the plugin configuration file ( see below for available parameters )
-3. Update the plugin list through the plugin management interface
-
-#### Memcached configuration parameters
-
-<table>
-	<tr>
-		<th>Parameter</th>
-		<th>Value</th>
-		<th>Description</th>
-	</tr>
-	<tr>
-		<td>enabled</td>
-		<td>boolean ( default FALSE )</td>
-		<td>Allow to enable or disable memcached support</td>
-	</tr>
-	<tr>
-		<td>hostname</td>
-		<td>string ( default 127.0.0.1 )</td>
-		<td>Memcached server hostname ( Either an IP or hostname )</td>
-	</tr>
-	<tr>
-		<td>port</td>
-		<td>integer ( default 11211 )</td>
-		<td>Memcached server port</td>
-	</tr>
-</table>
-
 ## Translation
 
 You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
 array values inside the new file.
 
-Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
+Feel free to forward us your translation files for integration in a later release. You can also fork the plugin
 repository and do a pull request if you've a github account.
 
 **Note:** File encoding must be UTF-8.

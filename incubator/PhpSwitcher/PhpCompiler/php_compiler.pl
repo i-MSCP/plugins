@@ -59,23 +59,23 @@ my @BUILD_DEPS = (
     'autoconf',
     'automake',
     'automake1.11',
-#    'apache2-dev',         No needed because we do not want build any Apache SAPI
-#    'apache2-prefork-dev'  No needed because we do not want build any Apache SAPI
+#    'apache2-dev',         Not needed because we do not want build any Apache SAPI
+#    'apache2-prefork-dev'  Not needed because we do not want build any Apache SAPI
     'bison',
     'chrpath',
-#    'debhelper',
-#    'dh-apache2',          # No needed because we do not build a Debian package
-#    'dh-systemd',          # No needed because we do not build a Debian package
-#    'dpkg-dev',            # No needed because this is a dependency of the build-essential package
+#    'debhelper',           # Not needed because we do not build a Debian package
+#    'dh-apache2',          # Not needed because we do not build a Debian package
+#    'dh-systemd',          # Not needed because we do not build a Debian package
+#    'dpkg-dev',            # Not needed because this is a dependency of the build-essential package
     'firebird-dev',
     'firebird2.1-dev',
     'firebird2.5-dev',
     'flex',
     'freetds-dev',
-#    'hardening-wrapper',   # No needed because we use dpkg-buildflags
+#    'hardening-wrapper',   # Not needed because we use dpkg-buildflags
     'language-pack-de',
     'libapparmor-dev',
-#    'libapr1-dev',         # No needed because we do not want build apache SAPI
+#    'libapr1-dev',         # Not needed because we do not want build any Apache SAPI
     'libbz2-dev',
     'libc-client-dev',
     'libc-client2007e-dev',
@@ -84,12 +84,12 @@ my @BUILD_DEPS = (
     'libdb-dev',
     'libedit-dev',
     'libenchant-dev',
-#    'libevent-dev',        # No needed because we do not compile PHP-FPM
+#    'libevent-dev',        # Not needed because we do not compile PHP-FPM
     'libexpat1-dev',
     'libfreetype6-dev',
     'libgcrypt11-dev',
-#    'libgd-dev',           # No needed because we use the bundled version
-#    'libgd2-dev',          # No needed because we use the bundled version
+#    'libgd-dev',           # Not needed because we use the bundled version
+#    'libgd2-dev',          # Not needed because we use the bundled version
     'libgd2-xpm-dev',
     'libglib2.0-dev',
     'libgmp3-dev',
@@ -98,7 +98,7 @@ my @BUILD_DEPS = (
 #    'libjpeg62-dev',       # We do not want this ( conflict with libgd2-xpm-dev )
     'libkrb5-dev',
     'libldap2-dev',
-#    'libmagic-dev',        # No needed because we use the bundled version
+#    'libmagic-dev',        # Not needed because we use the bundled version
     'libmcrypt-dev',
     'libmhash-dev',
 #    'libmysqlclient-dev',   # Moved to conditional build dependencies
@@ -131,14 +131,14 @@ my @BUILD_DEPS = (
     'quilt',
     're2c',
     'systemtap-sdt-dev',
-#    'tzdata',                  # Disabled because we are using bundled timezone database
+#    'tzdata',                  # Not needed because we are using bundled timezone database
     'unixodbc-dev',
 #    'virtual-mysql-server',    # Moved to conditional build dependencies
     'zlib1g-dev',
 
     # Out of control files
     'build-essential',
-    'shtool',                   # Needed because we copy files instead of create symlink to them as it is done by Debian
+    'shtool',
     'wget'
 );
 
