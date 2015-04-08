@@ -24,6 +24,8 @@ the PHP5-FPM implementations will be also supported.
 2. Upload the plugin through the plugin management interface
 3. Update the plugin list through the plugin management interface
 
+**Note:** Prior any update attempt, do not forget to read the [update_errata.md](update_errata.md) file.
+
 ## Setup new PHP versions
 
 At first, you must download, configure, compile and install the PHP versions which you want make available for your
