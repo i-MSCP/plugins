@@ -68,6 +68,34 @@ Debian patches on these versions. In such a case, you should create a ticket on 
 
 Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
+##### Changes made on PHP versions
+
+The PHP versions provided by the PHP compiler are almost identical to those which are provided by the Debian team.
+
+For each PHP version, a selected set of Debian patches is applied on upstream source before compiling them. Those
+patches include the following changes:
+
+- Multiarch support
+- Usage of libtool as provided by Debian instead of the bundled version
+- Any patch that fix a bug or security issue
+
+To resume here, a PHP version that is compiled and installed using the PHP compiler is more secure and more appropriate
+for use on Debian systems than a versions which is compiled manually.
+
+##### Enabled extensions
+
+PHP extensions which are explicitely enabled for each PHP version ( when available ) are:
+
+**bcmath**, **calendar**, **ctype**, **exif**, **ftp**, **intl**, **mbstring**, **pcntl**, **pdo**, **shmop**, **soap**,
+**sockets**, **sysvmsg**, **sysvsem**, **sysvshm**, **wddx** **zip**, **curl**, **db4**, **bz2**, **enchant**,
+**freetype**, **gettext**, **gd** ( with gif, jpeg, png and xmp support ), **gmp**, **iconv**, **imap**, **imap-ssl**,
+**kerberos**, **libedit** ( readline ), **libxml**, **ldap**, **ldap-sasl**, **onig**, **openssl**, **pcre-regex**,
+**mcrypt**, **mhash**, **mssql**, **pdo-dblib**, **pdo-odbc**, **pdo-pgsql**, **pdo-sqlite**, **pgsql**, **pspell**,
+**qdbm**, **recode**, **regex**, **snmp**, **sqlite3**, **tidy**, **unixODBC**, **vpx**, **xmlrpc**, **xsl**, **zlib**
+
+**Note:** Almost all extensions are compiled as shared module. See the [README.md#php-configuration](PHP configuration)
+section for more details.
+
 #### Build dependencies
 
 The PHP compiler installs the build dependencies for you but you must ensure that your **/etc/apt/sources.list** contains
