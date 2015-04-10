@@ -21,13 +21,13 @@
  */
 
 return array(
-	'This plugin require the apache fcgid i-MSCP server implementation.' => 'DIeses Plugin benötigt die Apache fcgid i-MSCP Server Konfiguration.',
+	'This plugin require the apache fcgid i-MSCP server implementation.' => 'Dieses Plugin benötigt die Apache fcgid i-MSCP Server Konfiguration.',
 	'PHP Switcher' => 'PHP Switcher',
 	'PHP version %s has not been found.' => 'PHP Version %s wurde nicht gefunden.',
 	'An unexpected error occurred: %s' => 'Ein unerwarteter Fehler ist aufgetreten: %s',
 	'Bad request.' => 'Ungültige Anforderung.',
 	'All fields are required.' => 'Alle Felder werden benötigt.',
-	'PHP version %s already exists. This is the default PHP version.' => 'PHP Version %s ist bereits vorhanden. Diese ist die Standard PHP Version.',
+	'PHP version %s already exists. This is the default PHP version.' => 'PHP Version %s ist bereits vorhanden. Das ist die Standard PHP Version.',
 	'PHP version %s successfully added.' => 'PHP Version %s erfolgreich hinzugefügt.',
 	'PHP version %s already exists.' => 'PHP Version %s ist bereits vorhanden.',
 	'PHP version %s successfully scheduled for update.' => 'PHP Version %s erfolgreich zur Änderung vorgemerkt.',
