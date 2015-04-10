@@ -93,7 +93,7 @@ PHP extensions which are explicitely enabled for each PHP version ( when availab
 **mcrypt**, **mhash**, **mssql**, **pdo-dblib**, **pdo-odbc**, **pdo-pgsql**, **pdo-sqlite**, **pgsql**, **pspell**,
 **qdbm**, **recode**, **regex**, **snmp**, **sqlite3**, **tidy**, **unixODBC**, **vpx**, **xmlrpc**, **xsl**, **zlib**
 
-**Note:** Almost all extensions are compiled as shared module. See the [README.md#php-configuration](PHP configuration)
+**Note:** Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration)
 section for more details.
 
 #### Build dependencies
