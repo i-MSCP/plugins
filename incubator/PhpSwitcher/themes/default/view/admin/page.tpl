@@ -1,6 +1,5 @@
 
 <div class="flash_message" style="display: none;"></div>
-
 <div id="page">
 	<table class="datatable">
 		<thead>
@@ -24,11 +23,19 @@
 			<td colspan="6" class="dataTables_empty">{TR_PROCESSING_DATA}</td>
 		</tr>
 		</tbody>
+		<tbody>
+		<tr>
+			<td colspan="4" bgcolor="#f0f8ff">
+				<div class="buttons">
+					<button data-action="add" title="{TR_ADD_NEW_VERSION_TOOLTIP}">{TR_ADD_NEW_VERSION}</button>
+					<!-- BDP: phpinfo_button -->
+					<button id="phpinfo" data-action="phpinfo" title="{TR_REGENERATE_PHPINFO_TOOLTIP}">{TR_REGENERATE_PHPINFO}</button>
+					<!-- EDP: phpinfo_button -->
+				</div>
+			</td>
+		</tr>
+		</tbody>
 	</table>
-
-	<div class="buttons">
-		<button data-action="add">{TR_ADD_NEW_VERSION}</button>
-	</div>
 </div>
 
 <div id="php_dialog" style="display: none;">
@@ -69,16 +76,25 @@
 			width: 550,
 			modal: true,
 			title: title,
-			buttons: {
-				"{TR_SAVE}": function() {
-					doRequest('POST', action, $("#php_frm").serialize()).done(function(data) {
-						$("#php_dialog").dialog("close");
-						flashMessage('success', data.message);
-						$dataTable.fnDraw();
-					});
+			buttons: [
+				{
+					text: imscp_i18n.PhpSwitcher.save,
+					click: function() {
+						doRequest('POST', action, $("#php_frm").serialize()).done(function(data) {
+							$("#php_dialog").dialog("close");
+							flashMessage('success', data.message);
+							$dataTable.fnDraw();
+						});
+					}
 				},
-				"{TR_CANCEL}": function() { $(this).dialog("close"); }
-			},
+				{
+					text: imscp_i18n.PhpSwitcher.cancel,
+					click: function() {
+						$(this).dialog("close");
+					}
+				}
+
+			],
 			open: function() {
 				if(action == "edit") {
 					frm = $("#php_frm");
@@ -108,14 +124,14 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: {DATATABLE_TRANSLATIONS},
-			iDisplayLength: 5,
+			language: imscp_i18n.PhpSwitcher.dataTable,
+			displayLength: 5,
 			processing: true,
 			serverSide: true,
 			pagingType: "simple",
 			ajaxSource: "/admin/phpswitcher?action=table",
 			stateSave: true,
-			columnDefs: [ { bSortable: false, bSearchable: false, aTargets: [ 3 ] } ],
+			columnDefs: [ { sortable: false, searchable: false, targets: [ 3 ] } ],
 			columns: [
 				{ mData: "version_name" },
 				{ mData: "version_binary_path" },
@@ -130,14 +146,25 @@
 					data: aoData,
 					success: fnCallback,
 					timeout: 5000,
-					error: function(xhr, textStatus, error) { $dataTable.fnProcessingIndicator(false); }
+					//error: function(xhr, textStatus, error) { $dataTable.fnProcessingIndicator(false); }
 				}).done(function() {
 					$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
+
+					if(!$dataTable.fnGetData(0)) {
+						$("#phpinfo").hide();
+					}
+				}).fail(function(jqXHR) {
+					$dataTable.fnProcessingIndicator(false);
+					//flashMessage('error', $.parseJSON(jqXHR.responseText).message);
+					flashMessage('error', jqXHR.responseJSON.message);
+
 				});
 			}
 		});
 
 		$("#page").on("click", "span[data-action], button", function() {
+			$("button").blur();
+
 			var action = $(this).data("action");
 			var versionName = $(this).data("version-name");
 			var versionId = $(this).data("version-id");
@@ -145,26 +172,35 @@
 			 switch (action) {
 			 	case "add":
 					createDialog(
-						"{TR_NEW}", action).data({ version_id: versionId, version_name: versionName }
+						imscp_i18n.PhpSwitcher.add, action).data({ version_id: versionId, version_name: versionName }
 					).dialog("open");
 					break;
 				case "edit":
 					doRequest("GET", "get", { version_id: versionId, version_name: versionName }).done(
 						function(data) {
-							createDialog(sprintf("{TR_EDIT}", versionName), action).data({ data: data }).dialog("open");
+							createDialog(sprintf(imscp_i18n.PhpSwitcher.edit, versionName), action).data({ data: data }).dialog("open");
 						}
 					);
 
 					break;
 				 case "delete":
-					 if(confirm("{TR_DELETE_CONFIRM}")) {
+					 if(confirm(imscp_i18n.PhpSwitcher.delete_confirm)) {
 						 doRequest( "POST", action, { version_id: versionId, version_name: versionName } ).done(
 						 	function(data) { $dataTable.fnDraw(); flashMessage("success", data.message); }
 						 );
 					 }
 					 break;
+				 <!-- BDP: phpinfo_js -->
+				 case "phpinfo":
+						 if(confirm(imscp_i18n.PhpSwitcher.phpinfo_confirm)) {
+							 doRequest("POST", action, { }).done(
+									 function(data) { $dataTable.fnDraw(); flashMessage("success", data.message); }
+							 );
+						 }
+					 break;
+				 <!-- EDP: phpinfo_js -->
 			 	default:
-			 		alert("{TR_UNKNOWN_ACTION}");
+			 		alert(imscp_i18n.PhpSwitcher.unknown_action);
 			 }
 		});
 
@@ -175,9 +211,9 @@
 				if(jqXHR.responseJSON != "") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if(exception == "timeout") {
-					flashMessage("error", {TR_REQUEST_TIMEOUT});
+					flashMessage("error", imscp_i18n.PhpSwitcher.request_timeout);
 				} else {
-					flashMessage("error", {TR_REQUEST_ERROR});
+					flashMessage("error", imscp_i18n.PhpSwitcher.request_error);
 				}
 			});
 		});

@@ -1,7 +1,7 @@
 <?php
 /**
- * i-MSCP TemplateEditor plugin
- * Copyright (C) 2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * i-MSCP PhpSwitcher plugin
+ * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,16 +19,7 @@
  */
 
 return array(
-	'up' => '
-		CREATE TABLE IF NOT EXISTS tple_admins_tgroups (
- 			admin_id int(10) unsigned NOT NULL,
- 			tgid int(10) unsigned NOT NULL,
- 			UNIQUE KEY u_admin_id_tgid (admin_id, tgid),
-  			CONSTRAINT catg_admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id) ON DELETE CASCADE,
- 			CONSTRAINT catg_tgid FOREIGN KEY (tgid) REFERENCES tple_tgroups (tgid) ON DELETE CASCADE
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
-	',
-	'down' => '
-		DROP TABLE IF EXISTS tple_admins_tgroups
-	'
+	//  Static PHP info files ( default: true )
+	// Whether or not a link to static PHP info file must be show for each PHP version in client interface
+	'phpinfo' => true
 );

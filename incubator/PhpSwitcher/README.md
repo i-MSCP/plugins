@@ -99,7 +99,7 @@ section for more details.
 #### Build dependencies
 
 The PHP compiler installs the build dependencies for you but you must ensure that your **/etc/apt/sources.list** contains
-the needed source ( deb-src ) repositories which belong to your distribution. If this is not the case, you can look at:
+the needed repositories which belong to your distribution. If this is not the case, you can look at:
 
 - [Debian sources.list generator](http://debgen.simplylinux.ch/)
 - [Ubuntu sources.list generator](http://repogen.simplylinux.ch/generate.php)
