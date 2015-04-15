@@ -46,12 +46,16 @@ return array(
 		ADD INDEX
 			version_admin_admin_id (admin_id);
 
+		ALTER TABLE php_switcher_version_admin ADD UNIQUE version_admin_domain_name (domain_name);
+
 		ALTER TABLE
 			php_switcher_version_admin
 		ADD INDEX
 			version_admin_domain_name_domain_type (domain_name, domain_type);
 	",
-	'down' => '
+	'down' => "
+		DELETE FROM php_switcher_version_admin WHERE domain_type <> 'dmn';
+
 		ALTER TABLE
 			php_switcher_version_admin
 		DROP INDEX
@@ -61,5 +65,5 @@ return array(
 
 		ALTER TABLE php_switcher_version_admin DROP domain_type;
 		ALTER TABLE php_switcher_version_admin DROP domain_name;
-	'
+	"
 );

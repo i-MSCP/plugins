@@ -271,7 +271,7 @@ sub installBuildDep
         if($sqlServer) {
             @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
         } else {
-            fatal('Unable to find your i-MSCP SQL server implemementation');
+            fatal('Unable to find your i-MSCP SQL server implementation');
         }
     }
 
@@ -407,19 +407,19 @@ sub applyPatches
 {
     my ($sVersion, $lVersion) = @_;
 
-    print output(sprintf('Applying Debian patches on php-%s source...', $lVersion), 'info');
+    print output(sprintf('Applying patches on php-%s source...', $lVersion), 'info');
 
     # Make quilt aware of patches location
     $ENV{'QUILT_PATCHES'} = "$MAINT_DIR/php$sVersion";
 
     my ($stdout, $stderr);
     (execute("quilt push --fuzz 0 -a", undef, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred while applying Debian patches on php-%s source: %s', $lVersion, $stderr
+        'An error occurred while applying patches on php-%s source: %s', $lVersion, $stderr
     ));
     debug($stdout) if $stdout;
     error($stderr) if $stderr;
 
-    print output(sprintf('Debian patches successfully applied on php-%s source', $lVersion), 'ok');
+    print output(sprintf('Patches were successfully applied on php-%s source', $lVersion), 'ok');
 }
 
 sub install
@@ -430,12 +430,12 @@ sub install
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    # Force usage of autoconf2.59 since php5.2 is not compatible with newest versions
     if($sVersion eq '5.2') {
+        # Force usage of autoconf2.59 since php5.2 is not compatible with newest versions
         $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
         $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
 
-        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with PHP5.2
+        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with php5.2
     }
 
     $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
