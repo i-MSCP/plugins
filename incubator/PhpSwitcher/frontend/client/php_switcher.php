@@ -83,8 +83,7 @@ function getDomainData()
 	// Per user mean only main domain
 	$query = "
 		SELECT
-			domain_name, domain_status AS domain_status, IFNULL(version_id, 0) AS version_id, 'dmn' AS domain_type,
-			'/' AS mount_point
+			domain_name, domain_status AS domain_status, IFNULL(version_id, 0) AS version_id, 'dmn' AS domain_type
 		FROM
 			domain AS t1
 		LEFT JOIN
@@ -101,7 +100,7 @@ function getDomainData()
 			UNION
 			SELECT
 				CONCAT(t1.subdomain_name, '.', t2.domain_name) AS domain_name, t1.subdomain_status AS domain_status,
-				IFNULL(t3.version_id, 0) AS version_id, 'sub' AS domain_type, t1.subdomain_mount AS mount_point
+				IFNULL(t3.version_id, 0) AS version_id, 'sub' AS domain_type
 			FROM
 				subdomain AS t1
 			INNER JOIN
@@ -123,7 +122,7 @@ function getDomainData()
 			UNION
 			SELECT
 				t1.alias_name AS domain_name, t1.alias_status AS domain_status, IFNULL(t3.version_id, 0) AS version_id,
-				'als' AS domain_type, t1.alias_mount AS mount_point
+				'als' AS domain_type
 			FROM
 				domain_aliasses AS t1
 			INNER JOIN
@@ -140,7 +139,7 @@ function getDomainData()
 			SELECT
 				CONCAT(t1.subdomain_alias_name, '.', t2.alias_name) AS domain_name,
 				t1.subdomain_alias_status AS domain_status, IFNULL(t4.version_id, 0) AS version_id,
-				'subals' AS domain_type, t1.subdomain_alias_mount AS mount_point
+				'subals' AS domain_type
 			FROM
 				subdomain_alias AS t1
 			INNER JOIN
@@ -159,7 +158,7 @@ function getDomainData()
 	}
 
 	$stmt = exec_query(
-		"SELECT * FROM ( $query ) as tmp GROUP BY mount_point",
+		"SELECT * FROM ( $query ) as tmp",
 		array('admin_id' => $_SESSION['user_id'], 'domain_status' => 'todelete')
 	);
 
@@ -382,7 +381,7 @@ if (customerHasFeature('php')) {
 
 	$tpl->assign(array(
 		'TR_PAGE_TITLE' => tr('Client / Settings / PHP Switcher'),
-		'TR_HINT' => tr('For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains wich are redirected on a specific URL are discarded.'),
+		'TR_HINT' => tr('For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.'),
 		'TR_DOMAIN_NAME' => tr('Domain name'),
 		'TR_VERSION' => tr('PHP version'),
 		'TR_VERSION_INFO' => tr('PHP version info'),

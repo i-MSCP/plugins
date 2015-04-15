@@ -121,7 +121,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$stmt = execute_query('SELECT domain_name, domain_type FROM php_switcher_version_admin');
 
 			if ($stmt->rowCount()) {
-				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_ASSOC));
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
 			$db->commit();
@@ -148,7 +148,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$stmt = execute_query('SELECT domain_name, domain_type FROM php_switcher_version_admin');
 
 			if ($stmt->rowCount()) {
-				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_ASSOC));
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
 			$db->commit();
@@ -235,7 +235,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Schedule change for all give domains
+	 * Schedule change for all given domains
 	 *
 	 * @throw iMSCP_Exception_Database
 	 * @param array $domainData Domain data
@@ -280,7 +280,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 							SET
 								domain_status = 'tochange'
 							WHERE
-								domain_name IN(" . explode(',', $domains) . ")
+								domain_name IN(" . implode(',', $domains) . ")
 							AND
 								domain_status = 'ok'
 						";
@@ -292,7 +292,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 							SET
 								subdomain_status = 'tochange'
 							WHERE
-								subdomain_name IN(" . explode(',', $domains) . ")
+								subdomain_name IN(" . implode(',', $domains) . ")
 							AND
 								subdomain_status = 'ok'
 						";
@@ -304,7 +304,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 							SET
 								alias_status = 'tochange'
 							WHERE
-								alias_name IN(" . explode(',', $domains) . ")
+								alias_name IN(" . implode(',', $domains) . ")
 							AND
 								alias_status = 'ok'
 						";
@@ -316,7 +316,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 							SET
 								subdomain_alias_status = 'tochange'
 							WHERE
-								subdomain_alias_name IN(" . explode(', ', $domains) . ")
+								subdomain_alias_name IN(" . implode(', ', $domains) . ")
 							AND
 								subdomain_alias_status = 'ok'
 						";

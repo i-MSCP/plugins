@@ -36,6 +36,5 @@ CVE-2011-4885.patch
 CVE-2012-0057.patch
 memory_leaks.patch
 temporary-path-fixes-for-multiarch.patch
-nxw_gmp_ftbs.patch
-nxw_openssl_ftbs.patch
-
+nxw_gmp_ftbfs.patch
+nxw_openssl_ftbfs.patch

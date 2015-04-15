@@ -4,9 +4,6 @@
 
 This plugin allows to setup additional PHP versions for your customers.
 
-**Note:** At this moment, this plugin only support the i-MSCP Fcgid httpd server implementation but in near future,
-the PHP5-FPM implementations will be also supported.
-
 ## Requirements
 
 * i-MSCP version >= 1.2.3
@@ -28,8 +25,8 @@ the PHP5-FPM implementations will be also supported.
 
 ## Setup new PHP versions
 
-At first, you must download, configure, compile and install the PHP versions which you want make available for your
-customers. You can either do the job manually, or by using the PHP compiler ( recommended ) that is shipped with this
+At first, you must download, configure, compile and install the PHP versions which you want to make available for your
+customers. You can either do the job manually, or use the PHP compiler ( **recommended** ) that is shipped with this
 plugin ( see below ).
 
 ### PHP compiler
@@ -37,16 +34,18 @@ plugin ( see below ).
 The PHP compiler is a Perl script that allows to download, configure, compile and install additional PHP versions in one
 step. The script is located in the **PhpSwitcher/PhpCompiler** directory.
 
-For instance, if you want to install the **php5.3** version, you can run the script as follow:
+For instance, if you want to install the **php5.2** version, you can run the script as follow:
  
 ```shell
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl php5.3
+# cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
+# perl php_compiler.pl php5.2
 ```
 
-Or if you want install all PHP versions which can be compiled by this script, you can run it as follow:
+Or if you want install all PHP versions supported by this script, you can run it as follow:
 
 ```shell
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl all
+# cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
+# perl php_compiler.pl all
 ```
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
@@ -55,7 +54,8 @@ the **/opt/phpswitcher** subtree but you can change this behavior by using comma
 To get more information about available command line options, you can run:
 
 ```shell
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --help
+# cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
+# perl php_compiler.pl --help
 ```
 
 #### Supported PHP versions
@@ -64,7 +64,7 @@ The versions supported by the PHP compiler are the last which were available whe
 This means that by default, the PHP versions provided by this script can be lower than the last that have been released
 on the PHP site. In such case, you can use the **--force-last** command line option which tells the PHP compiler to
 download the last released versions. However, you must be aware that the PHP compiler could fail to apply the set of
-Debian patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
+patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
 
 Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
@@ -72,16 +72,15 @@ Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and *
 
 The PHP versions provided by the PHP compiler are almost identical to those which are provided by the Debian team.
 
-For each PHP version, a set of patches is applied on upstream source before compiling them. The patches, include the
+For each PHP version, a set of patches is applied on upstream source before compiling them. The patches include the
 following changes:
 
 - Multiarch support
 - Usage of libtool as provided by Debian instead of the bundled version
-- Any patch that fix a bug or security issue
-- ...
+- Any patch that fix a bug, a security issue or an FTBFS issue
 
 The majority of the applied patches were pulled from the Debian php5 source package and adjusted when needed, while some
-other were created to resolve ftbs issues ( mostly for php5.2 ). Patch which were not pulled from Debian php5 sources
+other were created to resolve FTBFS issues ( mostly for php5.2 ). Patch which were not pulled from Debian php5 sources
 package are prefixed with the **nxw_** prefix.
 
 To resume here, a PHP version that is compiled and installed using the PHP compiler is more secure and more appropriate
@@ -89,44 +88,32 @@ for use on Debian systems than a versions which is compiled manually.
 
 ##### Enabled extensions
 
-PHP extensions which are explicitely enabled for each PHP version ( when available ) are:
-
-**bcmath**, **calendar**, **ctype**, **exif**, **ftp**, **intl**, **mbstring**, **pcntl**, **pdo**, **shmop**, **soap**,
-**sockets**, **sysvmsg**, **sysvsem**, **sysvshm**, **wddx** **zip**, **curl**, **db4**, **bz2**, **enchant**,
-**freetype**, **gettext**, **gd** ( with gif, jpeg, png and xmp support ), **gmp**, **iconv**, **imap**, **imap-ssl**,
-**kerberos**, **libedit** ( readline ), **libxml**, **ldap**, **ldap-sasl**, **onig**, **openssl**, **pcre-regex**,
-**mcrypt**, **mhash**, **mssql**, **pdo-dblib**, **pdo-odbc**, **pdo-pgsql**, **pdo-sqlite**, **pgsql**, **pspell**,
-**qdbm**, **recode**, **regex**, **snmp**, **sqlite3**, **tidy**, **unixODBC**, **vpx**, **xmlrpc**, **xsl**, **zlib**
+PHP extensions which are enabled are the same that are enabled in PHP versions that are provided by Debian.
 
 **Notes:**
 
-- db4 extension is disabled for php5.2 due to compatibility problems with the Berkeley Database Libraries versions that
-are shipped with Debian >= wheezy and Ubuntu >= Precise.
-- Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration)
-section for more details.
+- db4 extension is disabled for php5.2 due to incompatibility with the Berkeley Database Libraries versions that are
+shipped with Debian >= wheezy and Ubuntu >= Precise.
+- Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration) section
+for more details.
 
 #### Build dependencies
 
-The PHP compiler installs the build dependencies for you but you must ensure that your **/etc/apt/sources.list** contains
-the needed repositories which belong to your distribution. If this is not the case, you can look at:
-
-- [Debian sources.list generator](http://debgen.simplylinux.ch/)
-- [Ubuntu sources.list generator](http://repogen.simplylinux.ch/generate.php)
-
-In the  case where a package that provides a build dependency isn't available on your system, the PHP compiler will go
-ahead and thus, the configuration process will fail.
+The PHP compiler installs the build dependencies for you but in the case where a package that provides a build
+dependency isn't available on your system, the PHP compiler will go ahead and thus, the configuration process will fail.
 
 #### Parallel Execution ( GNU make )
 
-For faster compilation, the parallel exuction feature which is provided by GNU make is enabled by default. This feature
-allows to execute many recipes simultaneously. By default, 4 recipes are executed at once. On some systems where the
-resources are poor, you could have to lower this value. This can be achieved using the **--parallel-jobs** command line
-option which takes a number as value:
+For faster compilation, the parallel exuction feature which is provided by GNU make is enabled when possible. This
+feature allows to execute many recipes simultaneously. By default, 4 recipes are executed at once. On some systems where
+the resources are poor, you could have to lower this value. This can be achieved using the **--parallel-jobs** command
+line option which takes a number as value:
 
 For instance:
 
-```
-# perl /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/php_compiler.pl --parallel-job 2 php5.3
+```shell
+# cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
+# perl php_compiler.pl --parallel-job 2 php5.2
 ```
 
 will tell GNU make to not run more than 2 recipes at once.

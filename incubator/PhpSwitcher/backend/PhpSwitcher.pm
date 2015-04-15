@@ -169,7 +169,7 @@ sub overridePhpBinaryPath
 	if(
 		exists $phpVersionsDomains->{$domainName} &&
 		exists $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_binary_path'} &&
-		$phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_status'} == 'ok'
+		$phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_status'} = eq 'ok'
 	) {
 		$phpBinaryPath = $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_binary_path'};
 	}

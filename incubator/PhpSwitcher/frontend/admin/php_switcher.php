@@ -201,7 +201,7 @@ function edit()
 					$plugin = $pluginManager->pluginGet('PhpSwitcher');
 
 					if ($stmt->rowCount()) {
-						$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_ASSOC));
+						$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 					}
 
 					$db->commit();
@@ -270,7 +270,7 @@ function delete()
 			$plugin = $pluginManager->pluginGet('PhpSwitcher');
 
 			if ($stmt->rowCount()) {
-				$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_ASSOC));
+				$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
 			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);

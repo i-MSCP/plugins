@@ -105,7 +105,7 @@
 		});
 		<!-- EDP: phpinfo_js -->
 
-		$('select').on('change', function() {
+		$dataTable.on('change', 'select', function() {
 			var $select = $(this);
 			var data = $select.serializeArray();
 			data.push({ name: "domain_name", value: $select.data('domain-name')});
