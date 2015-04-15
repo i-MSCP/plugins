@@ -1,0 +1,39 @@
+Index: php-5.2.17/ext/mysql/config.m4
+===================================================================
+--- php-5.2.17.orig/ext/mysql/config.m4	2015-04-13 04:58:08.837313491 +0200
++++ php-5.2.17/ext/mysql/config.m4	2015-04-13 04:58:47.985312698 +0200
+@@ -86,7 +86,7 @@
+ Note that the MySQL client library is not bundled anymore!])
+   fi
+ 
+-  if test "$enable_maintainer_zts" = "yes"; then
++  if true || test "$enable_maintainer_zts" = "yes"; then
+     MYSQL_LIBNAME=mysqlclient_r
+   else
+     MYSQL_LIBNAME=mysqlclient
+Index: php-5.2.17/ext/mysqli/config.m4
+===================================================================
+--- php-5.2.17.orig/ext/mysqli/config.m4	2015-04-13 04:58:08.837313491 +0200
++++ php-5.2.17/ext/mysqli/config.m4	2015-04-13 04:58:47.985312698 +0200
+@@ -26,7 +26,7 @@
+   if test "$PHP_EMBEDDED_MYSQLI" = "yes"; then
+     AC_DEFINE(HAVE_EMBEDDED_MYSQLI, 1, [embedded MySQL support enabled])
+     MYSQL_LIB_CFG='--libmysqld-libs'
+-  elif test "$enable_maintainer_zts" = "yes"; then
++  elif true || test "$enable_maintainer_zts" = "yes"; then
+     MYSQL_LIB_CFG='--libs_r'
+     MYSQL_LIB_NAME='mysqlclient_r'
+   else
+Index: php-5.2.17/ext/pdo_mysql/config.m4
+===================================================================
+--- php-5.2.17.orig/ext/pdo_mysql/config.m4	2015-04-13 04:58:08.837313491 +0200
++++ php-5.2.17/ext/pdo_mysql/config.m4	2015-04-13 04:58:47.989312700 +0200
+@@ -58,7 +58,7 @@
+     if test "x$SED" = "x"; then
+       AC_PATH_PROG(SED, sed)
+     fi
+-    if test "$enable_maintainer_zts" = "yes"; then
++    if true || test "$enable_maintainer_zts" = "yes"; then
+       PDO_MYSQL_LIBNAME=mysqlclient_r
+       PDO_MYSQL_LIBS=`$PDO_MYSQL_CONFIG --libs_r | $SED -e "s/'//g"`
+     else

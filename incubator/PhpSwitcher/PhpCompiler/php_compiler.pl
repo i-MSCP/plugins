@@ -57,25 +57,18 @@ my $MAINT_DIR = $main::imscpConfig{'PLUGINS_DIR'} . '/PhpSwitcher/PhpCompiler/ph
 # Note: Packages are installed only if available.
 my @BUILD_DEPS = (
     'autoconf',
+    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
     'automake',
     'automake1.11',
-#    'apache2-dev',         Not needed because we do not want build any Apache SAPI
-#    'apache2-prefork-dev'  Not needed because we do not want build any Apache SAPI
     'bison',
     'chrpath',
-#    'debhelper',           # Not needed because we do not build a Debian package
-#    'dh-apache2',          # Not needed because we do not build a Debian package
-#    'dh-systemd',          # Not needed because we do not build a Debian package
-#    'dpkg-dev',            # Not needed because this is a dependency of the build-essential package
     'firebird-dev',
     'firebird2.1-dev',
     'firebird2.5-dev',
     'flex',
     'freetds-dev',
-#    'hardening-wrapper',   # Not needed because we use dpkg-buildflags
     'language-pack-de',
     'libapparmor-dev',
-#    'libapr1-dev',         # Not needed because we do not want build any Apache SAPI
     'libbz2-dev',
     'libc-client-dev',
     'libc-client2007e-dev',
@@ -88,21 +81,19 @@ my @BUILD_DEPS = (
     'libexpat1-dev',
     'libfreetype6-dev',
     'libgcrypt11-dev',
-#    'libgd-dev',           # Not needed because we use the bundled version
-#    'libgd2-dev',          # Not needed because we use the bundled version
+    'libgd-dev',
+    'libgd2-dev',
     'libgd2-xpm-dev',
+    'libxpm-dev',
     'libglib2.0-dev',
     'libgmp3-dev',
     'libicu-dev',
     'libjpeg-dev',
-#    'libjpeg62-dev',       # We do not want this ( conflict with libgd2-xpm-dev )
     'libkrb5-dev',
     'libldap2-dev',
 #    'libmagic-dev',        # Not needed because we use the bundled version
     'libmcrypt-dev',
     'libmhash-dev',
-#    'libmysqlclient-dev',   # Moved to conditional build dependencies
-#    'libmysqlclient15-dev', # Moved to conditional build dependencies
     'libonig-dev',
     'libpam0g-dev',
     'libpcre3-dev',
@@ -116,7 +107,6 @@ my @BUILD_DEPS = (
     'libsnmp-dev',
     'libsqlite3-dev',
     'libssl-dev',
-#    'libsystemd-daemon-dev',  # No needed because we do not build for php5-fpm
     'libtidy-dev',
     'libtool',
     'libvpx-dev',
@@ -125,34 +115,31 @@ my @BUILD_DEPS = (
     'libxmltok1-dev',
     'libxslt1-dev',
     'locales-all',
-#    'mysql-server',            # Moved to conditional build dependencies
-#    'netbase',                 # Not needed because we do not run any test
-#    'netcat-traditional',      # Not needed?
+    'netbase',
+    'netcat-traditional',
     'quilt',
     're2c',
     'systemtap-sdt-dev',
-#    'tzdata',                  # Not needed because we are using bundled timezone database
     'unixodbc-dev',
-#    'virtual-mysql-server',    # Moved to conditional build dependencies
     'zlib1g-dev',
-
-    # Out of control files
     'build-essential',
     'shtool',
-    'wget'
+    'wget',
+    'libsqlite0-dev',
+    'lemon'
 );
 
 # Conditional MySQL build dependencies
 # Only needed for PHP5.2 since for newest versions, we are using MySQL native driver ( mysqlnd )
 my %CONDITIONAL_BUILD_DEPS = (
-    'mysql' => ['libmysqlclient-dev', 'libmysqlclient15-dev'],
-    'mariadb' => ['libmariadb-client-lgpl-dev', 'libmariadb-client-lgpl-dev-compat'],
-    'percona' => [] # todo
+    'mysql' => [ 'libmysqlclient-dev', 'libmysqlclient15-dev' ],
+    'mariadb' => [ 'libmariadb-client-lgpl-dev', 'libmariadb-client-lgpl-dev-compat' ],
+    'percona' => [ ] # todo
 );
 
 # Map short PHP versions to last known PHP versions
 my %SHORT_TO_LONG_VERSION = (
-#    '5.2' => '5.2.17',
+    '5.2' => '5.2.17',
 #    '5.3' => '5.3.29',
 #    '5.4' => '5.4.39',
 #    '5.5' => '5.5.23',
@@ -184,7 +171,7 @@ iMSCP::Getopt->parseNoDefault(sprintf("\nUsage: perl %s [OPTION...] PHP_VERSION.
 
 PHP Compiler
 
-This script allows to download, configure, compile and install one or many PHP versions on Debian/Ubuntu distributions in one step. Work is made by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile file which defines specific targets for each PHP version.
+This script allows to download, configure, compile and install one or many PHP versions on Debian/Ubuntu distributions in one step. Work is done by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile file which defines specific targets for each PHP version.
 
 PHP VERSIONS:
  Supported PHP versions are: } . ( join ', ', map { 'php' . $_ } keys %SHORT_TO_LONG_VERSION ) . qq {
@@ -231,13 +218,12 @@ if($@ || !@sVersions) {
     iMSCP::Getopt->showUsage();
 }
 
-installBuildDep() unless $DOWNLOAD_ONLY;
-
 for my $sVersion(@sVersions) {
     print output(sprintf('Processing PHP %s version', $sVersion), 'info');
 
     next unless (my $lVersion = getLongVersion($sVersion));
 
+    installBuildDep($sVersion) unless $DOWNLOAD_ONLY;
     downloadSource($sVersion, $lVersion);
 
     unless($DOWNLOAD_ONLY) {
@@ -276,7 +262,18 @@ sub setOptions
 
 sub installBuildDep
 {
-    print output(sprintf('Installing build dependencies...'), 'info');
+    my $sVersion = shift;
+
+    print output(sprintf('Installing build dependencies for PHP %s.x version...', $sVersion), 'info');
+
+    if($sVersion eq '5.2') {
+        (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
+        if($sqlServer) {
+            @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
+        } else {
+            fatal('Unable to find your i-MSCP SQL server implemementation');
+        }
+    }
 
     # Filter packages which are not available since the build dependencies list is a mix of packages
     # that were pulled from different Debian/Ubuntu php5 package control files
@@ -285,6 +282,7 @@ sub installBuildDep
         'An error occurred while installing build dependencies: Unable to filter list of packages to install: %s',
         $stderr
     ));
+
     @BUILD_DEPS = sort grep { $_ ~~ @BUILD_DEPS } split /\n/, $stdout;
 
     # Install packages
@@ -415,7 +413,7 @@ sub applyPatches
     $ENV{'QUILT_PATCHES'} = "$MAINT_DIR/php$sVersion";
 
     my ($stdout, $stderr);
-    (execute("quilt push -a", \$stdout, \$stderr) == 0) or fatal(sprintf(
+    (execute("quilt push --fuzz 0 -a", undef, \$stderr) == 0) or fatal(sprintf(
         'An error occurred while applying Debian patches on php-%s source: %s', $lVersion, $stderr
     ));
     debug($stdout) if $stdout;
@@ -431,6 +429,14 @@ sub install
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
+
+    # Force usage of autoconf2.59 since php5.2 is not compatible with newest versions
+    if($sVersion eq '5.2') {
+        $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
+        $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
+
+        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with PHP5.2
+    }
 
     $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
 

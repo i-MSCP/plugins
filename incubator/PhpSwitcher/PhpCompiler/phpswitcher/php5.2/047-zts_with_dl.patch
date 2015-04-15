@@ -1,0 +1,17 @@
+Index: php-5.2.17/ext/standard/dl.c
+===================================================================
+--- php-5.2.17.orig/ext/standard/dl.c	2015-04-13 04:58:09.493313476 +0200
++++ php-5.2.17/ext/standard/dl.c	2015-04-13 04:58:45.473312752 +0200
+@@ -81,12 +81,7 @@
+ 	if ((strncmp(sapi_module.name, "cgi", 3)!=0) && 
+ 		(strcmp(sapi_module.name, "cli")!=0) &&
+ 		(strncmp(sapi_module.name, "embed", 5)!=0)) {
+-#ifdef ZTS
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Not supported in multithreaded Web servers - use extension=%s in your php.ini", Z_STRVAL_PP(file));
+-		RETURN_FALSE;
+-#else
+ 		php_error_docref(NULL TSRMLS_CC, E_STRICT, "dl() is deprecated - use extension=%s in your php.ini", Z_STRVAL_PP(file));
+-#endif
+ 	}
+ 
+ 	php_dl(*file, MODULE_TEMPORARY, return_value, 0 TSRMLS_CC);

@@ -1,0 +1,13 @@
+Index: php-5.2.17/ext/exif/exif.c
+===================================================================
+--- php-5.2.17.orig/ext/exif/exif.c	2015-04-13 04:58:09.585313475 +0200
++++ php-5.2.17/ext/exif/exif.c	2015-04-13 04:58:45.265312753 +0200
+@@ -99,7 +99,7 @@
+ 
+ #define EFREE_IF(ptr)	if (ptr) efree(ptr)
+ 
+-#define MAX_IFD_NESTING_LEVEL 100
++#define MAX_IFD_NESTING_LEVEL 250
+ 
+ /* {{{ arginfo */
+ static

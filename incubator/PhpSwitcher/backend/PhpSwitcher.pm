@@ -99,6 +99,9 @@ sub run
 	my $self = shift;
 
 	if(%{$phpVersions}) {
+		my $panelUser =
+		my $panelGroup = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+
 		for my $phpVersionId(keys %{$phpVersions}) {
 			if($phpVersions->{$phpVersionId}->{'version_status'} ~~ [ 'toadd', 'tochange' ]) {
 				my $rs = 0;
@@ -106,7 +109,7 @@ sub run
 				# Generate static phpinfo HTML file
 				if(-x $phpVersions->{$phpVersionId}->{'version_binary_path'}) {
 					my ($stdout, $stderr);
-					my $rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -q -i", \$stdout, \$stderr);
+					$rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -q -i", \$stdout, \$stderr);
 					error($stderr) if $rs;
 
 					unless($rs) {
@@ -114,16 +117,13 @@ sub run
 							filename => "$main::imscpConfig{'PLUGINS_DIR'}/PhpSwitcher/phpinfo/$phpVersionId.html"
 						);
 
-						my $panelUser =
-						my $panelGroup = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-
 						$rs ||= $file->set($stdout);
 						$rs ||= $file->save();
 						$rs ||= $file->owner($panelUser, $panelGroup);
 						$rs ||= $file->mode(0640);
 					}
 				} else {
-					error("The $phpVersions->{$phpVersionId}->{'version_binary_path'} is not executable");
+					error("$phpVersions->{$phpVersionId}->{'version_binary_path'} is not executable");
 					$rs = 1;
 				}
 
@@ -163,11 +163,15 @@ sub overridePhpBinaryPath
 {
 	my $data = shift;
 
+	my $domainName = $data->{'DOMAIN_NAME'};
 	my $phpBinaryPath = force $defaultPhpBinaryPath;
-	if(exists $phpVersionsDomains->{$data->{'DOMAIN_NAME'}}) {
-		$phpBinaryPath = $phpVersions->{
-			$phpVersionsDomains->{$data->{'DOMAIN_NAME'}}->{'version_id'}
-		}->{'version_binary_path'};
+
+	if(
+		exists $phpVersionsDomains->{$domainName} &&
+		exists $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_binary_path'} &&
+		$phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_status'} == 'ok'
+	) {
+		$phpBinaryPath = $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}}->{'version_binary_path'};
 	}
 
 	my $httpdConfig = Servers::httpd->factory()->{'config'};

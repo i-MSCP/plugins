@@ -1,0 +1,15 @@
+Index: php-5.2.17/acinclude.m4
+===================================================================
+--- php-5.2.17.orig/acinclude.m4	2015-04-13 04:58:10.137313465 +0200
++++ php-5.2.17/acinclude.m4	2015-04-13 04:58:42.753312805 +0200
+@@ -2373,9 +2373,7 @@
+ 
+     PHP_ADD_INCLUDE($OPENSSL_INCDIR)
+   
+-    PHP_CHECK_LIBRARY(crypto, CRYPTO_free, [
+-      PHP_ADD_LIBRARY(crypto,,$1)
+-    ],[
++    PHP_CHECK_LIBRARY(crypto, CRYPTO_free, [:],[
+       AC_MSG_ERROR([libcrypto not found!])
+     ],[
+       -L$OPENSSL_LIBDIR

@@ -20,7 +20,6 @@
 
 namespace PhpSwitcher;
 
-use iMSCP_Config_Handler_File as ConfigHandlerFile;
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
@@ -49,6 +48,9 @@ function sendJsonResponse($statusCode = 200, array $data = array())
 	header('Content-type: application/json');
 
 	switch ($statusCode) {
+		case 202:
+			header('Status: 202 Accepted');
+			break;
 		case 400:
 			header('Status: 400 Bad Request');
 			break;
@@ -173,23 +175,23 @@ function edit()
 			try {
 				$db->beginTransaction();
 
-				exec_query(
-					'
+				// Run backend side only if needed
+				if ($row['version_binary_path'] != $versionBinaryPath) {
+					exec_query(
+						'
 						UPDATE
 							php_switcher_version
 						SET
 							version_name = ?, version_binary_path = ?, version_status = ?
 						WHERE
 							version_id = ?
-						AND
-							version_status = ?
 					',
-					array($versionName, $versionBinaryPath, 'tochange', $versionId, 'ok')
-				);
+						array($versionName, $versionBinaryPath, 'tochange', $versionId)
+					);
 
-				if ($row['version_binary_path'] != $versionBinaryPath) {
 					$stmt = exec_query(
-						'SELECT domain_name, domain_type FROM php_switcher_version_admin WHERE version_id = ?', $versionId
+						'SELECT domain_name, domain_type FROM php_switcher_version_admin WHERE version_id = ?',
+						$versionId
 					);
 
 					/** @var PluginManager $pluginManager */
@@ -201,15 +203,27 @@ function edit()
 					if ($stmt->rowCount()) {
 						$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_ASSOC));
 					}
+
+					$db->commit();
+
+					send_request();
+					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					sendJsonResponse(200, array(
+						'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName)
+					));
+				} else {
+					exec_query(
+						'UPDATE php_switcher_version SET version_name = ? WHERE version_id = ?',
+						array($versionName, $versionId)
+					);
+
+					$db->commit();
+
+					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					sendJsonResponse(200, array(
+						'message' => tr('PHP version %s successfully updated.', true, $versionName)
+					));
 				}
-
-				$db->commit();
-
-				send_request();
-				write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
-				sendJsonResponse(200, array(
-					'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName)
-				));
 			} catch (DatabaseException $e) {
 				$db->rollBack();
 
@@ -222,9 +236,7 @@ function edit()
 				}
 			}
 		} else {
-			sendJsonResponse(200, array(
-					'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName))
-			);
+			sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
 		}
 	}
 
@@ -401,13 +413,17 @@ function getTable()
 
 			for ($i = 0; $i < $nbColumns; $i++) {
 				if ($columns[$i] == 'version_status') {
-					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
+					if(in_array($data[$columns[$i]], array('ok', 'toadd', 'tochange', 'todelete'))) {
+						$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
+					} else {
+						$row[$columns[$i]] = tohtml($data[$columns[$i]]);
+					}
 				} elseif ($columns[$i] != 'version_id') {
 					$row[$columns[$i]] = $data[$columns[$i]];
 				}
 			}
 
-			if ($data['version_status'] == 'ok') {
+			if (!in_array($data['version_status'], array('toadd','tochange'))) {
 				$row['actions'] =
 					"<span title=\"$trEditTooltip\" data-action=\"edit\" " .
 					"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
@@ -547,8 +563,6 @@ EventManager::getInstance()->registerListener('onGetJsTranslations', function ($
 	}
 });
 
-$httpdConfig = new ConfigHandlerFile(Registry::get('config')->CONF_DIR . '/apache/apache.data');
-
 $tpl->assign(array(
 	'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
 	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
@@ -559,8 +573,7 @@ $tpl->assign(array(
 	'TR_BINARY_PATH' => tr('PHP binary path'),
 	'TR_PROCESSING_DATA' => tr('Processing...'),
 	'TR_ADD_NEW_VERSION' => tr('Add new PHP version'),
-	'TR_ADD_NEW_VERSION_TOOLTIP' => tohtml(tr('Add new PHP version', true), 'htmlAttr'),
-	'CONFDIR_PATH' => $httpdConfig['PHP_STARTER_DIR']
+	'TR_ADD_NEW_VERSION_TOOLTIP' => tohtml(tr('Add new PHP version', true), 'htmlAttr')
 ));
 
 if (!$phpSwitcher->getConfigParam('phpinfo', false)) {

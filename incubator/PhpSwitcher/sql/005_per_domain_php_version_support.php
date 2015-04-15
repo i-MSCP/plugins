@@ -31,7 +31,9 @@ return array(
 			domain_type ENUM('dmn','sub','als','subals') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
 
 		UPDATE
-			php_switcher_version_admin AS t1, domain AS t2
+			php_switcher_version_admin AS t1
+		INNER JOIN
+			domain AS t2
 		SET
 			t1.domain_name = t2.domain_name, t1.domain_type = 'dmn'
 		WHERE
@@ -46,7 +48,8 @@ return array(
 
 		ALTER TABLE
 			php_switcher_version_admin
-		ADD INDEX version_admin_domain_name_domain_type (domain_name, domain_type);
+		ADD INDEX
+			version_admin_domain_name_domain_type (domain_name, domain_type);
 	",
 	'down' => '
 		ALTER TABLE

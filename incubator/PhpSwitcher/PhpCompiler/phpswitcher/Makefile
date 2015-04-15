@@ -187,17 +187,21 @@ prepared-stamp:
 unprepared:
 	rm -f prepared-stamp
 
-configure-php5.5: configure-php5.5-stamp common-configure
-configure-php5.5-stamp: prepared-stamp
+configure-php5.2: configure-php5.2-stamp common-configure
+configure-php5.2-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
 	-mkdir cgi-build
 	cd cgi-build && \
 	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
 		$(COMMON_CONFIG) \
-		$(MYSQLND_CONFIG) \
-		--enable-cgi
+		$(MYSQL_CONGIG) \
+		--enable-memory-limit \
+		--enable-force-cgi-redirect \
+		--enable-fastcgi \
+		--with-sqlite=shared,/usr \
+		--without-db4
 
-	touch configure-php5.5-stamp
+	touch configure-php5.2-stamp
 
 configure-php5.6: configure-php5.6-stamp common-configure
 configure-php5.6-stamp: prepared-stamp
@@ -221,11 +225,11 @@ common-configure-stamp:
 
 	touch common-configure-stamp
 
-build-php5.5: build-php5.5-stamp
-build-php5.5-stamp: configure-php5.5
+build-php5.2: build-php5.2-stamp
+build-php5.2-stamp: configure-php5.2
 	cd cgi-build && $(MAKE)
 
-	touch build-php5.5-stamp
+	touch build-php5.2-stamp
 
 build-php5.6: build-php5.6-stamp
 build-php5.6-stamp: configure-php5.6
@@ -233,11 +237,11 @@ build-php5.6-stamp: configure-php5.6
 
 	touch build-php5.6-stamp
 
-install-php5.5: install-php5.5-stamp common-install
-install-php5.5-stamp: build-php5.5
+install-php5.2: install-php5.2-stamp common-install
+install-php5.2-stamp: build-php5.2
 	cd cgi-build && $(MAKE) install
 
-	touch install-php5.5-stamp
+	touch install-php5.2-stamp
 
 install-php5.6: install-php5.6-stamp common-install
 install-php5.6-stamp: build-php5.6

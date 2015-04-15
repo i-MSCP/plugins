@@ -1,0 +1,13 @@
+Index: php-5.2.17/ext/gmp/gmp.c
+===================================================================
+--- php-5.2.17.orig/ext/gmp/gmp.c	2010-01-03 10:23:27.000000000 +0100
++++ php-5.2.17/ext/gmp/gmp.c	2015-04-14 02:09:45.027772408 +0200
+@@ -1396,7 +1396,7 @@
+ 
+ 		GMPG(rand_initialized) = 1;
+ 	}
+-	mpz_urandomb(*gmpnum_result, GMPG(rand_state), GMP_ABS (limiter) * __GMP_BITS_PER_MP_LIMB);
++	mpz_urandomb(*gmpnum_result, GMPG(rand_state), GMP_ABS (limiter) * GMP_LIMB_BITS);
+ 
+ 	ZEND_REGISTER_RESOURCE(return_value, gmpnum_result, le_gmp);
+ }

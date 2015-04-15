@@ -29,7 +29,9 @@
 				<div class="buttons">
 					<button data-action="add" title="{TR_ADD_NEW_VERSION_TOOLTIP}">{TR_ADD_NEW_VERSION}</button>
 					<!-- BDP: phpinfo_button -->
-					<button id="phpinfo" data-action="phpinfo" title="{TR_REGENERATE_PHPINFO_TOOLTIP}">{TR_REGENERATE_PHPINFO}</button>
+					<button id="phpinfo" data-action="phpinfo" title="{TR_REGENERATE_PHPINFO_TOOLTIP}">
+						{TR_REGENERATE_PHPINFO}
+					</button>
 					<!-- EDP: phpinfo_button -->
 				</div>
 			</td>
@@ -42,18 +44,17 @@
 	<form id="php_frm">
 		<table class="firstColFixed">
 			<tr>
-				<td><label for="version_name">{TR_NAME}</label></td>
-				<td><input type="text" name="version_name" id="version_name" maxlength="30" value=""></td>
+				<td style="width: 35%"><label for="version_name">{TR_NAME}</label></td>
+				<td><input class="inputTitle" type="text" name="version_name" id="version_name" maxlength="30" value=""></td>
 			</tr>
 			<tr>
 				<td><label for="version_binary_path">{TR_BINARY_PATH}</label></td>
-				<td><input type="text" name="version_binary_path" id="version_binary_path" maxlength="255" value=""></td>
+				<td><input class="inputTitle" type="text" name="version_binary_path" id="version_binary_path" maxlength="255" value=""></td>
 			</tr>
 		</table>
 		<input type="hidden" name="version_id" id="version_id" value="">
 	</form>
 </div>
-
 <script>
 	var $dataTable;
 
@@ -80,9 +81,9 @@
 				{
 					text: imscp_i18n.PhpSwitcher.save,
 					click: function() {
-						doRequest('POST', action, $("#php_frm").serialize()).done(function(data) {
+						doRequest('POST', action, $("#php_frm").serialize()).done(function(data, textStatus, jqXHR) {
 							$("#php_dialog").dialog("close");
-							flashMessage('success', data.message);
+							flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
 							$dataTable.fnDraw();
 						});
 					}
@@ -110,10 +111,8 @@
 	function flashMessage(type, message)
 	{
 		var flashMessage = $(".flash_message").text(message).addClass(type);
-
 		setTimeout(function () { flashMessage.fadeOut(1000); }, 3000);
 		setTimeout(function () { flashMessage.removeClass(type); }, 4000);
-
 		flashMessage.show();
 	}
 
@@ -145,8 +144,7 @@
 					url: sSource,
 					data: aoData,
 					success: fnCallback,
-					timeout: 5000,
-					//error: function(xhr, textStatus, error) { $dataTable.fnProcessingIndicator(false); }
+					timeout: 5000
 				}).done(function() {
 					$dataTable.find("span").tooltip({ tooltipClass: "ui-tooltip-notice", track: true });
 
@@ -155,7 +153,6 @@
 					}
 				}).fail(function(jqXHR) {
 					$dataTable.fnProcessingIndicator(false);
-					//flashMessage('error', $.parseJSON(jqXHR.responseText).message);
 					flashMessage('error', jqXHR.responseJSON.message);
 
 				});
@@ -178,7 +175,9 @@
 				case "edit":
 					doRequest("GET", "get", { version_id: versionId, version_name: versionName }).done(
 						function(data) {
-							createDialog(sprintf(imscp_i18n.PhpSwitcher.edit, versionName), action).data({ data: data }).dialog("open");
+							createDialog(sprintf(imscp_i18n.PhpSwitcher.edit, versionName), action).data(
+									{ data: data }).dialog("open"
+							);
 						}
 					);
 

@@ -1,4 +1,35 @@
 #!/usr/bin/perl
+# i-MSCP PhpSwitcher plugin
+# Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+use strict;
+use warnings;
+
+use lib '/var/www/imscp/engine/PerlLib';
+use iMSCP::Debug;
+use iMSCP::Bootstrapper;
+use iMSCP::Execute;
+
+$ENV{'LANG'} = 'C.UTF-8';
+
+# Bootstrap i-MSCP backend
+iMSCP::Bootstrapper->getInstance()->boot(
+	{ 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
+);
 
 my $simulate = shift;
 my @packages = (
@@ -87,7 +118,13 @@ my @packages = (
 	'libc-dev',
 	'make',
 	'dpkg-dev',
-	'autotools-dev',
+	'autotools-dev'
 );
 
-exit system("aptitude purge --without-recommends -y" . ( ($simulate) ? ' -s' : '' ) . " @packages") >> 8;
+my ($stdout, $stderr);
+my $rs = execute("apt-cache --generate pkgnames", \$stdout, \$stderr);
+error(sprintf('An error occurred while filtering packages to remove: %s', $stderr));
+@packages = sort grep { $_ ~~ @packages } split /\n/, $stdout;
+$rs = execute("aptitude purge --without-recommends -y" . ( ($simulate) ? ' -s' : ' ' ) . "@packages", undef, $stderr);
+error($stderr) if $stderr && $rs;
+exit $rs;

@@ -72,12 +72,17 @@ Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and *
 
 The PHP versions provided by the PHP compiler are almost identical to those which are provided by the Debian team.
 
-For each PHP version, a selected set of Debian patches is applied on upstream source before compiling them. Those
-patches include the following changes:
+For each PHP version, a set of patches is applied on upstream source before compiling them. The patches, include the
+following changes:
 
 - Multiarch support
 - Usage of libtool as provided by Debian instead of the bundled version
 - Any patch that fix a bug or security issue
+- ...
+
+The majority of the applied patches were pulled from the Debian php5 source package and adjusted when needed, while some
+other were created to resolve ftbs issues ( mostly for php5.2 ). Patch which were not pulled from Debian php5 sources
+package are prefixed with the **nxw_** prefix.
 
 To resume here, a PHP version that is compiled and installed using the PHP compiler is more secure and more appropriate
 for use on Debian systems than a versions which is compiled manually.
@@ -93,7 +98,11 @@ PHP extensions which are explicitely enabled for each PHP version ( when availab
 **mcrypt**, **mhash**, **mssql**, **pdo-dblib**, **pdo-odbc**, **pdo-pgsql**, **pdo-sqlite**, **pgsql**, **pspell**,
 **qdbm**, **recode**, **regex**, **snmp**, **sqlite3**, **tidy**, **unixODBC**, **vpx**, **xmlrpc**, **xsl**, **zlib**
 
-**Note:** Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration)
+**Notes:**
+
+- db4 extension is disabled for php5.2 due to compatibility problems with the Berkeley Database Libraries versions that
+are shipped with Debian >= wheezy and Ubuntu >= Precise.
+- Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration)
 section for more details.
 
 #### Build dependencies

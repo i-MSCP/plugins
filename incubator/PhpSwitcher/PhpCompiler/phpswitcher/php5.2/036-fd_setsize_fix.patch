@@ -1,0 +1,26 @@
+Index: php-5.2.17/ext/sockets/sockets.c
+===================================================================
+--- php-5.2.17.orig/ext/sockets/sockets.c	2015-04-13 04:58:09.717313472 +0200
++++ php-5.2.17/ext/sockets/sockets.c	2015-04-13 04:58:44.625312768 +0200
+@@ -572,6 +572,7 @@
+ 
+ 		php_sock = (php_socket*) zend_fetch_resource(element TSRMLS_CC, -1, le_socket_name, NULL, 1, le_socket);
+ 		if (!php_sock) continue; /* If element is not a resource, skip it */
++		if (php_sock->bsd_socket > FD_SETSIZE) continue; /* must ignore it */
+ 
+ 		PHP_SAFE_FD_SET(php_sock->bsd_socket, fds);
+ 		if (php_sock->bsd_socket > *max_fd) {
+Index: php-5.2.17/ext/standard/streamsfuncs.c
+===================================================================
+--- php-5.2.17.orig/ext/standard/streamsfuncs.c	2015-04-13 04:58:09.717313472 +0200
++++ php-5.2.17/ext/standard/streamsfuncs.c	2015-04-13 04:58:44.625312768 +0200
+@@ -603,6 +603,9 @@
+ 		 * is not displayed.
+ 		 * */
+ 		if (SUCCESS == php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&this_fd, 1) && this_fd >= 0) {
++			if (this_fd > FD_SETSIZE)
++				continue;
++
+ 			
+ 			PHP_SAFE_FD_SET(this_fd, fds);
+ 
