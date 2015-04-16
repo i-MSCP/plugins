@@ -137,8 +137,9 @@ my %CONDITIONAL_BUILD_DEPS = (
     'percona' => [ ] # todo
 );
 
-# Map short PHP versions to last known PHP versions
+# Map short PHP versions to long PHP version ( last known tiny PHP versions )
 my %SHORT_TO_LONG_VERSION = (
+#    '4.4' => '4.4.9',
     '5.2' => '5.2.17',
 #    '5.3' => '5.3.29',
 #    '5.4' => '5.4.39',
@@ -174,7 +175,7 @@ PHP Compiler
 This script allows to download, configure, compile and install one or many PHP versions on Debian/Ubuntu distributions in one step. Work is done by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile file which defines specific targets for each PHP version.
 
 PHP VERSIONS:
- Supported PHP versions are: } . ( join ', ', map { 'php' . $_ } keys %SHORT_TO_LONG_VERSION ) . qq {
+ Supported PHP versions are: } . ( join ', ', sort map { 'php' . $_ } keys %SHORT_TO_LONG_VERSION ) . qq {
 
  You can either specify one or many PHP versions or 'all' for all versions.
 
@@ -200,12 +201,12 @@ eval {
         @sVersions = keys %SHORT_TO_LONG_VERSION;
     } else {
         for my $sVersion(@ARGV) {
-            $sVersion = lc $sVersion;
+            ($sVersion) = lc($sVersion) =~ /^php(\d\.\d)$/;
 
-            if($sVersion =~ /^php(5\.[2-6])$/ && exists $SHORT_TO_LONG_VERSION{$1}) {
-                push @sVersions, $1;
+            if($sVersion && exists $SHORT_TO_LONG_VERSION{$sVersion}) {
+                push @sVersions, $sVersion;
             } else {
-                die(sprintf("Invalid PHP version parameter: %s\n", $sVersion));
+                die("Invalid PHP version parameter.\n");
             }
        }
     }
@@ -266,7 +267,7 @@ sub installBuildDep
 
     print output(sprintf('Installing build dependencies for PHP %s.x version...', $sVersion), 'info');
 
-    if($sVersion eq '5.2') {
+    if($sVersion ~~ [ '4.4', '5.2' ]) {
         (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
         if($sqlServer) {
             @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
@@ -425,17 +426,17 @@ sub applyPatches
 sub install
 {
     my ($sVersion, $lVersion) = @_;
-    my $target = 'install-php' . $sVersion;
+    my $target = 'configure-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    if($sVersion eq '5.2') {
-        # Force usage of autoconf2.59 since php5.2 is not compatible with newest versions
+    if($sVersion ~~ [ '4.4', '5.2']) {
+        # Force usage of autoconf2.59 since PHP version older than php5.3 are not compatible with newest versions
         $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
         $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
 
-        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with php5.2
+        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with older PHP versions
     }
 
     $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";

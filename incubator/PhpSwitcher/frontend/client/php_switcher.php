@@ -157,10 +157,7 @@ function getDomainData()
 		";
 	}
 
-	$stmt = exec_query(
-		"SELECT * FROM ( $query ) as tmp",
-		array('admin_id' => $_SESSION['user_id'], 'domain_status' => 'todelete')
-	);
+	$stmt = exec_query($query,  array('admin_id' => intval($_SESSION['user_id']), 'domain_status' => 'todelete'));
 
 	return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

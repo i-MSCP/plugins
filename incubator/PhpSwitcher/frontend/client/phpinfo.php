@@ -18,24 +18,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-$versionId = isset($_GET['version_id']) ? intval($_GET['version_id']) : 0;
+if(isset($_GET['version_id'])) {
+	$versionId = intval($_GET['version_id']);
 
-if ($versionId == 0) {
-	phpinfo();
-} else {
-	$stmt = exec_query('SELECT version_binary_path FROM php_switcher_version WHERE version_id = ?', $versionId);
-
-	if ($stmt->rowCount()) {
-		/** @var iMSCP_Plugin_Manager $pluginManager */
-		$pluginManager = iMSCP_Registry::get('pluginManager');
-		$phpinfoFilePath = $pluginManager->pluginGetDirectory() . "/PhpSwitcher/phpinfo/$versionId.html";
-
-		if (is_readable($phpinfoFilePath)) {
-			include $phpinfoFilePath;
-		} else {
-			showNotFoundErrorPage();
-		}
+	if ($versionId == 0) {
+		phpinfo();
+		exit;
 	} else {
-		showBadRequestErrorPage();
+		$stmt = exec_query('SELECT version_binary_path FROM php_switcher_version WHERE version_id = ?', $versionId);
+
+		if ($stmt->rowCount()) {
+			/** @var iMSCP_Plugin_Manager $pluginManager */
+			$pluginManager = iMSCP_Registry::get('pluginManager');
+			$phpinfoFilePath = $pluginManager->pluginGetDirectory() . "/PhpSwitcher/phpinfo/$versionId.html";
+
+			if (is_readable($phpinfoFilePath)) {
+				include $phpinfoFilePath;
+				exit;
+			} else {
+				showNotFoundErrorPage();
+			}
+		}
 	}
 }
+
+showBadRequestErrorPage();

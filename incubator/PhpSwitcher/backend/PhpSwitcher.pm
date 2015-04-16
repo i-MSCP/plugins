@@ -137,6 +137,8 @@ sub run
 					error($qrs);
 					return 1;
 				}
+
+				$phpVersions->{$phpVersionId}->{'version_status'} = 'ok' unless $rs;
 			}
 		}
 	}

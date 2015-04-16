@@ -66,7 +66,10 @@ on the PHP site. In such case, you can use the **--force-last** command line opt
 download the last released versions. However, you must be aware that the PHP compiler could fail to apply the set of
 patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
 
-Supported PHP versions are: **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
+Supported PHP versions are: **php4.4**, **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
+
+Be aware that even if supported, it is not recommended to install versions that have reached their end of life. You
+should really think before providing those versions since they can cause several security issues.
 
 ##### Changes made on PHP versions
 

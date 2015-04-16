@@ -52,10 +52,15 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		$eventManager->registerListener(
 			array(iMSCP_Events::onAdminScriptStart, iMSCP_Events::onClientScriptStart), array($this, 'setupNavigation')
 		);
+
+		$eventManager->registerListener(
+			array(iMSCP_Events::onAfterDeleteDomainAlias, iMSCP_Events::onAfterDeleteSubdomain),
+			array($this, 'afterDeleteDomain')
+		);
 	}
 
 	/**
-	 * Check plugin requirements
+	 * Check requirements
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -64,6 +69,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			$config = iMSCP_Registry::get('config');
+
 			if ($config['HTTPD_SERVER'] != 'apache_fcgid') {
 				set_page_message(tr('This plugin require the apache fcgid i-MSCP server implementation.'), 'error');
 				$event->stopPropagation();
@@ -326,6 +332,57 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 					execute_query($query);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Event listener responsible to delete PHP version data which belongs to a deleted domain (als,sub,alssub)
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function afterDeleteDomain(iMSCP_Events_Event $event)
+	{
+		$domainType = $event->getParam('type', 'als');
+
+		if (in_array($domainType, array('sub', 'alssub'))) {
+			if ($domainType == 'sub') {
+				exec_query(
+					"
+						DELETE FROM
+							t1
+						USING
+							php_switcher_version_admin AS t1
+						JOIN
+							subdomain AS t2 ON (t2.subdomain_id = 3)
+						JOIN
+							domain AS t3 USING(domain_id)
+						WHERE
+							t1.domain_name = CONCAT(t2.subdomain_name, '.', t3.domain_name)
+					",
+					$event->getParam('subdomainId')
+				);
+			} else {
+				exec_query(
+					"
+						DELETE FROM
+							t1
+						USING
+							php_switcher_version_admin AS t1
+						JOIN
+							subdomain_alias AS t2 ON(t2.subdomain_alias_id = ?)
+						JOIN
+							domain_aliasses AS t3 USING(alias_id)
+						WHERE
+							t1.domain_name = CONCAT(t2.subdomain_alias_name, '.', t3.alias_name)
+					",
+					$event->getParam('subdomainId')
+				);
+			}
+		} else {
+			exec_query(
+				'DELETE FROM php_switcher_version_admin WHERE domain_name = ?', $event->getParam('domainAliasName')
+			);
 		}
 	}
 
