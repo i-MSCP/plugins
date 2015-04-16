@@ -137,7 +137,7 @@ my %CONDITIONAL_BUILD_DEPS = (
     'percona' => [ ] # todo
 );
 
-# Map short PHP versions to long PHP version ( last known tiny PHP versions )
+# Map short PHP versions to long PHP versions ( last known tiny PHP versions )
 my %SHORT_TO_LONG_VERSION = (
 #    '4.4' => '4.4.9',
     '5.2' => '5.2.17',
@@ -215,7 +215,7 @@ eval {
 };
 
 if($@ || !@sVersions) {
-    print STDERR "\n$@\n" if $@;
+    print STDERR "\n$@" if $@;
     iMSCP::Getopt->showUsage();
 }
 
@@ -426,7 +426,7 @@ sub applyPatches
 sub install
 {
     my ($sVersion, $lVersion) = @_;
-    my $target = 'configure-php' . $sVersion;
+    my $target = 'install-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
