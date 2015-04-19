@@ -256,6 +256,19 @@ configure-php5.4-stamp: prepared-stamp
 
 	touch configure-php5.4-stamp
 
+configure-php5.5: configure-php5.5-stamp configure-common
+configure-php5.5-stamp: prepared-stamp
+	if [ -d cgi-build ]; then rm -rf cgi-build; fi
+	-mkdir cgi-build
+	cd cgi-build && \
+	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
+		$(COMMON_CONFIG) \
+		$(MYSQLND_CONFIG) \
+		--enable-cgi \
+		--with-sqlite=shared,/usr
+
+	touch configure-php5.4-stamp
+
 configure-php5.6: configure-php5.6-stamp configure-common
 configure-php5.6-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
@@ -284,6 +297,7 @@ configure-common-stamp:
 build-php5.2: configure-php5.2 build-common
 build-php5.3: configure-php5.3 build-common
 build-php5.4: configure-php5.4 build-common
+build-php5.5: configure-php5.5 build-common
 build-php5.6: configure-php5.6 build-common
 
 build-common: build-common-stamp
@@ -298,6 +312,7 @@ build-common-stamp:
 install-php5.2: build-php5.2 install-common
 install-php5.3: build-php5.3 install-common
 install-php5.4: build-php5.4 install-common
+install-php5.5: build-php5.5 install-common
 install-php5.6: build-php5.6 install-common
 
 install-common: install-common-stamp

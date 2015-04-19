@@ -1,5 +1,5 @@
 # Patches imported from: http://snapshot.debian.org/package/php5/5.4.39-0%2Bdeb7u2/
-# Patches refreshed for: php5.4.40
+# Patches refreshed for: php-5.4.40
 # For any trouble, please create a ticket at http://youtrack.i-mscp.net
 0001-001-libtool_fixes.patch
 0002-002-static_openssl.patch
@@ -23,7 +23,6 @@
 0023-116-posixness_fix.patch
 0024-libdb_is_-ldb.patch
 0025-fix_broken_upstream_tests.patch
-0026-use_embedded_timezonedb.patch
 0027-force_libmysqlclient_r.patch
 0028-sybase-alias.patch
 0029-strcmp_null-OnUpdateErrorLog.patch
