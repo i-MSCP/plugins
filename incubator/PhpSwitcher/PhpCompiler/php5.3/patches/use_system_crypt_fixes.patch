@@ -1,0 +1,11 @@
+--- a/ext/standard/tests/strings/bug51059.phpt
++++ b/ext/standard/tests/strings/bug51059.phpt
+@@ -3,7 +3,7 @@ Bug #51059 crypt() segfaults on certain
+ --FILE--
+ <?php
+ $res = crypt(b'a', b'_');
+-if ($res === b'*0' || $res === b'*1') echo 'OK';
++if ($res === b'__DAZ.Z4ErJDo') echo 'OK';
+ else echo 'Not OK';
+ 
+ ?>

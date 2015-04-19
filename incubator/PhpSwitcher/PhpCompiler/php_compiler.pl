@@ -19,6 +19,7 @@
 use strict;
 use warnings;
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use FindBin qw($Bin);
 use lib '/var/www/imscp/engine/PerlLib';
 use File::Basename;
 use File::Spec;
@@ -35,12 +36,6 @@ umask 022;
 
 $ENV{'LANG'} = 'C.UTF-8';
 
-# Quilt common configuration
-$ENV{'QUILT_PUSH_ARGS'} = '--color=never';
-$ENV{'QUILT_DIFF_ARGS'} = '--no-timestamps --no-index -p ab --color=never';
-$ENV{'QUILT_REFRESH_ARGS'} = '--no-timestamps --no-index -p ab';
-$ENV{'QUILT_DIFF_OPTS'} = '-p';
-
 # Setup log file
 newDebug('phpswitcher-php-compiler.log');
 
@@ -49,17 +44,14 @@ iMSCP::Bootstrapper->getInstance()->boot(
     { 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
 );
 
-# Compiler maintenance directory
-my $MAINT_DIR = $main::imscpConfig{'PLUGINS_DIR'} . '/PhpSwitcher/PhpCompiler/phpswitcher';
-
 # Common build dependencies
 # Build dependencies were pulled from many Debian control files.
 # Note: Packages are installed only if available.
 my @BUILD_DEPS = (
     'autoconf',
-    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
+#    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
     'automake',
-    'automake1.11',
+#    'automake1.11',
     'bison',
     'chrpath',
     'firebird-dev',
@@ -141,7 +133,7 @@ my %CONDITIONAL_BUILD_DEPS = (
 my %SHORT_TO_LONG_VERSION = (
 #    '4.4' => '4.4.9',
     '5.2' => '5.2.17',
-#    '5.3' => '5.3.29',
+    '5.3' => '5.3.29',
 #    '5.4' => '5.4.39',
 #    '5.5' => '5.5.23',
     '5.6' => '5.6.7'
@@ -164,7 +156,7 @@ my %LONG_VERSION_TO_URL = ();
 
 # Default values for non-boolean command line options
 my $BUILD_DIR = '/usr/local/src/phpswitcher';
-my $INSTALL_DIR = '/opt/phpswitcher';
+my $INSTALL_DIR = '/opt';
 my $PARALLEL_JOBS = 4;
 
 # Parse command line options
@@ -247,12 +239,12 @@ sub setOptions
     my ($option, $value) = @_;
 
     if($option eq 'builddir') {
-        print output(sprintf('Build directory set to %s', $value), 'info');
         $BUILD_DIR = $value;
+        print output(sprintf('Build directory has been set to %s', $value), 'info');
     } elsif($option eq 'installdir') {
         if(-d $value) {
-            print output(sprintf('Base installation directory set to %s', $value), 'info');
             $INSTALL_DIR = $value;
+            print output(sprintf('Base installation directory has been set to %s', $value), 'info');
         } else {
             die("Directory speficied by the --installdir option must exists.\n");
         }
@@ -296,7 +288,7 @@ sub installBuildDep
     # this is not supported when using the --with--pic option
     unlink '/usr/lib/x86_64-linux-gnu/libc-client.a' if -s '/usr/lib/x86_64-linux-gnu/libc-client.a';
 
-    print output(sprintf('Build dependencies were successfully installed'), 'ok');
+    print output(sprintf('Build dependencies have been successfully installed'), 'ok');
 }
 
 sub getLongVersion
@@ -369,7 +361,7 @@ sub downloadSource
     my $srcPath = File::Spec->join($BUILD_DIR, "php-$lVersion");
 
     unless(-f $archPath) {
-        print output(sprintf('Donwloading php-%s source archive into %s...', $lVersion, $BUILD_DIR), 'info');
+        print output(sprintf('Donwloading php-%s archive into %s...', $lVersion, $BUILD_DIR), 'info');
 
         if(iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } )) {
             fatal(sprintf('Unable to create the %s build directory', $BUILD_DIR));
@@ -379,28 +371,30 @@ sub downloadSource
         (
             execute("wget -t 1 -O $archPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
         ) or fatal(sprintf(
-            "An error occurred while downloading the php-%s source archive: %s", $lVersion, $stderr
+            "An error occurred while downloading the php-%s archive: %s", $lVersion, $stderr
         ));
         debug($stdout) if $stdout;
 
-        print output(sprintf('php-%s source archive successfully downloaded', $lVersion), 'ok');
+        print output(sprintf('php-%s archive has been successfully downloaded', $lVersion), 'ok');
     } else {
-        print output(sprintf('php-%s source archive already present - skipping download', $lVersion), 'ok');
+        print output(sprintf('php-%s archive is already present - skipping download', $lVersion), 'info');
     }
 
     unless($DOWNLOAD_ONLY) {
-        print output(sprintf('Extracting php-%s source archive into %s ...', $lVersion, $srcPath), 'info');
+        print output(sprintf('Extracting php-%s archive into %s ...', $lVersion, $srcPath), 'info');
 
         # Remove previous directory if any
-        iMSCP::Dir->new( dirname =>  $srcPath )->remove();
+        (iMSCP::Dir->new( dirname => $srcPath )->remove() == 0) or fatal(
+            sprintf('Unable to remove the %s directory', $srcPath)
+        );
 
         my ($stdout, $stderr);
         (execute("tar -xzf $archPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
-            "An error occurred while extracting the php-%s source archive: %s", $lVersion, $stderr
+            "An error occurred while extracting the php-%s archive: %s", $lVersion, $stderr
         ));
         debug($stdout) if $stdout;
 
-        print output(sprintf('php-%s source archive successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
+        print output(sprintf('php-%s archive has been successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
     }
 }
 
@@ -411,16 +405,16 @@ sub applyPatches
     print output(sprintf('Applying patches on php-%s source...', $lVersion), 'info');
 
     # Make quilt aware of patches location
-    $ENV{'QUILT_PATCHES'} = "$MAINT_DIR/php$sVersion";
+    $ENV{'QUILT_PATCHES'} = "$Bin/php$sVersion/patches";
 
     my ($stdout, $stderr);
-    (execute("quilt push --fuzz 0 -a", undef, \$stderr) == 0) or fatal(sprintf(
+    (execute("quilt --quiltrc /dev/null push --fuzz 0 -a -q", undef, \$stderr) == 0) or fatal(sprintf(
         'An error occurred while applying patches on php-%s source: %s', $lVersion, $stderr
     ));
     debug($stdout) if $stdout;
     error($stderr) if $stderr;
 
-    print output(sprintf('Patches were successfully applied on php-%s source', $lVersion), 'ok');
+    print output(sprintf('Patches have been successfully applied on php-%s source', $lVersion), 'ok');
 }
 
 sub install
@@ -431,29 +425,41 @@ sub install
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    if($sVersion ~~ [ '4.4', '5.2']) {
-        # Force usage of autoconf2.59 since PHP version older than php5.3 are not compatible with newest versions
-        $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
-        $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
-
-        $PARALLEL_JOBS = 1; # Parallel jobs don't work well with older PHP versions
+    if($sVersion ~~ [ '4.4', '5.2' ]) {
+        # Force usage of autoconf2.59 since older PHP versions are not compatible with newest autoconf versions
+        #$ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
+        #$ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
+        $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=1"; # Parallel jobs don't work well with older PHP versions
+    } else {
+        $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
     }
 
-    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
+    # Remove previous installation if any
+    (iMSCP::Dir->new( dirname => $installDir )->remove() == 0) or fatal(
+        sprintf('Unable to remove %s directory', $installDir)
+    );
+
+    # Execute make target
 
     my $stderr;
-    (execute("make -f $MAINT_DIR/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred during php-%s compilation process: %s', $lVersion, $stderr
+    (execute("make -f $Bin/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(sprintf(
+        'An error occurred while executing the %s make target for php-%s: %s', $target, $lVersion, $stderr
     ));
 
-    # Copy modules.ini file
+    print output(sprintf('The %s make target has been successfully executed for php-%s', $target, $lVersion), 'ok');
+
+    # Install modules.ini file
+
+    print output(sprintf('Installing PHP modules.ini file for php-%s...', $lVersion), 'info');
+
     (
-        iMSCP::File->new( filename => "$MAINT_DIR/php$sVersion/modules.ini" )->copyFile(
+        iMSCP::File->new( filename => "$Bin/php$sVersion/modules.ini" )->copyFile(
             "$installDir/etc/php/conf.d", { preserve => 'no' }
         ) == 0
     ) or fatal(sprintf(
-        'An error occurred during php-%s installation process: Unable to copy the PHP modules.ini file', $lVersion
+        'An error occurred while copying the PHP modules.ini file for php-%s: Unable to copy the PHP modules.ini file',
+        $lVersion
     ));
 
-    print output(sprintf('%s make target successfully executed for php-%s', $target, $lVersion), 'ok');
+    print output(sprintf('PHP modules.ini file has been successfully installed for php-%s', $lVersion), 'ok');
 }

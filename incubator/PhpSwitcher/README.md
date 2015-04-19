@@ -7,13 +7,15 @@ This plugin allows to setup additional PHP versions for your customers.
 ## Requirements
 
 * i-MSCP version >= 1.2.3
-* i-MSCP Fcgid httpd server implementation ( apache_fcgid )
+* i-MSCP Apache Fcgid httpd server implementation
 
 ## Installation
 
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
+4. Compile and install additional PHP versions ( see below to know how )
+5. Register additional PHP versions into the PhpSwitcher interface ( see below to know how )
 
 ## Update
 
@@ -49,7 +51,7 @@ Or if you want install all PHP versions supported by this script, you can run it
 ```
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
-the **/opt/phpswitcher** subtree but you can change this behavior by using command line options.
+the **/opt/** subtree but you can change this behavior by using command line options.
 
 To get more information about available command line options, you can run:
 
@@ -63,12 +65,12 @@ To get more information about available command line options, you can run:
 The versions supported by the PHP compiler are the last which were available when this plugin version has been released.
 This means that by default, the PHP versions provided by this script can be lower than the last that have been released
 on the PHP site. In such case, you can use the **--force-last** command line option which tells the PHP compiler to
-download the last released versions. However, you must be aware that the PHP compiler could fail to apply the set of
+download the last released versions. However, you must be aware that the PHP compiler could fail to apply the needed
 patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
 
 Supported PHP versions are: **php4.4**, **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
-Be aware that even if supported, it is not recommended to install versions that have reached their end of life. You
+**Warning:** Even if supported, it is not recommended to install PHP versions that have reached their end of life. You
 should really think before providing those versions since they can cause several security issues.
 
 ##### Changes made on PHP versions
@@ -83,8 +85,8 @@ following changes:
 - Any patch that fix a bug, a security issue or an FTBFS issue
 
 The majority of the applied patches were pulled from the Debian php5 source package and adjusted when needed, while some
-other were created to resolve FTBFS issues ( mostly for php5.2 ). Patch which were not pulled from Debian php5 sources
-package are prefixed with the **nxw_** prefix.
+other were created to resolve FTBFS issues. Patch which were not pulled from Debian php5 sources package are prefixed
+with the **nxw_** prefix.
 
 To resume here, a PHP version that is compiled and installed using the PHP compiler is more secure and more appropriate
 for use on Debian systems than a versions which is compiled manually.
@@ -95,19 +97,19 @@ PHP extensions which are enabled are the same that are enabled in PHP versions t
 
 **Notes:**
 
-- db4 extension is disabled for php5.2 due to incompatibility with the Berkeley Database Libraries versions that are
-shipped with Debian >= wheezy and Ubuntu >= Precise.
+- db4 extension is disabled for PHP versions older than 5.3 due to incompatibility with the Berkeley Database Libraries
+versions that are shipped with Debian >= wheezy and Ubuntu >= Precise.
 - Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration) section
 for more details.
 
 #### Build dependencies
 
-The PHP compiler installs the build dependencies for you but in the case where a package that provides a build
-dependency isn't available on your system, the PHP compiler will go ahead and thus, the configuration process will fail.
+The PHP compiler installs the build dependencies for you but in the case where a package that is needed isn't available
+on your system, the PHP compiler will go ahead and thus, the configuration process will fail.
 
 #### Parallel Execution ( GNU make )
 
-For faster compilation, the parallel exuction feature which is provided by GNU make is enabled when possible. This
+For faster compilation, the parallel exuction feature that is provided by GNU make is enabled when possible. This
 feature allows to execute many recipes simultaneously. By default, 4 recipes are executed at once. On some systems where
 the resources are poor, you could have to lower this value. This can be achieved using the **--parallel-jobs** command
 line option which takes a number as value:
@@ -124,6 +126,67 @@ will tell GNU make to not run more than 2 recipes at once.
 See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/html_node/Parallel.html) for further details.
 
 ## Configuration
+
+### PHP configuration
+
+This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
+
+First, it is important to note that it is useless to try to edit a PHP .ini file that is located under the **/etc/php5**
+directory for a PHP version which has been installed by the PHP compiler. Indeed, the .ini files located under that
+directory are only relevant for the PHP versions which are provided by your distribution.
+
+For the same reasons, it is useless to try to enable or disable a PHP module using the command line tools
+( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on the .ini files that are
+provided by your distribution.
+
+By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/**. Thus, if you want
+to modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that subtree.
+The following layout apply for the PHP .ini files:
+
+- The default php.ini file is located at **/opt/\<php_version\>/etc/php/php.ini**
+- Additional .ini files if any are located in the **/opt/\<php_version\>/etc/php/conf.d** directory
+- PHP .ini files for i-MSCP customers are located under the **/var/www/fcgi/\<domain.tld\>/php5** directory
+
+##### PHP extensions ( modules )
+
+For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
+version, the PHP compiler create a specific .ini file that enable most of available PHP extensions. This file is located
+at **/opt/\<php_version\>/etc/php/conf.d/modules.ini**.
+
+Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
+enable/disable a specific module, you must just edit the **/opt/\<php_version\>/etc/php/conf.d/modules.ini**
+file and then, restart the Web server.
+
+##### Pecl extensions
+
+If you need to install a Pecl extension for a specific PHP version, you must not use the **pecl** nor the **phpize*
+scripts which are shipped with your distribution. Instead, you must use those which are provided in the directory of the
+PHP version you want operate on.
+
+For instance, if you want install the **FileInfo** Pecl extension which was not yet integrated in php-5.2, you must
+process as follow:
+
+```shell
+# /opt/php5.2/bin/pecl install fileinfo
+# echo 'extension = fileinfo.so' >> /opt/php5.2/etc/php/conf.d/modules.ini 
+```
+
+Once done, you must reload the Web server as follow
+
+```shell
+# service apache2 reload
+```
+
+### PHP info files
+
+For each PHP version that is registered through the PhpSwitcher admin interface ( see below ), a static PHP info file is
+generated, which allows your customers to get information ( phpinfo ) via their own PhpSwitcher interface. This feature,
+if not desired, can be easily disabled by editing the plugin configuration file and by updating the plugin list through
+the plugin management interface.
+
+Be aware that because the phpinfo files are static, you must re-generate them each time you made a configuration change
+for a specific PHP version ( eg. when you enable or disable a PHP/ Pecl extension ). This task can be done through the
+PhpSwitcher admin interface.
 
 ### Registering a PHP version in PhpSwitcher
 
@@ -146,7 +209,7 @@ available for your customers. This task must be done as follow:
 	</tr>
 	<tr>
 		<td>PHP binary path</td>
-		<td>/opt/phpswitcher/php5.3/bin/php-cgi</td>
+		<td>/opt/php5.3/bin/php-cgi</td>
 		<td>This is the path of the PHP binary</td>
 	</tr>
 </table>
@@ -155,36 +218,6 @@ Once it's done and if all goes well, your customers should be able to switch to 
 PhpSwitcher interface, which is available in the **Domains** section.
 
 **Note:** You must of course adjust the parameters above according the PHP version that you want to add.
-
-### PHP configuration
-
-This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
-
-First, it is important to note that it is useless to try to edit a PHP .ini file that is located under the **/etc/php5**
-directory for a PHP version which has been installed by the PHP compiler. Indeed, the .ini files located under that
-directory are only relevant for the PHP versions which are provided by your distribution.
-
-For the same reasons, it is useless to try to enable or disable a PHP module using the command line tools
-( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on the .ini files that are
-provided by your distribution.
-
-By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/phpswitcher**. Thus, if
-you want to modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
-subtree. The following layout apply for the PHP .ini files:
-
-- The default php.ini file is located at **/opt/phpswitcher/\<php_version\>/etc/php/php.ini**
-- Additional .ini files if any are located in the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d** directory
-- PHP .ini files for i-MSCP customers are located under the **/var/www/fcgi/\<domain.tld\>/php5** directory
-
-##### PHP extensions ( modules )
-
-For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
-version, the PHP compiler create a specific .ini file that enable most of available PHP extensions. This file is is
-located at **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**.
-
-Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
-enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**
-file and then, restart the Web server.
 
 ## Translation
 
