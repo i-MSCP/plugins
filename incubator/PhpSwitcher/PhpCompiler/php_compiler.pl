@@ -121,12 +121,12 @@ my @BUILD_DEPS = (
     'lemon'
 );
 
-# Conditional MySQL build dependencies
+# Conditional build dependencies
 # Only needed for PHP5.2 since for newest versions, we are using MySQL native driver ( mysqlnd )
 my %CONDITIONAL_BUILD_DEPS = (
     'mysql' => [ 'libmysqlclient-dev', 'libmysqlclient15-dev' ],
-    'mariadb' => [ 'libmariadb-client-lgpl-dev', 'libmariadb-client-lgpl-dev-compat' ],
-    'percona' => [ ] # todo
+    'mariadb' => [ 'libmariadbclient-dev' ],
+    'percona' => [ 'libmysqlclient-dev' ]
 );
 
 # Map short PHP versions to long PHP versions ( last known tiny PHP versions )
@@ -261,6 +261,7 @@ sub installBuildDep
 
     if($sVersion ~~ [ '4.4', '5.2' ]) {
         (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
+
         if($sqlServer) {
             @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
         } else {
@@ -279,13 +280,13 @@ sub installBuildDep
     @BUILD_DEPS = sort grep { $_ ~~ @BUILD_DEPS } split /\n/, $stdout;
 
     # Install packages
-    (execute("apt-get -y --no-install-recommends install @BUILD_DEPS", undef, \$stderr) == 0) or fatal(sprintf(
-        "An error occurred while installing build dependencies: %s", $stderr
-    ));
+    (execute("apt-get -y --force-yes --no-install-recommends install @BUILD_DEPS", undef, \$stderr) == 0) or fatal(
+        sprintf("An error occurred while installing build dependencies: %s", $stderr)
+    );
 
-    # Fix: "can not be used when making a shared object; recompile with –fPIC ... libc-client.a..." compile time error
-    # Be sure that we do not have any /usr/lib/x86_64-linux-gnu/libc-client.a symlink to /usr/lib/libc-client.a since
-    # this is not supported when using the --with--pic option
+    # Fix possible "can not be used when making a shared object; recompile with –fPIC ... libc-client.a..." compile time
+    # error. This error occurs when using the --with--pic option and when the /usr/lib/x86_64-linux-gnu/libc-client.a
+    # symlink to /usr/lib/libc-client.a has been created manually.
     unlink '/usr/lib/x86_64-linux-gnu/libc-client.a' if -s '/usr/lib/x86_64-linux-gnu/libc-client.a';
 
     print output(sprintf('Build dependencies have been successfully installed'), 'ok');
