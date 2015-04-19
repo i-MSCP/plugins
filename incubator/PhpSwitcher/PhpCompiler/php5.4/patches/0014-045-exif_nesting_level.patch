@@ -1,0 +1,19 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Fri, 20 Mar 2015 12:08:44 +0100
+Subject: 045-exif_nesting_level
+
+---
+ ext/exif/exif.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/ext/exif/exif.c
++++ b/ext/exif/exif.c
+@@ -99,7 +99,7 @@ typedef unsigned char uchar;
+ 
+ #define EFREE_IF(ptr)	if (ptr) efree(ptr)
+ 
+-#define MAX_IFD_NESTING_LEVEL 100
++#define MAX_IFD_NESTING_LEVEL 250
+ 
+ /* {{{ arginfo */
+ ZEND_BEGIN_ARG_INFO(arginfo_exif_tagname, 0)

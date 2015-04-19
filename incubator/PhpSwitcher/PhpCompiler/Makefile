@@ -62,9 +62,6 @@ endif
 # Enable producing of debugging information
 #CFLAGS += -g
 
-# phpize build directory
-PHPIZE_BUILDDIR = lib/php/build
-
 # support new (>= 2.2) and older versions of libtool
 LIBTOOL_DIRS = /usr/share/libtool/config /usr/share/libtool
 LTMAIN = $(firstword $(wildcard $(foreach d,$(LIBTOOL_DIRS),$d/ltmain.sh)))
@@ -246,6 +243,19 @@ configure-php5.3-stamp: prepared-stamp
 
 	touch configure-php5.3-stamp
 
+configure-php5.4: configure-php5.4-stamp configure-common
+configure-php5.4-stamp: prepared-stamp
+	if [ -d cgi-build ]; then rm -rf cgi-build; fi
+	-mkdir cgi-build
+	cd cgi-build && \
+	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
+		$(COMMON_CONFIG) \
+		$(MYSQLND_CONFIG) \
+		--enable-cgi \
+		--with-sqlite=shared,/usr
+
+	touch configure-php5.4-stamp
+
 configure-php5.6: configure-php5.6-stamp configure-common
 configure-php5.6-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
@@ -273,6 +283,7 @@ configure-common-stamp:
 #build-php4.4: configure-php4.4 build-common
 build-php5.2: configure-php5.2 build-common
 build-php5.3: configure-php5.3 build-common
+build-php5.4: configure-php5.4 build-common
 build-php5.6: configure-php5.6 build-common
 
 build-common: build-common-stamp
@@ -286,17 +297,18 @@ build-common-stamp:
 #install-php4.4: build-php4.4 install-common
 install-php5.2: build-php5.2 install-common
 install-php5.3: build-php5.3 install-common
+install-php5.4: build-php5.4 install-common
 install-php5.6: build-php5.6 install-common
 
 install-common: install-common-stamp
 install-common-stamp:
 	cd cgi-build && $(MAKE) install
 	mkdir -p $(PREFIX)/etc/php/conf.d
-	ln -sf /usr/share/misc/config.guess $(PREFIX)/$(PHPIZE_BUILDDIR)/config.guess
-	ln -sf /usr/share/misc/config.sub $(PREFIX)/$(PHPIZE_BUILDDIR)/config.sub
-	ln -sf /usr/share/aclocal/libtool.m4 $(PREFIX)/$(PHPIZE_BUILDDIR)/libtool.m4
-	ln -sf $(LTMAIN_DIR)ltmain.sh $(PREFIX)/$(PHPIZE_BUILDDIR)/ltmain.sh
-	ln -sf /usr/bin/shtool $(PREFIX)/$(PHPIZE_BUILDDIR)/shtool
+	ln -sf /usr/share/misc/config.guess $(PREFIX)/lib/php/build/config.guess
+	ln -sf /usr/share/misc/config.sub $(PREFIX)/lib/php/build/config.sub
+	ln -sf /usr/share/aclocal/libtool.m4 $(PREFIX)/lib/php/build/libtool.m4
+	ln -sf $(LTMAIN_DIR)ltmain.sh $(PREFIX)/lib/php/build/ltmain.sh
+	ln -sf /usr/bin/shtool $(PREFIX)/lib/php/build/shtool
 
 	touch install-common-stamp
 
@@ -308,4 +320,4 @@ clean: unprepared
 	rm -rf cgi-build
 
 .NOTPARALLEL:
-.PHONY: configure-php5.2 configure-php5.3 configure-php5.6 build-php5.2 build-php5.3 build-php5.6 install-php5.2 install-php5.3 install-php5.6 clean
+.PHONY: configure-php5.2 configure-php5.3 configure-php5.4 configure-php5.6 build-php5.2 build-php5.3 build-php5.4 build-php5.6 install-php5.2 install-php5.3 install-php5.4 install-php5.6 clean

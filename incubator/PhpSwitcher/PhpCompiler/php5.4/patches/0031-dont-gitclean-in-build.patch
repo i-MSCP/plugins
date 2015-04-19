@@ -1,0 +1,17 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Fri, 20 Mar 2015 12:08:46 +0100
+Subject: dont-gitclean-in-build
+
+---
+ build/build.mk | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/build/build.mk
++++ b/build/build.mk
+@@ -75,6 +75,5 @@ gitclean-work:
+ 	@if (test ! -f '.git/info/exclude' || grep -s "git-ls-files" .git/info/exclude); then \
+ 		(echo "Rebuild .git/info/exclude" && echo '*.o' > .git/info/exclude && git svn propget svn:ignore | grep -v config.nice >> .git/info/exclude); \
+ 	fi; \
+-	git clean -X -f -d;
+ 
+ .PHONY: $(ALWAYS) snapshot

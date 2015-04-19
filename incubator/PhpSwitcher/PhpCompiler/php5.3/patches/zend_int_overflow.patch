@@ -1,0 +1,110 @@
+Author: Sean Finney <seanius@debian.org>
+Description: Another integer overflow/underflow logic fix.
+ Once again, don't rely on undefined behavior and instead detect
+ the overflow/underflow conditions intelligently.
+Bug: http://bugs.php.net/bug.php?id=51008
+Bug-Debian: http://bugs.debian.org/570144
+--- a/Zend/zend_hash.h
++++ b/Zend/zend_hash.h
+@@ -306,9 +306,11 @@ END_EXTERN_C()
+ 
+ #define ZEND_HANDLE_NUMERIC(key, length, func) do {							\
+ 	register const char *tmp = key;											\
++	int negative = 0;											\
+ 																			\
+ 	if (*tmp == '-') {														\
+ 		tmp++;																\
++		negative = 1;																\
+ 	}																		\
+ 	if (*tmp >= '0' && *tmp <= '9') { /* possibly a numeric index */		\
+ 		const char *end = key + length - 1;									\
+@@ -322,19 +324,19 @@ END_EXTERN_C()
+ 		     *tmp > '2')) { /* overflow */									\
+ 			break;															\
+ 		}																	\
+-		idx = (*tmp - '0');													\
++		idx = ((negative)?-1:1) * (*tmp - '0');								\
+ 		while (++tmp != end && *tmp >= '0' && *tmp <= '9') {				\
+-			idx = (idx * 10) + (*tmp - '0');								\
+-		}																	\
+-		if (tmp == end) {													\
+-			if (*key == '-') {												\
+-				if (idx-1 > LONG_MAX) { /* overflow */						\
+-					break;													\
+-				}															\
+-				idx = 0 - idx;               									\
+-			} else if (idx > LONG_MAX) { /* overflow */						\
++			int digit = (*tmp - '0');										\
++			if ( (!negative) && idx <= (LONG_MAX-digit)/10 ) {				\
++				idx = (idx * 10) + digit;									\
++			} else if ( (negative) && idx >= (LONG_MIN+digit)/10 ) {		\
++				idx = (idx * 10) - digit;									\
++			} else {														\
++				--tmp; /* overflow or underflow, make sure tmp != end */	\
+ 				break;														\
+ 			}																\
++		}																	\
++		if (tmp == end) {													\
+ 			return func;													\
+ 		}																	\
+ 	}																		\
+--- a/Zend/tests/bug45877.phpt
++++ b/Zend/tests/bug45877.phpt
+@@ -1,23 +1,40 @@
+ --TEST--
+ Bug #45877 (Array key '2147483647' left as string)
+---INI--
+-precision=16
+ --FILE--
+ <?php
+-$keys = array(PHP_INT_MAX,
+-	(string) PHP_INT_MAX,
+-	(string) (-PHP_INT_MAX - 1),
+-	-PHP_INT_MAX - 1,
+-	(string) (PHP_INT_MAX + 1));
++$max = sprintf("%d", PHP_INT_MAX);
++switch($max) {
++case "2147483647": /* 32-bit systems */
++	$min = "-2147483648";
++	$overflow = "2147483648";
++	$underflow = "-2147483649";
++	break;
++case "9223372036854775807": /* 64-bit systems */
++	$min = "-9223372036854775808";
++	$overflow = "9223372036854775808";
++	$underflow = "-9223372036854775809";
++	break;
++default:
++	die("failed: unknown value for PHP_MAX_INT");
++	break;
++}
+ 
+-var_dump(array_fill_keys($keys, 1));
+-?>
+---EXPECTF--
+-array(3) {
+-  [%d7]=>
+-  int(1)
+-  [-%d8]=>
+-  int(1)
+-  ["%s"]=>
+-  int(1)
++function test_value($val, $msg) {
++	$a = array($val => 1);
++	$keys = array_keys($a);
++	if ($val == $keys[0]) $result = "ok";
++	else $result = "failed ($val != $keys[0])";
++	echo "$msg: $result\n";
+ }
++
++test_value($max, "max");
++test_value($overflow, "overflow");
++test_value($min, "min");
++test_value($underflow, "underflow");
++
++?>
++--EXPECT--
++max: ok
++overflow: ok
++min: ok
++underflow: ok

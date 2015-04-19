@@ -33,6 +33,7 @@ strcmp_null-OnUpdateErrorLog.patch
 dont-gitclean-in-build.patch
 shtool_mkdir_-p_-race-condition.patch
 qdbm-is-usr_include_qdbm.patch
+zend_int_overflow.patch
 fix_broken_sha2_test.patch
 php_crypt_revamped.patch
 use_system_crypt_fixes.patch

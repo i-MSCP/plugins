@@ -134,7 +134,7 @@ my %SHORT_TO_LONG_VERSION = (
 #    '4.4' => '4.4.9',
     '5.2' => '5.2.17',
     '5.3' => '5.3.29',
-#    '5.4' => '5.4.39',
+    '5.4' => '5.4.40',
 #    '5.5' => '5.5.23',
     '5.6' => '5.6.7'
 );
@@ -176,13 +176,13 @@ OPTIONS:
  -i,    --installdir    Base installation directory ( /opt/phpswitcher ).
  -d,    --download-only Download only.
  -f,    --force-last    Force use of the last available PHP versions.
- -p,    --parallel-jobs Number of parallel jobs for make ( default: 4 ).
+ -j,    --parallel-jobs Number of parallel jobs for make ( default: 4 ).
  -v,    --verbose       Enable verbose mode.},
  'builddir|b=s' => sub { setOptions(@_); },
  'installdir|i=s' => sub { setOptions(@_); },
  'download-only|d' => \ my $DOWNLOAD_ONLY,
  'force-last|f' => \ my $FORCE_LAST,
- 'parallel-jobs|p=i' => sub { setOptions(@_); },
+ 'parallel-jobs|j=i' => sub { setOptions(@_); },
  'verbose|v' => sub { setVerbose(@_); }
 );
 
@@ -407,11 +407,10 @@ sub applyPatches
     # Make quilt aware of patches location
     $ENV{'QUILT_PATCHES'} = "$Bin/php$sVersion/patches";
 
-    my ($stdout, $stderr);
+    my $stderr;
     (execute("quilt --quiltrc /dev/null push --fuzz 0 -a -q", undef, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred while applying patches on php-%s source: %s', $lVersion, $stderr
+        'An error occurred while applying patches on php-%s source', $lVersion
     ));
-    debug($stdout) if $stdout;
     error($stderr) if $stderr;
 
     print output(sprintf('Patches have been successfully applied on php-%s source', $lVersion), 'ok');

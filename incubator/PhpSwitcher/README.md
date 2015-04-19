@@ -118,7 +118,7 @@ For instance:
 
 ```shell
 # cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
-# perl php_compiler.pl --parallel-job 2 php5.2
+# perl php_compiler.pl --parallel-jobs 2 php5.2
 ```
 
 will tell GNU make to not run more than 2 recipes at once.
