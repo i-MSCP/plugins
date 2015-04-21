@@ -1,0 +1,116 @@
+--- a/ext/pcre/config0.m4
++++ b/ext/pcre/config0.m4
+@@ -32,7 +32,7 @@ if test "$PHP_PCRE_REGEX" != "no"; then
+       AC_MSG_ERROR([Could not find pcre.h in $PHP_PCRE_REGEX])
+     fi
+ 
+-    for j in $PHP_PCRE_REGEX $PHP_PCRE_REGEX/lib; do
++    for j in $PHP_PCRE_REGEX $PHP_PCRE_REGEX/lib/$DEB_HOST_MULTIARCH $PHP_PCRE_REGEX/lib; do
+       test -f $j/libpcre.a -o -f $j/libpcre.$SHLIB_SUFFIX_NAME && PCRE_LIBDIR=$j
+     done
+     
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -1694,7 +1694,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
+     fi
+ 
+     for i in $PHP_KERBEROS; do
+-      if test -f $i/lib/libkrb5.a || test -f $i/lib/libkrb5.$SHLIB_SUFFIX_NAME; then
++      if test -f $i/lib/libkrb5.$SHLIB_SUFFIX_NAME || test -f $i/lib/$DEB_HOST_MULTIARCH/libkrb5.$SHLIB_SUFFIX_NAME || test -f $i/lib/libkrb5.a; then
+         PHP_KERBEROS_DIR=$i
+         break
+       fi
+--- a/ext/ldap/config.m4
++++ b/ext/ldap/config.m4
+@@ -48,7 +48,7 @@ if test "$PHP_LDAP" != "no"; then
+     LDAP_PTHREAD=
+   fi
+ 
+-  if test -f $LDAP_LIBDIR/liblber.a -o -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME; then
++  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME; then
+     PHP_ADD_LIBRARY_WITH_PATH(lber, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+--- a/ext/mssql/config.m4
++++ b/ext/mssql/config.m4
+@@ -32,7 +32,7 @@ if test "$PHP_MSSQL" != "no"; then
+     fi
+   fi  
+ 
+-  if test ! -r "$FREETDS_INSTALLATION_DIR/lib/libtds.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/libtds.so"; then
++  if test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/$DEB_HOST_MULTIARCH/libsybdb.so" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.so"; then
+      AC_MSG_ERROR(Could not find $FREETDS_INSTALLATION_DIR/lib/libtds.[a|so])
+   fi
+ 
+--- a/ext/mysql/config.m4
++++ b/ext/mysql/config.m4
+@@ -122,7 +122,12 @@ elif test "$PHP_MYSQL" != "no"; then
+   esac
+ 
+   for i in lib lib/mysql; do
+-    MYSQL_LIB_CHK($i)
++    MYSQL_LIB_CHK($i/$DEB_HOST_MULTIARCH)
++    if test -z "$MYSQL_LIB_DIR"; then
++      MYSQL_LIB_CHK($i)
++    else
++      MYSQL_LIB_DIR=$MYSQL_DIR/$i
++    fi
+   done
+ 
+   if test -z "$MYSQL_LIB_DIR"; then
+--- a/ext/gmp/config.m4
++++ b/ext/gmp/config.m4
+@@ -9,6 +9,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+   for i in $PHP_GMP /usr/local /usr; do
+     test -f $i/include/gmp.h && GMP_DIR=$i && break
++    test -f $i/include/$DEB_HOST_MULTIARCH/gmp.h && GMP_DIR=$i && break
+   done
+ 
+   if test -z "$GMP_DIR"; then
+@@ -29,6 +30,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+   PHP_ADD_LIBRARY_WITH_PATH(gmp, $GMP_DIR/lib, GMP_SHARED_LIBADD)
+   PHP_ADD_INCLUDE($GMP_DIR/include)
++  PHP_ADD_INCLUDE($GMP_DIR/include/$DEB_HOST_MULTIARCH)
+ 
+   PHP_NEW_EXTENSION(gmp, gmp.c, $ext_shared)
+   PHP_SUBST(GMP_SHARED_LIBADD)
+--- a/ext/gd/config.m4
++++ b/ext/gd/config.m4
+@@ -51,7 +51,7 @@ AC_DEFUN([PHP_GD_JPEG],[
+   if test "$PHP_JPEG_DIR" != "no"; then
+ 
+     for i in $PHP_JPEG_DIR /usr/local /usr; do
+-      test -f $i/lib/libjpeg.$SHLIB_SUFFIX_NAME -o -f $i/lib/libjpeg.a && GD_JPEG_DIR=$i && break
++      test -f $i/lib/$DEB_HOST_MULTIARCH/libjpeg.$SHLIB_SUFFIX_NAME || test -f $i/lib/$DEB_HOST_MULTIARCH/libjpeg.a && GD_JPEG_DIR=$i && break
+     done
+ 
+     if test -z "$GD_JPEG_DIR"; then
+@@ -76,7 +76,7 @@ AC_DEFUN([PHP_GD_PNG],[
+   if test "$PHP_PNG_DIR" != "no"; then
+ 
+     for i in $PHP_PNG_DIR /usr/local /usr; do
+-      test -f $i/lib/libpng.$SHLIB_SUFFIX_NAME -o -f $i/lib/libpng.a && GD_PNG_DIR=$i && break
++      test -f $i/lib/$DEB_HOST_MULTIARCH/libpng.$SHLIB_SUFFIX_NAME || test -f $i/lib/$DEB_HOST_MULTIARCH/libpng.a && GD_PNG_DIR=$i && break
+     done
+ 
+     if test -z "$GD_PNG_DIR"; then
+@@ -111,7 +111,7 @@ AC_DEFUN([PHP_GD_XPM],[
+   if test "$PHP_XPM_DIR" != "no"; then
+ 
+     for i in $PHP_XPM_DIR /usr/local /usr/X11R6 /usr; do
+-      test -f $i/lib/libXpm.$SHLIB_SUFFIX_NAME -o -f $i/lib/libXpm.a && GD_XPM_DIR=$i && break
++      test -f $i/lib/$DEB_HOST_MULTIARCH/libXpm.$SHLIB_SUFFIX_NAME || test -f $i/lib/$DEB_HOST_MULTIARCH/libXpm.a && GD_XPM_DIR=$i && break
+     done
+ 
+     if test -z "$GD_XPM_DIR"; then
+@@ -366,7 +366,7 @@ dnl Header path
+ 
+ dnl Library path
+   for i in lib/gd1.3 lib/gd lib gd1.3 gd ""; do
+-    test -f "$PHP_GD/$i/libgd.$SHLIB_SUFFIX_NAME" -o -f "$PHP_GD/$i/libgd.a" && GD_LIB="$PHP_GD/$i"
++    test -f "$PHP_GD/$i/$DEB_HOST_MULTIARCH/libgd.$SHLIB_SUFFIX_NAME" || test -f "$PHP_GD/$i/$DEB_HOST_MULTIARCH/libgd.a" && GD_LIB="$PHP_GD/$i"
+   done
+ 
+   if test -n "$GD_INCLUDE" && test -n "$GD_LIB"; then

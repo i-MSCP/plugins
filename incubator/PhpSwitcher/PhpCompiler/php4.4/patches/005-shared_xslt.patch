@@ -1,0 +1,18 @@
+--- a/ext/xslt/config.m4
++++ b/ext/xslt/config.m4
+@@ -11,6 +11,7 @@ PHP_ARG_ENABLE(xslt, whether to enable x
+ 
+ PHP_ARG_WITH(xslt-sablot, for XSLT Sablotron backend,
+ [  --with-xslt-sablot=<DIR>  XSLT: Enable the sablotron backend.], no, no)
++php_xslt_shared=$ext_shared
+ 
+ PHP_ARG_WITH(expat-dir, for libexpat dir for Sablotron XSL support,
+ [  --with-expat-dir=<DIR>    XSLT: libexpat dir for Sablotron.], no, no)
+@@ -22,6 +23,7 @@ PHP_ARG_WITH(sablot-js, for JavaScript f
+ [  --with-sablot-js=<DIR>    XSLT: enable JavaScript support for Sablotron.], no, no)
+ 
+ 
++ext_shared=$php_xslt_shared
+ if test "$PHP_XSLT" != "no"; then
+ 
+   PHP_NEW_EXTENSION(xslt, xslt.c sablot.c, $ext_shared)

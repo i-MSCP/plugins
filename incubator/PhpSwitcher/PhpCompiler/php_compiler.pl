@@ -131,7 +131,7 @@ my %CONDITIONAL_BUILD_DEPS = (
 
 # Map short PHP versions to long PHP versions ( last known tiny PHP versions )
 my %SHORT_TO_LONG_VERSION = (
-#    '4.4' => '4.4.9',
+    '4.4' => '4.4.9',
     '5.2' => '5.2.17',
     '5.3' => '5.3.29',
     '5.4' => '5.4.40',
@@ -358,10 +358,11 @@ sub getLongVersion
 sub downloadSource
 {
     my ($sVersion, $lVersion) = @_;
-    my $archPath = File::Spec->join($BUILD_DIR, "php-$lVersion.tar.gz");
-    my $srcPath = File::Spec->join($BUILD_DIR, "php-$lVersion");
 
-    unless(-f $archPath) {
+    my $phpArchPath = File::Spec->join($BUILD_DIR, "php-$lVersion.tar.gz");
+    my $phpSrcPath = File::Spec->join($BUILD_DIR, "php-$lVersion");
+
+    unless(-f $phpArchPath) {
         print output(sprintf('Donwloading php-%s archive into %s...', $lVersion, $BUILD_DIR), 'info');
 
         if(iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } )) {
@@ -370,7 +371,7 @@ sub downloadSource
 
         my ($stdout, $stderr);
         (
-            execute("wget -t 1 -O $archPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
+            execute("wget -t 1 -O $phpArchPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
         ) or fatal(sprintf(
             "An error occurred while downloading the php-%s archive: %s", $lVersion, $stderr
         ));
@@ -382,20 +383,35 @@ sub downloadSource
     }
 
     unless($DOWNLOAD_ONLY) {
-        print output(sprintf('Extracting php-%s archive into %s ...', $lVersion, $srcPath), 'info');
+        print output(sprintf('Extracting php-%s archive into %s ...', $lVersion, $phpSrcPath), 'info');
 
         # Remove previous directory if any
-        (iMSCP::Dir->new( dirname => $srcPath )->remove() == 0) or fatal(
-            sprintf('Unable to remove the %s directory', $srcPath)
+        (iMSCP::Dir->new( dirname => $phpSrcPath )->remove() == 0) or fatal(
+            sprintf('Unable to remove the %s directory', $phpSrcPath)
         );
 
         my ($stdout, $stderr);
-        (execute("tar -xzf $archPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+        (execute("tar -xzf $phpArchPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
             "An error occurred while extracting the php-%s archive: %s", $lVersion, $stderr
         ));
         debug($stdout) if $stdout;
 
         print output(sprintf('php-%s archive has been successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
+
+        if($sVersion eq '4.4') {
+            my $sslArchPath = "$Bin/php$sVersion/openssl-0.9.8zf.tar.gz";
+            my $sslSrcPath = File::Spec->join($phpSrcPath, "openssl-0.9.8zf");
+
+            print output(sprintf('Extracting OpenSSL (0.9.8zf) archive into %s ...', $phpSrcPath), 'info');
+
+            my ($stdout, $stderr);
+            (execute("tar -xzf $sslArchPath -C $phpSrcPath/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+                "An error occurred while extracting the OpenSSL (0.9.8zf) archive: %s", $stderr
+            ));
+            debug($stdout) if $stdout;
+
+            print output(sprintf('OpenSSL (0.9.8zf) archive has been successfully extracted into %s', $phpSrcPath), 'ok');
+        }
     }
 }
 
@@ -427,8 +443,8 @@ sub install
 
     if($sVersion ~~ [ '4.4', '5.2' ]) {
         # Force usage of autoconf2.59 since older PHP versions are not compatible with newest autoconf versions
-        #$ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
-        #$ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
+        $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
+        $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
         $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=1"; # Parallel jobs don't work well with older PHP versions
     } else {
         $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";

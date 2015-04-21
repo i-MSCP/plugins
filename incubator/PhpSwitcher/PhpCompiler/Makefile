@@ -185,7 +185,19 @@ else
   COMMON_CONFIG += --without-interbase --without-pdo-firebird
 endif
 
-# PREPARATION
+# OpenSSL-0.9.8 ( needed for php4.4 )
+
+build-openssl-0.9.8: build-openssl-0.9.8-stamp
+build-openssl-0.9.8-stamp:
+	cd openssl-0.9.8zf && ./config --prefix=$(PREFIX) && $(MAKE) all
+
+	touch build-openssl-0.9.8-stamp
+
+install-openssl-0.9.8: build-openssl-0.9.8 install-openssl-0.9.8-stamp
+install-openssl-0.9.8-stamp:
+	cd openssl-0.9.8zf && $(MAKE) install
+
+	touch install-openssl-0.9.8-stamp
 
 prepared: prepared-stamp
 prepared-stamp:
@@ -196,22 +208,27 @@ prepared-stamp:
 unprepared:
 	rm -f prepared-stamp
 
-# CONFIGURATION
-
-#configure-php4.4: configure-php4.4-stamp configure-common
-#configure-php4.4-stamp: prepared-stamp
-#	if [ -d cgi-build ]; then rm -rf cgi-build; fi
-#	-mkdir cgi-build
-#	cd cgi-build && \
-#	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
-#		$(COMMON_CONFIG) \
-#		$(MYSQL_CONGIG) \
-#		--enable-memory-limit \
-#		--enable-force-cgi-redirect \
-#		--enable-fastcgi \
-#		--with-sqlite=shared,/usr \
-#		--without-db4
-#	touch configure-php4.4-stamp
+# TODO 		--with-mime-magic=$(MAGIC_MIME)
+configure-php4.4: install-openssl-0.9.8 configure-php4.4-stamp configure-common
+configure-php4.4-stamp: prepared-stamp
+	if [ -d cgi-build ]; then rm -rf cgi-build; fi
+	-mkdir cgi-build
+	cd cgi-build && \
+	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
+		$(COMMON_CONFIG) \
+		$(MYSQL_CONGIG) \
+		--enable-memory-limit \
+		--enable-force-cgi-redirect \
+		--enable-fastcgi \
+		--with-sqlite=shared,/usr \
+		--with-openssl=$(PREFIX) \
+		--with-openssl-dir=$(PREFIX) \
+		--without-db4 \
+		--without-interbase \
+		--without-mssql \
+		--without-libedit \
+		--without-xmlrpc
+	touch configure-php4.4-stamp
 
 # TODO 		--with-mime-magic=$(MAGIC_MIME)
 configure-php5.2: configure-php5.2-stamp configure-common
@@ -291,9 +308,7 @@ configure-common-stamp:
 
 	touch common-configure-stamp
 
-# BUILD
-
-#build-php4.4: configure-php4.4 build-common
+build-php4.4: configure-php4.4 build-common
 build-php5.2: configure-php5.2 build-common
 build-php5.3: configure-php5.3 build-common
 build-php5.4: configure-php5.4 build-common
@@ -306,9 +321,7 @@ build-common-stamp:
 
 	touch build-common-stamp
 
-# INSTALLATION
-
-#install-php4.4: build-php4.4 install-common
+install-php4.4: build-php4.4 install-common
 install-php5.2: build-php5.2 install-common
 install-php5.3: build-php5.3 install-common
 install-php5.4: build-php5.4 install-common
@@ -327,12 +340,10 @@ install-common-stamp:
 
 	touch install-common-stamp
 
-# CLEANUP
-
 clean: unprepared
 	rm -f configure-common-stamp build-common-stamp install-common-stamp
 	rm -f configure-php5.*-stamp
 	rm -rf cgi-build
 
 .NOTPARALLEL:
-.PHONY: configure-php5.2 configure-php5.3 configure-php5.4 configure-php5.6 build-php5.2 build-php5.3 build-php5.4 build-php5.6 install-php5.2 install-php5.3 install-php5.4 install-php5.6 clean
+.PHONY: configure-php4.4 configure-php5.2 configure-php5.3 configure-php5.4 configure-php5.6 build-php4.4 build-php5.2 build-php5.3 build-php5.4 build-php5.6 install-php4.4 install-php5.2 install-php5.3 install-php5.4 install-php5.6 clean
