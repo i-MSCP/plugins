@@ -6,12 +6,12 @@ Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Added: PHP compiler ( in progress )
+    Added: Static PHP info files for each PHP version
     Added: Translation support
     Removed: Plugin configuration file
     Removed: Support for i-MSCP 1.1.x serie
     Removed: Support for memcached ( Security issues - Possible cache poisoning )
     Removed: Useless PHP base configuration directory parameter
-
     Updated: License headers
 
 ------------------------------------------------------------------------------------------------------------------------

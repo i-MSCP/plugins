@@ -52,10 +52,15 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		$eventManager->registerListener(
 			array(iMSCP_Events::onAdminScriptStart, iMSCP_Events::onClientScriptStart), array($this, 'setupNavigation')
 		);
+
+		$eventManager->registerListener(
+			array(iMSCP_Events::onAfterDeleteDomainAlias, iMSCP_Events::onAfterDeleteSubdomain),
+			array($this, 'afterDeleteDomain')
+		);
 	}
 
 	/**
-	 * Check plugin requirements
+	 * Check requirements
 	 *
 	 * @param iMSCP_Events_Event $event
 	 * @return void
@@ -64,6 +69,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	{
 		if ($event->getParam('pluginName') == $this->getName()) {
 			$config = iMSCP_Registry::get('config');
+
 			if ($config['HTTPD_SERVER'] != 'apache_fcgid') {
 				set_page_message(tr('This plugin require the apache fcgid i-MSCP server implementation.'), 'error');
 				$event->stopPropagation();
@@ -118,10 +124,10 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		try {
 			$db->beginTransaction();
 
-			$stmt = execute_query('SELECT admin_id FROM php_switcher_version_admin');
+			$stmt = execute_query('SELECT domain_name, domain_type FROM php_switcher_version_admin');
 
 			if ($stmt->rowCount()) {
-				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
 			$db->commit();
@@ -145,10 +151,10 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		try {
 			$db->beginTransaction();
 
-			$stmt = execute_query('SELECT admin_id FROM php_switcher_version_admin');
+			$stmt = execute_query('SELECT domain_name, domain_type FROM php_switcher_version_admin');
 
 			if ($stmt->rowCount()) {
-				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+				$this->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
 			$db->commit();
@@ -184,10 +190,16 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	{
 		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
-		return array(
+		$routes = array(
 			'/admin/phpswitcher' => $pluginDir . '/frontend/admin/php_switcher.php',
 			'/client/phpswitcher' => $pluginDir . '/frontend/client/php_switcher.php',
 		);
+
+		if ($this->getConfigParam('phpinfo', true)) {
+			$routes['/client/phpswitcher/phpinfo'] = $pluginDir . '/frontend/client/phpinfo.php';
+		}
+
+		return $routes;
 	}
 
 	/**
@@ -207,7 +219,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			if ($eventName == 'onAdminScriptStart' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('PHP Switcher'),
+						'label' => tr('PHP version switcher'),
 						'uri' => '/admin/phpswitcher',
 						'title_class' => 'settings',
 						'order' => 8
@@ -219,7 +231,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			) {
 				$page->addPage(
 					array(
-						'label' => tr('PHP Switcher'),
+						'label' => tr('PHP version switcher'),
 						'uri' => '/client/phpswitcher',
 						'title_class' => 'domains'
 					)
@@ -229,68 +241,149 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Schedule change for all domains which belong to the given user list
+	 * Schedule change for all given domains
 	 *
 	 * @throw iMSCP_Exception_Database
-	 * @param array $adminIds
+	 * @param array $domainData Domain data
 	 * @return void
 	 */
-	public function scheduleDomainsChange(array $adminIds)
+	public function scheduleDomainsChange(array $domainData)
 	{
-		$adminIdList = implode(',', $adminIds);
+		$domains = array();
+		$subdomains = array();
+		$aliases = array();
+		$subAliases = array();
 
-		exec_query(
-			'UPDATE domain SET domain_status = ? WHERE domain_admin_id IN (' . $adminIdList . ') AND domain_status = ?',
-			array('tochange', 'ok')
-		);
+		foreach ($domainData as $domainName => $domainType) {
+			switch ($domainType) {
+				case 'dmn':
+					$domains[] = quoteValue($domainName);
+					break;
+				case 'sub':
+					list($domainName) = explode('.', $domainName);
+					$subdomains[] = quoteValue($domainName);
+					break;
+				case 'als':
+					$aliases[] = quoteValue($domainName);
+					break;
+				case 'subals':
+					list($domainName) = explode('.', $domainName);
+					$subAliases[] = quoteValue($domainName);
+			}
+		}
 
-		exec_query(
-			'
-				UPDATE
-					subdomain
-				JOIN
-					domain USING(domain_id)
-				SET
-					subdomain_status = ?
-				WHERE
-					domain_admin_id IN (' . $adminIdList . ')
-				AND
-					subdomain_status = ?
-			',
-			array('tochange', 'ok')
-		);
+		foreach (
+			array(
+				'dmn' => $domains, 'sub' => $subdomains, 'als' => $aliases, 'subals' => $subAliases
+			) as $domainType => $domains
+		) {
+			if (!empty($domains)) {
+				switch ($domainType) {
+					case 'dmn':
+						$query = "
+							UPDATE
+								domain
+							SET
+								domain_status = 'tochange'
+							WHERE
+								domain_name IN(" . implode(',', $domains) . ")
+							AND
+								domain_status = 'ok'
+						";
+						break;
+					case 'sub':
+						$query = "
+							UPDATE
+								subdomain
+							SET
+								subdomain_status = 'tochange'
+							WHERE
+								subdomain_name IN(" . implode(',', $domains) . ")
+							AND
+								subdomain_status = 'ok'
+						";
+						break;
+					case 'als':
+						$query = "
+							UPDATE
+								domain_aliasses
+							SET
+								alias_status = 'tochange'
+							WHERE
+								alias_name IN(" . implode(',', $domains) . ")
+							AND
+								alias_status = 'ok'
+						";
+						break;
+					case 'subals':
+						$query = "
+							UPDATE
+								subdomain_alias
+							SET
+								subdomain_alias_status = 'tochange'
+							WHERE
+								subdomain_alias_name IN(" . implode(', ', $domains) . ")
+							AND
+								subdomain_alias_status = 'ok'
+						";
+				}
 
-		exec_query(
-			'
-				UPDATE
-					domain_aliasses
-				JOIN
-					domain USING(domain_id)
-				SET
-					alias_status = ?
-				WHERE
-					domain_admin_id IN (' . $adminIdList . ')
-				AND
-					alias_status = ?
-			',
-			array('tochange', 'ok')
-		);
+				if (isset($query)) {
+					execute_query($query);
+				}
+			}
+		}
+	}
 
-		exec_query(
-			'
-				UPDATE
-					subdomain_alias
-				JOIN
-					domain_aliasses USING(alias_id)
-				SET
-					subdomain_alias_status = ?
-				WHERE
-					domain_id IN (SELECT domain_id FROM domain WHERE domain_admin_id IN (' . $adminIdList . '))
-				AND
-					subdomain_alias_status = ?
-			',
-			array('tochange', 'ok')
-		);
+	/**
+	 * Event listener responsible to delete PHP version data which belongs to a deleted domain (als,sub,alssub)
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function afterDeleteDomain(iMSCP_Events_Event $event)
+	{
+		$domainType = $event->getParam('type', 'als');
+
+		if (in_array($domainType, array('sub', 'alssub'))) {
+			if ($domainType == 'sub') {
+				exec_query(
+					"
+						DELETE FROM
+							t1
+						USING
+							php_switcher_version_admin AS t1
+						JOIN
+							subdomain AS t2 ON (t2.subdomain_id = 3)
+						JOIN
+							domain AS t3 USING(domain_id)
+						WHERE
+							t1.domain_name = CONCAT(t2.subdomain_name, '.', t3.domain_name)
+					",
+					$event->getParam('subdomainId')
+				);
+			} else {
+				exec_query(
+					"
+						DELETE FROM
+							t1
+						USING
+							php_switcher_version_admin AS t1
+						JOIN
+							subdomain_alias AS t2 ON(t2.subdomain_alias_id = ?)
+						JOIN
+							domain_aliasses AS t3 USING(alias_id)
+						WHERE
+							t1.domain_name = CONCAT(t2.subdomain_alias_name, '.', t3.alias_name)
+					",
+					$event->getParam('subdomainId')
+				);
+			}
+		} else {
+			exec_query(
+				'DELETE FROM php_switcher_version_admin WHERE domain_name = ?', $event->getParam('domainAliasName')
+			);
+		}
 	}
 
 	/**

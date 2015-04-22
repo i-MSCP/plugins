@@ -1,4 +1,3 @@
-- Allow to disable specific PHP version
-- Allow to set default PHP version (admin side)
-- PHP5-FPM support
-- Per domain PHP version
+- Allow to disable specific PHP version without removing it
+- Support for i-MSCP PHP5-FPM httpd server implementation
+- db4 support for both php4.4 and php5.2 using self-compiled db4 library since db5 version is not supported

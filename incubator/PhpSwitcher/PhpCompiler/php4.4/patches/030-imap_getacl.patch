@@ -1,0 +1,97 @@
+--- a/ext/imap/php_imap.c
++++ b/ext/imap/php_imap.c
+@@ -146,6 +146,7 @@ function_entry imap_functions[] = {
+ 	PHP_FE(imap_get_quotaroot,						NULL)
+ 	PHP_FE(imap_set_quota,							NULL)
+  	PHP_FE(imap_setacl,								NULL)
++        PHP_FE(imap_getacl,                                                             NULL)
+ #endif
+ 
+ 	PHP_FE(imap_mail,								NULL)
+@@ -379,6 +380,22 @@ void mail_getquota(MAILSTREAM *stream, c
+ /* }}} */
+ #endif
+ 
++/* {{{ mail_getquota 
++ *
++ * Mail GET_ACL callback
++ * Called via the mail_parameter function in c-client:src/c-client/mail.c
++ */
++void mail_getacl(MAILSTREAM *stream, char *mailbox, ACLLIST *alist)
++{
++	TSRMLS_FETCH();
++
++	/* walk through the ACLLIST */
++	for (; alist; alist = alist->next)
++	{
++		add_assoc_stringl(IMAPG(imap_acl_list), alist->identifier, alist->rights, strlen(alist->rights), 1);
++	}
++}
++/* }}} */
+ 
+ /* {{{ php_imap_init_globals
+  */
+@@ -404,6 +421,7 @@ static void php_imap_init_globals(zend_i
+ 	imap_globals->folderlist_style = FLIST_ARRAY;
+ #if defined(HAVE_IMAP2000) || defined(HAVE_IMAP2001)
+ 	imap_globals->quota_return = NULL;
++        imap_globals->imap_acl_list = NIL;
+ #endif
+ }
+ /* }}} */
+@@ -1004,6 +1022,37 @@ PHP_FUNCTION(imap_setacl)
+ }
+ /* }}} */
+ 
++/* {{{ proto array imap_get_quota(int stream_id, string mailbox)
++	Gets the ACL for a given mailbox */
++PHP_FUNCTION(imap_getacl)
++{
++	zval **streamind, **mailbox;
++	pils *imap_le_struct;
++
++	if (ZEND_NUM_ARGS() != 2 || zend_get_parameters_ex(2, &streamind, &mailbox) == FAILURE) {
++		ZEND_WRONG_PARAM_COUNT();
++	}
++
++	ZEND_FETCH_RESOURCE(imap_le_struct, pils *, streamind, -1, "imap", le_imap);
++
++	convert_to_string_ex(mailbox);
++
++    /* initializing the special array for the return values */
++    array_init(return_value);
++
++    IMAPG(imap_acl_list) = return_value;
++
++	/* set the callback for the GET_ACL function */
++	mail_parameters(NIL, SET_ACL, (void *) mail_getacl);
++	if(!imap_getacl(imap_le_struct->imap_stream, Z_STRVAL_PP(mailbox))) {
++		php_error(E_WARNING, "c-client imap_getacl failed");
++		RETURN_FALSE;
++	}
++
++    IMAPG(imap_acl_list) = NIL;
++}
++/* }}} */
++
+ #endif /* HAVE_IMAP2000 || HAVE_IMAP2001 */
+ 
+ 
+--- a/ext/imap/php_imap.h
++++ b/ext/imap/php_imap.h
+@@ -172,6 +172,7 @@ PHP_FUNCTION(imap_get_quota);
+ PHP_FUNCTION(imap_get_quotaroot);
+ PHP_FUNCTION(imap_set_quota);
+ PHP_FUNCTION(imap_setacl);
++PHP_FUNCTION(imap_getacl);
+ #endif
+ 
+ 
+@@ -202,6 +203,7 @@ ZEND_BEGIN_MODULE_GLOBALS(imap)
+ 	unsigned long status_uidvalidity;
+ #if defined(HAVE_IMAP2000) || defined(HAVE_IMAP2001)
+ 	zval **quota_return;
++        pval *imap_acl_list;
+ #endif
+ ZEND_END_MODULE_GLOBALS(imap)
+ 

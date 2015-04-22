@@ -19,6 +19,7 @@
 use strict;
 use warnings;
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use FindBin qw($Bin);
 use lib '/var/www/imscp/engine/PerlLib';
 use File::Basename;
 use File::Spec;
@@ -35,47 +36,28 @@ umask 022;
 
 $ENV{'LANG'} = 'C.UTF-8';
 
-# Quilt common configuration
-$ENV{'QUILT_PUSH_ARGS'} = '--color=never';
-$ENV{'QUILT_DIFF_ARGS'} = '--no-timestamps --no-index -p ab --color=never';
-$ENV{'QUILT_REFRESH_ARGS'} = '--no-timestamps --no-index -p ab';
-$ENV{'QUILT_DIFF_OPTS'} = '-p';
-
-# Setup log file
-newDebug('phpswitcher-php-compiler.log');
-
 # Bootstrap i-MSCP backend
 iMSCP::Bootstrapper->getInstance()->boot(
     { 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
 );
-
-# Compiler maintenance directory
-my $MAINT_DIR = $main::imscpConfig{'PLUGINS_DIR'} . '/PhpSwitcher/PhpCompiler/phpswitcher';
 
 # Common build dependencies
 # Build dependencies were pulled from many Debian control files.
 # Note: Packages are installed only if available.
 my @BUILD_DEPS = (
     'autoconf',
+#    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
     'automake',
-    'automake1.11',
-#    'apache2-dev',         Not needed because we do not want build any Apache SAPI
-#    'apache2-prefork-dev'  Not needed because we do not want build any Apache SAPI
+#    'automake1.11',
     'bison',
     'chrpath',
-#    'debhelper',           # Not needed because we do not build a Debian package
-#    'dh-apache2',          # Not needed because we do not build a Debian package
-#    'dh-systemd',          # Not needed because we do not build a Debian package
-#    'dpkg-dev',            # Not needed because this is a dependency of the build-essential package
     'firebird-dev',
     'firebird2.1-dev',
     'firebird2.5-dev',
     'flex',
     'freetds-dev',
-#    'hardening-wrapper',   # Not needed because we use dpkg-buildflags
     'language-pack-de',
     'libapparmor-dev',
-#    'libapr1-dev',         # Not needed because we do not want build any Apache SAPI
     'libbz2-dev',
     'libc-client-dev',
     'libc-client2007e-dev',
@@ -88,21 +70,19 @@ my @BUILD_DEPS = (
     'libexpat1-dev',
     'libfreetype6-dev',
     'libgcrypt11-dev',
-#    'libgd-dev',           # Not needed because we use the bundled version
-#    'libgd2-dev',          # Not needed because we use the bundled version
+    'libgd-dev',
+    'libgd2-dev',
     'libgd2-xpm-dev',
+    'libxpm-dev',
     'libglib2.0-dev',
     'libgmp3-dev',
     'libicu-dev',
     'libjpeg-dev',
-#    'libjpeg62-dev',       # We do not want this ( conflict with libgd2-xpm-dev )
     'libkrb5-dev',
     'libldap2-dev',
-#    'libmagic-dev',        # Not needed because we use the bundled version
+    'libmagic-dev',        # Not needed because we use the bundled version
     'libmcrypt-dev',
     'libmhash-dev',
-#    'libmysqlclient-dev',   # Moved to conditional build dependencies
-#    'libmysqlclient15-dev', # Moved to conditional build dependencies
     'libonig-dev',
     'libpam0g-dev',
     'libpcre3-dev',
@@ -116,7 +96,6 @@ my @BUILD_DEPS = (
     'libsnmp-dev',
     'libsqlite3-dev',
     'libssl-dev',
-#    'libsystemd-daemon-dev',  # No needed because we do not build for php5-fpm
     'libtidy-dev',
     'libtool',
     'libvpx-dev',
@@ -125,38 +104,36 @@ my @BUILD_DEPS = (
     'libxmltok1-dev',
     'libxslt1-dev',
     'locales-all',
-#    'mysql-server',            # Moved to conditional build dependencies
-#    'netbase',                 # Not needed because we do not run any test
-#    'netcat-traditional',      # Not needed?
+    'netbase',
+    'netcat-traditional',
     'quilt',
     're2c',
     'systemtap-sdt-dev',
-#    'tzdata',                  # Not needed because we are using bundled timezone database
     'unixodbc-dev',
-#    'virtual-mysql-server',    # Moved to conditional build dependencies
     'zlib1g-dev',
-
-    # Out of control files
     'build-essential',
     'shtool',
-    'wget'
+    'wget',
+    'libsqlite0-dev',
+    'lemon'
 );
 
-# Conditional MySQL build dependencies
+# Conditional build dependencies
 # Only needed for PHP5.2 since for newest versions, we are using MySQL native driver ( mysqlnd )
 my %CONDITIONAL_BUILD_DEPS = (
-    'mysql' => ['libmysqlclient-dev', 'libmysqlclient15-dev'],
-    'mariadb' => ['libmariadb-client-lgpl-dev', 'libmariadb-client-lgpl-dev-compat'],
-    'percona' => [] # todo
+    'mysql' => [ 'libmysqlclient-dev', 'libmysqlclient15-dev' ],
+    'mariadb' => [ 'libmariadbclient-dev' ],
+    'percona' => [ 'libmysqlclient-dev' ]
 );
 
-# Map short PHP versions to last known PHP versions
+# Map short PHP versions to long PHP versions ( last known tiny PHP versions )
 my %SHORT_TO_LONG_VERSION = (
-#    '5.2' => '5.2.17',
-#    '5.3' => '5.3.29',
-#    '5.4' => '5.4.39',
-#    '5.5' => '5.5.23',
-    '5.6' => '5.6.7'
+    '4.4' => '4.4.9',
+    '5.2' => '5.2.17',
+    '5.3' => '5.3.29',
+    '5.4' => '5.4.40',
+    '5.5' => '5.5.24',
+    '5.6' => '5.6.8'
 );
 
 # URL patterns for PHP archives
@@ -176,33 +153,36 @@ my %LONG_VERSION_TO_URL = ();
 
 # Default values for non-boolean command line options
 my $BUILD_DIR = '/usr/local/src/phpswitcher';
-my $INSTALL_DIR = '/opt/phpswitcher';
+my $INSTALL_DIR = '/opt';
 my $PARALLEL_JOBS = 4;
+my $DEV_MODE = 'install';
 
 # Parse command line options
 iMSCP::Getopt->parseNoDefault(sprintf("\nUsage: perl %s [OPTION...] PHP_VERSION...", basename($0)) . qq {
 
 PHP Compiler
 
-This script allows to download, configure, compile and install one or many PHP versions on Debian/Ubuntu distributions in one step. Work is made by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile file which defines specific targets for each PHP version.
+This script allows to download, configure, compile and install one or many PHP versions on Debian/Ubuntu distributions in one step. Work is done by applying a set of patches which were pulled from the php5 Debian source package, and by using a dedicated Makefile file which defines specific targets for each PHP version.
 
 PHP VERSIONS:
- Supported PHP versions are: } . ( join ', ', map { 'php' . $_ } keys %SHORT_TO_LONG_VERSION ) . qq {
+ Supported PHP versions are: } . ( join ', ', sort map { 'php' . $_ } keys %SHORT_TO_LONG_VERSION ) . qq {
 
  You can either specify one or many PHP versions or 'all' for all versions.
 
 OPTIONS:
- -b,    --builddir      Build directory ( /usr/local/src/phpswitcher ).
- -i,    --installdir    Base installation directory ( /opt/phpswitcher ).
- -d,    --download-only Download only.
- -f,    --force-last    Force use of the last available PHP versions.
- -p,    --parallel-jobs Number of parallel jobs for make ( default: 4 ).
- -v,    --verbose       Enable verbose mode.},
+ -b,    --builddir <DIR>    Build directory ( /usr/local/src/phpswitcher ).
+ -i,    --installdir <DIR>  Base installation directory ( /opt ).
+ -d,    --download-only     Download only.
+ -f,    --force-last        Force use of the last available PHP versions.
+ -j,    --parallel-jobs <N> Number of parallel jobs for make ( default: 4 ).
+ -d,    --dev-mode <MODE>   Development mode ( patch, configure, build )
+ -v,    --verbose           Enable verbose mode.},
  'builddir|b=s' => sub { setOptions(@_); },
  'installdir|i=s' => sub { setOptions(@_); },
  'download-only|d' => \ my $DOWNLOAD_ONLY,
  'force-last|f' => \ my $FORCE_LAST,
- 'parallel-jobs|p=i' => sub { setOptions(@_); },
+ 'parallel-jobs|j=i' => sub { setOptions(@_); },
+ 'dev-mode|d=s' => sub { setOptions(@_); },
  'verbose|v' => sub { setVerbose(@_); }
 );
 
@@ -213,12 +193,12 @@ eval {
         @sVersions = keys %SHORT_TO_LONG_VERSION;
     } else {
         for my $sVersion(@ARGV) {
-            $sVersion = lc $sVersion;
+            ($sVersion) = lc($sVersion) =~ /^php(\d\.\d)$/;
 
-            if($sVersion =~ /^php(5\.[2-6])$/ && exists $SHORT_TO_LONG_VERSION{$1}) {
-                push @sVersions, $1;
+            if($sVersion && exists $SHORT_TO_LONG_VERSION{$sVersion}) {
+                push @sVersions, $sVersion;
             } else {
-                die(sprintf("Invalid PHP version parameter: %s\n", $sVersion));
+                die("Invalid PHP version\n");
             }
        }
     }
@@ -227,17 +207,16 @@ eval {
 };
 
 if($@ || !@sVersions) {
-    print STDERR "\n$@\n" if $@;
+    print STDERR "\n$@" if $@;
     iMSCP::Getopt->showUsage();
 }
-
-installBuildDep() unless $DOWNLOAD_ONLY;
 
 for my $sVersion(@sVersions) {
     print output(sprintf('Processing PHP %s version', $sVersion), 'info');
 
     next unless (my $lVersion = getLongVersion($sVersion));
 
+    installBuildDep($sVersion) unless $DOWNLOAD_ONLY;
     downloadSource($sVersion, $lVersion);
 
     unless($DOWNLOAD_ONLY) {
@@ -246,9 +225,9 @@ for my $sVersion(@sVersions) {
         undef $srcDir;
 
         applyPatches($sVersion, $lVersion);
-        install($sVersion, $lVersion);
+        install($sVersion, $lVersion) unless $DEV_MODE eq 'patch';
 
-        print output(sprintf('PHP %s has been successfully installed', $lVersion), 'ok');
+        print output(sprintf('PHP %s has been successfully processed', $lVersion), 'ok');
     }
 }
 
@@ -260,23 +239,41 @@ sub setOptions
     my ($option, $value) = @_;
 
     if($option eq 'builddir') {
-        print output(sprintf('Build directory set to %s', $value), 'info');
         $BUILD_DIR = $value;
+        print output(sprintf('Build directory has been set to %s', $value), 'info');
     } elsif($option eq 'installdir') {
         if(-d $value) {
-            print output(sprintf('Base installation directory set to %s', $value), 'info');
             $INSTALL_DIR = $value;
+            print output(sprintf('Base installation directory has been set to %s', $value), 'info');
         } else {
             die("Directory speficied by the --installdir option must exists.\n");
         }
     } elsif($option eq 'parallel-jobs') {
         $PARALLEL_JOBS = $value;
+    } elsif($option eq 'dev-mode') {
+        if($value ~~ [ 'patch', 'configure', 'build' ]) {
+            $DEV_MODE = $value;
+        } else {
+            die("Invalid argument for the --dev-mode option.\n");
+        }
     }
 }
 
 sub installBuildDep
 {
-    print output(sprintf('Installing build dependencies...'), 'info');
+    my $sVersion = shift;
+
+    print output(sprintf('Installing build dependencies for PHP %s.x version...', $sVersion), 'info');
+
+    if($sVersion ~~ [ '4.4', '5.2' ]) {
+        (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
+
+        if($sqlServer) {
+            @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
+        } else {
+            fatal('Unable to find your i-MSCP SQL server implementation');
+        }
+    }
 
     # Filter packages which are not available since the build dependencies list is a mix of packages
     # that were pulled from different Debian/Ubuntu php5 package control files
@@ -285,19 +282,20 @@ sub installBuildDep
         'An error occurred while installing build dependencies: Unable to filter list of packages to install: %s',
         $stderr
     ));
+
     @BUILD_DEPS = sort grep { $_ ~~ @BUILD_DEPS } split /\n/, $stdout;
 
     # Install packages
-    (execute("apt-get -y --no-install-recommends install @BUILD_DEPS", undef, \$stderr) == 0) or fatal(sprintf(
-        "An error occurred while installing build dependencies: %s", $stderr
-    ));
+    (execute("apt-get -y --force-yes --no-install-recommends install @BUILD_DEPS", undef, \$stderr) == 0) or fatal(
+        sprintf("An error occurred while installing build dependencies: %s", $stderr)
+    );
 
-    # Fix: "can not be used when making a shared object; recompile with –fPIC ... libc-client.a..." compile time error
-    # Be sure that we do not have any /usr/lib/x86_64-linux-gnu/libc-client.a symlink to /usr/lib/libc-client.a since
-    # this is not supported when using the --with--pic option
+    # Fix possible "can not be used when making a shared object; recompile with –fPIC ... libc-client.a..." compile time
+    # error. This error occurs when using the --with--pic option and when the /usr/lib/x86_64-linux-gnu/libc-client.a
+    # symlink to /usr/lib/libc-client.a has been created manually.
     unlink '/usr/lib/x86_64-linux-gnu/libc-client.a' if -s '/usr/lib/x86_64-linux-gnu/libc-client.a';
 
-    print output(sprintf('Build dependencies were successfully installed'), 'ok');
+    print output(sprintf('Build dependencies have been successfully installed'), 'ok');
 }
 
 sub getLongVersion
@@ -366,42 +364,63 @@ sub getLongVersion
 sub downloadSource
 {
     my ($sVersion, $lVersion) = @_;
-    my $archPath = File::Spec->join($BUILD_DIR, "php-$lVersion.tar.gz");
-    my $srcPath = File::Spec->join($BUILD_DIR, "php-$lVersion");
 
-    unless(-f $archPath) {
-        print output(sprintf('Donwloading php-%s source archive into %s...', $lVersion, $BUILD_DIR), 'info');
+    my $phpArchPath = File::Spec->join($BUILD_DIR, "php-$lVersion.tar.gz");
+    my $phpSrcPath = File::Spec->join($BUILD_DIR, "php-$lVersion");
 
-        if(iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } )) {
-            fatal(sprintf('Unable to create the %s build directory', $BUILD_DIR));
-        }
+    unless(-f $phpArchPath) {
+        print output(sprintf('Donwloading php-%s archive into %s...', $lVersion, $BUILD_DIR), 'info');
+
+        (iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } ) == 0) or fatal(sprintf(
+            'Unable to create the %s build directory: %s', $BUILD_DIR, getLastError()
+        ));
 
         my ($stdout, $stderr);
         (
-            execute("wget -t 1 -O $archPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
+            execute("wget -t 1 -O $phpArchPath $LONG_VERSION_TO_URL{$lVersion}", \$stdout, \$stderr) == 0
         ) or fatal(sprintf(
-            "An error occurred while downloading the php-%s source archive: %s", $lVersion, $stderr
+            "An error occurred while downloading the php-%s archive: %s", $lVersion, $stderr
         ));
-        debug($stdout) if $stdout;
 
-        print output(sprintf('php-%s source archive successfully downloaded', $lVersion), 'ok');
+        print output(sprintf('php-%s archive has been successfully downloaded', $lVersion), 'ok');
     } else {
-        print output(sprintf('php-%s source archive already present - skipping download', $lVersion), 'ok');
+        print output(sprintf('php-%s archive is already present - skipping download', $lVersion), 'info');
     }
 
     unless($DOWNLOAD_ONLY) {
-        print output(sprintf('Extracting php-%s source archive into %s ...', $lVersion, $srcPath), 'info');
+        print output(sprintf('Extracting php-%s archive into %s ...', $lVersion, $phpSrcPath), 'info');
 
-        # Remove previous directory if any
-        iMSCP::Dir->new( dirname =>  $srcPath )->remove();
+        if($DEV_MODE eq 'install') {
+            # Remove previous directory if any
+            (iMSCP::Dir->new( dirname => $phpSrcPath )->remove() == 0) or fatal(sprintf(
+                'Unable to remove the %s directory: %s', $phpSrcPath, getLastError()
+            ));
+        }
 
-        my ($stdout, $stderr);
-        (execute("tar -xzf $archPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
-            "An error occurred while extracting the php-%s source archive: %s", $lVersion, $stderr
-        ));
-        debug($stdout) if $stdout;
+        unless(-d "$BUILD_DIR/php-$lVersion") {
+            my ($stdout, $stderr);
+            (execute("tar -xzf $phpArchPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+                "An error occurred while extracting the php-%s archive: %s", $lVersion, $stderr
+            ));
 
-        print output(sprintf('php-%s source archive successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
+            print output(sprintf('php-%s archive has been successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
+
+            if($sVersion eq '4.4') {
+                my $sslArchPath = "$Bin/php$sVersion/openssl-0.9.8zf.tar.gz";
+                my $sslSrcPath = File::Spec->join($phpSrcPath, "openssl-0.9.8zf");
+
+                print output(sprintf('Extracting OpenSSL (0.9.8zf) archive into %s ...', $phpSrcPath), 'info');
+
+                my ($stdout, $stderr);
+                (execute("tar -xzf $sslArchPath -C $phpSrcPath/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+                    "An error occurred while extracting the OpenSSL (0.9.8zf) archive: %s", $stderr
+                ));
+
+                print output(
+                    sprintf('OpenSSL (0.9.8zf) archive has been successfully extracted into %s', $phpSrcPath), 'ok'
+                );
+            }
+        }
     }
 }
 
@@ -409,44 +428,65 @@ sub applyPatches
 {
     my ($sVersion, $lVersion) = @_;
 
-    print output(sprintf('Applying Debian patches on php-%s source...', $lVersion), 'info');
+    print output(sprintf('Applying patches on php-%s source...', $lVersion), 'info');
 
     # Make quilt aware of patches location
-    $ENV{'QUILT_PATCHES'} = "$MAINT_DIR/php$sVersion";
+    $ENV{'QUILT_PATCHES'} = "$Bin/php$sVersion/patches";
 
-    my ($stdout, $stderr);
-    (execute("quilt push -a", \$stdout, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred while applying Debian patches on php-%s source: %s', $lVersion, $stderr
+    my $stderr;
+    (execute("quilt --quiltrc /dev/null push --fuzz 0 -a -q", undef, \$stderr) ~~ [ 0, 2 ]) or fatal(sprintf(
+        'An error occurred while applying patches on php-%s source: %s', $lVersion, $stderr
     ));
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr;
 
-    print output(sprintf('Debian patches successfully applied on php-%s source', $lVersion), 'ok');
+    print output(sprintf('Patches have been successfully applied on php-%s source', $lVersion), 'ok');
 }
 
 sub install
 {
     my ($sVersion, $lVersion) = @_;
-    my $target = 'install-php' . $sVersion;
+    my $target = $DEV_MODE . '-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
-    $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
+    if($sVersion ~~ [ '4.4', '5.2' ]) {
+        # Force usage of autoconf2.59 since older PHP versions are not compatible with newest autoconf versions
+        $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
+        $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
+        $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=1"; # Parallel jobs don't work well with older PHP versions
+    } else {
+        $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
+    }
+
+    if($DEV_MODE eq 'install') {
+        # Remove previous installation if any
+        (iMSCP::Dir->new( dirname => $installDir )->remove() == 0) or fatal(sprintf(
+            'Unable to remove %s directory: %s', $installDir, getLastError
+        ));
+    }
+
+    # Execute make target
 
     my $stderr;
-    (execute("make -f $MAINT_DIR/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred during php-%s compilation process: %s', $lVersion, $stderr
+    (execute("make -f $Bin/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(sprintf(
+        'An error occurred while executing the %s make target for php-%s: %s', $target, $lVersion, $stderr
     ));
 
-    # Copy modules.ini file
-    (
-        iMSCP::File->new( filename => "$MAINT_DIR/php$sVersion/modules.ini" )->copyFile(
-            "$installDir/etc/php/conf.d", { preserve => 'no' }
-        ) == 0
-    ) or fatal(sprintf(
-        'An error occurred during php-%s installation process: Unable to copy the PHP modules.ini file', $lVersion
-    ));
+    print output(sprintf('The %s make target has been successfully executed for php-%s', $target, $lVersion), 'ok');
 
-    print output(sprintf('%s make target successfully executed for php-%s', $target, $lVersion), 'ok');
+    if($DEV_MODE eq 'install') {
+        # Install modules.ini file
+
+        print output(sprintf('Installing PHP modules.ini file for php-%s...', $lVersion), 'info');
+
+        (
+            iMSCP::File->new( filename => "$Bin/php$sVersion/modules.ini" )->copyFile(
+                "$installDir/etc/php/conf.d", { preserve => 'no' }
+            ) == 0
+        ) or fatal(sprintf(
+            'An error occurred while copying the PHP modules.ini file for php-%s: %s', $lVersion, getLastError
+        ));
+
+        print output(sprintf('PHP modules.ini file has been successfully installed for php-%s', $lVersion), 'ok');
+    }
 }

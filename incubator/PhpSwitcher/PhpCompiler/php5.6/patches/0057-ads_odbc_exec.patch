@@ -1,0 +1,26 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Fri, 20 Mar 2015 12:08:49 +0100
+Subject: ads_odbc_exec
+
+---
+ ext/odbc/php_odbc.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+--- a/ext/odbc/php_odbc.c
++++ b/ext/odbc/php_odbc.c
+@@ -1006,6 +1006,15 @@ int odbc_bindcols(odbc_result *result TS
+ 			default:
+ 				rc = SQLColAttributes(result->stmt, (SQLUSMALLINT)(i+1), colfieldid,
+ 								NULL, 0, NULL, &displaysize);
++				if (colfieldid == SQL_DESC_OCTET_LENGTH && rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
++					/* Fallback to old method because ADS ODBC driver version 11 doesn't support
++					 * SQL_DESC_OCTET_LENGTH.
++					 */
++					charextraalloc = 1;
++					rc = SQLColAttributes(result->stmt, (SQLUSMALLINT)(i+1), SQL_COLUMN_DISPLAY_SIZE,
++									NULL, 0, NULL, &displaysize);
++				}
++
+ 				/* Workaround for Oracle ODBC Driver bug (#50162) when fetching TIMESTAMP column */
+ 				if (result->values[i].coltype == SQL_TIMESTAMP) {
+ 					displaysize += 3;

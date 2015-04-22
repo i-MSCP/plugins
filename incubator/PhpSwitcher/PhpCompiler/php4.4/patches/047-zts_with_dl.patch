@@ -1,0 +1,18 @@
+--- a/ext/standard/dl.c
++++ b/ext/standard/dl.c
+@@ -56,15 +56,6 @@ PHP_FUNCTION(dl)
+ {
+ 	pval **file;
+ 
+-#ifdef ZTS
+-	if ((strncmp(sapi_module.name, "cgi", 3)!=0) && 
+-		(strcmp(sapi_module.name, "cli")!=0) &&
+-		(strncmp(sapi_module.name, "embed", 5)!=0)) {
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Not supported in multithreaded Web servers - use extension statements in your php.ini");
+-		RETURN_FALSE;
+-	}
+-#endif
+-
+ 	/* obtain arguments */
+ 	if (ZEND_NUM_ARGS() != 1 || zend_get_parameters_ex(1, &file) == FAILURE) {
+ 		WRONG_PARAM_COUNT;

@@ -20,7 +20,6 @@
 
 namespace PhpSwitcher;
 
-use iMSCP_Config_Handler_File as ConfigHandlerFile;
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
@@ -48,7 +47,10 @@ function sendJsonResponse($statusCode = 200, array $data = array())
 	header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 	header('Content-type: application/json');
 
-	switch($statusCode) {
+	switch ($statusCode) {
+		case 202:
+			header('Status: 202 Accepted');
+			break;
 		case 400:
 			header('Status: 400 Bad Request');
 			break;
@@ -76,19 +78,19 @@ function sendJsonResponse($statusCode = 200, array $data = array())
  */
 function get()
 {
-	if(isset($_GET['version_id']) && isset($_GET['version_name'])) {
+	if (isset($_GET['version_id']) && isset($_GET['version_name'])) {
 		$versionId = intval($_REQUEST['version_id']);
 		$versionName = clean_input($_REQUEST['version_name']);
 
 		try {
 			$stmt = exec_query('SELECT * FROM php_switcher_version WHERE version_id = ?', $versionId);
 
-			if($stmt->rowCount()) {
+			if ($stmt->rowCount()) {
 				sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 
 			sendJsonResponse(404, array('message' => tr('PHP version %s has not been found.', $versionName)));
-		} catch(DatabaseException $e) {
+		} catch (DatabaseException $e) {
 			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 		}
 	}
@@ -103,13 +105,13 @@ function get()
  */
 function add()
 {
-	if(isset($_POST['version_name']) && isset($_POST['version_binary_path'])) {
+	if (isset($_POST['version_name']) && isset($_POST['version_binary_path'])) {
 		$versionName = clean_input($_POST['version_name']);
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 
-		if($versionName == '' || $versionBinaryPath == '') {
+		if ($versionName == '' || $versionBinaryPath == '') {
 			sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
-		} elseif(
+		} elseif (
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
 			sendJsonResponse(400, array('message' => tr('PHP version %s already exists', true, $versionName)));
@@ -119,14 +121,15 @@ function add()
 
 		try {
 			exec_query(
-				'INSERT INTO php_switcher_version (version_name, version_binary_path) VALUES (?, ?)',
-				array($versionName, $versionBinaryPath)
+				'INSERT INTO php_switcher_version (version_name, version_binary_path, version_status) VALUES (?, ?, ?)',
+				array($versionName, $versionBinaryPath, 'toadd')
 			);
 
 			write_log('PHP version %s has been added.', E_USER_NOTICE);
-			sendJsonResponse(200, array('message' => tr('PHP version %s successfully added.', $versionName)));
-		} catch(DatabaseException $e) {
-			if($e->getCode() == '23000') {
+			send_request();
+			sendJsonResponse(200, array('message' => tr('PHP version %s has been scheduled for addition.', $versionName)));
+		} catch (DatabaseException $e) {
+			if ($e->getCode() == '23000') {
 				sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', $versionName)));
 			} else {
 				sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
@@ -144,14 +147,14 @@ function add()
  */
 function edit()
 {
-	if(isset($_POST['version_id']) && isset($_POST['version_name']) && isset($_POST['version_binary_path'])) {
+	if (isset($_POST['version_id']) && isset($_POST['version_name']) && isset($_POST['version_binary_path'])) {
 		$versionId = intval($_POST['version_id']);
 		$versionName = clean_input($_POST['version_name']);
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 
-		if($versionName == '' || $versionBinaryPath == '') {
+		if ($versionName == '' || $versionBinaryPath == '') {
 			sendJsonResponse(400, array('message' => tr('All fields are required.')));
-		} elseif(
+		} elseif (
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
 			sendJsonResponse(400, array(
@@ -166,28 +169,30 @@ function edit()
 		);
 		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
-		if($row['version_name'] != $versionName || $row['version_binary_path'] != $versionBinaryPath) {
+		if ($row['version_name'] != $versionName || $row['version_binary_path'] != $versionBinaryPath) {
 			$db = Database::getRawInstance();
 
 			try {
 				$db->beginTransaction();
 
-				exec_query(
-					'
+				// Run backend side only if needed
+				if ($row['version_binary_path'] != $versionBinaryPath) {
+					exec_query(
+						'
 						UPDATE
 							php_switcher_version
 						SET
-							version_name = ?, version_binary_path = ?, version_status = .
+							version_name = ?, version_binary_path = ?, version_status = ?
 						WHERE
 							version_id = ?
-						AND
-							version_status = ?
 					',
-					array($versionName, $versionBinaryPath, 'tochange', $versionId, 'ok')
-				);
+						array($versionName, $versionBinaryPath, 'tochange', $versionId)
+					);
 
-				if($row['version_binary_path'] != $versionBinaryPath) {
-					$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
+					$stmt = exec_query(
+						'SELECT domain_name, domain_type FROM php_switcher_version_admin WHERE version_id = ?',
+						$versionId
+					);
 
 					/** @var PluginManager $pluginManager */
 					$pluginManager = Registry::get('pluginManager');
@@ -196,30 +201,42 @@ function edit()
 					$plugin = $pluginManager->pluginGet('PhpSwitcher');
 
 					if ($stmt->rowCount()) {
-						$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+						$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 					}
+
+					$db->commit();
+
+					send_request();
+					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					sendJsonResponse(200, array(
+						'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName)
+					));
+				} else {
+					exec_query(
+						'UPDATE php_switcher_version SET version_name = ? WHERE version_id = ?',
+						array($versionName, $versionId)
+					);
+
+					$db->commit();
+
+					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					sendJsonResponse(200, array(
+						'message' => tr('PHP version %s successfully updated.', true, $versionName)
+					));
 				}
-
-				$db->commit();
-
-				send_request();
-				write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
-				sendJsonResponse(200, array(
-					'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName))
-				);
-			} catch(DatabaseException $e) {
+			} catch (DatabaseException $e) {
 				$db->rollBack();
 
-				if($e->getCode() == '23000') {
+				if ($e->getCode() == '23000') {
 					sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', true, $versionName)));
 				} else {
-					sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+					sendJsonResponse(
+						500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())
+					));
 				}
 			}
 		} else {
-			sendJsonResponse(200, array(
-					'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName))
-			);
+			sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
 		}
 	}
 
@@ -233,7 +250,7 @@ function edit()
  */
 function delete()
 {
-	if(isset($_POST['version_id']) && isset($_POST['version_name'])) {
+	if (isset($_POST['version_id']) && isset($_POST['version_name'])) {
 		$versionId = intval(clean_input($_POST['version_id']));
 		$versionName = clean_input($_POST['version_name']);
 
@@ -242,7 +259,9 @@ function delete()
 		try {
 			$db->beginTransaction();
 
-			$stmt = exec_query('SELECT admin_id FROM php_switcher_version_admin WHERE version_id = ?', $versionId);
+			$stmt = exec_query(
+				'SELECT domain_name, domain_type FROM php_switcher_version_admin WHERE version_id = ?', $versionId
+			);
 
 			/** @var PluginManager $pluginManager */
 			$pluginManager = Registry::get('pluginManager');
@@ -250,23 +269,48 @@ function delete()
 			/** @var PhpSwitcher $plugin */
 			$plugin = $pluginManager->pluginGet('PhpSwitcher');
 
-			if($stmt->rowCount()) {
-				$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_COLUMN));
+			if ($stmt->rowCount()) {
+				$plugin->scheduleDomainsChange($stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 			}
 
-			$stmt = exec_query('DELETE FROM php_switcher_version  WHERE version_id = ?', $versionId);
+			$stmt = exec_query('DELETE FROM php_switcher_version WHERE version_id = ?', $versionId);
 
-			if($stmt->rowCount()) {
+			if ($stmt->rowCount()) {
 				$db->commit();
 
 				send_request();
 				write_log('PHP version %s has been scheduled for deletion.', $versionName, E_USER_NOTICE);
-				sendJsonResponse(200, array('message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName)));
+				sendJsonResponse(200, array(
+					'message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName)
+				));
 			}
-		} catch(DatabaseException $e) {
+		} catch (DatabaseException $e) {
 			$db->rollBack();
 			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
 		}
+	}
+
+	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+}
+
+/**
+ * Re-generate all PHP info files
+ *
+ * @throws DatabaseException
+ * @return void
+ */
+function generatePhpInfo()
+{
+	$stmt = exec_query(
+		'UPDATE php_switcher_version SET version_status = ? WHERE version_status = ?', array('tochange', 'ok')
+	);
+
+	if ($stmt->rowCount()) {
+		send_request();
+		write_log('PHP info file were scheduled for re-generation.', E_USER_NOTICE);
+		sendJsonResponse(
+			200, array('message' => tr('PHP info file were successfully scheduled for re-generation.', true))
+		);
 	}
 
 	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
@@ -291,25 +335,25 @@ function getTable()
 		/* Paging */
 		$limit = '';
 
-		if(isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
+		if (isset($_GET['iDisplayStart']) && $_GET['iDisplayLength'] != '-1') {
 			$limit = 'LIMIT ' . intval($_GET['iDisplayStart']) . ', ' . intval($_GET['iDisplayLength']);
 		}
 
 		/* Ordering */
 		$order = '';
 
-		if(isset($_GET['iSortCol_0'])) {
+		if (isset($_GET['iSortCol_0'])) {
 			$order = 'ORDER BY ';
 
-			for($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
-				if($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
+			for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
+				if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == 'true') {
 					$order .= $columns[intval($_GET['iSortCol_' . $i])] . ' ' . $_GET['sSortDir_' . $i] . ', ';
 				}
 			}
 
 			$order = substr_replace($order, '', -2);
 
-			if($order == 'ORDER BY') {
+			if ($order == 'ORDER BY') {
 				$order = '';
 			}
 		}
@@ -317,10 +361,10 @@ function getTable()
 		/* Filtering */
 		$where = '';
 
-		if($_REQUEST['sSearch'] != '') {
+		if ($_REQUEST['sSearch'] != '') {
 			$where .= 'WHERE (';
 
-			for($i = 0; $i < $nbColumns; $i++) {
+			for ($i = 0; $i < $nbColumns; $i++) {
 				$where .= $columns[$i] . ' LIKE ' . quoteValue("%{$_GET['sSearch']}%") . ' OR ';
 			}
 
@@ -329,8 +373,8 @@ function getTable()
 		}
 
 		/* Individual column filtering */
-		for($i = 0; $i < $nbColumns; $i++) {
-			if(isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
+		for ($i = 0; $i < $nbColumns; $i++) {
+			if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == 'true' && $_GET["sSearch_$i"] != '') {
 				$where .= "AND {$columns[$i]} LIKE " . quoteValue("%{$_GET["sSearch_$i"]}%");
 			}
 		}
@@ -364,18 +408,22 @@ function getTable()
 		$trEditTooltip = tr('Edit this PHP version');
 		$trDeleteTooltip = tr('Delete this PHP version');
 
-		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
+		while ($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
-			for($i = 0; $i < $nbColumns; $i++) {
-				if($columns[$i] == 'version_status') {
-					$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
-				} elseif($columns[$i] != 'version_id') {
+			for ($i = 0; $i < $nbColumns; $i++) {
+				if ($columns[$i] == 'version_status') {
+					if(in_array($data[$columns[$i]], array('ok', 'toadd', 'tochange', 'todelete'))) {
+						$row[$columns[$i]] = translate_dmn_status($data[$columns[$i]]);
+					} else {
+						$row[$columns[$i]] = tohtml($data[$columns[$i]]);
+					}
+				} elseif ($columns[$i] != 'version_id') {
 					$row[$columns[$i]] = $data[$columns[$i]];
 				}
 			}
 
-			if($data['version_status'] == 'ok') {
+			if (!in_array($data['version_status'], array('toadd','tochange'))) {
 				$row['actions'] =
 					"<span title=\"$trEditTooltip\" data-action=\"edit\" " .
 					"data-version-id=\"{$data['version_id']}\" data-version-name=\"{$data['version_name']}\" " .
@@ -451,9 +499,9 @@ function _normalizePath($path)
 EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 check_login('admin');
 
-if(isset($_REQUEST['action'])) {
-	if(is_xhr()) {
-		switch(clean_input($_REQUEST['action'])) {
+if (isset($_REQUEST['action'])) {
+	if (is_xhr()) {
+		switch (clean_input($_REQUEST['action'])) {
 			case 'table':
 				getTable();
 				break;
@@ -469,6 +517,9 @@ if(isset($_REQUEST['action'])) {
 			case 'delete':
 				delete();
 				break;
+			case 'phpinfo';
+				generatePhpInfo();
+				break;
 			default:
 				sendJsonResponse(400, array('message' => tr('Bad request.', true)));
 		}
@@ -477,14 +528,40 @@ if(isset($_REQUEST['action'])) {
 	showBadRequestErrorPage();
 }
 
-$httpdConfig = new ConfigHandlerFile(Registry::get('config')->CONF_DIR . '/apache/apache.data');
+/** @var PluginManager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
+$phpSwitcher = $pluginManager->pluginGet('PhpSwitcher');
 
 $tpl = new TemplateEngine();
 $tpl->define_dynamic(array(
 	'layout' => 'shared/layouts/ui.tpl',
 	'page' => '../../plugins/PhpSwitcher/themes/default/view/admin/page.tpl',
-	'page_message' => 'layout'
+	'phpinfo_button' => 'page',
+	'phpinfo_js' => 'page',
+	'page_message' => 'layout',
 ));
+
+EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) use ($phpSwitcher) {
+	/** @var $e \iMSCP_Events_Event */
+	$translations = $e->getParam('translations');
+	$translations->PhpSwitcher = array(
+		'dataTable' => getDataTablesPluginTranslations(false),
+		'save' => tr('Save', true),
+		'cancel' => tr('Cancel', true),
+		'add' => tr('New PHP version'),
+		'edit' => tr('Edit %%s version', true),
+		'delete_confirm' => tr('Are you sure you want to delete this PHP version?', true),
+		'unknown_action' => tr('Unknown Action', true),
+		'request_timeout' => tr('Request Timeout: The server took too long to send the data.', true),
+		'request_error' => tr("An unexpected error occurred.", true)
+	);
+
+	if ($phpSwitcher->getConfigParam('phpinfo', false)) {
+		$translations->PhpSwitcher['phpinfo_confirm'] = tr(
+			'Are you sure you want to re-generate all PHP info files?', true
+		);
+	}
+});
 
 $tpl->assign(array(
 	'TR_PAGE_TITLE' => tr('Admin / Settings / PHP Switcher'),
@@ -496,16 +573,20 @@ $tpl->assign(array(
 	'TR_BINARY_PATH' => tr('PHP binary path'),
 	'TR_PROCESSING_DATA' => tr('Processing...'),
 	'TR_ADD_NEW_VERSION' => tr('Add new PHP version'),
-	'TR_REQUEST_TIMEOUT' => json_encode(tr('Request Timeout: The server took too long to send the data.', true)),
-	'TR_REQUEST_ERROR' => json_encode(tr("An unexpected error occurred.", true)),
-	'TR_UNKNOWN_ACTION' => tojs(tr('Unknown Action', true)),
-	'TR_NEW' => tojs(tr('New PHP version', true)),
-	'TR_EDIT' => tojs(tr('Edit %%s version', true)),
-	'TR_SAVE' => tojs(tr('Save', true)),
-	'TR_CANCEL' => tojs(tr('Cancel', true)),
-	'TR_DELETE_CONFIRM' => tojs(tr('Are you sure you want to delete this PHP version?', true)),
-	'CONFDIR_PATH' => $httpdConfig['PHP_STARTER_DIR']
+	'TR_ADD_NEW_VERSION_TOOLTIP' => tohtml(tr('Add new PHP version', true), 'htmlAttr')
 ));
+
+if (!$phpSwitcher->getConfigParam('phpinfo', false)) {
+	$tpl->assign(array(
+		'PHPINFO_BUTTON' => '',
+		'PHPINFO_JS' => ''
+	));
+} else {
+	$tpl->assign(array(
+		'TR_REGENERATE_PHPINFO' => tohtml(tr('Re-generate phpinfo', true), 'htmlAttr'),
+		'TR_REGENERATE_PHPINFO_TOOLTIP' => tohtml(tr('Re-generate PHP info files.', true), 'htmlAttr'),
+	));
+}
 
 generateNavigation($tpl);
 generatePageMessage($tpl);

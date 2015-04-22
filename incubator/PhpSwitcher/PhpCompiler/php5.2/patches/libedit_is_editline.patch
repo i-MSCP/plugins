@@ -1,0 +1,25 @@
+--- php.orig/ext/readline/config.m4
++++ php/ext/readline/config.m4
+@@ -65,7 +65,7 @@ if test "$PHP_READLINE" && test "$PHP_RE
+ elif test "$PHP_LIBEDIT" != "no"; then
+ 
+   for i in $PHP_LIBEDIT /usr/local /usr; do
+-    test -f $i/include/readline/readline.h && LIBEDIT_DIR=$i && break
++    test -f $i/include/editline/readline.h && LIBEDIT_DIR=$i && break
+   done
+ 
+   if test -z "$LIBEDIT_DIR"; then
+--- php.orig/ext/readline/readline.c
++++ php/ext/readline/readline.c
+@@ -33,8 +33,10 @@
+ #define rl_completion_matches completion_matches
+ #endif
+ 
++#ifdef HAVE_LIBEDIT
++#include <editline/readline.h>
++#else
+ #include <readline/readline.h>
+-#ifndef HAVE_LIBEDIT
+ #include <readline/history.h>
+ #endif
+ 

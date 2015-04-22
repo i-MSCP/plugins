@@ -1,0 +1,20 @@
+--- a/ext/enchant/enchant.c
++++ b/ext/enchant/enchant.c
+@@ -429,6 +429,8 @@ PHP_FUNCTION(enchant_broker_set_dict_pat
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rls", &broker, &dict_type, &value, &value_len) == FAILURE) {
+ 		RETURN_FALSE;
+ 	}
++	
++	PHP_ENCHANT_GET_BROKER;
+ 
+ 	if (!value_len) {
+ 		RETURN_FALSE;
+@@ -485,6 +487,8 @@ PHP_FUNCTION(enchant_broker_get_dict_pat
+ 		default:
+ 			RETURN_FALSE;
+ 	}
++	
++	PHP_ENCHANT_GET_BROKER;
+ 
+ 	RETURN_STRING(value, 1);
+ }

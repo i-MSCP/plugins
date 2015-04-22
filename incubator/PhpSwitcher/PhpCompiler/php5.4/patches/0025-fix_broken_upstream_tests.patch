@@ -1,0 +1,29 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Fri, 20 Mar 2015 12:08:45 +0100
+Subject: fix_broken_upstream_tests
+
+---
+ ext/soap/tests/server009.phpt                     | 1 +
+ ext/standard/tests/general_functions/phpinfo.phpt | 2 ++
+ 2 files changed, 3 insertions(+)
+
+--- a/ext/soap/tests/server009.phpt
++++ b/ext/soap/tests/server009.phpt
+@@ -10,6 +10,7 @@ SOAP Server 9: setclass and setpersisten
+ --INI--
+ session.auto_start=1
+ session.save_handler=files
++session.save_path=temp_session_store
+ --FILE--
+ <?php
+ class foo {
+--- a/ext/standard/tests/general_functions/phpinfo.phpt
++++ b/ext/standard/tests/general_functions/phpinfo.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ phpinfo()
++--SKIPIF--
++<?php die("SKIP phpinfo - test suite's handling of "%s" is incompatible with this test"); ?>
+ --FILE--
+ <?php
+ var_dump(phpinfo());
