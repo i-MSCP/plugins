@@ -117,7 +117,7 @@ sub run
 						error("Unable to find PHP version. No output.");
 					} elsif($stdout !~ /PHP\s([\d.]+)/m) {
 						$rs = 1;
-						error(printf('Unable to find PHP version. Output was: %s', $stdout));
+						error(sprintf('Unable to find PHP version. Output was: %s', $stdout));
 					} else {
 						$phpVersion = $1;
 					}
