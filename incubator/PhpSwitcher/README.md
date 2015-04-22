@@ -43,12 +43,22 @@ For instance, if you want to install the **php5.2** version, you can run the scr
 # perl php_compiler.pl php5.2
 ```
 
-Or if you want install all PHP versions supported by this script, you can run it as follow:
+Or if you want install any other PHP version (or all) supported by this script, you can run it as follow:
 
 ```shell
 # cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
-# perl php_compiler.pl all
+# perl php_compiler.pl %version%
 ```
+
+Supported Parameters|Version(s)
+--------------------|---------
+php4.4              |4.4
+php5.2              |5.2
+php5.3              |5.3
+php5.4              |5.4
+php5.5              |5.5
+php5.6              |5.6
+all                 |4.4,5.2,5.3,5.4,5.5,5.6
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
 the **/opt/** subtree but you can change this behavior by using command line options.
