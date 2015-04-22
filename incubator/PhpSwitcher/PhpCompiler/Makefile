@@ -189,13 +189,13 @@ endif
 
 build-openssl-0.9.8: build-openssl-0.9.8-stamp
 build-openssl-0.9.8-stamp:
-	cd openssl-0.9.8zf && ./config --prefix=$(PREFIX) && $(MAKE) all
+	cd openssl-0.9.8* && ./config --prefix=$(PREFIX) && $(MAKE) all
 
 	touch build-openssl-0.9.8-stamp
 
 install-openssl-0.9.8: build-openssl-0.9.8 install-openssl-0.9.8-stamp
 install-openssl-0.9.8-stamp:
-	cd openssl-0.9.8zf && $(MAKE) install
+	cd openssl-0.9.8* && $(MAKE) install
 
 	touch install-openssl-0.9.8-stamp
 
@@ -208,7 +208,8 @@ prepared-stamp:
 unprepared:
 	rm -f prepared-stamp
 
-# TODO 		--with-mime-magic=$(MAGIC_MIME)
+#TODO
+# --with-expat-dir=/usr
 configure-php4.4: install-openssl-0.9.8 configure-php4.4-stamp configure-common
 configure-php4.4-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
@@ -220,6 +221,12 @@ configure-php4.4-stamp: prepared-stamp
 		--enable-memory-limit \
 		--enable-force-cgi-redirect \
 		--enable-fastcgi \
+		--enable-track-vars \
+		--enable-trans-sid \
+		--enable-filepro \
+		--disable-xml \
+		--enable-dbx \
+		--with-mime-magic \
 		--with-sqlite=shared,/usr \
 		--with-openssl=$(PREFIX) \
 		--with-openssl-dir=$(PREFIX) \
@@ -228,6 +235,7 @@ configure-php4.4-stamp: prepared-stamp
 		--without-mssql \
 		--without-libedit \
 		--without-xmlrpc
+
 	touch configure-php4.4-stamp
 
 # TODO 		--with-mime-magic=$(MAGIC_MIME)
@@ -306,7 +314,7 @@ configure-common-stamp:
 	   ../Zend/zend_ini_parser.c ../Zend/zend_language_parser.c \
 	   Zend/
 
-	touch common-configure-stamp
+	touch configure-common-stamp
 
 build-php4.4: configure-php4.4 build-common
 build-php5.2: configure-php5.2 build-common

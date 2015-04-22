@@ -36,9 +36,6 @@ umask 022;
 
 $ENV{'LANG'} = 'C.UTF-8';
 
-# Setup log file
-newDebug('phpswitcher-php-compiler.log');
-
 # Bootstrap i-MSCP backend
 iMSCP::Bootstrapper->getInstance()->boot(
     { 'mode' => 'backend', 'nolock' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'config_readonly' => 'yes' }
@@ -83,7 +80,7 @@ my @BUILD_DEPS = (
     'libjpeg-dev',
     'libkrb5-dev',
     'libldap2-dev',
-#    'libmagic-dev',        # Not needed because we use the bundled version
+    'libmagic-dev',        # Not needed because we use the bundled version
     'libmcrypt-dev',
     'libmhash-dev',
     'libonig-dev',
@@ -158,6 +155,7 @@ my %LONG_VERSION_TO_URL = ();
 my $BUILD_DIR = '/usr/local/src/phpswitcher';
 my $INSTALL_DIR = '/opt';
 my $PARALLEL_JOBS = 4;
+my $DEV_MODE = 'install';
 
 # Parse command line options
 iMSCP::Getopt->parseNoDefault(sprintf("\nUsage: perl %s [OPTION...] PHP_VERSION...", basename($0)) . qq {
@@ -172,17 +170,19 @@ PHP VERSIONS:
  You can either specify one or many PHP versions or 'all' for all versions.
 
 OPTIONS:
- -b,    --builddir      Build directory ( /usr/local/src/phpswitcher ).
- -i,    --installdir    Base installation directory ( /opt/phpswitcher ).
- -d,    --download-only Download only.
- -f,    --force-last    Force use of the last available PHP versions.
- -j,    --parallel-jobs Number of parallel jobs for make ( default: 4 ).
- -v,    --verbose       Enable verbose mode.},
+ -b,    --builddir <DIR>    Build directory ( /usr/local/src/phpswitcher ).
+ -i,    --installdir <DIR>  Base installation directory ( /opt ).
+ -d,    --download-only     Download only.
+ -f,    --force-last        Force use of the last available PHP versions.
+ -j,    --parallel-jobs <N> Number of parallel jobs for make ( default: 4 ).
+ -d,    --dev-mode <MODE>   Development mode ( patch, configure, build )
+ -v,    --verbose           Enable verbose mode.},
  'builddir|b=s' => sub { setOptions(@_); },
  'installdir|i=s' => sub { setOptions(@_); },
  'download-only|d' => \ my $DOWNLOAD_ONLY,
  'force-last|f' => \ my $FORCE_LAST,
  'parallel-jobs|j=i' => sub { setOptions(@_); },
+ 'dev-mode|d=s' => sub { setOptions(@_); },
  'verbose|v' => sub { setVerbose(@_); }
 );
 
@@ -198,7 +198,7 @@ eval {
             if($sVersion && exists $SHORT_TO_LONG_VERSION{$sVersion}) {
                 push @sVersions, $sVersion;
             } else {
-                die("Invalid PHP version parameter.\n");
+                die("Invalid PHP version\n");
             }
        }
     }
@@ -225,9 +225,9 @@ for my $sVersion(@sVersions) {
         undef $srcDir;
 
         applyPatches($sVersion, $lVersion);
-        install($sVersion, $lVersion);
+        install($sVersion, $lVersion) unless $DEV_MODE eq 'patch';
 
-        print output(sprintf('PHP %s has been successfully installed', $lVersion), 'ok');
+        print output(sprintf('PHP %s has been successfully processed', $lVersion), 'ok');
     }
 }
 
@@ -250,6 +250,12 @@ sub setOptions
         }
     } elsif($option eq 'parallel-jobs') {
         $PARALLEL_JOBS = $value;
+    } elsif($option eq 'dev-mode') {
+        if($value ~~ [ 'patch', 'configure', 'build' ]) {
+            $DEV_MODE = $value;
+        } else {
+            die("Invalid argument for the --dev-mode option.\n");
+        }
     }
 }
 
@@ -365,9 +371,9 @@ sub downloadSource
     unless(-f $phpArchPath) {
         print output(sprintf('Donwloading php-%s archive into %s...', $lVersion, $BUILD_DIR), 'info');
 
-        if(iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } )) {
-            fatal(sprintf('Unable to create the %s build directory', $BUILD_DIR));
-        }
+        (iMSCP::Dir->new( dirname => $BUILD_DIR  )->make( { mode => 0755 } ) == 0) or fatal(sprintf(
+            'Unable to create the %s build directory: %s', $BUILD_DIR, getLastError()
+        ));
 
         my ($stdout, $stderr);
         (
@@ -375,7 +381,6 @@ sub downloadSource
         ) or fatal(sprintf(
             "An error occurred while downloading the php-%s archive: %s", $lVersion, $stderr
         ));
-        debug($stdout) if $stdout;
 
         print output(sprintf('php-%s archive has been successfully downloaded', $lVersion), 'ok');
     } else {
@@ -385,32 +390,36 @@ sub downloadSource
     unless($DOWNLOAD_ONLY) {
         print output(sprintf('Extracting php-%s archive into %s ...', $lVersion, $phpSrcPath), 'info');
 
-        # Remove previous directory if any
-        (iMSCP::Dir->new( dirname => $phpSrcPath )->remove() == 0) or fatal(
-            sprintf('Unable to remove the %s directory', $phpSrcPath)
-        );
-
-        my ($stdout, $stderr);
-        (execute("tar -xzf $phpArchPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
-            "An error occurred while extracting the php-%s archive: %s", $lVersion, $stderr
-        ));
-        debug($stdout) if $stdout;
-
-        print output(sprintf('php-%s archive has been successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
-
-        if($sVersion eq '4.4') {
-            my $sslArchPath = "$Bin/php$sVersion/openssl-0.9.8zf.tar.gz";
-            my $sslSrcPath = File::Spec->join($phpSrcPath, "openssl-0.9.8zf");
-
-            print output(sprintf('Extracting OpenSSL (0.9.8zf) archive into %s ...', $phpSrcPath), 'info');
-
-            my ($stdout, $stderr);
-            (execute("tar -xzf $sslArchPath -C $phpSrcPath/", \$stdout, \$stderr) == 0) or fatal(sprintf(
-                "An error occurred while extracting the OpenSSL (0.9.8zf) archive: %s", $stderr
+        if($DEV_MODE eq 'install') {
+            # Remove previous directory if any
+            (iMSCP::Dir->new( dirname => $phpSrcPath )->remove() == 0) or fatal(sprintf(
+                'Unable to remove the %s directory: %s', $phpSrcPath, getLastError()
             ));
-            debug($stdout) if $stdout;
+        }
 
-            print output(sprintf('OpenSSL (0.9.8zf) archive has been successfully extracted into %s', $phpSrcPath), 'ok');
+        unless(-d "$BUILD_DIR/php-$lVersion") {
+            my ($stdout, $stderr);
+            (execute("tar -xzf $phpArchPath -C $BUILD_DIR/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+                "An error occurred while extracting the php-%s archive: %s", $lVersion, $stderr
+            ));
+
+            print output(sprintf('php-%s archive has been successfully extracted into %s', $lVersion, $BUILD_DIR), 'ok');
+
+            if($sVersion eq '4.4') {
+                my $sslArchPath = "$Bin/php$sVersion/openssl-0.9.8zf.tar.gz";
+                my $sslSrcPath = File::Spec->join($phpSrcPath, "openssl-0.9.8zf");
+
+                print output(sprintf('Extracting OpenSSL (0.9.8zf) archive into %s ...', $phpSrcPath), 'info');
+
+                my ($stdout, $stderr);
+                (execute("tar -xzf $sslArchPath -C $phpSrcPath/", \$stdout, \$stderr) == 0) or fatal(sprintf(
+                    "An error occurred while extracting the OpenSSL (0.9.8zf) archive: %s", $stderr
+                ));
+
+                print output(
+                    sprintf('OpenSSL (0.9.8zf) archive has been successfully extracted into %s', $phpSrcPath), 'ok'
+                );
+            }
         }
     }
 }
@@ -425,10 +434,9 @@ sub applyPatches
     $ENV{'QUILT_PATCHES'} = "$Bin/php$sVersion/patches";
 
     my $stderr;
-    (execute("quilt --quiltrc /dev/null push --fuzz 0 -a -q", undef, \$stderr) == 0) or fatal(sprintf(
-        'An error occurred while applying patches on php-%s source', $lVersion
+    (execute("quilt --quiltrc /dev/null push --fuzz 0 -a -q", undef, \$stderr) ~~ [ 0, 2 ]) or fatal(sprintf(
+        'An error occurred while applying patches on php-%s source: %s', $lVersion, $stderr
     ));
-    error($stderr) if $stderr;
 
     print output(sprintf('Patches have been successfully applied on php-%s source', $lVersion), 'ok');
 }
@@ -436,7 +444,7 @@ sub applyPatches
 sub install
 {
     my ($sVersion, $lVersion) = @_;
-    my $target = 'install-php' . $sVersion;
+    my $target = $DEV_MODE . '-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
     print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
@@ -450,10 +458,12 @@ sub install
         $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
     }
 
-    # Remove previous installation if any
-    (iMSCP::Dir->new( dirname => $installDir )->remove() == 0) or fatal(
-        sprintf('Unable to remove %s directory', $installDir)
-    );
+    if($DEV_MODE eq 'install') {
+        # Remove previous installation if any
+        (iMSCP::Dir->new( dirname => $installDir )->remove() == 0) or fatal(sprintf(
+            'Unable to remove %s directory: %s', $installDir, getLastError
+        ));
+    }
 
     # Execute make target
 
@@ -464,18 +474,19 @@ sub install
 
     print output(sprintf('The %s make target has been successfully executed for php-%s', $target, $lVersion), 'ok');
 
-    # Install modules.ini file
+    if($DEV_MODE eq 'install') {
+        # Install modules.ini file
 
-    print output(sprintf('Installing PHP modules.ini file for php-%s...', $lVersion), 'info');
+        print output(sprintf('Installing PHP modules.ini file for php-%s...', $lVersion), 'info');
 
-    (
-        iMSCP::File->new( filename => "$Bin/php$sVersion/modules.ini" )->copyFile(
-            "$installDir/etc/php/conf.d", { preserve => 'no' }
-        ) == 0
-    ) or fatal(sprintf(
-        'An error occurred while copying the PHP modules.ini file for php-%s: Unable to copy the PHP modules.ini file',
-        $lVersion
-    ));
+        (
+            iMSCP::File->new( filename => "$Bin/php$sVersion/modules.ini" )->copyFile(
+                "$installDir/etc/php/conf.d", { preserve => 'no' }
+            ) == 0
+        ) or fatal(sprintf(
+            'An error occurred while copying the PHP modules.ini file for php-%s: %s', $lVersion, getLastError
+        ));
 
-    print output(sprintf('PHP modules.ini file has been successfully installed for php-%s', $lVersion), 'ok');
+        print output(sprintf('PHP modules.ini file has been successfully installed for php-%s', $lVersion), 'ok');
+    }
 }
