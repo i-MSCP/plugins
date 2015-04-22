@@ -73,6 +73,11 @@ Supported PHP versions are: **php4.4**, **php5.2**, **php5.3**, **php5.4**, **ph
 **Warning:** Even if supported, it is not recommended to install PHP versions that have reached their end of life. You
 should really think before providing those versions since they can cause several security issues.
 
+#### SSL support for PHP 4.4
+
+SSL support for php-4.4 is provided with a self-compiled OpenSSL library ( openssl-0.9.8.zf ), which is installed in
+the same subtree ( eg. /opt/php4.4 ).
+
 ##### Changes made on PHP versions
 
 The PHP versions provided by the PHP compiler are almost identical to those which are provided by the Debian team.
@@ -98,7 +103,8 @@ PHP extensions which are enabled are the same that are enabled in PHP versions t
 **Notes:**
 
 - db4 extension is disabled for PHP versions older than 5.3 due to incompatibility with the Berkeley Database Libraries
-versions that are shipped with Debian >= wheezy and Ubuntu >= Precise.
+versions that are shipped with Debian >= wheezy and Ubuntu >= Precise. This will be solved in later release by using a
+self-compiled db4 library
 - Almost all extensions are compiled as shared module. See the [PHP configuration](README.md#php-configuration) section
 for more details.
 

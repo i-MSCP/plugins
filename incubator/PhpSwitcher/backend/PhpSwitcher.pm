@@ -104,23 +104,39 @@ sub run
 
 		for my $phpVersionId(keys %{$phpVersions}) {
 			if($phpVersions->{$phpVersionId}->{'version_status'} ~~ [ 'toadd', 'tochange' ]) {
+				my $phpVersion = undef;
 				my $rs = 0;
 
-				# Generate static phpinfo HTML file
 				if(-x $phpVersions->{$phpVersionId}->{'version_binary_path'}) {
+					# Find PHP version
 					my ($stdout, $stderr);
-					$rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -q -i", \$stdout, \$stderr);
-					error($stderr) if $rs;
+					my $rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -v", \$stdout, \$stderr);
+
+					unless($stdout) {
+						$rs = 1;
+						error("Unable to find PHP version. No output.");
+					} elsif($stdout !~ /PHP\s([\d.]+)/m) {
+						$rs = 1;
+						error(printf('Unable to find PHP version. Output was: %s', $stdout));
+					} else {
+						$phpVersion = $1;
+					}
 
 					unless($rs) {
-						my $file = iMSCP::File->new(
-							filename => "$main::imscpConfig{'PLUGINS_DIR'}/PhpSwitcher/phpinfo/$phpVersionId.html"
-						);
+						# Generate static phpinfo HTML file
+						$rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -q -i", \$stdout, \$stderr);
+						error($stderr) if $rs;
 
-						$rs ||= $file->set($stdout);
-						$rs ||= $file->save();
-						$rs ||= $file->owner($panelUser, $panelGroup);
-						$rs ||= $file->mode(0640);
+						unless($rs) {
+							my $file = iMSCP::File->new(
+								filename => "$main::imscpConfig{'PLUGINS_DIR'}/PhpSwitcher/phpinfo/$phpVersionId.html"
+							);
+
+							$rs ||= $file->set($stdout);
+							$rs ||= $file->save();
+							$rs ||= $file->owner($panelUser, $panelGroup);
+							$rs ||= $file->mode(0640);
+						}
 					}
 				} else {
 					error("$phpVersions->{$phpVersionId}->{'version_binary_path'} is not executable");
@@ -128,7 +144,9 @@ sub run
 				}
 
 				my $qrs =iMSCP::Database->factory()->doQuery(
-					'dummy', 'UPDATE php_switcher_version SET version_status = ? WHERE version_id = ?',
+					'dummy',
+					'UPDATE php_switcher_version SET version_version = ?, version_status = ? WHERE version_id = ?',
+					$phpVersion,
 					($rs ? scalar getMessageByType('error') : 'ok'),
 					$phpVersionId
 				);
