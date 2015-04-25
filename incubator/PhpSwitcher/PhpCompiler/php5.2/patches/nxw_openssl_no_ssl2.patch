@@ -1,0 +1,201 @@
+--- a/ext/openssl/xp_ssl.c
++++ b/ext/openssl/xp_ssl.c
+@@ -69,7 +69,7 @@ static int is_http_stream_talking_to_iis
+ 
+ #define SERVER_MICROSOFT_IIS	"Server: Microsoft-IIS"
+ #define SERVER_GOOGLE "Server: GFE/"
+-		
++
+ 		zend_hash_internal_pointer_reset(Z_ARRVAL_P(stream->wrapperdata));
+ 		while (SUCCESS == zend_hash_get_current_data(Z_ARRVAL_P(stream->wrapperdata), (void**)&tmp)) {
+ 
+@@ -78,7 +78,7 @@ static int is_http_stream_talking_to_iis
+ 			} else if (strncasecmp(Z_STRVAL_PP(tmp), SERVER_GOOGLE, sizeof(SERVER_GOOGLE)-1) == 0) {
+ 				return 1;
+ 			}
+-			
++
+ 			zend_hash_move_forward(Z_ARRVAL_P(stream->wrapperdata));
+ 		}
+ 	}
+@@ -129,7 +129,6 @@ static int handle_ssl_error(php_stream *
+ 				break;
+ 			}
+ 
+-			
+ 			/* fall through */
+ 		default:
+ 			/* some other error */
+@@ -175,7 +174,7 @@ static int handle_ssl_error(php_stream *
+ 						efree(ebuf);
+ 					}
+ 			}
+-				
++
+ 			retry = 0;
+ 			errno = 0;
+ 	}
+@@ -187,7 +186,7 @@ static size_t php_openssl_sockop_write(p
+ {
+ 	php_openssl_netstream_data_t *sslsock = (php_openssl_netstream_data_t*)stream->abstract;
+ 	int didwrite;
+-	
++
+ 	if (sslsock->ssl_active) {
+ 		int retry = 1;
+ 
+@@ -211,7 +210,7 @@ static size_t php_openssl_sockop_write(p
+ 	if (didwrite < 0) {
+ 		didwrite = 0;
+ 	}
+-	
++
+ 	return didwrite;
+ }
+ 
+@@ -229,7 +228,6 @@ static size_t php_openssl_sockop_read(ph
+ 			if (nr_bytes <= 0) {
+ 				retry = handle_ssl_error(stream, nr_bytes, 0 TSRMLS_CC);
+ 				stream->eof = (retry == 0 && errno != EAGAIN && !SSL_pending(sslsock->ssl_handle));
+-				
+ 			} else {
+ 				/* we got the data */
+ 				break;
+@@ -297,7 +295,7 @@ static int php_openssl_sockop_close(php_
+ 	}
+ 
+ 	pefree(sslsock, php_stream_is_persistent(stream));
+-	
++
+ 	return 0;
+ }
+ 
+@@ -318,7 +316,7 @@ static inline int php_openssl_setup_cryp
+ 		TSRMLS_DC)
+ {
+ 	SSL_METHOD *method;
+-	
++
+ 	if (sslsock->ssl_handle) {
+ 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSL/TLS already set-up for this stream");
+ 		return -1;
+@@ -333,9 +331,14 @@ static inline int php_openssl_setup_cryp
+ 			method = SSLv23_client_method();
+ 			break;
+ 		case STREAM_CRYPTO_METHOD_SSLv2_CLIENT:
++#ifdef OPENSSL_NO_SSL2
++			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv2 support is not compiled into the OpenSSL library PHP is linked against");
++			return -1;
++#else
+ 			sslsock->is_client = 1;
+ 			method = SSLv2_client_method();
+ 			break;
++#endif
+ 		case STREAM_CRYPTO_METHOD_SSLv3_CLIENT:
+ 			sslsock->is_client = 1;
+ 			method = SSLv3_client_method();
+@@ -353,9 +356,14 @@ static inline int php_openssl_setup_cryp
+ 			method = SSLv3_server_method();
+ 			break;
+ 		case STREAM_CRYPTO_METHOD_SSLv2_SERVER:
++#ifdef OPENSSL_NO_SSL2
++			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv2 support is not compiled into the OpenSSL library PHP is linked against");
++			return -1;
++#else
+ 			sslsock->is_client = 0;
+ 			method = SSLv2_server_method();
+ 			break;
++#endif
+ 		case STREAM_CRYPTO_METHOD_TLS_SERVER:
+ 			sslsock->is_client = 0;
+ 			method = TLSv1_server_method();
+@@ -414,7 +422,7 @@ static inline int php_openssl_enable_cry
+ 			}
+ 			sslsock->state_set = 1;
+ 		}
+-	
++
+ 		if (sslsock->is_client && SUCCESS == php_set_sock_blocking(sslsock->s.socket, 0 TSRMLS_CC)) {
+                 	sslsock->s.is_blocked = 0;
+ 		}
+@@ -454,7 +462,7 @@ static inline int php_openssl_enable_cry
+ 
+ 			if (FAILURE == php_openssl_apply_verification_policy(sslsock->ssl_handle, peer_cert, stream TSRMLS_CC)) {
+ 				SSL_shutdown(sslsock->ssl_handle);
+-			} else {	
++			} else {
+ 				sslsock->ssl_active = 1;
+ 
+ 				/* allow the script to capture the peer cert
+@@ -563,7 +571,7 @@ static inline int php_openssl_tcp_sockop
+ 			memcpy(clisockdata, sock, sizeof(clisockdata->s));
+ 
+ 			clisockdata->s.socket = clisock;
+-			
++
+ 			xparam->outputs.client = php_stream_alloc_rel(stream->ops, clisockdata, NULL, "r+");
+ 			if (xparam->outputs.client) {
+ 				xparam->outputs.client->context = stream->context;
+@@ -605,7 +613,7 @@ static inline int php_openssl_tcp_sockop
+ 			}
+ 		}
+ 	}
+-	
++
+ 	return xparam->outputs.client == NULL ? -1 : 0;
+ }
+ static int php_openssl_sockop_set_option(php_stream *stream, int option, int value, void *ptrparam TSRMLS_DC)
+@@ -667,7 +675,7 @@ static int php_openssl_sockop_set_option
+ 				}
+ 				return alive ? PHP_STREAM_OPTION_RETURN_OK : PHP_STREAM_OPTION_RETURN_ERR;
+ 			}
+-			
++
+ 		case PHP_STREAM_OPTION_CRYPTO_API:
+ 
+ 			switch(cparam->op) {
+@@ -714,7 +722,6 @@ static int php_openssl_sockop_set_option
+ 					 * doesn't know about */
+ 					xparam->outputs.returncode = php_openssl_tcp_sockop_accept(stream, sslsock, xparam STREAMS_CC TSRMLS_CC);
+ 
+-					
+ 					return PHP_STREAM_OPTION_RETURN_OK;
+ 
+ 				default:
+@@ -783,7 +790,7 @@ php_stream *php_openssl_ssl_socket_facto
+ {
+ 	php_stream *stream = NULL;
+ 	php_openssl_netstream_data_t *sslsock = NULL;
+-	
++
+ 	sslsock = pemalloc(sizeof(php_openssl_netstream_data_t), persistent_id ? 1 : 0);
+ 	memset(sslsock, 0, sizeof(*sslsock));
+ 
+@@ -799,10 +806,10 @@ php_stream *php_openssl_ssl_socket_facto
+ 	/* we don't know the socket until we have determined if we are binding or
+ 	 * connecting */
+ 	sslsock->s.socket = -1;
+-	
++
+ 	/* Initialize context as NULL */
+-	sslsock->ctx = NULL;	
+-	
++	sslsock->ctx = NULL;
++
+ 	stream = php_stream_alloc_rel(&php_openssl_socket_ops, sslsock, persistent_id, "r+");
+ 
+ 	if (stream == NULL)	{
+@@ -814,8 +821,13 @@ php_stream *php_openssl_ssl_socket_facto
+ 		sslsock->enable_on_connect = 1;
+ 		sslsock->method = STREAM_CRYPTO_METHOD_SSLv23_CLIENT;
+ 	} else if (strncmp(proto, "sslv2", protolen) == 0) {
++#ifdef OPENSSL_NO_SSL2
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv2 support is not compiled into the OpenSSL library PHP is linked against");
++		return NULL;
++#else
+ 		sslsock->enable_on_connect = 1;
+ 		sslsock->method = STREAM_CRYPTO_METHOD_SSLv2_CLIENT;
++#endif
+ 	} else if (strncmp(proto, "sslv3", protolen) == 0) {
+ 		sslsock->enable_on_connect = 1;
+ 		sslsock->method = STREAM_CRYPTO_METHOD_SSLv3_CLIENT;

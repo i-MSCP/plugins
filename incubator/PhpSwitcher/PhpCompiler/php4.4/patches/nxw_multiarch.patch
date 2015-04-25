@@ -39,7 +39,7 @@
  
 -  if test ! -r "$FREETDS_INSTALLATION_DIR/lib/libtds.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/libtds.so"; then
 -     AC_MSG_ERROR(Could not find $FREETDS_INSTALLATION_DIR/lib/libtds.[a|so])
-+  if test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/$DEB_HOST_MULTIARCH/libsybdb.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.so" &&  test ! -r "$FREETDS_INSTALLATION_DIR/lib/$DEB_HOST_MULTIARCH/libsybdb.so"; then
++  if test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/$DEB_HOST_MULTIARCH/libsybdb.a" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/libsybdb.so" && test ! -r "$FREETDS_INSTALLATION_DIR/lib/$DEB_HOST_MULTIARCH/libsybdb.so"; then
 +     AC_MSG_ERROR(Could not find $FREETDS_INSTALLATION_DIR/lib/libsybdb.[a|so])
    fi
  
@@ -70,14 +70,6 @@
    done
  
    if test -z "$GMP_DIR"; then
-@@ -29,6 +30,7 @@ if test "$PHP_GMP" != "no"; then
- 
-   PHP_ADD_LIBRARY_WITH_PATH(gmp, $GMP_DIR/lib, GMP_SHARED_LIBADD)
-   PHP_ADD_INCLUDE($GMP_DIR/include)
-+  PHP_ADD_INCLUDE($GMP_DIR/include)
- 
-   PHP_NEW_EXTENSION(gmp, gmp.c, $ext_shared)
-   PHP_SUBST(GMP_SHARED_LIBADD)
 --- a/ext/gd/config.m4
 +++ b/ext/gd/config.m4
 @@ -51,7 +51,7 @@ AC_DEFUN([PHP_GD_JPEG],[

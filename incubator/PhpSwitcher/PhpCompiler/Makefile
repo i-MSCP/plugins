@@ -114,7 +114,7 @@ COMMON_CONFIG = \
 	--with-enchant=shared,/usr \
 	--with-freetype-dir=shared,/usr \
 	--with-gettext \
-	--with-gd=shared,/usr  \
+	--with-gd=shared \
 	--with-gmp=shared,/usr \
 	--with-iconv \
 	--with-imap=shared,/usr \
@@ -223,19 +223,16 @@ configure-php4.4-stamp: prepared-stamp
 	--with-dom=shared,/usr \
 	--with-dom-xslt=shared,/usr \
 	--with-dom-exslt=shared,/usr \
-	--with-gd=shared \
 	--with-mhash=shared,/usr \
 	--with-mime-magic \
 	--with-ncurses=/usr \
 	--with-openssl=$(PREFIX) \
-	--with-sqlite=shared,/usr \
 	--without-db4 \
 	--without-libedit \
 	--without-snmp
 
 	touch configure-php4.4-stamp
 
-# TODO 		--with-mime-magic=$(MAGIC_MIME)
 configure-php5.2: configure-php5.2-stamp configure-common
 configure-php5.2-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
@@ -247,6 +244,8 @@ configure-php5.2-stamp: prepared-stamp
 		--enable-memory-limit \
 		--enable-force-cgi-redirect \
 		--enable-fastcgi \
+		--with-mhash=shared,/usr \
+		--with-mime-magic \
 		--with-sqlite=shared,/usr \
 		--without-db4
 

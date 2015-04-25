@@ -451,6 +451,8 @@ sub install
         $ENV{'PHP_AUTOHEADER'} = 'autoheader2.59';
         $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=1"; # Parallel jobs don't work well with older PHP versions
     } else {
+        $ENV{'PHP_AUTOCONF'} = 'autoconf';
+        $ENV{'PHP_AUTOHEADER'} = 'autoheader';
         $ENV{'PHPSWITCHER_BUILD_OPTIONS'} = "parallel=$PARALLEL_JOBS";
     }
 

@@ -48,3 +48,4 @@ php-5.3.9-gnusrc.patch
 php-5.3.3-macropen.patch
 php-5.2.4-norpath.patch
 nxw_large_file_support.patch
+nxw_freetype2_path.patch
