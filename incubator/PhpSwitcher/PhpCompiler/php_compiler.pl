@@ -46,9 +46,9 @@ iMSCP::Bootstrapper->getInstance()->boot(
 # Note: Packages are installed only if available.
 my @BUILD_DEPS = (
     'autoconf',
-#    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
+    'autoconf2.59', # Needed for older PHP versions such as those from the 5.2.x branch
     'automake',
-#    'automake1.11',
+    'automake1.11',
     'bison',
     'chrpath',
     'firebird-dev',
@@ -66,7 +66,7 @@ my @BUILD_DEPS = (
     'libdb-dev',
     'libedit-dev',
     'libenchant-dev',
-#    'libevent-dev',        # Not needed because we do not compile PHP-FPM
+#    'libevent-dev',
     'libexpat1-dev',
     'libfreetype6-dev',
     'libgcrypt11-dev',
@@ -80,9 +80,10 @@ my @BUILD_DEPS = (
     'libjpeg-dev',
     'libkrb5-dev',
     'libldap2-dev',
-    'libmagic-dev',        # Not needed because we use the bundled version
+    'libmagic-dev',
     'libmcrypt-dev',
     'libmhash-dev',
+    'libncurses5-dev',
     'libonig-dev',
     'libpam0g-dev',
     'libpcre3-dev',
@@ -119,7 +120,7 @@ my @BUILD_DEPS = (
 );
 
 # Conditional build dependencies
-# Only needed for PHP5.2 since for newest versions, we are using MySQL native driver ( mysqlnd )
+# Only needed for PHP versions older than 5.3 since for newest versions, we are using MySQL native driver ( mysqlnd )
 my %CONDITIONAL_BUILD_DEPS = (
     'mysql' => [ 'libmysqlclient-dev', 'libmysqlclient15-dev' ],
     'mariadb' => [ 'libmariadbclient-dev' ],
@@ -211,12 +212,13 @@ if($@ || !@sVersions) {
     iMSCP::Getopt->showUsage();
 }
 
+installBuildDeps() unless $DOWNLOAD_ONLY;
+
 for my $sVersion(@sVersions) {
     print output(sprintf('Processing PHP %s version', $sVersion), 'info');
 
     next unless (my $lVersion = getLongVersion($sVersion));
 
-    installBuildDep($sVersion) unless $DOWNLOAD_ONLY;
     downloadSource($sVersion, $lVersion);
 
     unless($DOWNLOAD_ONLY) {
@@ -259,24 +261,20 @@ sub setOptions
     }
 }
 
-sub installBuildDep
+sub installBuildDeps
 {
-    my $sVersion = shift;
+    print output('Installing build dependencies...', 'info');
 
-    print output(sprintf('Installing build dependencies for PHP %s.x version...', $sVersion), 'info');
+    (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
 
-    if($sVersion ~~ [ '4.4', '5.2' ]) {
-        (my $sqlServer) = $main::imscpConfig{'SQL_SERVER'} =~ /^(mysql|mariadb|percona)/;
-
-        if($sqlServer) {
-            @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
-        } else {
-            fatal('Unable to find your i-MSCP SQL server implementation');
-        }
+    if($sqlServer) {
+        @BUILD_DEPS = (@BUILD_DEPS, @{$CONDITIONAL_BUILD_DEPS{$sqlServer}});
+    } else {
+        fatal('Unable to find your i-MSCP SQL server implementation');
     }
 
     # Filter packages which are not available since the build dependencies list is a mix of packages
-    # that were pulled from different Debian/Ubuntu php5 package control files
+    # that were pulled from different Debian php5 package control files
     my ($stdout, $stderr);
     (execute("apt-cache --generate pkgnames", \$stdout, \$stderr) < 2) or fatal(sprintf(
         'An error occurred while installing build dependencies: Unable to filter list of packages to install: %s',
@@ -314,7 +312,7 @@ sub getLongVersion
     my $foundUrl;
     my $ret = 0;
 
-    # At first, we scan the museum. This covers the versions which are end of life and the versions which were moved
+    # At first, we scan the PHP museum. This covers the versions which are end of life and the versions which were moved
     # since the last release of this script.
     do {
         my $url = sprintf('http://museum.php.net/php5/php-%s.tar.gz', "$sVersion.$tiny");
@@ -447,8 +445,6 @@ sub install
     my $target = $DEV_MODE . '-php' . $sVersion;
     my $installDir = File::Spec->join($INSTALL_DIR, "php$sVersion");
 
-    print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
-
     if($sVersion ~~ [ '4.4', '5.2' ]) {
         # Force usage of autoconf2.59 since older PHP versions are not compatible with newest autoconf versions
         $ENV{'PHP_AUTOCONF'} = 'autoconf2.59';
@@ -463,9 +459,20 @@ sub install
         (iMSCP::Dir->new( dirname => $installDir )->remove() == 0) or fatal(sprintf(
             'Unable to remove %s directory: %s', $installDir, getLastError
         ));
+    } else {
+        # Execute clean target
+
+        print output(sprintf('Executing the %s make target for php-%s...', 'clean', $lVersion), 'info');
+
+        my $stderr;
+        (execute("make -f $Bin/Makefile clean", undef, \$stderr) == 0) or fatal(sprintf(
+            'An error occurred while executing the %s make target for php-%s: %s', 'clean', $lVersion, $stderr
+        ));
+
+        print output(sprintf('The %s make target has been successfully executed for php-%s', 'clean', $lVersion), 'ok');
     }
 
-    # Execute make target
+    print output(sprintf('Executing the %s make target for php-%s...', $target, $lVersion), 'info');
 
     my $stderr;
     (execute("make -f $Bin/Makefile PREFIX=$installDir $target", undef, \$stderr) == 0) or fatal(sprintf(

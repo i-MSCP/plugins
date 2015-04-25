@@ -9,12 +9,12 @@ this is solved in ./debian/rules where it's overwritten with a symlink.
 --- a/build/build2.mk
 +++ b/build/build2.mk
 @@ -52,7 +52,8 @@ $(TOUCH_FILES):
-
+ 
  aclocal.m4: configure.in acinclude.m4
  	@echo rebuilding $@
 -	cat acinclude.m4 ./build/libtool.m4 > $@
 +	libtoolize --copy --install --automake --force
 +	aclocal
-
+ 
  configure: aclocal.m4 configure.in $(config_m4_files)
  	@echo rebuilding $@

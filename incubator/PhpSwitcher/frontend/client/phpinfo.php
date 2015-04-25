@@ -33,7 +33,11 @@ if(isset($_GET['version_id'])) {
 			$phpinfoFilePath = $pluginManager->pluginGetDirectory() . "/PhpSwitcher/phpinfo/$versionId.html";
 
 			if (is_readable($phpinfoFilePath)) {
-				include $phpinfoFilePath;
+				header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+				header("Cache-Control: post-check=0, pre-check=0", false);
+				header("Pragma: no-cache");
+				print file_get_contents($phpinfoFilePath);
+				#include $phpinfoFilePath;
 				exit;
 			} else {
 				showNotFoundErrorPage();

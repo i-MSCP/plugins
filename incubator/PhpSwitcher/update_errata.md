@@ -7,7 +7,7 @@
 #### PHP compiler
 
 A PHP compiler has been added. This is a Perl script which allows to download, configure, compile and install one or
-many PHP versions in one step. That is now the recommended way to install orupdate PHP versions for use with this plugin.
+many PHP versions in one step. That is now the recommended way to install or update PHP versions for use with this plugin.
 
 See the [README.md](README.md#php-compiler) for further details.
 
@@ -24,8 +24,8 @@ command:
 
 #### PHP info ( phpinfo )
 
-Links to phpinfo were added in the client interface. This allows your customers to get information ( phpinfo ) about
-the PHP version currently in use for their sites. PHP info are provided through static phpinfo files which are generated
+Links to phpinfo were added in the client interface. This allows your customers to get information ( phpinfo ) about the
+PHP version currently in use for their sites. PHP info are provided through static phpinfo files which are generated
 when you add or change a PHP version, or when you explicitely ask to re-generate them.
 
 You can always disable this feature by editing the plugin configuration file, and by updating the plugin list through

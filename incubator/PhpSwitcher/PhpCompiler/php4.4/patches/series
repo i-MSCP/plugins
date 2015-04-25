@@ -26,3 +26,6 @@ nxw_libtool2.2.patch
 nxw_multiarch.patch
 nxw_gmp_ftbfs.patch
 nxw_php_fcgi_children.patch
+nxw_freetype2_path.patch
+nxw_interbase_fbclient.patch
+nxw_freetds_dir.patch

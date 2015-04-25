@@ -73,26 +73,20 @@ ifneq (,$(filter parallel=%,$(PHPSWITCHER_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-# TODO ( PHP 5.2 )
-# Old magic.mime location:
-#ifeq ($(wildcard /usr/share/misc/file/magic.mime), /usr/share/misc/file/magic.mime)
-#MAGIC_MIME = /usr/share/misc/file/magic.mime
-#endif
-# New magic.mime location:
-#ifeq ($(wildcard /usr/share/file/magic.mime), /usr/share/file/magic.mime)
-#MAGIC_MIME = /usr/share/file/magic.mime
-#endif
-
 # install prefix
 PREFIX ?= /usr/local
 
-# Common configuration ( apply to all PHP versions )
-COMMON_CONFIG = \
+# General config
+GENERAL_CONFIG = \
 	--build=$(DEB_BUILD_GNU_TYPE) \
 	--host=$(DEB_HOST_GNU_TYPE) \
 	--prefix=$(PREFIX) \
 	--with-config-file-path=$(PREFIX)/etc/php \
-	--with-config-file-scan-dir=$(PREFIX)/etc/php/conf.d \
+	--with-config-file-scan-dir=$(PREFIX)/etc/php/conf.d
+
+# Common configuration ( apply to all PHP versions - Unknown options are simply ignored )
+COMMON_CONFIG = \
+	$(GENERAL_CONFIG) \
 	--disable-debug \
 	--disable-rpath \
 	--disable-static \
@@ -120,7 +114,7 @@ COMMON_CONFIG = \
 	--with-enchant=shared,/usr \
 	--with-freetype-dir=shared,/usr \
 	--with-gettext \
-	--with-gd=shared  \
+	--with-gd=shared,/usr  \
 	--with-gmp=shared,/usr \
 	--with-iconv \
 	--with-imap=shared,/usr \
@@ -206,35 +200,38 @@ prepared-stamp:
 	touch prepared-stamp
 
 unprepared:
-	rm -f prepared-stamp
+	rm -rf autom4te.cache
+	rm -f buildmk.stamp prepared-stamp configure
 
-#TODO
-# --with-expat-dir=/usr
 configure-php4.4: install-openssl-0.9.8 configure-php4.4-stamp configure-common
 configure-php4.4-stamp: prepared-stamp
 	if [ -d cgi-build ]; then rm -rf cgi-build; fi
 	-mkdir cgi-build
 	cd cgi-build && \
 	CFLAGS="$(CFLAGS)" PROG_SENDMAIL="$(PROG_SENDMAIL)" ../configure \
-		$(COMMON_CONFIG) \
-		$(MYSQL_CONGIG) \
-		--enable-memory-limit \
-		--enable-force-cgi-redirect \
-		--enable-fastcgi \
-		--enable-track-vars \
-		--enable-trans-sid \
-		--enable-filepro \
-		--disable-xml \
-		--enable-dbx \
-		--with-mime-magic \
-		--with-sqlite=shared,/usr \
-		--with-openssl=$(PREFIX) \
-		--with-openssl-dir=$(PREFIX) \
-		--without-db4 \
-		--without-interbase \
-		--without-mssql \
-		--without-libedit \
-		--without-xmlrpc
+	$(COMMON_CONFIG) \
+	$(MYSQL_CONGIG) \
+	--disable-xml \
+	--with-expat-dir=/usr \
+	--enable-dbx \
+	--enable-fastcgi \
+	--enable-filepro \
+	--enable-force-cgi-redirect \
+	--enable-memory-limit \
+	--enable-track-vars \
+	--enable-trans-sid \
+	--with-dom=shared,/usr \
+	--with-dom-xslt=shared,/usr \
+	--with-dom-exslt=shared,/usr \
+	--with-gd=shared \
+	--with-mhash=shared,/usr \
+	--with-mime-magic \
+	--with-ncurses=/usr \
+	--with-openssl=$(PREFIX) \
+	--with-sqlite=shared,/usr \
+	--without-db4 \
+	--without-libedit \
+	--without-snmp
 
 	touch configure-php4.4-stamp
 
@@ -354,4 +351,4 @@ clean: unprepared
 	rm -rf cgi-build
 
 .NOTPARALLEL:
-.PHONY: configure-php4.4 configure-php5.2 configure-php5.3 configure-php5.4 configure-php5.6 build-php4.4 build-php5.2 build-php5.3 build-php5.4 build-php5.6 install-php4.4 install-php5.2 install-php5.3 install-php5.4 install-php5.6 clean
+.PHONY: clean configure-php4.4 configure-php5.2 configure-php5.3 configure-php5.4 configure-php5.6 build-php4.4 build-php5.2 build-php5.3 build-php5.4 build-php5.6 install-php4.4 install-php5.2 install-php5.3 install-php5.4 install-php5.6 clean

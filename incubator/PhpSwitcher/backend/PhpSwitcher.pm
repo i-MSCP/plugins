@@ -26,12 +26,14 @@ package Plugin::PhpSwitcher;
 
 use strict;
 use warnings;
+no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
 use iMSCP::File;
 use Servers::httpd;
 use Scalar::Defer;
+use version;
 use parent 'Common::SingletonClass';
 
 my $phpVersions = lazy {
@@ -129,6 +131,9 @@ sub run
 						error($stderr) if $rs;
 
 						unless($rs) {
+							# Remove broken images for PHP versions older than 5.3
+							$stdout =~ s/<img.*\/>//g if version->parse($phpVersion) < version->parse('5.3');
+
 							my $file = iMSCP::File->new(
 								filename => "$main::imscpConfig{'PLUGINS_DIR'}/PhpSwitcher/phpinfo/$phpVersionId.html"
 							);
