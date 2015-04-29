@@ -1,14 +1,16 @@
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -2373,25 +2373,24 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
+@@ -1801,26 +1801,25 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
+     CPPFLAGS=$old_CPPFLAGS
  
      PHP_ADD_INCLUDE($OPENSSL_INCDIR)
-   
+-  
 -    PHP_CHECK_LIBRARY(crypto, CRYPTO_free, [
 -      PHP_ADD_LIBRARY(crypto,,$1)
 -    ],[
 -      AC_MSG_ERROR([libcrypto not found!])
-+    PHP_CHECK_LIBRARY(:libcrypto.a, CRYPTO_free, [:],[
++
++    PHP_CHECK_LIBRARY(:libcrypto.a, CRYPTO_free, [:],[  
 +      AC_MSG_ERROR([static libcrypto not found!])
      ],[
        -L$OPENSSL_LIBDIR
@@ -33,14 +35,3 @@
  
      PHP_ADD_LIBPATH($OPENSSL_LIBDIR, $1)
    fi
---- a/ext/openssl/config0.m4
-+++ b/ext/openssl/config0.m4
-@@ -16,7 +16,7 @@ if test "$PHP_OPENSSL" != "no"; then
-     PHP_SETUP_KERBEROS(OPENSSL_SHARED_LIBADD)
-   fi
- 
--  AC_CHECK_LIB(ssl, DSA_get_default_method, AC_DEFINE(HAVE_DSA_DEFAULT_METHOD, 1, [OpenSSL 0.9.7 or later]))
-+  AC_CHECK_LIB(:libssl.a, DSA_get_default_method, AC_DEFINE(HAVE_DSA_DEFAULT_METHOD, 1, [OpenSSL 0.9.7 or later]))
- 
-   PHP_SETUP_OPENSSL(OPENSSL_SHARED_LIBADD, 
-   [

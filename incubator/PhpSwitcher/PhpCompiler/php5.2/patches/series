@@ -41,4 +41,3 @@ nxw_large_file_support.patch
 nxw_freetype2_path.patch
 nxw_libxml2.9.x_ftbfs.patch
 nxw_openssl_no_ssl2.patch
-nxw_openssl_crypto_ftbfs.patch
