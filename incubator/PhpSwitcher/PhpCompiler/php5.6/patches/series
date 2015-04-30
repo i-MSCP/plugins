@@ -39,3 +39,5 @@ php-fpm-getallheaders.patch
 revert-f07b8f36ae8099e29d19fbe8806bc07b21dcd4ac.patch
 0057-ads_odbc_exec.patch
 nxw_large_file_support.patch
+nxw_php.ini-phpswitcher.patch
+nxw_php_modules.ini.patch

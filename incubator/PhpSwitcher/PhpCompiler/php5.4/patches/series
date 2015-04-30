@@ -49,3 +49,5 @@
 0057-ads_odbc_exec.patch
 0058-check-libpq-lo_export-return-value.patch
 nxw_large_file_support.patch
+nxw_php.ini-phpswitcher.patch
+nxw_php_modules.ini.patch

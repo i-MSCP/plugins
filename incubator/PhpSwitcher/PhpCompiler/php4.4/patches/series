@@ -30,3 +30,5 @@ nxw_php_fcgi_children.patch
 nxw_freetype2_path.patch
 nxw_interbase_fbclient.patch
 nxw_freetds_dir.patch
+nxw_php.ini-phpswitcher.patch
+nxw_php_modules.ini.patch

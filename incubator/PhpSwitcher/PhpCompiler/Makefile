@@ -76,6 +76,9 @@ endif
 # install prefix
 PREFIX ?= /usr/local
 
+# Template destdir
+TPLS_DESTDIR ?= /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler/templates
+
 # General config
 GENERAL_CONFIG = \
 	--build=$(DEB_BUILD_GNU_TYPE) \
@@ -183,7 +186,7 @@ endif
 
 build-openssl-0.9.8: build-openssl-0.9.8-stamp
 build-openssl-0.9.8-stamp:
-	cd openssl-0.9.8* && ./config --prefix=$(PREFIX) && $(MAKE) all
+	cd openssl-0.9.8* && ./config no-shared --prefix=$(PREFIX) && $(MAKE) all
 
 	touch build-openssl-0.9.8-stamp
 
@@ -229,7 +232,6 @@ configure-php4.4-stamp: prepared-stamp
 	--with-openssl=$(PREFIX) \
 	--without-db4 \
 	--without-libedit \
-	--without-snmp
 
 	touch configure-php4.4-stamp
 
@@ -326,16 +328,37 @@ build-common-stamp:
 	touch build-common-stamp
 
 install-php4.4: build-php4.4 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php4.4.ini
+
 install-php5.2: build-php5.2 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php5.2.ini
+
 install-php5.3: build-php5.3 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php5.3.ini
+
 install-php5.4: build-php5.4 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php5.4.ini
+
 install-php5.5: build-php5.5 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php5.5.ini
+
 install-php5.6: build-php5.6 install-common
+	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php5.6.ini
 
 install-common: install-common-stamp
 install-common-stamp:
 	cd cgi-build && $(MAKE) install
+
 	mkdir -p $(PREFIX)/etc/php/conf.d
+
+	if [ -f php.ini-recommended ]; then \
+		cp php.ini-recommended $(PREFIX)/etc/php/php.ini; \
+	else \
+		cp php.ini-production $(PREFIX)/etc/php/php.ini; \
+	fi
+
+	cp modules.ini $(PREFIX)/etc/php/conf.d/modules.ini
+
 	ln -sf /usr/share/misc/config.guess $(PREFIX)/lib/php/build/config.guess
 	ln -sf /usr/share/misc/config.sub $(PREFIX)/lib/php/build/config.sub
 	ln -sf /usr/share/aclocal/libtool.m4 $(PREFIX)/lib/php/build/libtool.m4

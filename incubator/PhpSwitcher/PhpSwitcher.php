@@ -71,7 +71,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$config = iMSCP_Registry::get('config');
 
 			if ($config['HTTPD_SERVER'] != 'apache_fcgid') {
-				set_page_message(tr('This plugin require the apache fcgid i-MSCP server implementation.'), 'error');
+				set_page_message(tr('This plugin require the Apache FCGID i-MSCP server implementation.'), 'error');
 				$event->stopPropagation();
 			}
 		}

@@ -43,7 +43,7 @@ For instance, if you want to install the **php5.2** version, you can run the scr
 # perl php_compiler.pl php5.2
 ```
 
-Or if you want install any other PHP version (or all) supported by this script, you can run it as follow:
+Or if you want install any other PHP version ( or all ) supported by this script, you can run it as follow:
 
 ```shell
 # cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
@@ -58,10 +58,10 @@ php5.3              |5.3
 php5.4              |5.4
 php5.5              |5.5
 php5.6              |5.6
-all                 |4.4,5.2,5.3,5.4,5.5,5.6
+all                 |4.4, 5.2, 5.3, 5.4, 5.5, 5.6
 
 By default, the script will build new PHP versions into the **/usr/local/src/phpswitcher** directory and install them in
-the **/opt/** subtree but you can change this behavior by using command line options.
+the **/opt/phpswitcher** subtree but you can change this behavior by using command line options.
 
 To get more information about available command line options, you can run:
 
@@ -76,7 +76,8 @@ The versions supported by the PHP compiler are the last which were available whe
 This means that by default, the PHP versions provided by this script can be lower than the last that have been released
 on the PHP site. In such case, you can use the **--force-last** command line option which tells the PHP compiler to
 download the last released versions. However, you must be aware that the PHP compiler could fail to apply the needed
-patches on these versions. In such a case, you should create a ticket on our bug tracker using the provided output.
+patches ( see below ) on these versions. In such a case, you should create a ticket on our bug tracker using the
+provided output.
 
 Supported PHP versions are: **php4.4**, **php5.2**, **php5.3**, **php5.4**, **php5.5** and **php5.6**.
 
@@ -85,8 +86,8 @@ should really think before providing those versions since they can cause several
 
 #### SSL support for PHP 4.4
 
-SSL support for php-4.4 is provided with a self-compiled OpenSSL library ( openssl-0.9.8.zf ), which is installed in
-the same subtree ( eg. /opt/php4.4 ).
+SSL support for php-4.4 is provided with a self-compiled OpenSSL library ( openssl-0.9.8zf ), which is installed in
+the same subtree ( eg. /opt/phpswitcher/php4.4 ).
 
 ##### Changes made on PHP versions
 
@@ -126,7 +127,7 @@ on your system, the PHP compiler will go ahead and thus, the configuration proce
 #### Parallel Execution ( GNU make )
 
 For faster compilation, the parallel exuction feature that is provided by GNU make is enabled when possible. This
-feature allows to execute many recipes simultaneously. By default, 4 recipes are executed at once. On some systems where
+feature allows to execute many recipes simultaneously. By default, 2 recipes are executed at once. On some systems where
 the resources are poor, you could have to lower this value. This can be achieved using the **--parallel-jobs** command
 line option which takes a number as value:
 
@@ -134,10 +135,10 @@ For instance:
 
 ```shell
 # cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
-# perl php_compiler.pl --parallel-jobs 2 php5.2
+# perl php_compiler.pl --parallel-jobs 1 php5.2
 ```
 
-will tell GNU make to not run more than 2 recipes at once.
+will tell GNU make to not run more than 1 recipe at once.
 
 See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/html_node/Parallel.html) for further details.
 
@@ -145,7 +146,7 @@ See [GNU Make - Parallel Execution](https://www.gnu.org/software/make/manual/htm
 
 ### PHP configuration
 
-This section is only relevant if you have installed additional PHP versions using the PHP compiler ( see above ).
+This section is only relevant if you have installed additional PHP versions using the PHP compiler.
 
 First, it is important to note that it is useless to try to edit a PHP .ini file that is located under the **/etc/php5**
 directory for a PHP version which has been installed by the PHP compiler. Indeed, the .ini files located under that
@@ -155,22 +156,22 @@ For the same reasons, it is useless to try to enable or disable a PHP module usi
 ( php5enmod/php5dismod ) which are provided by your distribution. Those tools only operate on the .ini files that are
 provided by your distribution.
 
-By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/**. Thus, if you want
-to modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that subtree.
-The following layout apply for the PHP .ini files:
+By default, the PHP compiler installs additional PHP versions in its own subtree which is **/opt/phpswitcher**. Thus, if
+you want to modify any file related to a PHP version which has been installed by the PHP compiler, you must look in that
+subtree. The following layout apply for the PHP .ini files:
 
-- The default php.ini file is located at **/opt/\<php_version\>/etc/php/php.ini**
-- Additional .ini files if any are located in the **/opt/\<php_version\>/etc/php/conf.d** directory
+- The default php.ini file is located at **/opt/phpswitcher/\<php_version\>/etc/php/php.ini**
+- Additional .ini files if any are located in the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d** directory
 - PHP .ini files for i-MSCP customers are located under the **/var/www/fcgi/\<domain.tld\>/php5** directory
 
 ##### PHP extensions ( modules )
 
 For convenience, most of PHP extensions are compiled as shared modules by the PHP compiler. When installing a new PHP
 version, the PHP compiler create a specific .ini file that enable most of available PHP extensions. This file is located
-at **/opt/\<php_version\>/etc/php/conf.d/modules.ini**.
+at **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**.
 
 Here, a single .ini file is used for ease. This is not as in Debian where an .ini file is created for each modules. To
-enable/disable a specific module, you must just edit the **/opt/\<php_version\>/etc/php/conf.d/modules.ini**
+enable/disable a specific module, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**
 file and then, restart the Web server.
 
 ##### Pecl extensions
@@ -183,8 +184,8 @@ For instance, if you want install the **FileInfo** Pecl extension which was not 
 process as follow:
 
 ```shell
-# /opt/php5.2/bin/pecl install fileinfo
-# echo 'extension = fileinfo.so' >> /opt/php5.2/etc/php/conf.d/modules.ini 
+# /opt/phpswitcher/php5.2/bin/pecl install fileinfo
+# echo 'extension = fileinfo.so' >> /opt/phpswitcher/php5.2/etc/php/conf.d/modules.ini 
 ```
 
 Once done, you must reload the Web server as follow
@@ -192,6 +193,12 @@ Once done, you must reload the Web server as follow
 ```shell
 # service apache2 reload
 ```
+
+##### ionCube loader
+
+The PHP compiler will also automatically install the ionCube loader extension for each PHP version that you compile.
+To enable the ionCube loader, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**.
+which belong to your PHP version.
 
 ### PHP info files
 
@@ -201,7 +208,7 @@ if not desired, can be easily disabled by editing the plugin configuration file 
 the plugin management interface.
 
 Be aware that because the phpinfo files are static, you must re-generate them each time you made a configuration change
-for a specific PHP version ( eg. when you enable or disable a PHP/ Pecl extension ). This task can be done through the
+for a specific PHP version ( eg. when you enable or disable a PHP/Pecl extension ). This task can be done through the
 PhpSwitcher admin interface.
 
 ### Registering a PHP version in PhpSwitcher
@@ -225,7 +232,7 @@ available for your customers. This task must be done as follow:
 	</tr>
 	<tr>
 		<td>PHP binary path</td>
-		<td>/opt/php5.3/bin/php-cgi</td>
+		<td>/opt/phpswitcher/php5.3/bin/php-cgi</td>
 		<td>This is the path of the PHP binary</td>
 	</tr>
 </table>

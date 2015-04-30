@@ -1,11 +1,11 @@
-PhpSwitcher plugin ChangeLog
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PhpSwitcher plugin - ChangeLog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: PHP compiler ( in progress )
+    Added: PHP compiler ( allow to compile many PHP versions: php-4.4, php-5.2, php-5.3, php-5.4, php-5.5, php-5.6 )
     Added: Static PHP info files for each PHP version
     Added: Translation support
     Removed: Plugin configuration file

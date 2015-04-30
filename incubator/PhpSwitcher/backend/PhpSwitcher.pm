@@ -20,13 +20,13 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-#
 
 package Plugin::PhpSwitcher;
 
 use strict;
 use warnings;
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use File::Basename;
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
@@ -54,6 +54,7 @@ my $phpVersionsDomains = lazy {
 
 my $defaultPhpBinaryPath = lazy { Servers::httpd->factory()->{'config'}->{'PHP_CGI_BIN'}; };
 my $defaultPhpMajorVersion = lazy { Servers::httpd->factory()->{'config'}->{'PHP_VERSION'}; };
+my $phpTemplatesDir = "$main::imscpConfig{'PLUGINS_DIR'}/PhpSwitcher/PhpCompiler/templates";
 
 =head1 DESCRIPTION
 
@@ -113,7 +114,7 @@ sub run
 				if(-x $phpVersions->{$phpVersionId}->{'version_binary_path'}) {
 					# Find PHP version
 					my ($stdout, $stderr);
-					my $rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -v", \$stdout, \$stderr);
+					$rs = execute("$phpVersions->{$phpVersionId}->{'version_binary_path'} -v", \$stdout, \$stderr);
 
 					unless($stdout) {
 						$rs = 1;
@@ -153,7 +154,7 @@ sub run
 					'dummy',
 					'UPDATE php_switcher_version SET version_version = ?, version_status = ? WHERE version_id = ?',
 					$phpVersion,
-					($rs ? scalar getMessageByType('error') : 'ok'),
+					($rs ? scalar getMessageByType('error') || 'Unknown error' : 'ok'),
 					$phpVersionId
 				);
 				unless(ref $qrs eq 'HASH') {
@@ -179,19 +180,20 @@ sub run
 
 =over 4
 
-=item overridePhpBinaryPath(\%data)
+=item overridePhpVariables(\%data)
 
- Event listener which overrides the PHP binary path
+ Event listener which overrides PHP variables
 
  Param hash \%data Data as provided by the Alias|Domain|SubAlias|Subdomain modules
  Return int 0 on success, other on failure
 
 =cut
 
-sub overridePhpBinaryPath
+sub overridePhpVariables
 {
 	my $data = shift;
 
+	my $httpd = Servers::httpd->factory();
 	my $domainName = $data->{'DOMAIN_NAME'};
 	my $phpBinaryPath = force $defaultPhpBinaryPath;
 	my $phpMajorVersion = force $defaultPhpMajorVersion;
@@ -204,18 +206,37 @@ sub overridePhpBinaryPath
 		my $phpVersion = $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}};
 		$phpBinaryPath = $phpVersion->{'version_binary_path'};
 		($phpMajorVersion) = $phpVersion->{'version_version'} =~ /^(\d)/;
+
+		unless(defined $phpVersion->{'version_peardir'}) {
+			my($stdout, $stderr);
+			my $rs = execute(dirname($phpVersion->{'version_binary_path'}) . '/php-config --prefix', \$stdout, \$stderr);
+			error($stderr) if $stderr && $rs;
+			return $rs if $rs;
+
+			chomp($stdout);
+
+			if(-d "$stdout/share/pear") {
+				$phpVersion->{'version_peardir'} = "$stdout/share/pear";
+			} else {
+				error(sprintf("Unable to guess PEAR directory for php-%s", $phpVersion->{'version_version'}));
+				return 1;
+			}
+		}
+
+		$httpd->setData({ PEAR_DIR => $phpVersion->{'version_peardir' }});
+		debug(sprintf('PEAR_DIR variable set to %s', $phpVersion->{'version_peardir'}));
 	}
 
-	my $httpdConfig = Servers::httpd->factory()->{'config'};
+	my $httpdConfig = $httpd->{'config'};
 	my $httpdConfigObj = tied %{$httpdConfig};
 
 	$httpdConfigObj->{'temporary'} = 1;
 
 	$httpdConfig->{'PHP_CGI_BIN'} = $phpBinaryPath;
-	debug(sprintf('PHP binary temporarily set to %s', $httpdConfig->{'PHP_CGI_BIN'}));
+	debug(sprintf('PHP_CGI_BIN variable set to %s', $httpdConfig->{'PHP_CGI_BIN'}));
 
 	$httpdConfig->{'PHP_VERSION'} = $phpMajorVersion;
-	debug(sprintf('PHP version temporarily set to %s', $httpdConfig->{'PHP_VERSION'}));
+	debug(sprintf('PHP_VERSION variable set to %s', $httpdConfig->{'PHP_VERSION'}));
 
 	$httpdConfigObj->{'temporary'} = 0;
 
@@ -235,18 +256,25 @@ sub overridePhpBinaryPath
 
 sub overridePhpIni
 {
-	my ($srvImpl, $tplName, $tplContent, $data) = @_;
+	my ($tplName, $tplContent, $data) = ($_[1], $_[2], $_[3]);
 
-	if($srvImpl eq 'apache_fcgid' && $tplName eq 'php.ini' && exists $phpVersionsDomains->{$data->{'DOMAIN_NAME'}}) {
-		my $tplFilePath = "$main::imscpConfig{'CONF_DIR'}/fcgi/parts/php5/php.ini";
-		# TODO override according PHP version in use
-		$$tplContent = iMSCP::File->new( filename => $tplFilePath )->get();
-		unless($$tplContent) {
-			error(sprintf('Unable to read %s', $tplFilePath));
-			return 1;
+	my $domainName = $data->{'DOMAIN_NAME'};
+
+	if($tplName eq 'php.ini' && exists $phpVersionsDomains->{$domainName}) {
+		my $phpVersion = $phpVersions->{$phpVersionsDomains->{$domainName}->{'version_id'}};
+		(my $phpMinorVersion) = $phpVersion->{'version_version'} =~ /^(\d\.\d)/;
+
+		my $tplFilePath = "$phpTemplatesDir/php$phpMinorVersion.ini";
+
+		if(-f $tplFilePath) {
+			$$tplContent = iMSCP::File->new( filename => $tplFilePath )->get();
+			unless(defined $$tplContent) {
+				error(sprintf('Unable to read %s', $tplFilePath));
+				return 1;
+			}
+
+			debug(sprintf('PHP ini template overridden by content from %s', $tplFilePath));
 		}
-
-		debug(sprintf('PHP ini template overridden by content from %s', $tplFilePath));
 	}
 
 	0;
@@ -271,7 +299,7 @@ sub _registerListeners
 	my $self = shift;
 
 	if($main::imscpConfig{'HTTPD_SERVER'} eq 'apache_fcgid' ) {
-		$self->{'eventManager'}->register('beforeHttpdBuildPhpConf', \&overridePhpBinaryPath);
+		$self->{'eventManager'}->register('beforeHttpdBuildPhpConf', \&overridePhpVariables);
 		$self->{'eventManager'}->register('onLoadTemplate', \&overridePhpIni);
 	} else {
 		# Handle case where the administrator switched to another httpd implementation
