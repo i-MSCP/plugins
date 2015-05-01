@@ -231,7 +231,7 @@ configure-php4.4-stamp: prepared-stamp
 	--with-ncurses=/usr \
 	--with-openssl=$(PREFIX) \
 	--without-db4 \
-	--without-libedit \
+	--without-libedit
 
 	touch configure-php4.4-stamp
 

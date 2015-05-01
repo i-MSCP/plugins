@@ -5,13 +5,18 @@ PhpSwitcher plugin - ChangeLog
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: PHP compiler ( allow to compile many PHP versions: php-4.4, php-5.2, php-5.3, php-5.4, php-5.5, php-5.6 )
+    Added: Chinese (Taiwan) translation file - Thank to Akong Wu
+    Added: Dutch (Netherlands ) translation file - Thank to Thom Heemstra
+    Added: English (United Kingdom) translation file
+    Added: French (France) translation file
+    Added: German (Germany) translation file - Thank to Torsten Widmann
+    Added: Swedish (Sweden) translation file - Thank to Thom Heemstra
+    Added: PHP compiler ( allow to compile many PHP versions: 4.4.x, 5.2.x, 5.3.x, 5.4.x, 5.5.x and 5.6.x )
     Added: Static PHP info files for each PHP version
     Added: Translation support
-    Removed: Plugin configuration file
+    Removed: PHP base configuration directory parameter
     Removed: Support for i-MSCP 1.1.x serie
     Removed: Support for memcached ( Security issues - Possible cache poisoning )
-    Removed: Useless PHP base configuration directory parameter
     Updated: License headers
 
 ------------------------------------------------------------------------------------------------------------------------
