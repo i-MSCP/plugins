@@ -2,7 +2,6 @@
 # Patches refreshed for: php-5.6.8
 # For any trouble, please create a ticket at http://youtrack.i-mscp.net
 001-libtool_fixes.patch
-002-static_openssl.patch
 libtool2.2.patch
 033-we_WANT_libtool.patch
 044-strtod_arm_fix.patch

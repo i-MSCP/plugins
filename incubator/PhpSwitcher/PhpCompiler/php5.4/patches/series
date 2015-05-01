@@ -2,7 +2,6 @@
 # Patches refreshed for: php-5.4.40
 # For any trouble, please create a ticket at http://youtrack.i-mscp.net
 0001-001-libtool_fixes.patch
-0002-002-static_openssl.patch
 0003-004-ldap_fix.patch
 0005-libtool2.2.patch
 0006-013-force_getaddrinfo.patch
