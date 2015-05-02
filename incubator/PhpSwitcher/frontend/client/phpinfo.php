@@ -37,7 +37,6 @@ if(isset($_GET['version_id'])) {
 				header("Cache-Control: post-check=0, pre-check=0", false);
 				header("Pragma: no-cache");
 				print file_get_contents($phpinfoFilePath);
-				#include $phpinfoFilePath;
 				exit;
 			} else {
 				showNotFoundErrorPage();

@@ -296,7 +296,11 @@ function generatePage($tpl)
 		$phpVersions = array_merge($phpVersions, $stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 	}
 
-	ksort($phpVersions, SORT_NATURAL);
+	if(!defined('SORT_NATURAL')) {
+		ksort($phpVersions, SORT_NATURAL);
+	} else {
+		uksort($phpVersions, "strnatcmp");
+	}
 
 	foreach ($domainsData as $domainData) {
 		$tpl->assign(array(
