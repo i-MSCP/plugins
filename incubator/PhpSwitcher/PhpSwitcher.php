@@ -71,7 +71,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			$config = iMSCP_Registry::get('config');
 
 			if ($config['HTTPD_SERVER'] != 'apache_fcgid') {
-				set_page_message(tr('This plugin require the Apache FCGID i-MSCP server implementation.'), 'error');
+				set_page_message(tr('This plugin require the apache fcgid i-MSCP server implementation.'), 'error');
 				$event->stopPropagation();
 			}
 		}
@@ -191,8 +191,8 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		$routes = array(
-			'/admin/phpswitcher' => $pluginDir . '/frontend/admin/php_switcher.php',
-			'/client/phpswitcher' => $pluginDir . '/frontend/client/php_switcher.php',
+			'/admin/phpswitcher' => $pluginDir . '/frontend/admin/phpswitcher.php',
+			'/client/phpswitcher' => $pluginDir . '/frontend/client/phpswitcher.php',
 		);
 
 		if ($this->getConfigParam('phpinfo', true)) {
@@ -219,7 +219,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			if ($eventName == 'onAdminScriptStart' && ($page = $navigation->findOneBy('uri', '/admin/settings.php'))) {
 				$page->addPage(
 					array(
-						'label' => tr('PHP version switcher'),
+						'label' => tr('PHP Switcher'),
 						'uri' => '/admin/phpswitcher',
 						'title_class' => 'settings',
 						'order' => 8
@@ -231,7 +231,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 			) {
 				$page->addPage(
 					array(
-						'label' => tr('PHP version switcher'),
+						'label' => tr('PHP Switcher'),
 						'uri' => '/client/phpswitcher',
 						'title_class' => 'domains'
 					)

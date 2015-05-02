@@ -114,7 +114,7 @@ function add()
 		} elseif (
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
-			sendJsonResponse(400, array('message' => tr('PHP version %s already exists', true, $versionName)));
+			sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', true, $versionName)));
 		}
 
 		$versionBinaryPath = _normalizePath($versionBinaryPath);
@@ -553,7 +553,7 @@ EventManager::getInstance()->registerListener('onGetJsTranslations', function ($
 		'delete_confirm' => tr('Are you sure you want to delete this PHP version?', true),
 		'unknown_action' => tr('Unknown Action', true),
 		'request_timeout' => tr('Request Timeout: The server took too long to send the data.', true),
-		'request_error' => tr("An unexpected error occurred.", true)
+		'request_error' => tr('An unexpected error occurred.', true)
 	);
 
 	if ($phpSwitcher->getConfigParam('phpinfo', false)) {
