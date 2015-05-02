@@ -296,7 +296,7 @@ function generatePage($tpl)
 		$phpVersions = array_merge($phpVersions, $stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 	}
 
-	if(!defined('SORT_NATURAL')) {
+	if(defined('SORT_NATURAL')) {
 		ksort($phpVersions, SORT_NATURAL);
 	} else {
 		uksort($phpVersions, 'strnatcmp');
