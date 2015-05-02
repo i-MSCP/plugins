@@ -125,7 +125,7 @@ function add()
 				array($versionName, $versionBinaryPath, 'toadd')
 			);
 
-			write_log('PHP version %s has been added.', E_USER_NOTICE);
+			write_log(sprintf('PHP version %s has been added.', $versionName), E_USER_NOTICE);
 			send_request();
 			sendJsonResponse(200, array('message' => tr('PHP version %s has been scheduled for addition.', $versionName)));
 		} catch (DatabaseException $e) {
@@ -207,7 +207,7 @@ function edit()
 					$db->commit();
 
 					send_request();
-					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					write_log(sprintf('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
 					sendJsonResponse(200, array(
 						'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName)
 					));
@@ -219,7 +219,7 @@ function edit()
 
 					$db->commit();
 
-					write_log('PHP version %s has been updated.', $versionName, E_USER_NOTICE);
+					write_log(sprintf('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
 					sendJsonResponse(200, array(
 						'message' => tr('PHP version %s successfully updated.', true, $versionName)
 					));
@@ -279,7 +279,7 @@ function delete()
 				$db->commit();
 
 				send_request();
-				write_log('PHP version %s has been scheduled for deletion.', $versionName, E_USER_NOTICE);
+				write_log(sprintf('PHP version %s has been scheduled for deletion.', $versionName), E_USER_NOTICE);
 				sendJsonResponse(200, array(
 					'message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName)
 				));
@@ -307,7 +307,7 @@ function generatePhpInfo()
 
 	if ($stmt->rowCount()) {
 		send_request();
-		write_log('PHP info file were scheduled for re-generation.', E_USER_NOTICE);
+		write_log('PHP info files were scheduled for re-generation.', E_USER_NOTICE);
 		sendJsonResponse(
 			200, array('message' => tr('PHP info file were successfully scheduled for re-generation.', true))
 		);

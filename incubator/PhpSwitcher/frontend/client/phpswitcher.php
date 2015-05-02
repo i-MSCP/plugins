@@ -267,7 +267,7 @@ function changePhpVersion()
 				$db->commit();
 
 				send_request();
-				write_log('%s updated its PHP version.', decode_idna($_SESSION['user_logged']), E_USER_NOTICE);
+				write_log(sprintf('%s updated its PHP version.', decode_idna($_SESSION['user_logged'])), E_USER_NOTICE);
 				set_page_message(tr('PHP version successfully scheduled for update. Please be patient.'), 'success');
 				sendJsonResponse(200);
 			}
