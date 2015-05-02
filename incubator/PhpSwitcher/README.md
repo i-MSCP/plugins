@@ -194,12 +194,6 @@ Once done, you must reload the Web server as follow
 # service apache2 reload
 ```
 
-##### ionCube loader
-
-The PHP compiler will also automatically install the ionCube loader extension for each PHP version that you compile.
-To enable the ionCube loader, you must just edit the **/opt/phpswitcher/\<php_version\>/etc/php/conf.d/modules.ini**.
-which belong to your PHP version.
-
 ### PHP info files
 
 For each PHP version that is registered through the PhpSwitcher admin interface ( see below ), a static PHP info file is
