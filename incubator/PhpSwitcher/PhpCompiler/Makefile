@@ -87,7 +87,7 @@ GENERAL_CONFIG = \
 	--with-config-file-path=$(PREFIX)/etc/php \
 	--with-config-file-scan-dir=$(PREFIX)/etc/php/conf.d
 
-# Common configuration ( apply to all PHP versions - Unknown options are simply ignored )
+# Common config ( apply to all PHP versions - Unknown options are simply ignored )
 COMMON_CONFIG = \
 	$(GENERAL_CONFIG) \
 	--disable-debug \
@@ -328,6 +328,7 @@ build-common-stamp:
 	touch build-common-stamp
 
 install-php4.4: build-php4.4 install-common
+	ln -sf $(PREFIX)/bin/php $(PREFIX)/bin/php-cgi
 	cp php.ini-phpswitcher $(TPLS_DESTDIR)/php4.4.ini
 
 install-php5.2: build-php5.2 install-common
