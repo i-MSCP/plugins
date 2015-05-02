@@ -299,7 +299,7 @@ function generatePage($tpl)
 	if(!defined('SORT_NATURAL')) {
 		ksort($phpVersions, SORT_NATURAL);
 	} else {
-		uksort($phpVersions, "strnatcmp");
+		uksort($phpVersions, 'strnatcmp');
 	}
 
 	foreach ($domainsData as $domainData) {
