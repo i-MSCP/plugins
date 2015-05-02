@@ -32,3 +32,4 @@ nxw_interbase_fbclient.patch
 nxw_freetds_dir.patch
 nxw_php.ini-phpswitcher.patch
 nxw_php_modules.ini.patch
+nxw_ldap_build_check.patch
