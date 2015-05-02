@@ -146,7 +146,7 @@ sub run
 						}
 					}
 				} else {
-					error("$phpVersions->{$phpVersionId}->{'version_binary_path'} is not executable");
+					error("$phpVersions->{$phpVersionId}->{'version_binary_path'} doesn't exists or is not executable");
 					$rs = 1;
 				}
 
