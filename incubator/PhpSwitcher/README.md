@@ -199,8 +199,8 @@ If you want to install the ionCube loader for a specific PHP version, you can pr
 
 ```shell
 # cd /usr/local/src
-# wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_$(dpkg-architecture -qDEB_HOST_GNU_CPU | tr '_' '-').tar.gz
-# tar -xzf ioncube_loaders_lin_$(dpkg-architecture -qDEB_HOST_GNU_CPU | tr '_' '-').tar.gz
+# wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+# tar -xzf ioncube_loaders_lin_x86-64.tar.gz
 # cd ioncube
 ```
 
