@@ -193,6 +193,39 @@ Once done, you must reload the Web server as follow
 ```shell
 # service apache2 reload
 ```
+##### IonCube loader
+
+If you want to install the ionCube loader for a specific PHP version, you can process as follow:
+
+```shell
+# cd /usr/local/src
+# wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_$(dpkg-architecture -qDEB_HOST_GNU_CPU | tr '_' '-').tar.gz
+# tar -xzf ioncube_loaders_lin_$(dpkg-architecture -qDEB_HOST_GNU_CPU | tr '_' '-').tar.gz
+# cd ioncube
+```
+
+###### Example for php4.4
+
+```shell
+# PHP_EXT_DIR=$(/opt/phpswitcher/php4.4/bin/php-config --extension-dir)
+# cp ioncube_loader_lin_4.4.so $PHP_EXT_DIR/ioncube.so
+# echo "zend_extension = $PHP_EXT_DIR/ioncube.so" > /opt/phpswitcher/php4.4/etc/php/conf.d/01_ioncube.ini
+```
+
+Once done, you can check by running the following command:
+
+``` shell
+# /opt/phpswitcher/php4.4/bin/php -v
+```
+
+which should give similar result:
+
+```shell
+PHP 4.4.9 (cgi-fcgi) (built: May  3 2015 14:16:01)
+Copyright (c) 1997-2008 The PHP Group
+Zend Engine v1.3.0, Copyright (c) 1998-2004 Zend Technologies
+    with the ionCube PHP Loader v5.0.2, Copyright (c) 2002-2015, by ionCube Ltd.
+```
 
 ### PHP info files
 
