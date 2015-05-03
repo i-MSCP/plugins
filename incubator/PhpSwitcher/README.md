@@ -176,7 +176,7 @@ file and then, restart the Web server.
 
 ##### Pecl extensions
 
-If you need to install a Pecl extension for a specific PHP version, you must not use the **pecl** nor the **phpize*
+If you need to install a Pecl extension for a specific PHP version, you must not use the **pecl** nor the **phpize**
 scripts which are shipped with your distribution. Instead, you must use those which are provided in the directory of the
 PHP version you want operate on.
 
@@ -254,7 +254,7 @@ available for your customers. This task must be done as follow:
 	</tr>
 	<tr>
 		<td>PHP version</td>
-		<td>PHP5.3 (Fcgid)</td>
+		<td>PHP 5.3</td>
 		<td>This is an unique name for the new PHP version</td>
 	</tr>
 	<tr>
