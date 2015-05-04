@@ -25,7 +25,7 @@
 		</tbody>
 		<tbody>
 		<tr>
-			<td colspan="4" bgcolor="#f0f8ff">
+			<td colspan="4" style="background-color: #b0def5">
 				<div class="buttons">
 					<button data-action="add" title="{TR_ADD_NEW_VERSION_TOOLTIP}">{TR_ADD_NEW_VERSION}</button>
 					<!-- BDP: phpinfo_button -->
