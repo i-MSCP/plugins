@@ -309,7 +309,7 @@ function generatePhpInfo()
 		send_request();
 		write_log('PHP info files were scheduled for re-generation.', E_USER_NOTICE);
 		sendJsonResponse(
-			200, array('message' => tr('PHP info file were successfully scheduled for re-generation.', true))
+			200, array('message' => tr('PHP info files were successfully scheduled for re-generation.', true))
 		);
 	}
 

@@ -35,7 +35,7 @@ return array(
 	'PHP version %s successfully updated.' => 'La version %s a été mise à jour.',
 	'Nothing has been changed.' => 'Rien a été modifié.',
 	'PHP version %s successfully scheduled for deletion.' => 'La version %s va être supprimée.',
-	'PHP info file were successfully scheduled for re-generation.' => 'Les fichers phpinfo vont être regénérés.',
+	'PHP info files were successfully scheduled for re-generation.' => 'Les fichers phpinfo vont être regénérés.',
 	'Edit this PHP version' => 'Éditer cette version PHP',
 	'Delete this PHP version' => 'Supprimer cette version PHP',
 	'Save' => 'Sauvegarder',

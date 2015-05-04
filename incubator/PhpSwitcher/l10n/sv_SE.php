@@ -35,7 +35,7 @@ return array(
 	'PHP version %s successfully updated.' => 'PHP version %s successfully updated.',
 	'Nothing has been changed.' => 'Nothing has been changed.',
 	'PHP version %s successfully scheduled for deletion.' => 'PHP version %s planerad till radering.',
-	'PHP info file were successfully scheduled for re-generation.' => 'PHP info file were successfully scheduled for re-generation.',
+	'PHP info files were successfully scheduled for re-generation.' => 'PHP info files were successfully scheduled for re-generation.',
 	'Edit this PHP version' => 'Redigera denna PHP-version',
 	'Delete this PHP version' => 'Radera denna PHP-version',
 	'Save' => 'Spara',
