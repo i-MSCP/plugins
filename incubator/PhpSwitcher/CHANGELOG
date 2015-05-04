@@ -12,6 +12,7 @@ Version 1.0.0
     Added: German (Germany) translation file - Thank to Torsten Widmann
     Added: Swedish (Sweden) translation file - Thank to Thom Heemstra
     Added: PHP compiler ( allow to compile many PHP versions: 4.4.x, 5.2.x, 5.3.x, 5.4.x, 5.5.x and 5.6.x )
+    Added: Russian (Russia) translation file - Thank to Vitaliy Zhukov
     Added: Static PHP info files for each PHP version
     Added: Translation support
     Removed: PHP base configuration directory parameter
