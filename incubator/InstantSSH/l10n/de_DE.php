@@ -88,7 +88,7 @@ return array(
 	'Wrong password length (Max 32 characters).' => 'Falsche Passwortlänge (Max 32 Zeichen).',
 	'Passwords do not match.' => 'Die Passwörter stimmen nicht überein.',
 	'Invalid SSH key.' => 'Ungültiger SSH-Schlüssel.',
-	'SSH user has been scheduled for addition.' => 'SSH-Benutzer wurde zum Hinzufügen angesetzt.',
+	'SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.' => 'SSH-Benutzer wurde zum Hinzufügen angesetzt.',
 	'Your SSH user limit is reached.' => 'Ihr SSH-Benutzerlimit ist erreicht.',
 	'SSH user has been scheduled for update.' => 'SSH-Benutzer wurde zur Aktualisierung angesetzt.',
 	'An SSH user with the same name or the same SSH key already exists.' => 'Ein SSH_Benutzer mit dem gleichen Namen oder dem gleichen SSH-Schlüssel ist bereits vorhanden.',

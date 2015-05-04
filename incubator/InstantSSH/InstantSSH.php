@@ -115,7 +115,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function enable(iMSCP_Plugin_Manager $pluginManager)
 	{
-		if($pluginManager->getPluginStatus($this->getName()) != 'toinstall') {
+		if($pluginManager->pluginGetStatus($this->getName()) != 'toinstall') {
 			try {
 				$this->checkDefaultAuthOptions();
 
@@ -344,12 +344,12 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginName = $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
-			'/admin/ssh_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/admin/ssh_permissions.php',
-			'/reseller/ssh_permissions' => PLUGINS_PATH . '/' . $pluginName . '/frontend/reseller/ssh_permissions.php',
-			'/client/ssh_users' => PLUGINS_PATH . '/' . $pluginName . '/frontend/client/ssh_users.php'
+			'/admin/ssh_permissions' => $pluginDir . '/frontend/admin/ssh_permissions.php',
+			'/reseller/ssh_permissions' => $pluginDir . '/frontend/reseller/ssh_permissions.php',
+			'/client/ssh_users' => $pluginDir . '/frontend/client/ssh_users.php'
 		);
 	}
 

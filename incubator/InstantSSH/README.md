@@ -25,6 +25,7 @@ configuration option to **TRUE** in the plugin configuration file.
 * binstats
 * build-essential
 * busybox-static or busybox
+* flex
 * libpam-chroot
 * psmisc
 * python
@@ -33,7 +34,7 @@ configuration option to **TRUE** in the plugin configuration file.
 You can install these packages by executing the following commands:
 
 ```bash
-# aptitude update && aptitude install bash build-essential busybox-static libpam-chroot psmisc python strace
+# aptitude update && aptitude install bash build-essential busybox-static flex libpam-chroot psmisc python strace
 ```
 
 **Notes**

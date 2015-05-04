@@ -238,8 +238,11 @@ function addSshPermissions()
 					);
 
 					if(!$stmt->rowCount()) {
+						/** @var PluginManager $pluginManager */
+						$pluginManager = Registry::get('pluginManager');
+
 						/** @var \iMSCP_Plugin_InstantSSH $plugin */
-						$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+						$plugin = $pluginManager->pluginGet('InstantSSH');
 						$sshPermissions = $plugin->getResellerPermissions($sshPermAdminId);
 
 						if($sshPermissions['ssh_permission_id'] !== null) {
@@ -679,7 +682,6 @@ function getSshPermissionsList()
  */
 
 EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
-
 check_login('admin');
 
 if(isset($_REQUEST['action'])) {
@@ -713,16 +715,19 @@ if(isset($_REQUEST['action'])) {
 	showBadRequestErrorPage();
 }
 
+/** @var PluginManager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
+
 $tpl = new TemplateEngnine();
 $tpl->define_dynamic(array('layout' => 'shared/layouts/ui.tpl', 'page_message' => 'layout'));
 $tpl->define_no_file('page', Functions::renderTpl(
-	PLUGINS_PATH . '/InstantSSH/themes/default/view/admin/ssh_permissions.tpl')
+	$pluginManager->pluginGetDirectory() . '/InstantSSH/themes/default/view/admin/ssh_permissions.tpl')
 );
 
 if(Registry::get('config')->DEBUG) {
 	$assetVersion = time();
 } else {
-	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('InstantSSH');
+	$pluginInfo = $pluginManager->pluginGetInfo('InstantSSH');
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 
@@ -733,19 +738,14 @@ EventManager::getInstance()->registerListener('onGetJsTranslations', function ($
 	);
 });
 
-$tpl->assign(
-	array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions', true)),
-		'ISP_LOGO' => layout_getUserLogo(),
-		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
-	)
-);
+$tpl->assign(array(
+	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions', true)),
+	'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+	'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
+));
 
 generateNavigation($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
-
 EventManager::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
-
 $tpl->prnt();

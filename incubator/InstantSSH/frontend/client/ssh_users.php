@@ -24,6 +24,7 @@ use Crypt_RSA as CryptRsa;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as ExceptionDatabase;
+use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
 use InstantSSH\CommonFunctions as Functions;
@@ -89,7 +90,7 @@ function getSshUser()
 /**
  * Add/Update SSH user
  *
- * @param \iMSCP_Plugin_Manager $pluginManager
+ * @param PluginManager $pluginManager
  * @param array $sshPermissions SSH permissions
  * @return void
  */
@@ -103,7 +104,7 @@ function addSshUser($pluginManager, $sshPermissions)
 		$sshUserKeyFingerprint = '';
 
 		/** @var \iMSCP_Plugin_InstantSSH $plugin */
-		$plugin = $pluginManager->getPlugin('InstantSSH');
+		$plugin = $pluginManager->pluginGet('InstantSSH');
 
 		if(!$plugin->getConfigParam('passwordless_authentication', false)) {
 			if(isset($_POST['ssh_user_password']) && isset($_POST['ssh_user_cpassword'])) {
@@ -113,8 +114,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
 			}
 		}
-		/** @var \iMSCP_Plugin_InstantSSH $plugin */
-		$plugin = $pluginManager->getPlugin('InstantSSH');
+
 		$sshAuthOptions = $plugin->getConfigParam('default_ssh_auth_options', null);
 		$errorMsgs = array();
 
@@ -237,7 +237,7 @@ function addSshUser($pluginManager, $sshPermissions)
 							E_USER_NOTICE
 						);
 						Functions::sendJsonResponse(
-							200, array('message' => tr('SSH user has been scheduled for addition.', true))
+							200, array('message' => tr('SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.', true))
 						);
 					} else {
 						Functions::sendJsonResponse(
@@ -523,13 +523,13 @@ function getSshUsers()
  */
 
 EventManager::getInstance()->dispatch(Events::onClientScriptStart);
-
 check_login('user');
 
-/** @var \iMSCP_Plugin_Manager $pluginManager */
+/** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
+
 /** @var \iMSCP_Plugin_InstantSSH $plugin */
-$plugin = $pluginManager->getPlugin('InstantSSH');
+$plugin = $pluginManager->pluginGet('InstantSSH');
 $sshPermissions = $plugin->getCustomerPermissions($_SESSION['user_id']);
 
 if($sshPermissions['ssh_permission_id'] !== null) {
@@ -560,19 +560,19 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl = new TemplateEngnine();
 	$tpl->define_dynamic(array('layout' => 'shared/layouts/ui.tpl', 'page_message' => 'layout'));
-	$tpl->define_no_file_dynamic(
-		array(
-			'page' => Functions::renderTpl(PLUGINS_PATH . '/InstantSSH/themes/default/view/client/ssh_users.tpl'),
-			'ssh_password_field_block' => 'page',
-			'ssh_auth_options_block' => 'page',
-			'ssh_password_key_info_block' => 'page'
-		)
-	);
+	$tpl->define_no_file_dynamic(array(
+		'page' => Functions::renderTpl(
+			$pluginManager->pluginGetDirectory() . '/InstantSSH/themes/default/view/client/ssh_users.tpl'
+		),
+		'ssh_password_field_block' => 'page',
+		'ssh_auth_options_block' => 'page',
+		'ssh_password_key_info_block' => 'page'
+	));
 
 	if(Registry::get('config')->DEBUG) {
 		$assetVersion = time();
 	} else {
-		$pluginInfo = $pluginManager->getPluginInfo('InstantSSH');
+		$pluginInfo = $pluginManager->pluginGetInfo('InstantSSH');
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
@@ -583,16 +583,13 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 		);
 	});
 
-	$tpl->assign(
-		array(
-			'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Domains / SSH Users', true)),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-			'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
-			'SSH_USERNAME_PREFIX' => $plugin->getConfigParam('ssh_user_name_prefix', 'imscp_'),
-			'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Domains / SSH Users', true)),
+		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+		'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
+		'SSH_USERNAME_PREFIX' => $plugin->getConfigParam('ssh_user_name_prefix', 'imscp_'),
+		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
+	));
 
 	if(!$sshPermissions['ssh_permission_auth_options']) {
 		$tpl->assign('SSH_AUTH_OPTIONS_BLOCK', '');
@@ -612,9 +609,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	generateNavigation($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
 	EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
-
 	$tpl->prnt();
 } else {
 	showBadRequestErrorPage();

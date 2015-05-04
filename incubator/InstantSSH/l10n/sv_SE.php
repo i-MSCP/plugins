@@ -87,7 +87,7 @@ return array(
 	'Wrong password length (Max 32 characters).' => 'Fel lösenord längd (Max 32 tecken).',
 	'Passwords do not match.' => 'Lösenorden matchar inte.',
 	'Invalid SSH key.' => 'Ogiltig SSH-nyckel.',
-	'SSH user has been scheduled for addition.' => 'SSH user has been scheduled for addition.',
+	'SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.' => 'SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.',
 	'Your SSH user limit is reached.' => 'Din SSH-användare gränsen är nådd.',
 	'SSH user has been scheduled for update.' => 'SSH-användare planerad till uppdateringen.',
 	'An SSH user with the same name or the same SSH key already exists.' => 'En SSH användare med samma namn eller samma SSH-nyckel finns redan.',

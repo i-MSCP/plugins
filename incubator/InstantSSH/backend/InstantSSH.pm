@@ -38,16 +38,11 @@ use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw(clearImmutable isImmutable setImmutable);
 use iMSCP::File;
 use iMSCP::ProgramFinder;
-
-use Servers::po;
-
 use InstantSSH::JailBuilder;
 use InstantSSH::JailBuilder::Utils qw(normalizePath);
-
 use Unix::PasswdFile;
 use Unix::ShadowFile;
 use version;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -155,7 +150,7 @@ sub update
 
 	# Update from versions older than 2.1.0
 	#  - Remove old makejail files if any
-	if(version->parse($fromVersion) < version->parse("2.1.0") && -d '/etc/makejail') {
+	if(version->parse($fromVersion) < version->parse('2.1.0') && -d '/etc/makejail') {
 		for my $file(iMSCP::Dir->new( dirname => '/etc/makejail', fileType => 'InstantSSH.*\\.py' )->getFiles()) {
 			$rs = iMSCP::File->new( filename => "/etc/makejail/$file" )->delFile();
 			return $rs if $rs;
@@ -163,7 +158,7 @@ sub update
 	}
 
 	# Remove the mistaken mount points which were added in previous versions
-	if(version->parse($fromVersion) < version->parse("3.2.0") && iMSCP::ProgramFinder::find('doveadm')) {
+	if(version->parse($fromVersion) < version->parse('3.2.0') && iMSCP::ProgramFinder::find('doveadm')) {
 		if(-f '/var/lib/dovecot/mounts') {
 			$rs = iMSCP::File->new( filename => '/var/lib/dovecot/mounts' )->delFile();
 			return $rs if $rs;
@@ -174,6 +169,7 @@ sub update
 			return $rs if $rs;
 		}
 
+		require Servers::po;
 		Servers::po->factory()->{'restart'} = 'yes';
 	}
 
@@ -194,24 +190,28 @@ sub change
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
 		my $jailBuilder;
-		eval {
-			$jailBuilder = InstantSSH::JailBuilder->new(
-				id => 'shared_jail',
-				config => ($self->{'config'}->{'shared_jail'}) ? $self->{'config'} : $self->{'config_prev'}
-			);
-		};
+
+		# Remove older shared jail if any
+
+		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config_prev'} ); };
 		if($@) {
 			error("Unable to create JailBuilder object: $@");
 			return 1;
 		}
 
+		my $rs = $jailBuilder->removeJail();
+		return $rs if $rs;
+
+		# Create up-to-date shared jail if needed
+
 		if($self->{'config'}->{'shared_jail'}) {
-			if($jailBuilder->existsJail()) {
-				my $rs = $jailBuilder->makeJail(); # Update shared jail
-				return $rs if $rs;
+			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+			if($@) {
+				error("Unable to create JailBuilder object: $@");
+				return 1;
 			}
-		} else {
-			my $rs = $jailBuilder->removeJail();
+
+			$rs = $jailBuilder->makeJail();
 			return $rs if $rs;
 		}
 	}
@@ -586,7 +586,8 @@ sub _deleteSshUser
 		debug($stdout) if $stdout;
 		debug($stderr) if $stderr;
 
-		my $config = ($self->{'action'} eq 'change') ? $self->{'config_prev'} : $self->{'config'};
+		my $config = ($self->{'action'} eq 'change' || $self->{'info'}->{'__need_change__'})
+			? $self->{'config_prev'} : $self->{'config'};
 
 		my $jailBuilder;
 		eval {
@@ -607,6 +608,7 @@ sub _deleteSshUser
 		);
 		return $rs if $rs;
 
+		# If no more ssh user or action change or update which need change and jail exists
 		if(
 			($data->{'nb_ssh_users'} eq '0' || $self->{'action'} eq 'change' || $self->{'info'}->{'__need_change__'}) &&
 			$jailBuilder->existsJail()
@@ -616,6 +618,8 @@ sub _deleteSshUser
 			return $rs if $rs;
 
 			# Remove per customer jail if any
+			# On change action with needed changes, this will cause the jail to be rebuilt from scratch
+			# using new configuration parameters
 			unless($config->{'shared_jail'}) {
 				$rs = $jailBuilder->removeJail();
 				return $rs if $rs;
@@ -750,7 +754,7 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for my $package (qw/bash build-essential busybox-static libpam-chroot psmisc python strace/) {
+	for my $package (qw/bash build-essential busybox-static flex libpam-chroot psmisc python strace/) {
 		my ($stdout, $stderr);
 		my $rs = execute(
 			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr

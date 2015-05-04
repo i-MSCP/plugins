@@ -24,6 +24,7 @@ use iMSCP_Database as Database;
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as ExceptionDatabase;
+use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
 use InstantSSH\CommonFunctions as Functions;
@@ -224,8 +225,11 @@ function addSshPermissions($sshPermissions)
 							);
 
 							if($stmt->rowCount()) {
+								/** @var PluginManager $pluginManager */
+								$pluginManager = Registry::get('pluginManager');
+
 								/** @var \iMSCP_Plugin_InstantSSH $plugin */
-								$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+								$plugin = $pluginManager->pluginGet('InstantSSH');
 
 								// Update of the SSH users which belong to the customers
 								$stmt = exec_query(
@@ -619,10 +623,11 @@ function getSshPermissionsList()
 EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 check_login('reseller');
 
-/** @var \iMSCP_Plugin_Manager $pluginManager */
+/** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
+
 /** @var \iMSCP_Plugin_InstantSSH $plugin */
-$plugin = Registry::get('pluginManager')->getPlugin('InstantSSH');
+$plugin = $pluginManager->pluginGet('InstantSSH');
 $sshPermissions = $plugin->getResellerPermissions($_SESSION['user_id']);
 
 if($sshPermissions['ssh_permission_id'] !== null) {
@@ -656,20 +661,18 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 
 	$tpl = new TemplateEngnine();
 	$tpl->define_dynamic(array('layout' => 'shared/layouts/ui.tpl', 'page_message' => 'layout'));
-	$tpl->define_no_file_dynamic(
-		array(
-			'page' => Functions::renderTpl(
-				PLUGINS_PATH . '/InstantSSH/themes/default/view/reseller/ssh_permissions.tpl'
-			),
-			'ssh_permission_auth_options_block' => 'page',
-			'ssh_permission_jailed_shell_block' => 'page'
-		)
-	);
+	$tpl->define_no_file_dynamic(array(
+		'page' => Functions::renderTpl(
+			$pluginManager->pluginGetDirectory() . '/InstantSSH/themes/default/view/reseller/ssh_permissions.tpl'
+		),
+		'ssh_permission_auth_options_block' => 'page',
+		'ssh_permission_jailed_shell_block' => 'page'
+	));
 
 	if(Registry::get('config')->DEBUG) {
 		$assetVersion = time();
 	} else {
-		$pluginInfo = $pluginManager->getPluginInfo('InstantSSH');
+		$pluginInfo = $pluginManager->pluginGetInfo('InstantSSH');
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
@@ -680,14 +683,11 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 		);
 	});
 
-	$tpl->assign(
-		array(
-			'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Reseller / Customers / SSH Permissions', true)),
-			'ISP_LOGO' => layout_getUserLogo(),
-			'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-			'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
-		)
-	);
+	$tpl->assign(array(
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Reseller / Customers / SSH Permissions', true)),
+		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
+		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
+	));
 
 	if(!$sshPermissions['ssh_permission_auth_options']) {
 		$tpl->assign('SSH_PERMISSION_AUTH_OPTIONS_BLOCK', '');
@@ -700,9 +700,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	generateNavigation($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
 	EventManager::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
-
 	$tpl->prnt();
 } else {
 	showBadRequestErrorPage();

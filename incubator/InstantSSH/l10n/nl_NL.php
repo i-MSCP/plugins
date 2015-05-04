@@ -87,7 +87,7 @@ return array(
 	'Wrong password length (Max 32 characters).' => 'Verkeerde wachtwoordlengte (Maximaal 32 tekens).',
 	'Passwords do not match.' => 'Wachtwoorden komen niet overeen.',
 	'Invalid SSH key.' => 'Foute SSH-sleutel.',
-	'SSH user has been scheduled for addition.' => 'SSH-gebruiker ingepland om toegevoegd te worden.',
+	'SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.' => 'SSH-gebruiker ingepland om toegevoegd te worden.',
 	'Your SSH user limit is reached.' => 'Uw SSH-gebruikerslimiet is bereikt.',
 	'SSH user has been scheduled for update.' => 'SSH-gebruiker ingepland om bijgewerkt te worden.',
 	'An SSH user with the same name or the same SSH key already exists.' => 'Een SSH gebruiker met dezelfde naam of dezelfde dezelfde SSH-sleutel al bestaat.',
