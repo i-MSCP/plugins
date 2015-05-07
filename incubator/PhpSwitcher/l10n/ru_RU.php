@@ -48,8 +48,8 @@ return array(
 	'An unexpected error occurred.' => 'Произошла неожиданная ошибка.',
 	'Are you sure you want to re-generate all PHP info files?' => 'Вы действительно хотите перегенерировать все файлы PHP info?',
 	'Admin / Settings / PHP Switcher' => 'Администратор / Настройки / Версии PHP',
-	'PHP version' => 'PHP Версия',
-	'PHP binary' => 'PHP файл',
+	'PHP version' => 'Версия PHP',
+	'PHP binary' => 'Файл PHP',
 	'Status' => 'Статус',
 	'Actions' => 'Действия',
 	'PHP binary path' => 'Путь до файлов PHP',
@@ -59,10 +59,10 @@ return array(
 	'Re-generate PHP info files.' => 'Перегенерировать файлы PHP info.',
 	'PHP version successfully scheduled for update. Please be patient.' => 'Версия PHP успешно помечена для обновления. Пожалуйста подождите.',
 	'Close' => 'Закрыть',
-	'Client / Settings / PHP Switcher' => 'Клиент / Настройки / Версии PHP',
+	'Client / Domains / PHP Switcher' => 'Клиент / Домены / Версии PHP',
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'Для каждого домена, перечисленного ниже, Вы можете выбрать версию PHP которую Вы хотите использовать.<br>Помните, что домены, которые перенаправляются на прочие URL не отображаются.',
 	'Domain name' => 'Доменное имя',
 	'PHP version info' => 'О версии PHP',
-	'Show info' => 'Информация',
+	'Show info' => 'Показать PHP info',
 	'Domain status' => 'Статус домена'
 );
