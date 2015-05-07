@@ -381,7 +381,7 @@ if (customerHasFeature('php')) {
 	});
 
 	$tpl->assign(array(
-		'TR_PAGE_TITLE' => tr('Client / Settings / PHP Switcher'),
+		'TR_PAGE_TITLE' => tr('Client / Domains / PHP Switcher'),
 		'TR_HINT' => tr('For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.'),
 		'TR_DOMAIN_NAME' => tr('Domain name'),
 		'TR_VERSION' => tr('PHP version'),
