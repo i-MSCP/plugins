@@ -63,6 +63,6 @@ return array(
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'Для каждого домена, перечисленного ниже, Вы можете выбрать версию PHP которую Вы хотите использовать.<br>Помните, что домены, которые перенаправляются на прочие URL не отображаются.',
 	'Domain name' => 'Доменное имя',
 	'PHP version info' => 'О версии PHP',
-	'Show info' => 'Информация',
+	'Show info' => 'Показать PHP info',
 	'Domain status' => 'Статус домена'
 );
