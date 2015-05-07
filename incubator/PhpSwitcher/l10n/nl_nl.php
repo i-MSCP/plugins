@@ -59,7 +59,7 @@ return array(
 	'Re-generate PHP info files.' => 'PHP-informatiebestanden opnieuw genereren.',
 	'PHP version successfully scheduled for update. Please be patient.' => 'PHP-versie succesvol ingepland om bijgewerkt te worden, even geduld a.u.b.',
 	'Close' => 'Sluiten',
-	'Client / Settings / PHP Switcher' => 'Klant / Instellingen / PHP Switcher',
+	'Client / Domains / PHP Switcher' => 'Klant / Domeinen / PHP Switcher',
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'Voor alle onderstaande domeinen kunt u de PHP-versie die u wilt gebruiken kiezen.<br>Let er op dat domeinen die worden doorgestuurd geen PHP-versie toegewezen krijgen.',
 	'Domain name' => 'Domeinnaam',
 	'PHP version info' => 'PHP-versieinformatie',

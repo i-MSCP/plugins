@@ -59,10 +59,10 @@ return array(
 	'Re-generate PHP info files.' => 'Re-genererar PHP info filer.',
 	'PHP version successfully scheduled for update. Please be patient.' => 'PHP version planerad till uppdatering. Var tålamodig.',
 	'Close' => 'Stänga',
-	'Client / Settings / PHP Switcher' => 'Kund / Inställningar / PHP Switcher',
+	'Client / Settings / PHP Switcher' => 'Kund / Domäner / PHP Switcher',
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'För varje domän som anges nedan, kan du välja PHP version som du vill använda genom att markera det. <br /> Var medveten om att områden som omdirigeras på en specifik URL kasseras.',
 	'Domain name' => 'Domain namn',
 	'PHP version info' => 'PHP version info',
 	'Show info' => 'Visa info',
-	'Domain status' => 'Domain status'
+	'Domain status' => 'Domän status'
 );

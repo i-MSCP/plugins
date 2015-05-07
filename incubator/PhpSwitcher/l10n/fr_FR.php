@@ -59,7 +59,7 @@ return array(
 	'Re-generate PHP info files.' => 'Regénérer les fichiers phpinfo.',
 	'PHP version successfully scheduled for update. Please be patient.' => 'La version PHP va être mise à jour. Soyez patient.',
 	'Close' => 'Fermer',
-	'Client / Settings / PHP Switcher' => 'Client / Paramètres / PHP Switcher',
+	'Client / Domains / PHP Switcher' => 'Client / Domaines / PHP Switcher',
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'Pour chaque domaine listé ci-dessous, vous pouvez choisir la version PHP que vous souhaitez utiliser en la sélectionnant.<br>Soyez conscient que les domaines qui sont re-dirigés vers une URL spécifque sont ignorés.',
 	'Domain name' => 'Nom de domaine',
 	'PHP version info' => 'PHP info',

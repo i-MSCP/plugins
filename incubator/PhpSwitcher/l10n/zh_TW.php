@@ -59,7 +59,7 @@ return array(
 	'Re-generate PHP info files.' => 'Re-generate PHP info files.',
 	'PHP version successfully scheduled for update. Please be patient.' => 'PHP 版本已成功排程更新了。請耐心等候。',
 	'Close' => 'Close',
-	'Client / Settings / PHP Switcher' => '客戶 / 設定 / PHP 切換',
+	'Client / Domains / PHP Switcher' => '客戶 / 域名 / PHP 切換',
 	'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.' => 'For each domain listed below, you can choose the PHP version you want use by selecting it.<br>Be aware that domains which are redirected on a specific URL are discarded.',
 	'Domain name' => 'Domain name',
 	'PHP version info' => 'PHP version info',
