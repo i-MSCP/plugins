@@ -34,6 +34,7 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Database;
+use iMSCP::Service;
 use Servers::cron;
 use version;
 
@@ -108,13 +109,13 @@ sub change
 	$rs = $self->_checkSpamassassinPlugins();
 	return $rs if $rs;
 
-	$rs = $self->_restartDaemon('spamassassin', 'restart');
+	$rs = $self->_restartService('spamassassin');
 	return $rs if $rs;
 
 	$rs = $self->_spamassMilterDefaultConfig('configure');
 	return $rs if $rs;
 
-	$rs = $self->_restartDaemon('spamass-milter', 'restart');
+	$rs = $self->_restartService('spamass-milter');
 	return $rs if $rs;
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
@@ -169,7 +170,7 @@ sub enable
 		return $rs if $rs;
 	}
 
-	$self->_restartDaemonPostfix();
+	$self->_schedulePostfixRestart();
 }
 
 =item disable()
@@ -205,7 +206,7 @@ sub disable
 	$rs = $self->_postfixConfig('deconfigure');
 	return $rs if $rs;
 
-	$self->_restartDaemonPostfix();;
+	$self->_schedulePostfixRestart();
 }
 
 =item uninstall()
@@ -231,7 +232,7 @@ sub uninstall
 	$rs = $self->_spamassMilterDefaultConfig('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_restartDaemon('spamass-milter', 'restart');
+	$rs = $self->_restartService('spamass-milter');
 	return $rs if $rs;
 
 	$rs = $self->_spamassassinDefaultConfig('deconfigure');
@@ -246,7 +247,7 @@ sub uninstall
 	$rs = $self->_setSpamassassinPlugin('iXhash2', 'remove');
 	return $rs if $rs;
 
-	$rs = $self->_restartDaemon('spamassassin', 'restart');
+	$rs = $self->_restartService('spamassassin');
 	return $rs if $rs;
 
 	$self->_dropSaDatabaseUser();
@@ -344,7 +345,7 @@ sub bayesSaLearn
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 
-		$rs = execute("$main::imscpConfig{'CMD_RM'} -f $saFile", \$stdout, \$stderr);
+		$rs = execute("rm -f $saFile", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -406,7 +407,7 @@ sub _updateSpamassassinRules
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	$rs = execute("$main::imscpConfig{'CMD_CHMOD'} -R go-w,go+rX $helperHomeDir/compiled", \$stdout, \$stderr);
+	$rs = execute("chmod -R go-w,go+rX $helperHomeDir/compiled", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -600,35 +601,29 @@ sub _postfixConfig
 	0;
 }
 
-=item _restartDaemon($daemon, $action)
+=item _restartService($service)
 
- Restart the daemon
+ Restart the given service
 
+ Param string $service
  Return int 0 on success, other on failure
 
 =cut
 
-sub _restartDaemon
+sub _restartService
 {
-	my ($self, $daemon, $action) = @_;
-
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $daemon $action", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-
-	$rs;
+	iMSCP::Service->getInstance()->restart($_[1]);
 }
 
-=item _restartDaemonPostfix()
+=item _schedulePostfixRestart()
 
- Restart the postfix daemon
+ Schedule restart of Postfix
 
- Return int 0 on success, other on failure
+ Return int 0
 
 =cut
 
-sub _restartDaemonPostfix
+sub _schedulePostfixRestart
 {
 	require Servers::mta;
 
@@ -680,7 +675,7 @@ sub _registerCronjob
 				'DAY' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'dweek'},
-				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
+				'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
 			}
 		);
 	} elsif($cronjobName eq 'clean_bayes_db') {
@@ -692,7 +687,7 @@ sub _registerCronjob
 				'DAY' => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'dweek'},
-				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
+				'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
 			}
 		);
 	} elsif($cronjobName eq 'clean_awl_db') {
@@ -704,7 +699,7 @@ sub _registerCronjob
 				'DAY' => $self->{'config'}->{'cronjob_clean_awl_db'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_clean_awl_db'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_clean_awl_db'}->{'dweek'},
-				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
+				'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
 			}
 		);
 	} elsif($cronjobName eq 'discover_razor') {
@@ -716,7 +711,7 @@ sub _registerCronjob
 				'DAY' => '',
 				'MONTH' => '',
 				'DWEEK' => '',
-				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
+				'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
 			}
 		);
 	}
@@ -768,8 +763,7 @@ sub _spamassassinConfig
 
 	my ($stdout, $stderr);
 	my $rs = execute(
-		"$main::imscpConfig{'CMD_CP'} -f $main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/".
-			"spamassassin/$saFile /etc/spamassassin",
+		"cp -f $main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$saFile /etc/spamassassin",
 		\$stdout,
 		\$stderr
 	);
@@ -832,7 +826,7 @@ sub _spamassassinConfig
 sub _removeSpamassassinConfig
 {
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_RM'} -f /etc/spamassassin/00_imscp.*", \$stdout, \$stderr);
+	my $rs = execute('rm -f /etc/spamassassin/00_imscp.*', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -857,7 +851,7 @@ sub _roundcubePlugins
 
 	if($action eq 'add') {
 		my ($stdout, $stderr);
-		my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR pluginsSrcDir/* $pluginDestDir/", \$stdout, \$stderr);
+		my $rs = execute("cp -fR pluginsSrcDir/* $pluginDestDir/", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -968,7 +962,7 @@ sub _checkSpamassassinPlugins
 	my $saUser = $1;
 
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CHOWN'} -R $saUser:$saUser $helperHomeDir", \$stdout, \$stderr);
+	my $rs = execute("chown -R $saUser:$saUser $helperHomeDir", \$stdout, \$stderr);
 	return $rs if $rs;
 
 	if($self->{'config'}->{'use_pyzor'} eq 'yes') {
@@ -1121,10 +1115,10 @@ sub _setRoundcubePluginConfig
 	my ($self, $plugin) = @_;
 
 	my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$plugin";
-	my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fr $configPlugin/* $pluginsDir/$plugin", \$stdout, \$stderr);
+	my $rs = execute("cp -fr $configPlugin/* $pluginsDir/$plugin", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -1376,17 +1370,17 @@ sub _setSpamassassinPlugin
 	if($action eq 'add') {
 		my $pluginDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/spamassassin-plugins/$plugin";
 
-		my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $pluginDir/$plugin.* $spamassassinFolder/", \$stdout, \$stderr);
+		my $rs = execute("cp -fR $pluginDir/$plugin.* $spamassassinFolder/", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 
-		$rs = execute("$main::imscpConfig{'CMD_CHMOD'} 0644 $spamassassinFolder/$plugin.*", \$stdout, \$stderr);
+		$rs = execute("chmod 0644 $spamassassinFolder/$plugin.*", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		my $rs = execute("$main::imscpConfig{'CMD_RM'} -f $spamassassinFolder/$plugin.*", \$stdout, \$stderr);
+		my $rs = execute("rm -f $spamassassinFolder/$plugin.*", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -1415,34 +1409,34 @@ sub _checkSaUser
 	my $helperHomeDir = $1;
 
 	my ($rs, $stdout, $stderr);
-	$rs = execute("$main::imscpConfig{'CMD_ID'} -g $group", \$stdout, \$stderr);
+	$rs = execute("id -g $group", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	if($rs eq '1') {
-		$rs = execute("$main::imscpConfig{'CMD_GROUPADD'} -r $group", \$stdout, \$stderr);
+		$rs = execute("groupadd -r $group", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	}
 
-	$rs = execute("$main::imscpConfig{'CMD_ID'} -u $user", \$stdout, \$stderr);
+	$rs = execute("id -u $user", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	if($rs eq '1') {
-		$rs = execute("$main::imscpConfig{'CMD_USERADD'} -r -g $group -s /bin/sh -d $helperHomeDir $user", \$stdout, \$stderr);
+		$rs = execute("useradd -r -g $group -s /bin/sh -d $helperHomeDir $user", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	}
 
 	if(! -d $helperHomeDir) {
-		$rs = execute("$main::imscpConfig{'CMD_MKDIR'} -p $helperHomeDir", \$stdout, \$stderr);
+		$rs = execute("mkdir -p $helperHomeDir", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	}
 
-	$rs = execute("$main::imscpConfig{'CMD_CHOWN'} -R $user:$group $helperHomeDir", \$stdout, \$stderr);
+	$rs = execute("chown -R $user:$group $helperHomeDir", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
