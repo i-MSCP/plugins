@@ -27,11 +27,10 @@ package Plugin::Mailgraph;
 
 use strict;
 use warnings;
-
 use iMSCP::Debug;
 use iMSCP::File;
+use iMSCP::ProgramFinder;
 use RRDs;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -52,7 +51,7 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	unless(-x '/usr/sbin/mailgraph') {
+	unless(iMSCP::ProgramFinder::find('mailgraph')) {
 		error('Unable to find mailgraph daemon. Please, install the mailgraph package first.');
 		return 1;
 	}

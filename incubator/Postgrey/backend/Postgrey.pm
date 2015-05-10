@@ -25,9 +25,7 @@ package Plugin::Postgrey;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
@@ -81,8 +79,7 @@ sub enable
 	return $rs if $rs;
 
 	# Make sure that postgrey daemon is running
-	$rs = iMSCP::Service->getInstance()->restart('postgrey', '-f postgrey');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('postgrey');
 
 	Servers::mta->factory()->{'restart'} = 1;
 

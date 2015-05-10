@@ -27,9 +27,7 @@ package Plugin::ClamAV;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::File;
@@ -68,8 +66,7 @@ sub enable
 	$rs = $self->_postfix('configure');
 	return $rs if $rs;
 
-	$rs = iMSCP::Service->getInstance()->restart('clamav-milter');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('clamav-milter');
 
 	Servers::mta->factory()->{'restart'} = 'yes';
 
@@ -94,8 +91,7 @@ sub disable
 	$rs = $self->_postfix('deconfigure');
 	return $rs if $rs;
 
-	$rs = iMSCP::Service->getInstance()->restart('clamav-milter');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('clamav-milter');
 
 	Servers::mta->factory()->{'restart'} = 'yes';
 

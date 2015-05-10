@@ -26,9 +26,7 @@ package Plugin::SpamAssassin;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
@@ -109,14 +107,12 @@ sub change
 	$rs = $self->_checkSpamassassinPlugins();
 	return $rs if $rs;
 
-	$rs = $self->_restartService('spamassassin');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('spamassassin');
 
 	$rs = $self->_spamassMilterDefaultConfig('configure');
 	return $rs if $rs;
 
-	$rs = $self->_restartService('spamass-milter');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('spamass-milter');
 
 	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
 	if('Roundcube' ~~ @packages) {
@@ -232,8 +228,7 @@ sub uninstall
 	$rs = $self->_spamassMilterDefaultConfig('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_restartService('spamass-milter');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('spamass-milter');
 
 	$rs = $self->_spamassassinDefaultConfig('deconfigure');
 	return $rs if $rs;
@@ -247,8 +242,7 @@ sub uninstall
 	$rs = $self->_setSpamassassinPlugin('iXhash2', 'remove');
 	return $rs if $rs;
 
-	$rs = $self->_restartService('spamassassin');
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('spamassassin');
 
 	$self->_dropSaDatabaseUser();
 }
@@ -599,20 +593,6 @@ sub _postfixConfig
 	}
 
 	0;
-}
-
-=item _restartService($service)
-
- Restart the given service
-
- Param string $service
- Return int 0 on success, other on failure
-
-=cut
-
-sub _restartService
-{
-	iMSCP::Service->getInstance()->restart($_[1]);
 }
 
 =item _schedulePostfixRestart()

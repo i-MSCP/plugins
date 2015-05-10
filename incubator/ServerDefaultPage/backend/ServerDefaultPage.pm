@@ -25,9 +25,7 @@ package Plugin::ServerDefaultPage;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;

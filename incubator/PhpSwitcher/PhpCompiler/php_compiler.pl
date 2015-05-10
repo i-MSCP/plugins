@@ -164,7 +164,7 @@ for my $sVersion(@sVersions) {
 }
 
 my $srvMngr = iMSCP::Service->getInstance();
-exit $srvMngr->reload('apache2') unless $DOWNLOAD_ONLY || $DEV_MODE ne 'install' || ! $srvMngr->isRunning('apache2');
+$srvMngr->reload('apache2') unless $DOWNLOAD_ONLY || $DEV_MODE ne 'install' || ! $srvMngr->isRunning('apache2');
 
 sub setOptions
 {

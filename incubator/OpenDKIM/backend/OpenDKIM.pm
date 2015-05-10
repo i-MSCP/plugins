@@ -27,9 +27,7 @@ package Plugin::OpenDKIM;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Dir;
@@ -80,7 +78,9 @@ sub install
 	$rs = $self->_opendkimConfig('configure');
 	return $rs if $rs;
 
-	$self->_restartOpendkim();
+	iMSCP::Service->getInstance()->restart('opendkim');
+
+	0;
 }
 
 =item uninstall()
@@ -98,8 +98,7 @@ sub uninstall
 	my $rs = $self->_opendkimConfig('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_restartOpendkim();
-	return $rs if $rs;
+	iMSCP::Service->getInstance()->restart('opendkim');
 
 	iMSCP::Dir->new( dirname => '/etc/opendkim' )->remove();
 }
@@ -119,7 +118,9 @@ sub update
 	my $rs = $self->_opendkimConfig('configure');
 	return $rs if $rs;
 
-	$self->_restartOpendkim();
+	iMSCP::Service->getInstance()->restart('opendkim');
+
+	0;
 }
 
 =item change()
@@ -140,7 +141,9 @@ sub change
 	$rs = $self->_opendkimConfig('configure');
 	return $rs if $rs;
 
-	$self->_restartOpendkim();
+	iMSCP::Service->getInstance()->restart('opendkim');
+
+	0;
 }
 
 =item enable()
@@ -263,8 +266,9 @@ sub run
 			}
 		}
 
-		$rs |= $self->_restartOpendkim();
-		return $rs if $rs;
+		unless($rs) {
+			iMSCP::Service->getInstance()->restart('opendkim');
+		}
 	}
 
 	$rs;
@@ -650,19 +654,6 @@ sub _createOpendkimFile
 	return $rs if $rs;
 
 	$file->owner('opendkim', 'opendkim');
-}
-
-=item _restartOpendkim()
-
- Restart OpenDKIM
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _restartOpendkim
-{
-	iMSCP::Service->getInstance()->restart('opendkim', '-f opendkim');
 }
 
 =item _checkRequirements()

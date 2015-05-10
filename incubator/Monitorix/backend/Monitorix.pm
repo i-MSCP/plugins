@@ -26,9 +26,7 @@ package Plugin::Monitorix;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
@@ -106,8 +104,7 @@ sub uninstall
 		my $rs = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" )->delFile();
 		return $rs if $rs;
 
-		$rs = iMSCP::Service->getInstance()->restart('monitorix');
-		return $rs if $rs;
+		iMSCP::Service->getInstance()->restart('monitorix');
 	}
 
 	$self->_setupApache('configure');
@@ -205,8 +202,7 @@ sub enable
 		my $rs = $self->_enableGraphs();
 		return $rs if $rs;
 
-		$rs = iMSCP::Service->getInstance()->restart('monitorix');
-		return $rs if $rs;
+		iMSCP::Service->getInstance()->restart('monitorix');
 
 		$rs = $self->buildGraphs();
 		return $rs if $rs;

@@ -25,9 +25,7 @@ package Plugin::PanelRedirect;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
@@ -35,7 +33,6 @@ use iMSCP::Database;
 use iMSCP::TemplateParser;
 use iMSCP::Net;
 use Servers::httpd;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
