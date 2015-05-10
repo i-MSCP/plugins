@@ -68,7 +68,7 @@ sub enable
 	$rs = $self->_postfix('configure');
 	return $rs if $rs;
 
-	$rs = iMSCP::Service->getInstance()->restart('clamav-milter', '-f clamav-milter');
+	$rs = iMSCP::Service->getInstance()->restart('clamav-milter');
 	return $rs if $rs;
 
 	Servers::mta->factory()->{'restart'} = 'yes';
@@ -94,7 +94,7 @@ sub disable
 	$rs = $self->_postfix('deconfigure');
 	return $rs if $rs;
 
-	$rs = iMSCP::Service->getInstance()->restart('clamav-milter', '-f clamav-milter');
+	$rs = iMSCP::Service->getInstance()->restart('clamav-milter');
 	return $rs if $rs;
 
 	Servers::mta->factory()->{'restart'} = 'yes';
