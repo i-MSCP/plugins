@@ -195,11 +195,10 @@ sub disable
 
 sub fetchmail
 {
-	my $fetchmail = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-		'plugins/pop3fetcher/imscp_fetchmail.php';
+	my $fetchmail = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/pop3fetcher/imscp_fetchmail.php";
 
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_PHP'} $fetchmail", \$stdout, \$stderr);
+	my $rs = execute("php $fetchmail", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 
@@ -242,15 +241,15 @@ sub _installPlugins
 {
 	my $roundcubePlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
 	my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/config-templates";
-	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_CP'} -fR $roundcubePlugin/* $pluginFolder/", \$stdout, \$stderr);
+	my $rs = execute("cp -fR $roundcubePlugin/* $pluginFolder/", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	$rs = execute("$main::imscpConfig{'CMD_CP'} -fR $configPlugin/* $pluginFolder/", \$stdout, \$stderr);
+	$rs = execute("cp -fR $configPlugin/* $pluginFolder/", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -278,7 +277,7 @@ sub _installPlugins
 sub _removePlugins
 {
 	my $roundcubePlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
-	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	for my $plugin (glob($roundcubePlugin . "/*")) {
 		$plugin =~ s%$roundcubePlugin/(.*)%$pluginFolder/$1%gm;
@@ -303,8 +302,7 @@ sub _removePluginFile
 {
 	my ($self, $plugin, $fileName) = @_;
 
-	my $filePath = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-		"plugins/$plugin/$fileName";
+	my $filePath = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/$plugin/$fileName";
 
 	if(-f $filePath) {
 		my $rs = iMSCP::File->new( filename => $filePath )->delFile();
@@ -331,7 +329,7 @@ sub _setRoundcubePlugin
 
 	my $rs = 0;
 
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . 'config/config.inc.php';
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
 	my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
 
@@ -458,7 +456,7 @@ sub _setPluginConfig
 {
 	my ($self, $plugin, $fileName) = @_;
 
-	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} . "plugins";
+	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	my $configFile = "$pluginFolder/$plugin/$fileName";
 	my $file = iMSCP::File->new( filename => $configFile );
@@ -667,7 +665,7 @@ sub _registerCronjobPop3fetcher
 			'DAY' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'day'},
 			'MONTH' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'month'},
 			'DWEEK' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'dweek'},
-			'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $cronjobFilePath >/dev/null 2>&1"
+			'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
 		}
 	);
 
