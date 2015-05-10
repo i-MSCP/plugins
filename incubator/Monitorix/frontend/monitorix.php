@@ -190,7 +190,6 @@ if(Registry::get('config')->DEBUG) {
 
 $tpl->assign(array(
 	'TR_PAGE_TITLE' => tr('Statistics / Monitorix'),
-	'ISP_LOGO' => layout_getUserLogo(),
 	'MONITORIX_ASSET_VERSION' => tohtml($assetVersion),
 	'MONITORIXGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
 	'MONITORIXGRAPHIC_NOT_SELECTED' => tr("No monitorix graph selected."),

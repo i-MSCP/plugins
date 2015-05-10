@@ -35,10 +35,10 @@ use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::Database;
 use iMSCP::TemplateParser;
+use iMSCP::Service;
 use File::Basename;
 use version;
 use Cwd;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -87,7 +87,7 @@ sub install
 	$rs = $file->save();
 	return $rs if $rs;
 
-	$self->_setupApacheConfig('disable');
+	$self->_setupApache('deconfigure');
 }
 
 =item uninstall()
@@ -106,11 +106,11 @@ sub uninstall
 		my $rs = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" )->delFile();
 		return $rs if $rs;
 
-		$rs = $self->_restartMonitorix();
+		$rs = iMSCP::Service->getInstance()->restart('monitorix');
 		return $rs if $rs;
 	}
 
-	$self->_setupApacheConfig('enable');
+	$self->_setupApache('configure');
 }
 
 =item update($fromVersion, $toVersion)
@@ -205,7 +205,7 @@ sub enable
 		my $rs = $self->_enableGraphs();
 		return $rs if $rs;
 
-		$rs = $self->_restartMonitorix();
+		$rs = iMSCP::Service->getInstance()->restart('monitorix');
 		return $rs if $rs;
 
 		$rs = $self->buildGraphs();
@@ -263,7 +263,7 @@ sub buildGraphs
 			if(lc($self->{'config'}->{'graph_enabled'}->{$graph}) eq 'y') {
 				for my $when('1hour', '1day', '1week', '1month', '1year') {
 					my @cmd = (
-						$main::imscpConfig{'CMD_PERL'},
+						'perl',
 						$self->{'config'}->{'cgi_path'},
 						'mode=localhost',
 						'graph=' . escapeShell('_' . $graph . '1'),
@@ -376,23 +376,23 @@ sub _enableGraphs
 	$file->save();
 }
 
-=item _setupApacheConfig($action)
+=item _setupApache($action)
 
- Enable or disable Apache config for Monitorix
+ Configure or deconfigure Apache2
 
- Pararm string $action Action to perform ( enable|disable )
+ Pararm string $action Action to perform ( configure|deconfigure )
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setupApacheConfig
+sub _setupApache
 {
 	my ($self, $action) = @_;
 
 	my $confFile = '/etc/apache2/conf.d/monitorix.conf';
 	my $backupConffile = '/etc/apache2/conf.d/monitorix.old';
 
-	if($action eq 'enable') {
+	if($action eq 'configure') {
 		if(-f $backupConffile) {
 			my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($confFile );
 			return $rs if $rs;
@@ -400,7 +400,7 @@ sub _setupApacheConfig
 			$rs = $self->_scheduleApacheRestart();
 			return $rs if $rs;
 		}
-	} elsif($action eq 'disable') {
+	} elsif($action eq 'deconfigure') {
 		if(-f $confFile) {
 			my $rs = iMSCP::File->new( filename => $confFile )->moveFile($backupConffile);
 			return $rs if $rs;
@@ -413,29 +413,11 @@ sub _setupApacheConfig
 	0;
 }
 
-=item _restartMonitorix()
-
- Restart the Monitorix daemon
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _restartMonitorix
-{
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'SERVICE_MNGR'} monitorix restart", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-
-	$rs;
-}
-
 =item _scheduleApacheRestart()
 
  Schedule restart of Apache2
 
- Return int 0 on success, other on failure
+ Return int 0
 
 =cut
 
@@ -491,7 +473,7 @@ sub _addCronjob
 				'DAY' => $self->{'config'}->{'cronjob_timedate'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_timedate'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_timedate'}->{'dweek'},
-				'COMMAND' => "$main::imscpConfig{'CMD_PERL'} $scriptPath >/dev/null 2>&1"
+				'COMMAND' => "perl $scriptPath >/dev/null 2>&1"
 			}
 		);
 	} else {
