@@ -381,7 +381,6 @@ if (resellerHasCustomers()) {
 
 	$tpl->assign(array(
 		'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-		'ISP_LOGO' => layout_getUserLogo(),
 		'TR_SELECT_NAME' => tr('Select a customer'),
 		'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),
 		'TR_DOMAIN_NAME' => tr('Domain Name'),

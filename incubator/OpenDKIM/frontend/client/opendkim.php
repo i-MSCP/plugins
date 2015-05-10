@@ -123,7 +123,6 @@ if (OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
 
 	$tpl->assign(array(
 		'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-		'ISP_LOGO' => layout_getUserLogo(),
 		'TR_DOMAIN_NAME' => tr('Domain'),
 		'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
 		'TR_DNS_NAME' => tr('Name'),
