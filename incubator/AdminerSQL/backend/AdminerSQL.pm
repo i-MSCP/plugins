@@ -58,7 +58,7 @@ sub enable()
 
 	my $productionDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
 	my $sourcesPath = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/adminer-sources";
-	my $compileCmd = "$main::imscpConfig{'CMD_PHP'} $sourcesPath/compile.php";
+	my $compileCmd = "php $sourcesPath/compile.php";
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
