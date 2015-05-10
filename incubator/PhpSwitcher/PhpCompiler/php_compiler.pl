@@ -83,6 +83,10 @@ my $INSTALL_DIR = '/opt/phpswitcher';
 my $PARALLEL_JOBS = 2;
 my $DEV_MODE = 'install';
 
+# specify some options to our patch system
+$ENV{'QUILT_DIFF_OPTS'} = '-p';
+$ENV{'QUILT_NO_DIFF_TIMESTAMPS'} = '1';
+
 # Parse command line options
 iMSCP::Getopt->parseNoDefault(sprintf("\nUsage: perl %s [OPTION...] PHP_VERSION...", basename($0)) . qq {
 

@@ -28,7 +28,7 @@ This plugin allows to setup additional PHP versions for your customers.
 ## Setup new PHP versions
 
 At first, you must download, configure, compile and install the PHP versions which you want to make available for your
-customers. You can either do the job manually, or use the PHP compiler ( **recommended** ) that is shipped with this
+customers. You can either do the job manually or use the PHP compiler ( **recommended** ) that is shipped with this
 plugin ( see below ).
 
 ### PHP compiler
@@ -43,7 +43,7 @@ For instance, if you want to install the **php5.2** version, you can run the scr
 # perl php_compiler.pl php5.2
 ```
 
-Or if you want install any other PHP version ( or all ) supported by this script, you can run it as follow:
+Or if you want to install any other PHP version ( or all ) supported by this script, you can run it as follow:
 
 ```shell
 # cd  /var/www/imscp/gui/plugins/PhpSwitcher/PhpCompiler
