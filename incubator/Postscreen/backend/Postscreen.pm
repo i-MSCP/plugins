@@ -90,8 +90,7 @@ sub update
 	my ($self, $fromVersion, $toVersion) = @_;
 
 	if(version->parse($fromVersion) < version->parse("0.0.6")) {
-		my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-			"config/config.inc.php";
+		my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
 		# Reset roundcube config.inc.php if any
 		if(-f $roundcubeConffile) {
@@ -405,8 +404,7 @@ sub _roundcubeSmtpPort
 {
 	my ($self, $action) = @_;
 
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools" . $main::imscpConfig{'WEBMAIL_PATH'} .
-		"config/config.inc.php";
+	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
 	my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
 
