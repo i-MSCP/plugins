@@ -136,8 +136,6 @@ $tpl->define_dynamic(array(
 
 $tpl->assign(array(
 	'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
-	'THEME_CHARSET' => tr('encoding'),
-	'ISP_LOGO' => layout_getUserLogo(),
 	'MAILGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
 	'TR_MAILGRAPH' => tr("Mailgraph - %s", $hostname),
 	'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
