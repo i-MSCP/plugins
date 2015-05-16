@@ -25,6 +25,6 @@ return array(
 	'require_api' => '1.0.0',
 	'date' => '2015-02-11',
 	'name' => 'PanelRedirect',
-	'desc' => 'Plugin which redirects apache2 requests of the panel to nginx.',
+	'desc' => 'Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
 );

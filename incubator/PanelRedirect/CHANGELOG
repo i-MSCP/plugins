@@ -2,11 +2,12 @@ PanelRedirect - ChangeLog
 =========================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.0.6
+Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: required_api info field
 	Fixed: Log folder not created on plugin change ( eg. when changing panel hostname )
+	Fixed: Override HTTP ports which are defined by i-MSCP in case of proxy usage
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5

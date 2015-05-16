@@ -1,10 +1,6 @@
 # i-MSCP PanelRedirect plugin v1.1.0
 
-Plugin which redirects apache2 requests of the panel to nginx.
-
-## Introduction
-
-This plugin redirects any apache2 requests for the i-MSCP control panel ( made on ports 80/443 ) to nginx.
+Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).
 
 ## Requirements
 
