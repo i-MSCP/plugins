@@ -21,17 +21,19 @@
 /**
  * Class iMSCP_Plugin_RawPasswd
  */
-class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action {
+class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
+{
 	/**
 	 * Register a callback for the given event(s)
 	 *
 	 * @param $eventManager iMSCP_Events_Manager_Interface $eventManager
 	 */
-	public function register(iMSCP_Events_Manager_Interface $eventManager) {
+	public function register(iMSCP_Events_Manager_Interface $eventManager)
+	{
 		$eventManager->registerListener(
 			array(
-				iMSCP_Events::onAfterEditUser,
 				iMSCP_Events::onAfterAddUser,
+				iMSCP_Events::onAfterEditUser,
 				iMSCP_Events::onAfterAddDomain,
 			), $this
 		);
@@ -44,25 +46,13 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action {
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
-	public function install(iMSCP_Plugin_Manager $pluginManager) {
+	public function install(iMSCP_Plugin_Manager $pluginManager)
+	{
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
-	}
-
-	/**
-	 * Plugin update
-	 *
-	 * @throws iMSCP_Plugin_Exception When update fail
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @param string $fromVersion Version from which plugin update is initiated
-	 * @param string $toVersion Version to which plugin is updated
-	 * @return void
-	 */
-	public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion) {
-		//This Plugin does not need a database update, so just do nothing on update
 	}
 
 	/**
@@ -72,25 +62,12 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action {
 	 * @param iMSCP_Plugin_Manager $pluginManager
 	 * @return void
 	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager) {
+	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+	{
 		try {
 			$this->migrateDb('down');
 		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * onAfterEditUser listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onAfterEditUser($event) {
-		$userId = $event->getParam('userId', false);
-
-		if ($userId && $_POST['password']) {
-			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array($_POST['password'], $userId));
 		}
 	}
 
@@ -100,11 +77,31 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action {
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterAddUser($event) {
+	public function onAfterAddUser($event)
+	{
 		$userId = $event->getParam('userId', false);
 
-		if ($userId && $_POST['password']) {
-			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array($_POST['password'], $userId));
+		if ($userId && isset($_POST['password'])) {
+			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array(
+				clean_input($_POST['password']), $userId
+			));
+		}
+	}
+
+	/**
+	 * onAfterEditUser listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onAfterEditUser($event)
+	{
+		$userId = $event->getParam('userId', false);
+
+		if ($userId && isset($_POST['password'])) {
+			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array(
+				clean_input($_POST['password']), $userId
+			));
 		}
 	}
 
@@ -114,12 +111,14 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action {
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterAddDomain($event) {
+	public function onAfterAddDomain($event)
+	{
 		$userId = $event->getParam('customerId', false);
-		$rawpasswd = $event->getParam('rawpasswd', false);
 
-		if ($userId && $_POST['userpassword']) {
-			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array($_POST['userpassword'], $userId));
+		if ($userId && isset($_POST['userpassword'])) {
+			exec_query('UPDATE admin set admin_rawpasswd = ? WHERE admin_id = ?', array(
+				clean_input($_POST['userpassword']), $userId
+			));
 		}
 	}
 }
