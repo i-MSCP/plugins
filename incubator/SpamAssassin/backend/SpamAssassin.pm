@@ -629,7 +629,7 @@ sub _registerCronjob
 	my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
 	my $cronjobFileContent = $cronjobFile->get();
 	unless(defined $cronjobFileContent) {
-		error("Unable to read $file->{'filename'} file");
+		error("Unable to read $cronjobFile->{'filename'} file");
 		return 1;
 	}
 
@@ -842,12 +842,12 @@ sub _roundcubePlugins
 		iMSCP::Rights->import();
 
 		$rs = setRights(
-			$pluginFolder,
+			$pluginDestDir,
 			{ 'user' => $user, 'group' => $group, 'dirmode' => '0550', 'filemode' => '0440', 'recursive' => 1 }
 		);
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		for (iMSCP::Dir->new( dirname => pluginsSrcDir )->getDirs()) {
+		for (iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs()) {
 			my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove();
 			return $rs if $rs;
 		}
