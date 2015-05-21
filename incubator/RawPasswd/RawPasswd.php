@@ -34,8 +34,9 @@ class iMSCP_Plugin_RawPasswd extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onAfterAddUser,
 				iMSCP_Events::onAfterEditUser,
-				iMSCP_Events::onAfterAddDomain,
-			), $this
+				iMSCP_Events::onAfterAddDomain
+			),
+			$this
 		);
 	}
 
