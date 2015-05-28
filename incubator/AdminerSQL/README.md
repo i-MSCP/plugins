@@ -1,6 +1,6 @@
 # i-MSCP AdminerSQL plugin v1.0.0
 
-Plugin which allows to manage SQL databases through Adminer..
+Plugin which allows to manage SQL databases through Adminer.
 
 ## Requirements
 

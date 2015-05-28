@@ -5,10 +5,12 @@ AdminerSQL - ChangeLog
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
+    Changed: Default theme is now 'brade'
 	Fixed: CS fixes
 	Fixed: imscp_panel service must be restarted on update to flush opcode cache
 	Removed: Support for i-MSCP 1.1.x serie
 	Removed: Useless language configuration parameter
+	Removed: version configuration parameter (version is now defined in backend package)
 	Updated: Adminer to version 4.2.1
 
 ------------------------------------------------------------------------------------------------------------------------

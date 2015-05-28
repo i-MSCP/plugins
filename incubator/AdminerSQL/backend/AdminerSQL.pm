@@ -36,6 +36,8 @@ use iMSCP::Service;
 use Cwd;
 use parent 'Common::SingletonClass';
 
+my $ADMINER_VERSION = '4.2.1';
+
 =head1 DESCRIPTION
 
  This package provides the backend part for the i-MSCP AdminerSQL plugin.
@@ -74,7 +76,7 @@ sub enable()
 	return $rs if $rs;
 
 	my $fileSuffix =
-		'-' . $self->{'config'}->{'adminer_version'} .
+		'-' . $ADMINER_VERSION .
 		( ($self->{'config'}->{'driver'} eq 'all') ? '' :  '-' . $self->{'config'}->{'driver'} ) . '.php';
 
 	unless(chdir($srcDir)) {
