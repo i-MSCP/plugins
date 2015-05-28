@@ -79,12 +79,12 @@ function getSshUser()
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to %s SSH user: %s', $sshUserName, $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -111,7 +111,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				$sshUserPassword = clean_input($_POST['ssh_user_password']);
 				$sshUserPasswordConfirmation = clean_input($_POST['ssh_user_cpassword']);
 			} else {
-				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.')));
 			}
 		}
 
@@ -134,49 +134,49 @@ function addSshUser($pluginManager, $sshPermissions)
 					$sshAuthOptions = null;
 				}
 			} else {
-				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.', true)));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.')));
 			}
 		}
 
 		if(!$sshUserId) {
 			if($sshUserName === '') {
-				$errorMsgs[] = tr('The username field is required.', true);
+				$errorMsgs[] = tr('The username field is required.');
 			} elseif(!preg_match('/^[[:alnum:]]+$/i', $sshUserName)) {
-				$errorMsgs[] = tr('Un-allowed username. Please use alphanumeric characters only.', true);
+				$errorMsgs[] = tr('Un-allowed username. Please use alphanumeric characters only.');
 			} elseif(strlen($sshUserName) > 8) {
-				$errorMsgs[] = tr('The username is too long (Max 8 characters).', true);
+				$errorMsgs[] = tr('The username is too long (Max 8 characters).');
 			}
 
 			$sshUserName = $plugin->getConfigParam('ssh_user_name_prefix', 'imscp_') . $sshUserName;
 
 			if(posix_getpwnam($sshUserName)) {
-				$errorMsgs[] = tr("This username is not available.", true);
+				$errorMsgs[] = tr('This username is not available.');
 			}
 		}
 
 		if($sshUserPassword === '' && $sshUserKey === '') {
 			if($plugin->getConfigParam('passwordless_authentication', false)) {
-				$errorMsgs[] = tr('You must enter an SSH key.', true);
+				$errorMsgs[] = tr('You must enter an SSH key.');
 			} else {
-				$errorMsgs[] = tr('You must enter either a password, an SSH key or both.', true);
+				$errorMsgs[] = tr('You must enter either a password, an SSH key or both.');
 			}
 		}
 
 		if($sshUserPassword !== '') {
 			if(preg_match('/[^\x21-\x7e]/', $sshUserPassword)) {
-				$errorMsgs[] = tr('Un-allowed password. Please use ASCII characters only.', true);
+				$errorMsgs[] = tr('Un-allowed password. Please use ASCII characters only.');
 			} elseif (strlen($sshUserPassword) < 8) {
-				$errorMsgs[] = tr('Wrong password length (Min 8 characters).', true);
+				$errorMsgs[] = tr('Wrong password length (Min 8 characters).');
 			} elseif(strlen($sshUserPassword) > 32) {
-				$errorMsgs[] = tr('Wrong password length (Max 32 characters).', true);
+				$errorMsgs[] = tr('Wrong password length (Max 32 characters).');
 			} elseif($sshUserPassword !== $sshUserPasswordConfirmation) {
-				$errorMsgs[] = tr('Passwords do not match.', true);
+				$errorMsgs[] = tr('Passwords do not match.');
 			}
 		}
 
 		if($sshUserKey !== '') {
 			if(($sshUserKey = getOpenSshKey($sshUserKey)) === false) {
-				$errorMsgs[] = tr('Invalid SSH key.', true);
+				$errorMsgs[] = tr('Invalid SSH key.');
 			} else {
 				$sshUserKeyFingerprint = $sshUserKey['fingerprint'];
 				$sshUserKey = $sshUserKey['key'];
@@ -237,16 +237,16 @@ function addSshUser($pluginManager, $sshPermissions)
 							E_USER_NOTICE
 						);
 						Functions::sendJsonResponse(
-							200, array('message' => tr('SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.', true))
+							200, array('message' => tr('SSH user has been scheduled for addition. Please note that creating your SSH environment can take several minutes.'))
 						);
 					} else {
 						Functions::sendJsonResponse(
-							500, array('message' => tr('The action has been stopped by another plugin.', true))
+							500, array('message' => tr('The action has been stopped by another plugin.'))
 						);
 					}
 				} else {
 					Functions::sendJsonResponse(
-						400, array('message' => tr('Your SSH user limit is reached.', true))
+						400, array('message' => tr('Your SSH user limit is reached.'))
 					);
 				}
 			} else { // Update SSH user
@@ -288,19 +288,18 @@ function addSshUser($pluginManager, $sshPermissions)
 						E_USER_NOTICE
 					);
 					Functions::sendJsonResponse(
-						200, array('message' => tr('SSH user has been scheduled for update.', true))
+						200, array('message' => tr('SSH user has been scheduled for update.'))
 					);
 				} else {
 					Functions::sendJsonResponse(
-						500, array('message' => tr('The action has been stopped by another plugin.', true))
+						500, array('message' => tr('The action has been stopped by another plugin.'))
 					);
 				}
 			}
 		} catch(ExceptionDatabase $e) {
 			if($e->getCode() == '23000') {
 				Functions::sendJsonResponse(
-					400,
-					array('message' => tr("An SSH user with the same name or the same SSH key already exists.", true))
+					400, array('message' => tr("An SSH user with the same name or the same SSH key already exists."))
 				);
 			} else {
 				write_log(
@@ -308,13 +307,13 @@ function addSshUser($pluginManager, $sshPermissions)
 					E_USER_ERROR
 				);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 				);
 			}
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -356,7 +355,7 @@ function deleteSshUser()
 						E_USER_NOTICE
 					);
 					Functions::sendJsonResponse(
-						200, array('message' => tr('SSH user has been scheduled for deletion.', true))
+						200, array('message' => tr('SSH user has been scheduled for deletion.'))
 					);
 				}
 			} catch(ExceptionDatabase $e) {
@@ -365,17 +364,17 @@ function deleteSshUser()
 					E_USER_ERROR
 				);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 				);
 			}
 		} else {
 			Functions::sendJsonResponse(
-				500, array('message' => tr('The action has been stopped by another plugin.', true))
+				500, array('message' => tr('The action has been stopped by another plugin.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -475,15 +474,15 @@ function getSshUsers()
 			'aaData' => array()
 		);
 
-		$trEditTooltip = tr('Edit SSH user', true);
-		$trDeleteTooltip = tr('Delete this SSH user', true);
+		$trEditTooltip = tr('Edit SSH user');
+		$trDeleteTooltip = tr('Delete this SSH user');
 
 		while($data = $rResult->fetchRow(\PDO::FETCH_ASSOC)) {
 			$row = array();
 
 			for($i = 0; $i < $nbCols; $i++) {
 				if($cols[$i] == 'ssh_user_key_fingerprint') {
-					$row[$cols[$i]] = ($data[$cols[$i]]) ?: tr('n/a', true);
+					$row[$cols[$i]] = ($data[$cols[$i]]) ?: tr('n/a');
 				} elseif($cols[$i] == 'ssh_user_status') {
 					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]]);
 				} else {
@@ -511,11 +510,11 @@ function getSshUsers()
 	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to get SSH users: %s', $e->getMessage()), E_USER_ERROR);
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+			500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 		);
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
@@ -551,7 +550,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 					deleteSshUser();
 					break;
 				default:
-					Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+					Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 
@@ -584,7 +583,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	});
 
 	$tpl->assign(array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Domains / SSH Users', true)),
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Web Tools / SSH Users')),
 		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 		'DEFAULT_AUTH_OPTIONS' => $plugin->getConfigParam('default_ssh_auth_options', ''),
 		'SSH_USERNAME_PREFIX' => $plugin->getConfigParam('ssh_user_name_prefix', 'imscp_'),
@@ -597,7 +596,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 		$allowedSshAuthOptions = $plugin->getConfigParam('allowed_ssh_auth_options');
 		$tpl->assign(
 			'TR_ALLOWED_OPTIONS', Functions::escapeHtml(
-				tr('Allowed authentication options: %s', true, implode(', ', $allowedSshAuthOptions))
+				tr('Allowed authentication options: %s', implode(', ', $allowedSshAuthOptions))
 			)
 		);
 	}

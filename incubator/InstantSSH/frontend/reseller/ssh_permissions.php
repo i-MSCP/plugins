@@ -74,12 +74,12 @@ function getSshPermissions()
 				E_USER_ERROR
 			);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -110,14 +110,12 @@ function addSshPermissions($sshPermissions)
 		);
 
 		if($adminName === '' || $sshPermMaxUsers === '') {
-			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		} elseif(!is_number($sshPermMaxUsers)) {
 			Functions::sendJsonResponse(
 				400,
 				array(
-					'message' => tr(
-						"Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.", true
-					)
+					'message' => tr("Wrong value for the 'Maximum number of SSH users' field. Please, enter a number.")
 				)
 			);
 		}
@@ -170,11 +168,11 @@ function addSshPermissions($sshPermissions)
 						));
 
 						write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
-						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.', true)));
+						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
 					}
 				} else {
 					Functions::sendJsonResponse(
-						500, array('message' => tr('The action has been stopped by another plugin.', true))
+						500, array('message' => tr('The action has been stopped by another plugin.'))
 					);
 				}
 			} elseif($sshPermAdminId) { // Update SSH permissions
@@ -268,11 +266,11 @@ function addSshPermissions($sshPermissions)
 									E_USER_NOTICE
 								);
 								Functions::sendJsonResponse(
-									200, array('message' => tr('SSH permissions were updated.', true))
+									200, array('message' => tr('SSH permissions were updated.'))
 								);
 							} else {
 								Functions::sendJsonResponse(
-									202, array('message' => tr('Nothing has been changed.', true))
+									202, array('message' => tr('Nothing has been changed.'))
 								);
 							}
 						}
@@ -281,15 +279,14 @@ function addSshPermissions($sshPermissions)
 							409,
 							array(
 								'message' => tr(
-									"One or many SSH users which belongs to the customer are currently processed. Please retry in few minutes.",
-									true
+									"One or many SSH users which belongs to the customer are currently processed. Please retry in few minutes."
 								)
 							)
 						);
 					}
 				} else {
 					Functions::sendJsonResponse(
-						500, array('message' => tr('The action has been stopped by another plugin.', true))
+						500, array('message' => tr('The action has been stopped by another plugin.'))
 					);
 				}
 			}
@@ -301,12 +298,12 @@ function addSshPermissions($sshPermissions)
 				E_USER_ERROR
 			);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -369,7 +366,7 @@ function deleteSshPermissions()
 							sprintf('InstantSSH: SSH permissions were deleted for %s', $adminName), E_USER_NOTICE
 						);
 						Functions::sendJsonResponse(
-							200, array('message' => tr('SSH permissions were deleted.', true, $adminName))
+							200, array('message' => tr('SSH permissions were deleted.', $adminName))
 						);
 					}
 				} else {
@@ -391,18 +388,18 @@ function deleteSshPermissions()
 				);
 				Functions::sendJsonResponse(
 					500,
-					array('message' => tr('An unexpected error occurred. Please contact your administrator.', true)
+					array('message' => tr('An unexpected error occurred. Please contact your administrator.')
 					)
 				);
 			}
 		} else {
 			Functions::sendJsonResponse(
-				500, array('message' => tr('The action has been stopped by another plugin.', true))
+				500, array('message' => tr('The action has been stopped by another plugin.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -447,12 +444,12 @@ function searchCustomer()
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to search customer: %s', $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your administrator.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -565,21 +562,21 @@ function getSshPermissionsList()
 			'aaData' => array()
 		);
 
-		$trEditTooltip = tr('Edit permissions', true);
-		$trDeleteTooltip = tr('Revoke permissions', true);
+		$trEditTooltip = tr('Edit permissions');
+		$trDeleteTooltip = tr('Revoke permissions');
 
 		while($data = $rResult->fetchRow(\PDO::FETCH_ASSOC)) {
 			$row = array();
 
 			for($i = 0; $i < $nbCols; $i++) {
 				if($cols[$i] == 'ssh_permission_max_users') {
-					$row[$cols[$i]] = (!$data[$cols[$i]]) ? tr('Unlimited', true) : $data[$cols[$i]];
+					$row[$cols[$i]] = (!$data[$cols[$i]]) ? tr('Unlimited') : $data[$cols[$i]];
 				} elseif($cols[$i] == 'ssh_permission_auth_options') {
-					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
+					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes') : tr('No');
 				} elseif($cols[$i] == 'ssh_permission_jailed_shell') {
-					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
+					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes') : tr('No');
 				} elseif($cols[$i] == 'ssh_permission_status') {
-					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]], false);
+					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]]);
 				} else {
 					$row[$cols[$i]] = $data[$cols[$i]];
 				}
@@ -599,7 +596,7 @@ function getSshPermissionsList()
 					"data-admin-name=\"" . $data['admin_name'] . "\" . " .
 					"class=\"icon icon_delete clickable\">&nbsp;</span>";
 			} else {
-				$row['ssh_permission_actions'] = tr('n/a', true);
+				$row['ssh_permission_actions'] = tr('n/a');
 			}
 
 			$output['aaData'][] = $row;
@@ -609,11 +606,11 @@ function getSshPermissionsList()
 	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to get SSH permissions list: %s', $e->getMessage()), E_USER_ERROR);
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred. Please contact your administrator.', true))
+			500, array('message' => tr('An unexpected error occurred. Please contact your administrator.'))
 		);
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
@@ -652,7 +649,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 					deleteSshPermissions();
 					break;
 				default:
-					Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+					Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 
@@ -684,7 +681,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	});
 
 	$tpl->assign(array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Reseller / Customers / SSH Permissions', true)),
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Reseller / Customers / SSH Permissions')),
 		'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 		'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
 	));

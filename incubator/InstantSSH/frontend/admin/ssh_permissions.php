@@ -28,6 +28,7 @@ use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngnine;
 use iMSCP_Registry as Registry;
 use InstantSSH\CommonFunctions as Functions;
+use PDO;
 
 /***********************************************************************************************************************
  * Functions
@@ -53,7 +54,7 @@ function rebuildJails()
 					admin_type <> 'reseller'
 			"
 		);
-		$row = $stmt->fetchRow(\PDO::FETCH_ASSOC);
+		$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
 		if($row['cnt'] > 0) {
 			/** @var PluginManager $pluginManager */
@@ -66,22 +67,22 @@ function rebuildJails()
 					tr('Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...'),
 					'success'
 				);
-				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php')));
 			} else {
 				$pluginError = ($ret == PluginManager::ACTION_FAILURE)
 					? tr('Action has failed.') : tr('Action has been stopped.');
 
 				write_log(sprintf('InstantSSH: Unable to schedule rebuild of jails: %s', $pluginError), E_USER_ERROR);
 				set_page_message(tr('Unable to schedule rebuild of jails: %s', $pluginError), 'error');
-				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php', true)));
+				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php')));
 			}
 		} else {
-			Functions::sendJsonResponse(202, array('message' => tr('No jail to rebuild. Operation cancelled.', true)));
+			Functions::sendJsonResponse(202, array('message' => tr('No jail to rebuild. Operation cancelled.')));
 		}
 	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to schedule rebuild of jails: %s', $e->getMessage()), E_USER_ERROR);
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 		);
 	}
 }
@@ -119,7 +120,7 @@ function getSshPermissions()
 			);
 
 			if($stmt->rowCount()) {
-				Functions::sendJsonResponse(200, $stmt->fetchRow(\PDO::FETCH_ASSOC));
+				Functions::sendJsonResponse(200, $stmt->fetchRow(PDO::FETCH_ASSOC));
 			}
 		} catch(ExceptionDatabase $e) {
 			write_log(
@@ -127,12 +128,12 @@ function getSshPermissions()
 				E_USER_ERROR
 			);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -151,7 +152,7 @@ function addSshPermissions()
 		$sshPermJailedShell = intval((isset($_POST['ssh_permission_jailed_shell'])) ?: 0);
 
 		if($adminName === '') {
-			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+			Functions::sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		}
 
 		$db = Database::getInstance();
@@ -199,11 +200,11 @@ function addSshPermissions()
 						$db->commit();
 
 						write_log(sprintf('InstantSSH: SSH permissions were added for %s', $adminName), E_USER_NOTICE);
-						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.', true)));
+						Functions::sendJsonResponse(200, array('message' => tr('SSH permissions were added.')));
 					}
 				} else {
 					Functions::sendJsonResponse(
-						500, array('message' => tr('The action has been stopped by another plugin.', true))
+						500, array('message' => tr('The action has been stopped by another plugin.'))
 					);
 				}
 			} elseif($sshPermAdminId) { // Update SSH permissions
@@ -321,11 +322,11 @@ function addSshPermissions()
 									E_USER_NOTICE
 								);
 								Functions::sendJsonResponse(
-									200, array('message' => tr('SSH permissions were updated.', true))
+									200, array('message' => tr('SSH permissions were updated.'))
 								);
 							} else {
 								Functions::sendJsonResponse(
-									202, array('message' => tr('Nothing has been changed.', true))
+									202, array('message' => tr('Nothing has been changed.'))
 								);
 							}
 						}
@@ -342,7 +343,7 @@ function addSshPermissions()
 					}
 				} else {
 					Functions::sendJsonResponse(
-						500, array('message' => tr('The action has been stopped by another plugin.', true))
+						500, array('message' => tr('The action has been stopped by another plugin.'))
 					);
 				}
 			}
@@ -354,12 +355,12 @@ function addSshPermissions()
 				E_USER_ERROR
 			);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -437,7 +438,7 @@ function deleteSshPermissions()
 							sprintf('InstantSSH: SSH permissions were deleted for %s', $adminName), E_USER_NOTICE
 						);
 						Functions::sendJsonResponse(
-							200, array('message' => tr('SSH permissions were deleted.', true, $adminName))
+							200, array('message' => tr('SSH permissions were deleted.', $adminName))
 						);
 					}
 				} else {
@@ -459,17 +460,15 @@ function deleteSshPermissions()
 					E_USER_ERROR
 				);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+					500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 				);
 			}
 		} else {
-			Functions::sendJsonResponse(
-				500, array('message' => tr('The action has been stopped by another plugin.', true))
-			);
+			Functions::sendJsonResponse(500, array('message' => tr('The action has been stopped by another plugin.')));
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -502,7 +501,7 @@ function searchReseller()
 			);
 
 			if($stmt->rowCount()) {
-				$responseData = $stmt->fetchRow(\PDO::FETCH_ASSOC);
+				$responseData = $stmt->fetchRow(PDO::FETCH_ASSOC);
 			} else {
 				$responseData = array();
 			}
@@ -511,12 +510,12 @@ function searchReseller()
 		} catch(ExceptionDatabase $e) {
 			write_log(sprintf('InstantSSH: Unable to search reseller: %s', $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -601,7 +600,7 @@ function getSshPermissionsList()
 
 		/* Data set length after filtering */
 		$resultFilterTotal = execute_query('SELECT FOUND_ROWS()');
-		$resultFilterTotal = $resultFilterTotal->fetchRow(\PDO::FETCH_NUM);
+		$resultFilterTotal = $resultFilterTotal->fetchRow(PDO::FETCH_NUM);
 		$filteredTotal = $resultFilterTotal[0];
 
 		/* Total data set length */
@@ -617,7 +616,7 @@ function getSshPermissionsList()
 					admin_type = 'reseller'
 			"
 		);
-		$resultTotal = $resultTotal->fetchRow(\PDO::FETCH_NUM);
+		$resultTotal = $resultTotal->fetchRow(PDO::FETCH_NUM);
 		$total = $resultTotal[0];
 
 		/* Output */
@@ -628,19 +627,19 @@ function getSshPermissionsList()
 			'aaData' => array()
 		);
 
-		$trEditTooltip = tr('Edit permissions', true);
-		$trDeleteTooltip = tr('Revoke permissions', true);
+		$trEditTooltip = tr('Edit permissions');
+		$trDeleteTooltip = tr('Revoke permissions');
 
-		while($data = $rResult->fetchRow(\PDO::FETCH_ASSOC)) {
+		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
 			for($i = 0; $i < $nbCols; $i++) {
 				if($cols[$i] == 'ssh_permission_auth_options') {
-					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
+					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes') : tr('No');
 				} elseif($cols[$i] == 'ssh_permission_jailed_shell') {
-					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes', true) : tr('No', true);
+					$row[$cols[$i]] = ($data[$cols[$i]]) ? tr('Yes') : tr('No');
 				} elseif($cols[$i] == 'ssh_permission_status') {
-					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]], false);
+					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]]);
 				} else {
 					$row[$cols[$i]] = $data[$cols[$i]];
 				}
@@ -660,7 +659,7 @@ function getSshPermissionsList()
 					"data-admin-name=\"" . $data['admin_name'] . "\" . " .
 					"class=\"icon icon_delete clickable\">&nbsp;</span>";
 			} else {
-				$row['ssh_permission_actions'] = tr('n/a', true);
+				$row['ssh_permission_actions'] = tr('n/a');
 			}
 
 			$output['aaData'][] = $row;
@@ -670,11 +669,11 @@ function getSshPermissionsList()
 	} catch(ExceptionDatabase $e) {
 		write_log(sprintf('InstantSSH: Unable to get SSH permissions list: %s', $e->getMessage()), E_USER_ERROR);
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 		);
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
@@ -708,7 +707,7 @@ if(isset($_REQUEST['action'])) {
 				rebuildJails();
 				break;
 			default:
-				Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 		}
 	}
 
@@ -739,7 +738,7 @@ EventManager::getInstance()->registerListener('onGetJsTranslations', function ($
 });
 
 $tpl->assign(array(
-	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions', true)),
+	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / SSH Permissions')),
 	'INSTANT_SSH_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
 	'PAGE_MESSAGE' => '' // Remove default message HTML element (not used here)
 ));

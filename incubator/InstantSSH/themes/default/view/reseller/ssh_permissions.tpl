@@ -2,33 +2,33 @@
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('This is the list of customers which are allowed to create SSH users to login on the system using SSH.', true));?>
+		<?= self::escapeHtml(tr('This is the list of customers which are allowed to create SSH users to login on the system using SSH.'));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
 		<thead>
 		<tr>
-			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
-			<th><?= self::escapeHtml(tr('Max SSH users', true));?></th>
-			<th><?= self::escapeHtml(tr('Can edit authentication options', true));?></th>
-			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
-			<th><?= self::escapeHtml(tr('Status', true));?></th>
-			<th><?= self::escapeHtml(tr('Actions', true));?></th>
+			<th><?= self::escapeHtml(tr('Customer name'));?></th>
+			<th><?= self::escapeHtml(tr('Max SSH users'));?></th>
+			<th><?= self::escapeHtml(tr('Can edit authentication options'));?></th>
+			<th><?= self::escapeHtml(tr('Restricted shell'));?></th>
+			<th><?= self::escapeHtml(tr('Status'));?></th>
+			<th><?= self::escapeHtml(tr('Actions'));?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
-			<td><?= self::escapeHtml(tr('Max SSH users', true));?></td>
-			<td><?= self::escapeHtml(tr('Can edit authentication options', true));?></td>
-			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
-			<td><?= self::escapeHtml(tr('Status', true));?></td>
-			<td><?= self::escapeHtml(tr('Actions', true));?></td>
+			<td><?= self::escapeHtml(tr('Customer name'));?></td>
+			<td><?= self::escapeHtml(tr('Max SSH users'));?></td>
+			<td><?= self::escapeHtml(tr('Can edit authentication options'));?></td>
+			<td><?= self::escapeHtml(tr('Restricted shell'));?></td>
+			<td><?= self::escapeHtml(tr('Status'));?></td>
+			<td><?= self::escapeHtml(tr('Actions'));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="6"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="6"><?= self::escapeHtml(tr('Processing...'));?></td>
 		</tr>
 		</tbody>
 	</table>
@@ -37,31 +37,31 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH Permissions', true));?></th>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH Permissions'));?></th>
 				</tr>
 				</thead>
 				<tbody>
 				<tr>
-					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>"></td>
+					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name'));?></label></td>
+					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name'));?>"></td>
 				</tr>
 				<tr>
 					<td style="width:20%;">
 						<label for="ssh_permission_max_users">
-							<?= self::escapeHtml(tr('Maximum number of SSH users', true));?><br>
-							(<small><?= self::escapeHtml(tr('0 for unlimited', true));?>)</small>
+							<?= self::escapeHtml(tr('Maximum number of SSH users'));?><br>
+							(<small><?= self::escapeHtml(tr('0 for unlimited'));?>)</small>
 						</label>
 					</td>
 					<td>
-						<input type="text" name="ssh_permission_max_users" id="ssh_permission_max_users" placeholder="<?= self::escapeHtmlAttr(tr('Enter a number', true));?>" value="0">
+						<input type="text" name="ssh_permission_max_users" id="ssh_permission_max_users" placeholder="<?= self::escapeHtmlAttr(tr('Enter a number'));?>" value="0">
 					</td>
 				</tr>
 				<!-- BDP: ssh_permission_auth_options_block -->
 				<tr>
 					<td>
 						<label for="ssh_permission_auth_options">
-							<?= self::escapeHtml(tr('Can edit authentication options', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('See man authorized_keys for further details about authentication options.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Can edit authentication options'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('See man authorized_keys for further details about authentication options.'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -73,8 +73,8 @@
 				<tr>
 					<td>
 						<label for="ssh_permission_jailed_shell">
-							<?= self::escapeHtml(tr('Restricted shell', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access have to be provided in restricted environment (recommended)?', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Restricted shell'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access have to be provided in restricted environment (recommended)?'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -84,10 +84,10 @@
 				<!-- EDP: ssh_permission_jailed_shell_block -->
 				<tr>
 					<td colspan="2" style="text-align: right;">
-						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
+						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save'));?></button>
 						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0">
 						<input type="hidden" id="ssh_permission_admin_id" name="ssh_permission_admin_id" value="0">
-						<input type="reset" value="<?= self::escapeHtml(tr('Cancel', true));?>">
+						<input type="reset" value="<?= self::escapeHtml(tr('Cancel'));?>">
 					</td>
 				</tr>
 				</tbody>
@@ -168,7 +168,7 @@
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = '';
-					flashMessage("warning", "<?= self::escapeJs(tr('Unknown customer. Please enter a valid customer name.', true));?>");
+					flashMessage("warning", "<?= self::escapeJs(tr('Unknown customer. Please enter a valid customer name.'));?>");
 				}
 			}
 		});
@@ -192,7 +192,7 @@
 								}
 							);
 						} else if(!$(".flash_message").length) {
-							flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.', true));?>")
+							flashMessage('error', "<?= self::escapeJs(tr('You must enter a customer name.'));?>")
 						}
 						break;
 					case "edit_ssh_permissions":
@@ -214,7 +214,7 @@
 							});
 						break;
 					case "delete_ssh_permissions":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this customer?'));?>")) {
 							doRequest(
 								"POST",
 								"delete_ssh_permissions",
@@ -230,7 +230,7 @@
 						}
 						break;
 					default:
-						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.'));?>");
 				}
 			});
 
@@ -245,9 +245,9 @@
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
-					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.'));?>");
 				} else {
-					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.'));?>");
 				}
 			});
 	});

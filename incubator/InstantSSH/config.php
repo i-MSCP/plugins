@@ -21,22 +21,25 @@
 $config = iMSCP_Registry::get('config');
 
 return array(
-	// SSH user name prefix ( default: imscp_ )
+	// SSH user name prefix (default: imscp_)
+	//
+	// This is a security measurement which prevents usage of system users.
+	// WARNING: You must never set this parameter to an empty value.
 	'ssh_user_name_prefix' => 'imscp_',
 
-	// Passwordless authentication ( default: false )
+	// Passwordless authentication (default: false)
 	//
-	// When the value is set to TRUE, passwordless authentication is enforced, meaning that the customers cannot set
-	// password for their SSH users. This implies necessarily that the customers have to provide an SSH key. When the
-	// value is set to FALSE, both authentication methods (password and key) are available. In such a case, customers
-	// can provide either a password, either a key or both.
+	// When set to TRUE, passwordless authentication is enforced, meaning that the customers cannot set password for
+	// their SSH users. This implies necessarily that the customers have to provide an SSH key. When set to FALSE, both
+	// authentication methods (password and key) are available. In such a case, customers can provide either a password,
+	// either a key or both.
 	//
 	// Note: This applies only to newly created or updated SSH users
 	'passwordless_authentication' => false,
 
 	// Default SSH authentication options added for any new SSH key
 	//
-	// See man authorized_keys for list of allowed authentication options.
+	// See man authorized_keys for a list of allowed authentication options.
 	// eg. command="dump /home",no-pty,no-port-forwarding
 	//
 	// WARNING: Any option defined here must be specified in the allowed_ssh_auth_options configuration option.
@@ -47,23 +50,23 @@ return array(
 	// Supported options are:
 	//
 	// \InstantSSH\Validate\SshAuthOptions::ALL (all options)
-	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY ( cert-authority option )
-	// \InstantSSH\Validate\SshAuthOptions::COMMAND ( command option )
-	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT ( environment option )
-	// \InstantSSH\Validate\SshAuthOptions::FROM ( from option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING ( no-agent-forwarding option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING ( no-port-forwarding option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_PTY ( no-pty option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC ( no-user-rc option )
-	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING ( no-x11-forwarding option )
-	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN ( permitopen option )
-	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS ( principals option )
-	// \InstantSSH\Validate\SshAuthOptions::TUNNEL ( tunnel option )
+	// \InstantSSH\Validate\SshAuthOptions::CERT_AUTHORITY (cert-authority option)
+	// \InstantSSH\Validate\SshAuthOptions::COMMAND (command option)
+	// \InstantSSH\Validate\SshAuthOptions::ENVIRONMENT (environment option)
+	// \InstantSSH\Validate\SshAuthOptions::FROM (from option)
+	// \InstantSSH\Validate\SshAuthOptions::NO_AGENT_FORWARDING (no-agent-forwarding option)
+	// \InstantSSH\Validate\SshAuthOptions::NO_PORT_FORWARDING (no-port-forwarding option)
+	// \InstantSSH\Validate\SshAuthOptions::NO_PTY (no-pty option)
+	// \InstantSSH\Validate\SshAuthOptions::NO_USER_RC (no-user-rc option)
+	// \InstantSSH\Validate\SshAuthOptions::NO_X11_FORWARDING (no-x11-forwarding option)
+	// \InstantSSH\Validate\SshAuthOptions::PERMITOPEN (permitopen option)
+	// \InstantSSH\Validate\SshAuthOptions::PRINCIPALS (principals option)
+	// \InstantSSH\Validate\SshAuthOptions::TUNNEL (tunnel option)
 	'allowed_ssh_auth_options' => array(
 		\InstantSSH\Validate\SshAuthOptions::ALL
 	),
 
-	// Shell for SSH users ( default: /bin/bash for full SSH access ; /bin/ash for restricted SSH access )
+	// Shell for SSH users (default: /bin/bash for full SSH access and restricted SSH access)
 	//
 	// See man shells for further details.
 	'shells' => array(
@@ -74,7 +77,7 @@ return array(
 		'jailed' => '/bin/bash'
 	),
 
-	// Root jail directory ( default: /var/chroot/InstantSSH )
+	// Root jail directory (default: /var/chroot/InstantSSH)
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
@@ -83,10 +86,10 @@ return array(
 	// Makejail script path
 	'makejail_path' => __DIR__ . '/bin/makejail',
 
-	// Makejail configuration directory ( default: <CONF_DIR>/InstantSSH )
+	// Makejail configuration directory (default: <CONF_DIR>/InstantSSH)
 	'makejail_confdir_path' => $config['CONF_DIR'] . '/InstantSSH',
 
-	// Shared jail ( default: true )
+	// Shared jail (default: true)
 	//
 	// When set to true, only one jail is created for all customers. A shared jail doesn't mean that customers will be
 	// able to read, modify or delete files of other customers. This simply mean that the jail will be shared between
@@ -97,25 +100,25 @@ return array(
 	// not implemented yet. This will be implemented in near future.
 	'shared_jail' => true,
 
-	// Preserved files ( default: <USER_WEB_DIR> )
+	// Preserved files (default: <USER_WEB_DIR>)
 	//
 	// The plugin won't try to remove files or directories inside jails if their path begins with one of the strings
 	// in this list.
 	//
-	// This option can be also defined in the application sections ( see below ).
+	// This option can be also defined in the application sections (see below).
 	//
 	// WARNING: Do not remove the default entry if you don't know what you are doing.
 	'preserve_files' => array(
 		$config['USER_WEB_DIR']
 	),
 
-	// Whether or not files from packages listed in the 'packages' option of the application sections must be copied
-	// within the jails
+	// Whether or not files from packages that are dependencies of packages listed in the 'packages' option of the
+	// application sections must be copied within the jails
 	'include_pkg_deps' => false,
 
-	// Application sections ( default: 'bashshell', 'netutils', 'editors', 'mysqltools' )
+	// Application sections (default: 'bashshell', 'netutils', 'editors', 'mysqltools')
 	//
-	// This is the list of application sections which are used to create/update the jails ( see below ).
+	// This is the list of application sections which are used to create/update the jails (see below).
 	'app_sections' => array(
 		'bashshell', 'netutils', 'editors', 'mysqltools'
 	),
@@ -136,17 +139,17 @@ return array(
 	//
 	// paths: List of paths to create inside the jails.
 	// create_dirs: List of directories to create inside jail where each key is a directory path and the value, an
-	//              an associative array describing directory permissions ( user, group and mode ).
+	//              associative array describing directory permissions (user, group and mode).
 	// packages: List of debian packages. Files from those packages will be copied inside jail.
-	// discard_packages: List of debian packages to discard. ( Only relevant if the global include_pkg_deps
-	//                   configuration option is set to true ).
+	// discard_packages: List of debian packages to discard. (Only relevant if the global include_pkg_deps
+	//                   configuration option is set to true).
 	// sys_copy_file_to: List of files to copy outside the jail, each of them specified as a key/value pair where the
 	//                   key is the source file path and the value, the destination path.
 	// jail_copy_file_to: List of files to copy inside jail, each of them specified as a key/value pair where the key is
 	//                    the source file path and the value, the destination path.
 	// include_apps_sections: List of applications sections to include.
-	// users: List of users to add inside the jail ( eg. in passwd/shadow files ).
-	// groups: List of groups to add inside the jail ( eg. in group/gshadow files ).
+	// users: List of users to add inside the jail (eg. in passwd/shadow files).
+	// groups: List of groups to add inside the jail (eg. in group/gshadow files).
 	// preserve_files: List of files to preserve when the jails are updated.
 	// devices: List of devices to copy inside jail.
 	// fstab: List of fstab entries to add where each value is an array describing an fstab entry ( see man fstab ).
@@ -214,7 +217,7 @@ return array(
 		)
 	),
 
-	// restricted ash shell ( BusyBox built-in shell and common UNIX utilities )
+	// restricted ash shell (BusyBox built-in shell and common UNIX utilities)
 	// Warning: Don't forget to set the shells => jailed configuration option to /bin/ash
 	'ashshell' => array(
 		'users' => array(
@@ -436,7 +439,7 @@ return array(
 		)
 	),
 
-	// MySQL command-line tools ( mysql, mysqldump )
+	// MySQL command-line tools (mysql, mysqldump)
 	'mysqltools' => array(
 		'paths' => array(
 			'mysql', 'mysqldump', '/lib/libgcc_s.so.1', '/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1',
@@ -466,7 +469,7 @@ return array(
 	),
 
 	// Midnight Commander
-	// Warning: User will need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
+	// Warning: User will need write access to user home directroy (eg. /var/www/virtual/<domain.tld>)
 	'midnightcommander' => array(
 		'paths' => array(
 			'mc', 'mcedit', 'mcview', '/usr/share/mc', '/etc/mc', '/usr/lib/mc'
@@ -483,7 +486,7 @@ return array(
 		)
 	),
 
-	// Git ( Fast Version Control System )
+	// Git (Fast Version Control System)
 	'git' => array(
 		'paths' => array(
 			'/usr/bin/git*', '/usr/lib/git-core', 'basename', 'uname'
@@ -513,7 +516,7 @@ return array(
 	),
 
 	// composer ( see https://getcomposer.org )
-	// Warning: User will need write access to user home directroy ( eg /var/www/virtual/<domain.tld> )
+	// Warning: User will need write access to user home directroy (eg. /var/www/virtual/<domain.tld>)
 	'composer' => array(
 		'create_dirs' => array(
 			'/usr/local/bin' => array(

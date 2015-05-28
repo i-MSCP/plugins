@@ -142,33 +142,35 @@ sub addLogSocket($)
 # Remove a log socket
 sub removeLogSocket($)
 {
-	my $logSocketPath = File::Spec->canonpath("$_[0]/dev/log");
+	if(-f $syslogproxydDefaultFileDest) {
+		my $logSocketPath = File::Spec->canonpath("$_[0]/dev/log");
 
-	my $fh = FileHandle->new( $syslogproxydDefaultFileDest, 'r' ) or die(
-		"Unable to open $syslogproxydDefaultFileDest for reading: $!"
-	);
+		my $fh = FileHandle->new( $syslogproxydDefaultFileDest, 'r' ) or die(
+			"Unable to open $syslogproxydDefaultFileDest for reading: $!"
+		);
 
-	my $fileContent = do { local $/; readline($fh) };
-	$fh->close();
+		my $fileContent = do { local $/; readline($fh) };
+		$fh->close();
 
-	if(defined $fileContent) {
-		if($fileContent =~ /SYSLOGPROXYD_SOCKETS="(.*)"/) {
-			my @logSockets = grep { $_ ne $logSocketPath && $_ ne '' } split /\s+/, $1;
-			$fileContent =~ s/SYSLOGPROXYD_SOCKETS=".*"/SYSLOGPROXYD_SOCKETS="@logSockets"/;
+		if(defined $fileContent) {
+			if($fileContent =~ /SYSLOGPROXYD_SOCKETS="(.*)"/) {
+				my @logSockets = grep { $_ ne $logSocketPath && $_ ne '' } split /\s+/, $1;
+				$fileContent =~ s/SYSLOGPROXYD_SOCKETS=".*"/SYSLOGPROXYD_SOCKETS="@logSockets"/;
 
-			$fh = FileHandle->new($syslogproxydDefaultFileDest, 'w') or die(
-				"Unable to open $syslogproxydDefaultFileDest for writing: $!"
-			);
+				$fh = FileHandle->new($syslogproxydDefaultFileDest, 'w') or die(
+					"Unable to open $syslogproxydDefaultFileDest for writing: $!"
+				);
 
-			print {$fh} $fileContent;
-			$fh->close();
+				print {$fh} $fileContent;
+				$fh->close();
+			}
+		} else {
+			die("Unable to read $syslogproxydDefaultFileDest");
 		}
-	} else {
-		die("Unable to read $syslogproxydDefaultFileDest");
-	}
 
-	my $basename = basename($syslogproxyInitFileDest);
-	system("service $basename restart") == 0 or die "Unable to restart $basename service\n";
+		my $basename = basename($syslogproxyInitFileDest);
+		system("service $basename restart") == 0 or die "Unable to restart $basename service\n";
+	}
 }
 
 #

@@ -2,38 +2,38 @@
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('This is the list of resellers which are allowed to give SSH permissions to their customers.', true));?>
+		<?= self::escapeHtml(tr('This is the list of resellers which are allowed to give SSH permissions to their customers.'));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
 		<thead>
 		<tr>
-			<th><?= self::escapeHtml(tr('Reseller name', true));?></th>
-			<th><?= self::escapeHtml(tr('Can edit authentication options', true));?></th>
-			<th><?= self::escapeHtml(tr('Restricted shell', true));?></th>
-			<th><?= self::escapeHtml(tr('Status', true));?></th>
-			<th><?= self::escapeHtml(tr('Actions', true));?></th>
+			<th><?= self::escapeHtml(tr('Reseller name'));?></th>
+			<th><?= self::escapeHtml(tr('Can edit authentication options'));?></th>
+			<th><?= self::escapeHtml(tr('Restricted shell'));?></th>
+			<th><?= self::escapeHtml(tr('Status'));?></th>
+			<th><?= self::escapeHtml(tr('Actions'));?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Reseller name', true));?></td>
-			<td><?= self::escapeHtml(tr('Can edit authentication options', true));?></td>
-			<td><?= self::escapeHtml(tr('Restricted shell', true));?></td>
-			<td><?= self::escapeHtml(tr('Status', true));?></td>
-			<td><?= self::escapeHtml(tr('Actions', true));?></td>
+			<td><?= self::escapeHtml(tr('Reseller name'));?></td>
+			<td><?= self::escapeHtml(tr('Can edit authentication options'));?></td>
+			<td><?= self::escapeHtml(tr('Restricted shell'));?></td>
+			<td><?= self::escapeHtml(tr('Status'));?></td>
+			<td><?= self::escapeHtml(tr('Actions'));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="5"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="5"><?= self::escapeHtml(tr('Processing...'));?></td>
 		</tr>
 		</tbody>
 		<tbody>
 		<tr>
 			<td colspan="5" style="background-color: #b0def5">
 				<div class="buttons">
-					<button data-action="rebuild_jails"><?= self::escapeHtml(tr('Rebuild Jails', true));?></button>
+					<button data-action="rebuild_jails"><?= self::escapeHtml(tr('Rebuild Jails'));?></button>
 				</div>
 			</td>
 		</tr>
@@ -44,19 +44,19 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH Permissions', true));?></th>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH Permissions'));?></th>
 				</tr>
 				</thead>
 				<tbody>
 				<tr>
-					<td><label for="admin_name"><?= self::escapeHtml(tr('Reseller name', true));?></label></td>
-					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a reseller name', true));?>"></td>
+					<td><label for="admin_name"><?= self::escapeHtml(tr('Reseller name'));?></label></td>
+					<td><input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a reseller name'));?>"></td>
 				</tr>
 				<tr>
 					<td>
 						<label for="ssh_permission_auth_options">
-							<?= self::escapeHtml(tr('Can edit authentication options', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('See man authorized_keys for further details about authentication options.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Can edit authentication options'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('See man authorized_keys for further details about authentication options.'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -66,8 +66,8 @@
 				<tr>
 					<td>
 						<label for="ssh_permission_jailed_shell">
-							<?= self::escapeHtml(tr('Restricted shell', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access have to be provided in restricted environment (recommended)?', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Restricted shell'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Does the shell access have to be provided in restricted environment (recommended)?'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
@@ -76,10 +76,10 @@
 				</tr>
 				<tr>
 					<td colspan="2" style="text-align: right;">
-						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
+						<button data-action="add_ssh_permissions"><?= self::escapeHtml(tr('Save'));?></button>
 						<input type="hidden" id="ssh_permission_id" name="ssh_permission_id" value="0">
 						<input type="hidden" id="ssh_permission_admin_id" name="ssh_permission_admin_id" value="0">
-						<input type="reset" value="<?= self::escapeHtml(tr('Cancel', true));?>">
+						<input type="reset" value="<?= self::escapeHtml(tr('Cancel'));?>">
 					</td>
 				</tr>
 				</tbody>
@@ -159,7 +159,7 @@
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = "";
-					flashMessage("error", "<?= self::escapeJs(tr('Unknown reseller. Please enter a valid reseller name.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Unknown reseller. Please enter a valid reseller name.'));?>");
 				}
 			}
 		});
@@ -183,7 +183,7 @@
 								}
 							);
 						} else if(!$(".flash_message").length) {
-							flashMessage("error", "<?= self::escapeJs(tr('You must enter a reseller name.', true));?>")
+							flashMessage("error", "<?= self::escapeJs(tr('You must enter a reseller name.'));?>")
 						}
 						break;
 					case "edit_ssh_permissions":
@@ -204,7 +204,7 @@
 							});
 						break;
 					case "delete_ssh_permissions":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this reseller?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke SSH permissions for this reseller?'));?>")) {
 							doRequest(
 								"POST",
 								"delete_ssh_permissions",
@@ -220,7 +220,7 @@
 						}
 						break;
 					case "rebuild_jails":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to schedule rebuild of all jails?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to schedule rebuild of all jails?'));?>")) {
 							doRequest(
 								"POST", "rebuild_jails", { }
 							).done(function (data) {
@@ -233,7 +233,7 @@
 						}
 						break;
 					default:
-						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.'));?>");
 				}
 			});
 
@@ -248,9 +248,9 @@
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
-					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.'));?>");
 				} else {
-					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.'));?>");
 				}
 			});
 	});

@@ -541,7 +541,7 @@ class iMSCP_Plugin_InstantSSH extends iMSCP_Plugin_Action
 						)
 					)
 				);
-			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
+			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
 				$self = $this;
 				$page->addPage(
 					array(

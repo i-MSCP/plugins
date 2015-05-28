@@ -2,28 +2,28 @@
 <link href="/InstantSSH/themes/default/assets/css/instant_ssh.css?v={INSTANT_SSH_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('This is the list of SSH users associated with your account.', true));?>
+		<?= self::escapeHtml(tr('This is the list of SSH users associated with your account.'));?>
 	</p>
 	<table class="datatable">
 		<thead>
 		<tr>
-			<th><?= self::escapeHtml(tr('SSH user', true))?></th>
-			<th><?= self::escapeHtml(tr('Key fingerprint', true))?></th>
-			<th><?= self::escapeHtml(tr('Status', true))?></th>
-			<th><?= self::escapeHtml(tr('Actions', true))?></th>
+			<th><?= self::escapeHtml(tr('SSH user'))?></th>
+			<th><?= self::escapeHtml(tr('Key fingerprint'))?></th>
+			<th><?= self::escapeHtml(tr('Status'))?></th>
+			<th><?= self::escapeHtml(tr('Actions'))?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('SSH user', true))?></td>
-			<td><?= self::escapeHtml(tr('Key fingerprint', true))?></td>
-			<td><?= self::escapeHtml(tr('Status', true))?></td>
-			<td><?= self::escapeHtml(tr('Actions', true))?></td>
+			<td><?= self::escapeHtml(tr('SSH user'))?></td>
+			<td><?= self::escapeHtml(tr('Key fingerprint'))?></td>
+			<td><?= self::escapeHtml(tr('Status'))?></td>
+			<td><?= self::escapeHtml(tr('Actions'))?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="4"><?= self::escapeHtml(tr('Processing...', true));?></td>
+			<td colspan="4"><?= self::escapeHtml(tr('Processing...'));?></td>
 		</tr>
 		</tbody>
 	</table>
@@ -31,38 +31,38 @@
 		<table>
 			<thead>
 			<tr>
-				<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH user', true)) ;?></th>
+				<th colspan="2"><?= self::escapeHtml(tr('Add / Edit SSH user')) ;?></th>
 			</tr>
 			</thead>
 			<tbody>
 			<tr>
 				<td style="width:20%;">
-					<label for="ssh_user_name"><?= self::escapeHtml(tr('Username', true));?></label>
+					<label for="ssh_user_name"><?= self::escapeHtml(tr('Username'));?></label>
 					<span style="float:right;" id="ssh_username_prefix"><strong>{SSH_USERNAME_PREFIX}</strong></span>
 				</td>
 				<td>
-					<input type="text" name="ssh_user_name" id="ssh_user_name" maxlength="8" placeholder="<?= self::escapeHtmlAttr(tr('Enter an username', true));?>">
+					<input type="text" name="ssh_user_name" id="ssh_user_name" maxlength="8" placeholder="<?= self::escapeHtmlAttr(tr('Enter an username'));?>">
 				</td>
 			</tr>
 			<!-- BDP: ssh_password_field_block -->
 			<tr>
-				<td><label for="password"><?= self::escapeHtml(tr('Password', true));?></label></td>
-				<td><input type="password" class="pwd_generator" name="ssh_user_password" id="password" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Enter a password', true));?>"></td>
+				<td><label for="password"><?= self::escapeHtml(tr('Password'));?></label></td>
+				<td><input type="password" class="pwd_generator" name="ssh_user_password" id="password" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Enter a password'));?>"></td>
 			</tr>
 			<tr>
-				<td><label for="cpassword"><?= self::escapeHtml(tr('Password confirmation', true));?></label></td>
-				<td><input type="password" name="ssh_user_cpassword" id="cpassword" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Confirm the password', true));?>"></td>
+				<td><label for="cpassword"><?= self::escapeHtml(tr('Password confirmation'));?></label></td>
+				<td><input type="password" name="ssh_user_cpassword" id="cpassword" maxlength="32" placeholder="<?= self::escapeHtmlAttr(tr('Confirm the password'));?>"></td>
 			</tr>
 			<!-- EDP: ssh_password_field_block -->
 			<tr>
 				<td>
 					<label for="ssh_user_key">
 						<?= tr('SSH key');?>
-						<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Supported RSA key formats are PKCS#1, openSSH and XML Signature.', true));?>">&nbsp;</span>
+						<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Supported RSA key formats are PKCS#1, openSSH and XML Signature.'));?>">&nbsp;</span>
 					</label>
 				</td>
 				<td>
-					<textarea style="height:70px" name="ssh_user_key" id="ssh_user_key" placeholder="<?= self::escapeHtmlAttr(tr('Enter your SSH key', true));?>"></textarea>
+					<textarea style="height:70px" name="ssh_user_key" id="ssh_user_key" placeholder="<?= self::escapeHtmlAttr(tr('Enter your SSH key'));?>"></textarea>
 				</td>
 			</tr>
 			<!-- BDP: ssh_auth_options_block -->
@@ -74,7 +74,7 @@
 					</label>
 				</td>
 				<td>
-					<textarea style="height: 45px" name="ssh_user_auth_options" id="ssh_user_auth_options" placeholder="<?= self::escapeHtmlAttr(tr('Enter authentication option(s)', true));?>">{DEFAULT_AUTH_OPTIONS}</textarea>
+					<textarea style="height: 45px" name="ssh_user_auth_options" id="ssh_user_auth_options" placeholder="<?= self::escapeHtmlAttr(tr('Enter authentication option(s)'));?>">{DEFAULT_AUTH_OPTIONS}</textarea>
 				</td>
 			</tr>
 			<!-- EDP: ssh_auth_options_block -->
@@ -86,9 +86,9 @@
 							<td style="background: #ffffff;">
 								<div style="color:#666666;padding:15px 0 15px 45px;background: url(/themes/default/assets/images/messages/info.png) no-repeat 5px 50%;">
 									<ul style="list-style-type:none;">
-									<li><?= self::escapeHtml(tr("You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication.", true));?></li>
+									<li><?= self::escapeHtml(tr("You can provide either a password, an SSH key or both. However, it's recommended to prefer key-based authentication."));?></li>
 									<li>
-										<?= self::escapeHtml(tr('On Linux, you can generate your rsa key pair by running the following command:', true))?>
+										<?= self::escapeHtml(tr('On Linux, you can generate your rsa key pair by running the following command:'))?>
 										<span class="disabled" style="border:1px solid #cccccc;padding: 2px 5px;">ssh-keygen -t rsa -C user@domain.tld</span>
 									</li>
 									</ul>
@@ -99,7 +99,7 @@
 								<div id="actions">
 									<button id="action" data-action="add_ssh_user"><?= self::escapeHtml(tr('Save'));?></button>
 									<input type="hidden" name="ssh_user_id" id="ssh_user_id" value="0">
-									<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true)) ;?>">
+									<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel')) ;?>">
 								</div>
 							</tr>
 					</table>
@@ -211,7 +211,7 @@
 						);
 						break;
 					case "delete_ssh_user":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this SSH user?'));?>")) {
 							doRequest("POST", action, { ssh_user_id: sshUserId, ssh_user_name: sshUserName }).done(
 								function (data) {
 									$dataTable.fnDraw();
@@ -221,7 +221,7 @@
 						}
 						break;
 					default:
-						alert("<?= self::escapeJs(tr('Unknown action.', true));?>");
+						alert("<?= self::escapeJs(tr('Unknown action.'));?>");
 				}
 			});
 
@@ -234,9 +234,9 @@
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
-					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.'));?>");
 				} else {
-					flashMessage("error", "<?= self::escapeHtmlAttr(tr('An unexpected error occurred.', true));?>");
+					flashMessage("error", "<?= self::escapeHtmlAttr(tr('An unexpected error occurred.'));?>");
 				}
 			});
 	});

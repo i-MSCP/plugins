@@ -1,6 +1,6 @@
 =head1 NAME
 
- Plugin::InstantSSH
+ Plugin::InstantSSH - InstantSSH plugin (backend side)
 
 =cut
 
@@ -25,12 +25,9 @@ package Plugin::InstantSSH;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use lib "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend",
         "$main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/backend/Vendor";
-
 use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
@@ -47,7 +44,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provide the backend part of the InstantSSH plugin.
+ InstantSSH plugin (backend side).
 
 =head1 PUBLIC METHODS
 
@@ -63,14 +60,13 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	# Create configuration directory for makejail ( since version 2.1.0 )
 	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->make(
-		user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'IMSCP_GROUP'}, mode => 0750
+		{ user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'IMSCP_GROUP'}, mode => 0750 }
 	);
 	return $rs if $rs;
 
@@ -80,7 +76,21 @@ sub install
 	$rs = $self->_busyBox('configure');
 	return $rs if $rs;
 
-	$self->_syslogproxyd('install');
+	$rs = $self->_syslogproxyd('install');
+	return $rs if $rs;
+
+	if($self->{'config'}->{'shared_jail'}) {
+		my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ) };
+		if($@) {
+			error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
+			return 1;
+		}
+
+		$rs = $jailBuilder->makeJail();
+		return $rs if $rs;
+	}
+
+	0;
 }
 
 =item uninstall()
@@ -93,32 +103,31 @@ sub install
 
 sub uninstall
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
-
-	my $jailBuilder;
-	eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+	my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ) };
 	if($@) {
-		error("Unable to create JailBuilder object: $@");
+		error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
 		return 1;
 	}
 
-	my $rs = $jailBuilder->removeJail(); # Remove shared jail if any
+	my $rs = $jailBuilder->removeJail();
 	return $rs if $rs;
 
-	# Remove the jails root directory ( only if empty )
+	my $rootJailDir = normalizePath($self->{'config'}->{'root_jail_dir'});
+
 	if(-d $rootJailDir) {
-		if(iMSCP::Dir->new( dirname => $rootJailDir )->isEmpty()) {
-			$rs = iMSCP::Dir->new( dirname => $rootJailDir )->remove();
+		my $dir = iMSCP::Dir->new( dirname => $rootJailDir );
+
+		if($dir->isEmpty()) {
+			$rs = $dir->remove();
 			return $rs if $rs;
 		} else {
-			error("Cannot delete the $rootJailDir directory: Directory is not empty");
+			error(sprintf('Cannot delete %s directory: Directory is not empty', $rootJailDir));
 			return 1;
 		}
 	}
 
-	# Remove the plugin configuration directory if any
 	$rs = iMSCP::Dir->new( dirname => $self->{'config'}->{'makejail_confdir_path'} )->remove();
 	return $rs if $rs;
 
@@ -135,8 +144,8 @@ sub uninstall
 
  Process update tasks
 
- Param string $fromVersion
- Param string $toVersion
+ Param string $fromVersion Version from which the plugin is being updated
+ Param string $toVersion Version to which the plugin is being updated
  Return int 0 on success, other on failure
 
 =cut
@@ -186,28 +195,22 @@ sub update
 
 sub change
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $jailBuilder;
-
-		# Remove older shared jail if any
-
-		eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config_prev'} ); };
+		my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config_prev'} ) };
 		if($@) {
-			error("Unable to create JailBuilder object: $@");
+			error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
 			return 1;
 		}
 
 		my $rs = $jailBuilder->removeJail();
 		return $rs if $rs;
 
-		# Create up-to-date shared jail if needed
-
 		if($self->{'config'}->{'shared_jail'}) {
-			eval { $jailBuilder = InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ); };
+			$jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'shared_jail', config => $self->{'config'} ) };
 			if($@) {
-				error("Unable to create JailBuilder object: $@");
+				error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
 				return 1;
 			}
 
@@ -229,7 +232,7 @@ sub change
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	unless((defined $main::execmode && $main::execmode eq 'setup')) {
 		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'toenable'");
@@ -255,7 +258,7 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	unless((defined $main::execmode && $main::execmode eq 'setup')) {
 		my $rs = $self->{'db'}->doQuery('dummy', "UPDATE instant_ssh_users SET ssh_user_status = 'todisable'");
@@ -281,7 +284,7 @@ sub disable
 
 sub run
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $dbh = $self->{'db'}->getRawDb();
 
@@ -314,14 +317,14 @@ sub run
 		"
 	);
 	unless($sth) {
-		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item
-		error("Couldn't prepare SQL statement: " . $dbh->errstr);
+		$self->{'RETVAL'} = 1;
+		error(sprintf("Couldn't prepare SQL statement: %s" , $dbh->errstr));
 		return 1;
 	}
 
 	unless($sth->execute()) {
-		$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item
-		error("Couldn't execute prepared statement: " . $dbh->errstr);
+		$self->{'RETVAL'} = 1;
+		error(sprintf("Couldn't execute prepared statement: %s", $dbh->errstr));
 		return 1;
 	}
 
@@ -336,7 +339,7 @@ sub run
 			$rs = $self->_addSshUser($data);
 			@sql = (
 				'dummy', 'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_id = ?',
-				($rs ? scalar getMessageByType('error') : 'ok'),
+				($rs ? scalar getMessageByType('error') || 'Unexpected error' : 'ok'),
 				$data->{'ssh_user_id'}
 			);
 		} elsif( $data->{'ssh_user_status'} ~~ [ 'todisable', 'todelete' ]) {
@@ -354,7 +357,7 @@ sub run
 			} else {
 				@sql = (
 					'dummy', 'UPDATE instant_ssh_users SET ssh_user_status = ? WHERE ssh_user_id = ?',
-					scalar getMessageByType('error'),
+					scalar getMessageByType('error') || 'Unexpected error',
 					$data->{'ssh_user_id'}
 				);
 			}
@@ -362,7 +365,7 @@ sub run
 
 		my $qrs = $self->{'db'}->doQuery(@sql);
 		unless(ref $qrs eq 'HASH') {
-			$self->{'RETVAL'} = 1; # Not an error related to a specific plugin item
+			$self->{'RETVAL'} = 1;
 			error($qrs);
 			$rs = 1;
 		};
@@ -389,12 +392,12 @@ sub run
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	$self->{'db'} = iMSCP::Database->factory();
 
-	for(qw/makejail_confdir_path root_jail_dir shared_jail shells/) {
-		die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
+	for my $param(qw/makejail_confdir_path root_jail_dir shared_jail shells/) {
+		die(sprintf("Missing %s configuration parameter", $param)) unless exists $self->{'config'}->{$param};
 	}
 
 	$self;
@@ -421,7 +424,7 @@ sub _addSshUser
 
 	if((my @pwEntry = getpwnam($pUserName))) {
 		# Force logout of SSH logins if any
-		my @cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f', escapeShell("^sshd: $data->{'ssh_user_name'}"));
+		my @cmd = ('pkill -KILL -f', escapeShell("^sshd: $data->{'ssh_user_name'}"));
 		my ($stdout, $stderr);
 		$rs = execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
@@ -448,12 +451,12 @@ sub _addSshUser
 			error($stderr) if $rs && $stderr;
 			return $rs if $rs;
 		} else {
-			if(-f '/etc/shadow') { # On some systems, shadow passwords can be disabled
+			if(-f '/etc/shadow') { # On some systems, shadow passwords is disabled
 				my $pw = Unix::PasswdFile->new('/etc/passwd');
 				$pw->home($data->{'ssh_user_name'}, ($data->{'ssh_user_jailed'}) ? $pUserHomeDir . '/./' : $pUserHomeDir);
 				$pw->shell($data->{'ssh_user_name'}, $shell);
 				unless($pw->commit()) {
-					error("Unable to update $data->{'ssh_user_name'} entry in /etc/passwd file");
+					error(sprintf('Unable to update %s entry in /etc/passwd file', $data->{'ssh_user_name'}));
 					return 1;
 				}
 				undef $pw;
@@ -463,7 +466,7 @@ sub _addSshUser
 					$data->{'ssh_user_name'}, (defined $data->{'ssh_user_password'}) ? $data->{'ssh_user_password'} : '!'
 				);
 				unless($sw->commit()) {
-					error("Unable to update $data->{'ssh_user_name'} entry in /etc/shadow file");
+					error(sprintf('Unable to update %s entry in /etc/shadow file', $data->{'ssh_user_name'}));
 					return 1;
 				}
 				undef $sw;
@@ -475,21 +478,20 @@ sub _addSshUser
 				$pw->home($data->{'ssh_user_name'}, ($data->{'ssh_user_jailed'}) ? $pUserHomeDir . '/./' : $pUserHomeDir);
 				$pw->shell($data->{'ssh_user_name'}, $shell);
 				unless($pw->commit()) {
-					error("Unable to update $data->{'ssh_user_name'} entry in /etc/passwd file");
+					error(sprintf('Unable to update %s entry in /etc/passwd file', $data->{'ssh_user_name'}));
 					return 1;
 				}
 				undef $pw;
 			}
 		}
 
-		my $jailBuilder;
-		eval {
-			$jailBuilder = InstantSSH::JailBuilder->new(
+		my $jailBuilder = eval {
+			InstantSSH::JailBuilder->new(
 				id => ($self->{'config'}->{'shared_jail'}) ? 'shared_jail' : $pUserName, config => $self->{'config'}
-			);
+			)
 		};
 		if($@) {
-			error("Unable to create JailBuilder object: $@");
+			error("Unable to create InstantSSH::JailBuilder object: $@");
 			return 1;
 		}
 
@@ -581,7 +583,7 @@ sub _deleteSshUser
 		return $rs if $rs;
 
 		# Force logout of ssh login if any
-		@cmd = ($main::imscpConfig{'CMD_PKILL'}, '-KILL', '-f',  escapeShell("^sshd: $data->{'ssh_user_name'}"));
+		@cmd = ('pkill -KILL -f',  escapeShell("^sshd: $data->{'ssh_user_name'}"));
 		execute("@cmd", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		debug($stderr) if $stderr;
@@ -589,14 +591,13 @@ sub _deleteSshUser
 		my $config = ($self->{'action'} eq 'change' || $self->{'info'}->{'__need_change__'})
 			? $self->{'config_prev'} : $self->{'config'};
 
-		my $jailBuilder;
-		eval {
-			$jailBuilder = InstantSSH::JailBuilder->new(
+		my $jailBuilder = eval {
+			InstantSSH::JailBuilder->new(
 				id => ($config->{'shared_jail'}) ? 'shared_jail' : $pUserName, config => $config
-			);
+			)
 		};
 		if($@) {
-			error("Unable to create JailBuilder object: $@");
+			error(sprintf('Unable to create InstantSSH::JailBuilder object: %S', $@));
 			return 1;
 		}
 
@@ -629,7 +630,7 @@ sub _deleteSshUser
 		my $pw = Unix::PasswdFile->new('/etc/passwd');
 		$pw->delete($data->{'ssh_user_name'});
 		unless($pw->commit()) {
-			error("Unable to remove $data->{'ssh_user_name'} entry from /etc/passwd file");
+			error(sprintf('Unable to remove %s entry from /etc/passwd file', $data->{'ssh_user_name'}));
 			return 1;
 		}
 		undef $pw;
@@ -638,7 +639,7 @@ sub _deleteSshUser
 			my $sw = Unix::ShadowFile->new('/etc/shadow');
 			$sw->delete($data->{'ssh_user_name'});
 			unless($sw->commit()) {
-				error("Unable to remove $data->{'ssh_user_name'} entry from /etc/shadow file");
+				error(sprintf('Unable to remove %s entry from /etc/shadow file', $data->{'ssh_user_name'}));
 				return 1;
 			}
 			undef $sw;
@@ -692,12 +693,12 @@ sub _updateAuthorizedKeysFile
 				"
 			);
 			unless($sth) {
-				error("Couldn't prepare SQL statement: " . $dbh->errstr);
+				error(sprintf("Couldn't prepare SQL statement: %s", $dbh->errstr));
 				return 1;
 			}
 
 			unless($sth->execute($data->{'ssh_user_admin_id'}, $data->{'ssh_user_id'})) {
-				error("Couldn't execute prepared statement: " . $dbh->errstr);
+				error(sprintf("Couldn't execute prepared statement: %s", $dbh->errstr));
 				return 1;
 			}
 
@@ -724,14 +725,20 @@ sub _updateAuthorizedKeysFile
 
 				my $file = iMSCP::File->new( filename => "$pUserHomeDir/.ssh/authorized_keys" );
 				$rs = $file->set($fileContent);
-				$rs ||= $file->save();
-				$rs ||= $file->mode(0600);
-				$rs ||= $file->owner($pUserName, $pUserGroup);
+				return $rs if $rs;
+
+				$rs = $file->save();
+				return $rs if $rs;
+
+				$rs = $file->mode(0600);
+				return $rs if $rs;
+
+				$rs = $file->owner($pUserName, $pUserGroup);
 				return $rs if $rs;
 
 				setImmutable("$pUserHomeDir/.ssh", 'recursive');
 			} else {
-				my $rs = iMSCP::Dir->new( dirname => "$pUserHomeDir/.ssh")->remove();
+				my $rs = iMSCP::Dir->new( dirname => "$pUserHomeDir/.ssh" )->remove();
 				return $rs if $rs;
 			}
 
@@ -754,14 +761,14 @@ sub _checkRequirements
 {
 	my $ret = 0;
 
-	for my $package (qw/bash build-essential busybox-static flex libpam-chroot psmisc python strace/) {
+	for my $package (qw/bash build-essential flex libpam-chroot psmisc python strace/) {
 		my ($stdout, $stderr);
 		my $rs = execute(
 			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
 		);
 		debug($stdout) if $stdout;
 		if($stdout ne 'installed') {
-			error("The $package package is not installed on your system");
+			error(sprintf('The %s package is not installed on your system', $package));
 			$ret ||= 1;
 		}
 	}
@@ -769,66 +776,71 @@ sub _checkRequirements
 	# Process dedicated test for busybox
 	# This allow the admin to install either the busybox package, the busybox-static package or a self-compiled version
 	unless(iMSCP::ProgramFinder::find('busybox')) {
-		error("The busybox package is not installed on your system");
+		error('The busybox package is not installed on your system');
 		$ret ||= 1;
 	}
 
 	$ret;
 }
 
-=item _pamChroot($uninstall = FALSE)
+=item _pamChroot($action)
 
  Configure or deconfigure pam chroot
 
- Param string $action Action to perform ( configure|deconfigure )
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
 sub _pamChroot
 {
-	my $action = $_[1];
+	my ($self, $action) = @_;
 
-	if(-f '/etc/pam.d/sshd') {
-		my $file = iMSCP::File->new( filename => '/etc/pam.d/sshd' );
-		my $fileContent = $file->get();
-		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
-			return 1;
-		}
+	if(defined $action && $action ~~ [ 'configure', 'deconfigure' ]) {
+		if(-f '/etc/pam.d/sshd') {
+			my $file = iMSCP::File->new( filename => '/etc/pam.d/sshd' );
+			my $fileContent = $file->get();
+			unless(defined $fileContent) {
+				error("Unable to read $file->{'filename'} file");
+				return 1;
+			}
 
-		unless($action eq 'deconfigure') {
-			# Remove any pam_motd.so and pam_chroot.so lines
-			# Note: pam_motd lines must be moved below the pam_chroot declaration because we want read motd from jail
-			$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd)\.so.*?\n//gm;
+			if($action eq 'configure') {
+				# Remove any pam_motd.so and pam_chroot.so lines
+				# Note: pam_motd lines must be moved below the pam_chroot declaration because we want read motd from jail
+				$fileContent =~ s/^session\s+.*?pam_(?:chroot|motd)\.so.*?\n//gm;
 
-			$fileContent .= "session required pam_chroot.so\n";
-			$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
+				$fileContent .= "session required pam_chroot.so\n";
+				$fileContent .= "session optional pam_motd.so motd=/run/motd.dynamic\n";
 
-			# The pam_motd module shipped with libpam-modules versions oldest than 1.1.3-7 doesn't provide the
-			# 'noupdate' option. Thus, we must check the package version
+				# The pam_motd module shipped with libpam-modules versions oldest than 1.1.3-7 doesn't provide the
+				# 'noupdate' option. Thus, we must check the package version
 
-			my ($stdout, $stderr);
-			my $rs = execute('dpkg-query --show --showformat \'${Version}\' libpam-modules', \$stdout, \$stderr);
-			debug($stdout) if $stdout;
-			error($stderr) if $rs && $stderr;
+				my ($stdout, $stderr);
+				my $rs = execute('dpkg-query --show --showformat \'${Version}\' libpam-modules', \$stdout, \$stderr);
+				debug($stdout) if $stdout;
+				error($stderr) if $rs && $stderr;
+				return $rs if $rs;
+
+				my $ret = execute("dpkg --compare-versions $stdout lt 1.1.3-7", \$stdout, \$stderr);
+				error($stderr) if $stderr;
+				return 1 if $stderr;
+
+				$fileContent .= ($ret) ? "session optional pam_motd.so noupdate\n" : "session optional pam_motd.so\n";
+			} else {
+				$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
+			}
+
+			my $rs = $file->set($fileContent);
 			return $rs if $rs;
 
-			my $ret = execute("dpkg --compare-versions $stdout lt 1.1.3-7", \$stdout, \$stderr);
-			error($stderr) if $stderr;
-			return 1 if $stderr;
-
-			$fileContent .= ($ret) ? "session optional pam_motd.so noupdate\n" : "session optional pam_motd.so\n";
-		} else {
-			$fileContent =~ s/^session\s+.*?pam_chroot\.so.*?\n//gm;
-		}
-
-		my $rs = $file->set($fileContent);
-		return $rs if $rs;
-
-		$file->save();
+			$file->save();
 	} else {
 		error('File /etc/pam.d/sshd not found');
+		return 1;
+	}
+	} else {
+		error('Unknown action');
 		return 1;
 	}
 }
@@ -837,54 +849,57 @@ sub _pamChroot
 
  Configure  or deconfigure BusyBox
 
- Param string $action Action to perform ( configure|deconfigure )
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
 sub _busyBox
 {
-	my $action = $_[1];
+	my ($self, $action) = @_;
 
-	# Handle /bin/ash symlink
-
-	if(-e '/bin/ash') {
-		if(-s _) {
-			unless(unlink('/bin/ash')) {
-				error('Unable to remove /bin/ash symlink');
+	if(defined $action && $action ~~ [ 'configure', 'deconfigure' ]) {
+		# Handle /bin/ash symlink
+		if(-e '/bin/ash') {
+			if(-s _) {
+				unless(unlink('/bin/ash')) {
+					error('Unable to remove /bin/ash symlink');
+					return 1;
+				}
+			} else {
+				error('/bin/ash should be a symlink');
 				return 1;
 			}
-		} else {
-			error('/bin/ash should be a symlink');
-			return 1;
-		}
-	}
-
-	unless($action eq 'deconfigure') {
-		unless(symlink('/bin/busybox', '/bin/ash')) {
-			error("Unable to create /bin/ash symlink to /bin/busybox: $!");
-			return 1;
-		}
-	}
-
-	# Handle /etc/shells file
-
-	if(-f '/etc/shells') {
-		my $file = iMSCP::File->new( filename => '/etc/shells' );
-		my $fileContent = $file->get();
-		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
-			return 1;
 		}
 
-		$fileContent =~ s%^/bin/ash\n%%gm;
-		$fileContent .= "/bin/ash\n" unless $action eq 'deconfigure';
+		if($action eq 'configure') {
+			unless(symlink('/bin/busybox', '/bin/ash')) {
+				error("Unable to create /bin/ash symlink to /bin/busybox: $!");
+				return 1;
+			}
+		}
 
-		my $rs = $file->set($fileContent);
-		return $rs if $rs;
+		# Handle /etc/shells file
+		if(-f '/etc/shells') {
+			my $file = iMSCP::File->new( filename => '/etc/shells' );
+			my $fileContent = $file->get();
+			unless(defined $fileContent) {
+				error("Unable to read $file->{'filename'} file");
+				return 1;
+			}
 
-		$rs = $file->save();
-		return $rs if $rs;
+			$fileContent =~ s%^/bin/ash\n%%gm;
+			$fileContent .= "/bin/ash\n" unless $action eq 'deconfigure';
+
+			my $rs = $file->set($fileContent);
+			return $rs if $rs;
+
+			$rs = $file->save();
+			return $rs if $rs;
+		}
+	} else {
+		error('Unknown action');
+		return 1;
 	}
 
 	0;
@@ -894,27 +909,27 @@ sub _busyBox
 
  Install or uninstall syslogproxyd
 
- Param string $action Action to perform ( install|uninstall )
+ Param string $action Action to perform (install|uninstall)
  Return int 0 on success, other on failure
 
 =cut
 
 sub _syslogproxyd
 {
-	my $action = $_[1];
+	my ($self, $action) = @_;
 
-	return 1 unless(defined $action && ($action eq 'install' || $action eq 'uninstall'));
-
-	my ($stdout, $stderr);
-	my $rs = execute(
-		"$main::imscpConfig{'CMD_PERL'} $main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/bin/syslogproxyd $action",
-		\$stdout,
-		\$stderr
-	);
-	debug($stdout) if $stdout;
-	error($stderr) if $rs && $stderr;
-
-	$rs;
+	if(defined $action && $action ~~ [ 'install', 'uninstall' ]) {
+		my ($stdout, $stderr);
+		my $rs = execute(
+			"perl $main::imscpConfig{'PLUGINS_DIR'}/InstantSSH/bin/syslogproxyd $action", \$stdout, \$stderr
+		);
+		debug($stdout) if $stdout;
+		error($stderr) if $rs && $stderr;
+		$rs;
+	} else {
+		error('Unknown action');
+		1;
+	}
 }
 
 =back

@@ -1,10 +1,10 @@
 # i-MSCP InstantSSH plugin v3.2.0
 
-Plugin which allows to provide full or restricted shell access to i-MSCP customers.
+Plugin which provides full or restricted shell.
 
 ## Introduction
 
-This plugin allows to give your customers a full or restricted shell access.
+This plugin allows to give your customers a full or restricted shell.
 
 A customer to which SSH permissions are given can create SSH users and use them to login on the server.
 
@@ -33,7 +33,7 @@ configuration option to **TRUE** in the plugin configuration file.
 
 You can install these packages by executing the following commands:
 
-```bash
+```shell
 # aptitude update && aptitude install bash build-essential busybox-static flex libpam-chroot psmisc python strace
 ```
 
@@ -47,6 +47,8 @@ You can install these packages by executing the following commands:
 1. Be sure that all requirements as stated in the requirements section are meets
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
+
+**Note:** Depending on your system, installation can take up to several minutes. Time is needed to build jail.
 
 ## Update
 
@@ -131,7 +133,7 @@ Oct 13 21:04:31 lucid sshd[1509]: PAM adding faulty module: /lib/security/pam_ch
 
 You can fix this easily by following this procedure:
 
-```bash
+```shell
 # cd /usr/local/src
 # mkdir libpam-chroot
 # cd libpam-chroot
