@@ -25,7 +25,7 @@ use CronJobs\Exception\CronjobException;
 use CronJobs\Utils\CronjobValidator as CronjobValidator;
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
-use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception_Database as DatabaseException;
 use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_pTemplate as TemplateEngine;
@@ -68,12 +68,12 @@ function getCronPermissions()
 		} catch(DatabaseException $e) {
 			write_log(sprintf('CronJobs: Unable to get cron job permissions: %s', $e->getMessage()), E_USER_ERROR);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -98,9 +98,7 @@ function addCronPermissions()
 			if($cronPermissionFrequency === '' || !is_number($cronPermissionFrequency)) {
 				Functions::sendJsonResponse(
 					400,
-					array(
-						'message' => tr("Wrong value for the 'Cron jobs frequency' field. Please, enter a number.", true)
-					)
+					array('message' => tr("Wrong value for the 'Cron jobs frequency' field. Please, enter a number."))
 				);
 			} elseif($cronPermissionFrequency == 0) {
 				$cronPermissionFrequency = 1;
@@ -110,7 +108,7 @@ function addCronPermissions()
 
 			try {
 				if(!$cronPermissionId) { // Add cron job permissions
-					EventsAggregator::getInstance()->dispatch('onBeforeAddCronjobPermissions', array(
+					EventManager::getInstance()->dispatch('onBeforeAddCronjobPermissions', array(
 						'admin_name' => $adminName,
 						'cron_permission_type' => $cronPermissionType,
 						'cron_permission_max' => 0,
@@ -132,7 +130,7 @@ function addCronPermissions()
 						array($cronPermissionType, $cronPermissionFrequency, 'ok', $adminName)
 					);
 
-					EventsAggregator::getInstance()->dispatch('onAfterAddCronjobPermissions', array(
+					EventManager::getInstance()->dispatch('onAfterAddCronjobPermissions', array(
 						'admin_name' => $adminName,
 						'cron_permission_id' => $db->insertId(),
 						'cron_permission_type' => $cronPermissionType,
@@ -142,7 +140,7 @@ function addCronPermissions()
 
 					if($stmt->rowCount()) {
 						write_log(sprintf('CronJobs: Cron job permissions were added for %s', $adminName), E_USER_NOTICE);
-						Functions::sendJsonResponse(200, array('message' => tr('Cron job permissions were added.', true)));
+						Functions::sendJsonResponse(200, array('message' => tr('Permissions were added.')));
 					}
 				} else { // Update cron job permissions
 					$db->beginTransaction();
@@ -167,7 +165,7 @@ function addCronPermissions()
 					$row = $stmt->fetchRow(PDO::FETCH_ASSOC);
 
 					if($row['nb_cron_jobs'] == 0) {
-						EventsAggregator::getInstance()->dispatch('onBeforeUpdateCronjobPermissions', array(
+						EventManager::getInstance()->dispatch('onBeforeUpdateCronjobPermissions', array(
 							'admin_name' => $adminName,
 							'cron_permission_id' => $cronPermissionId,
 							'cron_permission_type' => $cronPermissionType,
@@ -286,7 +284,7 @@ function addCronPermissions()
 
 							$db->commit();
 
-							EventsAggregator::getInstance()->dispatch('onAfterUpdateCronjobPermissions', array(
+							EventManager::getInstance()->dispatch('onAfterUpdateCronjobPermissions', array(
 								'admin_name' => $adminName,
 								'cron_permission_id' => $cronPermissionId,
 								'cron_permission_type' => $cronPermissionType,
@@ -300,11 +298,11 @@ function addCronPermissions()
 
 							write_log(sprintf('Cron job permissions were updated for %s', $adminName), E_USER_NOTICE);
 							Functions::sendJsonResponse(
-								200, array('message' => tr('Cron job permissions were updated.', true))
+								200, array('message' => tr('Cron job permissions were updated.'))
 							);
 						}
 
-						Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
+						Functions::sendJsonResponse(202, array('message' => tr('Nothing has been changed.')));
 					} else {
 						Functions::sendJsonResponse(
 							409,
@@ -326,14 +324,14 @@ function addCronPermissions()
 						E_USER_ERROR
 					);
 					Functions::sendJsonResponse(
-						500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+						500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 					);
 				}
 			}
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -350,7 +348,7 @@ function deleteCronPermissions()
 		$db = Database::getInstance();
 
 		try {
-			EventsAggregator::getInstance()->dispatch('onBeforeDeleteCronPermissions', array(
+			EventManager::getInstance()->dispatch('onBeforeDeleteCronPermissions', array(
 				'cron_permission_id' => $cronPermissionId,
 				'cron_permission_admin_id' => $cronPermissionAdminId
 			));
@@ -391,7 +389,7 @@ function deleteCronPermissions()
 
 				$db->commit();
 
-				EventsAggregator::getInstance()->dispatch('onAfterDeleteCronPermissions', array(
+				EventManager::getInstance()->dispatch('onAfterDeleteCronPermissions', array(
 					'cron_permission_id' => $cronPermissionId,
 					'cron_permission_admin_id' => $cronPermissionAdminId
 				));
@@ -401,9 +399,9 @@ function deleteCronPermissions()
 				}
 
 				write_log(
-					sprintf('CronJobs: Cron job permissions with ID %s were revoked', $cronPermissionId), E_USER_NOTICE
+					sprintf('CronJobs: Cron job permissions with ID %s were removed', $cronPermissionId), E_USER_NOTICE
 				);
-				Functions::sendJsonResponse(200, array('message' => tr('Cron job permissions were revoked.', true)));
+				Functions::sendJsonResponse(200, array('message' => tr('Cron job permissions were removed.')));
 			}
 		} catch(DatabaseException $e) {
 			$db->rollBack();
@@ -414,12 +412,12 @@ function deleteCronPermissions()
 				E_USER_ERROR
 			);
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -463,12 +461,12 @@ function searchReseller()
 			write_log(sprintf('CronJobs: Unable to search reseller: %s', $e->getMessage()), E_USER_ERROR);
 
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+				500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -566,21 +564,19 @@ function getCronPermissionsList()
 			'data' => array()
 		);
 
-		$trEditTooltip = tr('Edit permissions', true);
-		$trDeleteTooltip = tr('Revoke permissions', true);
+		$trEditTooltip = tr('Edit permissions');
+		$trDeleteTooltip = tr('Remove permissions');
 
 		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
 			for($i = 0; $i < $colsTotal; $i++) {
 				if($cols[$i] == 'cron_permission_type') {
-					$row[$cols[$i]] = tr(ucfirst($data[$cols[$i]]), true);
+					$row[$cols[$i]] = tr(ucfirst($data[$cols[$i]]));
 				} elseif($cols[$i] == 'cron_permission_frequency') {
-					$row[$cols[$i]] = tr(
-						array('%d minute', '%d minutes', $data[$cols[$i]]), true, $data[$cols[$i]]
-					);
+					$row[$cols[$i]] = ntr('%d minute', '%d minutes', $data[$cols[$i]]);
 				} elseif($cols[$i] == 'cron_permission_status') {
-					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]], false);
+					$row[$cols[$i]] = translate_dmn_status($data[$cols[$i]]);
 				} else {
 					$row[$cols[$i]] = $data[$cols[$i]];
 				}
@@ -597,7 +593,7 @@ function getCronPermissionsList()
 					'data-cron-permission-admin-id="' . $data['cron_permission_admin_id'] . '" ' .
 					'class="icon icon_delete clickable">&nbsp;</span>';
 			} else {
-				$row['cron_permission_actions'] = tr('n/a', true);
+				$row['cron_permission_actions'] = tr('n/a');
 			}
 
 			$output['data'][] = $row;
@@ -608,19 +604,18 @@ function getCronPermissionsList()
 		write_log(sprintf('CronJobs: Unable to get cron job permissions list: %s', $e->getMessage()), E_USER_ERROR);
 
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage()))
+			500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage()))
 		);
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptStart);
-
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 check_login('admin');
 
 if(isset($_REQUEST['action'])) {
@@ -644,7 +639,7 @@ if(isset($_REQUEST['action'])) {
 				deleteCronPermissions();
 				break;
 			default:
-				Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 		}
 	}
 
@@ -657,32 +652,39 @@ $tpl->define_dynamic(array(
 	'page_message' => 'layout'
 ));
 
+/** @var PluginManager $pluginManager */
+$pluginManager = Registry::get('pluginManager');
+
 $tpl->define_no_file_dynamic(array(
-	'page' => Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/admin/cronjobs_permissions.tpl'),
+	'page' => Functions::renderTpl(
+		$pluginManager->pluginGetDirectory() . '/CronJobs/themes/default/view/admin/cronjobs_permissions.tpl'
+	),
 	'cron_permission_jailed' => 'page'
 ));
 
 if(Registry::get('config')->DEBUG) {
 	$assetVersion = time();
 } else {
-	$pluginInfo = Registry::get('pluginManager')->getPluginInfo('CronJobs');
+	$pluginInfo = $pluginManager->pluginGetInfo('CronJobs');
 	$assetVersion = strtotime($pluginInfo['date']);
 }
 
+EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
+	/** @var $e \iMSCP_Events_Event */
+	$e->getParam('translations')->CronJobs = array(
+		'datatable' => getDataTablesPluginTranslations(false)
+	);
+});
+
 $tpl->assign(array(
-	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Job Permissions', true)),
-	'ISP_LOGO' => layout_getUserLogo(),
-	'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-	'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations()
+	'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Admin / Settings / Cron Job Permissions')),
+	'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion)
 ));
 
-/** @var PluginManager $pluginManager */
-$pluginManager = Registry::get('pluginManager');
+if($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstalled('InstantSSH')) {
+	$info = $pluginManager->pluginGetInfo('InstantSSH');
 
-if($pluginManager->isPluginKnown('InstantSSH')) {
-	$info = $pluginManager->getPluginInfo('InstantSSH');
-
-	if(version_compare($info['version'], '3.1.0', '<')) {
+	if(version_compare($info['version'], '3.2.0', '<')) {
 		$tpl->assign('CRON_PERMISSION_JAILED', '');
 	}
 } else {
@@ -693,7 +695,5 @@ generateNavigation($tpl);
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
-
-EventsAggregator::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
-
+EventManager::getInstance()->dispatch(Events::onAdminScriptEnd, array('templateEngine' => $tpl));
 $tpl->prnt();

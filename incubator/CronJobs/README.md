@@ -1,4 +1,4 @@
-# i-MSCP cronjobs plugin v1.1.0
+# i-MSCP cronjobs plugin v1.2.0
 
 ## Introduction
 
@@ -11,40 +11,39 @@ a customer only if he has also this permission.
 Administrators can also add their own cron jobs using their own interface which is less restricted than the customer
 interface in the sense that they can set the UNIX user to use for the cron job execution while the customers cannot.
 
-Each cron job is added in the crontab file ( see crontab(5) ) that belongs to the UNIX user under which the cron command
+Each cron job is added in the crontab file (see crontab(5)) that belongs to the UNIX user under which the cron command
 must be run. For customers, this is the Web user as created by i-MSCP.
 
 ## Requirements
 
-* i-MSCP >= 1.1.21 ( plugin API >= 0.2.15 )
+* i-MSCP version >= 1.2.3
 
 ### Requirements for jailed cron jobs support
 
-* [InstantSSH](../InstantSSH/README.md) plugin >= 3.1.0
-
-**Note:** It is not necessary to activate the InstantSSH plugin. Only its presence is required.
+* [InstantSSH](../InstantSSH/README.md) plugin >= 3.2.0
 
 #### Debian / Ubuntu packages
 
-* libpam-chroot
-* makejail
 * msmtp
 
-You can install these packages by executing the following command:
+You can install this package by executing the following command:
 
-```
-# aptitude install libpam-chroot makejail msmtp
+```shell
+# aptitude update && aptitude install msmtp
 ```
 
 **Notes**
-  - If support for jailed cron jobs is detected and a package is not installed on your system, an error will be throw
   - The msmtp package is required to allow cron to send email notifications from the jailed environment
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
-2. Upload the plugin through the plugin management interface
-3. Install the plugin through the plugin management interface
+1.Be sure that all requirements as stated in the requirements section are meets
+2. Install the InstantSSH plugin if you want jailed cron jobs support
+3. Upload the plugin through the plugin management interface
+4. Install the plugin through the plugin management interface
+
+**Note:** Depending on your system and if support for jailed cron jobs is available, installation can take up to several
+minutes. Time is needed to build jail.
 
 ## Update
 
@@ -61,10 +60,9 @@ You can install these packages by executing the following command:
 If this plugin is already activated and if you want enable support for jailed cron jobs later on, you must follow these
 instructions:
  
-1. Be sure that all requirements as stated in the requirements section are meets
-2. Upload the InstantSSH plugin through the plugin management interface
-3. Deactivate this plugin
-4. Re-activate this plugin
+1. Install the InstantSSH plugin
+2. Deactivate this plugin through the plugin management interface
+3. Re-activate this plugin through the plugin management interface
 
 ## Cron job types
 
@@ -122,7 +120,7 @@ through the cron jobs interface provided by this plugin.
 The cron job permissions interface allow to give cron job permissions, either to the resellers in the context of the
 administrators, or to customers in the context of resellers.
 
-* Administrators can access the cron job permissions interface through the **Customers** menu
+* Administrators can access the cron job permissions interface through the **settings** menu
 * Resellers can access the cron job permissions interface through the **Customers** menu
 
 **Note:** When cron job permissions are updated, any cron job which doesn't fit with the new permissions are simply
@@ -183,13 +181,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ```
 
-see [LICENSE](LICENSE)
+See [LICENSE](LICENSE)
 
 ## Sponsors
 
 * [IP-Projects GmbH & Co. KG](https://www.ip-projects.de/ "IP-Projects GmbH & Co. KG")
 * [Space2Place WebHosting](http://space2place.de "Space2Place WebHosting")
 
-## Author(s)
+## Author
 
  * Laurent Declercq <l.declercq@nuxwin.com>

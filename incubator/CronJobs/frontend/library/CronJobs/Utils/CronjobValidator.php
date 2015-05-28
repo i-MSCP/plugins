@@ -21,6 +21,7 @@
 namespace CronJobs\Utils;
 
 use CronJobs\Exception\CronjobException;
+use Exception;
 use iMSCP_Exception as iMSCPException;
 use Zend_Uri_Http as HttpUri;
 
@@ -95,8 +96,9 @@ final class CronjobValidator
 	 * @param int $minTimeInterval Minimum time interval ( in minutes ) between each cron job execution
 	 * @return void
 	 */
-	public static function validate($email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type, $minTimeInterval = 1)
-	{
+	public static function validate(
+		$email, $minute, &$hour, &$dmonth, &$month, &$dweek, $user, $command, $type, $minTimeInterval = 1
+	) {
 		$minTimeInterval = intval($minTimeInterval);
 		$timedateShortcut = '';
 		$errMsgs = array();
@@ -142,7 +144,7 @@ final class CronjobValidator
 				throw new CronjobException(implode("<br>", $errMsgs));
 			}
 		} else {
-			throw new CronjobException(tr('Invalid cron job type: %s.', true, $type));
+			throw new CronjobException(tr('Invalid cron job type: %s.', $type));
 		}
 
 		if($timedateShortcut != '') {
@@ -177,7 +179,7 @@ final class CronjobValidator
 	{
 		if($fieldValue === '') {
 			throw new CronjobException(
-				tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+				tr("Value for the '%s' field cannot be empty.", tr(self::$fieldsTranslationMap[$fieldName]))
 			);
 		}
 
@@ -221,7 +223,7 @@ final class CronjobValidator
 
 		if($fieldValue != '*' && !preg_match($longPattern, $fieldValue)) {
 			throw new CronjobException(
-				tr("Invalid value for the '%s' field.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+				tr("Invalid value for the '%s' field.", tr(self::$fieldsTranslationMap[$fieldName]))
 			);
 		} else {
 			// Test whether the user provided a meaningful order inside a range
@@ -253,7 +255,7 @@ final class CronjobValidator
 					// Now check the values
 					if(intval($left) > intval($right)) {
 						throw new CronjobException(
-							tr("Invalid value for the '%s' field.", true, tr(self::$fieldsTranslationMap[$fieldName], true))
+							tr("Invalid value for the '%s' field.", tr(self::$fieldsTranslationMap[$fieldName]))
 						);
 					}
 				}
@@ -272,6 +274,7 @@ final class CronjobValidator
 	 * @param string $fieldName Date/Time field name
 	 * @param string $fieldValue Date/Time field value
 	 * @param int $minTimeInterval Minimum interval between each cron job execution
+	 * @return void
 	 */
 	protected static function validateFrequency($fieldName, $fieldValue, $minTimeInterval)
 	{
@@ -331,9 +334,12 @@ final class CronjobValidator
 					$usedTimes[] = $time;
 				}
 			} else {
-				throw new iMSCPException(tr('Parsing error.', true));
+				throw new iMSCPException(tr('Parsing error.'));
 			}
 		}
+
+		sort($usedTimes);
+		$usedTimes = array_unique($usedTimes);
 
 		$prevTime = $minFreq = -1;
 		$curtime = 0;
@@ -387,11 +393,11 @@ final class CronjobValidator
 		if(null !== $user) {
 			if($user !== '') {
 				if(!posix_getgrnam($user)) {
-					throw new CronjobException(tr('User must be a valid UNIX user.', true));
+					throw new CronjobException(tr('User must be a valid UNIX user.'));
 				}
 			} else {
 				throw new CronjobException(
-					tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap['user'], true))
+					tr("Value for the '%s' field cannot be empty.", tr(self::$fieldsTranslationMap['user']))
 				);
 			}
 		}
@@ -402,19 +408,19 @@ final class CronjobValidator
 					$httpUri = HttpUri::fromString($command);
 
 					if(!$httpUri->valid($command)) {
-						throw new CronjobException(tr('Command must be a valid HTTP URL.', true));
+						throw new CronjobException(tr('Command must be a valid HTTP URL.'));
 					} elseif($httpUri->getUsername() || $httpUri->getPassword()) {
 						throw new CronjobException(
-							tr('Url must not contain any username/password for security reasons.', true)
+							tr('Url must not contain any username/password for security reasons.')
 						);
 					}
-				} catch(\Exception $e) {
-					throw new CronjobException(tr('Command must be a valid HTTP URL.', true));
+				} catch(Exception $e) {
+					throw new CronjobException(tr('Command must be a valid HTTP URL.'));
 				}
 			}
 		} else {
 			throw new CronjobException(
-				tr("Value for the '%s' field cannot be empty.", true, tr(self::$fieldsTranslationMap['command'], true))
+				tr("Value for the '%s' field cannot be empty.", tr(self::$fieldsTranslationMap['command']))
 			);
 		}
 	}

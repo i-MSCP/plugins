@@ -40,7 +40,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		/** @var Zend_Loader_StandardAutoloader $loader */
 		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
 		$loader->registerNamespace($pluginName, __DIR__ . '/frontend/library/' . $pluginName);
-		unset($loader);
 
 		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $pluginName);
 	}
@@ -55,14 +54,15 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	{
 		$eventManager->registerListener(
 			array(
-				iMSCP_Events::onBeforeInstallPlugin,
 				iMSCP_Events::onBeforeUpdatePlugin,
 				iMSCP_Events::onBeforeEnablePlugin,
 				iMSCP_Events::onAfterUninstallPlugin,
+				iMSCP_Events::onBeforeUnlockPlugin,
 				iMSCP_Events::onAdminScriptStart,
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
-				iMSCP_Events::onAfterChangeDomainStatus
+				iMSCP_Events::onAfterChangeDomainStatus,
+
 			),
 			$this
 		);
@@ -77,19 +77,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * onBeforeInstallPlugin listener
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeInstallPlugin($event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			$this->checkCompat($event);
-		}
-	}
-
-	/**
 	 * Plugin installation
 	 *
 	 * @throws iMSCP_Plugin_Exception
@@ -100,21 +87,33 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	{
 		try {
 			$this->migrateDb('up');
-		} catch(iMSCP_Plugin_Exception $e) {
+		} catch (iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
 	/**
-	 * onBeforeUpdatePlugin listener
+	 * OnBeforeUpdate event listener
 	 *
 	 * @param iMSCP_Events_Event $event
-	 * @return void
+	 * @çeturn void
 	 */
-	public function onBeforeUpdatePlugin($event)
+	public function onBeforeUpdatePlugin(iMSCP_Events_Event $event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			$this->checkCompat($event);
+		if ($event->getParam('pluginName') == $this->getName()) {
+			$pluginManager = $this->getPluginManager();
+
+			if ($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstalled('InstantSSH')) {
+				$info = $pluginManager->pluginGetInfo('InstantSSH');
+
+				if (version_compare($info['version'], '3.2.0', '<')) {
+					set_page_message(tr(
+						'InstantSSH plugin version >= %s is required. Please update the InstantSSH plugin.', '3.2.0'
+					));
+
+					$event->stopPropagation();
+				}
+			}
 		}
 	}
 
@@ -132,7 +131,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		try {
 			$this->clearTranslations();
 			$this->migrateDb('up');
-		} catch(Exception $e) {
+		} catch (Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -149,7 +148,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		try {
 			$this->clearTranslations();
 			$this->migrateDb('down');
-		} catch(Exception $e) {
+		} catch (Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
@@ -162,30 +161,49 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function onAfterUninstallPlugin($event)
 	{
-		if($event->getParam('pluginName') == $this->getName()) {
+		if ($event->getParam('pluginName') == $this->getName()) {
 			$pluginManager = $this->getPluginManager();
 
-			if($pluginManager->isPluginKnown('InstantSSH')) {
-				$this->getPluginManager()->unlockPlugin('InstantSSH');
+			if ($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstalled('InstantSSH')) {
+				$this->getPluginManager()->pluginUnlock('InstantSSH');
 			}
 		}
 	}
 
 	/**
-	 * onBeforeUpdatePlugin listener
+	 * onBeforeEnablePlugin listener
 	 *
+	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onBeforeEnablePlugin()
+	public function onBeforeEnablePlugin($event)
 	{
-		$pluginManager = $this->getPluginManager();
+		if ($event->getParam('pluginName') == $this->getName()) {
+			$pluginManager = $this->getPluginManager();
 
-		if($pluginManager->isPluginKnown('InstantSSH')) {
-			$info = $pluginManager->getPluginInfo('InstantSSH');
+			if ($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstalled('InstantSSH')) {
+				$info = $pluginManager->pluginGetInfo('InstantSSH');
 
-			if(version_compare($info['version'], '3.1.0', '>=')) {
-				$this->getPluginManager()->lockPlugin('InstantSSH');
+				if (version_compare($info['version'], '3.2.0', '>=')) {
+					$this->getPluginManager()->pluginLock('InstantSSH');
+				}
 			}
+		}
+	}
+
+	/**
+	 * onBeforeUnlockPlugin listener
+	 *
+	 * @param iMSCP_Events_Event $event
+	 * @return void
+	 */
+	public function onBeforeUnlockPlugin(iMSCP_Events_Event $event)
+	{
+		if (
+			$event->getParam('pluginName') == 'InstantSSH' &&
+			$this->getPluginManager()->pluginGetStatus($this->getName()) != 'touninstall'
+		) {
+			$event->stopPropagation();
 		}
 	}
 
@@ -195,12 +213,12 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function onAfterChangeDomainStatus($event)
+	public function onAfterChangeDomainStatus(iMSCP_Events_Event $event)
 	{
 		$customerId = $event->getParam('customerId');
 		$action = $event->getParam('action');
 
-		if($action === 'activate') {
+		if ($action === 'activate') {
 			exec_query(
 				'UPDATE cron_jobs SET cron_job_status = ? WHERE cron_job_admin_id = ?', array('toenable', $customerId)
 			);
@@ -217,9 +235,9 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 * @param iMSCP_Events_Event $event
 	 * @return void
 	 */
-	public function deleteCronPermissions($event)
+	public function deleteCronPermissions(iMSCP_Events_Event $event)
 	{
-		if(($userId = $event->getParam('userId', false))) {
+		if (($userId = $event->getParam('userId', false))) {
 			exec_query('DELETE FROM cron_permissions WHERE cron_permission_admin_id = ?', $userId);
 		} else {
 			$userId = $event->getParam('customerId', false);
@@ -272,7 +290,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 			)
 		);
 
-		if($stmt->rowCount()) {
+		if ($stmt->rowCount()) {
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 		}
 
@@ -289,9 +307,9 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function changeItemStatus($table, $field, $itemId)
 	{
-		if($table === 'cron_permissions' && $field === 'cron_permission_status') {
+		if ($table === 'cron_permissions' && $field === 'cron_permission_status') {
 			exec_query("UPDATE $table SET $field = ? WHERE cron_permission_id = ?", array('tochange', $itemId));
-		} elseif($table === 'cron_jobs' && $field === 'cron_job_status') {
+		} elseif ($table === 'cron_jobs' && $field === 'cron_job_status') {
 			exec_query("UPDATE $table SET $field = ? WHERE cron_job_id = ?", array('tochange', $itemId));
 		}
 	}
@@ -320,13 +338,13 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 						FROM
 							cron_jobs
 						WHERE
-							cron_job_status IN (:toadd, :tochange, :toenable, :todisable, :todelete)
+							cron_job_status IN (:toadd, :tochange, :toenable, :tosuspend, :todisable, :todelete)
 					)
 				) AS cnt
 			',
 			array(
-				'toadd' => 'toadd', 'tochange' => 'tochange', 'toenable' => 'toenable', 'todisable' => 'todisable',
-				'todelete' => 'todelete'
+				'toadd' => 'toadd', 'tochange' => 'tochange', 'toenable' => 'toenable', 'tosuspend' => 'tosuspend',
+				'todisable' => 'todisable', 'todelete' => 'todelete'
 			)
 		);
 
@@ -342,13 +360,13 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		$pluginPath = PLUGINS_PATH . '/' . $this->getName();
+		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
 		return array(
-			'/admin/cronjobs_permissions' => $pluginPath . '/frontend/admin/cronjobs_permissions.php',
-			'/admin/cronjobs' => $pluginPath . '/frontend/admin/cronjobs.php',
-			'/reseller/cronjobs_permissions' => $pluginPath . '/frontend/reseller/cronjobs_permissions.php',
-			'/client/cronjobs' => $pluginPath . '/frontend/client/cronjobs.php'
+			'/admin/cronjobs_permissions' => $pluginDir . '/frontend/admin/cronjobs_permissions.php',
+			'/admin/cronjobs' => $pluginDir . '/frontend/admin/cronjobs.php',
+			'/reseller/cronjobs_permissions' => $pluginDir . '/frontend/reseller/cronjobs_permissions.php',
+			'/client/cronjobs' => $pluginDir . '/frontend/client/cronjobs.php'
 		);
 	}
 
@@ -390,7 +408,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	public function getCronPermissions($adminId)
 	{
-		if(null === $this->cronPermissions) {
+		if (null === $this->cronPermissions) {
 			$stmt = exec_query(
 				'
 					SELECT
@@ -408,7 +426,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 				array(intval($adminId), 'ok')
 			);
 
-			if($stmt->rowCount()) {
+			if ($stmt->rowCount()) {
 				$this->cronPermissions = $stmt->fetchRow(PDO::FETCH_ASSOC);
 			} else {
 				$this->cronPermissions = array();
@@ -419,23 +437,6 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat($event)
-	{
-		if(version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.15', '<')) {
-			set_page_message(
-				tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-			);
-
-			$event->stopPropagation();
-		}
-	}
-
-	/**
 	 * Setup plugin navigation
 	 *
 	 * @param string $uiLevel UI level
@@ -443,23 +444,23 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 	 */
 	protected function setupNavigation($uiLevel)
 	{
-		if(!is_xhr() && iMSCP_Registry::isRegistered('navigation')) {
+		if (!is_xhr() && iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			if($uiLevel == 'admin') {
-				if($page = $navigation->findOneBy('uri', '/admin/manage_users.php')) {
+			if ($uiLevel == 'admin') {
+				if ($page = $navigation->findOneBy('uri', '/admin/settings.php')) {
 					$page->addPage(
 						array(
 							'label' => tr('Cron job permissions'),
 							'uri' => '/admin/cronjobs_permissions',
-							'title_class' => 'users',
-							'order' => 6
+							'title_class' => 'settings',
+							'order' => 9
 						)
 					);
 				}
 
-				if($page = $navigation->findOneBy('uri', '/admin/system_info.php')) {
+				if ($page = $navigation->findOneBy('uri', '/admin/system_info.php')) {
 					$page->addPage(
 						array(
 							'label' => tr('Cron jobs'),
@@ -469,7 +470,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 						)
 					);
 				}
-			} elseif($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
+			} elseif ($uiLevel == 'reseller' && ($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
 				$self = $this;
 
 				$page->addPage(
@@ -477,7 +478,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 						'label' => tr('Cron job permissions'),
 						'uri' => '/reseller/cronjobs_permissions',
 						'title_class' => 'settings',
-						'order' => 7,
+						'order' => 3,
 						'privilege_callback' => array(
 							'name' => function () use ($self) {
 								$cronPermissions = $self->getCronPermissions(intval($_SESSION['user_id']));
@@ -486,7 +487,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 						)
 					)
 				);
-			} elseif($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
+			} elseif ($uiLevel == 'client' && ($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
 				$self = $this;
 				$page->addPage(
 					array(
@@ -516,7 +517,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		/** @var Zend_Translate $translator */
 		$translator = iMSCP_Registry::get('translator');
 
-		if($translator->hasCache()) {
+		if ($translator->hasCache()) {
 			$translator->clearCache($this->getName());
 		}
 	}

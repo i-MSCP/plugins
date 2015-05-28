@@ -20,6 +20,9 @@
 
 $config = iMSCP_Registry::get('config');
 
+/** @var iMSCP_Plugin_Manager $pluginManager */
+$pluginManager = iMSCP_Registry::get('pluginManager');
+
 return array(
 	// Path to the crontab command ( default: /usr/bin/crontab )
 	'crontab_cmd_path' => '/usr/bin/crontab',
@@ -42,7 +45,7 @@ return array(
 
 	// Makejail script path
 	// Don't change this parameter unless you know what you are doing.
-	'makejail_path' => PLUGINS_PATH . '/InstantSSH/bin/makejail',
+	'makejail_path' => $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/makejail',
 
 	// Preserved files ( default: <USER_WEB_DIR> )
 	//
@@ -60,152 +63,185 @@ return array(
 	// jail
 	'include_pkg_deps' => false,
 
-	// Selected application sections for jailed environment ( default: cronjobs_base )
+	// Application sections ( default: 'bashshell', 'cron', 'netutils', 'mysqltools', 'php' )
 	//
-	// This is the list of application sections which are used to create/update the jailed environment.
-	//
-	// By default only the cronjobs_base application section is added, which allows to build very restricted jailed
-	// environment.
+	// This is the list of application sections which are used to create/update the jails ( see below ).
 	'app_sections' => array(
-		'cronjobs_base'
+		'bashshell', 'cron', 'netutils', 'mysqltools', 'php'
 	),
 
-	// Predefined application sections for jailed shell environments
-	// See the InstantSSH configuration file for more details about available options
+	// Application sections definitions
+	// See the InstantSSH configuration file for more details.
 
-	// bashshell
-	// Provide restricted GNU bash shell
-	'bashshell' => array(
-		'paths' => array(
-			'/bin/sh', '/bin/bash', '/bin/ls', '/bin/cat', '/bin/chmod', '/bin/mkdir', '/bin/cp', '/bin/cpio',
-			'/bin/date', '/bin/dd', '/bin/echo', '/bin/egrep', '/bin/false', '/bin/fgrep', '/bin/grep', '/bin/gunzip',
-			'/bin/gzip', '/bin/ln', '/bin/mktemp', '/bin/more', '/bin/mv', '/bin/pwd', '/bin/rm', '/bin/rmdir',
-			'/bin/sed', '/bin/sleep', '/bin/sync', '/bin/tar', '/usr/bin/basename', '/usr/bin/touch', '/bin/true',
-			'/bin/uncompress', '/bin/zcat', '/etc/issue', '/etc/bash.bashrc', '/usr/bin/dircolors', '/usr/bin/tput',
-			'/tmp', '/var/log', '/usr/bin/awk', '/bin/bzip2', '/bin/bunzip2', '/usr/bin/ldd', '/usr/bin/less',
-			'/usr/bin/clear', '/usr/bin/cut', '/usr/bin/du', '/usr/bin/find', '/usr/bin/head', '/usr/bin/md5sum',
-			'/usr/bin/nice', '/usr/bin/sort', '/usr/bin/tac', '/usr/bin/tail', '/usr/bin/tr', '/usr/bin/wc',
-			'/usr/bin/watch', '/usr/bin/whoami', '/usr/bin/id', '/bin/hostname', '/usr/bin/lzma', '/usr/bin/xz',
-			'/usr/bin/pbzip2', '/usr/bin/curl', '/usr/bin/env', '/bin/readlink', '/usr/bin/groups', '/etc/localtime',
-			'/etc/timezone'
-		),
-		'include_app_sections' => array(
-			'uidbasics'
-		),
-		'devices' => array(
-			'/dev/null'
-		)
-	),
-
-	// uidbasics section
-	// Provide common files for jails that need user/group information
+	// common files for jails that need user/group information
 	'uidbasics' => array(
 		'paths' => array(
 			'/etc/ld.so.conf', '/etc/passwd', '/etc/group', '/etc/nsswitch.conf', '/lib/libnsl.so.1',
-			'/lib64/libnsl.so.1', '/lib/libnss*.so.2', '/lib64/libnss*.so.2', '/lib/i386-linux-gnu/libnsl.so.1',
-			'/lib/i386-linux-gnu/libnss*.so.2', '/lib/x86_64-linux-gnu/libnsl.so.1',
-			'/lib/x86_64-linux-gnu/libnss*.so.2'
+			'/lib64/libnsl.so.1', '/lib/i386-linux-gnu/libnsl.so.1', '/lib/x86_64-linux-gnu/libnsl.so.1',
+			'/lib/libnss*.so.2', '/lib64/libnss*.so.2', '/lib/i386-linux-gnu/libnss*.so.2',
+			'/lib/x86_64-linux-gnu/libnss*.so.2',
 		)
 	),
 
-	// netbasics section
-	// Provide common files for jails that need any internet connectivity
+	// common files for jails that need internet connectivity
 	'netbasics' => array(
 		'paths' => array(
-			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/etc/resolv.conf', '/etc/host.conf', '/etc/hosts',
-			'/etc/protocols', '/etc/services'
+			'/etc/resolv.conf', '/etc/host.conf', '/etc/hosts', '/etc/protocols', '/etc/services', '/etc/ssl/certs',
+			'/lib/libnss_dns.so.2', '/lib64/libnss_dns.so.2', '/lib/i386-linux-gnu/libnss_dns.so.2',
+			'/lib/x86_64-linux-gnu/libnss_dns.so.2'
 		)
 	),
 
-	# mysqltools section
-	# Provide the MySQL command-line tool and the mysqldump program
-	'mysqltools' => array(
+	// timezone information and log sockets
+	'logbasics' => array(
 		'paths' => array(
-			'/etc/mysql', '/usr/bin/mysql', '/usr/bin/mysqldump'
+			'/etc/localtime', '/etc/timezone'
+		),
+		'create_dirs' => array(
+			'/dev' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
+		),
+		'preserve_files' => array(
+			'/dev/log'
+		),
+		'create_sys_commands_args' => array(
+			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/syslogproxyd add'
+		),
+		'destroy_sys_commands_args' => array(
+			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/syslogproxyd remove'
+		)
+	),
+
+	// restricted GNU bash shell
+	// Warning: Don't forget to set the shells => jailed configuration option to /bin/bash
+	'bashshell' => array(
+		'users' => array(
+			'root', 'www-data'
+		),
+		'groups' => array(
+			'root', 'www-data'
+		),
+		'paths' => array(
+			'sh', 'bash', 'ls', 'cat', 'chmod', 'mkdir', 'cp', 'cpio', 'date', 'dd', 'echo', 'egrep', 'false', 'fgrep',
+			'grep', 'gunzip', 'gzip', 'ln', 'mktemp', 'more', 'mv', 'pwd', 'rm', 'rmdir', 'sed', 'sleep', 'sync', 'tar',
+			'basename', 'touch', 'true', 'uncompress', 'zcat', '/etc/issue', '/etc/bash.bashrc', 'dircolors', 'tput',
+			'awk', 'bzip2', 'bunzip2', 'ldd', 'less', 'clear', 'cut', 'du', 'find', 'head', 'md5sum', 'nice', 'sort',
+			'tac', 'tail', 'tr', 'wc', 'watch', 'whoami', 'id', 'hostname', 'lzma', 'xz', 'pbzip2', 'env', 'readlink',
+			'groups', '/usr/lib/locale/C.UTF-8'
+		),
+		'create_dirs' => array(
+			'/tmp' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 01777
+			),
+			/*'/var/log' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)*/
 		),
 		'jail_copy_file_to' => array(
-			PLUGINS_PATH . '/InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
+			$pluginManager->pluginGetDirectory() . '/InstantSSH/config/etc/profile' => '/etc/profile'
+		),
+		'include_app_sections' => array(
+			'uidbasics', 'logbasics'
+		),
+		'devices' => array(
+			'/dev/null',
+			'/dev/random',
+			'/dev/urandom',
+			'/dev/zero'
+		),
+		/*'fstab' => array(
+			array(
+				'file_system' => 'proc',
+				'mount_point' => '/proc',
+				'type' => 'proc',
+				'options' => 'defaults',
+				'dump' => '0',
+				'pass' => '0'
+			),
+			array(
+				'file_system' => 'sysfs',
+				'mount_point' => '/sys',
+				'type' => 'sysfs',
+				'options' => 'defaults',
+				'dump' => '0',
+				'pass' => '0'
+			)
+		),
+		*/
+		'destroy_sys_commands_args' => array(
+			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/dovecot_rm_mount ' . $config['USER_WEB_DIR'] . '/*'
 		)
 	),
 
-	# php section
-	# Provide PHP (CLI) and PHP common modules ( if installed on the system )
-	'php' => array(
+	// Provide curl, wget, lynx, ftp, ssh, sftp, scp, rsync
+	'netutils' => array(
 		'paths' => array(
-			'/usr/bin/php',
-			'/etc/php5/cli/php.ini',
-			'/etc/php5/cli/conf.d/*mysqlnd.ini', '/usr/lib/php5/*/mysqlnd.so',
-			'/etc/php5/cli/conf.d/*pdo.ini', '/usr/lib/php5/*/pdo.so',
-			'/etc/php5/cli/conf.d/*gd.ini', '/usr/lib/php5/*/gd.so',
-			'/etc/php5/cli/conf.d/*intl.ini', '/usr/lib/php5/*/intl.so',
-			'/etc/php5/cli/conf.d/*json.ini', '/usr/lib/php5/*/json.so',
-			'/etc/php5/cli/conf.d/*mcrypt.ini', '/usr/lib/php5/*/mcrypt.so',
-			'/etc/php5/cli/conf.d/*mysql.ini', '/usr/lib/php5/*/mysql.so',
-			'/etc/php5/cli/conf.d/*mysqli.ini', '/usr/lib/php5/*/mysqli.so',
-			'/etc/php5/cli/conf.d/*pdo_mysql.ini', '/usr/lib/php5/*/pdo_mysql.so',
-			'/etc/php5/cli/conf.d/*readline.ini', '/usr/lib/php5/*/readline.so'
-		)
-	),
-
-	# wget section
-	# Provide GNU Wget
-	'wget' => array(
-		'paths' => array(
-			'/etc/ssl/certs/*', '/usr/bin/wget'
+			'curl', 'ftp', 'lynx', 'wget', '/etc/lynx-cur'
+		),
+		'include_app_sections' => array(
+			'netbasics', 'scp', 'sftp', 'ssh', 'rsync'
 		),
 		'devices' => array(
 			'/dev/random', '/dev/urandom'
 		)
 	),
 
-	# msmtp section
-	# provide msmtp ( light SMTP client with support for server profiles )
-	'msmtp' => array(
+	// MySQL command-line tools ( mysql, mysqldump )
+	'mysqltools' => array(
 		'paths' => array(
-			'/etc/aliases',  '/usr/bin/msmtp'
+			'mysql', 'mysqldump', '/lib/libgcc_s.so.1', '/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1',
+			'/lib/x86_64-linux-gnu/libgcc_s.so.1'
+		),
+		'create_dirs' => array(
+			'/etc/mysql' => array(
+				'user' => 'root',
+				'group' => 'root',
+				'mode' => 0755
+			)
 		),
 		'jail_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/msmtprc' => '/etc/msmtprc'
-		),
-		'jail_run_commands' => array(
-			'sed -i\'\' -e \'s/{HOSTNAME}/\'$(hostname -f)\'/\' /etc/msmtprc', // Setup maildomain in msmtp conffile
-			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside the jail
+			$pluginManager->pluginGetDirectory() . '/InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
 		)
 	),
 
-	# cron section
-	# Allows to run cron jobs inside the jailed environment
+	// PHP (CLI) and extensions
+	'php' => array(
+		'paths' => array(
+			'php', '/etc/php5/cli', PHP_EXTENSION_DIR, '/usr/share/zoneinfo'
+		),
+		'include_app_sections' => array(
+			'netutils'
+		)
+	),
+
+	// msmtp ( light SMTP client with support for server profiles )
+	'msmtp' => array(
+		'paths' => array(
+			'/etc/aliases', 'msmtp'
+		),
+		'jail_copy_file_to' => array(
+			__DIR__ . '/config/etc/msmtprc' => '/etc/msmtprc'
+		),
+		'create_jail_commands' => array(
+			'sed -i\'\' -e \'s/{HOSTNAME}/\'$(hostname -f)\'/\' /etc/msmtprc', // Setup maildomain in msmtp conffile
+			'ln -s /usr/bin/msmtp /usr/sbin/sendmail' // Use the msmtp SMTP client as sendmail interface inside jail
+		)
+	),
+
+	// cron
 	'cron' => array(
 		'paths' => array(
-			'/dev', '/usr/sbin/cron'
+			 'cron'
 		),
 		'include_app_sections' => array(
 			'msmtp'
-		),
-		'sys_copy_file_to' => array(
-			dirname(__FILE__) . '/config/etc/rsyslog.d/imscp_cronjobs_plugin.conf' => '/etc/rsyslog.d/imscp_cronjobs_plugin.conf'
-		),
-		'preserve_files' => array(
-			'/dev/log'
-		),
-		'sys_run_commands' => array(
-			$config['SERVICE_MNGR'] . ' rsyslog restart' // Restart rsyslog to create socket ( /dev/log ) inside jail 
-		)
-	),
-
-	// cronjobs_base section
-	// Provide pre-selected application sections, users and groups for jailed environment used by this plugin
-	'cronjobs_base' => array(
-		'include_app_sections' => array(
-			'bashshell', 'netbasics', 'cron', 'wget', 'mysqltools', 'php'
-		),
-		'users' => array(
-			'root',
-			'www-data'
-		),
-		'groups' => array(
-			'root',
-			'www-data'
 		)
 	)
 );

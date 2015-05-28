@@ -2,33 +2,33 @@
 <link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('List of customers which are allowed to add cron jobs.', true));?>
+		<?= self::escapeHtml(tr('List of customers which are allowed to add cron jobs.'));?>
 	</p>
 	<br/>
 	<table class="datatable firstColFixed">
 		<thead>
 		<tr>
-			<th><?= self::escapeHtml(tr('Customer name', true));?></th>
-			<th><?= self::escapeHtml(tr('Cron jobs type', true));?></th>
-			<th><?= self::escapeHtml(tr('Max. cron jobs', true));?></th>
-			<th><?= self::escapeHtml(tr('Cron jobs frequency', true));?></th>
-			<th><?= self::escapeHtml(tr('Status', true));?></th>
-			<th><?= self::escapeHtml(tr('Actions', true));?></th>
+			<th><?= self::escapeHtml(tr('Customer name'));?></th>
+			<th><?= self::escapeHtml(tr('Cron jobs type'));?></th>
+			<th><?= self::escapeHtml(tr('Max. cron jobs'));?></th>
+			<th><?= self::escapeHtml(tr('Cron jobs frequency'));?></th>
+			<th><?= self::escapeHtml(tr('Status'));?></th>
+			<th><?= self::escapeHtml(tr('Actions'));?></th>
 		</tr>
 		</thead>
 		<tfoot>
 		<tr>
-			<td><?= self::escapeHtml(tr('Customer name', true));?></td>
-			<td><?= self::escapeHtml(tr('Cron jobs type', true));?></td>
-			<td><?= self::escapeHtml(tr('Max. cron jobs', true));?></td>
-			<td><?= self::escapeHtml(tr('Cron jobs frequency', true));?></td>
-			<td><?= self::escapeHtml(tr('Status', true));?></td>
-			<td><?= self::escapeHtml(tr('Actions', true));?></td>
+			<td><?= self::escapeHtml(tr('Customer name'));?></td>
+			<td><?= self::escapeHtml(tr('Cron jobs type'));?></td>
+			<td><?= self::escapeHtml(tr('Max. cron jobs'));?></td>
+			<td><?= self::escapeHtml(tr('Cron jobs frequency'));?></td>
+			<td><?= self::escapeHtml(tr('Status'));?></td>
+			<td><?= self::escapeHtml(tr('Actions'));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="6"><?= self::escapeHtml(tr('Loading data...', true));?></td>
+			<td colspan="6"><?= self::escapeHtml(tr('Loading data...'));?></td>
 		</tr>
 		</tbody>
 	</table>
@@ -37,35 +37,35 @@
 			<table class="firstColFixed">
 				<thead>
 				<tr>
-					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions', true));?>
+					<th colspan="2"><?= self::escapeHtml(tr('Add / Edit cron job permissions'));?>
 				</tr>
 				</thead>
 				<tbody>
 				<tr>
-					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name', true));?></label></td>
+					<td><label for="admin_name"><?= self::escapeHtml(tr('Customer name'));?></label></td>
 					<td>
-						<input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name', true));?>">
+						<input type="text" name="admin_name" id="admin_name" placeholder="<?= self::escapeHtmlAttr(tr('Enter a customer name'));?>">
 						<label for="all_customers">
-							<input name="all_customers" id="all_customers" type="checkbox"><?= self::escapeHtml(tr('Apply to all customers', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Add permissions to all customers which do not have cron job permissions yet.', true));?>">&nbsp;</span>
+							<input name="all_customers" id="all_customers" type="checkbox"><?= self::escapeHtml(tr('Apply to all customers'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Add permissions to all customers which do not have cron job permissions yet.'));?>">&nbsp;</span>
 						</label>
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<label for="cron_permission_type">
-							<?= self::escapeHtml(tr('Cron jobs type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Cron jobs type'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type.'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
 						<select name="cron_permission_type" id="cron_permission_type">
-							<option value="url"><?= self::escapeHtml(tr('Url', true));?></option>
+							<option value="url"><?= self::escapeHtml(tr('Url'));?></option>
 							<!-- BDP: cron_permission_jailed -->
-							<option value="jailed"><?= self::escapeHtml(tr('Jailed', true));?></option>
+							<option value="jailed"><?= self::escapeHtml(tr('Jailed'));?></option>
 							<!-- EDP: cron_permission_jailed -->
 							<!-- BDP: cron_permission_full -->
-							<option value="full"><?= self::escapeHtml(tr('Full', true));?></option>
+							<option value="full"><?= self::escapeHtml(tr('Full'));?></option>
 							<!-- EDP: cron_permission_full -->
 						</select>
 					</td>
@@ -73,8 +73,8 @@
 				<tr>
 					<td>
 						<label for="cron_permission_max">
-							<?= self::escapeHtml(tr('Max. cron jobs', true));?><br>
-							( <small><?= self::escapeHtml(tr('0 for unlimited', true));?></small> )
+							<?= self::escapeHtml(tr('Max. cron jobs'));?><br>
+							( <small><?= self::escapeHtml(tr('0 for unlimited'));?></small> )
 						</label>
 					</td>
 					<td>
@@ -84,9 +84,9 @@
 				<tr>
 					<td>
 						<label for="cron_permission_frequency">
-							<?= self::escapeHtml(tr('Cron jobs frequency', true));?><span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution.', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Cron jobs frequency'));?><span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Minimum time interval between each cron job execution.'));?>">&nbsp;</span>
 							<br>
-							( <small><?= self::escapeHtml(tr('In minutes', true));?></small> )
+							( <small><?= self::escapeHtml(tr('In minutes'));?></small> )
 						</label>
 					</td>
 					<td>
@@ -96,10 +96,10 @@
 				<tr>
 					<td colspan="2">
 						<div class="buttons">
-							<button data-action="add_cron_permissions"><?= self::escapeHtml(tr('Save', true));?></button>
+							<button data-action="add_cron_permissions"><?= self::escapeHtml(tr('Save'));?></button>
 							<input type="hidden" id="cron_permission_id" name="cron_permission_id" value="0">
 							<input type="hidden" id="cron_permission_admin_id" name="cron_permission_admin_id" value="0">
-							<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel', true));?>">
+							<input type="reset" value="<?= self::escapeHtmlAttr(tr('Cancel'));?>">
 						</div>
 					</td>
 				</tr>
@@ -145,7 +145,7 @@
 		});
 
 		$dataTable = $(".datatable").dataTable({
-			language: {DATATABLE_TRANSLATIONS},
+			language: imscp_i18n.CronJobs.datatable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
@@ -182,13 +182,13 @@
 
 		$("#admin_name").autocomplete({
 			source: "/reseller/cronjobs_permissions?action=search_customer",
-			minLength: 2,
+			minLength: 1,
 			delay: 500,
 			autoFocus: true,
 			change: function (event, ui) {
 				if (!ui.item) {
 					this.value = "";
-					flashMessage("warning", "<?= self::escapeJs(tr('Unknown customer. Please enter a valid customer name.', true));?>");
+					flashMessage("warning", "<?= self::escapeJs(tr('Unknown customer. Please enter a valid customer name.'));?>");
 				}
 			}
 		});
@@ -216,7 +216,7 @@
 								}
 							);
 						} else {
-							flashMessage("error", "<?= self::escapeJs(tr('Please enter a customer name.', true));?>");
+							flashMessage("error", "<?= self::escapeJs(tr('Please enter a customer name.'));?>");
 						}
 						break;
 					case "edit_cron_permissions":
@@ -233,7 +233,7 @@
 							});
 						break;
 					case "delete_cron_permissions":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron job permissions for this customer?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron job permissions for this customer?'));?>")) {
 							doRequest(
 								"POST", "delete_cron_permissions", {
 									cron_permission_id: $(this).data('cron-permission-id'),
@@ -246,7 +246,7 @@
 						}
 						break;
 					default:
-						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.', true));?>");
+						flashMessage("error", "<?= self::escapeJs(tr('Unknown action.'));?>");
 				}
 			});
 
@@ -259,9 +259,9 @@
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
-					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.'));?>");
 				} else {
-					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred. Please contact your administrator.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred. Please contact your administrator.'));?>");
 				}
 			});
 	});

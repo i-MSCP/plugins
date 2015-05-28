@@ -2,7 +2,7 @@
 <link href="/CronJobs/themes/default/assets/css/cronjobs.css?v={CRONJOBS_ASSET_VERSION}" rel="stylesheet">
 <div id="page">
 	<p class="hint">
-		<?= self::escapeHtml(tr('Interface from which you can add your cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.', true));?>
+		<?= self::escapeHtml(tr('Interface from which you can add your cron jobs. This interface is for administrators only. Customers have their own interface which is more restricted.'));?>
 	</p>
 	<br />
 	<div class="static_warning">
@@ -11,7 +11,7 @@
 				tr(
 					'Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:', true
 				)
-			) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron', true)) . '</strong></a>';
+			) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron')) . '</strong></a>';
 		?>
 	</div>
 	<table class="datatable">
@@ -23,11 +23,11 @@
 			<th class="columnDate">D</th>
 			<th class="columnDate">M</th>
 			<th class="columnDate">DoW</th>
-			<th class="columnUser"><?= self::escapeHtml(tr('User', true));?></th>
-			<th class="columnType"><?= self::escapeHtml(tr('Type', true));?></th>
-			<th class="columnCommand"><?= self::escapeHtml(tr('Command', true));?></th>
-			<th class="columnStatus"><?= self::escapeHtml(tr('Status', true));?></th>
-			<th class="columnActions"><?= self::escapeHtml(tr('Actions', true));?></th>
+			<th class="columnUser"><?= self::escapeHtml(tr('User'));?></th>
+			<th class="columnType"><?= self::escapeHtml(tr('Type'));?></th>
+			<th class="columnCommand"><?= self::escapeHtml(tr('Command'));?></th>
+			<th class="columnStatus"><?= self::escapeHtml(tr('Status'));?></th>
+			<th class="columnActions"><?= self::escapeHtml(tr('Actions'));?></th>
 		</tr>
 		</thead>
 		<tfoot>
@@ -38,16 +38,16 @@
 			<td class="columnDate">D</td>
 			<td class="columnDate">M</td>
 			<td class="columnDate">DoW</td>
-			<td class="columnUser"><?= self::escapeHtml(tr('User', true));?></td>
-			<td class="columnType"><?= self::escapeHtml(tr('Type', true));?></td>
-			<td class="columnCommand"><?= self::escapeHtml(tr('Command', true));?></td>
-			<td class="columnStatus"><?= self::escapeHtml(tr('Status', true));?></td>
-			<td class="columnActions"><?= self::escapeHtml(tr('Actions', true));?></td>
+			<td class="columnUser"><?= self::escapeHtml(tr('User'));?></td>
+			<td class="columnType"><?= self::escapeHtml(tr('Type'));?></td>
+			<td class="columnCommand"><?= self::escapeHtml(tr('Command'));?></td>
+			<td class="columnStatus"><?= self::escapeHtml(tr('Status'));?></td>
+			<td class="columnActions"><?= self::escapeHtml(tr('Actions'));?></td>
 		</tr>
 		</tfoot>
 		<tbody>
 		<tr>
-			<td colspan="11"><?= self::escapeHtml(tr('Loading data...', true));?></td>
+			<td colspan="11"><?= self::escapeHtml(tr('Loading data...'));?></td>
 		</tr>
 		</tbody>
 		<tbody>
@@ -55,7 +55,7 @@
 			<td colspan="11" style="background-color: #b0def5">
 				<div class="buttons">
 					<button data-action="add_cronjob_dialog">
-						<strong><?= self::escapeHtml(tr('Add cron job', true));?></strong>
+						<strong><?= self::escapeHtml(tr('Add cron job'));?></strong>
 					</button>
 				</div>
 			</td>
@@ -67,73 +67,73 @@
 			<table class="firstColFixed">
 				<tbody>
 				<tr>
-					<td><label for="cron_job_notification"><?= self::escapeHtml(tr('Email', true));?></label></td>
+					<td><label for="cron_job_notification"><?= self::escapeHtml(tr('Email'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_notification" id="cron_job_notification" value="{DEFAULT_EMAIL_NOTIFICATION}">
 						<div>
-							<small><?= self::escapeHtml(tr('Email to which cron notifications must be sent if any. Leave blank to disable notifications.', true));?></small>
+							<small><?= self::escapeHtml(tr('Email to which cron notifications must be sent if any. Leave blank to disable notifications.'));?></small>
 						</div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_minute"><?= self::escapeHtml(tr('Minute', true));?></label></td>
+					<td><label for="cron_job_minute"><?= self::escapeHtml(tr('Minute'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_minute" id="cron_job_minute" value="*">
-						<div><small><?= self::escapeHtml(tr('Minute at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Minute at which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_hour"><?= self::escapeHtml(tr('Hour', true));?></label></td>
+					<td><label for="cron_job_hour"><?= self::escapeHtml(tr('Hour'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_hour" id="cron_job_hour" value="*">
-						<div><small><?= self::escapeHtml(tr('Hour at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Hour at which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_dmonth"><?= self::escapeHtml(tr('Day of month', true));?></label></td>
+					<td><label for="cron_job_dmonth"><?= self::escapeHtml(tr('Day of month'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_dmonth" id="cron_job_dmonth" value="*">
-						<div><small><?= self::escapeHtml(tr('Day of the month at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Day of the month at which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_month"><?= self::escapeHtml(tr('Month', true));?></label></td>
+					<td><label for="cron_job_month"><?= self::escapeHtml(tr('Month'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_month" id="cron_job_month" value="*">
-						<div><small><?= self::escapeHtml(tr('Month at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Month at which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_dweek"><?= self::escapeHtml(tr('Day of week', true));?></label></td>
+					<td><label for="cron_job_dweek"><?= self::escapeHtml(tr('Day of week'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_dweek" id="cron_job_dweek" value="*">
-						<div><small><?= self::escapeHtml(tr('Day of the week at which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('Day of the week at which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_user"><?= self::escapeHtml(tr('User', true));?></label></td>
+					<td><label for="cron_job_user"><?= self::escapeHtml(tr('User'));?></label></td>
 					<td>
 						<input type="text" name="cron_job_user" id="cron_job_user" value="root">
-						<div><small><?= self::escapeHtml(tr('User under which the cron job must be executed.', true));?></small></div>
+						<div><small><?= self::escapeHtml(tr('User under which the cron job must be executed.'));?></small></div>
 					</td>
 				</tr>
 				<tr>
-					<td><label for="cron_job_command"><?= self::escapeHtml(tr('Command', true));?></label></td>
+					<td><label for="cron_job_command"><?= self::escapeHtml(tr('Command'));?></label></td>
 					<td>
-						<input type="text" name="cron_job_command" id="cron_job_command" class="inputTitle" placeholder="<?= self::escapeHtmlAttr(tr('Command to execute...', true));?>">
+						<input type="text" name="cron_job_command" id="cron_job_command" class="inputTitle" placeholder="<?= self::escapeHtmlAttr(tr('Command to execute...'));?>">
 					</td>
 				</tr>
 				<tr>
 					<td>
 						<label for="cron_job_type">
-							<?= self::escapeHtml(tr('Command type', true));?>
-							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Url commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).', true));?>">&nbsp;</span>
+							<?= self::escapeHtml(tr('Command type'));?>
+							<span class="icon i_help" title="<?= self::escapeHtmlAttr(tr('Url commands are run via GNU Wget while shell commands are run via shell command interpreter (eg. Dash, Bash...).'));?>">&nbsp;</span>
 						</label>
 					</td>
 					<td>
 						<select name="cron_job_type" id="cron_job_type">
-							<option value="url"><?= self::escapeHtml(tr('Url', true));?></option>
-							<option value="full"><?= self::escapeHtml(tr('Shell', true));?></option>
+							<option value="url"><?= self::escapeHtml(tr('Url'));?></option>
+							<option value="full"><?= self::escapeHtml(tr('Shell'));?></option>
 						</select>
 					</td>
 				</tr>
@@ -147,13 +147,13 @@
 					<?=
 						self::escapeHtml(
 							tr(
-								'You can learn more about the syntax by reading:', true
+								'You can learn more about the syntax by reading:'
 							)
-						) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html" tabindex="-1"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron', true)) . '</strong></a>';
+						) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html" tabindex="-1"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron')) . '</strong></a>';
 					?>
 				</li>
-				<li><?= self::escapeHtml(tr('When using a shortcut in the minute time field, all other time/date fields are ignored.', true));?></li>
-				<li><?= self::escapeHtml(tr('The available shortcuts are: @reboot, @yearly, @annually, @monthly, @weekly, @daily, @midnight and @hourly', true));?></li>
+				<li><?= self::escapeHtml(tr('When using a shortcut in the minute time field, all other time/date fields are ignored.'));?></li>
+				<li><?= self::escapeHtml(tr('The available shortcuts are: @reboot, @yearly, @annually, @monthly, @weekly, @daily, @midnight and @hourly'));?></li>
 			</ul>
 		</div>
 	</div>
@@ -200,7 +200,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: {DATATABLE_TRANSLATIONS},
+			language: imscp_i18n.CronJobs.datatable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
@@ -245,15 +245,15 @@
 			height: "auto",
 			width: "50%",
 			modal: true,
-			title: "<?= self::escapeJs(tr('Add / Edit Cron job', true));?>",
+			title: "<?= self::escapeJs(tr('Add / Edit Cron job'));?>",
 			buttons: [
 				{
-					text: "<?= self::escapeJs(tr('Save', true));?>",
+					text: "<?= self::escapeJs(tr('Save'));?>",
 					"data-action": "add_cronjob",
 					click: function() { }
 				},
 				{
-					text: "<?= self::escapeJs(tr('Cancel', true));?>",
+					text: "<?= self::escapeJs(tr('Cancel'));?>",
 					click: function () {
 						$dialog.dialog("close");
 					}
@@ -326,7 +326,7 @@
 						});
 						break;
 					case "delete_cronjob":
-						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this cron job?', true));?>")) {
+						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this cron job?'));?>")) {
 							doRequest(
 								"POST", 'delete_cronjob', { cron_job_id: $(this).data('cron-job-id') }
 							).done(function (data) {
@@ -336,7 +336,7 @@
 						}
 					break;
 				default:
-					flashMessage('error', "<?= self::escapeJs(tr('Unknown action.', true));?>");
+					flashMessage('error', "<?= self::escapeJs(tr('Unknown action.'));?>");
 			}
 		});
 
@@ -349,9 +349,9 @@
 				} else if (jqXHR.responseJSON !== "undefined") {
 					flashMessage("error", jqXHR.responseJSON.message);
 				} else if (exception == "timeout") {
-					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('Request Timeout: The server took too long to send the data.'));?>");
 				} else {
-					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.', true));?>");
+					flashMessage("error", "<?= self::escapeJs(tr('An unexpected error occurred.'));?>");
 				}
 			});
 	});

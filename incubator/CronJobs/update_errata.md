@@ -1,5 +1,10 @@
 # Update errata
 
+## Update to version 1.2.0
+
+The plugin configuration file has been updated according the new jailbuilder library provided by the InstantSSH plugin.
+For further details about those changes, read the CHANGELOG of the InstantSSH plugin.
+
 ## Update to version 1.1.0
 
 ### Dovecot 2.x

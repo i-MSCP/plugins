@@ -25,7 +25,7 @@ use CronJobs\Exception\CronjobException;
 use CronJobs\Utils\CronjobValidator as CronjobValidator;
 use iMSCP_Database as Database;
 use iMSCP_Events as Events;
-use iMSCP_Events_Aggregator as EventsAggregator;
+use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Exception as iMSCPException;
 use iMSCP_Exception_Database as DatabaseException;
 use iMSCP_Plugin_CronJobs as PluginCronJobs;
@@ -86,7 +86,7 @@ function addCronJob($cronPermissions)
 						$cronPermissions['cron_permission_max'] == 0 ||
 						$cronPermissions['cron_permission_cnb_cron_jobs'] < $cronPermissions['cron_permission_max']
 					) {
-						EventsAggregator::getInstance()->dispatch('onBeforeAddCronJob', array(
+						EventManager::getInstance()->dispatch('onBeforeAddCronJob', array(
 							'cron_job_admin_id' => $customerId,
 							'cron_job_notification' => $cronjobNotification,
 							'cron_job_minute' => $cronjobMinute,
@@ -118,7 +118,7 @@ function addCronJob($cronPermissions)
 							)
 						);
 
-						EventsAggregator::getInstance()->dispatch('onAfterAddCronJob', array(
+						EventManager::getInstance()->dispatch('onAfterAddCronJob', array(
 							'cron_job_admin_id' => $customerId,
 							'cron_job_id' => Database::getInstance()->insertId(),
 							'cron_job_notification' => $cronjobNotification,
@@ -139,15 +139,15 @@ function addCronJob($cronPermissions)
 						);
 
 						Functions::sendJsonResponse(
-							200, array('message' => tr('Cron job has been scheduled for addition.', true))
+							200, array('message' => tr('Cron job has been scheduled for addition.'))
 						);
 					} else {
 						Functions::sendJsonResponse(
-							400, array('message' => tr('Your cron jobs limit is reached.', true))
+							400, array('message' => tr('Your cron jobs limit is reached.'))
 						);
 					}
 				} else { // Cron job update
-					EventsAggregator::getInstance()->dispatch('onBeforeUpdateCronJob', array(
+					EventManager::getInstance()->dispatch('onBeforeUpdateCronJob', array(
 						'cron_job_admin_id' => $customerId,
 						'cron_job_id' => $cronjobId,
 						'cron_job_notification' => $cronjobNotification,
@@ -181,7 +181,7 @@ function addCronJob($cronPermissions)
 						)
 					);
 
-					EventsAggregator::getInstance()->dispatch('onAfterUpdateCronJob', array(
+					EventManager::getInstance()->dispatch('onAfterUpdateCronJob', array(
 						'cron_job_admin_id' => $customerId,
 						'cron_job_id' => $cronjobId,
 						'cron_job_notification' => $cronjobNotification,
@@ -207,7 +207,7 @@ function addCronJob($cronPermissions)
 						);
 
 						Functions::sendJsonResponse(
-							200, array('message' => tr('Cron job has been scheduled for update.', true))
+							200, array('message' => tr('Cron job has been scheduled for update.'))
 						);
 					}
 				}
@@ -218,13 +218,13 @@ function addCronJob($cronPermissions)
 			} else {
 				write_log(sprintf('CronJobs: Unable to add/update cron job: %s', $e->getMessage()), E_USER_ERROR);
 				Functions::sendJsonResponse(
-					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+					500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 				);
 			}
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -265,12 +265,12 @@ function getCronJob()
 			);
 
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -285,7 +285,7 @@ function enableCronJob()
 		$cronJobId = intval($_POST['cron_job_id']);
 
 		try {
-			EventsAggregator::getInstance()->dispatch('onBeforeEnableCronJob', array(
+			EventManager::getInstance()->dispatch('onBeforeEnableCronJob', array(
 				'cron_job_admin_id' => $customerId,
 				'cron_job_id' => $cronJobId
 			));
@@ -307,7 +307,7 @@ function enableCronJob()
 			);
 
 			if($stmt->rowCount()) {
-				EventsAggregator::getInstance()->dispatch('onAfterEnableCronJob', array(
+				EventManager::getInstance()->dispatch('onAfterEnableCronJob', array(
 					'cron_job_admin_id' => $customerId,
 					'cron_job_id' => $cronJobId
 				));
@@ -325,7 +325,7 @@ function enableCronJob()
 				);
 
 				Functions::sendJsonResponse(
-					200, array('message' => tr('Cron job has been scheduled for activation.', true, $cronJobId))
+					200, array('message' => tr('Cron job has been scheduled for activation.', $cronJobId))
 				);
 			}
 		} catch(DatabaseException $e) {
@@ -335,12 +335,12 @@ function enableCronJob()
 			);
 
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -355,7 +355,7 @@ function disableCronJob()
 		$cronJobId = intval($_POST['cron_job_id']);
 
 		try {
-			EventsAggregator::getInstance()->dispatch('onBeforeDisableCronJob', array(
+			EventManager::getInstance()->dispatch('onBeforeDisableCronJob', array(
 				'cron_job_admin_id' => $customerId,
 				'cron_job_id' => $cronJobId
 			));
@@ -377,7 +377,7 @@ function disableCronJob()
 			);
 
 			if($stmt->rowCount()) {
-				EventsAggregator::getInstance()->dispatch('onAfterDisableCronJob', array(
+				EventManager::getInstance()->dispatch('onAfterDisableCronJob', array(
 					'cron_job_admin_id' => $customerId,
 					'cron_job_id' => $cronJobId
 				));
@@ -395,7 +395,7 @@ function disableCronJob()
 				);
 
 				Functions::sendJsonResponse(
-					200, array('message' => tr('Cron job has been scheduled for deactivation.', true, $cronJobId))
+					200, array('message' => tr('Cron job has been scheduled for deactivation.', $cronJobId))
 				);
 			}
 		} catch(DatabaseException $e) {
@@ -405,12 +405,12 @@ function disableCronJob()
 			);
 
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -425,7 +425,7 @@ function deleteCronJob()
 		$cronJobId = intval($_POST['cron_job_id']);
 
 		try {
-			EventsAggregator::getInstance()->dispatch('onBeforeDeleteCronJob', array(
+			EventManager::getInstance()->dispatch('onBeforeDeleteCronJob', array(
 				'cron_job_admin_id' => $customerId,
 				'cron_job_id' => $cronJobId
 			));
@@ -447,7 +447,7 @@ function deleteCronJob()
 			);
 
 			if($stmt->rowCount()) {
-				EventsAggregator::getInstance()->dispatch('onAfterDeleteCronJob', array(
+				EventManager::getInstance()->dispatch('onAfterDeleteCronJob', array(
 					'cron_job_admin_id' => $customerId,
 					'cron_job_id' => $cronJobId
 				));
@@ -465,7 +465,7 @@ function deleteCronJob()
 				);
 
 				Functions::sendJsonResponse(
-					200, array('message' => tr('Cron job has been scheduled for deletion.', true, $cronJobId))
+					200, array('message' => tr('Cron job has been scheduled for deletion.', $cronJobId))
 				);
 			}
 		} catch(DatabaseException $e) {
@@ -475,12 +475,12 @@ function deleteCronJob()
 			);
 
 			Functions::sendJsonResponse(
-				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+				500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 			);
 		}
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -575,22 +575,22 @@ function getCronJobsList()
 
 		$trDeactivateTooltip = tr('Deactivate');
 		$trActivateTooltip = tr('Activate');
-		$trEditTooltip = tr('Edit', true);
-		$trDeleteTooltip = tr('Delete', true);
+		$trEditTooltip = tr('Edit');
+		$trDeleteTooltip = tr('Delete');
 
 		while($data = $rResult->fetchRow(PDO::FETCH_ASSOC)) {
 			$row = array();
 
 			for($i = 0; $i < $colsTotal; $i++) {
 				if($cols[$i] === 'cron_job_type') {
-					$row[$cols[$i]] = ($data[$cols[$i]] === 'url') ? tr('Url', true) : tr('Shell', true);
+					$row[$cols[$i]] = ($data[$cols[$i]] === 'url') ? tr('Url') : tr('Shell');
 				} elseif($cols[$i] == 'cron_job_status') {
 					$row[$cols[$i]] = ($data[$cols[$i]] === 'tosuspend')
-						? translate_dmn_status('todisable', false)
+						? translate_dmn_status('todisable')
 						: (
 							($data[$cols[$i]] === 'suspended')
-								? translate_dmn_status('disabled', false)
-								: translate_dmn_status($data[$cols[$i]], false)
+								? translate_dmn_status('disabled')
+								: translate_dmn_status($data[$cols[$i]])
 						);
 				} else {
 					$row[$cols[$i]] = $data[$cols[$i]];
@@ -615,7 +615,7 @@ function getCronJobsList()
 					'<input type="checkbox" data-action="enable_cronjob" ' .
 					'data-cron-job-id="' . $data['cron_job_id'] . '"></span>';
 
-				$row['cron_job_actions'] = tr('n/a', true);
+				$row['cron_job_actions'] = tr('n/a');
 			} else {
 				if($data['cron_job_status'] === 'tosuspend') {
 					$row['cron_job_disable_enable'] =
@@ -625,7 +625,7 @@ function getCronJobsList()
 						'<span style="vertical-align: middle"><input type="checkbox" disabled checked></span>';
 				}
 
-				$row['cron_job_actions'] = tr('n/a', true);
+				$row['cron_job_actions'] = tr('n/a');
 			}
 
 			$output['data'][] = $row;
@@ -636,26 +636,25 @@ function getCronJobsList()
 		write_log(sprintf('CronJobs: Unable to get cron jobs list: %s', $e->getMessage()), E_USER_ERROR);
 
 		Functions::sendJsonResponse(
-			500, array('message' => tr('An unexpected error occurred. Please contact your reseller.', true))
+			500, array('message' => tr('An unexpected error occurred. Please contact your reseller.'))
 		);
 	}
 
-	Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /***********************************************************************************************************************
  * Main
  */
 
-EventsAggregator::getInstance()->dispatch(Events::onClientScriptStart);
-
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 check_login('user');
 
 /** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
 
 /** @var PluginCronJobs $cronjobsPlugin */
-$cronjobsPlugin = $pluginManager->getPlugin('CronJobs');
+$cronjobsPlugin = $pluginManager->pluginGet('CronJobs');
 
 $cronPermissions = $cronjobsPlugin->getCronPermissions(intval($_SESSION['user_id']));
 unset($cronjobsPlugin);
@@ -685,7 +684,7 @@ if($cronPermissions['cron_permission_id'] !== null) {
 					deleteCronJob();
 					break;
 				default:
-					Functions::sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+					Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 
@@ -699,22 +698,29 @@ if($cronPermissions['cron_permission_id'] !== null) {
 	));
 
 	$tpl->define_no_file_dynamic(array(
-		'page' => Functions::renderTpl(PLUGINS_PATH . '/CronJobs/themes/default/view/client/cronjobs.tpl'),
+		'page' => Functions::renderTpl(
+			$pluginManager->pluginGetDirectory() . '/CronJobs/themes/default/view/client/cronjobs.tpl'
+		),
 		'cron_job_shell_type_block' => 'page'
 	));
 
 	if(Registry::get('config')->DEBUG) {
 		$assetVersion = time();
 	} else {
-		$pluginInfo = Registry::get('pluginManager')->getPluginInfo('CronJobs');
+		$pluginInfo = $pluginManager->pluginGetInfo('CronJobs');
 		$assetVersion = strtotime($pluginInfo['date']);
 	}
 
+	EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
+		/** @var $e \iMSCP_Events_Event */
+		$e->getParam('translations')->CronJobs = array(
+			'datatable' => getDataTablesPluginTranslations(false)
+		);
+	});
+
 	$tpl->assign(array(
-		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Web Tools / Cron Jobs', true)),
-		'ISP_LOGO' => layout_getUserLogo(),
+		'TR_PAGE_TITLE' => Functions::escapeHtml(tr('Client / Web Tools / Cron Jobs')),
 		'CRONJOBS_ASSET_VERSION' => Functions::escapeUrl($assetVersion),
-		'DATATABLE_TRANSLATIONS' => getDataTablesPluginTranslations(),
 		'DEFAULT_EMAIL_NOTIFICATION' => isset($_SESSION['user_email']) ? tohtml($_SESSION['user_email']) : '',
 		'CRON_PERMISSION_FREQUENCY' => tr(
 			array('%d minute', '%d minutes', $cronPermissions['cron_permission_frequency']),
@@ -733,9 +739,7 @@ if($cronPermissions['cron_permission_id'] !== null) {
 	generatePageMessage($tpl);
 
 	$tpl->parse('LAYOUT_CONTENT', 'page');
-
-	EventsAggregator::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
-
+	EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 	$tpl->prnt();
 } else {
 	showBadRequestErrorPage();
