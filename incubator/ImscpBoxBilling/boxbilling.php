@@ -282,7 +282,7 @@ function imscpboxbilling_createAccount($hostingPlanProperties, $resellerIp)
 
 					// Send welcome mail to user
 					send_add_user_auto_msg(
-						$resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName, tr('Customer', true)
+						$resellerId, $adminUsername, $adminPassword, $email, $firstName, $lastName, tr('Customer')
 					);
 
 					exec_query(
