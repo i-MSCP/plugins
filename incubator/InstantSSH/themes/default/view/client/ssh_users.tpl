@@ -74,7 +74,7 @@
 					</label>
 				</td>
 				<td>
-					<textarea style="height: 45px" name="ssh_user_auth_options" id="ssh_user_auth_options" placeholder="<?= self::escapeHtmlAttr(tr('Enter authentication option(s)'));?>">{DEFAULT_AUTH_OPTIONS}</textarea>
+					<textarea style="height: 45px" name="ssh_user_auth_options" id="ssh_user_auth_options" placeholder="<?= self::escapeHtmlAttr(tr('Enter authentication options'));?>">{DEFAULT_AUTH_OPTIONS}</textarea>
 				</td>
 			</tr>
 			<!-- EDP: ssh_auth_options_block -->
