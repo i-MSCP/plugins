@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This plugin allows to setup additional PHP versions for your customers.
+This plugin allows to setup additional PHP versions.
 
 ## Requirements
 

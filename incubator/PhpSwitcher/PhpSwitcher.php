@@ -30,7 +30,7 @@ class iMSCP_Plugin_PhpSwitcher extends iMSCP_Plugin_Action
 	 */
 	public function init()
 	{
-		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+		l10n_addTranslations(__DIR__ . '/l10n/mo', 'Gettext', $this->getName());
 	}
 
 	/**
