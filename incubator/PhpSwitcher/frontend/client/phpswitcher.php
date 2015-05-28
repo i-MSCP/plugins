@@ -273,7 +273,7 @@ function changePhpVersion()
 			}
 		} catch (DatabaseException $e) {
 			$db->rollBack();
-			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())));
 		}
 	}
 
@@ -375,8 +375,8 @@ if (customerHasFeature('php')) {
 		/** @var $e \iMSCP_Events_Event */
 		$e->getParam('translations')->PhpSwitcher = array(
 			'datatable' => getDataTablesPluginTranslations(false),
-			'close' => tr('Close', true),
-			'error' => tr('An unexpected error occurred.', true)
+			'close' => tr('Close'),
+			'error' => tr('An unexpected error occurred.')
 		);
 	});
 

@@ -91,7 +91,7 @@ function get()
 
 			sendJsonResponse(404, array('message' => tr('PHP version %s has not been found.', $versionName)));
 		} catch (DatabaseException $e) {
-			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())));
 		}
 	}
 
@@ -110,11 +110,11 @@ function add()
 		$versionBinaryPath = clean_input($_POST['version_binary_path']);
 
 		if ($versionName == '' || $versionBinaryPath == '') {
-			sendJsonResponse(400, array('message' => tr('All fields are required.', true)));
+			sendJsonResponse(400, array('message' => tr('All fields are required.')));
 		} elseif (
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
-			sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', true, $versionName)));
+			sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', $versionName)));
 		}
 
 		$versionBinaryPath = _normalizePath($versionBinaryPath);
@@ -132,7 +132,7 @@ function add()
 			if ($e->getCode() == '23000') {
 				sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', $versionName)));
 			} else {
-				sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+				sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())));
 			}
 		}
 	}
@@ -158,7 +158,7 @@ function edit()
 			strtolower($versionName) == 'php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION
 		) {
 			sendJsonResponse(400, array(
-				'message' => tr('PHP version %s already exists. This is the default PHP version.', true, $versionName)
+				'message' => tr('PHP version %s already exists. This is the default PHP version.', $versionName)
 			));
 		}
 
@@ -209,7 +209,7 @@ function edit()
 					send_request();
 					write_log(sprintf('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
 					sendJsonResponse(200, array(
-						'message' => tr('PHP version %s successfully scheduled for update.', true, $versionName)
+						'message' => tr('PHP version %s successfully scheduled for update.', $versionName)
 					));
 				} else {
 					exec_query(
@@ -221,26 +221,26 @@ function edit()
 
 					write_log(sprintf('PHP version %s has been updated.', $versionName), E_USER_NOTICE);
 					sendJsonResponse(200, array(
-						'message' => tr('PHP version %s successfully updated.', true, $versionName)
+						'message' => tr('PHP version %s successfully updated.', $versionName)
 					));
 				}
 			} catch (DatabaseException $e) {
 				$db->rollBack();
 
 				if ($e->getCode() == '23000') {
-					sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', true, $versionName)));
+					sendJsonResponse(400, array('message' => tr('PHP version %s already exists.', $versionName)));
 				} else {
 					sendJsonResponse(
-						500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())
+						500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())
 					));
 				}
 			}
 		} else {
-			sendJsonResponse(202, array('message' => tr('Nothing has been changed.', true)));
+			sendJsonResponse(202, array('message' => tr('Nothing has been changed.')));
 		}
 	}
 
-	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -281,16 +281,16 @@ function delete()
 				send_request();
 				write_log(sprintf('PHP version %s has been scheduled for deletion.', $versionName), E_USER_NOTICE);
 				sendJsonResponse(200, array(
-					'message' => tr('PHP version %s successfully scheduled for deletion.', true, $versionName)
+					'message' => tr('PHP version %s successfully scheduled for deletion.', $versionName)
 				));
 			}
 		} catch (DatabaseException $e) {
 			$db->rollBack();
-			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+			sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())));
 		}
 	}
 
-	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -308,12 +308,10 @@ function generatePhpInfo()
 	if ($stmt->rowCount()) {
 		send_request();
 		write_log('PHP info files were scheduled for re-generation.', E_USER_NOTICE);
-		sendJsonResponse(
-			200, array('message' => tr('PHP info files were successfully scheduled for re-generation.', true))
-		);
+		sendJsonResponse(200, array('message' => tr('PHP info files were successfully scheduled for re-generation.')));
 	}
 
-	sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+	sendJsonResponse(400, array('message' => tr('Bad request.')));
 }
 
 /**
@@ -441,10 +439,10 @@ function getTable()
 
 		sendJsonResponse(200, $output);
 	} catch (DatabaseException $e) {
-		sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', true, $e->getMessage())));
+		sendJsonResponse(500, array('message' => tr('An unexpected error occurred: %s', $e->getMessage())));
 	}
 
-	sendJsonResponse(400, tr('Bad request.', true));
+	sendJsonResponse(400, tr('Bad request.'));
 }
 
 /**
@@ -521,7 +519,7 @@ if (isset($_REQUEST['action'])) {
 				generatePhpInfo();
 				break;
 			default:
-				sendJsonResponse(400, array('message' => tr('Bad request.', true)));
+				sendJsonResponse(400, array('message' => tr('Bad request.')));
 		}
 	}
 
@@ -546,20 +544,18 @@ EventManager::getInstance()->registerListener('onGetJsTranslations', function ($
 	$translations = $e->getParam('translations');
 	$translations->PhpSwitcher = array(
 		'dataTable' => getDataTablesPluginTranslations(false),
-		'save' => tr('Save', true),
-		'cancel' => tr('Cancel', true),
+		'save' => tr('Save'),
+		'cancel' => tr('Cancel'),
 		'add' => tr('New PHP version'),
-		'edit' => tr('Edit %%s version', true),
-		'delete_confirm' => tr('Are you sure you want to delete this PHP version?', true),
-		'unknown_action' => tr('Unknown Action', true),
-		'request_timeout' => tr('Request Timeout: The server took too long to send the data.', true),
-		'request_error' => tr('An unexpected error occurred.', true)
+		'edit' => tr('Edit %%s version'),
+		'delete_confirm' => tr('Are you sure you want to delete this PHP version?'),
+		'unknown_action' => tr('Unknown Action'),
+		'request_timeout' => tr('Request Timeout: The server took too long to send the data.'),
+		'request_error' => tr('An unexpected error occurred.')
 	);
 
 	if ($phpSwitcher->getConfigParam('phpinfo', false)) {
-		$translations->PhpSwitcher['phpinfo_confirm'] = tr(
-			'Are you sure you want to re-generate all PHP info files?', true
-		);
+		$translations->PhpSwitcher['phpinfo_confirm'] = tr('Are you sure you want to re-generate all PHP info files?');
 	}
 });
 
@@ -573,7 +569,7 @@ $tpl->assign(array(
 	'TR_BINARY_PATH' => tr('PHP binary path'),
 	'TR_PROCESSING_DATA' => tr('Processing...'),
 	'TR_ADD_NEW_VERSION' => tr('Add new PHP version'),
-	'TR_ADD_NEW_VERSION_TOOLTIP' => tohtml(tr('Add new PHP version', true), 'htmlAttr')
+	'TR_ADD_NEW_VERSION_TOOLTIP' => tohtml(tr('Add new PHP version'), 'htmlAttr')
 ));
 
 if (!$phpSwitcher->getConfigParam('phpinfo', false)) {
@@ -583,8 +579,8 @@ if (!$phpSwitcher->getConfigParam('phpinfo', false)) {
 	));
 } else {
 	$tpl->assign(array(
-		'TR_REGENERATE_PHPINFO' => tohtml(tr('Re-generate phpinfo', true), 'htmlAttr'),
-		'TR_REGENERATE_PHPINFO_TOOLTIP' => tohtml(tr('Re-generate PHP info files.', true), 'htmlAttr'),
+		'TR_REGENERATE_PHPINFO' => tohtml(tr('Re-generate phpinfo'), 'htmlAttr'),
+		'TR_REGENERATE_PHPINFO_TOOLTIP' => tohtml(tr('Re-generate PHP info files.'), 'htmlAttr'),
 	));
 }
 

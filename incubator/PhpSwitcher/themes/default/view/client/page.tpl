@@ -113,7 +113,7 @@
 
 			$.post("/client/phpswitcher", data, null, 'json')
 				.done(function() {
-						$(".datatable select").attr('disabled', true);
+						$(".datatable select").attr('disabled');
 						window.location.replace("/client/phpswitcher");
 				})
 				.fail(function(jqXHR) {
