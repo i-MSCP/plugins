@@ -271,13 +271,7 @@ PhpSwitcher interface, which is available in the **Domains** section.
 
 ## Translation
 
-You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
-array values inside the new file.
-
-Feel free to forward us your translation files for integration in a later release. You can also fork the plugin
-repository and do a pull request if you've a github account.
-
-**Note:** File encoding must be UTF-8.
+You can translate this plugin through the [Transifex Localization Platform](https://www.transifex.com/organization/i-mscp/dashboard/phpswitcher)
 
 ## License
 
