@@ -25,6 +25,6 @@ cd ${ROOT_DIR};
 find . -type f -name '*.php' -print > trfiles.lst
 find . -type f -name '*.tpl' -print >> trfiles.lst
 /usr/bin/xgettext --copyright-holder='Laurent Declercq - All rights reserved' --package-name='PhpSwitcher' \
---package-version="3.2.x" --msgid-bugs-address='l.declercq@nuxwin.com' --language=PHP --keyword='tr' \
+--package-version="1.0.x" --msgid-bugs-address='l.declercq@nuxwin.com' --language=PHP --keyword='tr' \
 --keyword='ntr:1,2' --from-code=utf-8 --files-from=trfiles.lst --sort-output --output=./l10n/PhpSwitcher.pot
 rm -f trfiles.lst
