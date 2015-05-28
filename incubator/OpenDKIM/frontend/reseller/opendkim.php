@@ -387,7 +387,7 @@ if (resellerHasCustomers()) {
 		'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
 		'TR_STATUS' => tr('Status'),
 		'TR_DNS_NAME' => tr('Name'),
-		'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?', true)),
+		'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?')),
 		'TR_PREVIOUS' => tr('Previous'),
 		'TR_NEXT' => tr('Next')
 	));

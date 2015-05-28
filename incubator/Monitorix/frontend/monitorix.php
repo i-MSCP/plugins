@@ -67,7 +67,7 @@ function generatePage($tpl, $graphName = '')
 	$tpl->assign(
 		'TR_MONITORIXGRAPH',
 		($graphName != '')
-			? tr("Monitorix - %s - %s", $cfg['SERVER_HOSTNAME'], tr($graphName, true))
+			? tr("Monitorix - %s - %s", $cfg['SERVER_HOSTNAME'], tr($graphName))
 			: tr("Monitorix - %s", $cfg['SERVER_HOSTNAME'])
 	);
 }
