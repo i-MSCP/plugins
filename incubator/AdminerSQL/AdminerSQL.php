@@ -67,13 +67,13 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 	 */
 	protected function setupNavigation($level)
 	{
-		if(iMSCP_Registry::isRegistered('navigation')) {
+		if (iMSCP_Registry::isRegistered('navigation')) {
 			/** @var Zend_Navigation $navigation */
 			$navigation = iMSCP_Registry::get('navigation');
 
-			switch($level) {
+			switch ($level) {
 				case 'admin':
-					if(($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
+					if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
 						$page->addPages(
 							array(
 								array(
@@ -92,22 +92,19 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
 
 					break;
 				case 'client':
-					if(($page = $navigation->findOneBy('uri', '/client/webtools.php'))) {
-						$page->addPage(
+					if (($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
+						$page->addPages(
 							array(
-								'label' => tr('AdminerSQL'),
-								'uri' => '/adminer/editor.php',
-								'target' => '_blank'
-							)
-						);
-					}
-
-					if(($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
-						$page->addPage(
-							array(
-								'label' => tr('AdminerSQL'),
-								'uri' => '/adminer/editor.php',
-								'target' => '_blank'
+								array(
+									'label' => tr('Adminer'),
+									'uri' => '/adminer/adminer.php',
+									'target' => '_blank'
+								),
+								array(
+									'label' => tr('Adminer editor'),
+									'uri' => '/adminer/editor.php',
+									'target' => '_blank'
+								)
 							)
 						);
 					}

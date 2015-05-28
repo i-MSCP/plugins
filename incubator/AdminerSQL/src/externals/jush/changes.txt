@@ -1,0 +1,137 @@
+JUSH 2.0.0:
+Add highlighted textarea
+Allow using tags in highlighted source
+Highlight PHP 5.5
+Highlight HTML5
+Highlight CSS 3
+Highlight SimpleDB
+Highlight keys in JavaScript objects
+Highlight hexadecimal numbers
+Link Suhosin in php.ini
+Link MySQL geometry
+Unlink PECL
+Help cursor for documentation links
+Match regular expressions only once (performance)
+
+JUSH 1.11.0:
+Fix jQuery plugin (thanks to Daniel Kouba)
+
+JUSH 1.10.0:
+Highlight Oracle
+Highlight jsDoc
+Highlight text with PHP (e.g. command line scripts)
+Highlight MySQL 5.5
+Link PHP methods
+Link PHP callbacks
+Link SQLite PRAGMA
+Link PostgreSQL variables
+Allow specifying language through class="language-*"
+Optionally display title with function summary and parameters
+Ability to link custom words (e.g. function or table names)
+Highlight tags in 1 second chunks (let browser live)
+Fix highlighting in Chrome
+
+JUSH 1.9.0:
+Link PHP classes and special functions
+Improve performance on multiple calls
+Windows command line interface for context help
+
+JUSH 1.8.0:
+Highlight MS SQL
+Link mail headers
+
+JUSH 1.7.0:
+Highlight XML
+Highlight phpDoc
+Highlight MySQL code comments /*! */
+
+JUSH 1.6.0:
+Remove Python (orthogonal)
+Option to customize links - e.g. jush.create_links = ' target="_blank"'
+Option to highlight only part of document - jush.highlight_tag(dom_elements)
+
+JUSH 1.5.0:
+Performance optimizations
+Link HTTP headers
+Highlight variables inside heredoc
+Parse nowdoc (PHP 5.3)
+Parse JS regexp only after operator
+Highlight <br/>
+Option to not create links - jush.create_links
+Fix CSS comments
+
+JUSH 1.4.0:
+Highlighting of Apache config
+
+JUSH 1.3.1:
+Highlight MySQL keywords
+Link PHP 5.3 keywords
+
+JUSH 1.3.0:
+Highlight numbers
+JavaScript built-in functions
+
+JUSH 1.2.4:
+Links to HTML attributes (lowercase, aliases)
+Escape from php_echo by ?>
+
+JUSH 1.2.3:
+Bug fixes from Kajman
+
+JUSH 1.2.2:
+Highlight Python
+Added jush.style()
+Highlight HTML in document.write
+
+JUSH 1.2.1:
+php.ini highlighting
+MySQL data types, missing functions
+Don't highlight PHP functions after new
+Improve links to PHP keywords
+Treat print as echo
+JavaScript keywords
+SQL variables
+
+JUSH 1.2.0:
+PostgreSQL
+SQL strings accept ''
+SQLite strings not accept \'
+Highlight inside sqlite_exec
+Document jush.urls
+
+JUSH 1.1.0:
+Highlight SQLite
+Links to undocumented PgSQL and Socket PHP aliases
+
+JUSH 1.0.4:
+Highlight SQL functions and PHP keywords
+Jush in class='jush jush-php' not necessary anymore
+Remove SET from SQL links (colide with UPDATE SET)
+Add jush- prefix to styles
+Change <b> to <span class='jush-op'>
+Change A to A:link
+Highlight nearly all links
+
+JUSH 1.0.3:
+Highlight PHP also in 'tag'
+Decode &amp; as last
+Customizable tab width
+Preserve tabs in IE
+Allow short_open_tag
+Add &nbsp; for IE
+
+JUSH 1.0.2:
+Recognize functions in mysql_query()
+Recognize PHP function language constructs without parentheses
+Add style for backticks
+
+JUSH 1.0.1:
+Fixes highlight_tag with jush-lang
+Uses <br /> in highlight_tag
+More MySQL commands, links CSS at-rules
+Adds A:hover style
+Updates installation instructions
+
+JUSH 1.0.0:
+Highlight HTML, CSS, JS, PHP and SQL code embedded into each other
+Provide links to the documentation for all supported languages

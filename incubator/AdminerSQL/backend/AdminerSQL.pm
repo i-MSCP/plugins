@@ -32,6 +32,8 @@ use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::Dir;
 use iMSCP::Execute;
+use iMSCP::Service;
+use Cwd;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -54,51 +56,41 @@ sub enable()
 {
 	my $self = $_[0];
 
-	my $productionDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
-	my $sourcesPath = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/adminer-sources";
-	my $compileCmd = "php $sourcesPath/compile.php";
+	my $curDir = getcwd();
+	my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
+	my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/src";
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-	# Copy needed css file
-	unless($self->{'config'}->{'theme'} eq 'default') {
-		my $file = iMSCP::File->new( filename => "$sourcesPath/designs/$self->{'config'}->{'theme'}/adminer.css" );
-		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
-		return $rs if $rs;
-	} else {
-		my $file = iMSCP::File->new( filename => "$sourcesPath/adminer/static/default_sik.css" );
-		my $rs = $file->copyFile("$sourcesPath/adminer/static/default.css");
-		return $rs if $rs;
-	}
-
-	my $driver = ($self->{'config'}->{'driver'} eq 'all') ? '' : $self->{'config'}->{'driver'};
-	my $language = ($self->{'config'}->{'language'} eq 'all') ? '' : $self->{'config'}->{'language'};
-
-	# Compile Adminer PHP file
-	my ($stdout, $stderr);
-	my $rs = execute("$compileCmd $driver $language", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	# Compile Adminer Editor PHP file
-	$rs = execute("$compileCmd editor $driver $language", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
 	# Create production directory
-	$rs = iMSCP::Dir->new( dirname => $productionDir )->make(
-		{ 'user' => $panelUName, 'group' => $panelGName, 'mode' => 0550 }
+	my $rs = iMSCP::Dir->new( dirname => $prodDir )->make(
+		{ user => $panelUName, group => $panelGName, mode => 0550 }
 	);
 	return $rs if $rs;
 
-	my $version = '-' . $self->{'config'}->{'adminer_version'};
-	$driver = ($driver ne '') ? '-' . $driver : '';
-	$language = ($language ne '') ? '-' . $language : '';
 
-	# Move compiled Adminer PHP file into production directory
-	my $file = iMSCP::File->new( filename => "$sourcesPath/adminer$version$driver$language.php" );
+	my $file = iMSCP::File->new( filename => "$srcDir/designs/$self->{'config'}->{'theme'}/adminer.css" );
+	$rs = $file->copyFile("$srcDir/adminer/static/default.css");
+	return $rs if $rs;
+
+	my $fileSuffix =
+		'-' . $self->{'config'}->{'adminer_version'} .
+		( ($self->{'config'}->{'driver'} eq 'all') ? '' :  '-' . $self->{'config'}->{'driver'} ) . '.php';
+
+	unless(chdir($srcDir)) {
+		error(sprintf("Unable to change directory to $srcDir: %s", $!));
+		return 1;
+	}
+
+	# Compile Adminer
+	my ($stdout, $stderr);
+	$rs = execute("php $srcDir/compile.php $self->{'config'}->{'driver'}", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+
+	# Install Adminer in production directory
+	my $file = iMSCP::File->new( filename => "$srcDir/adminer$fileSuffix" );
 
 	$rs = $file->owner($panelUName, $panelGName);
 	return $rs if $rs;
@@ -106,11 +98,17 @@ sub enable()
 	$rs = $file->mode(0440);
 	return $rs if $rs;
 
-	$rs = $file->moveFile("$productionDir/adminer.php");
+	$rs = $file->moveFile("$prodDir/adminer.php");
 	return $rs if $rs;
 
-	# Move compiled Adminer editor PHP file into production directory
-	$file = iMSCP::File->new( filename => "$sourcesPath/editor$version$driver$language.php" );
+	# Compile Adminer editor
+	$rs = execute("php $srcDir/compile.php editor $self->{'config'}->{'driver'}", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
+
+	# Install Adminer editor in production directory
+	$file = iMSCP::File->new( filename => "$srcDir/editor$fileSuffix" );
 
 	$rs = $file->owner($panelUName, $panelGName);
 	return $rs if $rs;
@@ -118,7 +116,17 @@ sub enable()
 	$rs = $file->mode(0440);
 	return $rs if $rs;
 
-	$file->moveFile("$productionDir/editor.php");
+	$rs = $file->moveFile("$prodDir/editor.php");
+	return $rs if $rs;
+
+	unless(chdir($curDir)) {
+		error(sprintf("Unable to change directory to $curDir: %s", $!));
+		return 1;
+	}
+
+	iMSCP::Service->getInstance()->restart('imscp_panel');
+
+	0;
 }
 
 =item disable()
@@ -131,7 +139,12 @@ sub enable()
 
 sub disable()
 {
-	iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
+	my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
+	return $rs if $rs;
+
+	iMSCP::Service->getInstance()->restart('imscp_panel');
+
+	0;
 }
 
 =back

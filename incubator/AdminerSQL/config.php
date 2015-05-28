@@ -21,16 +21,12 @@
 
 return array(
 	// Adminer version
-	'adminer_version' => '4.2.0',
-
-	// Available languages: all, bn, ca, cs, de, en, es, et, fa, fr, hu, id, it, ja, ko, lt, nl, no, pl, pt, ro, ru, sk, sl,
-	// sr, ta, tr, uk, vi, xx, zh, zh-tw, da
-	'language' => 'all',
+	'adminer_version' => '4.2.1',
 
 	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
 	'driver' => 'mysql',
 
-	// default, brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha
+	// brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
 	// pilot, pokorny, price
-	'theme' => 'default'
+	'theme' => 'brade'
 );

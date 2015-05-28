@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<title>JUSH - SQL</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+
+<form action="" onsubmit="highlight(this['source'].value); return false;">
+<p>
+<input id="source" name="source" />
+<input type="submit" value="Highlight" />
+</p>
+</form>
+
+<table cellspacing="0">
+<tr><th>MySQL</th><td id="sql"></td></tr>
+<tr><th>SQLite</th><td id="sqlite"></td></tr>
+<tr><th>PostgreSQL</th><td id="pgsql"></td></tr>
+<tr><th>MS SQL </th><td id="mssql"></td></tr>
+<tr><th>Oracle </th><td id="oracle"></td></tr>
+</table>
+
+<script type="text/javascript" src="jush.js"></script>
+<script type="text/javascript">
+function highlight(source) {
+	for (var lang in { sql: 1, sqlite: 1, pgsql: 1, mssql: 1, oracle: 1 }) {
+		document.getElementById(lang).innerHTML = '<code class="jush-' + lang + '">' + jush.highlight(lang, source) + '</code>';
+	}
+	location.hash = source;
+}
+
+jush.style('jush.css');
+if (location.hash) {
+	var source = document.getElementById('source');
+	source.value = location.hash.substr(1);
+	highlight(source.value);
+}
+</script>
+
+</body>
+</html>
