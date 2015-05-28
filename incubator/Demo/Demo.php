@@ -372,10 +372,10 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
 		$credentials = $this->getCredentials();
 
 		if(!empty($credentials)) {
-			$title = json_encode(tr('i-MSCP Demo', true));
-			$welcomeMsg = json_encode(tr('Welcome to the i-MSCP Demo version', true));
+			$title = json_encode(tr('i-MSCP Demo'));
+			$welcomeMsg = json_encode(tr('Welcome to the i-MSCP Demo version'));
 			$credentialInfo = json_encode(
-				tr("Please select the account you want use to login and click on the 'Ok' button.", true)
+				tr("Please select the account you want use to login and click on the 'Ok' button.")
 			);
 			$credentials = json_encode($credentials);
 
