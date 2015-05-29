@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CronJobs\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
 "POT-Creation-Date: 2015-05-29 20:08+0200\n"
-"PO-Revision-Date: 2015-05-29 18:21+0000\n"
+"PO-Revision-Date: 2015-05-29 18:23+0000\n"
 "Last-Translator: i-MSCP <team@i-mscp.net>\n"
 "Language-Team: French (France) (http://www.transifex.com/projects/p/cronjobs/language/fr_FR/)\n"
 "MIME-Version: 1.0\n"
@@ -243,7 +243,7 @@ msgstr "Tâches programmées"
 #: themes/default/view/reseller/cronjobs_permissions.tpl:24
 #: themes/default/view/reseller/cronjobs_permissions.tpl:87
 msgid "Cron jobs frequency"
-msgstr "Fréquence des tâche programmées"
+msgstr "Fréquence des tâches programmées"
 
 #: themes/default/view/admin/cronjobs_permissions.tpl:12
 #: themes/default/view/admin/cronjobs_permissions.tpl:21
