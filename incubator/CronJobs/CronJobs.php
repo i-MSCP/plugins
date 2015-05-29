@@ -41,7 +41,7 @@ class iMSCP_Plugin_CronJobs extends iMSCP_Plugin_Action
 		$loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
 		$loader->registerNamespace($pluginName, __DIR__ . '/frontend/library/' . $pluginName);
 
-		l10n_addTranslations(__DIR__ . '/l10n', 'Array', $pluginName);
+		l10n_addTranslations(__DIR__ . '/l10n/mo', 'Gettext', $pluginName);
 	}
 
 	/**

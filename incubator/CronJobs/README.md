@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This plugin provides a cron time-based job scheduler for i-MSCP.
+This plugin provides a cron time-based job scheduler.
 
 Administrators give cron job permissions to their resellers, and the resellers give cron job permissions to their
 customers according their own permissions. For instance, a reseller will be able to give the full cron job permission to
@@ -143,18 +143,7 @@ change by updating the plugin list through the plugin management interface.
 
 ## Translation
 
-You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
-array values inside the new file.
-
-Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
-repository and do a pull request if you've a github account.
-
-**Note:** File encoding must be UTF-8.
-
-## Plugin usage
-
-A small contribution for use of this plugin is requested by doing a donation on my paypal account ( paypal@nuxwin.com ).
-If you do not want to contribute, you should not use that plugin.
+You can translate this plugin through the [Transifex Localization Platform](https://www.transifex.com/organization/i-mscp/dashboard/cronjobs)
 
 ## Troubleshootings
 
