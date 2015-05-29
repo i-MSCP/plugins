@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: InstantSSH\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
-"POT-Creation-Date: 2015-05-29 06:29+0200\n"
-"PO-Revision-Date: 2015-05-29 04:52+0000\n"
+"POT-Creation-Date: 2015-05-29 20:00+0200\n"
+"PO-Revision-Date: 2015-05-29 17:53+0000\n"
 "Last-Translator: i-MSCP <team@i-mscp.net>\n"
 "Language-Team: French (France) (http://www.transifex.com/projects/p/instantssh/language/fr_FR/)\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,7 @@ msgstr "L'action a été arrếtée."
 
 #: frontend/admin/ssh_permissions.php:73
 msgid "Action has failed."
-msgstr "L'action a échouée."
+msgstr "L'action a échoué."
 
 #: themes/default/view/client/ssh_users.tpl:13
 #: themes/default/view/client/ssh_users.tpl:21
@@ -99,7 +99,7 @@ msgstr "Une erreur inattendue s'est produite: %s"
 msgid ""
 "Any authentication options defined in the default_ssh_auth_options parameter"
 " must be also defined in the allowed_ssh_auth_options parameter."
-msgstr "Toute les options d'authentification définies dans le paramètre default_ssh_auth_options doivent également être définies dans le paramètre allowed_ssh_auth_options."
+msgstr "Toutes les options d'authentification définies dans le paramètre default_ssh_auth_options doivent également êtres définies dans le paramètre allowed_ssh_auth_options."
 
 #: themes/default/view/client/ssh_users.tpl:214
 msgid "Are you sure you want to delete this SSH user?"

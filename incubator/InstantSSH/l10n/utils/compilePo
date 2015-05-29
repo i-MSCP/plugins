@@ -21,8 +21,9 @@ set -e
 L10N_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd)
 
 rm -fR ${L10N_DIR}/mo/*
-for i in `find ${L10N_DIR}/po -name '*.po' | sed -r 's/.*\/(.*)/\1/'`; do
-	echo "Compiling machine object file: ${i}"
-	LOCALE=`echo ${i} | cut -d '.' -f 1`
-	msgfmt --strict --no-hash -o ${L10N_DIR}/mo/${LOCALE}.mo ${L10N_DIR}/po/${i}
+
+for file in $(find ${L10N_DIR}/po -name '*.po'); do
+	file=$(basename "${file}" | cut -d '.' -f 1)
+	echo "Compiling machine object file: ${file}.po"
+	msgfmt --strict --no-hash -o ${L10N_DIR}/mo/${file}.mo ${L10N_DIR}/po/${file}.po
 done
