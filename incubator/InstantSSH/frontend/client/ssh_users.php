@@ -111,7 +111,7 @@ function addSshUser($pluginManager, $sshPermissions)
 				$sshUserPassword = clean_input($_POST['ssh_user_password']);
 				$sshUserPasswordConfirmation = clean_input($_POST['ssh_user_cpassword']);
 			} else {
-				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.')));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 
@@ -134,7 +134,7 @@ function addSshUser($pluginManager, $sshPermissions)
 					$sshAuthOptions = null;
 				}
 			} else {
-				Functions::sendJsonResponse(400, array('message' => tr('Bad requests.')));
+				Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 			}
 		}
 

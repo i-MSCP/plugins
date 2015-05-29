@@ -1,21 +1,22 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Laurent Declercq - All rights reserved
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
+# Translators:
+# i-MSCP <team@i-mscp.net>, 2015
 msgid ""
 msgstr ""
-"Project-Id-Version: InstantSSH 3.2.x\n"
+"Project-Id-Version: InstantSSH\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
 "POT-Creation-Date: 2015-05-29 06:29+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2015-05-29 05:10+0000\n"
+"Last-Translator: i-MSCP <team@i-mscp.net>\n"
+"Language-Team: Russian (Russia) (http://www.transifex.com/projects/p/instantssh/language/ru_RU/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:52
 msgid "0 for unlimited"
@@ -96,8 +97,8 @@ msgstr ""
 
 #: InstantSSH.php:492
 msgid ""
-"Any authentication options defined in the default_ssh_auth_options parameter "
-"must be also defined in the allowed_ssh_auth_options parameter."
+"Any authentication options defined in the default_ssh_auth_options parameter"
+" must be also defined in the allowed_ssh_auth_options parameter."
 msgstr ""
 
 #: themes/default/view/client/ssh_users.tpl:214
@@ -263,8 +264,8 @@ msgstr ""
 #: frontend/reseller/ssh_permissions.php:282
 #: frontend/reseller/ssh_permissions.php:377
 msgid ""
-"One or many SSH users which belongs to the customer are currently processed. "
-"Please retry in few minutes."
+"One or many SSH users which belongs to the customer are currently processed."
+" Please retry in few minutes."
 msgstr ""
 
 #: frontend/admin/ssh_permissions.php:338
@@ -362,8 +363,8 @@ msgstr ""
 
 #: frontend/client/ssh_users.php:240
 msgid ""
-"SSH user has been scheduled for addition. Please note that creating your SSH "
-"environment can take several minutes."
+"SSH user has been scheduled for addition. Please note that creating your SSH"
+" environment can take several minutes."
 msgstr ""
 
 #: frontend/client/ssh_users.php:358
@@ -435,8 +436,8 @@ msgstr ""
 
 #: themes/default/view/reseller/ssh_permissions.tpl:5
 msgid ""
-"This is the list of customers which are allowed to create SSH users to login "
-"on the system using SSH."
+"This is the list of customers which are allowed to create SSH users to login"
+" on the system using SSH."
 msgstr ""
 
 #: themes/default/view/admin/ssh_permissions.tpl:5

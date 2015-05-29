@@ -67,14 +67,14 @@ function rebuildJails()
 					tr('Rebuild of jails has been scheduled. Depending of the number of jails, this could take some time...'),
 					'success'
 				);
-				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php')));
+				Functions::sendJsonResponse(200, array('redirect' => '/admin/settings_plugins.php'));
 			} else {
 				$pluginError = ($ret == PluginManager::ACTION_FAILURE)
 					? tr('Action has failed.') : tr('Action has been stopped.');
 
 				write_log(sprintf('InstantSSH: Unable to schedule rebuild of jails: %s', $pluginError), E_USER_ERROR);
 				set_page_message(tr('Unable to schedule rebuild of jails: %s', $pluginError), 'error');
-				Functions::sendJsonResponse(200, array('redirect' => tr('/admin/settings_plugins.php')));
+				Functions::sendJsonResponse(200, array('redirect' => '/admin/settings_plugins.php'));
 			}
 		} else {
 			Functions::sendJsonResponse(202, array('message' => tr('No jail to rebuild. Operation cancelled.')));

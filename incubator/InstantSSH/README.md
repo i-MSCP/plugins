@@ -102,20 +102,7 @@ change by updating the plugin list through the plugin management interface.
 
 ## Translation
 
-You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
-array values inside the new file.
-
-Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
-repository and do a pull request if you've a GitHub account.
-
-**Note:** File encoding must be UTF-8.
-
-## Plugin usage
-
-The development of this plugin took me a lot of time, especially the Jailbuilder layer which allows to build the jailed
-shell environments. Thus, I would ask a small contribution for use of this plugin by doing a donation on my paypal
-account ( paypal@nuxwin.com ). If you don't understand such asks, or if you do not want donate, just don't use this
-plugin.
+You can translate this plugin through the [Transifex Localization Platform](https://www.transifex.com/organization/i-mscp/dashboard/instantssh)
 
 ## Troubleshootings
 

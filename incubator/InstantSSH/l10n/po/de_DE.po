@@ -1,33 +1,35 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Laurent Declercq - All rights reserved
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
+# Translators:
+# Christoph Keßler, 2015
+# i-MSCP <team@i-mscp.net>, 2015
 msgid ""
 msgstr ""
-"Project-Id-Version: InstantSSH 3.2.x\n"
+"Project-Id-Version: InstantSSH\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
 "POT-Creation-Date: 2015-05-29 06:29+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2015-05-29 05:16+0000\n"
+"Last-Translator: i-MSCP <team@i-mscp.net>\n"
+"Language-Team: German (Germany) (http://www.transifex.com/projects/p/instantssh/language/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:52
 msgid "0 for unlimited"
-msgstr ""
+msgstr "0 für unbegrenzt"
 
 #: frontend/admin/ssh_permissions.php:73
 msgid "Action has been stopped."
-msgstr ""
+msgstr "Aktion wurde gestoppt."
 
 #: frontend/admin/ssh_permissions.php:73
 msgid "Action has failed."
-msgstr ""
+msgstr "Aktion ist fehlgeschlagen."
 
 #: themes/default/view/client/ssh_users.tpl:13
 #: themes/default/view/client/ssh_users.tpl:21
@@ -36,40 +38,40 @@ msgstr ""
 #: themes/default/view/reseller/ssh_permissions.tpl:16
 #: themes/default/view/reseller/ssh_permissions.tpl:26
 msgid "Actions"
-msgstr ""
+msgstr "Aktionen"
 
 #: themes/default/view/admin/ssh_permissions.tpl:47
 #: themes/default/view/reseller/ssh_permissions.tpl:40
 msgid "Add / Edit SSH Permissions"
-msgstr ""
+msgstr "SSH-Berechtigungen hinzufügen / bearbeiten"
 
 #: themes/default/view/client/ssh_users.tpl:34
 msgid "Add / Edit SSH user"
-msgstr ""
+msgstr "SSH-Benutzer hinzufügen / bearbeiten"
 
 #: frontend/admin/ssh_permissions.php:741
 msgid "Admin / Settings / SSH Permissions"
-msgstr ""
+msgstr "Admin / Einstellungen / SSH-Berechtigungen"
 
 #: frontend/admin/ssh_permissions.php:155
 #: frontend/reseller/ssh_permissions.php:113
 msgid "All fields are required."
-msgstr ""
+msgstr "Alle Felder sind Pflichtfelder."
 
 #: frontend/client/ssh_users.php:599
 #, php-format
 msgid "Allowed authentication options: %s"
-msgstr ""
+msgstr "Erlaubte Authentifizierungs-Optionen: %s"
 
 #: frontend/client/ssh_users.php:302
 msgid "An SSH user with the same name or the same SSH key already exists."
-msgstr ""
+msgstr "Ein SSH-Benutzer mit dem gleichen Namen oder gleichem SSH-Schlüssel existiert bereits."
 
 #: themes/default/view/client/ssh_users.tpl:239
 #: themes/default/view/admin/ssh_permissions.tpl:253
 #: themes/default/view/reseller/ssh_permissions.tpl:250
 msgid "An unexpected error occurred."
-msgstr ""
+msgstr "Ein unerwarteter Fehler ist aufgetreten."
 
 #: frontend/reseller/ssh_permissions.php:77
 #: frontend/reseller/ssh_permissions.php:301
@@ -77,12 +79,12 @@ msgstr ""
 #: frontend/reseller/ssh_permissions.php:447
 #: frontend/reseller/ssh_permissions.php:609
 msgid "An unexpected error occurred. Please contact your administrator."
-msgstr ""
+msgstr "Ein unerwarteter Fehler ist aufgetreten. Bitte den Administrator kontaktieren."
 
 #: frontend/client/ssh_users.php:82 frontend/client/ssh_users.php:310
 #: frontend/client/ssh_users.php:367 frontend/client/ssh_users.php:513
 msgid "An unexpected error occurred. Please contact your reseller."
-msgstr ""
+msgstr "Ein unerwarteter Fehler ist aufgetreten. Bitte den Reseller kontaktieren."
 
 #: frontend/admin/ssh_permissions.php:85
 #: frontend/admin/ssh_permissions.php:131
@@ -92,33 +94,33 @@ msgstr ""
 #: frontend/admin/ssh_permissions.php:672
 #, php-format
 msgid "An unexpected error occurred: %s"
-msgstr ""
+msgstr "Ein unerwarteter Fehler ist aufgetreten: %s"
 
 #: InstantSSH.php:492
 msgid ""
-"Any authentication options defined in the default_ssh_auth_options parameter "
-"must be also defined in the allowed_ssh_auth_options parameter."
-msgstr ""
+"Any authentication options defined in the default_ssh_auth_options parameter"
+" must be also defined in the allowed_ssh_auth_options parameter."
+msgstr "Alle Authentifizierungsmethoden im default_ssh_auth_options Parameter müssen auch im allowed_ssh_auth_options Parameter eingetragen sein."
 
 #: themes/default/view/client/ssh_users.tpl:214
 msgid "Are you sure you want to delete this SSH user?"
-msgstr ""
+msgstr "Bist Du sicher, dass Du diesen SSH-Benutzer löschen möchtest?"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:217
 msgid "Are you sure you want to revoke SSH permissions for this customer?"
-msgstr ""
+msgstr "Bist Du sicher die SSH-Berechtigunge für diesen Kunden zu widerrufen?"
 
 #: themes/default/view/admin/ssh_permissions.tpl:207
 msgid "Are you sure you want to revoke SSH permissions for this reseller?"
-msgstr ""
+msgstr "Bist Du sicher die SSH-Berechtigunge für diesen Reseller zu widerrufen?"
 
 #: themes/default/view/admin/ssh_permissions.tpl:223
 msgid "Are you sure you want to schedule rebuild of all jails?"
-msgstr ""
+msgstr "Sind Sie sich sicher, alle Jails zum Neuerstellen ansetzen zu wollen?"
 
 #: themes/default/view/client/ssh_users.tpl:72
 msgid "Authentication options"
-msgstr ""
+msgstr "Authentifizierungs-Optionen"
 
 #: frontend/client/ssh_users.php:87 frontend/client/ssh_users.php:114
 #: frontend/client/ssh_users.php:137 frontend/client/ssh_users.php:316
@@ -136,7 +138,7 @@ msgstr ""
 #: frontend/reseller/ssh_permissions.php:613
 #: frontend/reseller/ssh_permissions.php:652
 msgid "Bad request."
-msgstr ""
+msgstr "Ungültige Anfrage."
 
 #: themes/default/view/admin/ssh_permissions.tpl:12
 #: themes/default/view/admin/ssh_permissions.tpl:21
@@ -145,178 +147,178 @@ msgstr ""
 #: themes/default/view/reseller/ssh_permissions.tpl:23
 #: themes/default/view/reseller/ssh_permissions.tpl:63
 msgid "Can edit authentication options"
-msgstr ""
+msgstr "Kann die Authentifizierungs-Optionen bearbeiten"
 
 #: themes/default/view/client/ssh_users.tpl:102
 #: themes/default/view/admin/ssh_permissions.tpl:82
 #: themes/default/view/reseller/ssh_permissions.tpl:90
 msgid "Cancel"
-msgstr ""
+msgstr "Abbrechen"
 
 #: frontend/client/ssh_users.php:586
 msgid "Client / Web Tools / SSH Users"
-msgstr ""
+msgstr "Kunde / Web-Tools / SSH-Benutzer"
 
 #: themes/default/view/client/ssh_users.tpl:54
 msgid "Confirm the password"
-msgstr ""
+msgstr "Passwort wiederholen"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:11
 #: themes/default/view/reseller/ssh_permissions.tpl:21
 #: themes/default/view/reseller/ssh_permissions.tpl:45
 msgid "Customer name"
-msgstr ""
+msgstr "Kundenname"
 
 #: frontend/client/ssh_users.php:478
 msgid "Delete this SSH user"
-msgstr ""
+msgstr "SSH-Benutzer löschen"
 
 #: themes/default/view/admin/ssh_permissions.tpl:70
 #: themes/default/view/reseller/ssh_permissions.tpl:77
 msgid ""
 "Does the shell access have to be provided in restricted environment "
 "(recommended)?"
-msgstr ""
+msgstr "Soll der Shellzugriff in einer geschützten Umgebung bereitgestellt werden (empfohlen)?"
 
 #: frontend/client/ssh_users.php:477
 msgid "Edit SSH user"
-msgstr ""
+msgstr "SSH-Benutzer ändern"
 
 #: frontend/admin/ssh_permissions.php:630
 #: frontend/reseller/ssh_permissions.php:565
 msgid "Edit permissions"
-msgstr ""
+msgstr "Berechtigungen ändern"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:46
 msgid "Enter a customer name"
-msgstr ""
+msgstr "Gib einen Kundennamen ein"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:56
 msgid "Enter a number"
-msgstr ""
+msgstr "Eine Zahl eingeben"
 
 #: themes/default/view/client/ssh_users.tpl:50
 msgid "Enter a password"
-msgstr ""
+msgstr "Ein Passwort eingeben"
 
 #: themes/default/view/admin/ssh_permissions.tpl:53
 msgid "Enter a reseller name"
-msgstr ""
+msgstr "Gib einen Resellernamen ein"
 
 #: themes/default/view/client/ssh_users.tpl:44
 msgid "Enter an username"
-msgstr ""
+msgstr "Einen Benutzernamen eingeben"
 
 #: themes/default/view/client/ssh_users.tpl:77
 msgid "Enter authentication options"
-msgstr ""
+msgstr "Gib Authentifizierungs-Optionen ein"
 
 #: themes/default/view/client/ssh_users.tpl:65
 msgid "Enter your SSH key"
-msgstr ""
+msgstr "Deinen SSH-Schlüssel eingeben"
 
 #: frontend/client/ssh_users.php:179
 msgid "Invalid SSH key."
-msgstr ""
+msgstr "Ungültiger SSH-Schlüssel."
 
 #: InstantSSH.php:474
 #, php-format
 msgid "Invalid default authentication options: %s"
-msgstr ""
+msgstr "Nicht gültige Standardauthentifizierungsoptionen: %s"
 
 #: themes/default/view/client/ssh_users.tpl:11
 #: themes/default/view/client/ssh_users.tpl:19
 msgid "Key fingerprint"
-msgstr ""
+msgstr "Fingerabdruck"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:12
 #: themes/default/view/reseller/ssh_permissions.tpl:22
 msgid "Max SSH users"
-msgstr ""
+msgstr "Max. SSH-Benutzer"
 
 #: themes/default/view/reseller/ssh_permissions.tpl:51
 msgid "Maximum number of SSH users"
-msgstr ""
+msgstr "Maximale Anzahl von SSH-Benutzern"
 
 #: frontend/admin/ssh_permissions.php:638
 #: frontend/admin/ssh_permissions.php:640
 #: frontend/reseller/ssh_permissions.php:575
 #: frontend/reseller/ssh_permissions.php:577
 msgid "No"
-msgstr ""
+msgstr "Nein"
 
 #: frontend/admin/ssh_permissions.php:80
 msgid "No jail to rebuild. Operation cancelled."
-msgstr ""
+msgstr "Es ist kein Jail zum Neuerstellen vorhanden. Die Operation wurde abgebrochen."
 
 #: frontend/admin/ssh_permissions.php:329
 #: frontend/reseller/ssh_permissions.php:273
 msgid "Nothing has been changed."
-msgstr ""
+msgstr "Es wurde nichts geändert."
 
 #: themes/default/view/client/ssh_users.tpl:91
 msgid ""
 "On Linux, you can generate your rsa key pair by running the following "
 "command:"
-msgstr ""
+msgstr "Sie können Ihr RSA-Schlüsselpaar mit folgendem Befehl erzeugen:"
 
 #: frontend/reseller/ssh_permissions.php:282
 #: frontend/reseller/ssh_permissions.php:377
 msgid ""
-"One or many SSH users which belongs to the customer are currently processed. "
-"Please retry in few minutes."
-msgstr ""
+"One or many SSH users which belongs to the customer are currently processed."
+" Please retry in few minutes."
+msgstr "Einer oder mehrere SSH-Benutzer, welche dem Kunden gehören, werden derzeit verarbeitet. Versuchen Sie es in wenigen Minuten nochmal."
 
 #: frontend/admin/ssh_permissions.php:338
 #: frontend/admin/ssh_permissions.php:449
 msgid ""
 "One or many SSH users which belongs to the reseller's customers are "
 "currently processed. Please retry in few minutes."
-msgstr ""
+msgstr "Einer oder mehrere SSH-Benutzer, welche dem Reseller seinen Kunden gehören, werden derzeit verarbeitet. Versuchen Sie es in wenigen Minuten nochmal."
 
 #: themes/default/view/client/ssh_users.tpl:49
 msgid "Password"
-msgstr ""
+msgstr "Passwort"
 
 #: themes/default/view/client/ssh_users.tpl:53
 msgid "Password confirmation"
-msgstr ""
+msgstr "Passwort wiederholen"
 
 #: frontend/client/ssh_users.php:173
 msgid "Passwords do not match."
-msgstr ""
+msgstr "Passwörter stimmen nicht überein."
 
 #: themes/default/view/client/ssh_users.tpl:26
 #: themes/default/view/admin/ssh_permissions.tpl:29
 #: themes/default/view/reseller/ssh_permissions.tpl:31
 msgid "Processing..."
-msgstr ""
+msgstr "Verarbeitung..."
 
 #: themes/default/view/admin/ssh_permissions.tpl:36
 msgid "Rebuild Jails"
-msgstr ""
+msgstr "Erstelle Jails neu"
 
 #: frontend/admin/ssh_permissions.php:67
 msgid ""
 "Rebuild of jails has been scheduled. Depending of the number of jails, this "
 "could take some time..."
-msgstr ""
+msgstr "Neuerstellung der Jails wurde angesetzt. Abhängig von der Anzahl der Jails könnte diese einige Zeit in Anspruch nehmen..."
 
 #: themes/default/view/client/ssh_users.tpl:237
 #: themes/default/view/admin/ssh_permissions.tpl:251
 #: themes/default/view/reseller/ssh_permissions.tpl:248
 msgid "Request Timeout: The server took too long to send the data."
-msgstr ""
+msgstr "Zeitüberschreitung der Anfrage: Der Server benötigt zu lange, um die Daten zu senden."
 
 #: frontend/reseller/ssh_permissions.php:684
 msgid "Reseller / Customers / SSH Permissions"
-msgstr ""
+msgstr "Reseller / Kunden / SSH-Berechtigungen"
 
 #: themes/default/view/admin/ssh_permissions.tpl:11
 #: themes/default/view/admin/ssh_permissions.tpl:20
 #: themes/default/view/admin/ssh_permissions.tpl:52
 msgid "Reseller name"
-msgstr ""
+msgstr "Resellername"
 
 #: themes/default/view/admin/ssh_permissions.tpl:13
 #: themes/default/view/admin/ssh_permissions.tpl:22
@@ -325,70 +327,70 @@ msgstr ""
 #: themes/default/view/reseller/ssh_permissions.tpl:24
 #: themes/default/view/reseller/ssh_permissions.tpl:76
 msgid "Restricted shell"
-msgstr ""
+msgstr "Eingeschränkte Shell"
 
 #: frontend/admin/ssh_permissions.php:631
 #: frontend/reseller/ssh_permissions.php:566
 msgid "Revoke permissions"
-msgstr ""
+msgstr "Berechtigungen widerrufen"
 
 #: themes/default/view/client/ssh_users.tpl:60
 msgid "SSH key"
-msgstr ""
+msgstr "SSH-Schlüssel"
 
 #: InstantSSH.php:522 InstantSSH.php:532
 msgid "SSH permissions"
-msgstr ""
+msgstr "SSH Berechtigungen"
 
 #: frontend/admin/ssh_permissions.php:203
 #: frontend/reseller/ssh_permissions.php:171
 msgid "SSH permissions were added."
-msgstr ""
+msgstr "SSH Berechtigungen wurden hinzugefügt."
 
 #: frontend/admin/ssh_permissions.php:441
 #: frontend/reseller/ssh_permissions.php:369
 msgid "SSH permissions were deleted."
-msgstr ""
+msgstr "SSH-Berechtigungen wurden gelöscht."
 
 #: frontend/admin/ssh_permissions.php:325
 #: frontend/reseller/ssh_permissions.php:269
 msgid "SSH permissions were updated."
-msgstr ""
+msgstr "SSH-Berechtigungen wurden aktualisiert."
 
 #: themes/default/view/client/ssh_users.tpl:10
 #: themes/default/view/client/ssh_users.tpl:18
 msgid "SSH user"
-msgstr ""
+msgstr "SSH-Benutzer"
 
 #: frontend/client/ssh_users.php:240
 msgid ""
-"SSH user has been scheduled for addition. Please note that creating your SSH "
-"environment can take several minutes."
-msgstr ""
+"SSH user has been scheduled for addition. Please note that creating your SSH"
+" environment can take several minutes."
+msgstr "SSH-Benutzer wurde zum Hinzufügen angesetzt."
 
 #: frontend/client/ssh_users.php:358
 msgid "SSH user has been scheduled for deletion."
-msgstr ""
+msgstr "SSH-Benutzer wurde zur Löschung vorgemerkt."
 
 #: frontend/client/ssh_users.php:291
 msgid "SSH user has been scheduled for update."
-msgstr ""
+msgstr "SSH-Benutzer wurde zur Aktualisierung vorgemerkt."
 
 #: InstantSSH.php:548
 msgid "SSH users"
-msgstr ""
+msgstr "SSH-Benutzer"
 
 #: themes/default/view/client/ssh_users.tpl:100
 #: themes/default/view/admin/ssh_permissions.tpl:79
 #: themes/default/view/reseller/ssh_permissions.tpl:87
 msgid "Save"
-msgstr ""
+msgstr "Speichern"
 
 #: themes/default/view/admin/ssh_permissions.tpl:59
 #: themes/default/view/reseller/ssh_permissions.tpl:64
 msgid ""
 "See man authorized_keys for further details about authentication options."
-msgstr ""
+msgstr "Siehe man authorized_keys für weitere Details zu den Authentifizierungsoptionen."
 
 #: themes/default/view/client/ssh_users.tpl:12
 #: themes/default/view/client/ssh_users.tpl:20
@@ -397,11 +399,11 @@ msgstr ""
 #: themes/default/view/reseller/ssh_permissions.tpl:15
 #: themes/default/view/reseller/ssh_permissions.tpl:25
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: themes/default/view/client/ssh_users.tpl:61
 msgid "Supported RSA key formats are PKCS#1, openSSH and XML Signature."
-msgstr ""
+msgstr "Unterstütze RSA-Schlüssel-Formate sind PKCS#1, openSSH und XML Signatur."
 
 #: frontend/client/ssh_users.php:244 frontend/client/ssh_users.php:295
 #: frontend/client/ssh_users.php:372 frontend/admin/ssh_permissions.php:207
@@ -411,127 +413,127 @@ msgstr ""
 #: frontend/reseller/ssh_permissions.php:289
 #: frontend/reseller/ssh_permissions.php:397
 msgid "The action has been stopped by another plugin."
-msgstr ""
+msgstr "Die Aktion wurde durch ein anderes Plugin gestoppt."
 
 #: InstantSSH.php:500
 msgid "The allowed_ssh_auth_options parameter must be an array."
-msgstr ""
+msgstr "Der allowed_ssh_auth_options Parameter muss ein Array sein."
 
 #: InstantSSH.php:503
 msgid "The default_ssh_auth_options parameter must be a string."
-msgstr ""
+msgstr "Der default_ssh_auth_options Parameter muss ein String sein."
 
 #: frontend/client/ssh_users.php:143
 msgid "The username field is required."
-msgstr ""
+msgstr "Benutzername ist ein Pflichtfeld."
 
 #: frontend/client/ssh_users.php:147
 msgid "The username is too long (Max 8 characters)."
-msgstr ""
+msgstr "Der Benutzername ist zu lang (Max. 8 Zeichen)."
 
 #: themes/default/view/client/ssh_users.tpl:5
 msgid "This is the list of SSH users associated with your account."
-msgstr ""
+msgstr "Liste der SSH-Benutzer, welche mit Ihrem Account verbunden sind."
 
 #: themes/default/view/reseller/ssh_permissions.tpl:5
 msgid ""
-"This is the list of customers which are allowed to create SSH users to login "
-"on the system using SSH."
-msgstr ""
+"This is the list of customers which are allowed to create SSH users to login"
+" on the system using SSH."
+msgstr "Dies ist die Liste der Kunden, die berechtigt sind, SSH-Benutzer zu erstellen, um das System mit SSH anzumelden."
 
 #: themes/default/view/admin/ssh_permissions.tpl:5
 msgid ""
 "This is the list of resellers which are allowed to give SSH permissions to "
 "their customers."
-msgstr ""
+msgstr "Dies ist die Liste der Reseller, welche berechtigt sind, Ihren Kunden SSH-Berechtigungen zu erteilen."
 
 #: frontend/client/ssh_users.php:153
 msgid "This username is not available."
-msgstr ""
+msgstr "Dieser Benutzername ist nicht verfügbar."
 
 #: frontend/client/ssh_users.php:167
 msgid "Un-allowed password. Please use ASCII characters only."
-msgstr ""
+msgstr "Ungültiges Passwort. Bitte nur ASCII-Zeichen benutzen."
 
 #: frontend/client/ssh_users.php:145
 msgid "Un-allowed username. Please use alphanumeric characters only."
-msgstr ""
+msgstr "Ungültiger Benutzername. Bitte nur alphanumerische Zeichen benutzen."
 
 #: frontend/admin/ssh_permissions.php:76
 #, php-format
 msgid "Unable to schedule rebuild of jails: %s"
-msgstr ""
+msgstr "Die Jails konnten nicht zum Neuerstellen angesetzt werden: %s"
 
 #: themes/default/view/client/ssh_users.tpl:224
 #: themes/default/view/admin/ssh_permissions.tpl:236
 #: themes/default/view/reseller/ssh_permissions.tpl:233
 msgid "Unknown action."
-msgstr ""
+msgstr "Unbekannte Aktion."
 
 #: themes/default/view/reseller/ssh_permissions.tpl:171
 msgid "Unknown customer. Please enter a valid customer name."
-msgstr ""
+msgstr "Unbekannter Kunde. Bitte einen gültigen Kundennamen eintragen."
 
 #: themes/default/view/admin/ssh_permissions.tpl:162
 msgid "Unknown reseller. Please enter a valid reseller name."
-msgstr ""
+msgstr "Unbekannter Reseller. Bitte einen gültigen Resellernamen eintragen."
 
 #: frontend/reseller/ssh_permissions.php:573
 msgid "Unlimited"
-msgstr ""
+msgstr "Unbegrenzt"
 
 #: themes/default/view/client/ssh_users.tpl:40
 msgid "Username"
-msgstr ""
+msgstr "Benutzername"
 
 #: frontend/client/ssh_users.php:171
 msgid "Wrong password length (Max 32 characters)."
-msgstr ""
+msgstr "Falsche Passwortlänge (Max. 32 Zeichen)."
 
 #: frontend/client/ssh_users.php:169
 msgid "Wrong password length (Min 8 characters)."
-msgstr ""
+msgstr "Falsche Passwortlänge (Min. 8 Zeichen)."
 
 #: frontend/reseller/ssh_permissions.php:118
 msgid ""
 "Wrong value for the 'Maximum number of SSH users' field. Please, enter a "
 "number."
-msgstr ""
+msgstr "Ungültiger Wert des 'Maximale Anzahl an SSH-Benutzer' Feldes. Tragen Sie bitte eine Zahl ein."
 
 #: frontend/admin/ssh_permissions.php:638
 #: frontend/admin/ssh_permissions.php:640
 #: frontend/reseller/ssh_permissions.php:575
 #: frontend/reseller/ssh_permissions.php:577
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 #: themes/default/view/client/ssh_users.tpl:89
 msgid ""
 "You can provide either a password, an SSH key or both. However, it's "
 "recommended to prefer key-based authentication."
-msgstr ""
+msgstr "Sie können entweder ein Kennwort, einen SSH-Schlüssel oder beides bieten. Allerdings ist es empfehlenswert, schlüsselbasierte Authentifizierungen zu bevorzugen."
 
 #: themes/default/view/reseller/ssh_permissions.tpl:195
 msgid "You must enter a customer name."
-msgstr ""
+msgstr "Du musst einen Kundennamen eingeben."
 
 #: themes/default/view/admin/ssh_permissions.tpl:186
 msgid "You must enter a reseller name."
-msgstr ""
+msgstr "Es muss ein Resellername eingegeben werden."
 
 #: frontend/client/ssh_users.php:159
 msgid "You must enter an SSH key."
-msgstr ""
+msgstr "Du musst einen SSH-Schlüssel eingeben."
 
 #: frontend/client/ssh_users.php:161
 msgid "You must enter either a password, an SSH key or both."
-msgstr ""
+msgstr "Es muss ein Passwort, ein SSH-Schlüssel oder beides eingegeben werden."
 
 #: frontend/client/ssh_users.php:249
 msgid "Your SSH user limit is reached."
-msgstr ""
+msgstr "Das Limit der SSH-Benutzer ist erreicht."
 
 #: frontend/client/ssh_users.php:485 frontend/admin/ssh_permissions.php:662
 #: frontend/reseller/ssh_permissions.php:599
 msgid "n/a"
-msgstr ""
+msgstr "n/a"
