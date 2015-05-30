@@ -8,9 +8,7 @@
 	<div class="static_warning">
 		<?=
 			self::escapeHtml(
-				tr(
-					'Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:', true
-				)
+				tr('Configuring cron jobs requires distinct knowledge of the crontab syntax on Unix based systems. More information about this topic can be obtained on the following webpage:')
 			) . ' <a target="_blank" href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html"><strong>' . self::escapeHtml(tr('Newbie: Intro to cron')) . '</strong></a>';
 		?>
 	</div>
