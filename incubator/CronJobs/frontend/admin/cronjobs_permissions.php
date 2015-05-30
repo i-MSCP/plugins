@@ -720,8 +720,6 @@ if($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstal
 			'JAILED_CRONJOBS_PERMISSION_BLOCK', '',
 			'REBUILD_JAIL_JS_BLOCK' => ''
 		));
-	} else {
-		define('JAILED_CRONJOB_SUPPORT', true);
 	}
 } else {
 	$tpl->assign(array(
