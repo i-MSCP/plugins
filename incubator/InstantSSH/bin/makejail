@@ -921,7 +921,21 @@ def resolvePaths(paths, tryGlobMatching=0, files=[]):
 				abort("Failed to investigate source file '%s': %s" % (file, e.strerror))
 			continue
 
-		if(stat.S_ISDIR(sb.st_mode)):
+		if(stat.S_ISLNK(sb.st_mode)):
+			linkTarget = os.readlink(file)
+			fileDir = os.path.split(file)[0]
+
+			if(linkTarget[-1] == "/"):
+				linkTarget = linkTarget[:-1]
+
+			if(linkTarget[0] == "/"):
+				absoluteLinkTarget = linkTarget
+			else:
+				absoluteLinkTarget="%s/%s" % (fileDir, linkTarget)
+
+			files = resolvePaths([absoluteLinkTarget], tryGlobMatching=0, files=files)
+			files.append(file)
+		elif(stat.S_ISDIR(sb.st_mode)):
 			for entry in os.listdir(file):
 				files = resolvePaths([os.path.join(file, entry)], tryGlobMatching=0, files=files)
 		else:

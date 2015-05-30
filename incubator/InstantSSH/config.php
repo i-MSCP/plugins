@@ -143,7 +143,7 @@ return array(
 	//
 	// The following options can be defined in application sections:
 	//
-	// paths: List of paths to create inside the jails.
+	// paths: List of paths to copy inside the jails.
 	// create_dirs: List of directories to create inside jail where each key is a directory path and the value, an
 	//              associative array describing directory permissions (user, group and mode).
 	// packages: List of debian packages. Files from those packages will be copied inside jail.

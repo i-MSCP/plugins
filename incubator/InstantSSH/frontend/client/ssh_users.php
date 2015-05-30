@@ -578,7 +578,7 @@ if($sshPermissions['ssh_permission_id'] !== null) {
 	EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
 		/** @var $e \iMSCP_Events_Event */
 		$e->getParam('translations')->InstantSSH = array(
-			'datatable' => getDataTablesPluginTranslations(false)
+			'dataTable' => getDataTablesPluginTranslations(false)
 		);
 	});
 

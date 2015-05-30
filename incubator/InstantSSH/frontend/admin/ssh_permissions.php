@@ -35,7 +35,9 @@ use PDO;
  */
 
 /**
- * Schedule rebuild jailed environments
+ * Schedule rebuild of jailed environments
+ *
+ * @return void
  */
 function rebuildJails()
 {
@@ -733,7 +735,7 @@ if(Registry::get('config')->DEBUG) {
 EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
 	/** @var $e \iMSCP_Events_Event */
 	$e->getParam('translations')->InstantSSH = array(
-		'datatable' => getDataTablesPluginTranslations(false)
+		'dataTable' => getDataTablesPluginTranslations(false)
 	);
 });
 

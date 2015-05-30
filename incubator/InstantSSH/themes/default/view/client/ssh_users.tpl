@@ -137,7 +137,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: imscp_i18n.InstantSSH.datatable,
+			language: imscp_i18n.InstantSSH.dataTable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
