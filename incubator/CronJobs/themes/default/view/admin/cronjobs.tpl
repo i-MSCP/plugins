@@ -200,7 +200,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: imscp_i18n.CronJobs.datatable,
+			language: imscp_i18n.CronJobs.dataTable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
@@ -318,20 +318,17 @@
 						break;
 					case "disable_cronjob":
 					case "enable_cronjob":
-						doRequest(
-							"POST", action, { cron_job_id: $(this).data('cron-job-id') }
-						).done(function (data) {
+						doRequest("POST", action, { cron_job_id: $(this).data('cron-job-id') }).done(function (data) {
 							$dataTable.fnDraw();
 							flashMessage('success', data.message);
 						});
 						break;
 					case "delete_cronjob":
 						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this cron job?'));?>")) {
-							doRequest(
-								"POST", 'delete_cronjob', { cron_job_id: $(this).data('cron-job-id') }
-							).done(function (data) {
-								$dataTable.fnDraw();
-								flashMessage('success', data.message);
+							doRequest("POST", 'delete_cronjob', { cron_job_id: $(this).data('cron-job-id') }).done(
+								function (data) {
+									$dataTable.fnDraw();
+									flashMessage('success', data.message);
 							});
 						}
 					break;

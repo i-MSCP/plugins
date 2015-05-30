@@ -37,6 +37,32 @@ use PDO;
  */
 
 /**
+ * Schedule update of jailed environment
+ *
+ * @return void
+ */
+function updateJail()
+{
+	/** @var PluginManager $pluginManager */
+	$pluginManager = Registry::get('pluginManager');
+	$ret = $pluginManager->pluginChange('CronJobs');
+
+	if ($ret == PluginManager::ACTION_SUCCESS) {
+		write_log('CronJobs: Jail has been scheduled for update.', E_USER_NOTICE);
+		set_page_message(
+			tr('Jail has been successfully scheduled for update.'), 'success'
+		);
+		Functions::sendJsonResponse(200, array('redirect' => '/admin/settings_plugins.php'));
+	} else {
+		$pluginError = ($ret == PluginManager::ACTION_FAILURE)
+			? tr('Action has failed.') : tr('Action has been stopped.');
+		write_log(sprintf('CronJobs: Unable to schedule rebuild of jail: %s', $pluginError), E_USER_ERROR);
+		set_page_message(tr('Unable to update jail: %s', $pluginError), 'error');
+		Functions::sendJsonResponse(200, array('redirect' => '/admin/settings_plugins.php'));
+	}
+}
+
+/**
  * Get cron job permissions
  *
  * @return void
@@ -308,8 +334,7 @@ function addCronPermissions()
 							409,
 							array(
 								'message' => tr(
-									"One or many cron jobs which belongs to the reseller's customers are currently processed. Please retry in few minutes.",
-									true
+									"One or many cron jobs which belongs to the reseller's customers are currently processed. Please retry in few minutes."
 								)
 							)
 						);
@@ -638,6 +663,9 @@ if(isset($_REQUEST['action'])) {
 			case 'delete_cron_permissions':
 				deleteCronPermissions();
 				break;
+			case 'update_jail':
+				updateJail();
+				break;
 			default:
 				Functions::sendJsonResponse(400, array('message' => tr('Bad request.')));
 		}
@@ -649,7 +677,7 @@ if(isset($_REQUEST['action'])) {
 $tpl = new TemplateEngine();
 $tpl->define_dynamic(array(
 	'layout' => 'shared/layouts/ui.tpl',
-	'page_message' => 'layout'
+	'page_message' => 'layout',
 ));
 
 /** @var PluginManager $pluginManager */
@@ -659,7 +687,9 @@ $tpl->define_no_file_dynamic(array(
 	'page' => Functions::renderTpl(
 		$pluginManager->pluginGetDirectory() . '/CronJobs/themes/default/view/admin/cronjobs_permissions.tpl'
 	),
-	'cron_permission_jailed' => 'page'
+	'update_jail_block' => 'page',
+	'jailed_cronjobs_permission_block' => 'page',
+	'update_jail_js_block' => 'page'
 ));
 
 if(Registry::get('config')->DEBUG) {
@@ -672,7 +702,7 @@ if(Registry::get('config')->DEBUG) {
 EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
 	/** @var $e \iMSCP_Events_Event */
 	$e->getParam('translations')->CronJobs = array(
-		'datatable' => getDataTablesPluginTranslations(false)
+		'dataTable' => getDataTablesPluginTranslations(false)
 	);
 });
 
@@ -685,10 +715,20 @@ if($pluginManager->pluginIsKnown('InstantSSH') && $pluginManager->pluginIsInstal
 	$info = $pluginManager->pluginGetInfo('InstantSSH');
 
 	if(version_compare($info['version'], '3.2.0', '<')) {
-		$tpl->assign('CRON_PERMISSION_JAILED', '');
+		$tpl->assign(array(
+			'REBUILD_JAIL_BLOCK' => '',
+			'JAILED_CRONJOBS_PERMISSION_BLOCK', '',
+			'REBUILD_JAIL_JS_BLOCK' => ''
+		));
+	} else {
+		define('JAILED_CRONJOB_SUPPORT', true);
 	}
 } else {
-	$tpl->assign('CRON_PERMISSION_JAILED', '');
+	$tpl->assign(array(
+		'REBUILD_JAIL_BLOCK' => '',
+		'JAILED_CRONJOBS_PERMISSION_BLOCK', '',
+		'REBUILD_JAIL_JS_BLOCK' => ''
+	));
 }
 
 generateNavigation($tpl);

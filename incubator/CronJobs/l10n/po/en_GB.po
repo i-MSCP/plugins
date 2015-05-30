@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CronJobs\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
-"POT-Creation-Date: 2015-05-29 20:08+0200\n"
-"PO-Revision-Date: 2015-05-28 19:09+0000\n"
+"POT-Creation-Date: 2015-05-30 23:57+0200\n"
+"PO-Revision-Date: 2015-05-30 22:03+0000\n"
 "Last-Translator: i-MSCP <team@i-mscp.net>\n"
 "Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/cronjobs/language/en_GB/)\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Language: en_GB\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: frontend/admin/cronjobs_permissions.php:577
+#: frontend/admin/cronjobs_permissions.php:602
 #: frontend/reseller/cronjobs_permissions.php:706
 #, php-format
 msgid "%d minute"
@@ -29,6 +29,14 @@ msgstr[1] "%d minutes"
 #: themes/default/view/reseller/cronjobs_permissions.tpl:77
 msgid "0 for unlimited"
 msgstr "0 for unlimited"
+
+#: frontend/admin/cronjobs_permissions.php:58
+msgid "Action has been stopped."
+msgstr "Action has been stopped."
+
+#: frontend/admin/cronjobs_permissions.php:58
+msgid "Action has failed."
+msgstr "Action has failed."
 
 #: themes/default/view/client/cronjobs.tpl:30
 #: themes/default/view/client/cronjobs.tpl:45
@@ -45,12 +53,12 @@ msgstr "Actions"
 msgid "Activate"
 msgstr "Activate"
 
-#: themes/default/view/client/cronjobs.tpl:250
+#: themes/default/view/client/cronjobs.tpl:244
 #: themes/default/view/admin/cronjobs.tpl:248
 msgid "Add / Edit Cron job"
 msgstr "Add / Edit Cron job"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:38
+#: themes/default/view/admin/cronjobs_permissions.tpl:49
 #: themes/default/view/reseller/cronjobs_permissions.tpl:40
 msgid "Add / Edit cron job permissions"
 msgstr "Add / Edit cron job permissions"
@@ -65,7 +73,7 @@ msgid ""
 "Add permissions to all customers which do not have cron job permissions yet."
 msgstr "Add permissions to all customers which do not have cron job permissions yet."
 
-#: frontend/admin/cronjobs_permissions.php:680
+#: frontend/admin/cronjobs_permissions.php:710
 msgid "Admin / Settings / Cron Job Permissions"
 msgstr "Admin / Settings / Cron Job Permissions"
 
@@ -73,8 +81,15 @@ msgstr "Admin / Settings / Cron Job Permissions"
 msgid "Admin / System tools / Cron Jobs"
 msgstr "Admin / System tools / Cron Jobs"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:231
-#: themes/default/view/admin/cronjobs.tpl:354
+#: themes/default/view/admin/cronjobs_permissions.tpl:37
+msgid ""
+"Allows to force update of jail in which jailed cron jobs are run. This is "
+"needed when you update your system and want also update libraries inside the"
+" jail."
+msgstr "Allows to force update of jail in which jailed cron jobs are run. This is needed when you update your system and want also update libraries inside the jail."
+
+#: themes/default/view/admin/cronjobs_permissions.tpl:253
+#: themes/default/view/admin/cronjobs.tpl:351
 msgid "An unexpected error occurred."
 msgstr "An unexpected error occurred."
 
@@ -91,15 +106,15 @@ msgstr "An unexpected error occurred. Please contact your administrator."
 #: frontend/client/cronjobs.php:221 frontend/client/cronjobs.php:268
 #: frontend/client/cronjobs.php:338 frontend/client/cronjobs.php:408
 #: frontend/client/cronjobs.php:478 frontend/client/cronjobs.php:639
-#: themes/default/view/client/cronjobs.tpl:355
+#: themes/default/view/client/cronjobs.tpl:345
 msgid "An unexpected error occurred. Please contact your reseller."
 msgstr "An unexpected error occurred. Please contact your reseller."
 
-#: frontend/admin/cronjobs_permissions.php:71
-#: frontend/admin/cronjobs_permissions.php:327
-#: frontend/admin/cronjobs_permissions.php:415
-#: frontend/admin/cronjobs_permissions.php:464
-#: frontend/admin/cronjobs_permissions.php:607 frontend/admin/cronjobs.php:197
+#: frontend/admin/cronjobs_permissions.php:97
+#: frontend/admin/cronjobs_permissions.php:352
+#: frontend/admin/cronjobs_permissions.php:440
+#: frontend/admin/cronjobs_permissions.php:489
+#: frontend/admin/cronjobs_permissions.php:632 frontend/admin/cronjobs.php:197
 #: frontend/admin/cronjobs.php:243 frontend/admin/cronjobs.php:310
 #: frontend/admin/cronjobs.php:377 frontend/admin/cronjobs.php:446
 #: frontend/admin/cronjobs.php:603
@@ -111,17 +126,21 @@ msgstr "An unexpected error occurred: %s"
 msgid "Apply to all customers"
 msgstr "Apply to all customers"
 
-#: themes/default/view/client/cronjobs.tpl:330
-#: themes/default/view/admin/cronjobs.tpl:329
+#: themes/default/view/client/cronjobs.tpl:321
+#: themes/default/view/admin/cronjobs.tpl:327
 msgid "Are you sure you want to delete this cron job?"
 msgstr "Are you sure you want to delete this cron job?"
+
+#: themes/default/view/admin/cronjobs_permissions.tpl:226
+msgid "Are you sure you want to force update of the jail?"
+msgstr "Are you sure you want to force update of the jail?"
 
 #: themes/default/view/reseller/cronjobs_permissions.tpl:236
 msgid ""
 "Are you sure you want to revoke the cron job permissions for this customer?"
 msgstr "Are you sure you want to revoke the cron job permissions for this customer?"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:203
+#: themes/default/view/admin/cronjobs_permissions.tpl:214
 msgid ""
 "Are you sure you want to revoke the cron job permissions for this reseller?"
 msgstr "Are you sure you want to revoke the cron job permissions for this reseller?"
@@ -129,12 +148,13 @@ msgstr "Are you sure you want to revoke the cron job permissions for this resell
 #: frontend/client/cronjobs.php:227 frontend/client/cronjobs.php:273
 #: frontend/client/cronjobs.php:343 frontend/client/cronjobs.php:413
 #: frontend/client/cronjobs.php:483 frontend/client/cronjobs.php:643
-#: frontend/client/cronjobs.php:687 frontend/admin/cronjobs_permissions.php:76
-#: frontend/admin/cronjobs_permissions.php:334
-#: frontend/admin/cronjobs_permissions.php:420
-#: frontend/admin/cronjobs_permissions.php:469
-#: frontend/admin/cronjobs_permissions.php:611
-#: frontend/admin/cronjobs_permissions.php:642 frontend/admin/cronjobs.php:203
+#: frontend/client/cronjobs.php:687
+#: frontend/admin/cronjobs_permissions.php:102
+#: frontend/admin/cronjobs_permissions.php:359
+#: frontend/admin/cronjobs_permissions.php:445
+#: frontend/admin/cronjobs_permissions.php:494
+#: frontend/admin/cronjobs_permissions.php:636
+#: frontend/admin/cronjobs_permissions.php:670 frontend/admin/cronjobs.php:203
 #: frontend/admin/cronjobs.php:248 frontend/admin/cronjobs.php:315
 #: frontend/admin/cronjobs.php:382 frontend/admin/cronjobs.php:451
 #: frontend/admin/cronjobs.php:607 frontend/admin/cronjobs.php:641
@@ -147,8 +167,8 @@ msgstr "Are you sure you want to revoke the cron job permissions for this resell
 msgid "Bad request."
 msgstr "Bad request."
 
-#: themes/default/view/client/cronjobs.tpl:258
-#: themes/default/view/admin/cronjobs_permissions.tpl:82
+#: themes/default/view/client/cronjobs.tpl:252
+#: themes/default/view/admin/cronjobs_permissions.tpl:93
 #: themes/default/view/admin/cronjobs.tpl:256
 #: themes/default/view/reseller/cronjobs_permissions.tpl:102
 msgid "Cancel"
@@ -219,7 +239,7 @@ msgstr "Cron job permissions"
 msgid "Cron job permissions were added."
 msgstr "Cron job permissions were added."
 
-#: frontend/admin/cronjobs_permissions.php:404
+#: frontend/admin/cronjobs_permissions.php:429
 msgid "Cron job permissions were removed."
 msgstr "Cron job permissions were removed."
 
@@ -227,7 +247,7 @@ msgstr "Cron job permissions were removed."
 msgid "Cron job permissions were scheduled for revocation."
 msgstr "Cron job permissions were scheduled for revocation."
 
-#: frontend/admin/cronjobs_permissions.php:301
+#: frontend/admin/cronjobs_permissions.php:327
 #: frontend/reseller/cronjobs_permissions.php:323
 msgid "Cron job permissions were updated."
 msgstr "Cron job permissions were updated."
@@ -238,7 +258,7 @@ msgstr "Cron jobs"
 
 #: themes/default/view/admin/cronjobs_permissions.tpl:13
 #: themes/default/view/admin/cronjobs_permissions.tpl:22
-#: themes/default/view/admin/cronjobs_permissions.tpl:66
+#: themes/default/view/admin/cronjobs_permissions.tpl:77
 #: themes/default/view/reseller/cronjobs_permissions.tpl:14
 #: themes/default/view/reseller/cronjobs_permissions.tpl:24
 #: themes/default/view/reseller/cronjobs_permissions.tpl:87
@@ -247,7 +267,7 @@ msgstr "Cron jobs frequency"
 
 #: themes/default/view/admin/cronjobs_permissions.tpl:12
 #: themes/default/view/admin/cronjobs_permissions.tpl:21
-#: themes/default/view/admin/cronjobs_permissions.tpl:49
+#: themes/default/view/admin/cronjobs_permissions.tpl:60
 #: themes/default/view/reseller/cronjobs_permissions.tpl:12
 #: themes/default/view/reseller/cronjobs_permissions.tpl:22
 #: themes/default/view/reseller/cronjobs_permissions.tpl:57
@@ -292,7 +312,7 @@ msgstr "Delete"
 msgid "Edit"
 msgstr "Edit"
 
-#: frontend/admin/cronjobs_permissions.php:567
+#: frontend/admin/cronjobs_permissions.php:592
 #: frontend/reseller/cronjobs_permissions.php:692
 msgid "Edit permissions"
 msgstr "Edit permissions"
@@ -313,11 +333,11 @@ msgstr "Email to which cron notifications must be sent if any. Leave blank to di
 msgid "Enter a customer name"
 msgstr "Enter a customer name"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:44
+#: themes/default/view/admin/cronjobs_permissions.tpl:55
 msgid "Enter a reseller name"
 msgstr "Enter a reseller name"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:59
+#: themes/default/view/admin/cronjobs_permissions.tpl:70
 #: themes/default/view/reseller/cronjobs_permissions.tpl:68
 msgid "Full"
 msgstr "Full"
@@ -332,7 +352,7 @@ msgstr "Hour"
 msgid "Hour at which the cron job must be executed."
 msgstr "Hour at which the cron job must be executed."
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:69
+#: themes/default/view/admin/cronjobs_permissions.tpl:80
 #: themes/default/view/reseller/cronjobs_permissions.tpl:89
 msgid "In minutes"
 msgstr "In minutes"
@@ -366,7 +386,11 @@ msgstr "Invalid notification email."
 msgid "Invalid value for the '%s' field."
 msgstr "Invalid value for the '%s' field."
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:57
+#: frontend/admin/cronjobs_permissions.php:53
+msgid "Jail has been successfully scheduled for update."
+msgstr "Jail has been successfully scheduled for update."
+
+#: themes/default/view/admin/cronjobs_permissions.tpl:68
 #: themes/default/view/reseller/cronjobs_permissions.tpl:65
 msgid "Jailed"
 msgstr "Jailed"
@@ -394,7 +418,7 @@ msgstr "Loading data..."
 msgid "Max. cron jobs"
 msgstr "Max. cron jobs"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:67
+#: themes/default/view/admin/cronjobs_permissions.tpl:78
 #: themes/default/view/reseller/cronjobs_permissions.tpl:87
 msgid "Minimum time interval between each cron job execution."
 msgstr "Minimum time interval between each cron job execution."
@@ -431,12 +455,12 @@ msgstr "Month at which the cron job must be executed."
 msgid "Newbie: Intro to cron"
 msgstr "Newbie: Intro to cron"
 
-#: frontend/admin/cronjobs_permissions.php:305
+#: frontend/admin/cronjobs_permissions.php:331
 #: frontend/reseller/cronjobs_permissions.php:327
 msgid "Nothing has been changed."
 msgstr "Nothing has been changed."
 
-#: frontend/admin/cronjobs_permissions.php:311
+#: frontend/admin/cronjobs_permissions.php:337
 #: frontend/reseller/cronjobs_permissions.php:333
 msgid ""
 "One or many cron jobs which belongs to the reseller's customers are "
@@ -447,7 +471,7 @@ msgstr "One or many cron jobs which belongs to the reseller's customers are curr
 msgid "Parsing error."
 msgstr "Parsing error."
 
-#: frontend/admin/cronjobs_permissions.php:143
+#: frontend/admin/cronjobs_permissions.php:169
 msgid "Permissions were added."
 msgstr "Permissions were added."
 
@@ -455,17 +479,17 @@ msgstr "Permissions were added."
 msgid "Please enter a customer name."
 msgstr "Please enter a customer name."
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:188
+#: themes/default/view/admin/cronjobs_permissions.tpl:199
 msgid "Please enter a reseller name."
 msgstr "Please enter a reseller name."
 
-#: frontend/admin/cronjobs_permissions.php:568
+#: frontend/admin/cronjobs_permissions.php:593
 msgid "Remove permissions"
 msgstr "Remove permissions"
 
-#: themes/default/view/client/cronjobs.tpl:353
-#: themes/default/view/admin/cronjobs_permissions.tpl:229
-#: themes/default/view/admin/cronjobs.tpl:352
+#: themes/default/view/client/cronjobs.tpl:343
+#: themes/default/view/admin/cronjobs_permissions.tpl:251
+#: themes/default/view/admin/cronjobs.tpl:349
 #: themes/default/view/reseller/cronjobs_permissions.tpl:262
 msgid "Request Timeout: The server took too long to send the data."
 msgstr "Request Timeout: The server took too long to send the data."
@@ -476,7 +500,7 @@ msgstr "Reseller / Users / Cron Job Permissions"
 
 #: themes/default/view/admin/cronjobs_permissions.tpl:11
 #: themes/default/view/admin/cronjobs_permissions.tpl:20
-#: themes/default/view/admin/cronjobs_permissions.tpl:43
+#: themes/default/view/admin/cronjobs_permissions.tpl:54
 msgid "Reseller name"
 msgstr "Reseller name"
 
@@ -484,8 +508,8 @@ msgstr "Reseller name"
 msgid "Revoke permissions"
 msgstr "Revoke permissions"
 
-#: themes/default/view/client/cronjobs.tpl:253
-#: themes/default/view/admin/cronjobs_permissions.tpl:79
+#: themes/default/view/client/cronjobs.tpl:247
+#: themes/default/view/admin/cronjobs_permissions.tpl:90
 #: themes/default/view/admin/cronjobs.tpl:251
 #: themes/default/view/reseller/cronjobs_permissions.tpl:99
 msgid "Save"
@@ -526,16 +550,21 @@ msgstr "This is the interface from which you can add your cron jobs."
 msgid "Type"
 msgstr "Type"
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:50
+#: themes/default/view/admin/cronjobs_permissions.tpl:61
 #: themes/default/view/reseller/cronjobs_permissions.tpl:58
 msgid ""
 "Type of allowed cron jobs. Note that the Url cron jobs are always available,"
 " whatever the selected type."
 msgstr "Type of allowed cron jobs. Note that the Url cron jobs are always available, whatever the selected type."
 
-#: themes/default/view/client/cronjobs.tpl:340
-#: themes/default/view/admin/cronjobs_permissions.tpl:216
-#: themes/default/view/admin/cronjobs.tpl:339
+#: frontend/admin/cronjobs_permissions.php:60
+#, php-format
+msgid "Unable to update jail: %s"
+msgstr "Unable to update jail: %s"
+
+#: themes/default/view/client/cronjobs.tpl:330
+#: themes/default/view/admin/cronjobs_permissions.tpl:238
+#: themes/default/view/admin/cronjobs.tpl:336
 #: themes/default/view/reseller/cronjobs_permissions.tpl:249
 msgid "Unknown action."
 msgstr "Unknown action."
@@ -544,7 +573,7 @@ msgstr "Unknown action."
 msgid "Unknown customer. Please enter a valid customer name."
 msgstr "Unknown customer. Please enter a valid customer name."
 
-#: themes/default/view/admin/cronjobs_permissions.tpl:164
+#: themes/default/view/admin/cronjobs_permissions.tpl:175
 msgid "Unknown reseller. Please enter a valid reseller name."
 msgstr "Unknown reseller. Please enter a valid reseller name."
 
@@ -552,9 +581,13 @@ msgstr "Unknown reseller. Please enter a valid reseller name."
 msgid "Unlimited"
 msgstr "Unlimited"
 
+#: themes/default/view/admin/cronjobs_permissions.tpl:37
+msgid "Update Jail"
+msgstr "Update Jail"
+
 #: frontend/client/cronjobs.php:586 frontend/admin/cronjobs.php:550
 #: themes/default/view/client/cronjobs.tpl:128
-#: themes/default/view/admin/cronjobs_permissions.tpl:55
+#: themes/default/view/admin/cronjobs_permissions.tpl:66
 #: themes/default/view/admin/cronjobs.tpl:135
 #: themes/default/view/reseller/cronjobs_permissions.tpl:63
 msgid "Url"
@@ -601,7 +634,7 @@ msgid ""
 "are ignored."
 msgstr "When using a shortcut in the minute time field, all other time/date fields are ignored."
 
-#: frontend/admin/cronjobs_permissions.php:101
+#: frontend/admin/cronjobs_permissions.php:127
 #: frontend/reseller/cronjobs_permissions.php:122
 #: frontend/reseller/cronjobs_permissions.php:391
 msgid ""
@@ -630,7 +663,7 @@ msgid "Your cron jobs limit is reached."
 msgstr "Your cron jobs limit is reached."
 
 #: frontend/client/cronjobs.php:618 frontend/client/cronjobs.php:628
-#: frontend/admin/cronjobs_permissions.php:596 frontend/admin/cronjobs.php:582
+#: frontend/admin/cronjobs_permissions.php:621 frontend/admin/cronjobs.php:582
 #: frontend/admin/cronjobs.php:592
 #: frontend/reseller/cronjobs_permissions.php:725
 msgid "n/a"

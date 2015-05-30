@@ -29,6 +29,17 @@
 			<td colspan="5"><?= self::escapeHtml(tr('Loading data...'));?></td>
 		</tr>
 		</tbody>
+		<!-- BDP: update_jail_block -->
+		<tbody>
+		<tr>
+			<td colspan="5" style="background-color: #b0def5">
+				<div class="buttons">
+					<button title="<?= self::escapeHtmlAttr(tr('Allows to force update of jail in which jailed cron jobs are run. This is needed when you update your system and want also update libraries inside the jail.'));?>" data-action="update_jail"><?= self::escapeHtml(tr('Update Jail'));?></button>
+				</div>
+			</td>
+		</tr>
+		</tbody>
+		<!-- EDP: update_jail_block -->
 	</table>
 	<div>
 		<form name="cron_permissions_frm" id="cron_permissions_frm">
@@ -53,9 +64,9 @@
 					<td>
 						<select name="cron_permission_type" id="cron_permission_type">
 							<option value="url"><?= self::escapeHtml(tr('Url'));?></option>
-							<!-- BDP: cron_permission_jailed -->
+							<!-- BDP: jailed_cronjobs_permission_block -->
 							<option value="jailed"><?= self::escapeHtml(tr('Jailed'));?></option>
-							<!-- EDP: cron_permission_jailed -->
+							<!-- EDP: jailed_cronjobs_permission_block -->
 							<option value="full"><?= self::escapeHtml(tr('Full'));?></option>
 						</select>
 					</td>
@@ -117,7 +128,7 @@
 		};
 
 		$dataTable = $(".datatable").dataTable({
-			language: imscp_i18n.CronJobs.datatable,
+			language: imscp_i18n.CronJobs.dataTable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
@@ -178,11 +189,11 @@
 						case "add_cron_permissions":
 							if($("#admin_name").val() != '') {
 								doRequest("POST", action, $("#cron_permissions_frm").serialize()).done(
-										function (data, textStatus, jqXHR) {
-											$("input:reset").click();
-											flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
-											$dataTable.fnDraw();
-										}
+									function (data, textStatus, jqXHR) {
+										$("input:reset").click();
+										flashMessage((jqXHR.status == 200) ? "success" : "info", data.message);
+										$dataTable.fnDraw();
+									}
 								);
 							} else {
 								flashMessage("error", "<?= self::escapeJs(tr('Please enter a reseller name.'));?>");
@@ -192,26 +203,37 @@
 							doRequest(
 									"GET", "get_cron_permissions", { cron_permission_id: $(this).data("cron-permission-id") }
 							).done(function (data) {
-										$("#admin_name").val(data.admin_name).prop("readonly", true);
-										$("#cron_permission_type").val(data.cron_permission_type);
-										$("#cron_permission_frequency").val(data.cron_permission_frequency);
-										$("#cron_permission_id").val(data.cron_permission_id);
-										$("#cron_permission_admin_id").val(data.cron_permission_admin_id);
-									});
+								$("#admin_name").val(data.admin_name).prop("readonly", true);
+								$("#cron_permission_type").val(data.cron_permission_type);
+								$("#cron_permission_frequency").val(data.cron_permission_frequency);
+								$("#cron_permission_id").val(data.cron_permission_id);
+								$("#cron_permission_admin_id").val(data.cron_permission_admin_id);
+							});
 							break;
 						case "delete_cron_permissions":
 							if (confirm("<?= self::escapeJs(tr('Are you sure you want to revoke the cron job permissions for this reseller?'));?>")) {
-								doRequest(
-										"POST", "delete_cron_permissions", {
-											cron_permission_id: $(this).data('cron-permission-id'),
-											cron_permission_admin_id: $(this).data('cron-permission-admin-id')
-										}
-								).done(function (data) {
-											$dataTable.fnDraw();
-											flashMessage("success", data.message);
-										});
+								doRequest("POST", "delete_cron_permissions", {
+									cron_permission_id: $(this).data('cron-permission-id'),
+									cron_permission_admin_id: $(this).data('cron-permission-admin-id')
+								}).done(function (data) {
+									$dataTable.fnDraw();
+									flashMessage("success", data.message);
+								});
 							}
 							break;
+						<!-- BDP: update_jail_js_block -->
+						case "update_jail":
+							if (confirm("<?= self::escapeJs(tr('Are you sure you want to force update of the jail?'));?>")) {
+								doRequest("POST", "update_jail", { }).done(function (data) {
+									if(data.redirect) {
+										window.location.replace(data.redirect);
+									} else {
+										flashMessage("info", data.message);
+									}
+								});
+							}
+							break;
+						<!-- EDP: update_jail_js_block -->
 						default:
 							flashMessage("error", "<?= self::escapeJs(tr('Unknown action.'));?>");
 					}

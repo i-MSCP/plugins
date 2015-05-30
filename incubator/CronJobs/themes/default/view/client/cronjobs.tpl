@@ -195,14 +195,8 @@
 			this.oApi._fnProcessingDisplay(settings, onoff);
 		};
 
-		/*$("thead :checkbox, tfoot :checkbox").change(
-			function ($e) {
-				$("table :checkbox").prop('checked', $(this).is(':checked'));
-			}
-		);*/
-
 		$dataTable = $(".datatable").dataTable({
-			language: imscp_i18n.CronJobs.datatable,
+			language: imscp_i18n.CronJobs.dataTable,
 			displayLength: 5,
 			processing: true,
 			serverSide: true,
@@ -301,9 +295,8 @@
 						});
 						break;
 					case "edit_cronjob":
-						doRequest(
-							"GET", "get_cronjob", { cron_job_id: $(this).data('cron-job-id') }
-						).done(function (data) {
+						doRequest("GET", "get_cronjob", { cron_job_id: $(this).data('cron-job-id') }).done(
+							function (data) {
 								$("#cron_job_notification").val(data.cron_job_notification);
 								var $cronJobMinute = $("#cron_job_minute").val(data.cron_job_minute);
 								$("#cron_job_hour").val(data.cron_job_hour);
@@ -315,24 +308,21 @@
 								$("#cron_job_id").val(data.cron_job_id);
 								handleTimedateInputs($cronJobMinute.val());
 								$dialog.dialog("open");
-							});
+						});
 						break;
 					case "disable_cronjob":
 					case "enable_cronjob":
-						doRequest(
-							"POST", action, { cron_job_id: $(this).data('cron-job-id') }
-						).done(function (data) {
+						doRequest("POST", action, { cron_job_id: $(this).data('cron-job-id') }).done(function (data) {
 							$dataTable.fnDraw();
 							flashMessage('success', data.message);
 						});
 						break;
 					case "delete_cronjob":
 						if (confirm("<?= self::escapeJs(tr('Are you sure you want to delete this cron job?'));?>")) {
-							doRequest(
-								"POST", action, { cron_job_id: $(this).data('cron-job-id') }
-							).done(function (data) {
-								$dataTable.fnDraw();
-								flashMessage('success', data.message);
+							doRequest("POST", action, { cron_job_id: $(this).data('cron-job-id') }).done(
+								function (data) {
+									$dataTable.fnDraw();
+									flashMessage('success', data.message);
 							});
 						}
 						break;

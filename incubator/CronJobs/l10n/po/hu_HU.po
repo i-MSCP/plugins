@@ -1,22 +1,21 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Laurent Declercq - All rights reserved
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# 
+# Translators:
 msgid ""
 msgstr ""
-"Project-Id-Version: CronJobs 1.2.x\n"
+"Project-Id-Version: CronJobs\n"
 "Report-Msgid-Bugs-To: l.declercq@nuxwin.com\n"
 "POT-Creation-Date: 2015-05-30 23:57+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2015-05-30 22:00+0000\n"
+"Last-Translator: i-MSCP <team@i-mscp.net>\n"
+"Language-Team: Hungarian (Hungary) (http://www.transifex.com/projects/p/cronjobs/language/hu_HU/)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Language: hu_HU\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: frontend/admin/cronjobs_permissions.php:602
 #: frontend/reseller/cronjobs_permissions.php:706
@@ -84,8 +83,8 @@ msgstr ""
 #: themes/default/view/admin/cronjobs_permissions.tpl:37
 msgid ""
 "Allows to force update of jail in which jailed cron jobs are run. This is "
-"needed when you update your system and want also update libraries inside the "
-"jail."
+"needed when you update your system and want also update libraries inside the"
+" jail."
 msgstr ""
 
 #: themes/default/view/admin/cronjobs_permissions.tpl:253
@@ -206,8 +205,8 @@ msgstr ""
 #: themes/default/view/admin/cronjobs.tpl:12
 msgid ""
 "Configuring cron jobs requires distinct knowledge of the crontab syntax on "
-"Unix based systems. More information about this topic can be obtained on the "
-"following webpage:"
+"Unix based systems. More information about this topic can be obtained on the"
+" following webpage:"
 msgstr ""
 
 #: frontend/client/cronjobs.php:328 frontend/admin/cronjobs.php:300
@@ -535,8 +534,8 @@ msgstr ""
 #: themes/default/view/client/cronjobs.tpl:151
 #: themes/default/view/admin/cronjobs.tpl:156
 msgid ""
-"The available shortcuts are: @reboot, @yearly, @annually, @monthly, @weekly, "
-"@daily, @midnight and @hourly"
+"The available shortcuts are: @reboot, @yearly, @annually, @monthly, @weekly,"
+" @daily, @midnight and @hourly"
 msgstr ""
 
 #: themes/default/view/client/cronjobs.tpl:5
@@ -553,8 +552,8 @@ msgstr ""
 #: themes/default/view/admin/cronjobs_permissions.tpl:61
 #: themes/default/view/reseller/cronjobs_permissions.tpl:58
 msgid ""
-"Type of allowed cron jobs. Note that the Url cron jobs are always available, "
-"whatever the selected type."
+"Type of allowed cron jobs. Note that the Url cron jobs are always available,"
+" whatever the selected type."
 msgstr ""
 
 #: frontend/admin/cronjobs_permissions.php:60

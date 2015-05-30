@@ -669,7 +669,7 @@ if(Registry::get('config')->DEBUG) {
 EventManager::getInstance()->registerListener('onGetJsTranslations', function ($e) {
 	/** @var $e \iMSCP_Events_Event */
 	$e->getParam('translations')->CronJobs = array(
-		'datatable' => getDataTablesPluginTranslations(false)
+		'dataTable' => getDataTablesPluginTranslations(false)
 	);
 });
 
