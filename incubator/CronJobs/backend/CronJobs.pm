@@ -38,6 +38,8 @@ use FileHandle;
 use version;
 use parent 'Common::SingletonClass';
 
+my $JAILED_CRONJOBS_SUPPORT = 0;
+
 =head1 DESCRIPTION
 
  CronJobs plugin (backend side).
@@ -58,7 +60,7 @@ sub install
 {
 	my $self = shift;
 
-	if($self->{'config'}->{'jailed_cronjobs_support'}) {
+	if($JAILED_CRONJOBS_SUPPORT) {
 		my $rs = _checkRequirements();
 		return $rs if $rs;
 
@@ -92,7 +94,7 @@ sub uninstall
 {
 	my $self = shift;
 
-	if($self->{'config'}->{'jailed_cronjobs_support'}) {
+	if($JAILED_CRONJOBS_SUPPORT) {
 		my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ) };
 		if($@) {
 			error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
@@ -173,7 +175,7 @@ sub change
 		$rs = $self->run();
 		return $rs if $rs;
 
-		if($self->{'config'}->{'jailed_cronjobs_support'}) {
+		if($JAILED_CRONJOBS_SUPPORT) {
 			my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config_prev'} ) };
 			if($@) {
 				error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
@@ -347,16 +349,12 @@ sub _init
 			defined $InstantSSH::JailBuilder::VERSION &&
 			version->parse($InstantSSH::JailBuilder::VERSION) >= version->parse('3.2.0')
 		) {
-			$self->{'config'}->{'jailed_cronjobs_support'} = 1;
+			$JAILED_CRONJOBS_SUPPORT = 1;
 
 			for my $param(qw/makejail_path makejail_confdir_path root_jail_dir/) {
 				die(sprintf("Parameter %s is missing", $param)) unless exists $self->{'config'}->{$param};
 			}
-		} else {
-			$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 		}
-	} else {
-		$self->{'config'}->{'jailed_cronjobs_support'} = 0;
 	}
 
 	$self;
@@ -444,10 +442,7 @@ sub _writeCronTable
 	}
 
 	if(@cronjobs) {
-		if(
-			$self->{'config'}->{'jailed_cronjobs_support'} &&
-			($cronPermissionType eq 'jailed' || $cronPermissionType ne 'none')
-		) {
+		if($JAILED_CRONJOBS_SUPPORT && ($cronPermissionType eq 'jailed' || $cronPermissionType ne 'none')) {
 			my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ) };
 			if($@) {
 				error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));
@@ -485,7 +480,7 @@ sub _writeCronTable
 			}
 		}
 	} else {
-		if($self->{'config'}->{'jailed_cronjobs_support'} && $cronPermissionType ne 'none') {
+		if($JAILED_CRONJOBS_SUPPORT && $cronPermissionType ne 'none') {
 			my $jailBuilder = eval { InstantSSH::JailBuilder->new( id => 'jail', config => $self->{'config'} ) };
 			if($@) {
 				error(sprintf('Unable to create InstantSSH::JailBuilder object: %s', $@));

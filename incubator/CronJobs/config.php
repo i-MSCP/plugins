@@ -19,35 +19,38 @@
  */
 
 $config = iMSCP_Registry::get('config');
-
-/** @var iMSCP_Plugin_Manager $pluginManager */
-$pluginManager = iMSCP_Registry::get('pluginManager');
+$pluginDirectory = iMSCP_Registry::get('pluginManager')->pluginGetDirectory();
 
 return array(
-	// Path to the crontab command ( default: /usr/bin/crontab )
+	// Path to the crontab command (default: /usr/bin/crontab)
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'crontab_cmd_path' => '/usr/bin/crontab',
 
-	// Path to crontab directory ( default: /var/spool/cron/crontabs )
+	// Path to crontab directory (default: /var/spool/cron/crontabs)
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'crontab_dir' => '/var/spool/cron/crontabs',
 
-	// Root jail directory ( default: /var/chroot/CronJobs )
+	// Root jail directory (default: /var/chroot/CronJobs)
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jail.
 	//
-	// Warning: If you are changing this path, don't forget to move the jail in the new location, and also to edit the
-	// path from the config/etc/rsyslog.d/imscp_cronjobs_plugin.conf template file.
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'root_jail_dir' => '/var/chroot/CronJobs',
 
-	// Makejail configuration directory ( default: <CONF_DIR>/CronJobs )
-	// Don't change this parameter unless you know what you are doing.
+	// Makejail configuration directory (default: <CONF_DIR>/CronJobs)
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'makejail_confdir_path' => $config['CONF_DIR'] . '/CronJobs',
 
 	// Makejail script path
-	// Don't change this parameter unless you know what you are doing.
-	'makejail_path' => $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/makejail',
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
+	'makejail_path' => $pluginDirectory . '/InstantSSH/bin/makejail',
 
-	// Preserved files ( default: <USER_WEB_DIR> )
+	// Preserved files (default: <USER_WEB_DIR>)
 	//
 	// The plugin won't try to remove files or directories inside jail if their path begins with one of the strings in
 	// this list.
@@ -63,15 +66,15 @@ return array(
 	// jail
 	'include_pkg_deps' => false,
 
-	// Application sections ( default: 'bashshell', 'cron', 'netutils', 'mysqltools', 'php' )
+	// Application sections (default: 'bashshell', 'cron', 'netutils', 'mysqltools', 'php')
 	//
-	// This is the list of application sections which are used to create/update the jails ( see below ).
+	// This is the list of application sections which are used to create/update the jail (see below).
 	'app_sections' => array(
 		'bashshell', 'cron', 'netutils', 'mysqltools', 'php'
 	),
 
 	// Application sections definitions
-	// See the InstantSSH configuration file for more details.
+	// See the InstantSSH plugin configuration file for more details.
 
 	// common files for jails that need user/group information
 	'uidbasics' => array(
@@ -108,10 +111,10 @@ return array(
 			'/dev/log'
 		),
 		'create_sys_commands_args' => array(
-			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/syslogproxyd add'
+			'perl ' . $pluginDirectory . '/InstantSSH/bin/syslogproxyd add'
 		),
 		'destroy_sys_commands_args' => array(
-			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/syslogproxyd remove'
+			'perl ' . $pluginDirectory . '/InstantSSH/bin/syslogproxyd remove'
 		)
 	),
 
@@ -138,25 +141,30 @@ return array(
 				'group' => 'root',
 				'mode' => 01777
 			),
-			/*'/var/log' => array(
+			'/var/log' => array(
 				'user' => 'root',
 				'group' => 'root',
 				'mode' => 0755
-			)*/
+			)
 		),
 		'jail_copy_file_to' => array(
-			$pluginManager->pluginGetDirectory() . '/InstantSSH/config/etc/profile' => '/etc/profile'
+			$pluginDirectory . '/InstantSSH/config/etc/profile' => '/etc/profile'
 		),
 		'include_app_sections' => array(
-			'uidbasics', 'logbasics'
+			'uidbasics', 'logbasics', 'terminfo'
 		),
 		'devices' => array(
-			'/dev/null',
-			'/dev/random',
-			'/dev/urandom',
-			'/dev/zero'
+			'/dev/null', '/dev/ptmx', '/dev/random', '/dev/urandom', '/dev/zero'
 		),
-		/*'fstab' => array(
+		'fstab' => array(
+			array(
+				'file_system' => 'devpts',
+				'mount_point' => '/dev/pts',
+				'type' => 'devpts',
+				'options' => 'gid=5,mode=620',
+				'dump' => '0',
+				'pass' => '0'
+			),
 			array(
 				'file_system' => 'proc',
 				'mount_point' => '/proc',
@@ -172,11 +180,19 @@ return array(
 				'options' => 'defaults',
 				'dump' => '0',
 				'pass' => '0'
+			),
+			array(
+				'file_system' => '/var/log/lastlog',
+				'mount_point' => '/var/log/lastlog',
+				'type' => 'auto',
+				'options' => 'bind',
+				'dump' => '0',
+				'pass' => '0'
 			)
 		),
-		*/
 		'destroy_sys_commands_args' => array(
-			'perl ' . $pluginManager->pluginGetDirectory() . '/InstantSSH/bin/dovecot_rm_mount ' . $config['USER_WEB_DIR'] . '/*'
+			'perl ' . $pluginDirectory . '/InstantSSH/bin/dovecot_rm_mount /var/log/lastlog',
+			'perl ' . $pluginDirectory . '/InstantSSH/bin/dovecot_rm_mount ' . $config['USER_WEB_DIR'] . '/*'
 		)
 	),
 
@@ -193,7 +209,56 @@ return array(
 		)
 	),
 
-	// MySQL command-line tools ( mysql, mysqldump )
+	// ssh secure copy
+	'scp' => array(
+		'paths' => array(
+			'scp'
+		),
+		'include_app_sections' => array(
+			'netbasics'
+		),
+		'devices' => array(
+			'/dev/urandom'
+		)
+	),
+
+	// ssh secure ftp
+	'sftp' => array(
+		'paths' => array(
+			'sftp', '/usr/lib/sftp-server', '/usr/lib/openssh/sftp-server'
+		),
+		'include_app_sections' => array(
+			'netbasics'
+		),
+		'devices' => array(
+			'/dev/urandom', '/dev/null'
+		)
+	),
+
+	// ssh secure shell
+	'ssh' => array(
+		'paths' => array(
+			'ssh'
+		),
+		'include_app_sections' => array(
+			'netbasics'
+		),
+		'devices' => array(
+			'/dev/urandom', '/dev/tty', '/dev/null'
+		)
+	),
+
+	// rsync
+	'rsync' => array(
+		'paths' => array(
+			'rsync'
+		),
+		'include_app_sections' => array(
+			'uidbasics', 'netbasics'
+		)
+	),
+
+	// MySQL command-line tools (mysql, mysqldump)
 	'mysqltools' => array(
 		'paths' => array(
 			'mysql', 'mysqldump', '/lib/libgcc_s.so.1', '/lib/i386-linux-gnu/libgcc_s.so.1', '/lib64/libgcc_s.so.1',
@@ -207,7 +272,14 @@ return array(
 			)
 		),
 		'jail_copy_file_to' => array(
-			$pluginManager->pluginGetDirectory() . '/InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
+			$pluginDirectory . '/InstantSSH/config/etc/mysql/my.cnf' => '/etc/mysql/my.cnf'
+		)
+	),
+
+	// terminfo databases
+	'terminfo' => array(
+		'paths' => array(
+			'/etc/terminfo', '/lib/terminfo', '/usr/share/terminfo'
 		)
 	),
 
@@ -221,7 +293,7 @@ return array(
 		)
 	),
 
-	// msmtp ( light SMTP client with support for server profiles )
+	// msmtp (light SMTP client with support for server profiles)
 	'msmtp' => array(
 		'paths' => array(
 			'/etc/aliases', 'msmtp'
@@ -238,7 +310,7 @@ return array(
 	// cron
 	'cron' => array(
 		'paths' => array(
-			 'cron'
+			'cron'
 		),
 		'include_app_sections' => array(
 			'msmtp'

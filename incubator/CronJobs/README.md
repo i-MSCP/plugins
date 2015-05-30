@@ -32,12 +32,12 @@ You can install this package by executing the following command:
 # aptitude update && aptitude install msmtp
 ```
 
-**Notes**
-  - The msmtp package is required to allow cron to send email notifications from the jailed environment
+**Note**
+ - The msmtp package is required to allow cron to send email notifications from the jailed environment
 
 ## Installation
 
-1.Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are meets
 2. Install the InstantSSH plugin if you want jailed cron jobs support
 3. Upload the plugin through the plugin management interface
 4. Install the plugin through the plugin management interface
@@ -92,9 +92,8 @@ jobs cannot broke the whole system.
 
 #### Availability
 
-The jailed cron jobs are available only when the [InstantSSH](../InstantSSH/README.md) plugin is also present on the
-system, whatever it is activated or not. The CronJobs plugin reuses the jail builder library which is provided by the
-InstantSSH plugin to manage the jailed environment.
+The jailed cron jobs are available only when the [InstantSSH](../InstantSSH/README.md) plugin is also installed. This
+plugin reuses the jail builder library which is provided by the InstantSSH plugin to manage the jailed environment.
 
 The jailed cron jobs doesn't apply to administrators.
 
