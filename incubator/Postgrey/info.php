@@ -21,11 +21,11 @@
 return array(
 	'author' => 'Laurent Declercq',
 	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.0.0',
+	'version' => '1.1.0',
 	'require_api' => '1.0.0',
-	'date' => '2015-02-24',
+	'date' => '2015-05-31',
 	'name' => 'Postgrey',
-	'desc' => 'Plugin which allows to run Postgrey policy server for Postfix with i-MSCP.',
+	'desc' => 'Plugin which allows to run postgrey policy server for Postfix.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:postgrey',
 	'priority' => 10
 );

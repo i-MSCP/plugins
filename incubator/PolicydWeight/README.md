@@ -1,6 +1,6 @@
 # i-MSCP PolicydWeight plugin v1.0.0
 
-Plugin which allows to run policyd-weight policy daemon for Postfix with i-MSCP.
+Plugin which allows to run policyd-weight policy daemon for Postfix.
 
 ## Introduction
 

@@ -23,8 +23,8 @@ return array(
 	'email' => 'l.declercq@nuxwin.com',
 	'version' => '0.0.0',
 	'require_api' => '1.0.0',
-	'date' => '2015-02-24',
+	'date' => '2015-05-31',
 	'name' => 'PolicydWeight',
-	'desc' => 'Plugin which allows to run policyd-weight policy daemon for Postfix with i-MSCP.',
+	'desc' => 'Plugin which allows to run policyd-weight policy daemon for Postfix.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
 );

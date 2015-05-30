@@ -1,6 +1,6 @@
 # i-MSCP Postgrey plugin v1.1.0
 
-Plugin which allows to run Postgrey policy server for Postfix with i-MSCP.
+Plugin which allows to run postgrey policy server for Postfix.
 
 ## Introduction
 
