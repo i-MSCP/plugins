@@ -81,12 +81,18 @@ return array(
 	//
 	// Full path to the root jail directory. Be sure that the partition in which this directory is living has enough
 	// space to host the jails.
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'root_jail_dir' => '/var/chroot/InstantSSH',
 
 	// Makejail script path
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'makejail_path' => __DIR__ . '/bin/makejail',
 
 	// Makejail configuration directory (default: <CONF_DIR>/InstantSSH)
+	//
+	// WARNING: Don't change this parameter unless you know what you are doing.
 	'makejail_confdir_path' => $config['CONF_DIR'] . '/InstantSSH',
 
 	// Shared jail (default: true)

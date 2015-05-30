@@ -17,6 +17,7 @@ Version 3.2.0
 	Changed: Default jailed shell is now bash ( previously it was ash )
 	Changed: Directories are now copied recursively ( paths application section option )
 	Changed: Relative paths are now resolved using the PATH environment variable ( paths applications section option )
+	Fixed: Missing check for included application sections (error must be raised if a section is not defined)
 	Fixed: Missing libgcc_s.so.1 shared library in some environments ( mysqltools application section )
 	Fixed: Plugin configuration should be lazy-loaded
 	Fixed: Wrong mount point passed to doveadm ( Dovecot )

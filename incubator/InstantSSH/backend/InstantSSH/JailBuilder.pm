@@ -25,21 +25,16 @@ package InstantSSH::JailBuilder;
 
 use strict;
 use warnings;
-
 no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::Rights;
-
 use InstantSSH::JailBuilder::Utils qw(copyDevice normalizePath);
-
 use File::Basename;
 use File::umask;
 use List::MoreUtils qw(uniq);
-
 use parent 'Common::Object';
 
 our $VERSION = '3.2.0';
@@ -66,9 +61,9 @@ environments.
 
 sub makeJail
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my ($cfg, $jailId) = ($self->{'config'}, $self->{'id'});
+	my ($config, $jailId) = ($self->{'config'}, $self->{'id'});
 
 	#  Create the jail directory if it doesn't already exists or set it permissions
 	my $rs = iMSCP::Dir->new( dirname => $self->{'jailCfg'}->{'chroot'} )->make(
@@ -91,7 +86,7 @@ sub makeJail
 	# Create/update jail
 	my $stderr;
 	$rs = execute(
-		"python $cfg->{'makejail_path'} $cfg->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
+		"python $config->{'makejail_path'} $config->{'makejail_confdir_path'}/$jailId.py 1> /dev/null", undef, \$stderr
 	);
 	error($stderr) if $rs && $stderr;
 	error('Unable to create/update jail for unknown reason') if $rs && !$stderr;
@@ -113,11 +108,11 @@ sub makeJail
 					);
 					return $rs if $rs;
 				} else {
-					error("Values for the directory paths defined in the create_dirs option must be an associative array");
+					error('Values for the directory paths defined in the create_dirs option must be an associative array');
 					return 1;
 				}
 			} else {
-				error("Directory paths defined in the create_dirs option must be absolute");
+				error('Directory paths defined in the create_dirs option must be absolute');
 				return 1;
 			}
 		}
@@ -128,7 +123,7 @@ sub makeJail
 				$rs = iMSCP::File->new( filename => $src )->copyFile($dst, { preserve => 'no' });
 				return $rs if $rs;
 			} else {
-				error("Any file path defined in the sys_copy_file_to option must be absolute");
+				error('Any file path defined in the sys_copy_file_to option must be absolute');
 				return 1;
 			}
 		}
@@ -141,7 +136,7 @@ sub makeJail
 				);
 				return $rs if $rs;
 			} else {
-				error("Any file path defined in the jail_copy_file_to option must be absolute");
+				error('Any file path defined in the jail_copy_file_to option must be absolute');
 				return 1;
 			}
 		}
@@ -153,7 +148,7 @@ sub makeJail
 			eval { copyDevice($self->{'jailCfg'}->{'chroot'}, $devicePath); };
 
 			if($@) {
-				error("Unable to create device within jail: $@");
+				error(sprintf('Unable to create device within jail: %s', $@));
 				return 1;
 			}
 		}
@@ -192,11 +187,11 @@ sub makeJail
 				);
 				return $rs if $rs;
 			} else {
-				error("Wrong file system or mount point defined in fstab option");
+				error('Wrong file system or mount point defined in fstab option');
 				return 1;
 			}
 		} else {
-			error("Missing value in fstab option");
+			error('Missing value in fstab option');
 			return 1;
 		}
 	}
@@ -252,9 +247,9 @@ sub makeJail
 
 sub removeJail
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my ($cfg, $jailId) = ($self->{'config'}, $self->{'id'});
+	my ($config, $jailId) = ($self->{'config'}, $self->{'id'});
 
 	# Umount any directory which is mounted within jail
 	my $rs = $self->umount($self->{'jailCfg'}->{'chroot'});
@@ -265,8 +260,8 @@ sub removeJail
 	return $rs if $rs;
 
 	# Remove jail configuration file if any
-	if(-f "$cfg->{'makejail_confdir_path'}/$jailId.py") {
-		$rs = iMSCP::File->new( filename => "$cfg->{'makejail_confdir_path'}/$jailId.py" )->delFile();
+	if(-f "$config->{'makejail_confdir_path'}/$jailId.py") {
+		$rs = iMSCP::File->new( filename => "$config->{'makejail_confdir_path'}/$jailId.py" )->delFile();
 		return $rs if $rs;
 	}
 
@@ -324,7 +319,9 @@ sub removeJail
 
 sub existsJail
 {
-	(-d $_[0]->{'jailCfg'}->{'chroot'});
+	my $self = shift;
+
+	(-d $self->{'jailCfg'}->{'chroot'});
 }
 
 =item jailUser($user [, $shell = system user shell ])
@@ -343,19 +340,19 @@ sub jailUser
 
 	my @pwEntry = getpwnam($user);
 	unless(@pwEntry) {
-		error("Unable to find $user unix user");
+		error(sprintf('Unable to find %s unix user', $user));
 		return 1;
 	}
 
 	my $group = getgrgid($pwEntry[3]);
 	unless(defined $group) {
-		error("Unable to find $user unix user group");
+		error(sprintf("Unable to find %s unix user group", $user));
 		return 1;
 	}
 
 	my $homeDir = $pwEntry[7];
 	unless(defined $homeDir) {
-		error("Unable to find $user unix user homedir");
+		error(sprintf('Unable to find %s unix user homedir', $user));
 		return 1;
 	}
 
@@ -375,11 +372,11 @@ sub jailUser
 		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
+			error(sprintf('Unable to read %s file', $file->{'filename'}));
 			return 1;
 		}
 
-		debug("Adding '$user' entry in $securityChrootCfgFile");
+		debug(sprintf("Adding '%s' entry in %s", $user, $securityChrootCfgFile));
 
 		my $userReg = quotemeta($user);
 		$fileContent =~ s/^$userReg\s+.*\n//gm;
@@ -391,7 +388,7 @@ sub jailUser
 		$rs = $file->save();
 		return $rs if $rs;
 	} else {
-		error("File $securityChrootCfgFile not found");
+		error(sprintf('File %s not found', $securityChrootCfgFile));
 		return 1;
 	}
 
@@ -440,13 +437,13 @@ sub unjailUser
 
 	my @pwEntry = getpwnam($user);
 	unless(@pwEntry) {
-		error("Unable to find $user unix user");
+		error(sprintf('Unable to find %s unix user', $user));
 		return 1;
 	}
 
 	my $homeDir = $pwEntry[7];
 	unless(defined $homeDir) {
-		error("Unable to find $user unix user homedir");
+		error(sprintf('Unable to find %s unix user homedir', $user));
 		return 1;
 	}
 
@@ -473,7 +470,7 @@ sub unjailUser
 			my $group = getgrgid($pwEntry[3]);
 
 			unless(defined $group) {
-				error("Unable to find $user unix user group");
+				error(sprintf('Unable to find %s unix user group', $user));
 				return 1;
 			}
 
@@ -494,11 +491,11 @@ sub unjailUser
 		my $file = iMSCP::File->new( filename => $securityChrootCfgFile );
 		my $fileContent = $file->get();
 		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
+			error(sprintf('Unable to read %s file', $file->{'filename'}));
 			return 1;
 		}
 
-		debug("Removing '$user' entry from $securityChrootCfgFile");
+		debug(sprintf("Removing '%s' entry from %s", $user, $securityChrootCfgFile));
 
 		my $userReg = quotemeta($user);
 		$fileContent =~ s/^$userReg\s+.*\n//gm;
@@ -546,11 +543,11 @@ sub addPasswdFile
 							my @sysLineFields = split ':', $sysLine;
 
 							if(defined $sysLineFields[6]) {
-								debug("Adding '$what' user into $dest");
+								debug(sprintf("Adding '%s' user into %s", $what, $dest));
 								$sysLineFields[5] = normalizePath($sysLineFields[5]);
 								$sysLineFields[6] = $shell . "\n" if defined $shell;
 							} else {
-								debug("Adding '$what' group into $dest");
+								debug(sprintf("Adding '%s' group into %s", $what, $dest));
 							}
 
 							print $fh join ':', @sysLineFields;
@@ -561,11 +558,11 @@ sub addPasswdFile
 
 				close $fh;
 			} else {
-				error("Unable to open file for writing: $!");
+				error(sprintf('Unable to open file for writing: %s', $!));
 				return 1;
 			}
 		} else {
-			error("Unable to open file for reading: $!");
+			error(sprintf('Unable to open file for reading: %s', $!));
 			return 1;
 		}
 	}
@@ -595,18 +592,18 @@ sub removePasswdFile
 			close $fh;
 
 			if(open $fh, '>', $dest) {
-				debug("Removing '$what' user/group from $dest");
+				debug(sprintf("Removing '%s' user/group from %s", $what, $dest));
 
 				$what = quotemeta($what);
 				@jailLines = grep $_ !~ /^$what:.*/s, @jailLines;
 				print $fh join '', @jailLines;
 				close $fh;
 			} else {
-				error("Unable to open file for writing: $!");
+				error(sprintf('Unable to open file for writing: %s', $!));
 				return 1;
 			}
 		} else {
-			error("Unable to open file for reading: $!");
+			error(sprintf('Unable to open file for reading: %s', $!));
 			return 1;
 		}
 	}
@@ -630,11 +627,11 @@ sub addFstabEntry
 	my $file = iMSCP::File->new( filename => $fstabFile );
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
+		error(sprintf('Unable to read %s file', $file->{'filename'}));
 		return 1;
 	}
 
-	debug("Adding '$entry' entry in $fstabFile");
+	debug(sprintf("Adding '%s' entry in %s", $entry, $fstabFile));
 
 	my $entryReg = quotemeta($entry);
 	$fileContent =~ s/^$entryReg\n//gm;
@@ -662,11 +659,11 @@ sub removeFstabEntry
 	my $file = iMSCP::File->new( filename => $fstabFile );
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
+		error(sprintf('Unable to read %s file', $file->{'filename'}));
 		return 0;
 	}
 
-	debug("Removing any entry matching with '$entry' from $fstabFile");
+	debug(sprintf("Removing any entry matching with '%s' from %s", $entry, $fstabFile));
 
 	my $regexp = (ref $entry eq 'Regexp') ? $entry : quotemeta($entry);
 	$fileContent =~ s/^$regexp\n//gm;
@@ -783,7 +780,7 @@ sub umount
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	$self->{'jailCfg'} = {
 		chroot => '',
@@ -843,7 +840,7 @@ sub _init
 		die("InstantSSH::JailBuilder: Missing or wrong id parameter");
 	}
 
-	$self->_extractJailConf() == 0 or die("InstantSSH::JailBuilder: Unable to extract jail configuration");
+	($self->_extractJailConf() == 0) or die("InstantSSH::JailBuilder: Unable to extract jail configuration");
 
 	$self;
 }
@@ -856,15 +853,15 @@ sub _init
 
 =cut
 
-sub _extractJailConf()
+sub _extractJailConf
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	if(exists $self->{'config'}->{'preserve_files'}) {
 		if(ref $self->{'config'}->{'preserve_files'} eq 'ARRAY') {
 			@{$self->{'jailCfg'}->{'preserve_files'}} = @{$self->{'config'}->{'preserve_files'}};
 		} else {
-			error("The preserve_files option must be an array");
+			error('The preserve_files option must be an array');
 			return 1;
 		}
 	}
@@ -879,19 +876,94 @@ sub _extractJailConf()
 				if(exists $self->{'config'}->{$section}) {
 					$self->_handleAppSection($self->{'config'}, $section);
 				} else {
-					error("The $section application section doesn't exists");
+					error(sprintf("The %s application section doesn't exists", $section));
 					return 1;
 				}
 			}
 
 			undef $self->{'_app_sections'};
 		} else {
-			error("The app_sections option must be an array");
+			error('The app_sections option must be an array');
 			return 1;
 		}
 	} else {
 		error('The app_sections option is not defined');
 		return 1;
+	}
+
+	0;
+}
+
+=item _handleAppSection(\%config, $section)
+
+ Handle application section
+
+ Param hash \%config Hash containing Jail configuration parameters
+ Param string $section Applications section name
+ Return int 0 on success, 1 on failure
+
+=cut
+
+sub _handleAppSection
+{
+	my ($self, $config, $section) = @_;
+
+	# Handle included application sections
+
+	if(exists $config->{$section}->{'include_app_sections'}) {
+		if(ref $config->{$section}->{'include_app_sections'} eq 'ARRAY') {
+			for my $includedAppSection(@{$config->{$section}->{'include_app_sections'}}) {
+				if(not grep $_ eq $includedAppSection, @{$self->{'_app_sections'}}) {
+					if(exists $self->{'config'}->{$section}) {
+						$self->_handleAppSection($config, $includedAppSection);
+						push @{$self->{'_app_sections'}}, $includedAppSection;
+					} else {
+						error(sprintf("The %s application section doesn't exists", $section));
+						return 1;
+					}
+				}
+			}
+		} else {
+			error('The include_app_sections option must be an array');
+			return 1;
+		}
+	}
+
+	# Handle list options from application section
+
+	for my $option(
+		qw/
+			paths packages discard_packages users groups preserve_files devices fstab create_sys_commands
+			create_sys_commands_args destroy_sys_commands destroy_sys_commands_args create_jail_commands
+			create_jail_commands_args destroy_jail_commands destroy_jail_commands_args
+		/
+	) {
+		if(exists $config->{$section}->{$option}) {
+			if(ref $config->{$section}->{$option} eq 'ARRAY') {
+				for my $item(@{$config->{$section}->{$option}}) {
+					push @{$self->{'jailCfg'}->{$option}}, $item;
+				}
+
+				@{$self->{'jailCfg'}->{$option}} = uniq(@{$self->{'jailCfg'}->{$option}});
+			} else {
+				error(sprintf('The %s option must be an array', $option));
+				return 1;
+			}
+		}
+	}
+
+	# Handle key/value pairs options from application section
+	for my $option(qw/create_dirs sys_copy_file_to jail_copy_file_to/) {
+		if(exists $config->{$section}->{$option}) {
+			if(ref $config->{$section}->{$option} eq 'HASH') {
+				while(my ($key, $value) = each(%{$config->{$section}->{$option}})) {
+					$self->{'jailCfg'}->{$option}->{$key} = $value;
+				}
+			} else {
+				error(sprintf('The %s option must be a hash', $option));
+				return 1;
+			}
+		}
 	}
 
 	0;
@@ -907,7 +979,7 @@ sub _extractJailConf()
 
 sub _buildMakejailCfgfile
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $fileContent = "# File auto-generated by i-MSCP InstantSSH plugin\n";
 	$fileContent .= "# Do not edit it manually\n\n";
@@ -968,76 +1040,6 @@ sub _buildMakejailCfgfile
 	return $rs if $rs;
 
 	$file->mode(0640);
-}
-
-=item _handleAppSection(\%config, $section)
-
- Handle application section
-
- Param hash \%config Hash containing Jail configuration options
- Param string $section Applications section definition
- Return int 0 on success, 1 on failure
-
-=cut
-
-sub _handleAppSection()
-{
-	my ($self, $cfg, $section) = @_;
-
-	# Handle included application sections
-
-	if(exists $cfg->{$section}->{'include_app_sections'}) {
-		if(ref $cfg->{$section}->{'include_app_sections'} eq 'ARRAY') {
-			for my $includedAppSection(@{$cfg->{$section}->{'include_app_sections'}}) {
-				if(not grep $_ eq $includedAppSection, @{$self->{'_app_sections'}}) {
-					$self->_handleAppSection($cfg, $includedAppSection);
-					push @{$self->{'_app_sections'}}, $includedAppSection;
-				}
-			}
-		} else {
-			error('The include_app_sections option must be an array');
-			return 1;
-		}
-	}
-
-	# Handle list options from application section
-
-	for my $option(
-		qw/
-			paths packages discard_packages users groups preserve_files devices fstab
-			create_sys_commands create_sys_commands_args destroy_sys_commands destroy_sys_commands_args
-			create_jail_commands create_jail_commands_args destroy_jail_commands destroy_jail_commands_args
-		/
-	) {
-		if(exists $cfg->{$section}->{$option}) {
-			if(ref $cfg->{$section}->{$option} eq 'ARRAY') {
-				for my $item(@{$cfg->{$section}->{$option}}) {
-					push @{$self->{'jailCfg'}->{$option}}, $item;
-				}
-
-				@{$self->{'jailCfg'}->{$option}} = uniq(@{$self->{'jailCfg'}->{$option}});
-			} else {
-				error("The $option option must be an array");
-				return 1;
-			}
-		}
-	}
-
-	# Handle key/value pairs options from application section
-	for my $option(qw/ create_dirs sys_copy_file_to jail_copy_file_to /) {
-		if(exists $cfg->{$section}->{$option}) {
-			if(ref $cfg->{$section}->{$option} eq 'HASH') {
-				while(my ($key, $value) = each(%{$cfg->{$section}->{$option}})) {
-					$self->{'jailCfg'}->{$option}->{$key} = $value;
-				}
-			} else {
-				error("The $option option must be a hash");
-				return 1;
-			}
-		}
-	}
-
-	0;
 }
 
 =back
