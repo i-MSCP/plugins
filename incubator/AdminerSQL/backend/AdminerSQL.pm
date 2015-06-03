@@ -54,7 +54,7 @@ my $ADMINER_VERSION = '4.2.1';
 
 =cut
 
-sub enable()
+sub enable
 {
 	my $self = $_[0];
 
@@ -139,7 +139,7 @@ sub enable()
 
 =cut
 
-sub disable()
+sub disable
 {
 	my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
 	return $rs if $rs;
