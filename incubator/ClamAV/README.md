@@ -18,7 +18,7 @@ Plugin which allows to use ClamAV with i-MSCP.
 You can install these packages by running the following commands:
 
 ```bash
-# aptitude update && nstall clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
+# aptitude update && aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
 # service clamav-freshclam stop
 # freshclam
 # service clamav-freshclam start

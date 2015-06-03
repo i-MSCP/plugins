@@ -831,7 +831,7 @@ sub _roundcubePlugins
 
 	if($action eq 'add') {
 		my ($stdout, $stderr);
-		my $rs = execute("cp -fR pluginsSrcDir/* $pluginDestDir/", \$stdout, \$stderr);
+		my $rs = execute("cp -fR $pluginsSrcDir/* $pluginDestDir/", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
