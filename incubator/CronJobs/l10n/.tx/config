@@ -1,8 +1,0 @@
-[main]
-host = https://www.transifex.com
-
-[cronjobs.cronjobspot]
-file_filter = po/<lang>.po
-source_file = CronJobs.pot
-source_lang = en
-type = PO

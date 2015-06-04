@@ -1,3 +1,0 @@
-2012-05-17	Martin Crossley	<mjcross@users.sf.net>
-
-* configure (all) build system updated to use GNU Autotools (autoconf, automake, ...)
