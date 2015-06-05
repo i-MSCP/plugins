@@ -25,7 +25,7 @@ return array(
 		'Sascha Bay'
 	),
 	'email' => 'plugins@i-mscp.net',
-	'version' => '1.1.2',
+	'version' => '1.2.0',
 	'require_api' => '1.0.0',
 	'date' => '2015-02-12',
 	'name' => 'Monitorix',
