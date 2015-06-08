@@ -557,7 +557,8 @@ sub _postfixConfig
 	return $rs if $rs;
 
 	# Extract postconf values
-	my @postconfValues = split "\n", $stdout;
+	my @postconfValues = split /\n/, $stdout;
+	@postconfValues = ('') unless @postconfValues;
 
 	(my $milterSocket = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 

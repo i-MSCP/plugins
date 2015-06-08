@@ -27,9 +27,9 @@ return array(
 		'Rene Schuster'
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '1.0.0',
+	'version' => '1.0.1',
 	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
+	'date' => '2015-06-08',
 	'name' => 'OpenDKIM',
 	'desc' => 'Plugin which provides an OpenDKIM implementation for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'

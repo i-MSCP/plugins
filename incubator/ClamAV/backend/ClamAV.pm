@@ -32,14 +32,13 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::Execute;
-use iMSCP::Service;
 use iMSCP::TemplateParser;
 use Servers::mta;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provides the backend part for the i-MSCP ClamAV plugin.
+ i-MSCP ClamAV plugin backend.
 
 =head1 PUBLIC METHODS
 
@@ -60,17 +59,13 @@ sub enable
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	$rs = $self->_clamavMilter('configure');
+	$rs = $self->_setupClamavMilter('configure');
 	return $rs if $rs;
 
-	$rs = $self->_postfix('configure');
+	$rs = $self->_setupPostfix('configure');
 	return $rs if $rs;
 
-	iMSCP::Service->getInstance()->restart('clamav-milter');
-
-	Servers::mta->factory()->{'restart'} = 'yes';
-
-	0;
+	$self->_restartServices();
 }
 
 =item disable()
@@ -85,17 +80,13 @@ sub disable
 {
 	my $self = $_[0];
 
-	my $rs = $self->_clamavMilter('deconfigure');
+	my $rs = $self->_setupClamavMilter('deconfigure');
 	return $rs if $rs;
 
-	$rs = $self->_postfix('deconfigure');
+	$rs = $self->_setupPostfix('deconfigure');
 	return $rs if $rs;
 
-	iMSCP::Service->getInstance()->restart('clamav-milter');
-
-	Servers::mta->factory()->{'restart'} = 'yes';
-
-	0;
+	$self->_restartServices();
 }
 
 =back
@@ -104,7 +95,7 @@ sub disable
 
 =over 4
 
-=item _clamavMilter($action)
+=item _setupClamavMilter($action)
 
  Configure or deconfigure clamav-milter
 
@@ -113,7 +104,7 @@ sub disable
 
 =cut
 
-sub _clamavMilter
+sub _setupClamavMilter
 {
 	my ($self, $action) = @_;
 
@@ -177,7 +168,7 @@ sub _clamavMilter
 	}
 }
 
-=item _postfix($action)
+=item _setupPostfix($action)
 
  Configure or deconfigure postfix
 
@@ -186,7 +177,7 @@ sub _clamavMilter
 
 =cut
 
-sub _postfix
+sub _setupPostfix
 {
 	my ($self, $action) = @_;
 
@@ -197,7 +188,13 @@ sub _postfix
 	return $rs if $rs;
 
 	# Extract postconf values
-	my @postconfValues = split "\n", $stdout;
+	#print "dd: $stdout" if $stdout;
+	my @postconfValues = split /\n/, $stdout;
+	@postconfValues = ('') unless @postconfValues;
+
+	use Data::Dumper;
+	print Dumper(\@postconfValues);
+	exit;
 
 	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
 	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
@@ -252,6 +249,31 @@ sub _checkRequirements
 	}
 
 	$ret;
+}
+
+=item _restartServices
+
+ Restart clamav-milter and schedule restart of Postfix
+
+ Return int 0, other on failure
+
+=cut
+
+sub _restartServices
+{
+	my $self = shift;
+
+	# Here, we cannot use the i-MSCP service manager because the init script is returning specific status code (4)
+	# even when this is expected (usage of tcp socket instead of unix socket)
+	my ($stdout, $stderr);
+	my $rs = execute('service clamav-milter restart', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $rs && $stderr;
+	return $rs if $rs;
+
+	Servers::mta->factory()->{'restart'} = 'yes';
+
+	0;
 }
 
 =back

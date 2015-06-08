@@ -593,6 +593,7 @@ sub _postfixMainConfig
 
 	# Extract postconf values
 	my @postconfValues = split "\n", $stdout;
+	@postconfValues = ('') unless @postconfValues;
 
 	my $milterValue = 'inet:localhost:' . $self->{'config'}->{'opendkim_port'};
 	my $milterValuePrev = 'inet:localhost:' . $self->{'config_prev'}->{'opendkim_port'};
