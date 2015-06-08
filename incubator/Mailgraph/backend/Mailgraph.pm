@@ -69,7 +69,7 @@ sub install
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_registerCronjob();
 	return $rs if $rs;
@@ -87,7 +87,7 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	$self->_unregisterCronjob();
 }
@@ -102,7 +102,7 @@ sub disable
 
 sub buildGraphs
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_buildMailgraph();
 	return $rs if $rs;
@@ -129,7 +129,7 @@ sub buildGraphs
 
 sub _buildMailgraph
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
 
@@ -274,7 +274,7 @@ sub _createMailgraphPicture
 
 sub _buildMailgraphVirus
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
 	my $mailgraphVirusRRD = '/var/lib/mailgraph/mailgraph_virus.rrd';
@@ -445,7 +445,7 @@ sub _createMailgraphVirusPicture
 
 sub _buildMailgraphGreylist
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $mailgraphRRD = '/var/lib/mailgraph/mailgraph_greylist.rrd';
 
@@ -590,19 +590,23 @@ sub _createMailgraphGreylistPicture
 
 sub _registerCronjob
 {
+	my $self = shift;
+
 	if($self->{'config'}->{'cronjob_enabled'}) {
 		my $cronjobFilePath = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/cronjob.pl';
 
 		my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
 		my $cronjobFileContent = $cronjobFile->get();
-		return 1 unless defined $cronjobFileContent;
+		unless(defined $cronjobFileContent) {
+			error("Unable to read $cronjobFile");
+			return 1;
+		}
 
 		require iMSCP::TemplateParser;
 		iMSCP::TemplateParser->import();
 
 		$cronjobFileContent = process(
-			{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' },
-			$cronjobFileContent
+			{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $cronjobFileContent
 		);
 
 		my $rs = $cronjobFile->set($cronjobFileContent);

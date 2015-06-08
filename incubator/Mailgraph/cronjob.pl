@@ -17,12 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-
 use strict;
 use warnings;
-
 use lib "{IMSCP_PERLLIB_PATH}";
-
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 
@@ -30,16 +27,8 @@ $ENV{'LANG'} = 'C.UTF-8';
 
 newDebug('mailgraph-plugin-cronjob.log');
 
-silent(1);
-
 iMSCP::Bootstrapper->getInstance()->boot(
-	{
-		'norequirements' => 'yes',
-		'config_readonly' => 'yes',
-		'nokeys' => 'yes',
-		'nodatabase' => 'yes',
-		'nolock' => 'yes'
-	}
+	{ norequirements => 'yes', config_readonly => 'yes', nokeys => 'yes', nodatabase => 'yes', nolock => 'yes' }
 );
 
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Mailgraph/backend/Mailgraph.pm";
