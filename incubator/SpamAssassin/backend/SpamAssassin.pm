@@ -1260,7 +1260,7 @@ sub _setupDatabase
 
 	$rs = $db->doQuery(
 		'dummy',
-		'GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@? IDENTIFIED BY ?',
+		"GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@? IDENTIFIED BY ?",
 		 $self->{'SA_DATABASE_USER'},
 		 $self->{'SA_HOST'},
 		 $self->{'SA_DATABASE_PASSWORD'}
