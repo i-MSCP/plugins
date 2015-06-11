@@ -23,6 +23,9 @@ This plugin add reCAPTCHA support to phpMyAdmin.
 
 ## Configuration
 
+To make this plugin working, you must provide both, your public reCaptcha login Key and your private reCaptcha login
+Key in the plugin configuration file. 
+
 See [Configuration file](../RecaptchaPMA/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin

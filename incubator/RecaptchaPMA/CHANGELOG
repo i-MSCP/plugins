@@ -6,6 +6,7 @@ Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: License file
+	Fixed: imscp_panel service must be restarted to force flush of any opcode cache
 	Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------

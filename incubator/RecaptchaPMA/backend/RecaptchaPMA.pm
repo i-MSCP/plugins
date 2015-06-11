@@ -30,6 +30,7 @@ use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::File;
 use iMSCP::TemplateParser;
+use iMSCP::Service;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -51,7 +52,14 @@ use parent 'Common::SingletonClass';
 
 sub enable()
 {
-	$_[0]->_pmaConfig('configure');
+	my $self = shift;
+
+	my $rs = $self->_pmaConfig('configure');
+	return $rs if $rs;
+
+	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+
+	0;
 }
 
 =item disable()
@@ -64,7 +72,14 @@ sub enable()
 
 sub disable()
 {
-	$_[0]->_pmaConfig('deconfigure');
+	my $self = shift;
+
+	my $rs = $self->_pmaConfig('deconfigure');
+	return $rs if $rs;
+
+	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+
+	0;
 }
 
 =head1 PRIVATE METHODS
