@@ -188,13 +188,8 @@ sub _setupPostfix
 	return $rs if $rs;
 
 	# Extract postconf values
-	#print "dd: $stdout" if $stdout;
 	my @postconfValues = split /\n/, $stdout;
 	@postconfValues = ('') unless @postconfValues;
-
-	use Data::Dumper;
-	print Dumper(\@postconfValues);
-	exit;
 
 	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
 	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
