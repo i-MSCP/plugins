@@ -18,9 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @translator  Sascha Bay <info@space2place.de>
  */
+
 return array(
 	'OpenDKIM support scheduled for activation. This can take few seconds.' => '已排程啟用 OpenDKIM 的功能。這需要幾秒鐘。',
 	'OpenDKIM support scheduled for deactivation. This can take few seconds.' => '已排程停用 OpenDKIM 的功能。這需要幾秒鐘。',
