@@ -238,7 +238,7 @@ The user preferences will also be stored in the **userpref** table with the mail
 Send a mail with the following content to one of your i-MSCP mail accounts:
 
 ```
-	XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
+XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
 ```
 
 Be aware that the **GTUBE** signature above must be added on a line, without whitespace nor line break.
