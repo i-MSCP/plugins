@@ -1,4 +1,4 @@
-# i-MSCP ServerDefaultPage plugin v1.1.0
+# i-MSCP ServerDefaultPage plugin v1.1.1
 
 Plugin which allows to set a server default page.
 
@@ -15,8 +15,14 @@ Plugin which allows to set a server default page.
 
 1. Backup your plugin configuration file if needed
 2. Upload the plugin through the plugin management interface
-3. Restore your plugin configuration file if needed ( compare it with the new version first )
+3. Restore your plugin configuration file if needed (compare it with the new version first)
 4. Update the plugin list through the plugin management interface
+
+## Customization
+
+You can customize the server default page by replacing the files within the ServerDefaultPage/templates/default directory.
+Once done, you must uninstall and reinstall the plugin through the plugin management interface, else, your changes will
+not be taken in account.
 
 ## License
 
