@@ -54,7 +54,7 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
@@ -78,7 +78,7 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_setupClamavMilter('deconfigure');
 	return $rs if $rs;
@@ -86,7 +86,12 @@ sub disable
 	$rs = $self->_setupPostfix('deconfigure');
 	return $rs if $rs;
 
-	$self->_restartServices();
+	unless($self->{'action'} eq 'change') {
+		$rs = $self->_restartServices();
+		return $rs if $rs;
+	}
+
+	0;
 }
 
 =back
@@ -181,39 +186,43 @@ sub _setupPostfix
 {
 	my ($self, $action) = @_;
 
-	my ($stdout, $stderr);
-	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
-	debug($stdout) if $stdout;
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \my $stdout, \my $stderr);
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Extract postconf values
 	my @postconfValues = split /\n/, $stdout;
-	@postconfValues = ('') unless @postconfValues;
 
 	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
 	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
 
-	s/\s*(?:$milterValuePrev|$milterValue)//g for @postconfValues;
+	s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E)//g for @postconfValues;
 
 	if($action eq 'configure') {
 		my @postconf = (
 			'milter_default_action=accept',
-			'smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue"),
-			'non_smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue")
+			'smtpd_milters=' . (
+				(@postconfValues)
+					? escapeShell("$postconfValues[0] $milterValue") : escapeShell($milterValue)
+			),
+			'non_smtpd_milters=' . (
+				(@postconfValues > 1) ? escapeShell("$postconfValues[1] $milterValue") : escapeShell($milterValue)
+			)
 		);
 
-		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
+		$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
 		error($stderr) if $stderr && $rs;
 	} elsif($action eq 'deconfigure') {
-		my @postconf = (
-			'smtpd_milters=' . escapeShell($postconfValues[0]),
-			'non_smtpd_milters=' . escapeShell($postconfValues[1])
-		);
-		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
+		if(@postconfValues) {
+			my @postconf = ( 'smtpd_milters=' . escapeShell($postconfValues[0]) );
+
+			if(@postconfValues > 1) {
+				push @postconf, 'non_smtpd_milters=' . escapeShell($postconfValues[1]);
+			}
+
+			$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
+			error($stderr) if $stderr && $rs;
+		}
 	}
 
 	$rs;
@@ -229,16 +238,19 @@ sub _setupPostfix
 
 sub _checkRequirements
 {
+	my @reqPkgs = qw/clamav clamav-base clamav-daemon clamav-freshclam clamav-milter/;
+	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
+	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
 	my $ret = 0;
 
-	for my $package (qw/clamav clamav-base clamav-daemon clamav-freshclam clamav-milter/) {
-		my ($stdout, $stderr);
-		my $rs = execute(
-			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
-		);
-		debug($stdout) if $stdout;
-		if($stdout ne 'installed') {
-			error("The $package package is not installed on your system");
+	for my $reqPkg(@reqPkgs) {
+		if($reqPkg ~~ [ keys  %instPkgs ]) {
+			unless($instPkgs{$reqPkg} eq 'installed') {
+				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
+				$ret ||= 1;
+			}
+		} else {
+			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
 			$ret ||= 1;
 		}
 	}
@@ -260,8 +272,7 @@ sub _restartServices
 
 	# Here, we cannot use the i-MSCP service manager because the init script is returning specific status code (4)
 	# even when this is expected (usage of tcp socket instead of unix socket)
-	my ($stdout, $stderr);
-	my $rs = execute('service clamav-milter restart', \$stdout, \$stderr);
+	my $rs = execute('service clamav-milter restart', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $rs && $stderr;
 	return $rs if $rs;

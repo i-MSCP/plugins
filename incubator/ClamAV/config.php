@@ -29,23 +29,28 @@ return array(
 	 * Warning: Don't change anything if you don't know what you are doing.
 	 */
 
-	// Postfix smtpd_milter for ClamAV ( default: inet:localhost:32767 )
+	// Postfix smtpd milter for ClamAV (default: inet:localhost:32767)
 	//
 	// Possible values:
-	//  inet:localhost:32767 ( for connection through TCP )
-	//  unix:/clamav/clamav-milter.ctl ( for connection through socket )
+	//  inet:localhost:32767 for connection through TCP
+	//  unix:/clamav/clamav-milter.ctl for connection through UNIX socket
 	'PostfixMilterSocket' => 'inet:localhost:32767',
 
 	/**
 	 * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
 	 *
-	 * Note: If one options is missing, just add it with it name and it will be automatically added.
+	 * Note: If an options is missing, just add it with it name and it will be automatically added.
 	 *
-	 * See man clamav-milter.conf for further details about these options.
+	 * See man clamav-milter.conf for further details about available options.
 	 */
 
 	// Main options
 
+	// Milter socket (default: inet:32767@localhost)
+	//
+	// Possible values:
+	//  inet:32767@localhost for connection through TCP
+	// /var/run/clamav/clamav-milter.ctl for connection through UNIX socket
 	'MilterSocket' => 'inet:32767@localhost',
 	'MilterSocketGroup' => 'clamav',
 	'MilterSocketMode' => '666',
@@ -58,15 +63,12 @@ return array(
 	'TemporaryDirectory' => '/tmp',
 
 	// Clamd options
-
 	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
 
 	// Exclusions options
-
 	'MaxFileSize' => '25M',
 
 	// Actions options
-
 	'OnClean' => 'Accept',
 	'OnInfected' => 'Reject',
 	'OnFail' => 'Defer',
@@ -75,7 +77,6 @@ return array(
 	'VirusAction' => '',
 
 	// Logging options
-
 	'LogFile' => '/var/log/clamav/clamav-milter.log',
 	'LogFileUnlock' => 'false',
 	'LogFileMaxSize' => '0M',
