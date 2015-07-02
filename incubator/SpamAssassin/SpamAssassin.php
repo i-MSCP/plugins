@@ -36,9 +36,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(
-				sprintf('Unable to create database schema: %s', $e->getMessage()), $e->getCode(), $e
-			);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -85,7 +83,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
-	
+
 	/**
 	 * Plugin update
 	 *
@@ -100,7 +98,7 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 		} catch (iMSCP_Exception_Database $e) {
-			throw new iMSCP_Plugin_Exception(tr('Unable to update: %s', $e->getMessage()), $e->getCode(), $e);
+			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
@@ -114,9 +112,9 @@ class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 		$dbConfig = iMSCP_Registry::get('dbConfig');
 		$pluginConfig = $this->getConfig();
 
-		preg_match("/port=([0-9]+)/" , $pluginConfig['spamassassinOptions'], $spamAssassinPort);
+		preg_match("/port=([0-9]+)/", $pluginConfig['spamassassinOptions'], $spamAssassinPort);
 
-		if(!isset($dbConfig['PORT_SPAMASSASSIN'])) {
+		if (!isset($dbConfig['PORT_SPAMASSASSIN'])) {
 			$dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
 		} else {
 			$this->removeSpamAssassinServicePort();

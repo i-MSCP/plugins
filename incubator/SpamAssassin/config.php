@@ -39,14 +39,14 @@ return array(
 	//
 	// reject_spam = 'YES'  ->  The mail will be rejected after SpamAssassin recognized it as SPAM.	
 	// reject_spam = 'NO'   ->  The mail will be tagged as SPAM and delivered to the user mailbox.
-	'reject_spam' => 'no', // YES, NO (default)
+	'reject_spam' => 'no', // yes, no (default)
 
 	// This enables the usage of the bayes database. 
-	'use_bayes' => 'yes', // YES (default), NO
+	'use_bayes' => 'yes', // yes (default), no
 
 	// If set to 'YES', global bayes database will be activated.
 	// This could be used to group all users together to share bayesian filter data.
-	'site-wide_bayes' => 'no', // YES, NO (default)
+	'site-wide_bayes' => 'no', // yes, no (default)
 	
 	// Cronjob to learn the bayesian database with Spam/Ham maila.
 	// Normally it is sufficient to run this cronjob twice a day.
@@ -82,30 +82,30 @@ return array(
 	),
 
 	// Perform Razor check of messages if installed.
-	'use_razor2' => 'no', // YES, NO (default)
+	'use_razor2' => 'no', // yes, no (default)
 
 	// Perform Pyzor check of messages if installed.
-	'use_pyzor' => 'no', // YES, NO (default)
+	'use_pyzor' => 'no', // yes, no (default)
 
 	// Perform DCC (Distributed Checksum Clearinghouse) check of messages if installed.
-	'use_dcc' => 'no', // YES, NO (default)
+	'use_dcc' => 'no', // yes, no (default)
 
 	// Whether RBL (Realtime Blackhole List) check should be used or not.
 	// You don't need this if you already use Policyd-Weight or the Postscreen Plugin.
-	'use_rbl_checks' => 'no', // YES, NO (default)
+	'use_rbl_checks' => 'no', // yes, no (default)
 
 	// This plugin will try to guess the language used in the message text.
-	'use_lang_check' => 'no', // YES, NO (default)
+	'use_lang_check' => 'no', // yes, no (default)
 
 	/*
 	 * 3rd party SpamAssasin Plugins
 	 */
 
 	// Plugin DecodeShortURLs - https://github.com/smfreegard/DecodeShortURLs
-	'DecodeShortURLs' => 'no', // YES, NO (default)
+	'DecodeShortURLs' => 'no', // yes, no (default)
 
 	// Plugin iXhash2 - http://mailfud.org/iXhash2/
-	'iXhash2' => 'no', // YES, NO (default)
+	'iXhash2' => 'no', // yes, no (default)
 
 	/*
 	 * Roundcube Plugins
@@ -114,11 +114,11 @@ return array(
 	// Adds a new button to the mailbox toolbar to mark the selected messages as Junk/Not Junk, 
 	// optionally detaching original messages from spam reports if the message is not junk and 
 	// learning the bayesian database with junk/not junk.
-	'markasjunk2' => 'yes', // YES (default), NO
+	'markasjunk2' => 'yes', // yes (default), no
 
 	// Adds a 'Spam' tab to the 'Settings' in Roundcube to allow the users to change
 	// their SpamAssassin preferences which are stored in the imscp_spamassassin database.
-	'sauserprefs' => 'yes', // YES (default), NO
+	'sauserprefs' => 'yes', // yes (default), no
 
 	// Don't allow these settings to be overriden by the user.
 	// Check webmail/plugins/sauserprefs/config.inc.php for all options.

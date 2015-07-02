@@ -19,15 +19,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$spamAssassinDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin';
+$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$table = quoteIdentifier('bayes_expire');
 
 return array(
 	'up' => "
-		CREATE TABLE IF NOT EXISTS ". $spamAssassinDbName .".`bayes_expire` (
+		CREATE TABLE IF NOT EXISTS $database.$table (
 			`id` int(11) NOT NULL DEFAULT '0',
 			`runtime` int(11) NOT NULL DEFAULT '0',
 			KEY `bayes_expire_idx1` (`id`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	",
-	'down' => ''
+	"
 );

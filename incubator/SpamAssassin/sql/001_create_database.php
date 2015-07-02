@@ -19,11 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$spamAssassinDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin';
+$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
-	'up' => "
-		CREATE DATABASE IF NOT EXISTS ". $spamAssassinDbName ." CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-	",
-	'down' => ''
+	'up' => "CREATE DATABASE IF NOT EXISTS $database CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
 );

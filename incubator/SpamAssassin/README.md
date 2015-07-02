@@ -1,4 +1,4 @@
-# i-MSCP SpamAssassin plugin v1.0.1
+# i-MSCP SpamAssassin plugin v1.0.2
 
 Plugin which allows to use SpamAssassin with i-MSCP.
 
@@ -58,8 +58,8 @@ the list of URIs extracted by SpamAssassin which can then be accessed by other p
 ### iXhash2
 
 [iXhash2](http://mailfud.org/iXhash2/ "iXhash2") is an unofficial improved version of 
-[iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance 
-and removing unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.	
+[iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance and removing
+unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.
 
 ## Included Roundcube Plugins
 
@@ -245,8 +245,9 @@ Be aware that the **GTUBE** signature above must be added on a line, without whi
 
 ## License
 
+Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
 Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
-Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de> 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -261,5 +262,6 @@ See [LICENSE](LICENSE)
 
 ## Authors
 
-* Sascha Bay <info@space2place.de>
+* Laurent Declercq <l.declercq@nuxwin.com>
 * Rene Schuster <mail@reneschuster.de>
+* Sascha Bay <info@space2place.de>

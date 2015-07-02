@@ -19,11 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$spamAssassinDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin';
+$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$table = quoteIdentifier('userpref');
 
 return array(
 	'up' => "
-		CREATE TABLE IF NOT EXISTS ". $spamAssassinDbName .".`userpref` (
+		CREATE TABLE IF NOT EXISTS $database.$table (
 			`username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
 			`preference` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
 			`value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -32,6 +33,5 @@ return array(
 			KEY `username` (`username`),
 			UNIQUE KEY `user_pref` (`username`,`preference`)
 		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	",
-	'down' => ''
+	"
 );

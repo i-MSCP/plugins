@@ -19,11 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$spamAssassinDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin';
+$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$table = quoteIdentifier('userpref');
 
 return array(
 	'up' => "
-		INSERT IGNORE INTO ". $spamAssassinDbName .".`userpref`
+		INSERT IGNORE INTO $database.$table
 			(`username`, `preference`, `value`)
 		VALUES
 			('\$GLOBAL', 'required_score', '5'),
@@ -41,6 +42,5 @@ return array(
 			('\$GLOBAL', 'use_dcc', '0'),
 			('\$GLOBAL', 'score USER_IN_BLACKLIST', '10'),
 			('\$GLOBAL', 'score USER_IN_WHITELIST', '-6');
-	",
-	'down' => ''
+	"
 );
