@@ -15,7 +15,6 @@
 	</div>
 </form>
 <!-- EDP: select_list -->
-
 <!-- BDP: customer_list -->
 <!-- BDP: customer_item -->
 <table>
@@ -43,7 +42,6 @@
 	<!-- EDP: key_item -->
 	</tbody>
 </table>
-
 <div class="buttons">
 	<a style="color:#fff" class="link_as_button" href="opendkim.php?action=deactivate&amp;admin_id={CUSTOMER_ID}">
 		{TR_DEACTIVATE}
@@ -51,7 +49,6 @@
 </div>
 <br/>
 <!-- EDP: customer_item -->
-
 <div class="paginator">
 	<!-- BDP: scroll_prev -->
 	<a class="icon i_prev" href="opendkim.php?psi={PREV_PSI}" title="{TR_PREVIOUS}">{TR_PREVIOUS}</a>
@@ -66,7 +63,6 @@
 	<a class="icon i_next" href="opendkim.php?psi={NEXT_PSI}" title="{TR_NEXT}">{TR_NEXT}</a>
 	<!-- EDP: scroll_next -->
 </div>
-
 <script>
 	$(function () {
 		$(".link_as_button").on('click', function () {

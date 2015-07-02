@@ -21,11 +21,11 @@
  */
 
 return array(
-	// OpenDKIM listening port ( default: 12345 )
+	// OpenDKIM listening port (default: 12345)
 	// Warning: Don't use a port lower than 1000 nor greater than 65535
 	'opendkim_port' => '12345',
 
-	// OpenDKIM canonicalization method ( default: simple )
+	// OpenDKIM canonicalization method (default: simple)
 	//
 	// Canonicalization method(s) to be used when signing messages. When verifying, the message's DKIM-Signature: header
 	// field specifies the canonicalization method. The recognized values are relaxed and simple as defined by the DKIM
@@ -35,7 +35,7 @@ return array(
 	// Possible values: simple, relaxed, simple/relaxed or relaxed/simple
 	'opendkim_canonicalization' => 'simple',
 
-	// Trusted hosts ( default: 127.0.0.1, localhost )
+	// Trusted hosts (default: 127.0.0.1, localhost)
 	//
 	// List of host which must be trusted by OpenDKIM
 	'opendkim_trusted_hosts' => array(

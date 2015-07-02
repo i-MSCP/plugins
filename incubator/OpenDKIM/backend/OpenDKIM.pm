@@ -56,13 +56,13 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = _checkRequirements();
 	return $rs if $rs;
 
 	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim/keys' )->make(
-		{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
+		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
 	);
 	return $rs if $rs;
 
@@ -93,7 +93,7 @@ sub install
 
 sub uninstall
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_opendkimConfig('deconfigure');
 	return $rs if $rs;
@@ -113,7 +113,7 @@ sub uninstall
 
 sub update
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_opendkimConfig('configure');
 	return $rs if $rs;
@@ -133,7 +133,7 @@ sub update
 
 sub change
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_createOpendkimFile('TrustedHosts');
 	return $rs if $rs;
@@ -156,10 +156,10 @@ sub change
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->{'db'}->doQuery(
-		'dummy', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'toenable', 'OpenDKIM_Plugin'
+		'u', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'toenable', 'OpenDKIM_Plugin'
 	);
 	unless(ref $rs eq 'HASH') {
 		error($rs);
@@ -184,10 +184,10 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->{'db'}->doQuery(
-		'dummy', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'todisable', 'OpenDKIM_Plugin'
+		'u', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'todisable', 'OpenDKIM_Plugin'
 	);
 	unless(ref $rs eq 'HASH') {
 		error($rs);
@@ -212,7 +212,7 @@ sub disable
 
 sub run
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rdata = $self->{'db'}->doQuery(
 		'opendkim_id', 
@@ -290,7 +290,7 @@ sub run
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	$self->{'db'} = iMSCP::Database->factory();
 
@@ -316,9 +316,9 @@ sub _addDomainKey
 	my $rs = $self->_deleteDomainKey($domainId, $aliasId, $domain);
 	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new( dirname => "/etc/opendkim/keys/$domain" )->make(
-		{ 'user' => 'opendkim', 'group' => 'opendkim', 'mode' => 0750 }
-	);
+	$rs = iMSCP::Dir->new( dirname => "/etc/opendkim/keys/$domain" )->make({
+		user => 'opendkim', group => 'opendkim', mode => 0750
+	});
 	return $rs if $rs;
 
 	# Generate the domain private key and the DNS TXT record suitable for inclusion in DNS zone file
@@ -466,7 +466,7 @@ sub _deleteDomainKey
 
 	# Remove the TXT DNS record from the database
 	$rs = $self->{'db'}->doQuery(
-		'dummy',
+		'u',
 		'UPDATE domain_dns SET domain_dns_status = ? WHERE domain_id = ? AND alias_id = ? AND owned_by = ?',
 		'todelete',
 		$domainId,
@@ -592,32 +592,40 @@ sub _postfixMainConfig
 	return $rs if $rs;
 
 	# Extract postconf values
-	my @postconfValues = split "\n", $stdout;
-	@postconfValues = ('') unless @postconfValues;
+	my @postconfValues = split /\n/, $stdout;
 
 	my $milterValue = 'inet:localhost:' . $self->{'config'}->{'opendkim_port'};
 	my $milterValuePrev = 'inet:localhost:' . $self->{'config_prev'}->{'opendkim_port'};
 
-	s/\s*$milterValuePrev//g for @postconfValues;
+	s/\s*\Q$milterValuePrev\E//g for @postconfValues;
 
 	if($action eq 'configure') {
 		my @postconf = (
 			'milter_default_action=accept',
-			'smtpd_milters=' . escapeShell("$postconfValues[0] $milterValue"),
-			'non_smtpd_milters=' . escapeShell("$postconfValues[1] $milterValue")
+			'smtpd_milters=' . (
+				(@postconfValues)
+					? escapeShell("$postconfValues[0] $milterValue") : escapeShell($milterValue)
+			),
+			'non_smtpd_milters=' . (
+				(@postconfValues > 1) ? escapeShell("$postconfValues[1] $milterValue") : escapeShell($milterValue)
+			)
 		);
 
 		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 	} elsif($action eq 'deconfigure') {
-		my @postconf = (
-			'smtpd_milters=' . escapeShell($postconfValues[0]),
-			'non_smtpd_milters=' . escapeShell($postconfValues[1])
-		);
-		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
+		if(@postconfValues) {
+			my @postconf = ( 'smtpd_milters=' . escapeShell($postconfValues[0]) );
+
+			if(@postconfValues > 1) {
+				push @postconf, 'non_smtpd_milters=' . escapeShell($postconfValues[1]);
+			}
+
+			$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
+		}
 	}
 
 	$rs;
@@ -667,16 +675,19 @@ sub _createOpendkimFile
 
 sub _checkRequirements
 {
+	my @reqPkgs = qw/opendkim opendkim-tools/;
+	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
+	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
 	my $ret = 0;
 
-	for my $package (qw/opendkim opendkim-tools/) {
-		my ($stdout, $stderr);
-		my $rs = execute(
-			"LANG=C dpkg-query --show --showformat '\${Status}' $package | cut -d ' ' -f 3", \$stdout, \$stderr
-		);
-		debug($stdout) if $stdout;
-		if($stdout ne 'installed') {
-			error("The $package package is not installed on your system");
+	for my $reqPkg(@reqPkgs) {
+		if($reqPkg ~~ [ keys  %instPkgs ]) {
+			unless($instPkgs{$reqPkg} eq 'installed') {
+				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
+				$ret ||= 1;
+			}
+		} else {
+			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
 			$ret ||= 1;
 		}
 	}

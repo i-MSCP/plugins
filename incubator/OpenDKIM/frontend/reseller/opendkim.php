@@ -89,9 +89,7 @@ function opendkim_activate($customerId)
 			);
 
 			$db->commit();
-
 			send_request();
-
 			set_page_message(tr('OpenDKIM support scheduled for activation. This can take few seconds.'), 'success');
 		} catch (DatabaseException $e) {
 			$db->rollBack();
@@ -118,7 +116,6 @@ function opendkim_deactivate($customerId)
 
 	if ($row['cnt']) {
 		exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array('todelete', $customerId));
-
 		send_request();
 		set_page_message(tr('OpenDKIM support scheduled for deactivation. This can take few seconds.'), 'success');
 	} else {
@@ -154,12 +151,10 @@ function _opendkim_generateCustomerList($tpl)
 
 	if ($stmt->rowCount()) {
 		while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-			$tpl->assign(
-				array(
-					'SELECT_VALUE' => $row['admin_id'],
-					'SELECT_NAME' => tohtml(decode_idna($row['admin_name'])),
-				)
-			);
+			$tpl->assign(array(
+				'SELECT_VALUE' => $row['admin_id'],
+				'SELECT_NAME' => tohtml(decode_idna($row['admin_name'])),
+			));
 
 			$tpl->parse('SELECT_ITEM', '.select_item');
 		}
@@ -262,8 +257,8 @@ function opendkim_generatePage($tpl)
 						$statusIcon = 'error';
 					}
 
-					if($row2['domain_text']) {
-						if(strpos($row2['domain_dns'], ' ') !== false) {
+					if ($row2['domain_text']) {
+						if (strpos($row2['domain_dns'], ' ') !== false) {
 							$dnsName = explode(' ', $row2['domain_dns']);
 							$dnsName = $dnsName[0];
 						} else {
@@ -273,29 +268,25 @@ function opendkim_generatePage($tpl)
 						$dnsName = '';
 					}
 
-					$tpl->assign(
-						array(
-							'KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
-							'STATUS_ICON' => $statusIcon,
-							'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
-							'DOMAIN_KEY' => ($row2['domain_text'])
-								? tohtml($row2['domain_text']) : tr('Generation in progress.'),
-							'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
-							'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
-						)
-					);
+					$tpl->assign(array(
+						'KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
+						'STATUS_ICON' => $statusIcon,
+						'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
+						'DOMAIN_KEY' => ($row2['domain_text'])
+							? tohtml($row2['domain_text']) : tr('Generation in progress.'),
+						'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
+						'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
+					));
 
 					$tpl->parse('KEY_ITEM', '.key_item');
 				}
 			}
 
-			$tpl->assign(
-				array(
-					'TR_CUSTOMER' => tr('OpenDKIM entries for customer: %s', decode_idna($row['admin_name'])),
-					'TR_DEACTIVATE' => tr('Deactivate OpenDKIM'),
-					'CUSTOMER_ID' => tohtml($row['admin_id'])
-				)
-			);
+			$tpl->assign(array(
+				'TR_CUSTOMER' => tr('OpenDKIM entries for customer: %s', decode_idna($row['admin_name'])),
+				'TR_DEACTIVATE' => tr('Deactivate OpenDKIM'),
+				'CUSTOMER_ID' => tohtml($row['admin_id'])
+			));
 
 			$tpl->parse('CUSTOMER_ITEM', '.customer_item');
 			$tpl->assign('KEY_ITEM', '');
@@ -306,12 +297,10 @@ function opendkim_generatePage($tpl)
 		if ($startIndex == 0) {
 			$tpl->assign('SCROLL_PREV', '');
 		} else {
-			$tpl->assign(
-				array(
-					'SCROLL_PREV_GRAY' => '',
-					'PREV_PSI' => $prevSi
-				)
-			);
+			$tpl->assign(array(
+				'SCROLL_PREV_GRAY' => '',
+				'PREV_PSI' => $prevSi
+			));
 		}
 
 		$nextSi = $startIndex + $rowsPerPage;
@@ -319,12 +308,10 @@ function opendkim_generatePage($tpl)
 		if ($nextSi + 1 > $rowCount) {
 			$tpl->assign('SCROLL_NEXT', '');
 		} else {
-			$tpl->assign(
-				array(
-					'SCROLL_NEXT_GRAY' => '',
-					'NEXT_PSI' => $nextSi
-				)
-			);
+			$tpl->assign(array(
+				'SCROLL_NEXT_GRAY' => '',
+				'NEXT_PSI' => $nextSi
+			));
 		}
 	} else {
 		$tpl->assign('CUSTOMER_LIST', '');
@@ -344,7 +331,7 @@ if (resellerHasCustomers()) {
 		$action = clean_input($_REQUEST['action']);
 
 		if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id'] != '') {
-			$customerId = clean_input($_REQUEST['admin_id']);
+			$customerId = intval($_REQUEST['admin_id']);
 
 			switch ($action) {
 				case 'activate':

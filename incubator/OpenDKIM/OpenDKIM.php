@@ -47,10 +47,9 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 			array(
 				iMSCP_Events::onResellerScriptStart,
 				iMSCP_Events::onClientScriptStart,
-
 				iMSCP_Events::onAfterAddDomainAlias,
 				iMSCP_Events::onAfterDeleteDomainAlias,
-				iMSCP_Events::onAfterDeleteCustomer,
+				iMSCP_Events::onAfterDeleteCustomer
 			),
 			$this
 		);
