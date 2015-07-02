@@ -766,7 +766,7 @@ sub _spamassassinConfig
 				DATABASE_PORT => $main::imscpConfig{'DATABASE_PORT'},
 				SA_DATABASE_NAME => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
 				SA_DATABASE_USER => $self->{'SA_DATABASE_USER'},
-				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'},
+				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'}
 			},
 			$fileContent
 		);
@@ -823,7 +823,7 @@ sub _removeSpamassassinConfig
 
  Add or remove Roundcube plugin
 
- Param string $action Action to perform ( add|remove )
+ Param string $action Action to perform (add|remove)
  Return int 0 on success, other on failure
 
 =cut
@@ -865,7 +865,7 @@ sub _roundcubePlugins
 
  Activate or deactivate the Roundcube Plugin
 
- Param string $action Action to perform ( add|remove )
+ Param string $action Action to perform (add|remove)
  Return int 0 on success, other on failure
 
 =cut
@@ -1119,7 +1119,7 @@ sub _setRoundcubePluginConfig
 				DATABASE_PORT => $main::imscpConfig{'DATABASE_PORT'},
 				SA_DATABASE_NAME => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
 				SA_DATABASE_USER => $self->{'SA_DATABASE_USER'},
-				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'},
+				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'}
 			},
 			$fileContent
 		);
