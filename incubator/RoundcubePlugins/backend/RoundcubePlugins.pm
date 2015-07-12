@@ -33,6 +33,7 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::TemplateParser;
+use iMSCP::Service;
 use Servers::cron;
 use version;
 use parent 'Common::SingletonClass';
@@ -152,6 +153,8 @@ sub enable
 	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
 		$self->_restartDaemonDovecot();
 	}
+
+	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
 }
 
 =item disable()
@@ -181,6 +184,8 @@ sub disable
 
 		$self->_restartDaemonDovecot();
 	}
+
+	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
 }
 
 =item fetchmail()
