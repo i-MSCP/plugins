@@ -6,7 +6,7 @@ Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Chinese (Taiwan) language file
-	Fixed: Possible Possible uninitialized values
+	Fixed: Possible uninitialized values
 	Review: CS fixes + code cleanup
 	Updated: Dutch language file
 
