@@ -168,6 +168,10 @@ sub enable
 	}
 
 	$self->_schedulePostfixRestart();
+	
+	iMSCP::Service->getInstance()->restart('imscp_panel');
+
+	0;
 }
 
 =item disable()
@@ -203,6 +207,10 @@ sub disable
 	return $rs if $rs;
 
 	$self->_schedulePostfixRestart();
+	
+	iMSCP::Service->getInstance()->restart('imscp_panel');
+
+	0;
 }
 
 =item uninstall()
