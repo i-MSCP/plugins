@@ -164,7 +164,7 @@ sub enable
 
 	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$rs = $self->_setRoundcubePlugin('add');
-		return $rs if $rs
+		return $rs if $rs;
 		
 		iMSCP::Service->getInstance()->restart('imscp_panel');
 	}
