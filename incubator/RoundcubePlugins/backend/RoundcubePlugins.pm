@@ -155,6 +155,8 @@ sub enable
 	}
 
 	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+
+	0;
 }
 
 =item disable()
@@ -186,6 +188,8 @@ sub disable
 	}
 
 	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+
+	0;
 }
 
 =item fetchmail()
