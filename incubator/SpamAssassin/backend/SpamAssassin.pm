@@ -164,10 +164,14 @@ sub enable
 
 	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$rs = $self->_setRoundcubePlugin('add');
-		return $rs if $rs;
+		return $rs if $rs
+		
+		iMSCP::Service->getInstance()->restart('imscp_panel');
 	}
 
 	$self->_schedulePostfixRestart();
+	
+	0;
 }
 
 =item disable()
@@ -197,12 +201,16 @@ sub disable
 	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$rs = $self->_setRoundcubePlugin('remove');
 		return $rs if $rs;
+		
+		iMSCP::Service->getInstance()->restart('imscp_panel');
 	}
 
 	$rs = $self->_postfixConfig('deconfigure');
 	return $rs if $rs;
 
 	$self->_schedulePostfixRestart();
+	
+	0;
 }
 
 =item uninstall()
