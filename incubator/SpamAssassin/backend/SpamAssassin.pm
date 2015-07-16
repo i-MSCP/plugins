@@ -165,13 +165,14 @@ sub enable
 	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$rs = $self->_setRoundcubePlugin('add');
 		return $rs if $rs;
-		
-		iMSCP::Service->getInstance()->restart('imscp_panel');
+
+		unless(defined $main::execmode && $main::execmode eq 'setup') {
+			# Needed to flush opcode cache if any
+			iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+		}
 	}
 
 	$self->_schedulePostfixRestart();
-	
-	0;
 }
 
 =item disable()
@@ -201,16 +202,17 @@ sub disable
 	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$rs = $self->_setRoundcubePlugin('remove');
 		return $rs if $rs;
-		
-		iMSCP::Service->getInstance()->restart('imscp_panel');
+
+		unless(defined $main::execmode && $main::execmode eq 'setup') {
+			# Needed to flush opcode cache if any
+			iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+		}
 	}
 
 	$rs = $self->_postfixConfig('deconfigure');
 	return $rs if $rs;
 
 	$self->_schedulePostfixRestart();
-	
-	0;
 }
 
 =item uninstall()
@@ -269,7 +271,6 @@ sub discoverRazor
 	my $rs = execute("su $1 -c '/usr/bin/razor-admin -discover'", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -318,7 +319,6 @@ sub cleanBayesDb
 	my $rs = execute("/usr/bin/sa-learn --force-expire", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -373,7 +373,6 @@ sub _init
 	$self->{'FORCE_RETVAL'} = 'yes';
 	$self->{'SA_DATABASE_USER'} = 'sa_user';
 	$self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
-
 	$self;
 }
 
@@ -399,6 +398,7 @@ sub _updateSpamassassinRules
 	my $rs = execute("/bin/su $saUser -c '/usr/bin/sa-update --gpghomedir $helperHomeDir/sa-update-keys'", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs >= 4;
+	return $rs if $rs >= 4;
 
 	$rs = execute("su $saUser -c '/usr/bin/sa-compile --quiet'", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -408,7 +408,6 @@ sub _updateSpamassassinRules
 	$rs = execute("chmod -R go-w,go+rX $helperHomeDir/compiled", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -430,7 +429,6 @@ sub _discoverPyzor
 	my $rs = execute("su $1 -c '/usr/bin/pyzor discover'", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -457,7 +455,6 @@ sub _createRazor
 	$rs = execute("su $1 -c '/usr/bin/razor-admin -register'", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -627,10 +624,7 @@ sub _postfixConfig
 sub _schedulePostfixRestart
 {
 	require Servers::mta;
-
-	Servers::mta->factory()->{'restart'} = 'yes';
-
-	0;
+	Servers::mta->factory()->restart('defer');
 }
 
 =item _registerCronjob($cronjobName)
@@ -779,7 +773,7 @@ sub _spamassassinConfig
 			$fileContent
 		);
 
-		if($self->{'config'}->{'site-wide_bayes'} eq 'yes') {
+		if($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
 			$fileContent =~ s/^#bayes_sql_override_username/bayes_sql_override_username/gm;
 			$fileContent =~ s/^#bayes_auto_expire/bayes_auto_expire/gm;
 		} else {
@@ -823,7 +817,6 @@ sub _removeSpamassassinConfig
 	my $rs = execute('rm -f /etc/spamassassin/00_imscp.*', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 
@@ -884,7 +877,6 @@ sub _setRoundcubePlugin
 
 	my $spamassassinPlugins = '';
 	my $roundcubePluginConfig = '';
-
 	my $roundcubeConfDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config";
 
 	my $confFilename;
@@ -954,8 +946,7 @@ sub _checkSpamassassinPlugins
 	$self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 	my $saUser = $1;
 
-	my ($stdout, $stderr);
-	my $rs = execute("chown -R $saUser:$saUser $helperHomeDir", \$stdout, \$stderr);
+	my $rs = execute("chown -R $saUser:$saUser $helperHomeDir", \my $stdout, \my $stderr);
 	return $rs if $rs;
 
 	if($self->{'config'}->{'use_pyzor'} eq 'yes') {
@@ -1015,7 +1006,7 @@ sub _checkSpamassassinPlugins
 		return $rs if $rs;
 	}
 
-	if($self->{'config'}->{'site-wide_bayes'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
+	if($self->{'config'}->{'site_wide_bayes'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
 		$rs = $self->_registerCronjob('clean_bayes_db');
 		return $rs if $rs;
 	} else {
@@ -1144,7 +1135,7 @@ sub _setRoundcubePluginConfig
 		
 		my $sauserprefsBayesDelete;
 
-		if($self->{'config'}->{'site-wide_bayes'} eq 'yes') {
+		if($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
 			$sauserprefsDontOverride .= ", 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'";
 			$sauserprefsBayesDelete = "false";
 		} else {
@@ -1434,7 +1425,6 @@ sub _checkSaUser
 	$rs = execute("chown -R $user:$group $helperHomeDir", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-
 	$rs;
 }
 

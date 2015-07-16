@@ -1,4 +1,4 @@
-# i-MSCP SpamAssassin plugin v1.0.2
+# i-MSCP SpamAssassin plugin v1.0.4
 
 Plugin which allows to use SpamAssassin with i-MSCP.
 
@@ -6,7 +6,7 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 
 * i-MSCP version >= 1.2.3
 * SpamAssassin 3.3.x or 3.4.x
-* Roundcube >= 0.9.x
+* Roundcube >= 0.9.x (Optional)
 
 ### Debian / Ubuntu packages 
 
@@ -15,8 +15,8 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 * libmail-dkim-perl
 * libnet-ident-perl
 * libencode-detect-perl
-* pyzor ( Optional)
-* razor ( Optional )
+* pyzor (Optional)
+* razor (Optional)
 
 You can install these packages by running the following commands:
 
@@ -41,7 +41,7 @@ You can install these packages by running the following commands:
 
 ## Configuration
 
-See [Configuration file](../ClamAV/config.php)
+See [Configuration file](../SpamAssassin/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.

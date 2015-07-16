@@ -1,8 +1,9 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,37 +21,37 @@
  */
 
 return array(
-	/* 
-	 * Below you can adjust the SpamAssassin configuration.
-	 * 
-	 * For more information about the different configuration 
-	 * options please check the SpamAssassin documentation at:
-	 * http://spamassassin.apache.org/full/3.3.x/doc/ or
-	 * http://spamassassin.apache.org/full/3.4.x/doc/
-	 * 
-	 * ATTENTION:
-	 * - Don't change anything, if you don't know what you are doing!
-	 * - Make sure you know if you need/want the checks or not before enabling them,
-	 *   because each SpamAssassin plugin needs resources and also time to be executed.
-	 */
-
-	// On this plugin implementation rejecting SPAM is totally legal, because the SPAM check will be done
-	// before the MTA accepts the mail message (before-queue filter with spamass-milter).
 	//
-	// reject_spam = 'YES'  ->  The mail will be rejected after SpamAssassin recognized it as SPAM.	
-	// reject_spam = 'NO'   ->  The mail will be tagged as SPAM and delivered to the user mailbox.
-	'reject_spam' => 'no', // yes, no (default)
+	// Below you can adjust the SpamAssassin configuration.
+	//
+	// For more information about the different configuration options please check the SpamAssassin documentation at:
+	//  http://spamassassin.apache.org/full/3.3.x/doc/ or http://spamassassin.apache.org/full/3.4.x/doc/
+	//
+	// WARNING: Don't change anything, if you don't know what you are doing.
+	//
 
-	// This enables the usage of the bayes database. 
-	'use_bayes' => 'yes', // yes (default), no
+	// Reject spam (default: not)
+	//
+	// If set to 'yes', the mails are rejected when they are detected as SPAM by SpamAssassin.
+	// If set to 'no', the mails are no rejected but taggued as SPAM when they are deteced as SPAM by SpamAssassin.
+	//
+	// Note: Rejecting SPAMs is supported because the checks are done before the MTA accepts the mails (before-queue
+	// filter with spamass-milter).
+	'reject_spam' => 'no',
 
-	// If set to 'YES', global bayes database will be activated.
-	// This could be used to group all users together to share bayesian filter data.
-	'site-wide_bayes' => 'no', // yes, no (default)
-	
-	// Cronjob to learn the bayesian database with Spam/Ham maila.
-	// Normally it is sufficient to run this cronjob twice a day.
-	'cronjob_bayes_sa-learn' => array( // See man CRONTAB(5) for allowed values
+	// Use bayes (default: yes)
+	//
+	// If set to 'yes', enable usage of the bayes database.
+	// If set to 'no', disable usage of the bayes database.
+	'use_bayes' => 'yes',
+
+	// Site wide bayes (default: no)
+	//
+	// If set to 'yes', global bayes database is activated. This allow to share the bayesian database with all users.
+	'site_wide_bayes' => 'no',
+
+	// SA learn cronjob for learning about spam/ham (default: run every 12 hours)
+	'cronjob_bayes_sa-learn' => array(
 		'minute' => '*',
 		'hour' => '*/12',
 		'day' => '*',
@@ -58,9 +59,8 @@ return array(
 		'dweek' => '*'
 	),
 
-	// Cronjob to cleanup the bayes database from expired tokens.
-	// Normally it is sufficient to run this cronjob on a daily basis.
-	'cronjob_clean_bayes_db' => array( // See man CRONTAB(5) for allowed values
+	// SA learn cron job for cleaning the bayesian database (default: run once per day)
+	'cronjob_clean_bayes_db' => array(
 		'minute' => '@daily',
 		'hour' => '',
 		'day' => '',
@@ -68,11 +68,13 @@ return array(
 		'dweek' => ''
 	),
 
-	// This enables the usage of the Auto-Whitelist (awl) factor.
-	'use_auto-whitelist' => 'no', // YES, NO (default)
+	// Use auto whitelist (default: no)
+	//
+	// When set to 'yes', enable usage of the Auto-Whitelist (awl) factor.
+	// When set to 'no', disable usage of the Auto-Whitelist (awl) factor.
+	'use_auto-whitelist' => 'no',
 
-	// Cronjob to cleanup the awl database from old entries.
-	// Normally it is sufficient to run this cronjob on a daily basis.
+	// Cron job to cleanup the awl database from old entries (default: once per day)
 	'cronjob_clean_awl_db' => array( // See man CRONTAB(5) for allowed values
 		'minute' => '@daily',
 		'hour' => '',
@@ -81,60 +83,91 @@ return array(
 		'dweek' => ''
 	),
 
-	// Perform Razor check of messages if installed.
-	'use_razor2' => 'no', // yes, no (default)
+	// Razor2 (default: no)
+	//
+	// If set to 'yes', enable usage of razor2.
+	// If set to 'no', disable usage of razor2.
+	'use_razor2' => 'no',
 
-	// Perform Pyzor check of messages if installed.
-	'use_pyzor' => 'no', // yes, no (default)
+	// Pyzor (default: no)
+	//
+	// If set to 'yes', enable usage of Pyzor.
+	// If set to 'no', disable usage of Pyzor.
+	'use_pyzor' => 'no',
 
-	// Perform DCC (Distributed Checksum Clearinghouse) check of messages if installed.
-	'use_dcc' => 'no', // yes, no (default)
+	// DCC - Distributed Checksum Clearinghouse (default: no)
+	//
+	// If set to 'yes', enable usage of DCC.
+	// If set to 'no', disable usage of DCC.
+	'use_dcc' => 'no',
 
-	// Whether RBL (Realtime Blackhole List) check should be used or not.
-	// You don't need this if you already use Policyd-Weight or the Postscreen Plugin.
-	'use_rbl_checks' => 'no', // yes, no (default)
+	// RBL checks (default: no)
+	//
+	// If set to 'yes', enable RBL checks.
+	// If set to 'no', disable RBL check.
+	//
+	// Note: You shouldn't enable this feature if you're already using PolicydWeight or Postscreen plugins.
+	'use_rbl_checks' => 'no',
 
 	// This plugin will try to guess the language used in the message text.
 	'use_lang_check' => 'no', // yes, no (default)
 
-	/*
-	 * 3rd party SpamAssasin Plugins
-	 */
+	//
+	//// 3rd party SpamAssasin plugins
+	//
 
-	// Plugin DecodeShortURLs - https://github.com/smfreegard/DecodeShortURLs
-	'DecodeShortURLs' => 'no', // yes, no (default)
+	// DecodeShortURLs plugin (default: no)
+	//
+	// If set to 'yes', enable the DecodeShortURLs plugin.
+	// If set to 'no', disable the DecodeShortURLs plugin.
+	//
+	// See https://github.com/smfreegard/DecodeShortURLs for further details.
+	'DecodeShortURLs' => 'no',
 
-	// Plugin iXhash2 - http://mailfud.org/iXhash2/
-	'iXhash2' => 'no', // yes, no (default)
+	// iXhash2 plugin (default: no)
+	//
+	// If set to 'yes', enable the iXhash2 plugin.
+	// If set to 'no', disable the iXhash2 plugin.
+	//
+	// See http://mailfud.org/iXhash2/ for further details.
+	'iXhash2' => 'no',
 
-	/*
-	 * Roundcube Plugins
-	 */
+	//
+	//// Roundcube plugins
+	//
 
-	// Adds a new button to the mailbox toolbar to mark the selected messages as Junk/Not Junk, 
-	// optionally detaching original messages from spam reports if the message is not junk and 
-	// learning the bayesian database with junk/not junk.
-	'markasjunk2' => 'yes', // yes (default), no
+	// markasjunk2 plugin (default: yes)
+	//
+	// If set to 'yes', enable the markasjunk2 roundcube plugin.
+	// If set to 'no', disable the markasjunk2 roundcube plugin.
+	//
+	// The markasjunk2 roundcube plugin adds a new button to the mailbox toolbar, which allow the users to mark the
+	// selected messages as Junk/Not Junk, optionally detaching original messages from spam reports if the message is
+	// not junk and learning the bayesian database with junk/not junk.
+	'markasjunk2' => 'yes',
 
-	// Adds a 'Spam' tab to the 'Settings' in Roundcube to allow the users to change
-	// their SpamAssassin preferences which are stored in the imscp_spamassassin database.
-	'sauserprefs' => 'yes', // yes (default), no
+	// sauserprefs plugin (default: yes)
+	//
+	// If set to 'yes', enable the sauserprefs plugin.
+	// If set to 'no', disable sauserprefs plugin.
+	//
+	// The sauserprefs roundcube plugin adds a 'Spam' tab to the 'Settings' in roundcube, which allow the users to
+	// change their SpamAssassin preferences. SA user preference are stored inside the imscp_spamassassin database.
+	'sauserprefs' => 'yes',
 
-	// Don't allow these settings to be overriden by the user.
-	// Check webmail/plugins/sauserprefs/config.inc.php for all options.
-	// Don't change anything, if you don't know what you are doing!
+	// Protected SA user preferences (default: '{headers}', 'use_razor1')
+	//
+	// Any user preference listed in that configuration parameter will be protected against overriding by users. See
+	// Check webmail/plugins/sauserprefs/config.inc.php for list of available options.
+	//
+	// Don't change anything, if you don't know what you are doing.
 	'sauserprefs_dont_override' => "'{headers}', 'use_razor1'", // default: "'{headers}', 'use_razor1'"
 
-	/*
-	 * SpamAssassin and spamass-milter default configuration
-	 */
-	 
-	// Don't change anything, if you don't know what you are doing!
+	//
+	//// SpamAssassin and spamass-milter configuration
+	//
+
 	'spamassMilterOptions' => '-e -f -I -u spamass-milter',
-
-	// Don't change anything, if you don't know what you are doing!
 	'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock',
-
-	// Don't change anything, if you don't know what you are doing!
 	'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
 );
