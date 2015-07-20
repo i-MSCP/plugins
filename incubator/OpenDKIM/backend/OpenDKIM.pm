@@ -61,6 +61,11 @@ sub install
 	my $rs = _checkRequirements();
 	return $rs if $rs;
 
+	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim' )->make(
+		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
+	);
+	return $rs if $rs;
+
 	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim/keys' )->make(
 		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
 	);
