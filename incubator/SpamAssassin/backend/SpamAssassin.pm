@@ -762,13 +762,19 @@ sub _spamassassinConfig
 	}
 
 	if($saFile eq '00_imscp.cf') {
+		my $disableDCC = "";
+		
+		if($self->{'config'}->{'use_dcc'} eq 'no') {
+			$disableDCC = "AND preference NOT LIKE 'use_dcc'";
+		}
 		$fileContent = process(
 			{
 				DATABASE_HOST => $main::imscpConfig{'DATABASE_HOST'},
 				DATABASE_PORT => $main::imscpConfig{'DATABASE_PORT'},
 				SA_DATABASE_NAME => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
 				SA_DATABASE_USER => $self->{'SA_DATABASE_USER'},
-				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'}
+				SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'},
+				DISABLE_DCC => $disableDCC
 			},
 			$fileContent
 		);
