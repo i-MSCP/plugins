@@ -29,7 +29,7 @@ return array(
 	'email' => 'team@i-mscp.net',
 	'version' => '1.0.2',
 	'require_api' => '1.0.0',
-	'date' => '2015-07-13',
+	'date' => '2015-07-22',
 	'name' => 'OpenDKIM',
 	'desc' => 'Plugin which provides an OpenDKIM implementation for i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
