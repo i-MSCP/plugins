@@ -177,4 +177,3 @@ class imscp_pw_changer extends rcube_plugin{
 		}
 	}
 }
-?>

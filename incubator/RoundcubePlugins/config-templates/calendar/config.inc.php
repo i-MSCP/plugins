@@ -165,5 +165,3 @@ $config['kolab_invitation_calendars'] = true;
 
 // LDAP directory configuration to find avilable resources for events
 // $config['calendar_resources_directory'] = array(/* ldap_public-like address book configuration */);
-
-?>

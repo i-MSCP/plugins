@@ -36,4 +36,3 @@ $messages['passwordinconsistency'] = 'Das neue Passwort und dessen Wiederholung 
 $messages['connecterror'] = 'Neues Passwort nicht gespeichert: Verbindungsfehler';
 $messages['internalerror'] = 'Neues Passwort nicht gespeichert';
 $messages['passwordlenght'] = 'Password hat zu wenig Zeichen! Vorgabe sind: ';
-?>

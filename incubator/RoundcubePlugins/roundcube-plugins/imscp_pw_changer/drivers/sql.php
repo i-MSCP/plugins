@@ -56,4 +56,3 @@ function password_save($passwd){
 
 	return PASSWORD_ERROR;
 }
-?>

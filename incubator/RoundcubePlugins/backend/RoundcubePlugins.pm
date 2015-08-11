@@ -33,6 +33,7 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::TemplateParser;
+use iMSCP::Rights;
 use iMSCP::Service;
 use Servers::cron;
 use version;
@@ -56,12 +57,9 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkVersion();
-	return $rs if $rs;
-
-	$rs = $self->_checkActivatedPlugins();
 	return $rs if $rs;
 
 	$rs = $self->_installPlugins();
@@ -70,8 +68,10 @@ sub install
 	$rs = $self->_setPluginConfig('imscp_pw_changer', 'config.inc.php');
 	return $rs if $rs;
 
-	$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
-	return $rs if $rs;
+	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+		$rs = $self->_setPluginConfig('managesieve', 'config.inc.php');
+		return $rs if $rs;
+	}
 
 	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
 	return $rs if $rs;
@@ -89,7 +89,7 @@ sub install
 
 sub uninstall
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_removePluginFile('managesieve', 'config.inc.php');
 	return $rs if $rs;
@@ -113,7 +113,9 @@ sub uninstall
 
 sub update
 {
-	$_[0]->install();
+	my $self = shift;
+
+	$self->install();
 }
 
 =item change()
@@ -126,7 +128,9 @@ sub update
 
 sub change
 {
-	$_[0]->install();
+	my $self = shift;
+
+	$self->install();
 }
 
 =item enable()
@@ -139,12 +143,9 @@ sub change
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkVersion();
-	return $rs if $rs;
-
-	$rs = $self->_checkActivatedPlugins();
 	return $rs if $rs;
 
 	$rs = $self->_setRoundcubePlugin('add');
@@ -154,7 +155,10 @@ sub enable
 		$self->_restartDaemonDovecot();
 	}
 
-	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+	}
 
 	0;
 }
@@ -169,7 +173,7 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_setRoundcubePlugin('remove');
 	return $rs if $rs;
@@ -178,16 +182,13 @@ sub disable
 	return $rs if $rs;
 
 	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-		$rs = $self->_modifyDovecotConfig('archive', 'remove');
-		return $rs if $rs;
-
-		$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
-		return $rs if $rs;
-
 		$self->_restartDaemonDovecot();
 	}
 
-	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+	}
 
 	0;
 }
@@ -228,7 +229,7 @@ sub fetchmail
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	# Force return value from plugin module
 	$self->{'FORCE_RETVAL'} = 'yes';
@@ -264,13 +265,9 @@ sub _installPlugins
 	my $panelUName =
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-	require iMSCP::Rights;
-	iMSCP::Rights->import();
-
-	setRights(
-		"$pluginFolder/",
-		{ 'user' => $panelUName, 'group' => $panelGName, 'dirmode' => '0550', 'filemode' => '0440', 'recursive' => 1 }
-	);
+	setRights($pluginFolder, {
+		user => $panelUName, group => $panelGName, dirmode => '0550', filemode => '0440', recursive => 1
+	});
 }
 
 =item _removePlugins()
@@ -283,12 +280,13 @@ sub _installPlugins
 
 sub _removePlugins
 {
-	my $roundcubePlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
-	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
+	my $pluginSourceDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
+	my $pluginTargetDir = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
 
-	for my $plugin (glob($roundcubePlugin . "/*")) {
-		$plugin =~ s%$roundcubePlugin/(.*)%$pluginFolder/$1%gm;
-		my $rs = iMSCP::Dir->new('dirname' => $plugin)->remove() if -d $plugin;
+	my @pluginDirs = iMSCP::Dir->new( dirname => $pluginSourceDir )->getDirs();
+
+	for my $basename(@pluginDirs) {
+		my $rs = iMSCP::Dir->new( dirname => "$pluginTargetDir/$basename" )->remove();
 		return $rs if $rs;
 	}
 
@@ -321,7 +319,7 @@ sub _removePluginFile
 
 =item _setRoundcubePlugin($plugin, $action)
 
- Activate or deactivate the Roundcube Plugin.
+ Activate or deactivate the Roundcube Plugins
 
  Return int 0 on success, other on failure
 
@@ -331,121 +329,85 @@ sub _setRoundcubePlugin
 {
 	my ($self, $action) = @_;
 
-	my $roundcubePlugins = '';
-	my $roundcubePluginConfig = '';
-
-	my $rs = 0;
-
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
-
-	my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
-
+	my $conffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
+	my $file = iMSCP::File->new( filename => $conffile );
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read $roundcubeMainIncFile");
+		error(sprintf('Could not read %s', $conffile));
 		return 1;
 	}
 
-	if($action eq 'add') {
-		if($self->{'config'}->{'imscp_pw_changer'} eq 'yes') {
-			$roundcubePlugins = "'imscp_pw_changer'";
-		}
+	$fileContent = replaceBloc(
+		"\n# Begin Plugin::RoundcubePlugins\n", "Ending Plugin::RoundcubePlugins\n", '', $fileContent
+	);
 
-		if($self->{'config'}->{'additional_message_headers_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '')
-				? "'additional_message_headers'" : ", 'additional_message_headers'";
+	if($action eq 'add') {
+		my @plugins = ();
+
+		for my $plugin(
+			'imscp_pw_changer', 'additional_message_headers_plugin', 'calendar_plugin', 'dkimstatus_plugin',
+			'emoticons_plugin', 'logon_page_plugin', 'newmail_notifier_plugin', 'pdfviewer_plugin', 'odfviewer_plugin',
+			'zipdownload_plugin', 'contextmenu_plugin', 'tasklist_plugin'
+		) {
+			if($self->{'config'}->{$plugin} eq 'yes') {
+				$plugin =~ s/_plugin$//;
+				push @plugins, $plugin;
+			}
 		}
 
 		if($self->{'config'}->{'archive_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'archive'" : ", 'archive'";
-			
-			if($main::imscpConfig{'PO_SERVER'} ne 'dovecot') {
-				$rs = $self->_modifyDovecotConfig('archive', 'add');
+			push @plugins, 'archive';
+
+			if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+				my $rs = $self->_modifyDovecotConfig('archive', 'add');
 				return $rs if $rs;
 			}
-		} else {
-			if($main::imscpConfig{'PO_SERVER'} ne 'dovecot') {
-				$rs = $self->_modifyDovecotConfig('archive', 'remove');
-				return $rs if $rs;
-			}
-		}
-
-		if($self->{'config'}->{'calendar_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '')
-				? "'libcalendaring', 'calendar'" : ", 'libcalendaring', 'calendar'";
-		}
-
-		if($self->{'config'}->{'dkimstatus_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'dkimstatus'" : ", 'dkimstatus'";
-		}
-
-		if($self->{'config'}->{'emoticons_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'emoticons'" : ", 'emoticons'";
-		}
-
-		if($self->{'config'}->{'logon_page_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'logon_page'" : ", 'logon_page'";
+		} elsif($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+			my $rs = $self->_modifyDovecotConfig('archive', 'remove');
+			return $rs if $rs;
 		}
 
 		if($self->{'config'}->{'managesieve_plugin'} eq 'yes') {
-			$rs = $self->_checkManagesieveRequirements();
+			if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+				my $rs = $self->_checkManagesieveRequirements();
+				return $rs if $rs;
+
+				push @plugins, 'managesieve';
+
+				$rs = $self->_modifyDovecotConfig('managesieve', 'add');
+				return $rs if $rs;
+			} else {
+				error('The managesieve plugin require the Dovecot PO server.');
+				return 1;
+			}
+		} elsif($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
+			my $rs = $self->_modifyDovecotConfig('managesieve', 'remove');
 			return $rs if $rs;
-		
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'managesieve'" : ", 'managesieve'";
-			
-			$rs = $self->_modifyDovecotConfig('managesieve', 'add');
-			return $rs if $rs;
-		} else {
-			$rs = $self->_modifyDovecotConfig('managesieve', 'remove');
-			return $rs if $rs;
-		}
-
-		if($self->{'config'}->{'newmail_notifier_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'newmail_notifier'" : ", 'newmail_notifier'";
-		}
-
-		if($self->{'config'}->{'pdfviewer_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'pdfviewer'" : ", 'pdfviewer'";
-		}
-
-		if($self->{'config'}->{'odfviewer_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'odfviewer'" : ", 'odfviewer'";
-		}
-
-		if($self->{'config'}->{'zipdownload_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'zipdownload'" : ", 'zipdownload'";
-		}
-
-		if($self->{'config'}->{'contextmenu_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'contextmenu'" : ", 'contextmenu'";
-		}
-
-		if($self->{'config'}->{'tasklist_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'tasklist'" : ", 'tasklist'";
 		}
 
 		if($self->{'config'}->{'pop3fetcher_plugin'} eq 'yes') {
-			$roundcubePlugins .= ($roundcubePlugins eq '') ? "'pop3fetcher'" : ", 'pop3fetcher'";
-			
-			$rs = $self->_registerCronjobPop3fetcher();
+			push @plugins, 'pop3fetcher';
+
+			my $rs = $self->_registerCronjobPop3fetcher();
 			return $rs if $rs;
 		} else {
-			$rs = $self->_unregisterCronjobPop3fetcher();
+			my $rs = $self->_unregisterCronjobPop3fetcher();
 			return $rs if $rs;
 		}
-		
-		$fileContent =~ s/^\n# Begin Plugin::RoundcubePlugins.*Ending Plugin::RoundcubePlugins\n//sgm;
-		
-		$roundcubePluginConfig = "\n# Begin Plugin::RoundcubePlugins\n";
-		$roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(" . $roundcubePlugins . "));\n";
+
+		my $roundcubePluginConfig = "\n# Begin Plugin::RoundcubePlugins\n";
+		$roundcubePluginConfig .= '$config[\'plugins\'] = array_merge($config[\'plugins\'], array(' .
+			"\n\t" . ( join ', ', map { qq/'$_'/ } @plugins ) . "\n));\n";
 		$roundcubePluginConfig .= "# Ending Plugin::RoundcubePlugins\n";
 
 		$fileContent .= $roundcubePluginConfig;
 	} elsif($action eq 'remove') {
-		$fileContent =~ s/^\n# Begin Plugin::RoundcubePlugins.*Ending Plugin::RoundcubePlugins\n//sgm;
+		$fileContent = replaceBloc(
+			"\n# Begin Plugin::RoundcubePlugins\n", "# Ending Plugin::RoundcubePlugins\n", '', $fileContent
+		);
 	}
 
-	$rs = $file->set($fileContent);
+	my $rs = $file->set($fileContent);
 	return $rs if $rs;
 
 	$file->save();
@@ -453,7 +415,7 @@ sub _setRoundcubePlugin
 
 =item _setPluginConfig($plugin, $fileName)
 
- Set the values in the Plugin config file config.inc.php.
+ Set the values in the Plugin config file config.inc.php
 
  Return int 0 on success, other on failure
 
@@ -464,42 +426,43 @@ sub _setPluginConfig
 	my ($self, $plugin, $fileName) = @_;
 
 	my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-
-	my $configFile = "$pluginFolder/$plugin/$fileName";
-	my $file = iMSCP::File->new( filename => $configFile );
-
+	my $file = iMSCP::File->new( filename => "$pluginFolder/$plugin/$fileName" );
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
-		error("Unable to read $configFile");
+		error(sprintf('Could not read %s', $file->{'filename'}));
 		return 1;
 	}
 
+	my $data = { };
 	if($plugin eq 'managesieve') {
-		$fileContent =~ s%\{managesieve_default\}%$pluginFolder/$plugin/imscp_default.sieve%g;
-		$fileContent =~ s/\{managesieve_script_name\}/$self->{'config'}->{'managesieve_script_name'}/g;
+		$data = {
+			managesieve_default => "$pluginFolder/$plugin/imscp_default.sieve",
+			managesieve_script_name => $self->{'config'}->{'managesieve_script_name'}
+		};
 	} elsif($plugin eq 'newmail_notifier') {
-		$fileContent =~ s/\{newmail_notifier_basic\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}/g;
-		$fileContent =~ s/\{newmail_notifier_sound\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}/g;
-		$fileContent =~ s/\{newmail_notifier_desktop\}/$self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}/g;
+		my $data = {
+			newmail_notifier_basic => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'},
+			newmail_notifier_sound => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'},
+			newmail_notifier_desktop => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}
+		};
 	} elsif($plugin eq 'pop3fetcher') {
-		if($fileContent =~ /\{IMSCP-DATABASE\}/sgm) {
-			$fileContent =~ s/\{IMSCP-DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
-		}
+		$data = { IMSCP_DATABASE => $main::imscpConfig{'DATABASE_NAME'} };
 	} elsif($plugin eq 'imscp_pw_changer') {
-		if($fileContent =~ /\{IMSCP_DATABASE\}/sgm) {
-			tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
+		tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
-			(my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%(')%\\$1%g;
-			(my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%(')%\\$1%g;
+		(my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%(')%\\$1%g;
+		(my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%(')%\\$1%g;
 
-			$fileContent =~ s/\{ROUNDCUBE_USERNAME\}/$dbUser/g;
-			$fileContent =~ s/\{ROUNDCUBE_PASSWORD\}/$dbPass/g;
-			$fileContent =~ s/\{DATABASE_HOST\}/$main::imscpConfig{'DATABASE_HOST'}/g;
-			$fileContent =~ s/\{IMSCP_DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
-		}
+		my $data = {
+			DB_NAME => $main::imscpConfig{'DATABASE_NAME'},
+			DB_HOST => $main::imscpConfig{'DATABASE_HOST'},
+			DB_PORT => $main::imscpConfig{'DATABASE_PORT'},
+			DB_USER => $dbUser,
+			DB_PASS => $dbPass
+		};
 	}
 
-	my $rs = $file->set($fileContent);
+	my $rs = $file->set(process($data, $fileContent));
 	return $rs if $rs;
 
 	$file->save();
@@ -558,15 +521,15 @@ sub _modifyDovecotConfig
 	my $rs = execute('/usr/sbin/dovecot --version', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr;
-	error('Unable to get Dovecot version. Is Dovecot installed?') if $rs && ! $stderr;
+	error('Could not get Dovecot version. Is Dovecot installed?') if $rs && ! $stderr;
 	return $rs if $rs;
 
 	chomp($stdout);
 	$stdout =~ m/^([0-9\.]+)\s*/;
 	my $version = $1;
 
-	if(!$version) {
-		error("Unable to find Dovecot version");
+	unless($version) {
+		error('Could not find Dovecot version');
 		return 1;
 	}
 
@@ -645,39 +608,35 @@ sub _restartDaemonDovecot
 
 sub _registerCronjobPop3fetcher
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my $cronjobFilePath = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/cronjob/cronjob_pop3fetcher.pl";
+	my $filepath = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/cronjob/cronjob_pop3fetcher.pl";
 
-	my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
+	my $file = iMSCP::File->new( filename => $filepath );
 
-	my $cronjobFileContent = $cronjobFile->get();
-	unless (defined $cronjobFileContent) {
-		error("Unable to read $cronjobFilePath");
+	my $fileContent = $file->get();
+	unless (defined $fileContent) {
+		error(sprintf('Could not read %s', $filepath));
 		return 1;
 	}
 
-	$cronjobFileContent = process(
-		{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $cronjobFileContent
+	my $rs = $file->set(
+		process({ IMSCP_PERLLIB_PATH => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $fileContent)
 	);
-
-	my $rs = $cronjobFile->set($cronjobFileContent);
 	return $rs if $rs;
 
-	$rs = $cronjobFile->save();
+	$rs = $file->save();
 	return $rs if $rs;
 
-	Servers::cron->factory()->addTask(
-		{
-			'TASKID' => 'Plugin::RoundcubePlugins::pop3fetcher',
-			'MINUTE' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'minute'},
-			'HOUR' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'hour'},
-			'DAY' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'day'},
-			'MONTH' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'month'},
-			'DWEEK' => $self->{'config'}->{'pop3fetcher_cronjob'}->{'dweek'},
-			'COMMAND' => "perl $cronjobFilePath >/dev/null 2>&1"
-		}
-	);
+	Servers::cron->factory()->addTask({
+		TASKID => 'Plugin::RoundcubePlugins::pop3fetcher',
+		MINUTE => $self->{'config'}->{'pop3fetcher_cronjob'}->{'minute'},
+		HOUR => $self->{'config'}->{'pop3fetcher_cronjob'}->{'hour'},
+		DAY => $self->{'config'}->{'pop3fetcher_cronjob'}->{'day'},
+		MONTH => $self->{'config'}->{'pop3fetcher_cronjob'}->{'month'},
+		DWEEK => $self->{'config'}->{'pop3fetcher_cronjob'}->{'dweek'},
+		COMMAND => "perl $filepath >/dev/null 2>&1"
+	});
 
 	0;
 }
@@ -692,27 +651,7 @@ sub _registerCronjobPop3fetcher
 
 sub _unregisterCronjobPop3fetcher
 {
-	Servers::cron->factory()->deleteTask({ 'TASKID' => 'Plugin::RoundcubePlugins::pop3fetcher' });
-}
-
-=item _checkActivatedPlugins()
-
- Check the activated plugins which are only compatible with dovecot
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _checkActivatedPlugins
-{
-	my $self = $_[0];
-
-	if($main::imscpConfig{'PO_SERVER'} ne 'dovecot' && $self->{'config'}->{'managesieve_plugin'} eq 'yes') {
-		error("The plugin 'managesieve_plugin' is not compatible with your PO server: $main::imscpConfig{'PO_SERVER'} !");
-		return 1;
-	}
-
-	0;
+	Servers::cron->factory()->deleteTask({ TASKID => 'Plugin::RoundcubePlugins::pop3fetcher' });
 }
 
 =item _checkVersion()
@@ -725,14 +664,14 @@ sub _checkActivatedPlugins
 
 sub _checkVersion
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	# Check the Roundcube version
-	# TODO Should be done on PHP side
-	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
+	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
-	if(version->parse("$self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'}") < version->parse("1.1.0")) {
-		error("Your Roundcube version $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'} is not compatible with this plugin version. Please check the documentation.");
+	my $roundcubeVersion = $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'};
+
+	if(version->parse($roundcubeVersion) < version->parse('1.1.0')) {
+		error(sprintf('Your Roundcube version %s is not compatible with this plugin version.', $roundcubeVersion));
 		return 1;
 	}
 

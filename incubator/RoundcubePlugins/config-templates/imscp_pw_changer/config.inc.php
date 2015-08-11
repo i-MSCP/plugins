@@ -34,8 +34,6 @@ $rcmail_config['password_driver'] = 'sql';
 // ------------------
 // PEAR database DSN for performing the query. By default
 // Roundcube DB settings are used.
-$rcmail_config['password_db_dsn'] = 'mysqli://{ROUNDCUBE_USERNAME}:{ROUNDCUBE_PASSWORD}@{DATABASE_HOST}/{IMSCP_DATABASE}';
+$rcmail_config['password_db_dsn'] = 'mysqli://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}';
 
 $rcmail_config['password_length'] = 6;
-
-?>

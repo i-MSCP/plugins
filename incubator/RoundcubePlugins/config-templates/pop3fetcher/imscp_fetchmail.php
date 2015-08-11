@@ -119,11 +119,11 @@ class fetchmail_cronjob
 				`t1`.*, `t2`.`username`, `t2`.`mail_host`,
 				`t3`.`mail_pass`
 			FROM
-				`{IMSCP-DATABASE}_roundcube`.`pop3fetcher_accounts` AS `t1`
+				`{IMSCP_DATABASE}_roundcube`.`pop3fetcher_accounts` AS `t1`
 			LEFT JOIN
-				`{IMSCP-DATABASE}_roundcube`.`users` AS `t2` ON(`t2`.`user_id` = `t1`.`user_id`)
+				`{IMSCP_DATABASE}_roundcube`.`users` AS `t2` ON(`t2`.`user_id` = `t1`.`user_id`)
 			LEFT JOIN
-				`{IMSCP-DATABASE}`.`mail_users` AS `t3` ON(`t3`.`mail_addr` = `t2`.`username`)
+				`{IMSCP_DATABASE}`.`mail_users` AS `t3` ON(`t3`.`mail_addr` = `t2`.`username`)
 			WHERE
 				(`t3`.`mail_type` LIKE '%normal_mail%' OR `t3`.`mail_type` LIKE '%alias_mail%' OR `t3`.`mail_type` LIKE '%subdom_mail%')
 				
@@ -241,7 +241,7 @@ class fetchmail_cronjob
 										
 										if($this->debug) write_log("pop3fetcher_cron.txt", "INTERCEPT: trying to update DB: " . $last_uidl . " " . $val['pop3fetcher_id']);
 										
-										$query = "UPDATE {IMSCP-DATABASE}_roundcube.pop3fetcher_accounts SET last_uidl = ? WHERE pop3fetcher_id = ?";
+										$query = "UPDATE {IMSCP_DATABASE}_roundcube.pop3fetcher_accounts SET last_uidl = ? WHERE pop3fetcher_id = ?";
 										$ret = $this->rcmail->db->query($query, $last_uidl, $val['pop3fetcher_id']);
 										
 										if($this->debug) write_log("pop3fetcher_cron.txt", "INTERCEPT: updated DB: " . $last_uidl . " " . $val['pop3fetcher_id']);
