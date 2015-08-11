@@ -489,10 +489,15 @@ sub _setPluginConfig
 		if($fileContent =~ /\{IMSCP_DATABASE\}/sgm) {
 			tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', 'fileName' => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
-			$fileContent =~ s/\{ROUNDCUBE_USERNAME\}/$self->{'ROUNDCUBE'}->{'DATABASE_USER'}/g;
-			$fileContent =~ s/\{ROUNDCUBE_PASSWORD\}/$self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}/g;
-			$fileContent =~ s/\{DATABASE_HOST\}/$main::imscpConfig{'DATABASE_HOST'}/g;
-			$fileContent =~ s/\{IMSCP_DATABASE\}/$main::imscpConfig{'DATABASE_NAME'}/g;
+			(my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%('|"|\\)%\\$1%g;
+			(my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%('|"|\\)%\\$1%g;
+			my $dbHost = $main::imscpConfig{'DATABASE_HOST'};
+			my $dbName = $main::imscpConfig{'DATABASE_NAME'};
+
+			$fileContent =~ s/\{ROUNDCUBE_USERNAME\}/$dbUser/g;
+			$fileContent =~ s/\{ROUNDCUBE_PASSWORD\}/$dbPass/g;
+			$fileContent =~ s/\{DATABASE_HOST\}/$dbHost/g;
+			$fileContent =~ s/\{IMSCP_DATABASE\}/$dbName/g;
 		}
 	}
 
