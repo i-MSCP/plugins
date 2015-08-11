@@ -72,7 +72,9 @@ sub install
 
 sub uninstall
 {
-	$_[0]->_postscreenAccessFile('remove');
+	my $self = shift;
+
+	$self->_postscreenAccessFile('remove');
 }
 
 =item update()
@@ -100,10 +102,7 @@ sub update
 			}
 
 			$fileContent = replaceBloc(
-				"// BEGIN Plugin::Postscreen\n",
-				"// END Plugin::Postscreen\n",
-				'',
-				$fileContent
+				"// BEGIN Plugin::Postscreen\n", "// END Plugin::Postscreen\n", '', $fileContent
 			);
 
 			my $rs = $file->set($fileContent);
@@ -126,10 +125,7 @@ sub update
 			}
 
 			$fileContent = replaceBloc(
-				"// Begin Plugin::Postscreen\n",
-				"// Ending Plugin::Postscreen\n",
-				'',
-				$fileContent
+				"// Begin Plugin::Postscreen\n", "// Ending Plugin::Postscreen\n", '', $fileContent
 			);
 
 			my $rs = $file->set($fileContent);
@@ -176,7 +172,7 @@ sub update
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_postfixMainCf('configure');
 	return $rs if $rs;
@@ -206,7 +202,7 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_postfixMainCf('deconfigure');
 	return $rs if $rs;
@@ -217,10 +213,11 @@ sub disable
 	$rs = $self->_schedulePostfixRestart();
 	return $rs if $rs;
 
-	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if('Roundcube' ~~ @packages) {
+	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
 		$self->_roundcubeSmtpPort('deconfigure');
 	}
+
+	0;
 }
 
 =back
@@ -256,7 +253,8 @@ sub _postfixMainCf
 	my $postscreenDnsblSites = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_dnsbl_sites'}};
 	my $postscreenAccessList = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_access_list'}};
 
-	my $confSnippet = <<EOF;
+	if($action eq 'configure') {
+		my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
 postscreen_greet_action = $self->{'config'}->{'postscreen_greet_action'}
 postscreen_dnsbl_sites = $postscreenDnsblSites
@@ -267,7 +265,6 @@ postscreen_blacklist_action = $self->{'config'}->{'postscreen_blacklist_action'}
 # Plugin::Postscreen - Ending
 EOF
 
-	if($action eq 'configure') {
 		if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
 			$fileContent = replaceBloc(
 				"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
@@ -291,7 +288,7 @@ EOF
 
  Modify postfix master.cf config file
 
- Param string $action Action to perform ( configure|deconfigure )
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
@@ -344,7 +341,7 @@ EOF
 
  Create or delete postscreen access files
 
- Param string $action Action to perform ( add|remove )
+ Param string $action Action to perform (add|remove)
  Return int 0 on success, other on failure
 
 =cut
@@ -449,10 +446,7 @@ EOF
 sub _schedulePostfixRestart
 {
 	require Servers::mta;
-
-	Servers::mta->factory()->{'restart'} = 'yes';
-
-	0;
+	Servers::mta->factory()->restart('defer');
 }
 
 =back

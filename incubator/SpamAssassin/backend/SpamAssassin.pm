@@ -337,8 +337,7 @@ sub bayesSaLearn
 	for my $saFile (glob($saLearnDir . "*")) {
 		$saFile =~ /^($saLearnDir)(.*)__(spam|ham)__(.*)/;
 
-		my ($stdout, $stderr);
-		my $rs = execute("sa-learn --$3 --username=$2 $saFile", \$stdout, \$stderr);
+		my $rs = execute("sa-learn --$3 --username=$2 $saFile", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -394,8 +393,9 @@ sub _updateSpamassassinRules
 	$self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 	my $saUser = $1;
 
-	my ($stdout, $stderr);
-	my $rs = execute("/bin/su $saUser -c '/usr/bin/sa-update --gpghomedir $helperHomeDir/sa-update-keys'", \$stdout, \$stderr);
+	my $rs = execute(
+		"/bin/su $saUser -c '/usr/bin/sa-update --gpghomedir $helperHomeDir/sa-update-keys'", \my $stdout, \my $stderr
+	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs >= 4;
 	return $rs if $rs >= 4;
@@ -425,8 +425,7 @@ sub _discoverPyzor
 
 	$self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 
-	my ($stdout, $stderr);
-	my $rs = execute("su $1 -c '/usr/bin/pyzor discover'", \$stdout, \$stderr);
+	my $rs = execute("su $1 -c '/usr/bin/pyzor discover'", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	$rs;
@@ -446,8 +445,7 @@ sub _createRazor
 
 	$self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 
-	my ($stdout, $stderr);
-	my $rs = execute("su $1 -c '/usr/bin/razor-admin -create'", \$stdout, \$stderr);
+	my $rs = execute("su $1 -c '/usr/bin/razor-admin -create'", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -555,8 +553,7 @@ sub _postfixConfig
 {
 	my ($self, $action) = @_;
 
-	my ($stdout, $stderr);
-	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters milter_connect_macros', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters milter_connect_macros', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -744,11 +741,10 @@ sub _spamassassinConfig
 {
 	my ($self, $saFile) = @_;
 
-	my ($stdout, $stderr);
 	my $rs = execute(
 		"cp -f $main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$saFile /etc/spamassassin",
-		\$stdout,
-		\$stderr
+		\my $stdout,
+		\my $stderr
 	);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
@@ -819,8 +815,7 @@ sub _spamassassinConfig
 
 sub _removeSpamassassinConfig
 {
-	my ($stdout, $stderr);
-	my $rs = execute('rm -f /etc/spamassassin/00_imscp.*', \$stdout, \$stderr);
+	my $rs = execute('rm -f /etc/spamassassin/00_imscp.*', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	$rs;
@@ -843,8 +838,7 @@ sub _roundcubePlugins
 	my $pluginDestDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	if($action eq 'add') {
-		my ($stdout, $stderr);
-		my $rs = execute("cp -fR $pluginsSrcDir/* $pluginDestDir/", \$stdout, \$stderr);
+		my $rs = execute("cp -fR $pluginsSrcDir/* $pluginDestDir/", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -1104,13 +1098,12 @@ sub _setRoundcubePluginConfig
 	my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$plugin";
 	my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-	my ($stdout, $stderr);
-	my $rs = execute("cp -fr $configPlugin/* $pluginsDir/$plugin", \$stdout, \$stderr);
+	my $rs = execute("cp -fr $configPlugin/* $pluginsDir/$plugin", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	my $file = iMSCP::File->new( filename => "$pluginsDir/$plugin/config.inc.php");
+	my $file = iMSCP::File->new( filename => "$pluginsDir/$plugin/config.inc.php" );
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
 		error("Unable to read $file->{'filename'} file");
@@ -1356,13 +1349,12 @@ sub _setSpamassassinPlugin
 {
 	my ($self, $plugin, $action) = @_;
 
-	my ($stdout, $stderr);
 	my $spamassassinFolder = '/etc/spamassassin';
 
 	if($action eq 'add') {
 		my $pluginDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/spamassassin-plugins/$plugin";
 
-		my $rs = execute("cp -fR $pluginDir/$plugin.* $spamassassinFolder/", \$stdout, \$stderr);
+		my $rs = execute("cp -fR $pluginDir/$plugin.* $spamassassinFolder/", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -1372,7 +1364,7 @@ sub _setSpamassassinPlugin
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	} elsif($action eq 'remove') {
-		my $rs = execute("rm -f $spamassassinFolder/$plugin.*", \$stdout, \$stderr);
+		my $rs = execute("rm -f $spamassassinFolder/$plugin.*", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
@@ -1400,8 +1392,7 @@ sub _checkSaUser
 	$self->{'config'}->{'spamassassinOptions'} =~ m/helper-home-dir=(\S*)/;
 	my $helperHomeDir = $1;
 
-	my ($rs, $stdout, $stderr);
-	$rs = execute("id -g $group", \$stdout, \$stderr);
+	$rs = execute("id -g $group", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	if($rs eq '1') {
@@ -1421,7 +1412,7 @@ sub _checkSaUser
 		return $rs if $rs;
 	}
 
-	if(! -d $helperHomeDir) {
+	unless(-d $helperHomeDir) {
 		$rs = execute("mkdir -p $helperHomeDir", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;

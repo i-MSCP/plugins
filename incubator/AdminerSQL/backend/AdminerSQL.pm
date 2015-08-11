@@ -56,7 +56,7 @@ my $ADMINER_VERSION = '4.2.1';
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $curDir = getcwd();
 	my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
@@ -65,9 +65,7 @@ sub enable
 	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
 	# Create production directory
-	my $rs = iMSCP::Dir->new( dirname => $prodDir )->make(
-		{ user => $panelUName, group => $panelGName, mode => 0550 }
-	);
+	my $rs = iMSCP::Dir->new( dirname => $prodDir )->make({ user => $panelUName, group => $panelGName, mode => 0550 });
 	return $rs if $rs;
 
 
@@ -75,8 +73,7 @@ sub enable
 	$rs = $file->copyFile("$srcDir/adminer/static/default.css");
 	return $rs if $rs;
 
-	my $fileSuffix =
-		'-' . $ADMINER_VERSION .
+	my $fileSuffix = '-' . $ADMINER_VERSION .
 		( ($self->{'config'}->{'driver'} eq 'all') ? '' :  '-' . $self->{'config'}->{'driver'} ) . '.php';
 
 	unless(chdir($srcDir)) {
@@ -126,7 +123,10 @@ sub enable
 		return 1;
 	}
 
-	iMSCP::Service->getInstance()->restart('imscp_panel');
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		eval { iMSCP::Service->getInstance()->restart('imscp_panel', 'defer'); };
+	}
 
 	0;
 }
@@ -144,7 +144,10 @@ sub disable
 	my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
 	return $rs if $rs;
 
-	iMSCP::Service->getInstance()->restart('imscp_panel');
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+	}
 
 	0;
 }
@@ -153,8 +156,8 @@ sub disable
 
 =head1 AUTHORS
 
- Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>
+ Sascha Bay <info@space2place.de>
 
 =cut
 

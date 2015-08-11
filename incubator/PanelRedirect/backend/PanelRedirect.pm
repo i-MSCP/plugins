@@ -223,10 +223,10 @@ sub _removeConfig
 sub _createLogFolder()
 {
 	iMSCP::Dir->new(
-		'dirname' => "$_[0]->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
-	)->make(
-		{ 'user' => $main::imscpConfig{'ROOT_USER'}, 'group' => $main::imscpConfig{'ROOT_GROUP'}, 'mode' => 0750 }
-	);
+		dirname => "$_[0]->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
+	)->make({
+		user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0750
+	});
 }
 
 =item _removeLogFolder()

@@ -434,11 +434,11 @@ sub _deleteDomainKey
 	my ($self, $domainId, $aliasId, $domain) = @_;
 
 	# Remove the directory which host the domain private key and the DNS TXT record files
-	my $rs = iMSCP::Dir->new( dirname => "/etc/opendkim/keys/$domain")->remove();
+	my $rs = iMSCP::Dir->new( dirname => "/etc/opendkim/keys/$domain" )->remove();
 	return $rs if $rs;
 
 	# Remove the domain private key from the OpenDKIM KeyTable file
-	my $file = iMSCP::File->new( filename => '/etc/opendkim/KeyTable');
+	my $file = iMSCP::File->new( filename => '/etc/opendkim/KeyTable' );
 	my $fileContent = $file->get();
 	unless (defined $fileContent) {
 		error("Unable to read $file->{'filename'} file");

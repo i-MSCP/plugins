@@ -54,7 +54,9 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	$_[0]->_copyFolder();
+	my $self = shift;
+
+	$self->_copyFolder();
 }
 
 =item uninstall()
@@ -67,7 +69,9 @@ sub install
 
 sub uninstall
 {
-	$_[0]->_removeFolder();
+	my $self = shift;
+
+	iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->remove();
 }
 
 =item update($fromVersion, $toVersion)
@@ -99,7 +103,7 @@ sub update
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_getIps();
 	return $rs if $rs;
@@ -117,8 +121,8 @@ sub enable
 	$directives = [ ];
 
 	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		for( @{$self->{'ssl_ipaddrs'}} ) {
-			push @{$directives}, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:443" : "[$_]:443";
+		for my $ipAddr( @{$self->{'ssl_ipaddrs'}} ) {
+			push @{$directives}, ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? "$ipAddr:443" : "[$ipAddr]:443";
 		}
 
 		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
@@ -143,10 +147,10 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	for('00_ServerDefaultPage.conf', '00_ServerDefaultPage_ssl.conf') {
-		my $rs = $self->_removeConfig($_);
+	for my $conffile('00_ServerDefaultPage.conf', '00_ServerDefaultPage_ssl.conf') {
+		my $rs = $self->_removeConfig($conffile);
 		return $rs if $rs;
 	}
 
@@ -171,7 +175,7 @@ sub disable
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
 		$self->{'httpd'} = Servers::httpd->factory();
@@ -194,27 +198,25 @@ sub _createConfig
 {
 	my ($self, $vhostTplFile, $directives) = @_;
 
-	my $tplRootDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates";
-
 	my $ipMngr = iMSCP::Net->getInstance();
 
-	$self->{'httpd'}->setData(
-		{
-			'IPS_PORTS' => "@{$directives}",
-			'BASE_SERVER_IP' => (
-				$ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4'
-			) ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
-			'APACHE_WWW_DIR' => $main::imscpConfig{'USER_WEB_DIR'},
-			'CERTIFICATE' => (
-				$self->{'config'}->{'certificate'} eq ''
-			) ? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}.pem" : $self->{'config'}->{'certificate'},
-			'AUTHZ_ALLOW_ALL' => (
-				version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0')
-			) ? 'Require all granted' : 'Allow from all',
-		}
-	);
+	$self->{'httpd'}->setData({
+		IPS_PORTS => "@{$directives}",
+		BASE_SERVER_IP => ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4')
+			? $main::imscpConfig{'BASE_SERVER_IP'}
+			: "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+		APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
+		CERTIFICATE => ($self->{'config'}->{'certificate'} eq '')
+			? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}.pem"
+			: $self->{'config'}->{'certificate'},
+		AUTHZ_ALLOW_ALL => (version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0'))
+			? 'Require all granted'
+			: 'Allow from all',
+	});
 
-	my $rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
+	my $rs = $self->{'httpd'}->buildConfFile(
+		"$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile"
+	);
 	return $rs if $rs;
 
 	$self->{'httpd'}->installConfFile($vhostTplFile, {
@@ -235,12 +237,12 @@ sub _removeConfig
 {
 	my ($self, $vhostFile) = @_;
 
-	for(
+	for $conffile(
 		"$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
 		"$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
 	) {
 		if(-f $_) {
-			my $rs = iMSCP::File->new('filename' => $_)->delFile();
+			my $rs = iMSCP::File->new( filename => $conffile )->delFile();
 			return $rs if $rs;
 		}
 	}
@@ -258,49 +260,28 @@ sub _removeConfig
 
 sub _copyFolder()
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my $pluginDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage";
-	my $tplDir = "$pluginDir/templates";
-	my $defaultDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
+	my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates";
+	my $targetDIr = "$main::imscpConfig{'USER_WEB_DIR'}/default";
 
-	my $rs = iMSCP::Dir->new(
-		dirname => $defaultDir
-	)->make(
-		{
-			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
-			'group' => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
-			'mode' => '0750'
-		}
-	);
+	my $rs = iMSCP::Dir->new( dirname => $targetDIr )->make({
+		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
+		mode => 0750
+	});
 	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new( dirname => "$tplDir/default" )->rcopy($defaultDir);
+	$rs = iMSCP::Dir->new( dirname => "$srcDir/default" )->rcopy($targetDIr);
 	return $rs if $rs;
 
-	setRights(
-		$defaultDir,
-		{
-			'user' => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
-			'group' => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
-			'dirmode' => '0750',
-			'filemode' => '0640',
-			'recursive' => 1
-		}
-	);
-}
-
-=item _removeFolder()
-
- Remove the ServerDefaultPage folder
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _removeFolder()
-{
-	iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->remove();
+	setRights($targetDIr, {
+		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
+		dirmode => '0750',
+		filemode => '0640',
+		recursive => 1
+	});
 }
 
 =item _getIps()
@@ -313,32 +294,29 @@ sub _removeFolder()
 
 sub _getIps()
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $db = iMSCP::Database->factory();
 
-	my $rdata = $db->doQuery(
-		'ip_number',
-		"
-			SELECT
-				domain_ip_id AS ip_id, ip_number
-			FROM
-				domain
-			INNER JOIN
-				server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-			WHERE
-				domain_status != 'todelete'
-			UNION
-			SELECT
-				alias_ip_id AS ip_id, ip_number
-			FROM
-				domain_aliasses
-			INNER JOIN
-				server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-			WHERE
-				alias_status NOT IN ('todelete', 'ordered')
-		"
-	);
+	my $rdata = $db->doQuery('ip_number', "
+		SELECT
+			domain_ip_id AS ip_id, ip_number
+		FROM
+			domain
+		INNER JOIN
+			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
+		WHERE
+			domain_status != 'todelete'
+		UNION
+		SELECT
+			alias_ip_id AS ip_id, ip_number
+		FROM
+			domain_aliasses
+		INNER JOIN
+			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+		WHERE
+			alias_status NOT IN ('todelete', 'ordered')
+	");
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;
@@ -349,64 +327,55 @@ sub _getIps()
 
 	@{$self->{'ipaddrs'}} = keys %{$rdata};
 
-	$rdata = $db->doQuery(
-		'ip_number',
-		"
-			SELECT
-				ip_number
-			FROM
-				ssl_certs
-			INNER JOIN
-				domain ON (ssl_certs.domain_id = domain.domain_id)
-			INNER JOIN
-				server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-			WHERE
-				ssl_certs.domain_type = 'dmn'
-
-			UNION
-
-			SELECT
-				ip_number
-			FROM
-				ssl_certs
-			INNER JOIN
-				domain_aliasses ON (ssl_certs.domain_id = domain_aliasses.alias_id)
-			INNER JOIN
-				server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-			WHERE
-				ssl_certs.domain_type = 'als'
-
-			UNION
-
-			SELECT
-				ip_number
-			FROM
-				ssl_certs
-			INNER JOIN
-				subdomain_alias ON (ssl_certs.domain_id = subdomain_alias.subdomain_alias_id)
-			INNER JOIN
-				domain_aliasses ON (subdomain_alias.alias_id = domain_aliasses.alias_id)
-			INNER JOIN
-				server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-			WHERE
-				ssl_certs.domain_type = 'alssub'
-
-			UNION
-
-			SELECT
-				ip_number
-			FROM
-				ssl_certs
-			INNER JOIN
-				subdomain ON (ssl_certs.domain_id = subdomain.subdomain_id)
-			INNER JOIN
-				domain ON (subdomain.domain_id = domain.domain_id)
-			INNER JOIN
-				server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-			WHERE
-				ssl_certs.domain_type = 'sub'
-		"
-	);
+	$rdata = $db->doQuery('ip_number', "
+		SELECT
+			ip_number
+		FROM
+			ssl_certs
+		INNER JOIN
+			domain ON (ssl_certs.domain_id = domain.domain_id)
+		INNER JOIN
+			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
+		WHERE
+			ssl_certs.domain_type = 'dmn'
+		UNION
+		SELECT
+			ip_number
+		FROM
+			ssl_certs
+		INNER JOIN
+			domain_aliasses ON (ssl_certs.domain_id = domain_aliasses.alias_id)
+		INNER JOIN
+			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+		WHERE
+			ssl_certs.domain_type = 'als'
+		UNION
+		SELECT
+			ip_number
+		FROM
+			ssl_certs
+		INNER JOIN
+			subdomain_alias ON (ssl_certs.domain_id = subdomain_alias.subdomain_alias_id)
+		INNER JOIN
+			domain_aliasses ON (subdomain_alias.alias_id = domain_aliasses.alias_id)
+		INNER JOIN
+			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+		WHERE
+			ssl_certs.domain_type = 'alssub'
+		UNION
+		SELECT
+			ip_number
+		FROM
+			ssl_certs
+		INNER JOIN
+			subdomain ON (ssl_certs.domain_id = subdomain.subdomain_id)
+		INNER JOIN
+			domain ON (subdomain.domain_id = domain.domain_id)
+		INNER JOIN
+			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
+		WHERE
+			ssl_certs.domain_type = 'sub'
+	");
 	unless(ref $rdata eq 'HASH') {
 		error($rdata);
 		return 1;

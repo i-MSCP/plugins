@@ -21,15 +21,15 @@
 
 return array(
 	// For the different Postscreen options please check man postscreen or
-	//visit the online documentation: http://www.postfix.org/postscreen.8.html
+	// visit the online documentation: http://www.postfix.org/postscreen.8.html
 
-	// Pregreet test ( default: enforce )
+	// Pregreet test (default: enforce)
 	//
 	// See http://www.postfix.org/POSTSCREEN_README.html#pregreet
 	// Possible values: ignore, enforce, drop
 	'postscreen_greet_action' => 'enforce',
 
-	// Postscreen dnsbl sites ( default: zen.spamhaus.org*2, dnsbl-1.uceprotect.net*1, bl.spamcop.net*1,
+	// Postscreen dnsbl sites (default: zen.spamhaus.org*2, dnsbl-1.uceprotect.net*1, bl.spamcop.net*1,
 	//                                   list.dnswl.org=127.0.[0..255].[1..3]*-2 )
 	//
 	// See http://www.postfix.org/POSTSCREEN_README.html#dnsbl
@@ -41,18 +41,18 @@ return array(
 		'list.dnswl.org=127.0.[0..255].[1..3]*-2'
 	),
 
-	// Postscreen dnsbl threshold ( default: 3 )
+	// Postscreen dnsbl threshold (default: 3)
 	//
 	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_threshold
 	'postscreen_dnsbl_threshold' => '3',
 
-	// Postscreen dnsbl action ( default: enforce )
+	// Postscreen dnsbl action (default: enforce)
 	//
 	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
 	// Possible values: options: ignore, enforce, drop
 	'postscreen_dnsbl_action' => 'enforce',
 
-	// Permanent white/blacklist ( default: permit_mynetworks, cidr:/etc/postfix/postscreen_access.cidr )
+	// Permanent white/blacklist (default: permit_mynetworks, cidr:/etc/postfix/postscreen_access.cidr)
 	// 
 	// See http://www.postfix.org/postconf.5.html#postscreen_access_list
 	'postscreen_access_list' => array(
@@ -60,7 +60,7 @@ return array(
 		'cidr:/etc/postfix/postscreen_access.cidr'
 	),
 
-	// Postscreen blacklist action ( default: enforce )
+	// Postscreen blacklist action (default: enforce)
 	//
 	// See http://www.postfix.org/postconf.5.html#postscreen_blacklist_action
 	// Possible values: ignore, enforce, drop

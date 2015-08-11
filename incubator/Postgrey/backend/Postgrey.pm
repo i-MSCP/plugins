@@ -51,13 +51,12 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	my ($stdout, $stderr);
-	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
+	$rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -81,7 +80,7 @@ sub enable
 	# Make sure that postgrey daemon is running
 	iMSCP::Service->getInstance()->restart('postgrey');
 
-	Servers::mta->factory()->{'restart'} = 1;
+	Servers::mta->factory()->restart('defer');
 
 	0;
 }
@@ -96,10 +95,9 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -120,7 +118,7 @@ sub disable
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
-	Servers::mta->factory()->{'restart'} = 1;
+	Servers::mta->factory()->restart('defer');
 
 	0;
 }
@@ -141,9 +139,8 @@ sub disable
 
 sub _checkRequirements
 {
-	my ($stdout, $stderr);
 	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' postgrey | cut -d ' ' -f 3", \$stdout, \$stderr
+		"LANG=C dpkg-query --show --showformat '\${Status}' postgrey | cut -d ' ' -f 3", \my $stdout, \my $stderr
 	);
 	debug($stdout) if $stdout;
 	if($stdout ne 'installed') {

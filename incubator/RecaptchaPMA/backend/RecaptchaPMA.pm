@@ -50,14 +50,17 @@ use parent 'Common::SingletonClass';
 
 =cut
 
-sub enable()
+sub enable
 {
 	my $self = shift;
 
 	my $rs = $self->_pmaConfig('configure');
 	return $rs if $rs;
 
-	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+	}
 
 	0;
 }
@@ -70,14 +73,17 @@ sub enable()
 
 =cut
 
-sub disable()
+sub disable
 {
 	my $self = shift;
 
 	my $rs = $self->_pmaConfig('deconfigure');
 	return $rs if $rs;
 
-	iMSCP::Service->getInstance()->restart('imscp_panel'); # Needed to flush opcode cache if any
+	unless(defined $main::execmode && $main::execmode eq 'setup') {
+		# Needed to flush opcode cache if any
+		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+	}
 
 	0;
 }
@@ -96,7 +102,7 @@ sub disable()
 
 sub _init
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
 		$self->{'FORCE_RETVAL'} = 'yes';
@@ -117,7 +123,6 @@ sub _init
 sub _pmaConfig
 {
 	my ($self, $action) = @_;
-	my $recaptchaPmaConfig;
 
 	my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php" );
 	my $fileContent = $file->get();

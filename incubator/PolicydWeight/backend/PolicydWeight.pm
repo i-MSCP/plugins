@@ -51,13 +51,12 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = $_[0];
+	my $self = shift;
 
 	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
-	my ($stdout, $stderr);
-	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
+	$rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -104,10 +103,9 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -149,9 +147,8 @@ sub disable
 
 sub _checkRequirements
 {
-	my ($stdout, $stderr);
 	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' policyd-weight | cut -d ' ' -f 3", \$stdout, \$stderr
+		"LANG=C dpkg-query --show --showformat '\${Status}' policyd-weight | cut -d ' ' -f 3", \my $stdout, \my $stderr
 	);
 	debug($stdout) if $stdout;
 	if($stdout ne 'installed') {
