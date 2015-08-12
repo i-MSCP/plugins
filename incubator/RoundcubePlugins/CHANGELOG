@@ -8,7 +8,7 @@ Version 1.2.3
 	Fixed: Database username is not escaped in password changer configuration file
 	Fixed: Do not restart imscp_panel service when running in setup mode
 	Fixed: Missing database port in password changer configuration file
-	Fixed: Wrong check for manasieve plugin tasks
+	Fixed: Wrong check for managesieve plugin tasks
 	Fixed #IP-1390: Password is not escaped in roundcube plugins imscp_password_changer conffile
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -350,8 +350,8 @@ sub _setRoundcubePlugin
 			'zipdownload_plugin', 'contextmenu_plugin', 'tasklist_plugin'
 		) {
 			if($self->{'config'}->{$plugin} eq 'yes') {
-				$plugin =~ s/_plugin$//;
-				push @plugins, $plugin;
+				(my $realPluginName = $plugin) =~ s/_plugin$//;
+				push @plugins, $realPluginName;
 			}
 		}
 
@@ -440,7 +440,7 @@ sub _setPluginConfig
 			managesieve_script_name => $self->{'config'}->{'managesieve_script_name'}
 		};
 	} elsif($plugin eq 'newmail_notifier') {
-		my $data = {
+		$data = {
 			newmail_notifier_basic => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'},
 			newmail_notifier_sound => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'},
 			newmail_notifier_desktop => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}
@@ -453,7 +453,7 @@ sub _setPluginConfig
 		(my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%(')%\\$1%g;
 		(my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%(')%\\$1%g;
 
-		my $data = {
+		$data = {
 			DB_NAME => $main::imscpConfig{'DATABASE_NAME'},
 			DB_HOST => $main::imscpConfig{'DATABASE_HOST'},
 			DB_PORT => $main::imscpConfig{'DATABASE_PORT'},
