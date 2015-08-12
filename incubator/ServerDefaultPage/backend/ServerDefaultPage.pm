@@ -237,11 +237,11 @@ sub _removeConfig
 {
 	my ($self, $vhostFile) = @_;
 
-	for $conffile(
+	for my $conffile(
 		"$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
 		"$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
 	) {
-		if(-f $_) {
+		if(-f $conffile) {
 			my $rs = iMSCP::File->new( filename => $conffile )->delFile();
 			return $rs if $rs;
 		}
