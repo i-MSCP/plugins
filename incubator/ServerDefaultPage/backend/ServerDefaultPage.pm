@@ -263,19 +263,19 @@ sub _copyFolder()
 	my $self = shift;
 
 	my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates";
-	my $targetDIr = "$main::imscpConfig{'USER_WEB_DIR'}/default";
+	my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
 
-	my $rs = iMSCP::Dir->new( dirname => $targetDIr )->make({
+	my $rs = iMSCP::Dir->new( dirname => $targetDir )->make({
 		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
 		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
 		mode => 0750
 	});
 	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new( dirname => "$srcDir/default" )->rcopy($targetDIr);
+	$rs = iMSCP::Dir->new( dirname => "$srcDir/default" )->rcopy($targetDir);
 	return $rs if $rs;
 
-	setRights($targetDIr, {
+	setRights($targetDir, {
 		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
 		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
 		dirmode => '0750',
