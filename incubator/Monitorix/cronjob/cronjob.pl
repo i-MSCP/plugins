@@ -1,7 +1,5 @@
 #!/usr/bin/perl
-
 # i-MSCP Monitorix plugin
-#
 # Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
 #
@@ -19,31 +17,39 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-use strict;
-use warnings;
-
 use lib '{IMSCP_PERLLIB_PATH}';
-
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
+use iMSCP::Database;
+use iMSCP:EventManager;
+use JSON;
 
-$ENV{'LANG'} = 'C.UTF-8';
+sub getData
+{
+	my $row = iMSCP::Database->factory()->doQuery(
+		'plugin_name',
+		'SELECT plugin_name, plugin_info, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
+		'Monitorix'
+	);
+	ref $row eq 'HASH' or die($row);
+	$row->{'Monitorix'} or die('Monitorix plugin data not found in database');
 
-newDebug('monitorix-plugin-cronjob.log');
-
-iMSCP::Bootstrapper->getInstance()->boot({ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nolock' => 'yes' });
-
-my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/backend/Monitorix.pm";
-my $rs = 0;
-
-eval { require $pluginFile; };
-
-if($@) {
-	error($@);
-	$rs = 1;
-} else {
-	my $pluginClass = "Plugin::Monitorix";
-	$rs = $pluginClass->getInstance( action => 'cron' )->buildGraphs();
+	{
+		action => 'cron',
+		config => decode_json($row->{'Monitorix'}->{'plugin_config'}),
+		config_prev => decode_json($row->{'Monitorix'}->{'plugin_config_prev'}),
+		eventManager => iMSCP::EventManager->getInstance(),
+		info => decode_json($row->{'Monitorix'}->{'plugin_info'})
+	};
 }
 
-exit $rs;
+newDebug('monitorix-plugin-cronjob.log');
+iMSCP::Bootstrapper->getInstance()->boot({ norequirements => 'yes', config_readonly => 'yes', nolock => 'yes' });
+
+my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/backend/Monitorix.pm";
+require $pluginFile;
+
+my $pluginClass = "Plugin::Monitorix";
+$pluginClass->getInstance(getData())->buildGraphs() == 0 or die(
+	getMessageByType('error', { amount => 1, remove => 1 }) || 'Unknown error'
+);

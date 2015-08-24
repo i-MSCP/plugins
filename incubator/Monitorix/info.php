@@ -25,9 +25,9 @@ return array(
 		'Sascha Bay'
 	),
 	'email' => 'plugins@i-mscp.net',
-	'version' => '1.2.1',
+	'version' => '1.2.2',
 	'require_api' => '1.0.0',
-	'date' => '2015-07-02',
+	'date' => '2015-08-24',
 	'name' => 'Monitorix',
 	'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'

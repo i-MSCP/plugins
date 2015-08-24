@@ -1,4 +1,4 @@
-# i-MSCP SpamAssassin plugin v1.0.4
+# i-MSCP SpamAssassin plugin v1.0.5
 
 Plugin which allows to use SpamAssassin with i-MSCP.
 
