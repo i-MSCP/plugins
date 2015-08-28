@@ -1,4 +1,4 @@
-# i-MSCP ClamAV plugin v1.1.3
+# i-MSCP ClamAV plugin v1.1.4
 
 Plugin which allows to use ClamAV with i-MSCP.
 
