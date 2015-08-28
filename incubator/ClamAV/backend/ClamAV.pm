@@ -134,7 +134,7 @@ sub _setupClamavMilter
 
 			for my $option(
 				qw /
-					MilterSocket MilterSocketGroup MilterSocketModeFixStaleSocket User AllowSupplementaryGroups
+					MilterSocket MilterSocketGroup MilterSocketMode FixStaleSocket User AllowSupplementaryGroups
 					ReadTimeout Foreground Chroot PidFile TemporaryDirectory ClamdSocket LocalNet Whitelist
 					SkipAuthenticated MaxFileSize OnClean OnInfected OnFail RejectMsg AddHeader ReportHostname
 					VirusAction LogFile LogFileUnlock LogFileMaxSize LogTime LogSyslog LogFacility LogVerbose
