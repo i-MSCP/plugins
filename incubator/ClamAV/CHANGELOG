@@ -5,7 +5,7 @@ ClamAV - ChangeLog
 Version 1.1.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Typo in Clamav options ( MilterSocketMode & FixStaleSocket )
+	Fixed: MaxFileSize option is not working (Typo)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.3
