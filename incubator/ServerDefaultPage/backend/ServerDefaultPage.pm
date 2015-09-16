@@ -32,6 +32,7 @@ use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Database;
 use iMSCP::Net;
+use iMSCP::OpenSSL;
 use Servers::httpd;
 use version;
 use parent 'Common::SingletonClass';
@@ -108,6 +109,14 @@ sub enable
 	my $rs = $self->_getIps();
 	return $rs if $rs;
 
+	if($self->{'config'}->{'certificate'} eq '' && $main::imscpConfig{'PANEL_SSL_ENABLED'} ne 'yes') {
+		$rs = iMSCP::OpenSSL->new(
+			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
+			certificate_chain_name => 'imscp_services'
+		)->createSelfSignedCertificate($main::imscpConfig{'SERVER_HOSTNAME'});
+		return $rs if $rs;
+	}
+
 	my $ipMngr = iMSCP::Net->getInstance();
 
 	my $directives = [ ];
@@ -120,17 +129,12 @@ sub enable
 
 	$directives = [ ];
 
-	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		for my $ipAddr( @{$self->{'ssl_ipaddrs'}} ) {
-			push @{$directives}, ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? "$ipAddr:443" : "[$ipAddr]:443";
-		}
-
-		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
-		return $rs if $rs;
-	} else {
-		$rs = $self->_removeConfig('00_ServerDefaultPage_ssl.conf');
-		return $rs if $rs;
+	for my $ipAddr( @{$self->{'ssl_ipaddrs'}} ) {
+		push @{$directives}, ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? "$ipAddr:443" : "[$ipAddr]:443";
 	}
+
+	$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
+	return $rs if $rs;
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
@@ -207,7 +211,7 @@ sub _createConfig
 			: "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 		APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
 		CERTIFICATE => ($self->{'config'}->{'certificate'} eq '')
-			? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}.pem"
+			? "$main::imscpConfig{'CONF_DIR'}/$main::imscpConfig{'SERVER_HOSTNAME'}.pem"
 			: $self->{'config'}->{'certificate'},
 		AUTHZ_ALLOW_ALL => (version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0'))
 			? 'Require all granted'
@@ -381,10 +385,8 @@ sub _getIps()
 		return 1;
 	}
 
-	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		# The Base server IP must always be here because even if not used by any domain, the panel use it
-		$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
-	}
+	# The Base server IP must always be here because even if not used by any domain, the panel use it
+	$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
 
 	@{$self->{'ssl_ipaddrs'}} = keys %{$rdata};
 
