@@ -158,10 +158,9 @@ sub disable
 		return $rs if $rs;
 	}
 
-	if(-f "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem") {
-		my $rs = iMSCP::File->new(
-			filename => "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem"
-		)->delFile();
+	my $cert = "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem";
+	if(-f $cert) {
+		my $rs = iMSCP::File->new( filename => $cert )->delFile();
 		return $rs if $rs;
     }
 
