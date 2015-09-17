@@ -109,10 +109,10 @@ sub enable
 	my $rs = $self->_getIps();
 	return $rs if $rs;
 
-	if($self->{'config'}->{'certificate'} eq '' && $main::imscpConfig{'PANEL_SSL_ENABLED'} ne 'yes') {
+	if($self->{'config'}->{'certificate'} eq '' && ! -f "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem") {
 		$rs = iMSCP::OpenSSL->new(
 			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
-			certificate_chain_name => 'imscp_services'
+			certificate_chain_name => 'ServerDefaultPage'
 		)->createSelfSignedCertificate($main::imscpConfig{'SERVER_HOSTNAME'});
 		return $rs if $rs;
 	}
@@ -157,6 +157,13 @@ sub disable
 		my $rs = $self->_removeConfig($conffile);
 		return $rs if $rs;
 	}
+
+	if(-f "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem") {
+		my $rs = iMSCP::File->new(
+			filename => "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem"
+		)->delFile();
+		return $rs if $rs;
+    }
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
@@ -211,7 +218,7 @@ sub _createConfig
 			: "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 		APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
 		CERTIFICATE => ($self->{'config'}->{'certificate'} eq '')
-			? "$main::imscpConfig{'CONF_DIR'}/imscp_services.pem"
+			? "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem"
 			: $self->{'config'}->{'certificate'},
 		AUTHZ_ALLOW_ALL => (version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0'))
 			? 'Require all granted'
