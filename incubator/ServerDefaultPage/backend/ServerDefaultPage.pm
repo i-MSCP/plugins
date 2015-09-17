@@ -109,7 +109,7 @@ sub enable
 	my $rs = $self->_getIps();
 	return $rs if $rs;
 
-	if($self->{'config'}->{'certificate'} eq '' && ! -f "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem") {
+	if($self->{'config'}->{'certificate'} eq '') {
 		$rs = iMSCP::OpenSSL->new(
 			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
 			certificate_chain_name => 'ServerDefaultPage'
