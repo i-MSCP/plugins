@@ -217,7 +217,7 @@ sub _createConfig
 			: "[$main::imscpConfig{'BASE_SERVER_IP'}]",
 		APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
 		CERTIFICATE => ($self->{'config'}->{'certificate'} eq '')
-			? "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem"
+			? "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem"
 			: $self->{'config'}->{'certificate'},
 		AUTHZ_ALLOW_ALL => (version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0'))
 			? 'Require all granted'
