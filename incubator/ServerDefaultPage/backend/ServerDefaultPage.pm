@@ -112,7 +112,7 @@ sub enable
 	if($self->{'config'}->{'certificate'} eq '') {
 		$rs = iMSCP::OpenSSL->new(
 			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
-			certificate_chain_name => 'ServerDefaultPage'
+			certificate_chain_name => 'serverdefaultpage'
 		)->createSelfSignedCertificate($main::imscpConfig{'SERVER_HOSTNAME'});
 		return $rs if $rs;
 	}
@@ -158,7 +158,7 @@ sub disable
 		return $rs if $rs;
 	}
 
-	my $certificate = "$main::imscpConfig{'CONF_DIR'}/ServerDefaultPage.pem";
+	my $certificate = "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem";
 	if(-f $certificate) {
 		my $rs = iMSCP::File->new( filename => $certificate )->delFile();
 		return $rs if $rs;
