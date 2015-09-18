@@ -116,7 +116,7 @@ sub enable
 		push @{$directives}, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:80" : "[$_]:80";
 	}
 
-	if(@directives) {
+	if(@{$directives}) {
 		$rs = $self->_createConfig('00_ServerDefaultPage.conf', $directives);
     	return $rs if $rs;
 	}
@@ -127,7 +127,7 @@ sub enable
 		push @{$directives}, ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? "$ipAddr:443" : "[$ipAddr]:443";
 	}
 
-	if(@directives) {
+	if(@{$directives}) {
 		if($self->{'config'}->{'certificate'} eq '') {
     		$rs = iMSCP::OpenSSL->new(
     			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
