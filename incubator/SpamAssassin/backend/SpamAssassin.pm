@@ -563,7 +563,7 @@ sub _postfixConfig
 
 	(my $milterValue = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 	(my $milterValuePrev = $self->{'config_prev'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
-	my $milterMacro = 'j {daemon_name} v {if_name} _';
+	my $milterMacro = '{if_name} _';
 
 	s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E|\Q$milterMacro\E)//g for @postconfValues;
 
