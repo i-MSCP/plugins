@@ -1392,7 +1392,7 @@ sub _checkSaUser
 	$self->{'config'}->{'spamassassinOptions'} =~ m/helper-home-dir=(\S*)/;
 	my $helperHomeDir = $1;
 
-	$rs = execute("id -g $group", \my $stdout, \my $stderr);
+	my $rs = execute("id -g $group", \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	if($rs eq '1') {

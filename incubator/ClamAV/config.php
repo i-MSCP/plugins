@@ -29,12 +29,12 @@ return array(
 	 * Warning: Don't change anything if you don't know what you are doing.
 	 */
 
-	// Postfix smtpd milter for ClamAV (default: inet:localhost:32767)
+	// Postfix smtpd milter for ClamAV (default: unix:/clamav/clamav-milter.ctl)
 	//
 	// Possible values:
-	//  inet:localhost:32767 for connection through TCP
 	//  unix:/clamav/clamav-milter.ctl for connection through UNIX socket
-	'PostfixMilterSocket' => 'inet:localhost:32767',
+	//  inet:localhost:32767 for connection through TCP
+	'PostfixMilterSocket' => 'unix:/clamav/clamav-milter.ctl',
 
 	/**
 	 * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
@@ -46,12 +46,12 @@ return array(
 
 	// Main options
 
-	// Milter socket (default: inet:32767@localhost)
+	// Milter socket (default: /var/spool/postfix/clamav/clamav-milter.ctl)
 	//
 	// Possible values:
+	// /var/spool/postfix/clamav/clamav-milter.ctl for connection through UNIX socket
 	//  inet:32767@localhost for connection through TCP
-	// /var/run/clamav/clamav-milter.ctl for connection through UNIX socket
-	'MilterSocket' => 'inet:32767@localhost',
+	'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
 	'MilterSocketGroup' => 'clamav',
 	'MilterSocketMode' => '666',
 	'FixStaleSocket' => 'true',

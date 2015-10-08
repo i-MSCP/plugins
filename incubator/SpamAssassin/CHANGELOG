@@ -6,6 +6,8 @@ Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
 	Fixed: The plugin's data are not available when plugin is loaded through a cron job
+	Fixed: Double entry on milter_connect_macros
+	Updated: DecodeShortURLs.pm
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.4
