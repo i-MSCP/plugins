@@ -391,7 +391,7 @@ sub recursive_lookup {
 
   my $count = scalar keys %been_here;
   dbg("Redirection count $count") if $count gt 0;
-  if ($count ge 10) {
+  if ($count >= 10) {
     dbg("Error: more than 10 shortener redirections");
     # Fire test
     $pms->got_hit('SHORT_URL_MAXCHAIN');
