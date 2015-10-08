@@ -28,7 +28,7 @@ return array(
 	'email' => 'team@i-mscp.net',
 	'version' => '1.0.5',
 	'require_api' => '1.0.0',
-	'date' => '2015-08-24',
+	'date' => '2015-10-08',
 	'name' => 'SpamAssassin',
 	'desc' => 'Plugin which allows to use SpamAssassin with i-MSCP.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
