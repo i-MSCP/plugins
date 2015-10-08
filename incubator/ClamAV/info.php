@@ -27,7 +27,7 @@ return array(
 		'Sascha Bay',
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '1.1.4',
+	'version' => '1.1.5',
 	'require_api' => '1.0.0',
 	'date' => '2015-10-08',
 	'name' => 'ClamAV',
