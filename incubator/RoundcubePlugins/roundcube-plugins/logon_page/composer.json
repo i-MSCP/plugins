@@ -1,0 +1,25 @@
+{
+    "name": "kolab/logon_page",
+    "type": "roundcube-plugin",
+    "description": "Logon screen additions",
+    "homepage": "https://git.kolab.org/diffusion/RPK/",
+    "license": "AGPLv3",
+    "version": "0.1.0",
+    "authors": [
+        {
+            "name": "Aleksander Machniak",
+            "email": "machniak@kolabsys.com",
+            "role": "Lead"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://plugins.roundcube.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "roundcube/plugin-installer": ">=0.1.3"
+    }
+}

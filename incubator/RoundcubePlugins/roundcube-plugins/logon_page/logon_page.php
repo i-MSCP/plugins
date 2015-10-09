@@ -11,7 +11,7 @@
  * @version @package_version@
  * @author Aleksander Machniak <machniak@kolabsys.com>
  *
- * Copyright (C) 2012, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2015, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -59,10 +59,14 @@ class logon_page extends rcube_plugin
             // Parse content with templates engine, so we can use e.g. localization
             $html = $rcmail->output->just_parse($html);
 
+            // Wrap the additional content inside <div>,
+            // so it can be styled by skins
+            $html = '<div id="logon_page">' . $html . '</div>';
+
             // Add the content at the end of the BODY
             $rcmail->output->add_footer($html);
         }
 
-        return $arg;
+        return $args;
     }
 }
