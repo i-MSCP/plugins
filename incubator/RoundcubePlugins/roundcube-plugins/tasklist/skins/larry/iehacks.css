@@ -55,7 +55,7 @@ html.ie7 #taskselector li.selected.overdue .count {
 	color: #fff;
 }
 
-html.ie7 #tagslist li,
+html.ie7 .tagcloud li,
 html.ie7 #taskselector li {
 	float: left;
 }

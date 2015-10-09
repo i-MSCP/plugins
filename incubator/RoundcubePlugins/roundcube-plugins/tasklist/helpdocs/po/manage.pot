@@ -1,0 +1,239 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2014, roundcube.net
+# This file is distributed under the same license as the Roundcube Webmail Help package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Roundcube Webmail Help 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-11-26 23:28+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en_US/_plugins/tasks/manage.rst:7
+msgid "Managing Tasks"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:9
+msgid "All the described functions to manage your tasks are accessible from the main task view."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:13
+msgid "Create new Tasks"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:18
+msgid "**The New Task Dialog**"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:16
+msgid "Click the *New task* button in the toolbar to get an empty dialog where you enter the tasks properties like title, description, start/due dates and reminder settings. Click *Save* to finally add it to the selected task list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:27
+msgid "**Quick Entry**"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:21
+msgid "The text box in the centre of the toolbar area lets you add new tasks very fast by simply entering a title and then press <Enter> on the keyboard. Tasks will be created in the currently selected list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:25
+msgid "Begin the quick entry with a date or time description like \"Tomorrow\" or \"Monday at 16:00\" to directly assign a due date to the task."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:32
+msgid "Edit Tasks"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:35
+msgid "The Edit Dialog"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:37
+msgid "When clicking a task item in list a dialog showing its details is displayed. Clicking the Edit button in that dialog opens the form to edit all properties of the selected task."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:40
+msgid "The edit form is divided into different section which can be switched using the tabs on top of the dialog:"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:42
+msgid "**Summary**"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:44
+msgid "This general section has text fields and selectors for various properties. Here’s a description of all the possible values:"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:46
+msgid "``Title``: The title of the task. This is what you will see in the list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:47
+msgid "``Description``: Any text that describes the task. Links and email addresses will be become clickable."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:48
+msgid "``Tags``: A list of tags assigned to this task. Add one by typing to the text box and hit <Enter>."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:49
+msgid "``Start``: The date/time, the task is supposed to be worked on."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:50
+msgid "``Due``: The date/time this job is due. Define a time when setting a reminder for this task."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:51
+msgid "``Reminder``: This will pop up with an notification at a the specified time before the task is due."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:52
+msgid "``Complete``: The completeness state of a task in percent. Use the slider or enter a number."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:53
+msgid "``Tasklist``: The list the task is saved in. Change it to move an event from one list to another."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:58
+msgid "**Attachments**"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:60
+msgid "Append files and documents related to this task directly as attachments. Switch to the Attachments tab to upload files to the current task or to remove them again. Adding files works pretty much the same as :ref:`attaching them to email messages <mail-compose-attachments>`: first select a file from your local disk and click *Upload* in order to attach it."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:65
+msgid "Don't forget to finally save the changes by clicking *Save* in the edit dialog. Switching back and forth the tabs will not yet save the data."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:72
+msgid "Assign Tags"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:74
+msgid "Tags help you organize your tasks in the list view. Open the :ref:`Edit Dialog <tasklist-edit-task>` and enter tags into the according text box:"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:79
+msgid "Append a tag by hitting <Enter> and continue typing to add more. While typing, a suggestion of already used tags will be shown. Use the arrow keys on the keyboard to select one and press <Enter> to select."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:82
+msgid "Remove tags with a click on the *Remove* icon."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:84
+msgid "**Drag & Drop Tags**"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:86
+msgid "Existing tags listed in the tags box on the left can also be assigned to tasks directly in the list view by simply dragging the tag from the box and drop it on a task bar."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:93
+msgid "Set Due Dates"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:95
+msgid "Assign due dates to your tasks to not miss your deadlines and to enable reminder notifications for them. The due dates with time can be entered in the :ref:`Edit Dialog <tasklist-edit-task>`. When entering the input field, a small calendar widget will help you to quickly select a date."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:99
+msgid "Due dates can also be entered or changed directly in the list view without going to the edit dialog. Click the due date or the \"no date\" area on the right end of a task bar and select a date from the calendar widget. The change will be saved immediately."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:107
+msgid "Mark Tasks as Complete"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:109
+msgid "In the :ref:`tasklist-edit-task` section we learned how to set a percentage value for a task's completeness. Until a task isn't fully completed, the percentage is displayed as a think horizontal line in the list view."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:113
+msgid "In order to mark a task as complete, simply click the checkbox in the list view. The task is now grayed out and moved to the bottom of the list. After some time or when refreshing the list, completed tasks will be removed from the view. You can still find them with the *Complete* quick filter. Uncheck the box to bring it back to the normal list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:120
+msgid "Organize Tasks in Groups"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:122
+msgid "For bigger jobs or entire projects, tasks can be divided into subtasks and organized hierarchically to visualize dependencies."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:126
+msgid "Create a Subtask"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:132
+#: ../../en_US/_plugins/tasks/manage.rst:172
+msgid "Open the options menu of a task from the arrow icon on the far right of the task bar."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:133
+msgid "Select *Add subtask*"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:134
+msgid "Enter the subtask properties in the :ref:`Edit Dialog <tasklist-edit-task>`"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:135
+msgid "Press *Save* to insert it"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:141
+msgid "Re-organize Groups"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:143
+msgid "The hierarchical nesting of tasks and subtasks can be changed at any time. Simple grab a task with the mouse and drop onto another one to make it a subtask. This works for entire subtrees equally well. While dragging, a possible drop target is highlighted when moving over it."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:147
+msgid "Drop a task onto the small bar on top of the tasks list to make it a main task again."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:149
+msgid "If you organize your tasks in different lists, dropping a task onto a task list in the box on the left moves it (and all child tasks) to that particular list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:157
+msgid "Get Notifications"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:159
+msgid "While logged in to the webmail, reminders about soon-to-be due tasks will be displayed with pop-up boxes at the specified time before the task is due. You can specify if you want to see reminders for every task list individually. Enable or disable reminders in :ref:`Task List Settings <tasklist-edit-list>` from the :ref:`tasklist-lists`."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:163
+msgid "Read how to :ref:`Dismiss or Snooze Reminders <calendar-event-alarms>` in the calendar section."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:167
+msgid "Delete Tasks"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:169
+msgid "Usually finished tasks are marked as complete. But there are still situations where you might want to actually delete a task."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:173
+msgid "Select *Delete*."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/manage.rst:174
+msgid "Click *Delete* again in the confirmation dialog."
+msgstr ""
+

@@ -1,0 +1,198 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2014, roundcube.net
+# This file is distributed under the same license as the Roundcube Webmail Help package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: Kolab Documentation\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-11-26 23:28+0100\n"
+"PO-Revision-Date: 2014-11-27 23:34+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Vietnamese (Viet Nam) (http://www.transifex.com/projects/p/kolab-documentation/language/vi_VN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: vi_VN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../../en_US/_plugins/tasks/overview.rst:6
+msgid "Overview"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:8
+msgid ""
+"The content area of the tasks screen is divided into three areas: the "
+":ref:`Tasks <tasklist-tasks>` itself, the :ref:`Tags <taskslist-tags>` and "
+"the :ref:`Tasklist Selector <tasklist-lists>`."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:16
+msgid "The Tasks List"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:18
+msgid ""
+"The main content are lists the task items that match the current selection "
+"of active lists, filters and tags. The listed tasks are sorted by due date "
+"(ascending) and completed ones move to the bottom."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:25
+msgid ""
+"Tasks can be organized hierarchically and the list appears like a tree "
+"structure. A small arrow icon on the left side of a task bar indicates "
+"subordinated tasks and expands or collapses the tree upon click."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:29
+msgid ""
+"Some basic editing like flagging, assigning a due date as well as completing"
+" tasks can directly be done in the list by clicking the checkbox, the flag "
+"icon or the date selector."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:32
+msgid ""
+"A single click anywhere else on a task bar displays all details in a dialog "
+"box. Hit <Esc> on the keyboard or click the close icon to hide it again."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:35
+msgid "Double-clicks open the clicked task item for full detail editing."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:39
+msgid "Control the List"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:42
+msgid "Quick Filters"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:44
+msgid ""
+"The selection your tasks displayed on the screen can be refined in various "
+"ways. Use the quick filters above the list to reduce the listed tasks "
+"according to their status or due date."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:50
+msgid "Tags"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:52
+msgid ""
+"The tags list on the left is another way to display a selection of tasks. "
+"Click a tag to only display tasks with this tag assigned. Click it again to "
+"show all. Hold down the <Shift> key on the the keyboard to select mutliple "
+"tags and further reduce the selection."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:57
+#: ../../en_US/_plugins/tasks/overview.rst:83
+msgid "Task Lists"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:59
+msgid ""
+"The checkboxes in the :ref:`tasklist-lists` box control whether tasks from "
+"the according list are currently displayed. Use the *Quick View* icon "
+"|quickview| in the list to quickly reduce the view to tasks from a single "
+"list. This can also be used when the according list isn't activated. Click "
+"it again to turn off quick view mode and return to regular display of active"
+" lists."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:68
+msgid "Searching Tasks"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:70
+msgid ""
+"The search box above the calendar view lets you quickly get a list of events"
+" matching the entered keyword in either the title or the description text. "
+"Enter the search term into the box and press <Enter> on your keyboard to "
+"start the search."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:73
+msgid ""
+"After searching, you can still use the filters and tags as explained above "
+"to hide some results."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:75
+msgid ""
+"Reset the search by clicking the *Reset search* icon on the right border of "
+"the search box."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:85
+msgid ""
+"Organize your tasks in various lists. All of your personal task lists as "
+"well as those shared by others are listed in the box in the lower left area "
+"of the screen."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:88
+msgid ""
+"You can create any number of lists to store and manage all your tasks and "
+"name them individually."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:92
+msgid "Create a Task List"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:94
+msgid "Click the + icon in the tasklists box footer."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:95
+msgid "In the dialog, give the new list a unique name."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:96
+msgid "Click *Save* to create it."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:101
+msgid "Edit List Names and Settings"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:103
+#: ../../en_US/_plugins/tasks/overview.rst:111
+msgid "Select the task list to edit by clicking the name in the box."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:104
+msgid ""
+"Click the gear icon in the box footer and select *Edit* from the options "
+"menu."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:105
+msgid "Adjust name or reminders settings in the edit dialog."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:106
+msgid "Click *Save* to finally update the list."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:109
+msgid "Remove entire Task Lists"
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:112
+msgid ""
+"Click the gear icon in the box footer and select *Remove* from the options "
+"menu."
+msgstr ""
+
+#: ../../en_US/_plugins/tasks/overview.rst:113
+msgid ""
+"After a confirmation dialog, the selected list with all its tasks will be "
+"deleted. Caution: This action cannot be undone!"
+msgstr ""

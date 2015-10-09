@@ -1,14 +1,30 @@
 <?php
-
-$labels = array();
+/**
+ * Localizations for the Kolab Tasks plugin
+ *
+ * Copyright (C) 2014, Kolab Systems AG
+ *
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/tasklist/
+ */
 $labels['navtitle'] = 'Задачи';
 $labels['lists'] = 'Списки задач';
 $labels['list'] = 'Список задач';
 $labels['tags'] = 'Теги';
-
+$labels['tasklistsubscribe'] = 'Всегда показывать';
+$labels['listsearchresults'] = 'Доступные списки задач';
+$labels['findlists'] = 'Найти списки задач...';
+$labels['searchterms'] = 'Условия поиска';
+$labels['notasklistsfound'] = 'Списки задач не найдены';
+$labels['nrtasklistsfound'] = '$nr списков задач найдено';
+$labels['removelist'] = 'Удалить из списка';
+$labels['showcaldavurl'] = 'Показать URL CalDAV';
+$labels['caldavurldescription'] = 'Скопируйте этот адрес в клиент, <a href="http://en.wikipedia.org/wiki/CalDAV" target="_blank">поддерживающий CalDAV</a> (например, Evolution или Mozilla Thunderbird) для синхронизации данного списка задач со своим компьютером или мобильным устройством.';
 $labels['newtask'] = 'Новая задача';
+$labels['createtask'] = 'Создать задачу <Enter>';
 $labels['createnewtask'] = 'Создать новую задачу (пример: Суббота, покосить газон)';
 $labels['createfrommail'] = 'Сохранить как задачу';
+$labels['printtitle'] = 'Напечатать задачи';
+$labels['printdescriptions'] = 'Печатать описания';
 $labels['mark'] = 'Отметить';
 $labels['unmark'] = 'Снять';
 $labels['edit'] = 'Редактировать';
@@ -16,53 +32,145 @@ $labels['delete'] = 'Удалить';
 $labels['title'] = 'Заголовок';
 $labels['description'] = 'Описание';
 $labels['datetime'] = 'Дата/Время';
+$labels['duetime'] = 'Выполнить до';
 $labels['start'] = 'Начало';
+$labels['starttime'] = 'Время начала';
 $labels['alarms'] = 'Напоминание';
-
+$labels['repeat'] = 'Повторить';
+$labels['links'] = 'Ссылка';
+$labels['status'] = 'Статус';
+$labels['status-needs-action'] = 'Требует действия';
+$labels['status-in-process'] = 'В процессе';
+$labels['status-completed'] = 'Завершенные';
+$labels['status-cancelled'] = 'Отмененные';
+$labels['assignedto'] = 'Назначена';
+$labels['created'] = 'Создана';
+$labels['changed'] = 'Изменена';
 $labels['all'] = 'Все';
 $labels['flagged'] = 'Отмеченные';
 $labels['complete'] = 'Завершенные';
+$labels['completeness'] = 'Прогресс';
 $labels['overdue'] = 'Просроченные';
 $labels['today'] = 'Сегодня';
 $labels['tomorrow'] = 'Завтра';
 $labels['next7days'] = 'Ближайшая неделя';
 $labels['later'] = 'Позднее';
+$labels['assigned'] = 'Назначена';
+$labels['assignedtitle'] = 'Задачи, которые вы назначили другим';
+$labels['mytasks'] = 'Мои задачи';
+$labels['mytaskstitle'] = 'Задачи, назначенные вам';
 $labels['nodate'] = 'без даты';
 $labels['removetag'] = 'Убрать';
-
+$labels['removelink'] = 'Удалить ссылку на письмо';
+$labels['auto'] = 'Авто';
 $labels['taskdetails'] = 'Подробнее';
 $labels['newtask'] = 'Новая задача';
 $labels['edittask'] = 'Редактировать задачу';
 $labels['save'] = 'Сохранить';
 $labels['cancel'] = 'Отмена';
+$labels['saveandnotify'] = 'Сохранить и оповестить';
 $labels['addsubtask'] = 'Добавить подзадачу';
 $labels['deletetask'] = 'Удалить задачу';
 $labels['deletethisonly'] = 'Удалить только эту задачу';
 $labels['deletewithchilds'] = 'Удалить задачу и все ее подзадачи';
-
+$labels['taskactions'] = 'Настройки задачи...';
 $labels['tabsummary'] = 'Сводка';
 $labels['tabrecurrence'] = 'Повтор';
+$labels['tabassignments'] = 'Задания';
 $labels['tabattachments'] = 'Вложения';
 $labels['tabsharing'] = 'Поделиться';
-
 $labels['editlist'] = 'Изменить список';
 $labels['createlist'] = 'Добавить список';
 $labels['listactions'] = 'Действия со списком...';
 $labels['listname'] = 'Название';
-$labels['showalarms'] = 'Показывать уведомления';
+$labels['showalarms'] = 'Показывать напоминания';
 $labels['import'] = 'Импорт';
-
-// date words
+$labels['viewactions'] = 'Просмотр действий';
+$labels['focusview'] = 'Просмотреть только этот список';
 $labels['on'] = 'в';
 $labels['at'] = 'в';
 $labels['this'] = 'этот';
 $labels['next'] = 'следующий';
-
-// mesages
 $labels['savingdata'] = 'Сохранение данных...';
 $labels['errorsaving'] = 'Не удалось сохранить.';
 $labels['notasksfound'] = 'По заданному условию не найдено задач';
 $labels['invalidstartduedates'] = 'Начальная дата не может превышать конечную.';
+$labels['recurrencerequiresdate'] = 'Повторяющиеся задачи требуют даты начала или завершения.';
 $labels['deletetasktconfirm'] = 'Вы действительно хотите удалить эту задачу?';
 $labels['deleteparenttasktconfirm'] = 'Вы действительно хотите удалить эту задачу и все ее подзадачи?';
 $labels['deletelistconfirm'] = 'Вы действительно хотите удалить этот список и все его задачи?';
+$labels['deletelistconfirmrecursive'] = 'Вы действительно хотите удалить этот список и все его задачи?';
+$labels['aclnorights'] = 'У вас нет административных прав над этим списком задач.';
+$labels['changetaskconfirm'] = 'Обновить задачу';
+$labels['changeconfirmnotifications'] = 'Вы хотите уведомлять участников об изменениях?';
+$labels['partstatupdatenotification'] = 'Вы хотите уведомлять организатора об изменениях статуса?';
+$labels['quickaddinput'] = 'Дата и заголовок новой задачи';
+$labels['arialabelquickaddbox'] = 'Быстро создать задачу';
+$labels['arialabelsearchform'] = 'Форма поиска задач';
+$labels['arialabelquicksearchbox'] = 'Поиск задач';
+$labels['arialabellistsearchform'] = 'Форма поиска списка задач';
+$labels['arialabeltaskselector'] = 'Списком';
+$labels['arialabeltasklisting'] = 'Список задач';
+$labels['attendee'] = 'Ответственный';
+$labels['role'] = 'Роль';
+$labels['availability'] = 'Доступность';
+$labels['confirmstate'] = 'Статус';
+$labels['addattendee'] = 'Добавить ответственного';
+$labels['roleorganizer'] = 'Организатор';
+$labels['rolerequired'] = 'Обязательный';
+$labels['roleoptional'] = 'Необязательный';
+$labels['rolechair'] = 'Место';
+$labels['rolenonparticipant'] = 'Наблюдатель';
+$labels['sendinvitations'] = 'Отправить приглашения';
+$labels['sendnotifications'] = 'Оповестить ответственных о изменениях';
+$labels['sendcancellation'] = 'Оповестить ответственных об отмене задачи';
+$labels['invitationsubject'] = 'Вас назначили ответственным за "$title"';
+$labels['invitationmailbody'] = "*\$title*\n\nКогда: \$date\n\nОтветственные: \$attendees\n\nПожалуйста найдите вложения в iCalendar файл со всеми задачами которое Вы можете импортировать в вашу программу задач.";
+$labels['itipupdatesubject'] = '"$title" было обновлено';
+$labels['itipupdatesubjectempty'] = 'Задача, касающаяся вас, была обновлена';
+$labels['itipupdatemailbody'] = "*\$title*\n\nКогда: \$date\n\nОтветственные: \$attendees\n\nПожалуйста найдите вложения в iCalendar файл со всеми деталями задач которое Вы можете импортировать в вашу программу задач.";
+$labels['itipcancelsubject'] = '"$title" было отменено';
+$labels['itipcancelmailbody'] = "*\$title*\n\nКогда: \$date\n\nОтветственные: \$attendees\n\nЭто событие отменено \$organizer.\n\nПожалуйста посмотрите вложение в iCalendar файл которое обновит детали задачи.";
+$labels['saveintasklist'] = 'сохранить в ';
+$labels['itipobjectnotfound'] = 'Задача, упомянутая в этом сообщении, не найдена в вашем списке задач.';
+$labels['itipmailbodyaccepted'] = "\$sender принял назначение ответственным за задание:\n\n*\$title*\n\nВыполнить до: \$date\n\nОтветственные: \$attendees";
+$labels['itipmailbodytentative'] = "\$sender предварительно принял назначение ответственным за задание:\n\n*\$title*\n\nВыполнить до: \$date\n\nОтветственные: \$attendees";
+$labels['itipmailbodydeclined'] = "\$sender отказался от назначения ответственным за задание:\n\n*\$title*\n\nВыполнить до: \$date\n\nОтветственные: \$attendees";
+$labels['itipmailbodycancel'] = "\$sender отклонил ваше назначение ответственным за задание:\n\n*\$title*\n\nВыполнить до: \$date";
+$labels['itipmailbodyin-process'] = "\$sender установил статус \"в процессе\" для задачи:\n\n*\$title*\n\nВыполнить до: \$date";
+$labels['itipmailbodycompleted'] = "\$sender выполнил задачу:\n\n*\$title*\n\nВыполнить до: \$date";
+$labels['itipmailbodydelegated'] = "\$sender перепоручил(а) задачу:\n\n*\$title*\n\nВыполнить до: \$date";
+$labels['itipmailbodydelegatedto'] = "\$sender перепоручил(а) Вам задачу:\n\n*\$title*\n\nВыполнить до: \$date";
+$labels['attendeeaccepted'] = 'Ответственный принял';
+$labels['attendeetentative'] = 'Ответственный предварительно принял';
+$labels['attendeedeclined'] = 'Ответственный отказался';
+$labels['attendeedelegated'] = 'Ответственный перепоручил $delegatedto';
+$labels['attendeein-process'] = 'Ответственный в процессе';
+$labels['attendeecompleted'] = 'Ответственный завершил';
+$labels['acceptinvitation'] = 'Вы принимаете это задание?';
+$labels['itipdeclinetask'] = 'Оповестить организатора о вашем отказе от задания';
+$labels['declinedeleteconfirm'] = 'Хотите ли вы так же удалить эту отклонённую задачу из вашего списка задач?';
+$labels['itipcomment'] = 'Комментарий к приглашению/извещению';
+$labels['itipcommenttitle'] = 'Этот комментарий будет прикреплен к приглашению/оповещению, отправляемому ответственным';
+$labels['itipsendsuccess'] = 'Уведомление отправлено ответственным';
+$labels['errornotifying'] = 'Не удалось отправить оповещения ответственным';
+$labels['removefromcalendar'] = 'Удалить из моих задач';
+$labels['delegateinvitation'] = 'Назначение представителей';
+$labels['andnmore'] = '$nr больше...';
+$labels['delegatedto'] = 'Поручено:';
+$labels['delegatedfrom'] = 'Поручено от:';
+$labels['savetotasklist'] = 'Сохранить в задачи';
+$labels['comment'] = 'Комментарий';
+$labels['errorimportingtask'] = 'Не удалось импортировать задачи';
+$labels['importwarningexists'] = 'Копия этой задачи уже есть в вашем списке задач.';
+$labels['importsuccess'] = 'Успешно импортированы $nr задач';
+$labels['newerversionexists'] = 'Новая версия этой задачи уже существует! Отменено.';
+$labels['nowritetasklistfound'] = 'Не найден список задач для сохранения этой задачи';
+$labels['importedsuccessfully'] = 'Задача успешно добавлена в \'$list\'';
+$labels['updatedsuccessfully'] = 'Задача успешно обновлена в \'$list\'';
+$labels['attendeupdateesuccess'] = 'Успешно обновлен статус участника';
+$labels['itipresponseerror'] = 'Не удалось отправить ответ на назначение задания';
+$labels['itipinvalidrequest'] = 'Это приглашение больше не действительно';
+$labels['sentresponseto'] = 'Успешно отправлен ответ на задачу $mailto';
+$labels['successremoval'] = 'Задача успешно удалена.';
+$labels['arialabelsortmenu'] = 'Настройки сортировки списка задач';
