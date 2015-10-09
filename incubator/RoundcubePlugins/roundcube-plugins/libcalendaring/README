@@ -6,10 +6,11 @@ Provides utility functions for calendar-related modules such as
 * alarms display and dismissal
 * attachment handling
 * iCal parsing and exporting
+* iTip invitations handling
 
-iCal parsing and exporting is done with the help of the Sabretooth VObject
-library [1]. A copy of that library with all its dependencies is part of this
-package. In order to update it, execute ./get_sabre_vobject.sh within the
-lib/ directory.
+iCal parsing and exporting is done with the help of the Sabre VObject
+library [1]. It needs to be insalled with Roundcube using composer:
 
-[1]: https://github.com/fruux/sabre-vobject
+  $ composer require "sabre/vobject" "~3.3.3"
+
+[1]: http://sabre.io/vobject/

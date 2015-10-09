@@ -98,10 +98,12 @@ class libcalendaring_itip
         if (!$this->sender['name'])
             $this->sender['name'] = $this->sender['email'];
 
-        if (!$message)
+        if (!$message) {
+            libcalendaring::identify_recurrence_instance($event);
             $message = $this->compose_itip_message($event, $method, $rsvp);
+        }
 
-        $mailto = rcube_idn_to_ascii($recipient['email']);
+        $mailto = rcube_utils::idn_to_ascii($recipient['email']);
 
         $headers = $message->headers();
         $headers['To'] = format_email_recipient($mailto, $recipient['name']);
@@ -121,12 +123,19 @@ class libcalendaring_itip
                 ($attendee['name'] ? $attendee['name'] : $attendee['email']);
         }
 
+        $recurrence_info = '';
+        if (!empty($event['recurrence_id'])) {
+            $recurrence_info = "\n\n** " . $this->gettext($event['thisandfuture'] ? 'itipmessagefutureoccurrence' : 'itipmessagesingleoccurrence') . ' **';
+        }
+        else if (!empty($event['recurrence'])) {
+            $recurrence_info = sprintf("\n%s: %s", $this->gettext('recurring'), $this->lib->recurrence_text($event['recurrence']));
+        }
+
         $mailbody = $this->gettext(array(
             'name' => $bodytext,
             'vars' => array(
                 'title' => $event['title'],
-                'date' => $this->lib->event_date_text($event, true) .
-                    (empty($event['recurrence']) ? '' : sprintf("\n%s: %s", $this->gettext('recurring'), $this->lib->recurrence_text($event['recurrence']))),
+                'date' => $this->lib->event_date_text($event, true) . $recurrence_info,
                 'attendees' => join(",\n ", $attendees_list),
                 'sender' => $this->sender['name'],
                 'organizer' => $this->sender['name'],
@@ -150,6 +159,10 @@ class libcalendaring_itip
 
         $message->headers($headers, true);
         $message->setTXTBody(rcube_mime::format_flowed($mailbody, 79));
+
+        if ($this->rc->config->get('libcalendaring_itip_debug', false)) {
+            console('iTip ' . $method, $message->txtHeaders() . "\n\r" . $message->get());
+        }
 
         // finally send the message
         $this->itip_send = true;
@@ -199,9 +212,9 @@ class libcalendaring_itip
      */
     public function compose_itip_message($event, $method, $rsvp = true)
     {
-        $from = rcube_idn_to_ascii($this->sender['email']);
+        $from     = rcube_utils::idn_to_ascii($this->sender['email']);
         $from_utf = rcube_utils::idn_to_utf8($from);
-        $sender = format_email_recipient($from, $this->sender['name']);
+        $sender   = format_email_recipient($from, $this->sender['name']);
 
         // truncate list attendees down to the recipient of the iTip Reply.
         // constraints for a METHOD:REPLY according to RFC 5546
@@ -230,13 +243,21 @@ class libcalendaring_itip
                 array_unshift($reply_attendees, $replying_attendee);
                 $event['attendees'] = $reply_attendees;
             }
+            if ($event['recurrence']) {
+                unset($event['recurrence']['EXCEPTIONS']);
+            }
         }
         // set RSVP for every attendee
         else if ($method == 'REQUEST') {
             foreach ($event['attendees'] as $i => $attendee) {
-                if ($attendee['status'] != 'DELEGATED') {
-                    $event['attendees'][$i]['rsvp']= $rsvp ? true : null;
+                if (($rsvp || !isset($attendee['rsvp'])) && ($attendee['status'] != 'DELEGATED' && $attendee['role'] != 'NON-PARTICIPANT')) {
+                    $event['attendees'][$i]['rsvp']= (bool)$rsvp;
                 }
+            }
+        }
+        else if ($method == 'CANCEL') {
+            if ($event['recurrence']) {
+                unset($event['recurrence']['EXCEPTIONS']);
             }
         }
 
@@ -244,8 +265,8 @@ class libcalendaring_itip
         $message = new Mail_mime("\r\n");
         $message->setParam('text_encoding', 'quoted-printable');
         $message->setParam('head_encoding', 'quoted-printable');
-        $message->setParam('head_charset', RCMAIL_CHARSET);
-        $message->setParam('text_charset', RCMAIL_CHARSET . ";\r\n format=flowed");
+        $message->setParam('head_charset', RCUBE_CHARSET);
+        $message->setParam('text_charset', RCUBE_CHARSET . ";\r\n format=flowed");
         $message->setContentType('multipart/alternative');
 
         // compose common headers array
@@ -265,7 +286,7 @@ class libcalendaring_itip
         $ical = libcalendaring::get_ical();
         $ics = $ical->export(array($event), $method, false, $method == 'REQUEST' && $this->plugin->driver ? array($this->plugin->driver, 'get_attachment_body') : false);
         $filename = $event['_type'] == 'task' ? 'todo.ics' : 'event.ics';
-        $message->addAttachment($ics, 'text/calendar', $filename, false, '8bit', '', RCMAIL_CHARSET . "; method=" . $method);
+        $message->addAttachment($ics, 'text/calendar', $filename, false, '8bit', '', RCUBE_CHARSET . "; method=" . $method);
 
         return $message;
     }
@@ -276,9 +297,10 @@ class libcalendaring_itip
      * @param array Event object to delegate
      * @param mixed Delegatee as string or hash array with keys 'name' and 'mailto'
      * @param boolean The delegator's RSVP flag
+     * @param array List with indexes of new/updated attendees
      * @return boolean True on success, False on failure
      */
-    public function delegate_to(&$event, $delegate, $rsvp = false)
+    public function delegate_to(&$event, $delegate, $rsvp = false, &$attendees = array())
     {
         if (is_string($delegate)) {
             $delegates = rcube_mime::decode_address_list($delegate, 1, false);
@@ -324,6 +346,8 @@ class libcalendaring_itip
         $delegate_attendee['delegated-from'] = $me['email'];
         $event['attendees'][$delegate_index] = $delegate_attendee;
 
+        $attendees[] = $delegate_index;
+
         $this->set_sender_email($me['email']);
         return $this->send_itip_message($event, 'REQUEST', $delegate_attendee, 'itipsubjectdelegatedto', 'itipmailbodydelegatedto');
     }
@@ -343,7 +367,7 @@ class libcalendaring_itip
 
       // check if the given itip object matches the last state
       if ($existing) {
-        $latest = (isset($event['sequence']) && $existing['sequence'] == $event['sequence']) ||
+        $latest = (isset($event['sequence']) && intval($existing['sequence']) == intval($event['sequence'])) ||
                   (!isset($event['sequence']) && $existing['changed'] && $existing['changed'] >= $event['changed']);
       }
 
@@ -402,7 +426,7 @@ class libcalendaring_itip
                 $html = html::div('rsvp-status ' . $status_lc, $this->gettext(array(
                     'name' => 'attendee' . $status_lc,
                     'vars' => array(
-                        'delegatedto' => Q($event['delegated-to'] ?: ($attendee['delegated-to'] ?: '?')),
+                        'delegatedto' => rcube::Q($event['delegated-to'] ?: ($attendee['delegated-to'] ?: '?')),
                     )
                 )));
               }
@@ -453,6 +477,7 @@ class libcalendaring_itip
         $changed = is_object($event['changed']) ? $event['changed'] : $message_date;
         $metadata = array(
             'uid'      => $event['uid'],
+            '_instance' => $event['_instance'],
             'changed'  => $changed ? $changed->format('U') : 0,
             'sequence' => intval($event['sequence']),
             'method'   => $method,
@@ -481,7 +506,7 @@ class libcalendaring_itip
             $update_button = html::tag('input', array(
                 'type' => 'button',
                 'class' => 'button',
-                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task')",
+                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task')",
                 'value' => $this->gettext('updateattendeestatus'),
             ));
 
@@ -489,13 +514,13 @@ class libcalendaring_itip
             $accept_buttons = html::tag('input', array(
                 'type' => 'button',
                 'class' => "button accept",
-                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task')",
+                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task')",
                 'value' => $this->gettext('acceptattendee'),
             ));
             $accept_buttons .= html::tag('input', array(
                 'type' => 'button',
                 'class' => "button decline",
-                'onclick' => "rcube_libcalendaring.decline_attendee_reply('" . JQ($mime_id) . "', '$task')",
+                'onclick' => "rcube_libcalendaring.decline_attendee_reply('" . rcube::JQ($mime_id) . "', '$task')",
                 'value' => $this->gettext('declineattendee'),
             ));
 
@@ -524,7 +549,7 @@ class libcalendaring_itip
                 $rsvp_buttons .= html::tag('input', array(
                     'type' => 'button',
                     'class' => "button $method",
-                    'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task', '$method', '$dom_id')",
+                    'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task', '$method', '$dom_id')",
                     'value' => $this->gettext('itip' . $method),
                 ));
             }
@@ -535,7 +560,7 @@ class libcalendaring_itip
               $rsvp_buttons .= html::tag('input', array(
                   'type' => 'button',
                   'class' => "button preview",
-                  'onclick' => "rcube_libcalendaring.open_itip_preview('" . JQ($preview_url) . "', '" . JQ($msgref) . "')",
+                  'onclick' => "rcube_libcalendaring.open_itip_preview('" . rcube::JQ($preview_url) . "', '" . rcube::JQ($msgref) . "')",
                   'value' => $this->gettext('openpreview'),
               ));
             }
@@ -544,7 +569,7 @@ class libcalendaring_itip
             $update_button = html::tag('input', array(
                 'type' => 'button',
                 'class' => 'button',
-                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task')",
+                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task')",
                 'value' => $this->gettext('updatemycopy'),
             ));
 
@@ -552,7 +577,7 @@ class libcalendaring_itip
             $import_button = html::tag('input', array(
                 'type' => 'button',
                 'class' => 'button',
-                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task')",
+                'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task')",
                 'value' => $this->gettext('importtocalendar'),
             ));
 
@@ -580,12 +605,17 @@ class libcalendaring_itip
         // for CANCEL messages, we can:
         else if ($method == 'CANCEL') {
             $title = $this->gettext('itipcancellation');
+            $event_prop = array_filter(array(
+              'uid' => $event['uid'],
+              '_instance' => $event['_instance'],
+              '_savemode' => $event['_savemode'],
+            ));
 
             // 1. remove the event from our calendar
             $button_remove = html::tag('input', array(
                 'type' => 'button',
                 'class' => 'button',
-                'onclick' => "rcube_libcalendaring.remove_from_itip('" . JQ($event['uid']) . "', '$task', '" . JQ($event['title']) . "')",
+                'onclick' => "rcube_libcalendaring.remove_from_itip(" . rcube_output::json_serialize($event_prop) . ", '$task', '" . rcube::JQ($event['title']) . "')",
                 'value' => $this->gettext('removefromcalendar'),
             ));
 
@@ -593,7 +623,7 @@ class libcalendaring_itip
             $button_update = html::tag('input', array(
               'type' => 'button',
               'class' => 'button',
-              'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . JQ($mime_id) . "', '$task')",
+              'onclick' => "rcube_libcalendaring.add_from_itip_mail('" . rcube::JQ($mime_id) . "', '$task')",
               'value' => $this->gettext('updatemycopy'),
             ));
 
@@ -612,7 +642,7 @@ class libcalendaring_itip
         $metadata['fallback'] = $rsvp_status;
         $metadata['rsvp'] = intval($metadata['rsvp']);
 
-        $this->rc->output->add_script("rcube_libcalendaring.fetch_itip_object_status(" . json_serialize($metadata) . ")", 'docready');
+        $this->rc->output->add_script("rcube_libcalendaring.fetch_itip_object_status(" . rcube_output::json_serialize($metadata) . ")", 'docready');
 
         // get localized texts from the right domain
         foreach (array('savingdata','deleteobjectconfirm','declinedeleteconfirm','declineattendee',
@@ -646,8 +676,6 @@ class libcalendaring_itip
             ));
         }
 
-        $buttons .= html::div('itip-reply-controls', $this->itip_rsvp_options_ui($attrib['id']));
-
         // add localized texts for the delegation dialog
         if (in_array('delegated', $actions)) {
             foreach (array('itipdelegated','itipcomment','delegateinvitation',
@@ -656,9 +684,19 @@ class libcalendaring_itip
             }
         }
 
+        foreach (array('all','current','future') as $mode) {
+            $this->rc->output->command('add_label', "rsvpmode$mode", $this->gettext("rsvpmode$mode"));
+        }
+
+        $savemode_radio = new html_radiobutton(array('name' => '_rsvpmode', 'class' => 'rsvp-replymode'));
+
         return html::div($attrib,
             html::div('label', $this->gettext('acceptinvitation')) .
-            html::div('rsvp-buttons', $buttons));
+            html::div('rsvp-buttons',
+                $buttons .
+                html::div('itip-reply-controls', $this->itip_rsvp_options_ui($attrib['id']))
+            )
+        );
     }
 
     /**
@@ -696,22 +734,26 @@ class libcalendaring_itip
     {
         $table = new html_table(array('cols' => 2, 'border' => 0, 'class' => 'calendar-eventdetails'));
         $table->add('ititle', $title);
-        $table->add('title', Q($event['title']));
+        $table->add('title', rcube::Q($event['title']));
         if ($event['start'] && $event['end']) {
             $table->add('label', $this->gettext('date'));
-            $table->add('date', Q($this->lib->event_date_text($event)));
+            $table->add('date', rcube::Q($this->lib->event_date_text($event)));
         }
         else if ($event['due'] && $event['_type'] == 'task') {
             $table->add('label', $this->gettext('date'));
-            $table->add('date', Q($this->lib->event_date_text($event)));
+            $table->add('date', rcube::Q($this->lib->event_date_text($event)));
         }
-        if (!empty($event['recurrence'])) {
+        if (!empty($event['recurrence_date'])) {
+            $table->add('label', '');
+            $table->add('recurrence-id', $this->gettext($event['thisandfuture'] ? 'itipfutureoccurrence' : 'itipsingleoccurrence'));
+        }
+        else if (!empty($event['recurrence'])) {
             $table->add('label', $this->gettext('recurring'));
             $table->add('recurrence', $this->lib->recurrence_text($event['recurrence']));
         }
         if ($event['location']) {
             $table->add('label', $this->gettext('location'));
-            $table->add('location', Q($event['location']));
+            $table->add('location', rcube::Q($event['location']));
         }
         if ($event['sensitivity'] && $event['sensitivity'] != 'public') {
             $table->add('label', $this->gettext('sensitivity'));
@@ -723,7 +765,7 @@ class libcalendaring_itip
         }
         if ($event['comment']) {
             $table->add('label', $this->gettext('comment'));
-            $table->add('location', Q($event['comment']));
+            $table->add('location', rcube::Q($event['comment']));
         }
 
         return $table->show();

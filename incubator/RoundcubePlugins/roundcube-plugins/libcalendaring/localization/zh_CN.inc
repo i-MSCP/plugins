@@ -6,3 +6,5 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/libcalendaring/
  */
+$labels['frequency'] = '循环';
+$labels['savingdata'] = '保存数据...';

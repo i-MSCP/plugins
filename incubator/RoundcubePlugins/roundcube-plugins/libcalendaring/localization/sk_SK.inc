@@ -6,3 +6,4 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/libcalendaring/
  */
+$labels['frequency'] = 'Opakovať';
