@@ -34,12 +34,8 @@ return array(
 			CONSTRAINT `fk_tasklist_user_id` FOREIGN KEY (`user_id`)
 			REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 		) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
-		
-		REPLACE INTO `system` (`name`, `value`) VALUES ('tasklist-database-version', '2014051900');
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`tasklists`;
-		
-		DELETE FROM " . $roundcubeDbName . ".`system` WHERE `system`.`name` = 'tasklist-database-version';
 	"
 );

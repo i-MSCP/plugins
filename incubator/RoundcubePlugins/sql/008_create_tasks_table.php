@@ -40,7 +40,6 @@ return array(
 			`starttime` varchar(5) DEFAULT NULL,
 			`flagged` tinyint(4) NOT NULL DEFAULT '0',
 			`complete` float NOT NULL DEFAULT '0',
-			`status` enum('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '',
 			`alarms` varchar(255) DEFAULT NULL,
 			`recurrence` varchar(255) DEFAULT NULL,
 			`organizer` varchar(255) DEFAULT NULL,
@@ -52,10 +51,6 @@ return array(
 			CONSTRAINT `fk_tasks_tasklist_id` FOREIGN KEY (`tasklist_id`)
 			REFERENCES `tasklists`(`tasklist_id`) ON DELETE CASCADE ON UPDATE CASCADE
 		) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
-
-		ALTER TABLE `tasks` ADD `status` ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER `complete`;
-
-		UPDATE `tasks` SET status='COMPLETED' WHERE complete=1.0 AND status='';
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`tasks`;
