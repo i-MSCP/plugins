@@ -30,14 +30,14 @@ return array(
 	// WARNING: Don't change anything, if you don't know what you are doing.
 	//
 
-	// Reject spam (default: not)
+	// Reject spam (default: yes)
 	//
 	// If set to 'yes', the mails are rejected when they are detected as SPAM by SpamAssassin.
-	// If set to 'no', the mails are no rejected but taggued as SPAM when they are deteced as SPAM by SpamAssassin.
+	// If set to 'no', the mails are not rejected but tagged as SPAM when they are detected by SpamAssassin.
 	//
-	// Note: Rejecting SPAMs is supported because the checks are done before the MTA accepts the mails (before-queue
-	// filter with spamass-milter).
-	'reject_spam' => 'no',
+	// Note: Rejecting SPAM is supported because the checks are done totally legal before the MTA accepts the mails
+	// (before-queue filter with spamass-milter)
+	'reject_spam' => 'yes',
 
 	// Use bayes (default: yes)
 	//
@@ -83,17 +83,17 @@ return array(
 		'dweek' => ''
 	),
 
-	// Razor2 (default: no)
+	// Razor2 (default: yes)
 	//
 	// If set to 'yes', enable usage of razor2.
 	// If set to 'no', disable usage of razor2.
-	'use_razor2' => 'no',
+	'use_razor2' => 'yes',
 
-	// Pyzor (default: no)
+	// Pyzor (default: yes)
 	//
 	// If set to 'yes', enable usage of Pyzor.
 	// If set to 'no', disable usage of Pyzor.
-	'use_pyzor' => 'no',
+	'use_pyzor' => 'yes',
 
 	// DCC - Distributed Checksum Clearinghouse (default: no)
 	//
@@ -116,21 +116,21 @@ return array(
 	//// 3rd party SpamAssasin plugins
 	//
 
-	// DecodeShortURLs plugin (default: no)
+	// DecodeShortURLs plugin (default: yes)
 	//
 	// If set to 'yes', enable the DecodeShortURLs plugin.
 	// If set to 'no', disable the DecodeShortURLs plugin.
 	//
 	// See https://github.com/smfreegard/DecodeShortURLs for further details.
-	'DecodeShortURLs' => 'no',
+	'DecodeShortURLs' => 'yes',
 
-	// iXhash2 plugin (default: no)
+	// iXhash2 plugin (default: yes)
 	//
 	// If set to 'yes', enable the iXhash2 plugin.
 	// If set to 'no', disable the iXhash2 plugin.
 	//
 	// See http://mailfud.org/iXhash2/ for further details.
-	'iXhash2' => 'no',
+	'iXhash2' => 'yes',
 
 	//
 	//// Roundcube plugins
@@ -161,7 +161,7 @@ return array(
 	// Check webmail/plugins/sauserprefs/config.inc.php for list of available options.
 	//
 	// Don't change anything, if you don't know what you are doing.
-	'sauserprefs_dont_override' => "'{headers}', 'use_razor1'", // default: "'{headers}', 'use_razor1'"
+	'sauserprefs_dont_override' => "'{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'", // default: ""'{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'"
 
 	//
 	//// SpamAssassin and spamass-milter configuration
