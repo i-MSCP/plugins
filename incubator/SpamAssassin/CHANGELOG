@@ -1,6 +1,11 @@
 SpamAssassin - ChangeLog
 ========================
 
+	Changed: New default values in config.php
+	Updated: Roundcube plugin markasjunk2
+	Updated: Roundcube plugin sauserprefs
+	Removed: Deprecated config option sauserprefs_bayes_delete
+	
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
