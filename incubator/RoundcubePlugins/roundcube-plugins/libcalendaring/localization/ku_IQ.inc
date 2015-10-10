@@ -6,7 +6,3 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/libcalendaring/
  */
-$labels['until'] = 'até';
-$labels['frequency'] = 'Repetir';
-$labels['recurrencend'] = 'até';
-$labels['savingdata'] = 'Salvando dados...';

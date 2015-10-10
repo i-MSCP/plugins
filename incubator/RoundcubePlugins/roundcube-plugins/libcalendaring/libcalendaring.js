@@ -6,7 +6,7 @@
  * @licstart  The following is the entire license notice for the
  * JavaScript code in this page.
  *
- * Copyright (C) 2012-2015, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -123,11 +123,6 @@ function rcube_libcalendaring(settings)
      */
     this.parseISO8601 = function(s)
     {
-        // already a Date object?
-        if (s && s.getMonth) {
-            return s;
-        }
-
         // force d to be on check's YMD, for daylight savings purposes
         var fixDate = function(d, check) {
             if (+d) { // prevent infinite looping on invalid dates
@@ -337,10 +332,9 @@ function rcube_libcalendaring(settings)
             $(this).parent().find('span.edit-alarm-values')[(this.selectedIndex>0?'show':'hide')]();
         });
         $(prefix+' select.edit-alarm-offset').change(function(){
-            var val = $(this).val(), parent = $(this).parent();
-            parent.find('.edit-alarm-date, .edit-alarm-time')[val == '@' ? 'show' : 'hide']();
-            parent.find('.edit-alarm-value').prop('disabled', val === '@' || val === '0');
-            parent.find('.edit-alarm-related')[val == '@' ? 'hide' : 'show']();
+            var mode = $(this).val() == '@' ? 'show' : 'hide';
+            $(this).parent().find('.edit-alarm-date, .edit-alarm-time')[mode]();
+            $(this).parent().find('.edit-alarm-value').prop('disabled', mode == 'show');
         });
 
         $(prefix+' .edit-alarm-date').removeClass('hasDatepicker').removeAttr('id').datepicker(datepicker_settings);
@@ -390,7 +384,6 @@ function rcube_libcalendaring(settings)
           }
 
           $('select.edit-alarm-type', domnode).val(alarm.action);
-          $('select.edit-alarm-related', domnode).val(/END/i.test(alarm.related) ? 'end' : 'start');
 
           if (String(alarm.trigger).match(/@(\d+)/)) {
               var ondate = this.fromunixtime(parseInt(RegExp.$1));
@@ -398,10 +391,6 @@ function rcube_libcalendaring(settings)
               $('input.edit-alarm-value', domnode).val('');
               $('input.edit-alarm-date', domnode).val(this.format_datetime(ondate, 1));
               $('input.edit-alarm-time', domnode).val(this.format_datetime(ondate, 2));
-          }
-          else if (String(alarm.trigger).match(/^[-+]*0[MHDS]$/)) {
-              $('input.edit-alarm-value', domnode).val('0');
-              $('select.edit-alarm-offset', domnode).val('0');
           }
           else if (String(alarm.trigger).match(/([-+])(\d+)([MHDS])/)) {
               val = RegExp.$2; offset = ''+RegExp.$1+RegExp.$3;
@@ -419,18 +408,11 @@ function rcube_libcalendaring(settings)
         var valarms = [];
 
         $(prefix + ' .edit-alarm-item').each(function(i, elem) {
-            var val, offset, alarm = {
-                    action: $('select.edit-alarm-type', elem).val(),
-                    related: $('select.edit-alarm-related', elem).val()
-                };
-
+            var val, offset, alarm = { action: $('select.edit-alarm-type', elem).val() };
             if (alarm.action) {
                 offset = $('select.edit-alarm-offset', elem).val();
                 if (offset == '@') {
                     alarm.trigger = '@' + me.date2unixtime(me.parse_datetime($('input.edit-alarm-time', elem).val(), $('input.edit-alarm-date', elem).val()));
-                }
-                else if (offset === '0') {
-                    alarm.trigger = '0S';
                 }
                 else if (!isNaN((val = parseInt($('input.edit-alarm-value', elem).val()))) && val >= 0) {
                     alarm.trigger = offset[0] + val + offset[1];
@@ -977,47 +959,13 @@ rcube_libcalendaring.itip_delegate_dialog = function(callback, selector)
 };
 
 /**
- * Show a menu for selecting the RSVP reply mode
- */
-rcube_libcalendaring.itip_rsvp_recurring = function(btn, callback)
-{
-    var mnu = $('<ul></ul>').addClass('popupmenu libcal-rsvp-replymode');
-
-    $.each(['all','current'/*,'future'*/], function(i, mode) {
-        $('<li><a>' + rcmail.get_label('rsvpmode'+mode, 'libcalendaring') + '</a>')
-        .addClass('ui-menu-item')
-        .attr('rel', mode)
-        .appendTo(mnu);
-    });
-
-    var action = btn.attr('rel');
-
-    // open the mennu
-    mnu.menu({
-        select: function(event, ui) {
-            callback(action, ui.item.attr('rel'));
-        }
-    })
-    .appendTo(document.body)
-    .position({ my: 'left top', at: 'left bottom+2', of: btn })
-    .data('action', action);
-
-    setTimeout(function() {
-        $(document).one('click', function() {
-            mnu.menu('destroy');
-            mnu.remove();
-        });
-    }, 100);
-};
-
-/**
  *
  */
-rcube_libcalendaring.remove_from_itip = function(event, task, title)
+rcube_libcalendaring.remove_from_itip = function(uid, task, title)
 {
     if (confirm(rcmail.gettext('itip.deleteobjectconfirm').replace('$title', title))) {
         rcmail.http_post(task + '/itip-remove',
-            event,
+            { uid: uid },
             rcmail.set_busy(true, 'itip.savingdata')
         );
     }
@@ -1191,7 +1139,6 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
 
   $('.rsvp-buttons').on('click', 'a.reply-comment-toggle', function(e){
     $(this).hide().parent().find('textarea').show().focus();
-    return false;
   });
 
   if (rcmail.env.action == 'get-attachment' && rcmail.gui_objects['attachmentframe']) {

@@ -46,11 +46,6 @@ ATTENDEE:mailto:reminder-recipient@example.org
 SUMMARY:This is the reminder message
 DESCRIPTION:This is the second event reminder
 END:VALARM
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:An absolute reminder
-TRIGGER;VALUE=DATE-TIME:20130812T160000Z
-END:VALARM
 END:VEVENT
 
 END:VCALENDAR

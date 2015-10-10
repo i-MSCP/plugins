@@ -7,6 +7,7 @@
  * For translation see https://www.transifex.com/projects/p/kolab/resource/libcalendaring/
  */
 $labels['until'] = 'tills';
+$labels['alarmemailoption'] = 'E-post';
 $labels['frequency'] = 'Upprepa';
 $labels['recurrencend'] = 'tills';
 $labels['savingdata'] = 'Sparar data ...';
