@@ -32,8 +32,8 @@ return array(
 			`data` longtext NOT NULL,
 			PRIMARY KEY(`attachment_id`),
 			CONSTRAINT `fk_attachments_event_id` FOREIGN KEY (`event_id`)
-			REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
-		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+				REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
+			) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`attachments`;
