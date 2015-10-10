@@ -1,7 +1,22 @@
 /**
  * ContextMenu plugin script
+ *
+ * @licstart  The following is the entire license notice for the
+ * JavaScript code in this file.
+ *
+ * Copyright (C) 2009-2014 Philip Weir
+ *
+ * The JavaScript code in this page is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in this file.
  */
 
+rcube_webmail.prototype.context_menu_skip_commands = new Array('mail-checkmail', 'mail-compose', 'addressbook-add', 'addressbook-import', 'addressbook-advanced-search', 'addressbook-search-create');
+rcube_webmail.prototype.context_menu_overload_commands = new Array('move', 'copy');
 rcube_webmail.prototype.context_menu_commands = new Array();
 rcube_webmail.prototype.context_menu_popup_menus = new Array();
 rcube_webmail.prototype.context_menu_popup_commands = {};
@@ -621,7 +636,8 @@ function rcube_context_menu(p) {
 
 		var id = rcmail.gui_containers[$(link).data('command')] ? rcmail.gui_containers[$(link).data('command')].attr('id') : $(link).data('command');
 		if (!this.submenus[id]) {
-			this.submenus[id] = new rcube_context_menu({'menu_name': id, 'menu_source': '#' + id + ' ul', 'parent_menu': this, 'parent_object': link, 'is_submenu': true, 'list_object': this.list_object});
+			var elem = !$('#' + id).is('ul') ? '#' + id + ' ul' : '#' + id; // check if the container returned is a ul else there should be one directly beneath it
+			this.submenus[id] = new rcube_context_menu({'menu_name': id, 'menu_source': elem, 'parent_menu': this, 'parent_object': link, 'is_submenu': true, 'list_object': this.list_object});
 			this.submenus[id].init();
 		}
 
@@ -759,14 +775,15 @@ function rcm_addressbook_selector(event, command, callback) {
 			container.css('max-height', $('li', container)[0].offsetHeight * 10 + 9);
 
 		// register delegate event handler for folder item clicks
-		container.on('click', 'a.active', {cmd: command}, function(e) {
-			container.data('callback')(this, e);
+		container.on('click', 'a.active', function(e) {
+			container.data('callback')(this, container.data('command'), e);
 			return false;
 		});
 
 		rcmail.rcm_addressbook_selector_element = container;
 	}
 
+	container.data('command', command);
 	container.data('callback', callback);
 
 	// customize menu for move or copy
@@ -932,17 +949,17 @@ $(document).ready(function() {
 			// address book selector
 			rcmail.addEventListener('actionbefore', function(props) {
 				if ((props.action == 'move' || props.action == 'copy') && props.props == '') {
-					rcm_addressbook_selector(props.originalEvent, props.action, function(obj, evt) {
+					rcm_addressbook_selector(props.originalEvent, props.action, function(obj, cmd, evt) {
 						// search result may contain contacts from many sources, but if there is only one...
 						var source = rcmail.env.source;
 						if (source == '' && rcmail.env.selection_sources.length == 1)
 							source = rcmail.env.selection_sources[0];
 
 						if ($(obj).data('source')) {
-							rcmail.command(evt.data.cmd, rcmail.env.contactgroups['G' + $(obj).data('source') + $(obj).data('id')], evt);
+							rcmail.command(cmd, rcmail.env.contactgroups['G' + $(obj).data('source') + $(obj).data('id')], evt);
 						}
 						else {
-							rcmail.command(evt.data.cmd, rcmail.env.address_sources[$(obj).data('id')], evt);
+							rcmail.command(cmd, rcmail.env.address_sources[$(obj).data('id')], evt);
 						}
 					});
 
@@ -977,6 +994,14 @@ $(document).ready(function() {
 						rcmail.context_menu_popup_commands[p.name][cmd] = rcmail.commands[cmd];
 					}
 				});
+			}
+		});
+
+		rcmail.addEventListener('menu-close', function(p) {
+			// check for popupmenus that arent part of contextmenu
+			var e = p.originalEvent.currentTarget ? p.originalEvent.currentTarget : p.originalEvent.srcElement;
+			if ($('div.contextmenu').is(':visible') && p.name.indexOf('rcm_') != 0 && $(e).attr('class').indexOf('rcm_elem_') == -1) {
+				rcm_hide_menu(p.originalEvent);
 			}
 		});
 
