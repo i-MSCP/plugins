@@ -8,7 +8,7 @@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2012-2015, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -50,7 +50,6 @@
  *      'EXCEPTIONS' => array(<event>),  list of event objects which denote exceptions in the recurrence chain
  *    ),
  * 'recurrence_id' => 'ID of the recurrence group',   // usually the ID of the starting event
- *     '_instance' => 'ID of the recurring instance',   // identifies an instance within a recurrence chain
  *    'categories' => 'Event category',
  *     'free_busy' => 'free|busy|outofoffice|tentative',  // Show time as
  *        'status' => 'TENTATIVE|CONFIRMED|CANCELLED',    // event status according to RFC 2445
@@ -94,13 +93,6 @@
  */
 abstract class calendar_driver
 {
-  const FILTER_ALL           = 0;
-  const FILTER_WRITEABLE     = 1;
-  const FILTER_INSERTABLE    = 2;
-  const FILTER_ACTIVE        = 4;
-  const FILTER_PERSONAL      = 8;
-  const FILTER_PRIVATE       = 16;
-  const FILTER_CONFIDENTIAL  = 32;
   const BIRTHDAY_CALENDAR_ID = '__bdays__';
 
   // features supported by backend
@@ -125,11 +117,12 @@ abstract class calendar_driver
   /**
    * Get a list of available calendars from this source
    *
-   * @param integer Bitmask defining filter criterias.
-   *          See FILTER_* constants for possible values.
+   * @param bool $active   Return only active calendars
+   * @param bool $personal Return only personal calendars
+   *
    * @return array List of calendars
    */
-  abstract function list_calendars($filter = 0);
+  abstract function list_calendars($active = false, $personal = false);
 
   /**
    * Create a new calendar assigned to the current user
@@ -203,22 +196,9 @@ abstract class calendar_driver
    *
    * @param array  Hash array with event properties
    * @param string New participant status
-   * @param array  List of hash arrays with updated attendees
    * @return boolean True on success, False on error
    */
-  public function edit_rsvp(&$event, $status, $attendees)
-  {
-    return $this->edit_event($event);
-  }
-
-  /**
-   * Update the participant status for the given attendee
-   *
-   * @param array  Hash array with event properties
-   * @param array  List of hash arrays each represeting an updated attendee
-   * @return boolean True on success, False on error
-   */
-  public function update_attendees(&$event, $attendees)
+  public function edit_rsvp(&$event, $status)
   {
     return $this->edit_event($event);
   }
@@ -275,17 +255,15 @@ abstract class calendar_driver
    * Return data of a single event
    *
    * @param mixed  UID string or hash array with event properties:
-   *         id: Event identifier
-   *        uid: Event UID
-   *  _instance: Instance identifier in combination with uid (optional)
-   *   calendar: Calendar identifier (optional)
-   * @param integer Bitmask defining the scope to search events in.
-   *          See FILTER_* constants for possible values.
-   * @param boolean If true, recurrence exceptions shall be added
+   *        id: Event identifier
+   *  calendar: Calendar identifier (optional)
+   * @param boolean If true, only writeable calendars shall be searched
+   * @param boolean If true, only active calendars shall be searched
+   * @param boolean If true, only personal calendars shall be searched
    *
    * @return array Event object as hash array
    */
-  abstract function get_event($event, $scope = 0, $full = false);
+  abstract function get_event($event, $writeable = false, $active = false, $personal = false);
 
   /**
    * Get events from source.
@@ -471,7 +449,6 @@ abstract class calendar_driver
 
       $rcmail = rcmail::get_instance();
       $recurrence = new calendar_recurrence($rcmail->plugins->get_plugin('calendar'), $event);
-      $recurrence_id_format = libcalendaring::recurrence_id_format($event);
 
       // determine a reasonable end date if none given
       if (!$end) {
@@ -487,11 +464,12 @@ abstract class calendar_driver
 
       $i = 0;
       while ($next_event = $recurrence->next_instance()) {
+        $next_event['uid'] = $event['uid'] . '-' . ++$i;
         // add to output if in range
         if (($next_event['start'] <= $end && $next_event['end'] >= $start)) {
-          $next_event['_instance'] = $next_event['start']->format($recurrence_id_format);
-          $next_event['id'] = $next_event['uid'] . '-' . $exception['_instance'];
+          $next_event['id'] = $next_event['uid'];
           $next_event['recurrence_id'] = $event['uid'];
+          $next_event['_instance'] = $i;
           $events[] = $next_event;
         }
         else if ($next_event['start'] > $end) {  // stop loop if out of range
@@ -499,7 +477,7 @@ abstract class calendar_driver
         }
 
         // avoid endless recursion loops
-        if (++$i > 1000) {
+        if ($i > 1000) {
           break;
         }
       }
@@ -693,19 +671,18 @@ abstract class calendar_driver
           // quick-and-dirty recurrence computation: just replace the year
           $bday->setDate($year, $bday->format('n'), $bday->format('j'));
           $bday->setTime(12, 0, 0);
-          $this_year = $year;
 
           // date range reaches over multiple years: use end year if not in range
           if (($bday > $end || $bday < $start) && $year2 != $year) {
             $bday->setDate($year2, $bday->format('n'), $bday->format('j'));
-            $this_year = $year2;
+            $year = $year2;
           }
 
           // birthday is within requested range
           if ($bday <= $end && $bday >= $start) {
-            $age = $this_year - $birthyear;
+            $age = $year - $birthyear;
             $event = array(
-              'id'          => rcube_ldap::dn_encode('bday:' . $source . ':' . $contact['ID'] . ':' . $this_year),
+              'id'          => rcube_ldap::dn_encode('bday:' . $source . ':' . $contact['ID'] . ':' . $year),
               'calendar'    => self::BIRTHDAY_CALENDAR_ID,
               'title'       => $event_title,
               'description' => $rcmail->gettext(array('name' => 'birthdayage', 'vars' => array('age' => $age)), 'calendar'),

@@ -5,7 +5,7 @@
  *
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
- * Copyright (C) 2014-2015, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,8 +26,7 @@ class kolab_invitation_calendar
   public $id = '__invitation__';
   public $ready = true;
   public $alarms = false;
-  public $rights = 'lrsv';
-  public $editable = false;
+  public $readonly = true;
   public $attachments = false;
   public $subscriptions = false;
   public $partstats = array('unknown');
@@ -178,7 +177,7 @@ class kolab_invitation_calendar
   public function get_event($id)
   {
     // redirect call to kolab_driver::get_event()
-    $event = $this->cal->driver->get_event($id, calendar_driver::FILTER_WRITEABLE);
+    $event = $this->cal->driver->get_event($id, true);
 
     if (is_array($event)) {
       // add pointer to original calendar folder
@@ -187,33 +186,6 @@ class kolab_invitation_calendar
     }
 
     return $event;
-  }
-
-  /**
-   * Get attachment body
-   * @see calendar_driver::get_attachment_body()
-   */
-  public function get_attachment_body($id, $event)
-  {
-    // find the actual folder this event resides in
-    if (!empty($event['_folder_id'])) {
-      $cal = $this->cal->driver->get_calendar($event['_folder_id']);
-    }
-    else {
-      $cal = null;
-      foreach (kolab_storage::list_folders('', '*', 'event', null) as $foldername) {
-        $cal = new kolab_calendar($foldername, $this->cal);
-        if ($cal->ready && $cal->storage && $cal->get_event($event['id'])) {
-          break;
-        }
-      }
-    }
-
-    if ($cal && $cal->storage) {
-      return $cal->get_attachment_body($id, $event);
-    }
-
-    return false;
   }
 
 
@@ -285,11 +257,6 @@ class kolab_invitation_calendar
       }
     }
 
-    $filter = array(
-      array('tags','!=','x-status:cancelled'),
-      array($subquery, 'OR')
-    );
-
     // aggregate counts from all calendar folders
     $count = 0;
     foreach (kolab_storage::list_folders('', '*', 'event', null) as $foldername) {
@@ -297,7 +264,7 @@ class kolab_invitation_calendar
       if ($cal->get_namespace() == 'other')
         continue;
 
-      $count += $cal->count_events($start, $end, $filter);
+      $count += $cal->count_events($start, $end, array(array($subquery, 'OR')));
     }
 
     return $count;

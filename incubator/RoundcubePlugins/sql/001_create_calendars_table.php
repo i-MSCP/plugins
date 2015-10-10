@@ -32,14 +32,10 @@ return array(
 			PRIMARY KEY(`calendar_id`),
 			INDEX `user_name_idx` (`user_id`, `name`),
 			CONSTRAINT `fk_calendars_user_id` FOREIGN KEY (`user_id`)
-				REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-			) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
-		
-		REPLACE INTO system (name, value) VALUES ('calendar-database-version', '2015022700');
+			REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`calendars`;
-		
-		DELETE FROM " . $roundcubeDbName . ".`system` WHERE `system`.`name` = 'calendar-database-version';
 	"
 );

@@ -676,10 +676,6 @@ a.miniColors-trigger {
 	outline: none;
 }
 
-#event-panel-attachments.disabled .attachmentslist li a.delete {
-	visibility: hidden;
-}
-
 .event-attendees span.attendee {
 	padding-right: 18px;
 	margin-right: 0.5em;
@@ -837,72 +833,72 @@ a.miniColors-trigger {
 	text-decoration: none;
 }
 
-.changelog-table .loading {
+#eventhistory .loading {
 	color: #666;
 	margin: 1em 0;
 	padding: 1px 0 2px 24px;
 	background: url(images/loading_blue.gif) top left no-repeat;
 }
 
-.changelog-dialog .compare-button {
+#eventhistory .compare-button {
 	margin: 4px 0;
 }
 
-.changelog-table tbody td {
+#event-changelog-table tbody td {
 	padding: 4px 7px;
 	vertical-align: middle;
 }
 
-.changelog-table tbody tr:last-child td {
+#event-changelog-table tbody tr:last-child td {
 	border-bottom: 0;
 }
 
-.changelog-table tbody tr.undisclosed td.date,
-.changelog-table tbody tr.undisclosed td.user {
+#event-changelog-table tbody tr.undisclosed td.date,
+#event-changelog-table tbody tr.undisclosed td.user {
 	font-style: italic;
 }
 
-.changelog-table .diff {
+#event-changelog-table .diff {
 	width: 4em;
 	padding: 2px;
 }
 
-.changelog-table .revision {
-	width: 6em;
+#event-changelog-table .revision {
+	width: 7em;
 }
 
-.changelog-table .date {
+#event-changelog-table .date {
 	width: 11em;
 }
 
-.changelog-table .user {
+#event-changelog-table .user {
 	width: auto;
 }
 
-.changelog-table .operation {
+#event-changelog-table .operation {
 	width: 15%;
 }
 
-.changelog-table .actions {
+#event-changelog-table .actions {
 	width: 50px;
 	text-align: right;
 	padding: 4px;
 }
 
-.changelog-table td a.iconbutton.restore,
-.changelog-table td a.iconbutton.preview {
+#event-changelog-table td a.iconbutton.restore,
+#event-changelog-table td a.iconbutton.preview {
 	width: 16px;
 	margin-right: 2px;
 	background-image: url(images/calendars.png);
 	background-position: -1px -147px;
 }
 
-.changelog-table td a.iconbutton.restore {
+#event-changelog-table td a.iconbutton.restore {
 	background-image: url(images/calendars.png);
 	background-position: -1px -167px;
 }
 
-.changelog-table tr.first td a.iconbutton {
+#event-changelog-table tr.first td a.iconbutton {
 	opacity: 0.3;
 	cursor: default;
 }
@@ -1061,10 +1057,6 @@ td.topalign {
 	margin: 0 0.5em 0 0.2em;
 	min-width: 5em;
 	text-align: center;
-}
-
-.libcal-rsvp-replymode li a {
-	cursor: default;
 }
 
 #event-rsvp,
@@ -2167,15 +2159,6 @@ div.calendar-invitebox td.sensitivity {
 	font-weight: bold;
 }
 
-div.calendar-invitebox td.recurrence-id {
-	text-transform: uppercase;
-	font-style: italic;
-}
-
-div.calendar-invitebox td em {
-	font-weight: bold;
-}
-
 #event-rsvp .rsvp-buttons,
 div.calendar-invitebox .itip-buttons div {
 	margin-top: 0.5em;
@@ -2314,14 +2297,5 @@ div.calendar-invitebox .calendar-agenda-preview .event-date {
 .calendaritipattend .calendar-invitebox td.title,
 .calendaritipattend .calendar-invitebox td.ititle {
 	font-size: 120%;
-}
-
-.calendaritipattend .itip-reply-controls .noreply-toggle,
-.calendaritipattend .itip-reply-controls #noreply-event-rsvp {
-	display: none;
-}
-
-.calendaritipattend .itip-reply-controls a.reply-comment-toggle {
-	margin-left: 2px;
 }
 

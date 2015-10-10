@@ -28,8 +28,6 @@ return array(
 			`calendar_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
 			`recurrence_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
 			`uid` varchar(255) NOT NULL DEFAULT '',
-			`instance` varchar(16) NOT NULL DEFAULT '',
-			`isexception` tinyint(1) NOT NULL DEFAULT '0',
 			`created` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
 			`changed` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
 			`sequence` int(1) UNSIGNED NOT NULL DEFAULT '0',
@@ -46,7 +44,7 @@ return array(
 			`priority` tinyint(1) NOT NULL DEFAULT '0',
 			`sensitivity` tinyint(1) NOT NULL DEFAULT '0',
 			`status` varchar(32) NOT NULL DEFAULT '',
-			`alarms` text DEFAULT NULL,
+			`alarms` varchar(255) DEFAULT NULL,
 			`attendees` text DEFAULT NULL,
 			`notifyat` datetime DEFAULT NULL,
 			PRIMARY KEY(`event_id`),
@@ -54,24 +52,8 @@ return array(
 			INDEX `recurrence_idx` (`recurrence_id`),
 			INDEX `calendar_notify_idx` (`calendar_id`,`notifyat`),
 			CONSTRAINT `fk_events_calendar_id` FOREIGN KEY (`calendar_id`)
-				REFERENCES `calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
-			) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
-		
-		ALTER TABLE `events` ADD `url` VARCHAR(255) NOT NULL AFTER `categories`;
-
-		ALTER TABLE `events` ADD `status` VARCHAR(32) NOT NULL AFTER `sensitivity`;
-
-		ALTER TABLE `events` ADD `instance` varchar(16) NOT NULL DEFAULT '' AFTER `uid`;
-
-		ALTER TABLE `events` ADD `isexception` tinyint(1) NOT NULL DEFAULT '0' AFTER `instance`;
-
-		UPDATE `events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%d')
-			WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 1;
-
-		UPDATE `events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%dT%k%i%s')
-			WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 0;
-
-		ALTER TABLE `events` CHANGE `alarms` `alarms` TEXT NULL DEFAULT NULL;
+			REFERENCES `calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
+		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`events`;

@@ -33,8 +33,10 @@ return array(
 			PRIMARY KEY(`token`),
 			INDEX `uid_idx` (`user_id`,`event_uid`),
 			CONSTRAINT `fk_itipinvitations_user_id` FOREIGN KEY (`user_id`)
-				REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-			) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+			REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+
+		REPLACE INTO system (name, value) VALUES ('calendar-database-version', '2014040900');
 	",
 	'down' => "
 		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`itipinvitations`;

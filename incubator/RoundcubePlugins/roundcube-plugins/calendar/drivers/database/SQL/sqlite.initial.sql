@@ -27,8 +27,6 @@ CREATE TABLE events (
   calendar_id integer NOT NULL default '0',
   recurrence_id integer NOT NULL default '0',
   uid varchar(255) NOT NULL default '',
-  instance varchar(16) NOT NULL default '',
-  isexception tinyint(1) NOT NULL default '0',
   created datetime NOT NULL default '1000-01-01 00:00:00',
   changed datetime NOT NULL default '1000-01-01 00:00:00',
   sequence integer NOT NULL default '0',
@@ -45,7 +43,7 @@ CREATE TABLE events (
   priority tinyint(1) NOT NULL default '0',
   sensitivity tinyint(1) NOT NULL default '0',
   status varchar(32) NOT NULL default '',
-  alarms text default NULL,
+  alarms varchar(255) default NULL,
   attendees text default NULL,
   notifyat datetime default NULL,
   CONSTRAINT fk_events_calendar_id FOREIGN KEY (calendar_id)
@@ -76,4 +74,4 @@ CREATE TABLE itipinvitations (
 
 CREATE INDEX ix_itipinvitations_uid ON itipinvitations(user_id, event_uid);
 
-INSERT INTO system (name, value) VALUES ('calendar-database-version', '2015022700');
+INSERT INTO system (name, value) VALUES ('calendar-database-version', '2014040900');

@@ -6,5 +6,4 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/calendar/
  */
-$labels['description'] = '描述';
 ?>

@@ -18,6 +18,12 @@ is installed and configured correctly.
 For recurring event computation, some utility classes from the Horde project
 are used. They are packaged in a slightly modified version with this plugin.
 
+IMPORTANT
+---------
+
+The calendar module makes heavy use of PHP's DateTime as well as DateInterval
+classes. The latter one requires at least PHP 5.3.0 to run.
+
 
 REQUIREMENTS
 ------------
@@ -40,7 +46,7 @@ driver.
 1. Get the source from git
 
   $ cd /tmp
-  $ git clone https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git
+  $ git clone git://git.kolab.org/git/roundcubemail-plugins-kolab
   $ cd /<path-to-roundcube>/plugins
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/calendar .
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/libcalendaring .
@@ -69,4 +75,4 @@ Add 'calendar' to the list of active plugins:
 
 
 
-[1] https://git.kolab.org/diffusion/RPK/
+[1] http://git.kolab.org/roundcubemail-plugins-kolab/
