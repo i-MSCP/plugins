@@ -1,0 +1,91 @@
+<?php
+/**
+ * Localizations for the Kolab Tasks plugin
+ *
+ * Copyright (C) 2014, Kolab Systems AG
+ *
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/tasklist/
+ */
+$labels['navtitle'] = 'Opgaver';
+$labels['lists'] = 'Opgavelister';
+$labels['list'] = 'Opgaveliste';
+$labels['tags'] = 'Mærker';
+$labels['newtask'] = 'Ny opgave';
+$labels['createnewtask'] = 'Opret ny opgave (eks. Lørdag, Slå græsplænen)';
+$labels['createfrommail'] = 'Gem som opgave';
+$labels['printtitle'] = 'Udskriv opgaver';
+$labels['printdescriptions'] = 'Udskriv beskrivelser';
+$labels['mark'] = 'Markér';
+$labels['unmark'] = 'Fravælg';
+$labels['edit'] = 'Redigér';
+$labels['delete'] = 'Slet';
+$labels['title'] = 'Titel';
+$labels['description'] = 'Beskrivelse';
+$labels['datetime'] = 'Forfalder';
+$labels['alarms'] = 'Påmindelse';
+$labels['repeat'] = 'Gentag';
+$labels['status-completed'] = 'Completed';
+$labels['status-cancelled'] = 'Annulleret';
+$labels['all'] = 'Alle';
+$labels['flagged'] = 'Markeret';
+$labels['complete'] = 'Udført';
+$labels['completeness'] = 'Progress';
+$labels['overdue'] = 'Forfalden';
+$labels['today'] = 'I dag';
+$labels['tomorrow'] = 'I morgen';
+$labels['next7days'] = 'Næste 7 dage';
+$labels['later'] = 'Senere';
+$labels['nodate'] = 'ingen dato';
+$labels['removetag'] = 'Fjern';
+$labels['auto'] = 'Auto';
+$labels['taskdetails'] = 'Detaljer';
+$labels['newtask'] = 'Ny opgave';
+$labels['edittask'] = 'Redigér opgave';
+$labels['save'] = 'Gem';
+$labels['cancel'] = 'Annullér';
+$labels['saveandnotify'] = 'Save and Notify';
+$labels['addsubtask'] = 'Tilføj delopgave';
+$labels['deletetask'] = 'Slet opgave';
+$labels['deletethisonly'] = 'Slet kunne denne opgave';
+$labels['deletewithchilds'] = 'Slette inklusive alle delopgaver';
+$labels['taskactions'] = 'Task options...';
+$labels['tabsummary'] = 'Resumé';
+$labels['tabrecurrence'] = 'Gentagelse';
+$labels['tabassignments'] = 'Assignments';
+$labels['tabattachments'] = 'Vedhæftninger';
+$labels['tabsharing'] = 'Deling';
+$labels['editlist'] = 'Redigér liste';
+$labels['createlist'] = 'Tilføj liste';
+$labels['listactions'] = 'Tilvalg for liste...';
+$labels['listname'] = 'Navn';
+$labels['showalarms'] = 'Show reminders';
+$labels['import'] = 'Import';
+$labels['viewactions'] = 'View actions';
+$labels['focusview'] = 'Vis kun denne liste';
+$labels['on'] = 'til';
+$labels['at'] = 'ved';
+$labels['this'] = 'denne';
+$labels['next'] = 'næste';
+$labels['savingdata'] = 'Gemmer data...';
+$labels['errorsaving'] = 'Kunne ikke gemme data.';
+$labels['notasksfound'] = 'Fandt ingen opgaver ud fra angivne kriterie';
+$labels['invalidstartduedates'] = 'Startdato må ikke være senere end tidsfrist.';
+$labels['invalidstartduetimes'] = 'For start- og forfaldsdato skal der angives et tidspunkt for begge eller for ingen af dem.';
+$labels['recurrencerequiresdate'] = 'Tilbagevendende opgaver kræver enten en start- eller forfaldsdato.';
+$labels['deletetasktconfirm'] = 'Vil du virkelig slette denne opgave?';
+$labels['deleteparenttasktconfirm'] = 'Vil du virkelig slette denne opgaver og alle dens delopgaver?';
+$labels['deletelistconfirm'] = 'Vil du virkelig slette denne liste og alle dens opgaver?';
+$labels['deletelistconfirmrecursive'] = 'Vil du virkelig slette denne liste og alle dens dellister og opgaver?';
+$labels['role'] = 'Rolle';
+$labels['availability'] = 'Tilg.';
+$labels['roleorganizer'] = 'Organisator';
+$labels['rolerequired'] = 'Påkrævet';
+$labels['roleoptional'] = 'Valgfri';
+$labels['rolechair'] = 'Formand';
+$labels['sendinvitations'] = 'Send invitationer';
+$labels['itipupdatesubject'] = '"$title" er blevet opdateret';
+$labels['itipupdatesubjectempty'] = 'A task that concerns you has been updated';
+$labels['itipcancelsubject'] = '"$title" er blevet aflyst';
+$labels['andnmore'] = '$nr flere...';
+$labels['attendeupdateesuccess'] = 'Opdatering af deltagernes status blev gennemført';
+$labels['itipinvalidrequest'] = 'Denne invitation er ikke længere gyldig';

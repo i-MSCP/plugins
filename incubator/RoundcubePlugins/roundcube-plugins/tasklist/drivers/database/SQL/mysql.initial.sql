@@ -7,7 +7,7 @@
  * @copyright (C) 2012, Kolab Systems AG
  */
 
-CREATE TABLE `tasklists` (
+CREATE TABLE IF NOT EXISTS `tasklists` (
   `tasklist_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE `tasklists` (
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
 
-CREATE TABLE `tasks` (
+CREATE TABLE IF NOT EXISTS `tasks` (
   `task_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tasklist_id` int(10) unsigned NOT NULL,
   `parent_id` int(10) unsigned DEFAULT NULL,
@@ -36,6 +36,7 @@ CREATE TABLE `tasks` (
   `starttime` varchar(5) DEFAULT NULL,
   `flagged` tinyint(4) NOT NULL DEFAULT '0',
   `complete` float NOT NULL DEFAULT '0',
+  `status` enum('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '',
   `alarms` varchar(255) DEFAULT NULL,
   `recurrence` varchar(255) DEFAULT NULL,
   `organizer` varchar(255) DEFAULT NULL,
@@ -47,3 +48,5 @@ CREATE TABLE `tasks` (
   CONSTRAINT `fk_tasks_tasklist_id` FOREIGN KEY (`tasklist_id`)
     REFERENCES `tasklists`(`tasklist_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
+
+REPLACE INTO `system` (`name`, `value`) VALUES ('tasklist-database-version', '2014051900');
