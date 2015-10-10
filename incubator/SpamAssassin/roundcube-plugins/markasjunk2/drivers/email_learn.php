@@ -8,12 +8,12 @@
 
 class markasjunk2_email_learn
 {
-	public function spam($uids)
+	public function spam($uids, $mbox)
 	{
 		$this->_do_emaillearn($uids, true);
 	}
 
-	public function ham($uids)
+	public function ham($uids, $mbox)
 	{
 		$this->_do_emaillearn($uids, false);
 	}
@@ -57,7 +57,7 @@ class markasjunk2_email_learn
 		$headers['To'] = $mailto;
 		$headers['Subject'] = $subject;
 
-		foreach (explode(",", $uids) as $uid) {
+		foreach ($uids as $uid) {
 			$MESSAGE = new rcube_message($uid);
 
 			// set message charset as default
@@ -118,7 +118,7 @@ class markasjunk2_email_learn
 
 				foreach ($MESSAGE->attachments as $attachment) {
 					$MAIL_MIME->addAttachment(
-						$MESSAGE->get_part_content($attachment->mime_id),
+						$MESSAGE->get_part_body($attachment->mime_id, true),
 						$attachment->mimetype,
 						$attachment->filename,
 						false,
@@ -143,7 +143,7 @@ class markasjunk2_email_learn
 						$MAIL_MIME->setHTMLBody($message_body);
 
 						$MAIL_MIME->addHTMLImage(
-							$MESSAGE->get_part_content($attachment->mime_id),
+							$MESSAGE->get_part_body($attachment->mime_id, true),
 							$attachment->mimetype,
 							$attachment->filename,
 							false
@@ -169,7 +169,7 @@ class markasjunk2_email_learn
 				}
 			}
 
-			$rcmail->rcmail_deliver_message($MAIL_MIME, $from, $mailto, $smtp_error, $body_file);
+			$rcmail->deliver_message($MAIL_MIME, $from, $mailto, $smtp_error, $body_file);
 
 			// clean up
 			if (file_exists($tmpPath))

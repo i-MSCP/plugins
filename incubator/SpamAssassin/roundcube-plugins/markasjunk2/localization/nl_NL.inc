@@ -1,5 +1,5 @@
 <?php
-/* Author: Hans Spaans, Thom Heemstra */
+/* Author: Hans Spaans */
 
 $labels = array();
 $labels['buttonjunk'] = 'Markeer als spam';
@@ -8,7 +8,7 @@ $labels['buttonnotjunk'] = 'Dit bericht is geen spam';
 $labels['markasnotjunk'] = 'Geen spam';
 
 $messages = array();
-$messages['reportedasjunk'] = 'Bericht is gemarkeerd als spam';
-$messages['reportedasnotjunk'] = 'Bericht gemarkeerd als geen spam';
+$messages['reportedasjunk'] = 'Bericht gemarkeerd als spam';
+$messages['reportedasnotjunk'] = 'Bericht verplaatst naar Inbox';
 
 ?>

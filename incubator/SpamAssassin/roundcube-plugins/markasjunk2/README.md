@@ -14,8 +14,6 @@ When in the Junk mailbox:
   The buttons are changed to "mark as not spam" or "this message is not spam"
   and the message is moved to the Inbox
 
-This plugin also integrates with the ContextMenu plugin
-
 License
 -------
 This plugin is released under the [GNU General Public License Version 3+][gpl].
@@ -28,7 +26,7 @@ folder for details on the skin license.
 Install
 -------
 * Place this plugin folder into plugins directory of Roundcube
-* Add markasjunk2 to $rcmail_config['plugins'] in your Roundcube config
+* Add markasjunk2 to $config['plugins'] in your Roundcube config
 
 **NB:** When downloading the plugin from GitHub you will need to create a
 directory called markasjunk2 and place the files in there, ignoring the root
@@ -46,11 +44,11 @@ The learning driver allows you to perform additional processing on each message
 marked as spam/ham. A driver must contain a class named markasjunk2_{driver
 file name}. The class must contain 2 functions:
 
-**spam:** This function should take 1 argument, the UID of message being
-marked as spam
+**spam:** This function should take 2 arguments: an array of UIDs of message(s)
+being marked as spam, the name of the mailbox containing those messages
 
-**ham:** This function should take 1 argument, the UID of message being
-marked as ham
+**ham:** This function should take 2 arguments: an array of UIDs of message(s)
+being marked as ham, the name of the mailbox containing those messages
 
 Several drivers are provided by default they are:
 
@@ -66,6 +64,10 @@ directly to a set address
 **sa_blacklist:** This driver adds the sender address of a spam message to the
 users blacklist (or whitelist of ham messages) Requires SAUserPrefs plugin
 
+**amavis_blacklist:** This driver adds the sender address of a spam message to
+the users blacklist (or whitelist of ham messages) Requires Amacube plugin.
+Driver by Der-Jan
+
 **sa_detach:** If the message is a Spamassassin spam report with the original
 email attached then this is detached and saved in the Inbox, the spam report is
 deleted
@@ -76,6 +78,17 @@ preg_replace.
 **WARNING:** Be sure to match the entire header line, including the name of the
 header, and include the ^ and $ and test carefully before use on real messages.
 This driver alters the message source
+
+Running multiple drivers
+------------------------
+**WARNING:** This is very dangerous please always test carefully. Run multiple
+drivers at your own risk! It may be safer to create one driver that does
+everything you want.
+
+It is possible to run multiple drivers when marking a message as spam/ham. For
+example running sa_blacklist followed by cmd_learn or edit_headers and
+cmd_learn. An [example multi-driver][multidriver] is available. This is a
+starting point only, it requires modification for individual cases.
 
 Spam learning commands
 ----------------------
@@ -97,14 +110,14 @@ edit_headers example config
 use at your own risk
 
 ```php
-$rcmail_config['markasjunk2_spam_patterns'] = array(
+$config['markasjunk2_spam_patterns'] = array(
   'patterns' => array('/^(Subject:\s*)(.*)$/m'),
   'replacements' => array('$1[SPAM] $2')
 );
 ```
 
 ```php
-$rcmail_config['markasjunk2_ham_patterns'] = array(
+$config['markasjunk2_ham_patterns'] = array(
   'patterns' => array('/^(Subject:\s*)\[SPAM\](.*)$/m'),
   'replacements' => array('$1$2')
 );
@@ -112,4 +125,7 @@ $rcmail_config['markasjunk2_ham_patterns'] = array(
 
 [thomas]: mailto:roundcube@gmail.com
 [rcmaj]: http://github.com/roundcube/roundcubemail/tree/master/plugins/markasjunk
+[rcplugrepo]: http://plugins.roundcube.net/packages/johndoh/markasjunk2
+[releases]: http://github.com/JohnDoh/Roundcube-Plugin-Mark-as-Junk-2/releases
 [gpl]: http://www.gnu.org/licenses/gpl.html
+[multidriver]: http://gist.github.com/JohnDoh/8173505
