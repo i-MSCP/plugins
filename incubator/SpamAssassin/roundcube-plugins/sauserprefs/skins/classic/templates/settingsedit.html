@@ -4,13 +4,6 @@
 <title><roundcube:object name="pagetitle" /></title>
 <roundcube:include file="/includes/links.html" />
 <link rel="stylesheet" type="text/css" href="/this/sauserprefs.css" />
-<roundcube:if condition="browser:ie" />
-<link rel="stylesheet" type="text/css" href="/this/iehacks.css" />
-<roundcube:endif />
-<roundcube:if condition="browser:safari" />
-<link rel="stylesheet" type="text/css" href="/this/safari.css" />
-<roundcube:endif />
-<!--[if lte IE 6]><link rel="stylesheet" type="text/css" href="/this//ie6hacks.css" /><![endif]-->
 <script type="text/javascript" src="/functions.js"></script>
 </head>
 <body class="iframe">
@@ -18,7 +11,7 @@
 <div id="prefs-title" class="boxtitle"><roundcube:object name="sectionname" /></div>
 
 <div id="prefs-details" class="boxcontent">
-<roundcube:object name="userprefs" form="form" helpIcon="/this/help.gif" />
+<roundcube:object name="userprefs" form="form" helpIcon="/this/images/help.png" />
 <div id="formfooter">
 <div class="footerleft">
 <roundcube:button command="plugin.sauserprefs.default" type="input" class="button" label="sauserprefs.usedefault" style="margin-right:0.5em" />

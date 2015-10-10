@@ -4,19 +4,13 @@
 <title><roundcube:object name="pagetitle" /></title>
 <roundcube:include file="/includes/links.html" />
 <link rel="stylesheet" type="text/css" href="/this/sauserprefs.css" />
-<roundcube:if condition="browser:ie" />
-<link rel="stylesheet" type="text/css" href="/this/iehacks.css" />
-<roundcube:endif />
-<roundcube:if condition="browser:safari" />
-<link rel="stylesheet" type="text/css" href="/this/safari.css" />
-<roundcube:endif />
 </head>
 <body class="iframe">
 
 <h1 class="boxtitle"><roundcube:object name="sectionname" /></h1>
 
 <div id="preferences-details" class="boxcontent">
-<roundcube:object name="userprefs" form="form" class="propform" helpIcon="/this/help.png" />
+<roundcube:object name="userprefs" form="form" class="propform" helpIcon="/this/images/help.png" />
 </div>
 
 <div class="footerleft formbuttons">
