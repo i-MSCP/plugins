@@ -23,20 +23,17 @@ $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
 	'up' => "
-		CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`itipinvitations` (
-			`token` VARCHAR(64) NOT NULL,
-			`event_uid` VARCHAR(255) NOT NULL,
-			`user_id` int(10) UNSIGNED NOT NULL DEFAULT '0',
-			`event` TEXT NOT NULL,
-			`expires` DATETIME DEFAULT NULL,
-			`cancelled` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
-			PRIMARY KEY(`token`),
-			INDEX `uid_idx` (`user_id`,`event_uid`),
-			CONSTRAINT `fk_itipinvitations_user_id` FOREIGN KEY (`user_id`)
-				REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
-	",
-	'down' => "
-		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`itipinvitations`;
+		ALTER TABLE " . $roundcubeDbName . ".`events` ADD `instance` varchar(16) NOT NULL DEFAULT '' AFTER `uid`;
+		ALTER TABLE " . $roundcubeDbName . ".`events` ADD `isexception` tinyint(1) NOT NULL DEFAULT '0' AFTER `instance`;
+
+		UPDATE " . $roundcubeDbName . ".`events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%d')
+			WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 1;
+
+		UPDATE " . $roundcubeDbName . ".`events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%dT%k%i%s')
+			WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 0;
+
+		ALTER TABLE " . $roundcubeDbName . ".`events` CHANGE `alarms` `alarms` TEXT NULL DEFAULT NULL;
+
+		REPLACE INTO " . $roundcubeDbName . ".`system` (`name`, `value`) VALUES ('calendar-database-version', '2015022700');
 	"
 );

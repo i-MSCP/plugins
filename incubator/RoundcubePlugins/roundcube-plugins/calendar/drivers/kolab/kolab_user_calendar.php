@@ -5,7 +5,7 @@
  *
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
- * Copyright (C) 2014, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2014-2015, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,7 +25,7 @@ class kolab_user_calendar extends kolab_calendar
 {
   public $id = 'unknown';
   public $ready = false;
-  public $readonly = true;
+  public $editable = false;
   public $attachments = false;
   public $subscriptions = false;
 
@@ -174,6 +174,22 @@ class kolab_user_calendar extends kolab_calendar
     return $this->events[$id];
   }
 
+  /**
+   * Get attachment body
+   * @see calendar_driver::get_attachment_body()
+   */
+  public function get_attachment_body($id, $event)
+  {
+    if (!$event['calendar'] && ($ev = $this->get_event($event['id']))) {
+      $event['calendar'] = $ev['calendar'];
+    }
+
+    if ($event['calendar'] && ($cal = $this->cal->get_calendar($event['calendar']))) {
+      return $cal->get_attachment_body($id, $event);
+    }
+
+    return false;
+  }
 
   /**
    * @param  integer Event's new start (unix timestamp)
@@ -267,7 +283,7 @@ class kolab_user_calendar extends kolab_calendar
 
       // authentication required
       if ($response->getStatus() == 401) {
-        $request->setAuth($this->rc->user->get_username(), $this->rc->decrypt($_SESSION['password']));
+        $request->setAuth($this->cal->rc->user->get_username(), $this->cal->rc->decrypt($_SESSION['password']));
         $response = $request->send();
       }
 

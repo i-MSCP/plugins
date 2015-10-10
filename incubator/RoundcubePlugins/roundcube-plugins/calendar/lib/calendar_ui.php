@@ -96,7 +96,7 @@ class calendar_ui
     $this->cal->register_handler('plugin.angenda_options', array($this, 'angenda_options'));
     $this->cal->register_handler('plugin.events_import_form', array($this, 'events_import_form'));
     $this->cal->register_handler('plugin.events_export_form', array($this, 'events_export_form'));
-    $this->cal->register_handler('plugin.event_changelog_table', array($this, 'event_changelog_table'));
+    $this->cal->register_handler('plugin.object_changelog_table', array('libkolab', 'object_changelog_table'));
     $this->cal->register_handler('plugin.searchform', array($this->rc->output, 'search_form'));  // use generic method from rcube_template
   }
 
@@ -121,6 +121,7 @@ class calendar_ui
     // include kolab folderlist widget if available
     if (in_array('libkolab', $this->cal->api->loaded_plugins())) {
         $this->cal->api->include_script('libkolab/js/folderlist.js');
+        $this->cal->api->include_script('libkolab/js/audittrail.js');
     }
 
     jqueryui::miniColors();
@@ -176,7 +177,7 @@ class calendar_ui
   {
     $color = $prop['color'];
     $class = 'cal-' . asciiwords($id, true);
-    $css .= "li.$class, #eventshow .$class { color: #$color }\n";
+    $css .= "li .$class, #eventshow .$class { color: #$color; }\n";
 
     if ($mode != 1) {
       if ($mode == 3) {
@@ -188,7 +189,7 @@ class calendar_ui
         $css .= ".fc-event-$class, ";
         $css .= ".fc-event-$class .fc-event-inner {";
       }
-      if (!$attrib['printmode'])
+      if (!$prop['printmode'])
         $css .= " background-color: #$color;";
       if ($mode % 2 == 0)
       $css .= " border-color: #$color;";
@@ -206,7 +207,7 @@ class calendar_ui
     $html = '';
     $jsenv = array();
     $tree = true;
-    $calendars = $this->cal->driver->list_calendars(false, false, $tree);
+    $calendars = $this->cal->driver->list_calendars(0, $tree);
 
     // walk folder tree
     if (is_object($tree)) {
@@ -290,11 +291,11 @@ class calendar_ui
 
     $classes = array('calendar', 'cal-'  . asciiwords($id, true));
     $title = $prop['title'] ?: ($prop['name'] != $prop['listname'] || strlen($prop['name']) > 25 ?
-      html_entity_decode($prop['name'], ENT_COMPAT, RCMAIL_CHARSET) : '');
+      html_entity_decode($prop['name'], ENT_COMPAT, RCUBE_CHARSET) : '');
 
     if ($prop['virtual'])
       $classes[] = 'virtual';
-    else if ($prop['readonly'])
+    else if (!$prop['editable'])
       $classes[] = 'readonly';
     if ($prop['subscribed'])
       $classes[] = 'subscribed';
@@ -307,7 +308,7 @@ class calendar_ui
     if (!$activeonly || $prop['active']) {
       $label_id = 'cl:' . $id;
       $content = html::div(join(' ', $classes),
-        html::span(array('class' => 'calname', 'id' => $label_id, 'title' => $title), $prop['editname'] ? Q($prop['editname']) : $prop['listname']) .
+        html::span(array('class' => 'calname', 'id' => $label_id, 'title' => $title), $prop['editname'] ? rcube::Q($prop['editname']) : $prop['listname']) .
         ($prop['virtual'] ? '' :
           html::tag('input', array('type' => 'checkbox', 'name' => '_cal[]', 'value' => $id, 'checked' => $prop['active'], 'aria-labelledby' => $label_id), '') .
           html::span('actions', 
@@ -361,7 +362,7 @@ class calendar_ui
     $select = new html_select($attrib);
 
     foreach ((array)$this->cal->driver->list_calendars() as $id => $prop) {
-      if (!$prop['readonly'])
+      if ($prop['editable'] || strpos($prop['rights'], 'i') !== false)
         $select->add($prop['name'], $id);
     }
 
@@ -503,7 +504,7 @@ class calendar_ui
       $attrib['id'] = 'rcmImportForm';
 
     // Get max filesize, enable upload progress bar
-    $max_filesize = rcube_upload_init();
+    $max_filesize = $this->rc->upload_init();
 
     $accept = '.ics, text/calendar, text/x-vcalendar, application/ics';
     if (class_exists('ZipArchive', false)) {
@@ -527,7 +528,7 @@ class calendar_ui
 
     $html .= html::div('form-section',
       html::div(null, $input->show()) .
-      html::div('hint', rcube_label(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
+      html::div('hint', $this->rc->gettext(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
     );
 
     $html .= html::div('form-section',
@@ -615,9 +616,9 @@ class calendar_ui
 
     return html::div($attrib,
       html::div(null, $input->show()) .
-      html::div('formbuttons', $button->show(rcube_label('upload'), array('class' => 'button mainaction',
-        'onclick' => JS_OBJECT_NAME . ".upload_file(this.form)"))) .
-      html::div('hint', rcube_label(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
+      html::div('formbuttons', $button->show($this->rc->gettext('upload'), array('class' => 'button mainaction',
+        'onclick' => rcmail_output::JS_OBJECT_NAME . ".upload_file(this.form)"))) .
+      html::div('hint', $this->rc->gettext(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
     );
   }
 
@@ -789,7 +790,7 @@ class calendar_ui
       html::tag('table', array('id' => $attrib['id'] . '-owner', 'style' => 'display:none') + $attrib,
         html::tag('thead', null,
           html::tag('tr', null,
-            html::tag('td', array('colspan' => 2), Q($this->cal->gettext('resourceowner')))
+            html::tag('td', array('colspan' => 2), rcube::Q($this->cal->gettext('resourceowner')))
           )
         ) .
         html::tag('tbody', null, ''),
@@ -854,22 +855,6 @@ class calendar_ui
   }
 
   /**
-   * Table oultine for event changelog display
-   */
-  function event_changelog_table($attrib = array())
-  {
-    $table = new html_table(array('cols' => 5, 'border' => 0, 'cellspacing' => 0));
-    $table->add_header('diff', '');
-    $table->add_header('revision', $this->cal->gettext('revision'));
-    $table->add_header('date', $this->cal->gettext('date'));
-    $table->add_header('user', $this->cal->gettext('user'));
-    $table->add_header('operation', $this->cal->gettext('operation'));
-    $table->add_header('actions', '&nbsp;');
-
-    return $table->show($attrib);
-  }
-
-  /**
    *
    */
   function event_invitebox($attrib = array())
@@ -886,7 +871,11 @@ class calendar_ui
 
   function event_rsvp_buttons($attrib = array())
   {
-    return $this->cal->itip->itip_rsvp_buttons($attrib);
+    $actions = array('accepted','tentative','declined');
+    if ($attrib['delegate'] !== 'false')
+      $actions[] = 'delegated';
+
+    return $this->cal->itip->itip_rsvp_buttons($attrib, $actions);
   }
 
 }

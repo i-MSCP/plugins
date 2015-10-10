@@ -152,12 +152,14 @@ class calendar_itip extends libcalendaring_itip
     // delete old entry
     $this->rc->db->query("DELETE FROM $this->db_itipinvitations WHERE `token` = ?", $base);
 
+    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
+
     $query = $this->rc->db->query(
       "INSERT INTO $this->db_itipinvitations
        (`token`, `event_uid`, `user_id`, `event`, `expires`)
        VALUES(?, ?, ?, ?, ?)",
       $base,
-      $event['uid'],
+      $event_uid,
       $this->rc->user->ID,
       self::serialize_event($event),
       date('Y-m-d H:i:s', $event['end']->format('U') + 86400 * 2)
@@ -178,12 +180,14 @@ class calendar_itip extends libcalendaring_itip
    */
   public function cancel_itip_invitation($event)
   {
+    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
+
     // flag invitation record as cancelled
     $this->rc->db->query(
       "UPDATE $this->db_itipinvitations
        SET `cancelled` = 1
        WHERE `event_uid` = ? AND `user_id` = ?",
-       $event['uid'],
+       $event_uid,
        $this->rc->user->ID
     );
   }
@@ -196,7 +200,8 @@ class calendar_itip extends libcalendaring_itip
    */
   public function generate_token($event, $attendee)
   {
-    $base = sha1($event['uid'] . ';' . $this->rc->user->ID);
+    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
+    $base = sha1($event_uid . ';' . $this->rc->user->ID);
     $mail = base64_encode($attendee);
     $hash = substr(md5($base . $mail . $this->rc->config->get('des_key')), 0, 6);
     
