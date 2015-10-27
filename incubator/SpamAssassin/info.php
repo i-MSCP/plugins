@@ -26,7 +26,7 @@ return array(
 		'Sascha Bay'
 	),
 	'email' => 'team@i-mscp.net',
-	'version' => '1.0.5',
+	'version' => '1.0.6',
 	'require_api' => '1.0.0',
 	'date' => '2015-10-27',
 	'name' => 'SpamAssassin',
