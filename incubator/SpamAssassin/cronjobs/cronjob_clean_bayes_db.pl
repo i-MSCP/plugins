@@ -21,7 +21,7 @@ use lib '{IMSCP_PERLLIB_PATH}';
 use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
-use iMSCP:EventManager;
+use iMSCP::EventManager;
 use JSON;
 
 sub getData
