@@ -49,7 +49,7 @@ change by updating the plugin list through the plugin management interface.
 
 ```
 i-MSCP Postgrey plugin
-Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
