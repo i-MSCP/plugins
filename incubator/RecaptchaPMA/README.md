@@ -34,7 +34,7 @@ change by updating the plugin list through the plugin management interface.
 ## License
 
 ```
-Copyright (C) 2014-2015 Sascha Bay <info@space2place.de>
+Copyright (C) 2014-2016 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

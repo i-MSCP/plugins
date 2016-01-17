@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP RecaptchaPMA Plugin
- * Copyright (C) 2010-2015 by Sascha Bay
+ * Copyright (C) 2010-2016 by Sascha Bay
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
