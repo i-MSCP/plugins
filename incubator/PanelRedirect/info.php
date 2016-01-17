@@ -21,9 +21,9 @@
 return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
-	'version' => '1.1.0',
+	'version' => '1.1.1',
 	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
+	'date' => '2016-01-17',
 	'name' => 'PanelRedirect',
 	'desc' => 'Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'

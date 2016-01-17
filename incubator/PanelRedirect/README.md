@@ -1,4 +1,4 @@
-# i-MSCP PanelRedirect plugin v1.1.0
+# i-MSCP PanelRedirect plugin v1.1.1
 
 Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).
 
@@ -21,7 +21,7 @@ Plugin which allows to access i-MSCP panel through Apache using the default HTTP
 ## License
 
 ```
-Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
