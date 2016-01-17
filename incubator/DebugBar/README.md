@@ -40,7 +40,7 @@ You can set the DebugBar components to use in the plugins/DebugBar/config.php fi
 ## License
 
 ```
-Copyright (C) 2010-2015 by Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
