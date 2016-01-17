@@ -5,8 +5,8 @@
 =cut
 
 # i-MSCP AdminerSQL plugin
-# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+# Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
