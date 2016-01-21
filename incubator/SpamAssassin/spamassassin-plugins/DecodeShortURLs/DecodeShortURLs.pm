@@ -283,7 +283,7 @@ sub parsed_metadata {
         # shortener to force this plug-in to follow a link that *isn't* on
         # the list of shorteners; we enforce that the shortener must be the
         # base URI and that a path must be present.
-        if ($uri !~ /^http:\/\/(?:www\.)?$_\/.+$/i) {
+        if ($uri !~ /^https:\/\/(?:www\.)?$_\/.+$/i) {
           dbg("Discarding URI: $uri");
           next;
         }
