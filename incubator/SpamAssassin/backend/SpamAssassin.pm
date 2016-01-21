@@ -59,17 +59,10 @@ sub install
 {
 	my $self = shift;
 
-	unless(-x '/usr/sbin/spamd') {
-		error('Unable to find SpamAssassin daemon. Please, install the spamassassin packages first.');
-		return 1;
-	}
+	my $rs = _checkRequirements();
+	return $rs if $rs;
 
-	unless(-x '/usr/sbin/spamass-milter') {
-		error('Unable to find spamass-milter daemon. Please, install the spamass-milter package first.');
-		return 1;
-	}
-
-	my $rs = $self->_checkSaUser();
+	$rs = $self->_checkSaUser();
 	return $rs if $rs;
 
 	$rs = $self->_setupDatabase();
@@ -1417,6 +1410,36 @@ sub _checkSaUser
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	$rs;
+}
+
+=item _checkRequirements()
+ 
+ Check for requirements
+
+ Return int 0 if all requirements are meet, other otherwise
+
+=cut
+
+sub _checkRequirements
+{
+	my @reqPkgs = qw/spamassassin spamass-milter/;
+	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
+	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
+	my $ret = 0;
+
+	for my $reqPkg(@reqPkgs) {
+		if($reqPkg ~~ [ keys  %instPkgs ]) {
+			unless($instPkgs{$reqPkg} eq 'installed') {
+				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
+				$ret ||= 1;
+			}
+		} else {
+			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
+			$ret ||= 1;
+		}
+	}
+
+	$ret;
 }
 
 =back

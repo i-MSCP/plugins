@@ -1,6 +1,8 @@
 SpamAssassin - ChangeLog
 ========================
 
+	Changed: Check for requirements
+	Updated: SpamAssassin plugin DecodeShortURLs
 	Changed: New default values in config.php
 	Updated: Roundcube plugin markasjunk2
 	Updated: Roundcube plugin sauserprefs
