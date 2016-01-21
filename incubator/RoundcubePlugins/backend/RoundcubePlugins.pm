@@ -65,7 +65,7 @@ sub install
 	$rs = $self->_installPlugins();
 	return $rs if $rs;
 
-	$rs = $self->_setPluginConfig('imscp_pw_changer', 'config.inc.php');
+	$rs = $self->_setPluginConfig('password', 'config.inc.php');
 	return $rs if $rs;
 
 	if($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
@@ -345,7 +345,7 @@ sub _setRoundcubePlugin
 		my @plugins = ();
 
 		for my $plugin(
-			'imscp_pw_changer', 'additional_message_headers_plugin', 'calendar_plugin', 'dkimstatus_plugin',
+			'password_plugin', 'additional_message_headers_plugin', 'calendar_plugin', 'dkimstatus_plugin',
 			'emoticons_plugin', 'logon_page_plugin', 'newmail_notifier_plugin', 'pdfviewer_plugin', 'odfviewer_plugin',
 			'zipdownload_plugin', 'contextmenu_plugin', 'tasklist_plugin'
 		) {
@@ -447,7 +447,7 @@ sub _setPluginConfig
 		};
 	} elsif($plugin eq 'pop3fetcher') {
 		$data = { IMSCP_DATABASE => $main::imscpConfig{'DATABASE_NAME'} };
-	} elsif($plugin eq 'imscp_pw_changer') {
+	} elsif($plugin eq 'password') {
 		tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
 		(my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%(')%\\$1%g;

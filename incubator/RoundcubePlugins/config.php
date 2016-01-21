@@ -25,7 +25,7 @@ return array(
 
 	// Archive plugin adds a new button to the Roundcube toolbar
 	// to move messages to an (user selectable) archive folder.
-	'archive_plugin' => 'no', // YES to enable (default), NO to disable
+	'archive_plugin' => 'no', // NO to disable (default), YES to enable
 
 	// Calendar plugin is a full calendar for Roundcube.
 	'calendar_plugin' => 'yes', // YES to enable (default), NO to disable
@@ -49,7 +49,7 @@ return array(
 	// Uses the managesieve protocol and allows the user to manage his sieve mail rules.
 	// A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 	// This plugin only works with po server dovecot.
-	'managesieve_plugin' => 'no', // YES to enable (default), NO to disable
+	'managesieve_plugin' => 'no', // NO to disable (default), YES to enable
 
 	// The name of the script which will be used when there's no user script
 	'managesieve_script_name' => 'managesieve', // default: managesieve
@@ -67,11 +67,14 @@ return array(
 		'newmail_notifier_desktop' => 'false' // TRUE to enable, FALSE to disable (default)
 	),
 
-	// Roundcube inline pdf viewer.
-	'pdfviewer_plugin' => 'yes', // YES to enable (default), NO to disable
-
 	// Roundcube inline odf viewer.
 	'odfviewer_plugin' => 'yes', // YES to enable (default), NO to disable
+
+	// Password Plugin for Roundcube to change the mail user password
+	'password_plugin' => 'yes', // YES to enable (default), NO to disable
+
+	// Roundcube inline pdf viewer.
+	'pdfviewer_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// Plugin pop3fetcher allows to add pop3 accounts and automatically fetch emails from them.
 	'pop3fetcher_plugin' => 'yes', // YES to enable (default), NO to disable
@@ -89,8 +92,5 @@ return array(
 	'tasklist_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// Adds an option to download all attachments of a message in one zip file.
-	'zipdownload_plugin' => 'yes', // YES to enable (default), NO to disable
-	
-	// i-MSCP mail password changer
-	'imscp_pw_changer' => 'yes' // YES to enable (default), NO to disable
+	'zipdownload_plugin' => 'yes' // YES to enable (default), NO to disable
 );

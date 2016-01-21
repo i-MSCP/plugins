@@ -32,7 +32,7 @@ return array(
 			PRIMARY KEY (`tasklist_id`),
 			KEY `user_id` (`user_id`),
 			CONSTRAINT `fk_tasklist_user_id` FOREIGN KEY (`user_id`)
-			REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 		) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "

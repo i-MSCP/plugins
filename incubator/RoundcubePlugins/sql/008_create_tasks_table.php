@@ -49,7 +49,7 @@ return array(
 			KEY `tasklisting` (`tasklist_id`,`del`,`date`),
 			KEY `uid` (`uid`),
 			CONSTRAINT `fk_tasks_tasklist_id` FOREIGN KEY (`tasklist_id`)
-			REFERENCES `tasklists`(`tasklist_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				REFERENCES `tasklists`(`tasklist_id`) ON DELETE CASCADE ON UPDATE CASCADE
 		) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "

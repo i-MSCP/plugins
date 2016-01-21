@@ -1,68 +1,22 @@
 <?php
-
-$labels = array();
+/**
+ * Localizations for the Kolab Tasks plugin
+ *
+ * Copyright (C) 2014, Kolab Systems AG
+ *
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/tasklist/
+ */
 $labels['navtitle'] = 'Tareas';
-$labels['lists'] = 'Tasklists';
-$labels['list'] = 'Tasklist';
-$labels['tags'] = 'Tags';
-
-$labels['newtask'] = 'New Task';
-$labels['createnewtask'] = 'Create new Task (e.g. Saturday, Mow the lawn)';
-$labels['createfrommail'] = 'Save as task';
-$labels['mark'] = 'Mark';
-$labels['unmark'] = 'Unmark';
-$labels['edit'] = 'Edit';
+$labels['edit'] = 'Editar';
 $labels['delete'] = 'Borrar';
 $labels['title'] = 'Título';
-$labels['description'] = 'Description';
-$labels['datetime'] = 'Date/Time';
-$labels['start'] = 'Start';
-$labels['alarms'] = 'Reminder';
-
-$labels['all'] = 'All';
-$labels['flagged'] = 'Flagged';
-$labels['complete'] = 'Complete';
-$labels['overdue'] = 'Overdue';
-$labels['today'] = 'Today';
-$labels['tomorrow'] = 'Tomorrow';
-$labels['next7days'] = 'Next 7 days';
-$labels['later'] = 'Later';
-$labels['nodate'] = 'no date';
-$labels['removetag'] = 'Remove';
-
-$labels['taskdetails'] = 'Details';
-$labels['newtask'] = 'New Task';
-$labels['edittask'] = 'Edit Task';
+$labels['description'] = 'Descripción';
+$labels['taskdetails'] = 'Detalles';
 $labels['save'] = 'Guardar';
-$labels['cancel'] = 'Cancel';
-$labels['addsubtask'] = 'Add subtask';
-$labels['deletetask'] = 'Delete task';
-$labels['deletethisonly'] = 'Delete this task only';
-$labels['deletewithchilds'] = 'Delete with all subtasks';
-
-$labels['tabsummary'] = 'Summary';
-$labels['tabrecurrence'] = 'Recurrence';
-$labels['tabattachments'] = 'Attachments';
-$labels['tabsharing'] = 'Sharing';
-
-$labels['editlist'] = 'Edit list';
-$labels['createlist'] = 'Add list';
-$labels['listactions'] = 'List options...';
+$labels['cancel'] = 'Cancelar';
 $labels['listname'] = 'Nombre';
-$labels['showalarms'] = 'Show alarms';
-$labels['import'] = 'Import';
-
-// date words
-$labels['on'] = 'on';
-$labels['at'] = 'at';
-$labels['this'] = 'this';
-$labels['next'] = 'next';
-
-// mesages
 $labels['savingdata'] = 'Guardando datos...';
-$labels['errorsaving'] = 'Failed to save data.';
-$labels['notasksfound'] = 'No tasks found for the given criteria';
-$labels['invalidstartduedates'] = 'Start date must not be greater than due date.';
-$labels['deletetasktconfirm'] = 'Do you really want to delete this task?';
-$labels['deleteparenttasktconfirm'] = 'Do you really want to delete this task and all its subtasks?';
-$labels['deletelistconfirm'] = 'Do you really want to delete this list with all its tasks?';
+$labels['role'] = 'Rol';
+$labels['rolerequired'] = 'Requerido';
+$labels['roleoptional'] = 'Opcional';
+$labels['comment'] = 'Comentario';

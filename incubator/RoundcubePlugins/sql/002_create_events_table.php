@@ -38,12 +38,10 @@ return array(
 			`description` text NOT NULL,
 			`location` varchar(255) NOT NULL DEFAULT '',
 			`categories` varchar(255) NOT NULL DEFAULT '',
-			`url` varchar(255) NOT NULL DEFAULT '',
 			`all_day` tinyint(1) NOT NULL DEFAULT '0',
 			`free_busy` tinyint(1) NOT NULL DEFAULT '0',
 			`priority` tinyint(1) NOT NULL DEFAULT '0',
 			`sensitivity` tinyint(1) NOT NULL DEFAULT '0',
-			`status` varchar(32) NOT NULL DEFAULT '',
 			`alarms` varchar(255) DEFAULT NULL,
 			`attendees` text DEFAULT NULL,
 			`notifyat` datetime DEFAULT NULL,
@@ -52,7 +50,7 @@ return array(
 			INDEX `recurrence_idx` (`recurrence_id`),
 			INDEX `calendar_notify_idx` (`calendar_id`,`notifyat`),
 			CONSTRAINT `fk_events_calendar_id` FOREIGN KEY (`calendar_id`)
-			REFERENCES `calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
+				REFERENCES `calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
 		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 	",
 	'down' => "

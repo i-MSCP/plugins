@@ -1,0 +1,23 @@
+A task management module for Roundcube
+--------------------------------------
+
+This plugin currently supports a local database as well as a Kolab groupware
+server as backends for tasklists and todo items storage.
+
+INSTALLATION
+------------
+
+When usigng the database driver, some initialization of the local database is
+necessary. To do so, execute the SQL commands in
+drivers/database/SQL/<yourdatabase>.initial.sql
+
+For some general calendar-based operations such as alarms handling, this
+plugin requires the `libcalendaring` plugin which is also part of the
+Kolab Roundcube Plugins repository. Make sure that plugin is installed
+and configured correctly.
+
+IMPORTANT
+---------
+
+This plugin doesn't work with the classic skin of Roundcube because no
+templates are available for that skin.

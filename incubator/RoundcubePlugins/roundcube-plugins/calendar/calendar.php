@@ -7,7 +7,7 @@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2014, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2014-2015, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -260,23 +260,21 @@ class calendar extends rcube_plugin
   /**
    * Get properties of the calendar this user has specified as default
    */
-  public function get_default_calendar($writeable = false, $confidential = false)
+  public function get_default_calendar($sensitivity = null)
   {
     $default_id = $this->rc->config->get('calendar_default_calendar');
-    $calendars = $this->driver->list_calendars(false, true);
+    $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL | calendar_driver::FILTER_WRITEABLE);
     $calendar = $calendars[$default_id] ?: null;
-    if (!$calendar || $confidential || ($writeable && $calendar['readonly'])) {
+    if (!$calendar || $sensitivity) {
       foreach ($calendars as $cal) {
-        if ($confidential && $cal['subtype'] == 'confidential') {
+        if ($sensitivity && $cal['subtype'] == $sensitivity) {
           $calendar = $cal;
           break;
         }
-        if ($cal['default']) {
+        if ($cal['default'] && $cal['editable']) {
           $calendar = $cal;
-          if (!$confidential)
-            break;
         }
-        if (!$writeable || !$cal['readonly']) {
+        if ($cal['editable']) {
           $first = $cal;
         }
       }
@@ -371,7 +369,7 @@ class calendar extends rcube_plugin
       $select->add($this->gettext('month'), "month");
       $select->add($this->gettext('agenda'), "table");
       $p['blocks']['view']['options']['default_view'] = array(
-        'title' => html::label($field_id, Q($this->gettext('default_view'))),
+        'title' => html::label($field_id, rcube::Q($this->gettext('default_view'))),
         'content' => $select->show($this->rc->config->get('calendar_default_view', $this->defaults['calendar_default_view'])),
       );
     }
@@ -387,7 +385,7 @@ class calendar extends rcube_plugin
       $select = new html_select(array('name' => '_timeslots', 'id' => $field_id));
       $select->add($choices);
       $p['blocks']['view']['options']['timeslots'] = array(
-        'title' => html::label($field_id, Q($this->gettext('timeslots'))),
+        'title' => html::label($field_id, rcube::Q($this->gettext('timeslots'))),
         'content' => $select->show(strval($this->rc->config->get('calendar_timeslots', $this->defaults['calendar_timeslots']))),
       );
     }
@@ -400,15 +398,15 @@ class calendar extends rcube_plugin
 
       $field_id = 'rcmfd_firstday';
       $select = new html_select(array('name' => '_first_day', 'id' => $field_id));
-      $select->add(rcube_label('sunday'), '0');
-      $select->add(rcube_label('monday'), '1');
-      $select->add(rcube_label('tuesday'), '2');
-      $select->add(rcube_label('wednesday'), '3');
-      $select->add(rcube_label('thursday'), '4');
-      $select->add(rcube_label('friday'), '5');
-      $select->add(rcube_label('saturday'), '6');
+      $select->add($this->gettext('sunday'), '0');
+      $select->add($this->gettext('monday'), '1');
+      $select->add($this->gettext('tuesday'), '2');
+      $select->add($this->gettext('wednesday'), '3');
+      $select->add($this->gettext('thursday'), '4');
+      $select->add($this->gettext('friday'), '5');
+      $select->add($this->gettext('saturday'), '6');
       $p['blocks']['view']['options']['first_day'] = array(
-        'title' => html::label($field_id, Q($this->gettext('first_day'))),
+        'title' => html::label($field_id, rcube::Q($this->gettext('first_day'))),
         'content' => $select->show(strval($this->rc->config->get('calendar_first_day', $this->defaults['calendar_first_day']))),
       );
     }
@@ -426,7 +424,7 @@ class calendar extends rcube_plugin
 
       $field_id = 'rcmfd_firsthour';
       $p['blocks']['view']['options']['first_hour'] = array(
-        'title' => html::label($field_id, Q($this->gettext('first_hour'))),
+        'title' => html::label($field_id, rcube::Q($this->gettext('first_hour'))),
         'content' => $select_hours->show($this->rc->config->get('calendar_first_hour', $this->defaults['calendar_first_hour']), array('name' => '_first_hour', 'id' => $field_id)),
       );
     }
@@ -439,7 +437,7 @@ class calendar extends rcube_plugin
 
       $field_id = 'rcmfd_workstart';
       $p['blocks']['view']['options']['workinghours'] = array(
-        'title' => html::label($field_id, Q($this->gettext('workinghours'))),
+        'title' => html::label($field_id, rcube::Q($this->gettext('workinghours'))),
         'content' => $select_hours->show($this->rc->config->get('calendar_work_start', $this->defaults['calendar_work_start']), array('name' => '_work_start', 'id' => $field_id)) .
         ' &mdash; ' . $select_hours->show($this->rc->config->get('calendar_work_end', $this->defaults['calendar_work_end']), array('name' => '_work_end', 'id' => $field_id)),
       );
@@ -459,7 +457,7 @@ class calendar extends rcube_plugin
       $select_colors->add($this->gettext('coloringmode3'), 3);
 
       $p['blocks']['view']['options']['eventcolors'] = array(
-        'title' => html::label($field_id . 'value', Q($this->gettext('eventcoloring'))),
+        'title' => html::label($field_id . 'value', rcube::Q($this->gettext('eventcoloring'))),
         'content' => $select_colors->show($this->rc->config->get('calendar_event_coloring', $this->defaults['calendar_event_coloring'])),
       );
     }
@@ -467,40 +465,42 @@ class calendar extends rcube_plugin
     // loading driver is expensive, don't do it if not needed
     $this->load_driver();
 
-    if (!isset($no_override['calendar_default_alarm_type'])) {
+    if (!isset($no_override['calendar_default_alarm_type']) || !isset($no_override['calendar_default_alarm_offset'])) {
       if (!$p['current']) {
         $p['blocks']['view']['content'] = true;
         return $p;
       }
 
-      $field_id = 'rcmfd_alarm';
-      $select_type = new html_select(array('name' => '_alarm_type', 'id' => $field_id));
-      $select_type->add($this->gettext('none'), '');
-      foreach ($this->driver->alarm_types as $type)
-        $select_type->add(rcube_label(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
+      $alarm_type = $alarm_offset = '';
+
+      if (!isset($no_override['calendar_default_alarm_type'])) {
+        $field_id    = 'rcmfd_alarm';
+        $select_type = new html_select(array('name' => '_alarm_type', 'id' => $field_id));
+        $select_type->add($this->gettext('none'), '');
+
+        foreach ($this->driver->alarm_types as $type) {
+          $select_type->add($this->rc->gettext(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
+        }
+
+        $alarm_type = $select_type->show($this->rc->config->get('calendar_default_alarm_type', ''));
+      }
+
+      if (!isset($no_override['calendar_default_alarm_offset'])) {
+        $field_id      = 'rcmfd_alarm';
+        $input_value   = new html_inputfield(array('name' => '_alarm_value', 'id' => $field_id . 'value', 'size' => 3));
+        $select_offset = new html_select(array('name' => '_alarm_offset', 'id' => $field_id . 'offset'));
+
+        foreach (array('-M','-H','-D','+M','+H','+D') as $trigger) {
+          $select_offset->add($this->rc->gettext('trigger' . $trigger, 'libcalendaring'), $trigger);
+        }
+
+        $preset = libcalendaring::parse_alarm_value($this->rc->config->get('calendar_default_alarm_offset', '-15M'));
+        $alarm_offset = $input_value->show($preset[0]) . ' ' . $select_offset->show($preset[1]);
+      }
 
       $p['blocks']['view']['options']['alarmtype'] = array(
-        'title' => html::label($field_id, Q($this->gettext('defaultalarmtype'))),
-        'content' => $select_type->show($this->rc->config->get('calendar_default_alarm_type', '')),
-      );
-    }
-
-    if (!isset($no_override['calendar_default_alarm_offset'])) {
-      if (!$p['current']) {
-        $p['blocks']['view']['content'] = true;
-        return $p;
-      }
-
-      $field_id = 'rcmfd_alarm';
-      $input_value = new html_inputfield(array('name' => '_alarm_value', 'id' => $field_id . 'value', 'size' => 3));
-      $select_offset = new html_select(array('name' => '_alarm_offset', 'id' => $field_id . 'offset'));
-      foreach (array('-M','-H','-D','+M','+H','+D') as $trigger)
-        $select_offset->add(rcube_label('trigger' . $trigger, 'libcalendaring'), $trigger);
-
-      $preset = libcalendaring::parse_alarm_value($this->rc->config->get('calendar_default_alarm_offset', '-15M'));
-      $p['blocks']['view']['options']['alarmoffset'] = array(
-        'title' => html::label($field_id . 'value', Q($this->gettext('defaultalarmoffset'))),
-        'content' => $input_value->show($preset[0]) . ' ' . $select_offset->show($preset[1]),
+        'title' => html::label($field_id, rcube::Q($this->gettext('defaultalarmtype'))),
+        'content' => $alarm_type . ' ' . $alarm_offset,
       );
     }
 
@@ -512,13 +512,13 @@ class calendar extends rcube_plugin
       // default calendar selection
       $field_id = 'rcmfd_default_calendar';
       $select_cal = new html_select(array('name' => '_default_calendar', 'id' => $field_id, 'is_escaped' => true));
-      foreach ((array)$this->driver->list_calendars(false, true) as $id => $prop) {
+      foreach ((array)$this->driver->list_calendars(calendar_driver::FILTER_PERSONAL) as $id => $prop) {
         $select_cal->add($prop['name'], strval($id));
         if ($prop['default'])
           $default_calendar = $id;
       }
       $p['blocks']['view']['options']['defaultcalendar'] = array(
-        'title' => html::label($field_id . 'value', Q($this->gettext('defaultcalendar'))),
+        'title' => html::label($field_id . 'value', rcube::Q($this->gettext('defaultcalendar'))),
         'content' => $select_cal->show($this->rc->config->get('calendar_default_calendar', $default_calendar)),
       );
     }
@@ -558,7 +558,7 @@ class calendar extends rcube_plugin
       ));
 
       $p['blocks']['itip']['options']['after_action'] = array(
-        'title'   => html::label($field_id, Q($this->gettext('afteraction'))),
+        'title'   => html::label($field_id, rcube::Q($this->gettext('afteraction'))),
         'content' => $select->show($val) . $folders->show($folder),
       );
     }
@@ -657,13 +657,13 @@ class calendar extends rcube_plugin
       $select_type = new html_select(array('name' => '_birthdays_alarm_type', 'id' => $field_id) + $input_attrib);
       $select_type->add($this->gettext('none'), '');
       foreach ($this->driver->alarm_types as $type) {
-        $select_type->add(rcube_label(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
+        $select_type->add($this->rc->gettext(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
       }
 
       $input_value = new html_inputfield(array('name' => '_birthdays_alarm_value', 'id' => $field_id . 'value', 'size' => 3) + $input_attrib);
       $select_offset = new html_select(array('name' => '_birthdays_alarm_offset', 'id' => $field_id . 'offset') + $input_attrib);
       foreach (array('-M','-H','-D') as $trigger)
-        $select_offset->add(rcube_label('trigger' . $trigger, 'libcalendaring'), $trigger);
+        $select_offset->add($this->rc->gettext('trigger' . $trigger, 'libcalendaring'), $trigger);
 
       $preset = libcalendaring::parse_alarm_value($this->rc->config->get('calendar_birthdays_alarm_offset', '-1D'));
       $p['blocks']['birthdays']['options']['birthdays_alarmoffset'] = array(
@@ -841,16 +841,20 @@ class calendar extends rcube_plugin
     $event  = rcube_utils::get_input_value('e', rcube_utils::INPUT_POST, true);
     $success = $reload = $got_msg = false;
     
-    // don't notify if modifying a recurring instance (really?)
-    if ($event['_savemode'] && in_array($event['_savemode'], array('current','future')) && $event['_notify'] && $action != 'remove')
-      unset($event['_notify']);
     // force notify if hidden + active
-    else if ((int)$this->rc->config->get('calendar_itip_send_option', $this->defaults['calendar_itip_send_option']) === 1)
+    if ((int)$this->rc->config->get('calendar_itip_send_option', $this->defaults['calendar_itip_send_option']) === 1)
       $event['_notify'] = 1;
 
     // read old event data in order to find changes
-    if (($event['_notify'] || $event['decline']) && $action != 'new')
+    if (($event['_notify'] || $event['_decline']) && $action != 'new') {
       $old = $this->driver->get_event($event);
+
+      // load main event if savemode is 'all' or if deleting 'future' events
+      if (($event['_savemode'] == 'all' || ($event['_savemode'] == 'future' && $action == 'remove' && !$event['_decline'])) && $old['recurrence_id']) {
+        $old['id'] = $old['recurrence_id'];
+        $old = $this->driver->get_event($old);
+      }
+    }
 
     switch ($action) {
       case "new":
@@ -859,7 +863,9 @@ class calendar extends rcube_plugin
         $this->write_preprocess($event, $action);
         if ($success = $this->driver->new_event($event)) {
           $event['id'] = $event['uid'];
+          $event['_savemode'] = 'all';
           $this->cleanup_event($event);
+          $this->event_save_success($event, null, $action, true);
         }
         $reload = $success && $event['recurrence'] ? 2 : 1;
         break;
@@ -868,21 +874,15 @@ class calendar extends rcube_plugin
         $this->write_preprocess($event, $action);
         if ($success = $this->driver->edit_event($event)) {
           $this->cleanup_event($event);
-          if ($success !== true) {
-            $event['id'] = $success;
-            $old = null;
-          }
+          $this->event_save_success($event, $old, $action, $success);
         }
-        $reload =  $success && ($event['recurrence'] || $event['_savemode'] || $event['_fromcalendar']) ? 2 : 1;
+        $reload = $success && ($event['recurrence'] || $event['_savemode'] || $event['_fromcalendar']) ? 2 : 1;
         break;
       
       case "resize":
         $this->write_preprocess($event, $action);
         if ($success = $this->driver->resize_event($event)) {
-          if ($success !== true) {
-            $event['id'] = $success;
-            $old = null;
-          }
+          $this->event_save_success($event, $old, $action, $success);
         }
         $reload = $event['_savemode'] ? 2 : 1;
         break;
@@ -890,10 +890,7 @@ class calendar extends rcube_plugin
       case "move":
         $this->write_preprocess($event, $action);
         if ($success = $this->driver->move_event($event)) {
-          if ($success !== true) {
-            $event['id'] = $success;
-            $old = null;
-          }
+          $this->event_save_success($event, $old, $action, $success);
         }
         $reload  = $success && $event['_savemode'] ? 2 : 1;
         break;
@@ -905,7 +902,7 @@ class calendar extends rcube_plugin
         
         // search for event if only UID is given
         if (!isset($event['calendar']) && $event['uid']) {
-          if (!($event = $this->driver->get_event($event, true))) {
+          if (!($event = $this->driver->get_event($event, calendar_driver::FILTER_WRITEABLE))) {
             break;
           }
           $undo_time = 0;
@@ -919,7 +916,7 @@ class calendar extends rcube_plugin
           // display message with Undo link.
           $msg = html::span(null, $this->gettext('successremoval'))
             . ' ' . html::a(array('onclick' => sprintf("%s.http_request('event', 'action=undo', %s.display_message('', 'loading'))",
-              JS_OBJECT_NAME, JS_OBJECT_NAME)), rcube_label('undo'));
+              rcmail_output::JS_OBJECT_NAME, rcmail_output::JS_OBJECT_NAME)), $this->gettext('undo'));
           $this->rc->output->show_message($msg, 'confirmation', null, true, $undo_time);
           $got_msg = true;
         }
@@ -928,8 +925,19 @@ class calendar extends rcube_plugin
           $got_msg = true;
         }
 
+        // send cancellation for the main event
+        if ($event['_savemode'] == 'all') {
+          unset($old['_instance'], $old['recurrence_date'], $old['recurrence_id']);
+        }
+        // send an update for the main event's recurrence rule instead of a cancellation message
+        else if ($event['_savemode'] == 'future' && $success !== false && $success !== true) {
+          $event['_savemode'] = 'all';  // force event_save_success() to load master event
+          $action = 'edit';
+          $success = true;
+        }
+
         // send iTIP reply that participant has declined the event
-        if ($success && $event['decline']) {
+        if ($success && $event['_decline']) {
           $emails = $this->get_user_emails();
           foreach ($old['attendees'] as $i => $attendee) {
             if ($attendee['role'] == 'ORGANIZER')
@@ -939,13 +947,20 @@ class calendar extends rcube_plugin
               $reply_sender = $attendee['email'];
             }
           }
-          
+
+          if ($event['_savemode'] == 'future' && $event['id'] != $old['id']) {
+            $old['thisandfuture'] = true;
+          }
+
           $itip = $this->load_itip();
           $itip->set_sender_email($reply_sender);
           if ($organizer && $itip->send_itip_message($old, 'REPLY', $organizer, 'itipsubjectdeclined', 'itipmailbodydeclined'))
             $this->rc->output->command('display_message', $this->gettext(array('name' => 'sentresponseto', 'vars' => array('mailto' => $organizer['name'] ? $organizer['name'] : $organizer['email']))), 'confirmation');
           else
             $this->rc->output->command('display_message', $this->gettext('itipresponseerror'), 'error');
+        }
+        else if ($success) {
+          $this->event_save_success($event, $old, $action, $success);
         }
         break;
 
@@ -967,17 +982,20 @@ class calendar extends rcube_plugin
 
       case "rsvp":
         $itip_sending  = $this->rc->config->get('calendar_itip_send_option', $this->defaults['calendar_itip_send_option']);
-        $status        = rcube_utils::get_input_value('status', rcube_utils::INPUT_GPC);
+        $status        = rcube_utils::get_input_value('status', rcube_utils::INPUT_POST);
+        $attendees     = rcube_utils::get_input_value('attendees', rcube_utils::INPUT_POST);
         $reply_comment = $event['comment'];
 
+        $this->write_preprocess($event, 'edit');
         $ev = $this->driver->get_event($event);
         $ev['attendees'] = $event['attendees'];
         $ev['free_busy'] = $event['free_busy'];
+        $ev['_savemode'] = $event['_savemode'];
 
         // send invitation to delegatee + add it as attendee
         if ($status == 'delegated' && $event['to']) {
           $itip = $this->load_itip();
-          if ($itip->delegate_to($ev, $event['to'], (bool)$event['rsvp'])) {
+          if ($itip->delegate_to($ev, $event['to'], (bool)$event['rsvp'], $attendees)) {
             $this->rc->output->show_message('calendar.itipsendsuccess', 'confirmation');
             $noreply = false;
           }
@@ -985,10 +1003,15 @@ class calendar extends rcube_plugin
 
         $event = $ev;
 
-        if ($success = $this->driver->edit_rsvp($event, $status)) {
+        // compose a list of attendees affected by this change
+        $updated_attendees = array_filter(array_map(function($j) use ($event) {
+          return $event['attendees'][$j];
+        }, $attendees));
+
+        if ($success = $this->driver->edit_rsvp($event, $status, $updated_attendees)) {
           $noreply = rcube_utils::get_input_value('noreply', rcube_utils::INPUT_GPC);
           $noreply = intval($noreply) || $status == 'needs-action' || $itip_sending === 0;
-          $reload  = $event['calendar'] != $ev['calendar'] ? 2 : 1;
+          $reload  = $event['calendar'] != $ev['calendar'] || $event['recurrence'] ? 2 : 1;
           $organizer = null;
           $emails = $this->get_user_emails();
 
@@ -1005,10 +1028,17 @@ class calendar extends rcube_plugin
             $itip = $this->load_itip();
             $itip->set_sender_email($reply_sender);
             $event['comment'] = $reply_comment;
+            $event['thisandfuture'] = $event['_savemode'] == 'future';
             if ($organizer && $itip->send_itip_message($event, 'REPLY', $organizer, 'itipsubject' . $status, 'itipmailbody' . $status))
               $this->rc->output->command('display_message', $this->gettext(array('name' => 'sentresponseto', 'vars' => array('mailto' => $organizer['name'] ? $organizer['name'] : $organizer['email']))), 'confirmation');
             else
               $this->rc->output->command('display_message', $this->gettext('itipresponseerror'), 'error');
+          }
+
+          // refresh all calendars
+          if ($event['calendar'] != $ev['calendar']) {
+            $this->rc->output->command('plugin.refresh_calendar', array('source' => null, 'refetch' => true));
+            $reload = 0;
           }
         }
         break;
@@ -1027,25 +1057,25 @@ class calendar extends rcube_plugin
         $data = $this->driver->get_event_changelog($event);
         if (is_array($data) && !empty($data)) {
           $lib = $this->lib;
-          array_walk($data, function(&$change) use ($lib) {
+          $dtformat = $this->rc->config->get('date_format') . ' ' . $this->rc->config->get('time_format');
+          array_walk($data, function(&$change) use ($lib, $dtformat) {
             if ($change['date']) {
               $dt = $lib->adjust_timezone($change['date']);
               if ($dt instanceof DateTime)
-                $change['date'] = $dt->format('c');
+                $change['date'] = $this->rc->format_date($dt, $dtformat, false);
             }
           });
           $this->rc->output->command('plugin.render_event_changelog', $data);
         }
         else {
           $this->rc->output->command('plugin.render_event_changelog', false);
-          $this->rc->output->command('display_message', $this->gettext('eventchangelognotavailable'), 'error');
         }
         $got_msg = true;
         $reload = false;
         break;
 
       case "diff":
-        $data = $this->driver->get_event_diff($event, $event['rev']);
+        $data = $this->driver->get_event_diff($event, $event['rev1'], $event['rev2']);
         if (is_array($data)) {
           // convert some properties, similar to self::_client_event()
           $lib = $this->lib;
@@ -1084,7 +1114,7 @@ class calendar extends rcube_plugin
           $this->rc->output->command('plugin.event_show_diff', $data);
         }
         else {
-          $this->rc->output->command('display_message', $this->gettext('eventdiffnotavailable'), 'error');
+          $this->rc->output->command('display_message', $this->gettext('objectdiffnotavailable'), 'error');
         }
         $got_msg = true;
         $reload = false;
@@ -1095,7 +1125,7 @@ class calendar extends rcube_plugin
           $this->rc->output->command('plugin.event_show_revision', $this->_client_event($event));
         }
         else {
-          $this->rc->output->command('display_message', $this->gettext('eventnotfound'), 'error');
+          $this->rc->output->command('display_message', $this->gettext('objectnotfound'), 'error');
         }
         $got_msg = true;
         $reload = false;
@@ -1103,13 +1133,16 @@ class calendar extends rcube_plugin
 
       case "restore":
         if ($success = $this->driver->restore_event_revision($event, $event['rev'])) {
-
+          $_event = $this->driver->get_event($event);
+          $reload = $_event['recurrence'] ? 2 : 1;
+          $this->rc->output->command('display_message', $this->gettext(array('name' => 'objectrestoresuccess', 'vars' => array('rev' => $event['rev']))), 'confirmation');
+          $this->rc->output->command('plugin.close_history_dialog');
         }
         else {
-          $this->rc->output->command('display_message', 'Not implemented yet', 'error');
-          $got_msg = true;
+          $this->rc->output->command('display_message', $this->gettext('objectrestoreerror'), 'error');
+          $reload = 0;
         }
-        $reload = false;
+        $got_msg = true;
         break;
     }
 
@@ -1119,27 +1152,6 @@ class calendar extends rcube_plugin
         $this->rc->output->show_message('successfullysaved', 'confirmation');
       else
         $this->rc->output->show_message('calendar.errorsaving', 'error');
-    }
-
-    // send out notifications
-    if ($success && $event['_notify'] && ($event['attendees'] || $old['attendees'])) {
-      // make sure we have the complete record
-      $event = $action == 'remove' ? $old : $this->driver->get_event($event);
-
-      // sending notification on a recurrence instance -> re-send the main event
-      if ($event['recurrence_id']) {
-        $event = $this->driver->get_event(array('id' => $event['recurrence_id'], 'cal' => $event['calendar']));
-        $action = 'edit';
-      }
-
-      // only notify if data really changed (TODO: do diff check on client already)
-      if (!$old || $action == 'remove' || self::event_diff($event, $old)) {
-        $sent = $this->notify_attendees($event, $old, $action, $event['_comment']);
-        if ($sent > 0)
-          $this->rc->output->show_message('calendar.itipsendsuccess', 'confirmation');
-        else if ($sent < 0)
-          $this->rc->output->show_message('calendar.errornotifying', 'error');
-      }
     }
 
     // unlock client
@@ -1153,6 +1165,66 @@ class calendar extends rcube_plugin
       else if ($success && $action != 'remove')
         $args['update'] = $this->_client_event($this->driver->get_event($event), true);
       $this->rc->output->command('plugin.refresh_calendar', $args);
+    }
+  }
+
+  /**
+   * Helper method sending iTip notifications after successful event updates
+   */
+  private function event_save_success(&$event, $old, $action, $success)
+  {
+    // $success is a new event ID
+    if ($success !== true) {
+      // send update notification on the main event
+      if ($event['_savemode'] == 'future' && $event['_notify'] && $old['attendees'] && $old['recurrence_id']) {
+        $master = $this->driver->get_event(array('id' => $old['recurrence_id'], 'calendar' => $old['calendar']), 0, true);
+        unset($master['_instance'], $master['recurrence_date']);
+
+        $sent = $this->notify_attendees($master, null, $action, $event['_comment'], false);
+        if ($sent < 0)
+          $this->rc->output->show_message('calendar.errornotifying', 'error');
+
+        $event['attendees'] = $master['attendees'];  // this tricks us into the next if clause
+      }
+
+      // delete old reference if saved as new
+      if ($event['_savemode'] == 'future' || $event['_savemode'] == 'new') {
+        $old = null;
+      }
+
+      $event['id'] = $success;
+      $event['_savemode'] = 'all';
+    }
+
+    // send out notifications
+    if ($event['_notify'] && ($event['attendees'] || $old['attendees'])) {
+      $_savemode = $event['_savemode'];
+
+      // send notification for the main event when savemode is 'all'
+      if ($action != 'remove' && $_savemode == 'all' && ($event['recurrence_id'] || $old['recurrence_id'] || ($old && $old['id'] != $event['id']))) {
+        $event['id'] = $event['recurrence_id'] ?: ($old['recurrence_id'] ?: $old['id']);
+        $event = $this->driver->get_event($event, 0, true);
+        unset($event['_instance'], $event['recurrence_date']);
+      }
+      else {
+        // make sure we have the complete record
+        $event = $action == 'remove' ? $old : $this->driver->get_event($event, 0, true);
+      }
+
+      $event['_savemode'] = $_savemode;
+
+      if ($old) {
+        $old['thisandfuture'] = $_savemode == 'future';
+      }
+
+      // only notify if data really changed (TODO: do diff check on client already)
+      if (!$old || $action == 'remove' || self::event_diff($event, $old)) {
+        $sent = $this->notify_attendees($event, $old, $action, $event['_comment']);
+        if ($sent > 0)
+          $this->rc->output->show_message('calendar.itipsendsuccess', 'confirmation');
+        else if ($sent < 0)
+          $this->rc->output->show_message('calendar.errornotifying', 'error');
+      }
     }
   }
 
@@ -1256,7 +1328,7 @@ class calendar extends rcube_plugin
 
     $counts = array();
 
-    foreach ($this->driver->list_calendars(true) as $cal) {
+    foreach ($this->driver->list_calendars(calendar_driver::FILTER_ACTIVE) as $cal) {
       $events = $this->driver->load_events(
         rcube_utils::get_input_value('start', rcube_utils::INPUT_GPC),
         rcube_utils::get_input_value('end', rcube_utils::INPUT_GPC),
@@ -1367,7 +1439,7 @@ class calendar extends rcube_plugin
   {
     // Upload progress update
     if (!empty($_GET['_progress'])) {
-      rcube_upload_progress();
+      $this->rc->upload_progress();
     }
 
     @set_time_limit(0);
@@ -1433,11 +1505,11 @@ class calendar extends rcube_plugin
     }
     else {
       if ($err == UPLOAD_ERR_INI_SIZE || $err == UPLOAD_ERR_FORM_SIZE) {
-        $msg = rcube_label(array('name' => 'filesizeerror', 'vars' => array(
-            'size' => show_bytes(parse_bytes(ini_get('upload_max_filesize'))))));
+        $msg = $this->gettext(array('name' => 'filesizeerror', 'vars' => array(
+            'size' => $this->rc->show_bytes(parse_bytes(ini_get('upload_max_filesize'))))));
       }
       else {
-        $msg = rcube_label('fileuploaderror');
+        $msg = $this->gettext('fileuploaderror');
       }
 
       $this->rc->output->command('plugin.import_error', array('message' => $msg));
@@ -1509,7 +1581,10 @@ class calendar extends rcube_plugin
       $filename = $calendars[$calid]['name'] ? $calendars[$calid]['name'] : $calid;
       $filename = asciiwords(html_entity_decode($filename));  // to 7bit ascii
       if (!empty($event_id)) {
-        if ($event = $this->driver->get_event(array('calendar' => $calid, 'id' => $event_id))) {
+        if ($event = $this->driver->get_event(array('calendar' => $calid, 'id' => $event_id), 0, true)) {
+          if ($event['recurrence_id']) {
+            $event = $this->driver->get_event(array('calendar' => $calid, 'id' => $event['recurrence_id']), 0, true);
+          }
           $events = array($event);
           $filename = asciiwords($event['title']);
           if (empty($filename))
@@ -1662,6 +1737,7 @@ class calendar extends rcube_plugin
     if ($event['recurrence']) {
       $event['recurrence_text'] = $this->lib->recurrence_text($event['recurrence']);
       $event['recurrence'] = $this->lib->to_client_recurrence($event['recurrence'], $event['allday']);
+      unset($event['recurrence_date']);
     }
 
     foreach ((array)$event['attachments'] as $k => $attachment) {
@@ -1686,6 +1762,9 @@ class calendar extends rcube_plugin
       if ($attendee['status'] == 'DELEGATED' && $attendee['rsvp'] == false) {
         $event['attendees'][$i]['noreply'] = true;
       }
+      else {
+        unset($event['attendees'][$i]['noreply']);
+      }
     }
 
     if ($organizer === null && !empty($event['organizer'])) {
@@ -1694,6 +1773,12 @@ class calendar extends rcube_plugin
       if (!is_array($event['attendees']))
         $event['attendees'] = array();
       array_unshift($event['attendees'], $organizer);
+    }
+
+    // Convert HTML description into plain text
+    if ($this->is_html($event)) {
+      $h2t = new rcube_html2text($event['description'], false, true, 0);
+      $event['description'] = trim($h2t->get_text());
     }
 
     // mapping url => vurl because of the fullcalendar client script
@@ -1739,7 +1824,7 @@ class calendar extends rcube_plugin
     $date  = $_REQUEST['_date'] ?: 'now';
     $dev   = $_REQUEST['_dev'] ?: 30;
     $cats  = array_keys($this->driver->list_categories());
-    $cals  = $this->driver->list_calendars(true);
+    $cals  = $this->driver->list_calendars(calendar_driver::FILTER_ACTIVE);
     $count = 0;
 
     while ($count++ < $num) {
@@ -1804,8 +1889,9 @@ class calendar extends rcube_plugin
     $event_id = rcube_utils::get_input_value('_event', rcube_utils::INPUT_GPC);
     $calendar = rcube_utils::get_input_value('_cal', rcube_utils::INPUT_GPC);
     $id       = rcube_utils::get_input_value('_id', rcube_utils::INPUT_GPC);
+    $rev      = rcube_utils::get_input_value('_rev', rcube_utils::INPUT_GPC);
 
-    $event = array('id' => $event_id, 'calendar' => $calendar);
+    $event = array('id' => $event_id, 'calendar' => $calendar, 'rev' => $rev);
     $attachment = $this->driver->get_attachment($id, $event);
 
     // show part page
@@ -1826,6 +1912,14 @@ class calendar extends rcube_plugin
     exit;
   }
 
+  /**
+   * Determine whether the given event description is HTML formatted
+   */
+  private function is_html($event)
+  {
+      // check for opening and closing <html> or <body> tags
+      return (preg_match('/<(html|body)(\s+[a-z]|>)/', $event['description'], $m) && strpos($event['description'], '</'.$m[1].'>') > 0);
+  }
 
   /**
    * Prepares new/edited event properties before save
@@ -1835,6 +1929,7 @@ class calendar extends rcube_plugin
     // convert dates into DateTime objects in user's current timezone
     $event['start'] = new DateTime($event['start'], $this->timezone);
     $event['end'] = new DateTime($event['end'], $this->timezone);
+    $event['allday'] = (bool)$event['allday'];
 
     // start/end is all we need for 'move' action (#1480)
     if ($action == 'move') {
@@ -1885,7 +1980,7 @@ class calendar extends rcube_plugin
           $organizer = $i;
         if ($attendee['email'] == in_array(strtolower($attendee['email']), $emails))
           $owner = $i;
-        else if (!isset($attendee['rsvp']))
+        if (!isset($attendee['rsvp']))
           $event['attendees'][$i]['rsvp'] = true;
         else if (is_string($attendee['rsvp']))
           $event['attendees'][$i]['rsvp'] = $attendee['rsvp'] == 'true' || $attendee['rsvp'] == '1';
@@ -1901,9 +1996,6 @@ class calendar extends rcube_plugin
       if ($organizer === false && $owner !== false) {
         $event['attendees'][$owner]['role'] = 'ORGANIZER';
         unset($event['attendees'][$owner]['rsvp']);
-      }
-      else if ($organizer === false && $action == 'new' && ($identity = $this->rc->user->get_identity($event['_identity'])) && $identity['email']) {
-        array_unshift($event['attendees'], array('role' => 'ORGANIZER', 'name' => $identity['name'], 'email' => $identity['email'], 'status' => 'ACCEPTED'));
       }
     }
 
@@ -1929,12 +2021,15 @@ class calendar extends rcube_plugin
   /**
    * Send out an invitation/notification to all event attendees
    */
-  private function notify_attendees($event, $old, $action = 'edit', $comment = null)
+  private function notify_attendees($event, $old, $action = 'edit', $comment = null, $rsvp = null)
   {
     if ($action == 'remove' || ($event['status'] == 'CANCELLED' && $old['status'] != $event['status'])) {
       $event['cancelled'] = true;
       $is_cancelled = true;
     }
+
+    if ($rsvp === null)
+      $rsvp = !$old || $event['sequence'] > $old['sequence'];
 
     $itip = $this->load_itip();
     $emails = $this->get_user_emails();
@@ -1943,9 +2038,12 @@ class calendar extends rcube_plugin
     // add comment to the iTip attachment
     $event['comment'] = $comment;
 
+    // set a valid recurrence-id if this is a recurrence instance
+    libcalendaring::identify_recurrence_instance($event);
+
     // compose multipart message using PEAR:Mail_Mime
     $method = $action == 'remove' ? 'CANCEL' : 'REQUEST';
-    $message = $itip->compose_itip_message($event, $method, $event['sequence'] > $old['sequence']);
+    $message = $itip->compose_itip_message($event, $method, $rsvp);
 
     // list existing attendees from $old event
     $old_attendees = array();
@@ -1985,9 +2083,11 @@ class calendar extends rcube_plugin
         $sent = -100;
     }
 
+    // TODO: on change of a recurring (main) event, also send updates to differing attendess of recurrence exceptions
+
     // send CANCEL message to removed attendees
     foreach ((array)$old['attendees'] as $attendee) {
-      if ($attendee['ROLE'] == 'ORGANIZER' || !$attendee['email'] || in_array(strtolower($attendee['email']), $current))
+      if ($attendee['role'] == 'ORGANIZER' || !$attendee['email'] || in_array(strtolower($attendee['email']), $current))
         continue;
 
       $vevent = $old;
@@ -2212,7 +2312,7 @@ class calendar extends rcube_plugin
     $diff = array();
     $ignore = array('changed' => 1, 'attachments' => 1);
     foreach (array_unique(array_merge(array_keys($a), array_keys($b))) as $key) {
-      if (!$ignore[$key] && $a[$key] != $b[$key])
+      if (!$ignore[$key] && $key[0] != '_' && $a[$key] != $b[$key])
         $diff[] = $key;
     }
     
@@ -2221,6 +2321,42 @@ class calendar extends rcube_plugin
       $diff[] = 'attachments';
     
     return $diff;
+  }
+
+  /**
+   * Update attendee properties on the given event object
+   *
+   * @param array The event object to be altered
+   * @param array List of hash arrays each represeting an updated/added attendee
+   */
+  public static function merge_attendee_data(&$event, $attendees, $removed = null)
+  {
+    if (!empty($attendees) && !is_array($attendees[0])) {
+      $attendees = array($attendees);
+    }
+
+    foreach ($attendees as $attendee) {
+      $found = false;
+
+      foreach ($event['attendees'] as $i => $candidate) {
+        if ($candidate['email'] == $attendee['email']) {
+          $event['attendees'][$i] = $attendee;
+          $found = true;
+          break;
+        }
+      }
+
+      if (!$found) {
+        $event['attendees'][] = $attendee;
+      }
+    }
+
+    // filter out removed attendees
+    if (!empty($removed)) {
+      $event['attendees'] = array_filter($event['attendees'], function($attendee) use ($removed) {
+        return !in_array($attendee['email'], $removed);
+      });
+    }
   }
 
 
@@ -2332,19 +2468,19 @@ class calendar extends rcube_plugin
 
     // find local copy of the referenced event
     $this->load_driver();
-    $existing = $this->driver->get_event($data, true, false, true);
+    $existing = $this->driver->get_event($data, calendar_driver::FILTER_WRITEABLE | calendar_driver::FILTER_PERSONAL);
 
     $itip = $this->load_itip();
     $response = $itip->get_itip_status($data, $existing);
 
     // get a list of writeable calendars to save new events to
     if (!$existing && !$data['nosave'] && $response['action'] == 'rsvp' || $response['action'] == 'import') {
-      $calendars = $this->driver->list_calendars(false, true);
+      $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL);
       $calendar_select = new html_select(array('name' => 'calendar', 'id' => 'itip-saveto', 'is_escaped' => true));
       $calendar_select->add('--', '');
       $numcals = 0;
       foreach ($calendars as $calendar) {
-        if (!$calendar['readonly']) {
+        if ($calendar['editable']) {
           $calendar_select->add($calendar['name'], $calendar['id']);
           $numcals++;
         }
@@ -2354,7 +2490,7 @@ class calendar extends rcube_plugin
     }
 
     if ($calendar_select) {
-      $default_calendar = $this->get_default_calendar(true, $data['sensitivity'] == 'confidential');
+      $default_calendar = $this->get_default_calendar($data['sensitivity']);
       $response['select'] = html::span('folder-select', $this->gettext('saveincalendar') . '&nbsp;' .
         $calendar_select->show($default_calendar['id']));
     }
@@ -2369,7 +2505,7 @@ class calendar extends rcube_plugin
       $day_end = new Datetime(gmdate('Y-m-d 23:59', $data['date']), $this->lib->timezone);
 
       // get events on that day from the user's personal calendars
-      $calendars = $this->driver->list_calendars(false, true);
+      $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL);
       $events = $this->driver->load_events($day_start->format('U'), $day_end->format('U'), null, array_keys($calendars));
       usort($events, function($a, $b) { return $a['start'] > $b['start'] ? 1 : -1; });
 
@@ -2401,11 +2537,14 @@ class calendar extends rcube_plugin
    */
   function event_itip_remove()
   {
-    $success = false;
-    $uid     = rcube_utils::get_input_value('uid', rcube_utils::INPUT_POST);
+    $success  = false;
+    $uid      = rcube_utils::get_input_value('uid', rcube_utils::INPUT_POST);
+    $instance = rcube_utils::get_input_value('_instance', rcube_utils::INPUT_POST);
+    $savemode = rcube_utils::get_input_value('_savemode', rcube_utils::INPUT_POST);
 
     // search for event if only UID is given
-    if ($event = $this->driver->get_event(array('uid' => $uid), true)) {
+    if ($event = $this->driver->get_event(array('uid' => $uid, '_instance' => $instance), calendar_driver::FILTER_WRITEABLE)) {
+      $event['_savemode'] = $savemode;
       $success = $this->driver->remove_event($event, true);
     }
 
@@ -2465,7 +2604,7 @@ class calendar extends rcube_plugin
             $invitation = $itip->get_invitation($token);
 
             // save the event to his/her default calendar if not yet present
-            if (!$this->driver->get_event($this->event) && ($calendar = $this->get_default_calendar(true, $invitation['event']['sensitivity'] == 'confidential'))) {
+            if (!$this->driver->get_event($this->event) && ($calendar = $this->get_default_calendar($invitation['event']['sensitivity']))) {
               $invitation['event']['calendar'] = $calendar['id'];
               if ($this->driver->new_event($invitation['event']))
                 $this->rc->output->command('display_message', $this->gettext(array('name' => 'importedsuccessfully', 'vars' => array('calendar' => $calendar['name']))), 'confirmation');
@@ -2504,13 +2643,13 @@ class calendar extends rcube_plugin
    */
   private function mail_agenda_event_row($event, $class = '')
   {
-    $time = $event['all-day'] ? $this->gettext('allday') :
+    $time = $event['allday'] ? $this->gettext('all-day') :
       $this->rc->format_date($event['start'], $this->rc->config->get('time_format')) . ' - ' .
         $this->rc->format_date($event['end'], $this->rc->config->get('time_format'));
 
     return html::div(rtrim('event-row ' . $class),
       html::span('event-date', $time) .
-      html::span('event-title', Q($event['title']))
+      html::span('event-title', rcube::Q($event['title']))
     );
   }
   
@@ -2633,6 +2772,8 @@ class calendar extends rcube_plugin
     $delete  = intval(rcube_utils::get_input_value('_del', rcube_utils::INPUT_POST));
     $noreply = intval(rcube_utils::get_input_value('_noreply', rcube_utils::INPUT_POST));
     $noreply = $noreply || $status == 'needs-action' || $itip_sending === 0;
+    $instance = rcube_utils::get_input_value('_instance', rcube_utils::INPUT_POST);
+    $savemode = rcube_utils::get_input_value('_savemode', rcube_utils::INPUT_POST);
 
     $error_msg = $this->gettext('errorimportingevent');
     $success = false;
@@ -2669,15 +2810,16 @@ class calendar extends rcube_plugin
       // find writeable calendar to store event
       $cal_id = !empty($_REQUEST['_folder']) ? rcube_utils::get_input_value('_folder', rcube_utils::INPUT_POST) : null;
       $dontsave = ($_REQUEST['_folder'] === '' && $event['_method'] == 'REQUEST');
-      $calendars = $this->driver->list_calendars(false, true);
+      $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL);
       $calendar = $calendars[$cal_id];
 
       // select default calendar except user explicitly selected 'none'
       if (!$calendar && !$dontsave)
-         $calendar = $this->get_default_calendar(true, $event['sensitivity'] == 'confidential');
+         $calendar = $this->get_default_calendar($event['sensitivity']);
 
       $metadata = array(
         'uid' => $event['uid'],
+        '_instance' => $event['_instance'],
         'changed' => is_object($event['changed']) ? $event['changed']->format('U') : 0,
         'sequence' => intval($event['sequence']),
         'fallback' => strtoupper($status),
@@ -2719,13 +2861,14 @@ class calendar extends rcube_plugin
       }
       
       // save to calendar
-      if ($calendar && !$calendar['readonly']) {
-        $event['calendar'] = $calendar['id'];
-        
+      if ($calendar && $calendar['editable']) {
         // check for existing event with the same UID
-        $existing = $this->driver->get_event($event['uid'], true, false, true);
-        
+        $existing = $this->driver->get_event($event, calendar_driver::FILTER_WRITEABLE | calendar_driver::FILTER_PERSONAL);
+
         if ($existing) {
+          // forward savemode for correct updates of recurring events
+          $existing['_savemode'] = $savemode ?: $event['_savemode'];
+
           // only update attendee status
           if ($event['_method'] == 'REPLY') {
             // try to identify the attendee using the email sender address
@@ -2738,9 +2881,11 @@ class calendar extends rcube_plugin
               }
             }
             $event_attendee = null;
+            $update_attendees = array();
             foreach ($event['attendees'] as $attendee) {
               if ($event['_sender'] && ($attendee['email'] == $event['_sender'] || $attendee['email'] == $event['_sender_utf'])) {
                 $event_attendee = $attendee;
+                $update_attendees[] = $attendee;
                 $metadata['fallback'] = $attendee['status'];
                 $metadata['attendee'] = $attendee['email'];
                 $metadata['rsvp'] = $attendee['rsvp'] || $attendee['role'] != 'NON-PARTICIPANT';
@@ -2750,9 +2895,12 @@ class calendar extends rcube_plugin
               }
               // also copy delegate attendee
               else if (!empty($attendee['delegated-from']) &&
-                       (stripos($attendee['delegated-from'], $event['_sender']) !== false || stripos($attendee['delegated-from'], $event['_sender_utf']) !== false) &&
-                       (!in_array($attendee['email'], $existing_attendee_emails))) {
-                $existing['attendees'][] = $attendee;
+                       (stripos($attendee['delegated-from'], $event['_sender']) !== false ||
+                        stripos($attendee['delegated-from'], $event['_sender_utf']) !== false)) {
+                $update_attendees[] = $attendee;
+                if (!in_array($attendee['email'], $existing_attendee_emails)) {
+                  $existing['attendees'][] = $attendee;
+                }
               }
             }
 
@@ -2769,12 +2917,12 @@ class calendar extends rcube_plugin
             // found matching attendee entry in both existing and new events
             if ($existing_attendee >= 0 && $event_attendee) {
               $existing['attendees'][$existing_attendee] = $event_attendee;
-              $success = $this->driver->edit_event($existing);
+              $success = $this->driver->update_attendees($existing, $update_attendees);
             }
             // update the entire attendees block
             else if (($event['sequence'] >= $existing['sequence'] || $event['changed'] >= $existing['changed']) && $event_attendee) {
               $existing['attendees'][] = $event_attendee;
-              $success = $this->driver->edit_event($existing);
+              $success = $this->driver->update_attendees($existing, $update_attendees);
             }
             else {
               $error_msg = $this->gettext('newerversionexists');
@@ -2827,7 +2975,43 @@ class calendar extends rcube_plugin
           if ($status == 'declined' || $event['status'] == 'CANCELLED' || $event_attendee['role'] == 'NON-PARTICIPANT') {
             $event['free_busy'] = 'free';
           }
-          $success = $this->driver->new_event($event);
+
+          // if the RSVP reply only refers to a single instance:
+          // store unmodified master event with current instance as exception
+          if (!empty($instance) && !empty($savemode) && $savemode != 'all') {
+            $master = $this->lib->mail_get_itip_object($mbox, $uid, $mime_id, 'event');
+            if ($master['recurrence'] && !$master['_instance']) {
+              // compute recurring events until this instance's date
+              if ($recurrence_date = rcube_utils::anytodatetime($instance, $master['start']->getTimezone())) {
+                $recurrence_date->setTime(23,59,59);
+
+                foreach ($this->driver->get_recurring_events($master, $master['start'], $recurrence_date) as $recurring) {
+                  if ($recurring['_instance'] == $instance) {
+                    // copy attendees block with my partstat to exception
+                    $recurring['attendees'] = $event['attendees'];
+                    $master['recurrence']['EXCEPTIONS'][] = $recurring;
+                    $event = $recurring;  // set reference for iTip reply
+                    break;
+                  }
+                }
+
+                $master['calendar'] = $event['calendar'] = $calendar['id'];
+                $success = $this->driver->new_event($master);
+              }
+              else {
+                $master = null;
+              }
+            }
+            else {
+              $master = null;
+            }
+          }
+
+          // save to the selected/default calendar
+          if (!$master) {
+            $event['calendar'] = $calendar['id'];
+            $success = $this->driver->new_event($event);
+          }
         }
         else if ($status == 'declined')
           $error_msg = null;
@@ -2918,7 +3102,7 @@ class calendar extends rcube_plugin
     $uid     = rcube_utils::get_input_value('_uid', rcube_utils::INPUT_POST);
     $mbox    = rcube_utils::get_input_value('_mbox', rcube_utils::INPUT_POST);
     $mime_id = rcube_utils::get_input_value('_part', rcube_utils::INPUT_POST);
-    $charset = RCMAIL_CHARSET;
+    $charset = RCUBE_CHARSET;
 
     // establish imap connection
     $imap = $this->rc->get_storage();
@@ -2939,15 +3123,15 @@ class calendar extends rcube_plugin
     if (!empty($events)) {
       // find writeable calendar to store event
       $cal_id = !empty($_REQUEST['_calendar']) ? rcube_utils::get_input_value('_calendar', rcube_utils::INPUT_POST) : null;
-      $calendars = $this->driver->list_calendars(false, true);
+      $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL);
 
       foreach ($events as $event) {
         // save to calendar
-        $calendar = $calendars[$cal_id] ?: $this->get_default_calendar(true, $event['sensitivity'] == 'confidential');
-        if ($calendar && !$calendar['readonly'] && $event['_type'] == 'event') {
+        $calendar = $calendars[$cal_id] ?: $this->get_default_calendar($event['sensitivity']);
+        if ($calendar && $calendar['editable'] && $event['_type'] == 'event') {
           $event['calendar'] = $calendar['id'];
 
-          if (!$this->driver->get_event($event['uid'], true, false)) {
+          if (!$this->driver->get_event($event['uid'], calendar_driver::FILTER_WRITEABLE)) {
             $success += (bool)$this->driver->new_event($event);
           }
           else {
@@ -3097,6 +3281,11 @@ class calendar extends rcube_plugin
    */
   public function user_delete($args)
   {
+     // delete itipinvitations entries related to this user
+     $db = $this->rc->get_dbh();
+     $table_itipinvitations = $db->table_name('itipinvitations', true);
+     $db->query("DELETE FROM $table_itipinvitations WHERE `user_id` = ?", $args['user']->ID);
+
      $this->load_driver();
      return $this->driver->user_delete($args);
   }

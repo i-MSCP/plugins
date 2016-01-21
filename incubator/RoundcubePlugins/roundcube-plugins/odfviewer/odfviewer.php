@@ -77,7 +77,7 @@ class odfviewer extends rcube_plugin
 
             // send webODF viewer page
             $html = file_get_contents($this->home . '/odf.html');
-            header("Content-Type: text/html; charset=" . RCMAIL_CHARSET);
+            header("Content-Type: text/html; charset=" . RCUBE_CHARSET);
             echo strtr($html, array(
                 '%%PARAMS%%'             => rcube_output::json_serialize($params),
                 '%%viewer.css%%'         => $this->asset_path('viewer.css'),

@@ -88,13 +88,17 @@ This plugin add support for  managesieve protocol and allows the users to manage
 This plugin allow to notify on new mails by focusing browser window and changing favicon, playing a sound and displaying
 desktop notification ( using webkitNotifications feature ).
 
-### PdfViewer
-
-This plugin adds support for inline PDF viewer.
-
 ### OdfViewer
 
 This plugin adds support for inline ODF viewer.
+
+### Password
+
+This plugin adds the option to change the password in Roundcube.
+
+### PdfViewer
+
+This plugin adds support for inline PDF viewer.
 
 ### Pop3Fetcher
 
