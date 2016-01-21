@@ -1131,16 +1131,11 @@ sub _setRoundcubePluginConfig
 		if($self->{'config'}->{'use_bayes'} eq 'no') {
 			$sauserprefsDontOverride .= ", '{bayes}'";
 		}
-		
-		my $sauserprefsBayesDelete;
 
 		if($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
 			$sauserprefsDontOverride .= ", 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'";
-			$sauserprefsBayesDelete = "false";
-		} else {
-			$sauserprefsBayesDelete = "true";
 		}
-		
+
 		if(
 			$self->{'config'}->{'use_razor2'} eq 'no' && $self->{'config'}->{'use_pyzor'} eq 'no' &&
 			$self->{'config'}->{'use_dcc'} eq 'no' && $self->{'config'}->{'use_rbl_checks'} eq 'no'
@@ -1169,7 +1164,6 @@ sub _setRoundcubePluginConfig
 		}
 
 		$fileContent =~ s/\Q{SAUSERPREFS_DONT_OVERRIDE}/$sauserprefsDontOverride/g;
-		$fileContent =~ s/\Q{SAUSERPREFS_BAYES_DELETE}/$sauserprefsBayesDelete/g;
 
 	} elsif ($plugin eq 'markasjunk2') {
 		$fileContent =~ s/\Q{GUI_ROOT_DIR}/$main::imscpConfig{'GUI_ROOT_DIR'}/g;

@@ -6,7 +6,7 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 
 * i-MSCP version >= 1.2.3
 * SpamAssassin 3.3.x or 3.4.x
-* Roundcube >= 0.9.x (Optional)
+* Roundcube >= 1.1.0 (Optional)
 
 ### Debian / Ubuntu packages 
 
@@ -15,8 +15,8 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 * libmail-dkim-perl
 * libnet-ident-perl
 * libencode-detect-perl
-* pyzor (Optional)
-* razor (Optional)
+* pyzor
+* razor
 
 You can install these packages by running the following commands:
 

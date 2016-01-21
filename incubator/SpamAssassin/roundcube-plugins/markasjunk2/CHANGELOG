@@ -1,7 +1,34 @@
 Roundcube Webmail MarkAsJunk2
 =============================
 
+Version 1.9 (2015-01-06, rc-1.1)
+=================================================
+ * Use get_part_body add in 48ba4414b3
+ * Support multi-folder search results (66536974fe)
+ * Drop IE6 support
+
+Version 1.8.2 (2014-03-30, rc-1.0)
+=================================================
+ * Add amavis_blacklist driver (by Der-Jan)
+
+Version 1.8.1 (2014-01-01, rc-1.0)
+=================================================
+ * Improve sa_detach driver, make sure only original message is detached
+ * Correct skin folder structure for Roundcube packaging
+
+Version 1.8 (2013-12-01, rc-1.0)
+=================================================
+ * Use sauserprefs_userid config setting in sa_blacklist driver
+ * Use plugin API to set message flags (05da157)
+ * Update config file var names to match core
+ * Add support for global sql_debug option
+ * Improve handling of multiple marcos in cmd_learn driver
+
+Version 1.7 (2013-05-19, rc-1.0)
+=================================================
  * add option to call markasjunk2 functions on message move
+ * rcmail_deliver_message() > deliver_message()
+ **** code branching/tagging no longer sync'd to roundcube versions ****
 
 Version 1.6 (2013-03-03, rc-0.9)
 =================================================

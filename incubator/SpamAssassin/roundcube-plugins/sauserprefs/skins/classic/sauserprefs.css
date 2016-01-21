@@ -19,61 +19,104 @@ body.spam-langs-table
   background-color: #F9F9F9;
 }
 
-#address-rules-table,
-#spam-langs-table
+table.address-rules-table,
+table.spam-langs-table
 {
   width: 100%;
   display: table;
   table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0px;
 }
 
-#address-rules-table thead td.rule
+table.address-rules-table thead th.rule
 {
   width: 180px;
 }
 
-#address-rules-table thead td.control
+table.address-rules-table thead th.control
 {
   width: 40px;
 }
 
-#spam-langs-table td.lang,
-#address-rules-table td.rule,
-#address-rules-table td.email,
-#address-rules-table td.email
+table.address-rules-table thead th a,
+table.spam-langs-table thead th a
+{
+  display: block;
+  text-decoration: none;
+}
+
+table.address-rules-table thead th.sortedASC,
+table.address-rules-table thead th.sortedDESC,
+table.spam-langs-table thead th.sortedASC,
+table.spam-langs-table thead th.sortedDESC
+{
+  background-position: 0px -26px;
+}
+
+table.spam-langs-table tr > .lang
+{
+  width: 80%;
+}
+
+table.spam-langs-table tr > .tick
+{
+  width: 20%;
+}
+
+table.spam-langs-table thead th.tick a
+{
+  padding-right: 24px;
+}
+
+table.address-rules-table thead tr th.sortedASC a,
+table.spam-langs-table thead tr th.sortedASC a
+{
+  background: url(images/sort.gif) no-repeat right -14px;
+}
+
+table.address-rules-table thead tr th.sortedDESC a,
+table.spam-langs-table thead tr th.sortedDESC a
+{
+  background: url(images/sort.gif) no-repeat right 0;
+}
+
+table.spam-langs-table tr > .lang,
+table.address-rules-table tr > .rule,
+table.address-rules-table tr > .email
 {
   text-align: left;
   vertical-align: middle;
 }
 
-#spam-langs-table td.tick,
-#address-rules-table td.control
+table.spam-langs-table tr > .tick,
+table.address-rules-table tr > .control
 {
   text-align: right;
   vertical-align: middle;
 }
 
-#spam-langs-table td.tick a,
-#address-rules-table td.control a
+table.spam-langs-table tbody td.tick a,
+table.address-rules-table tr > .control a
 {
   display: block;
   float: right;
   width: 16px;
   height: 16px;
-  background-image: url(icons.png);
+  background-image: url(images/icons.png);
 }
 
-#address-rules-table td.control a.delete
+table.address-rules-table tr > .control a.delete
 {
   background-position: 0 0;
 }
 
-#spam-langs-table td.tick a.enabled
+table.spam-langs-table tr > .tick a.enabled
 {
   background-position: 0 -18px;
 }
 
-#spam-langs-table td.tick a.disabled
+table.spam-langs-table tr > .tick a.disabled
 {
   background-position: 0 -36px;
 }
@@ -123,63 +166,63 @@ table.reportprefstable
   width: 100%;
 }
 
-table.generalprefstable td.title
+table.generalprefstable tr > .title
 {
   width: 115px;
 }
 
-table.headersprefstable td.title
+table.headersprefstable tr > .title
 {
   width: 220px;
 }
 
-table.testsprefstable td.title
+table.testsprefstable tr > .title
 {
   width: 175px;
 }
 
-table.bayesprefstable td.title
+table.bayesprefstable tr > .title
 {
   width: 220px;
 }
 
-table.reportprefstable td.title
+table.reportprefstable tr > .title
 {
   width: 320px;
 }
 
-table.generalprefstable td.help,
-table.langprefstable td.help,
-table.headersprefstable td.help,
-table.testsprefstable td.help,
-table.bayesprefstable td.help,
-table.reportprefstable td.help,
-table.addressprefstable td.help
+table.generalprefstable tr > .help,
+table.langprefstable tr > .help,
+table.headersprefstable tr > .help,
+table.testsprefstable tr > .help,
+table.bayesprefstable tr > .help,
+table.reportprefstable tr > .help,
+table.addressprefstable tr > .help
 {
   text-align: right;
 }
 
-table.addressprefstable td.ruletype
+table.addressprefstable tr > .ruletype
 {
   width: 180px;
   padding-bottom: 10px;
 }
 
-table.addressprefstable td.address
+table.addressprefstable tr > .address
 {
   width: 220px;
   padding-bottom: 10px;
 }
 
-table.addressprefstable td.action
+table.addressprefstable tr > .action
 {
   width: 100px;
   text-align: right;
   padding-bottom: 10px;
 }
 
-table.langprefstable td.scroller,
-table.addressprefstable td.scroller
+table.langprefstable tr > .scroller,
+table.addressprefstable tr > .scroller
 {
   padding: 0;
 }
