@@ -478,19 +478,24 @@ sub _setPluginConfig
 
 sub _checkManagesieveRequirements
 {
-	# check if dovecot-sieve is installed
-	unless(-x '/usr/bin/sievec') {
-		error('Unable to find sieve. Please, install the dovecot-sieve packages first.');
-		return 1;
+	my @reqPkgs = qw/dovecot-sieve dovecot-managesieved/;
+	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
+	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
+	my $ret = 0;
+
+	for my $reqPkg(@reqPkgs) {
+		if($reqPkg ~~ [ keys  %instPkgs ]) {
+			unless($instPkgs{$reqPkg} eq 'installed') {
+				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
+				$ret ||= 1;
+			}
+		} else {
+			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
+			$ret ||= 1;
+		}
 	}
 
-	# check if dovecot-managesieved is installed
-	unless(-x '/usr/lib/dovecot/managesieve') {
-		error('Unable to find managesieve. Please, install the dovecot-managesieved package first.');
-		return 1;
-	}
-
-	0;
+	$ret;
 }
 
 =item _modifyDovecotConfig($plugin, $action)

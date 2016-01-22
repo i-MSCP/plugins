@@ -1,6 +1,7 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+	Changed: Managesieve requirements check
 	Added: Check that Roundcube is installed
 	Updated: Roundcube plugin calendar
 	Updated: Roundcube plugin contextmenu
