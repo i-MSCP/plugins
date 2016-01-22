@@ -58,7 +58,7 @@ return array(
 		// 2 - add Vacation section, but hide Filters section (no additional managesieve filters)
 		'managesieve_vacation' => '1', 
 		// The name of the script which will be used when there's no user script
-		'managesieve_script_name' => 'managesieve', // default: managesieve
+		'managesieve_script_name' => 'managesieve' // default: managesieve
 	),
 
 	// Can notify on new mails by focusing browser window and changing favicon, 
