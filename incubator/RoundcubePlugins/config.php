@@ -51,8 +51,15 @@ return array(
 	// This plugin only works with po server dovecot.
 	'managesieve_plugin' => 'no', // NO to disable (default), YES to enable
 
-	// The name of the script which will be used when there's no user script
-	'managesieve_script_name' => 'managesieve', // default: managesieve
+	'managesieve_config' => array(
+		// Enables separate management interface for vacation responses (out-of-office)
+		// 0 - no separate section,
+		// 1 - add Vacation section (default),
+		// 2 - add Vacation section, but hide Filters section (no additional managesieve filters)
+		'managesieve_vacation' => '1', 
+		// The name of the script which will be used when there's no user script
+		'managesieve_script_name' => 'managesieve', // default: managesieve
+	),
 
 	// Can notify on new mails by focusing browser window and changing favicon, 
 	// playing a sound and displaying desktop notification (using webkitNotifications feature).
@@ -90,6 +97,9 @@ return array(
 
 	// Task management plugin for Roundcube.
 	'tasklist_plugin' => 'yes', // YES to enable (default), NO to disable
+
+	// Detect VCard attachments and show a button to add them to address book
+	'vcard_attachments_plugin' => 'yes', // YES to enable (default), NO to disable
 
 	// Adds an option to download all attachments of a message in one zip file.
 	'zipdownload_plugin' => 'yes' // YES to enable (default), NO to disable

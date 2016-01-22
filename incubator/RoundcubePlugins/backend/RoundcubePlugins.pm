@@ -437,7 +437,8 @@ sub _setPluginConfig
 	if($plugin eq 'managesieve') {
 		$data = {
 			managesieve_default => "$pluginFolder/$plugin/imscp_default.sieve",
-			managesieve_script_name => $self->{'config'}->{'managesieve_script_name'}
+			managesieve_vacation => $self->{'config'}->{'managesieve_config'}->{'managesieve_vacation'},
+			managesieve_script_name => $self->{'config'}->{'managesieve_config'}->{'managesieve_script_name'}
 		};
 	} elsif($plugin eq 'newmail_notifier') {
 		$data = {

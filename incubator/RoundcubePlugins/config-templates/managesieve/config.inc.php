@@ -84,7 +84,17 @@ $config['managesieve_domains'] = array();
 // 0 - no separate section (default),
 // 1 - add Vacation section,
 // 2 - add Vacation section, but hide Filters section
-$config['managesieve_vacation'] = 1;
+$config['managesieve_vacation'] = {managesieve_vacation};
+
+// Default vacation interval (in days).
+// Note: If server supports vacation-seconds extension it is possible
+// to define interval in seconds here (as a string), e.g. "3600s".
+$config['managesieve_vacation_interval'] = 1;
+
+// Some servers require vacation :addresses to be filled with all
+// user addresses (aliases). This option enables automatic filling
+// of these on initial vacation form creation.
+$config['managesieve_vacation_addresses_init'] = true;
 
 // Supported methods of notify extension. Default: 'mailto'
 $config['managesieve_notify_methods'] = array('mailto');
