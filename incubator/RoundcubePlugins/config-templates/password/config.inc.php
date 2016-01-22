@@ -63,7 +63,7 @@ $config['password_db_dsn'] = 'mysqli://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{
 //         (in case the username is an email address)
 // Escaping of macros is handled by this module.
 // Default: "SELECT update_passwd(%c, %u)"
-$config['password_query'] = 'UPDATE mail_users SET mail_pass=%p WHERE mail_addr=%u AND mail_pass=%o';
+$config['password_query'] = 'UPDATE mail_users SET mail_pass=%p WHERE mail_addr=%u';
 
 // By default the crypt() function which is used to create the '%c' 
 // parameter uses the md5 algorithm. To use different algorithms 
