@@ -345,9 +345,9 @@ sub _setRoundcubePlugin
 		my @plugins = ();
 
 		for my $plugin(
-			'password_plugin', 'additional_message_headers_plugin', 'calendar_plugin', 'dkimstatus_plugin',
-			'emoticons_plugin', 'logon_page_plugin', 'newmail_notifier_plugin', 'pdfviewer_plugin', 'odfviewer_plugin',
-			'zipdownload_plugin', 'contextmenu_plugin', 'tasklist_plugin'
+			'additional_message_headers_plugin', 'calendar_plugin', 'contextmenu_plugin', 'dkimstatus_plugin', 
+			'emoticons_plugin', 'logon_page_plugin', 'newmail_notifier_plugin', 'odfviewer_plugin', 'password_plugin', 
+			'pdfviewer_plugin', 'tasklist_plugin', 'vcard_attachments_plugin', 'zipdownload_plugin'
 		) {
 			if($self->{'config'}->{$plugin} eq 'yes') {
 				(my $realPluginName = $plugin) =~ s/_plugin$//;

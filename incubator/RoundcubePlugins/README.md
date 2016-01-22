@@ -18,8 +18,8 @@ The following package are required only if you want install the managesieve Roun
 You can install these packages by running the following commands:
 
 ```
-# aptitude update
-# aptitude install dovecot-sieve dovecot-managesieved
+# apt-get update
+# apt-get install dovecot-sieve dovecot-managesieved
 ```
 
 **Note:** Prior running the command above, be sure that you're using the i-MSCP Dovecot server implementation.
@@ -82,7 +82,6 @@ This plugin add support for  managesieve protocol and allows the users to manage
 
 **Note:** A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 
-
 ### NewMailNotifier
 
 This plugin allow to notify on new mails by focusing browser window and changing favicon, playing a sound and displaying
@@ -107,6 +106,10 @@ This plugin allows to add pop3 accounts and automatically fetch emails from them
 ### TaskList
 
 This plugin add support for task management.
+
+### VCard attachments
+
+Detect VCard attachments and show a button to add them to address book
 
 ### ZipDownload
 
