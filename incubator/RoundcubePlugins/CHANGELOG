@@ -1,6 +1,7 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+	Fixed: Deletion of Roundcube plugins on uninstall
 	Changed: Managesieve requirements check
 	Added: Check that Roundcube is installed
 	Updated: Roundcube plugin calendar

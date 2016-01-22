@@ -280,8 +280,8 @@ sub _installPlugins
 
 sub _removePlugins
 {
-	my $pluginSourceDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-	my $pluginTargetDir = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
+	my $pluginSourceDir = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
+	my $pluginTargetDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
 	my @pluginDirs = iMSCP::Dir->new( dirname => $pluginSourceDir )->getDirs();
 
