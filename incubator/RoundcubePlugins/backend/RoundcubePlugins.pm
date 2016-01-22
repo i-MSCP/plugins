@@ -59,7 +59,7 @@ sub install
 {
 	my $self = shift;
 
-	my $rs = $self->_checkVersion();
+	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
 	$rs = $self->_installPlugins();
@@ -145,7 +145,7 @@ sub enable
 {
 	my $self = shift;
 
-	my $rs = $self->_checkVersion();
+	my $rs = $self->_checkRequirements();
 	return $rs if $rs;
 
 	$rs = $self->_setRoundcubePlugin('add');
@@ -654,17 +654,22 @@ sub _unregisterCronjobPop3fetcher
 	Servers::cron->factory()->deleteTask({ TASKID => 'Plugin::RoundcubePlugins::pop3fetcher' });
 }
 
-=item _checkVersion()
+=item _checkRequirements()
 
- Check Roundcube version
+ Check for requirements
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _checkVersion
+sub _checkRequirements
 {
 	my $self = shift;
+
+	if( !('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) ) {
+		error('Roundcube is not installed. Please install it by running the imscp-autoinstall script.');
+		return 1;
+	}
 
 	tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
