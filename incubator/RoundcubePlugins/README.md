@@ -103,6 +103,15 @@ This plugin adds support for inline PDF viewer.
 
 This plugin allows to add pop3 accounts and automatically fetch emails from them.
 
+## Rcguard
+
+This plugin logs failed login attempts and requires users to go through
+a reCAPTCHA verification process when the number of failed attempts go
+too high. This provides protection against automated attacks.
+
+Failed attempts are logged by IP and stored within MySQL. IPs are also
+released after a certain amount of time.
+
 ### TaskList
 
 This plugin add support for task management.

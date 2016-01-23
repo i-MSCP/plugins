@@ -1,0 +1,31 @@
+{
+    "name": "dsoares/rcguard",
+    "type": "roundcube-plugin",
+    "description": "Roundcube plugin that enforces reCAPTCHA for users that have too many failed logins",
+    "keywords": ["mail","security","captcha"],
+    "homepage": "https://github.com/dsoares/rcguard/",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "Denny Lin",
+	    "email": "dennylin93@hs.ntnu.edu.tw",
+            "homepage": "https://github.com/dennylin93",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://plugins.roundcube.net"
+        }
+    ],
+    "require": {
+	"php": ">=5.2.1"
+    },
+    "extra": {
+	"roundcube": {
+	    "min-version": "1.0",
+	    "sql-dir": "SQL"
+	}
+    }
+}

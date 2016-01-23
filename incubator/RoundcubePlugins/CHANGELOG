@@ -1,6 +1,7 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+	Added: Rouncube reCAPTCHA plugin
 	Updated: additional_message_headers config file
 	Added: Roundcube plugin vcard_attachments
 	Added: Managesieve vacation responses (out-of-office)

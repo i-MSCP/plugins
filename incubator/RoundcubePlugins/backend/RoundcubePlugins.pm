@@ -76,6 +76,9 @@ sub install
 	$rs = $self->_setPluginConfig('newmail_notifier', 'config.inc.php');
 	return $rs if $rs;
 
+	$rs = $self->_setPluginConfig('rcguard', 'config.inc.php');
+	return $rs if $rs;
+
 	$self->_setPluginConfig('pop3fetcher', 'imscp_fetchmail.php');
 }
 
@@ -347,7 +350,7 @@ sub _setRoundcubePlugin
 		for my $plugin(
 			'additional_message_headers_plugin', 'calendar_plugin', 'contextmenu_plugin', 'dkimstatus_plugin', 
 			'emoticons_plugin', 'logon_page_plugin', 'newmail_notifier_plugin', 'odfviewer_plugin', 'password_plugin', 
-			'pdfviewer_plugin', 'tasklist_plugin', 'vcard_attachments_plugin', 'zipdownload_plugin'
+			'pdfviewer_plugin', 'rcguard_plugin', 'tasklist_plugin', 'vcard_attachments_plugin', 'zipdownload_plugin'
 		) {
 			if($self->{'config'}->{$plugin} eq 'yes') {
 				(my $realPluginName = $plugin) =~ s/_plugin$//;
@@ -460,6 +463,14 @@ sub _setPluginConfig
 			DB_PORT => $main::imscpConfig{'DATABASE_PORT'},
 			DB_USER => $dbUser,
 			DB_PASS => $dbPass
+		};
+	} elsif($plugin eq 'rcguard') {
+		$data = {
+			recaptcha_publickey => $self->{'config'}->{'rcguard_config'}->{'recaptcha_publickey'},
+			recaptcha_privatekey => $self->{'config'}->{'rcguard_config'}->{'recaptcha_privatekey'},
+			failed_attempts => $self->{'config'}->{'rcguard_config'}->{'failed_attempts'},
+			expire_time => $self->{'config'}->{'rcguard_config'}->{'expire_time'},
+			recaptcha_https => $self->{'config'}->{'rcguard_config'}->{'recaptcha_https'}
 		};
 	}
 

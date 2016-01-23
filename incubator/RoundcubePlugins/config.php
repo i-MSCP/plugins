@@ -68,7 +68,7 @@ return array(
 	'newmail_notifier_config' => array(
 		// Enables basic notification
 		'newmail_notifier_basic' => 'true', // TRUE to enable (default), FALSE to disable
-		//  Enables sound notification
+		// Enables sound notification
 		'newmail_notifier_sound' => 'false', // TRUE to enable, FALSE to disable (default)
 		// Enables desktop notification
 		'newmail_notifier_desktop' => 'false' // TRUE to enable, FALSE to disable (default)
@@ -93,6 +93,25 @@ return array(
 		'day' => '*',
 		'month' => '*',
 		'dweek' => '*'
+	),
+
+	// Rouncube reCAPTCHA plugin
+	// Logs failed login attempts and requires users to go through a reCAPTCHA 
+	// verification process when the number of failed attempts go too high.
+	// Keys can be obtained from http://www.google.com/recaptcha/
+	'rcguard_plugin' => 'no', // YES to enable, NO to disable (default)
+
+	'rcguard_config' => array(
+		// Public key for reCAPTCHA
+		'recaptcha_publickey' => '',
+		// Private key for reCAPTCHA
+		'recaptcha_privatekey' => '',
+		// Number of failed logins before reCAPTCHA is shown
+		'failed_attempts' => '3',
+		// Release IP after how many minutes (after last failed attempt)
+		'expire_time' => '30',
+		// Use HTTPS for reCAPTCHA
+		'recaptcha_https' => 'false' // TRUE to enable, FALSE to disable (default)
 	),
 
 	// Task management plugin for Roundcube.
