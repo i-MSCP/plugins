@@ -1,6 +1,7 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+	Fixed: Regex for archive and managesieve plugins
 	Added: Rouncube reCAPTCHA plugin
 	Updated: additional_message_headers config file
 	Added: Roundcube plugin vcard_attachments
