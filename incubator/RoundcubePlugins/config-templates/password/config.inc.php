@@ -8,15 +8,15 @@ $config['password_driver'] = 'sql';
 
 // Determine whether current password is required to change password.
 // Default: false.
-$config['password_confirm_current'] = true;
+$config['password_confirm_current'] = {password_confirm_current};
 
 // Require the new password to be a certain length.
 // set to blank to allow passwords of any length
-$config['password_minimum_length'] = 6;
+$config['password_minimum_length'] = {password_minimum_length};
 
 // Require the new password to contain a letter and punctuation character
 // Change to false to remove this check.
-$config['password_require_nonalpha'] = false;
+$config['password_require_nonalpha'] = {password_require_nonalpha};
 
 // Enables logging of password changes into logs/password
 $config['password_log'] = false;
@@ -36,7 +36,7 @@ $config['password_hosts'] = null;
 $config['password_force_save'] = false;
 
 // Enables forcing new users to change their password at their first login.
-$config['password_force_new_user'] = true;
+$config['password_force_new_user'] = {password_force_new_user};
 
 
 // SQL Driver options

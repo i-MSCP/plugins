@@ -79,6 +79,18 @@ return array(
 
 	// Password Plugin for Roundcube to change the mail user password
 	'password_plugin' => 'yes', // YES to enable (default), NO to disable
+	
+	'password_config' => array(
+		// Determine whether current password is required to change password.
+		'password_confirm_current' => 'true', // TRUE to enable (default), FALSE to disable
+		// Require the new password to be a certain length.
+		// Set to blank to allow passwords of any length
+		'password_minimum_length' => '6', // Default value is '6'
+		// Require the new password to contain a letter and punctuation character
+		'password_require_nonalpha' => 'false', // TRUE to enable, FALSE to disable (default)
+		// Enables forcing new users to change their password at their first login.
+		'password_force_new_user' => 'true' // TRUE to enable (default), FALSE to disable
+	),
 
 	// Roundcube inline pdf viewer.
 	'pdfviewer_plugin' => 'yes', // YES to enable (default), NO to disable

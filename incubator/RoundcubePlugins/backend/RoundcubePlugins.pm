@@ -453,8 +453,6 @@ sub _setPluginConfig
 			newmail_notifier_sound => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'},
 			newmail_notifier_desktop => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}
 		};
-	} elsif($plugin eq 'pop3fetcher') {
-		$data = { IMSCP_DATABASE => $main::imscpConfig{'DATABASE_NAME'} };
 	} elsif($plugin eq 'password') {
 		tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
 
@@ -462,12 +460,18 @@ sub _setPluginConfig
 		(my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%(')%\\$1%g;
 
 		$data = {
+			password_confirm_current => $self->{'config'}->{'password_config'}->{'password_confirm_current'},
+			password_minimum_length => $self->{'config'}->{'password_config'}->{'password_minimum_length'},
+			password_require_nonalpha => $self->{'config'}->{'password_config'}->{'password_require_nonalpha'},
+			password_force_new_user  => $self->{'config'}->{'password_config'}->{'password_force_new_user'},
 			DB_NAME => $main::imscpConfig{'DATABASE_NAME'},
 			DB_HOST => $main::imscpConfig{'DATABASE_HOST'},
 			DB_PORT => $main::imscpConfig{'DATABASE_PORT'},
 			DB_USER => $dbUser,
 			DB_PASS => $dbPass
 		};
+	} elsif($plugin eq 'pop3fetcher') {
+		$data = { IMSCP_DATABASE => $main::imscpConfig{'DATABASE_NAME'} };
 	} elsif($plugin eq 'rcguard') {
 		$data = {
 			recaptcha_publickey => $self->{'config'}->{'rcguard_config'}->{'recaptcha_publickey'},
