@@ -21,8 +21,8 @@ Plugin which allows to use SpamAssassin with i-MSCP.
 You can install these packages by running the following commands:
 
 ```
-# aptitude update
-# aptitude install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor
+# apt-get update
+# apt-get install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor
 ```
 
 ## Installation

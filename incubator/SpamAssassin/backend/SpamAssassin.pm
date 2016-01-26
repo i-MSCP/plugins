@@ -943,11 +943,6 @@ sub _checkSpamassassinPlugins
 	return $rs if $rs;
 
 	if($self->{'config'}->{'use_pyzor'} eq 'yes') {
-		unless(-x '/usr/bin/pyzor') {
-			error('Unable to find pyzor. Please, install the pyzor package first.');
-			return 1;
-		}
-
 		$rs = $self->_setSpamassassinUserprefs('use_pyzor', '1');
 		return $rs if $rs;
 
@@ -959,11 +954,6 @@ sub _checkSpamassassinPlugins
 	}
 
 	if($self->{'config'}->{'use_razor2'} eq 'yes') {
-		unless(-x '/usr/bin/razor-admin') {
-			error('Unable to find razor. Please, install the razor package first.');
-			return 1;
-		}
-
 		$rs = $self->_setSpamassassinUserprefs('use_razor2', '1');
 		return $rs if $rs;
 
@@ -1422,7 +1412,7 @@ sub _checkSaUser
 
 sub _checkRequirements
 {
-	my @reqPkgs = qw/spamassassin spamass-milter/;
+	my @reqPkgs = qw/spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor/;
 	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
 	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
 	my $ret = 0;
