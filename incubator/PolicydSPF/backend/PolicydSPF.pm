@@ -183,7 +183,7 @@ EOF
 		}
 	} else {
 		$fileContent = replaceBloc(
-			"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
+			"# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
 		);
 	}
 
