@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP ServerDefaultPage plugin
-# Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+# Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@ use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Database;
 use iMSCP::Net;
+use iMSCP::EventManager;
 use iMSCP::OpenSSL;
 use Servers::httpd;
 use version;
@@ -173,6 +174,23 @@ sub disable
 	0;
 }
 
+=item onAddIps()
+
+ Process onAddIps tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub onAddIps {
+	my $self = shift;
+
+	$self->disable();
+	$self->enable();
+
+	0;
+}
+
 =back
 
 =head1 PRIVATE METHODS
@@ -194,6 +212,9 @@ sub _init
 	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
 		$self->{'httpd'} = Servers::httpd->factory();
 	}
+
+	my $eventManager = iMSCP::EventManager->getInstance();
+	$eventManager->register('afterHttpdAddIps', \&onAddIps);
 
 	$self;
 }
