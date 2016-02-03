@@ -155,7 +155,6 @@ sub _postfixMasterCf
 {
 	my ($self, $action) = @_;
 
-	require Servers::mta;
 	my $mta = Servers::mta->factory();
 
 	my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
