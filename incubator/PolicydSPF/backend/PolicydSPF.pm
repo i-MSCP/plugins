@@ -59,12 +59,12 @@ sub enable
 	return $rs if $rs;
 
 	# Add policy-spf time limit
-	$rs = execute('postconf -e policy-spf_time_limit=' . escapeShell($self->{'config'}->{'policyd_spf_time_limit'}), \$stdout, \$stderr);
+	$rs = execute('postconf -e policy-spf_time_limit=' . escapeShell($self->{'config'}->{'policyd_spf_time_limit'}), \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     return $rs if $rs;
 
-	$rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
+	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -106,16 +106,16 @@ sub disable
 {
 	my $self = shift;
 
-	my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
 	# Remove policy-spf time limit
-	$rs = execute('postconf -X policy-spf_time_limit', \$stdout, \$stderr);
+	my $rs = execute('postconf -X policy-spf_time_limit', \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     return $rs if $rs;
+
+	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
 
 	# Extract postconf values
 	chomp($stdout);
