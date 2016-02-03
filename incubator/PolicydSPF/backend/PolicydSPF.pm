@@ -29,6 +29,8 @@ no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Execute;
+use iMSCP::File;
+use iMSCP::TemplateParser;
 use iMSCP::Service;
 use Servers::mta;
 use parent 'Common::SingletonClass';
