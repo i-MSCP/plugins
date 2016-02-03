@@ -31,7 +31,6 @@ use iMSCP::Database;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::TemplateParser;
-use iMSCP::Service;
 use Servers::mta;
 use parent 'Common::SingletonClass';
 
@@ -60,9 +59,9 @@ sub enable
 
 	# Add policy-spf time limit
 	$rs = execute('postconf -e policy-spf_time_limit=' . escapeShell($self->{'config'}->{'policyd_spf_time_limit'}), \my $stdout, \my $stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
-    return $rs if $rs;
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
 
 	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -87,7 +86,7 @@ sub enable
 
 	# Add entries to master.cf
 	$rs = $self->_postfixMasterCf('configure');
-    return $rs if $rs;
+	return $rs if $rs;
 
 	Servers::mta->factory()->{'restart'} = 1;
 
@@ -108,9 +107,9 @@ sub disable
 
 	# Remove policy-spf time limit
 	my $rs = execute('postconf -X policy-spf_time_limit', \my $stdout, \my $stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
-    return $rs if $rs;
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	return $rs if $rs;
 
 	$rs = execute('postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr);
 	debug($stdout) if $stdout;
@@ -135,7 +134,7 @@ sub disable
 
 	# Remove entries from master.cf
 	$rs = $self->_postfixMasterCf('deconfigure');
-    return $rs if $rs;
+	return $rs if $rs;
 
 	Servers::mta->factory()->{'restart'} = 1;
 
