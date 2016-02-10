@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Mailman plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeInstallPlugin($event)
 	{
-		$this->checkCompat($event);
+
 	}
 
 	/**
@@ -89,7 +89,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeUpdatePlugin($event)
 	{
-		$this->checkCompat($event);
+
 	}
 
 	/**
@@ -150,7 +150,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function onBeforeEnablePlugin($event)
 	{
-		$this->checkCompat($event);
+
 	}
 
 	/**
@@ -160,7 +160,7 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 	 */
 	public function getRoutes()
 	{
-		return array('/client/mailman.php' => PLUGINS_PATH . '/' . $this->getName() . '/frontend/mailman.php');
+		return array('/client/mailman.php' => $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName() . '/frontend/mailman.php');
 	}
 
 	/**
@@ -345,28 +345,6 @@ class iMSCP_Plugin_Mailman extends iMSCP_Plugin_Action
 		}
 
 		return true;
-	}
-
-	/**
-	 * Check plugin compatibility
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	protected function checkCompat($event)
-	{
-		if($event->getParam('pluginName') == $this->getName()) {
-			if(
-				version_compare($event->getParam('pluginManager')->getPluginApiVersion(), '0.2.17', '<') ||
-				!$this->checkRequirements()
-			) {
-				set_page_message(
-					tr('Your i-MSCP version is not compatible with this plugin. Try with a newer version.'), 'error'
-				);
-
-				$event->stopPropagation();
-			}
-		}
 	}
 
 	/**

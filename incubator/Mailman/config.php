@@ -18,15 +18,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
- return array(
-	'author' => array(
-		'Laurent Declercq'
-	),
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.0.0',
-	'require_api' => '1.0.1',
-	'date' => '2016-02-10',
-	'name' => 'Mailman',
-	'desc' => 'Plugin which allows to manage mailing-lists using Mailman.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailman'
+ 
+
+return array(
+
+'DEFAULT_LANGUAGE' => 'en'
+
 );
+?>

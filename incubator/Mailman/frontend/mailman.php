@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Mailman plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -272,6 +272,7 @@ if (isset($_REQUEST['action'])) {
 		deleteList(clean_input($_REQUEST['list_id']));
 		set_page_message(tr('Mailing list successfully scheduled for deletion.'), 'success');
 		redirectTo('mailman.php');
+	
 	} else {
 		showBadRequestErrorPage();
 	}

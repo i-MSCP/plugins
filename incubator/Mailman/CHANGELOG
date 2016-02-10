@@ -6,11 +6,14 @@ Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
 	Added: Localization support
+	Added: Support for i-mscp Version >= 1.2.11
+	Added: config.php to set default language from mailman
 	Fixed: List names must be lowered in Plugin::Mailman::_listExists() method
 	Fixed: Postfix entries are not re-added on update
 	Fixed: Prevent creation of any mail account with address already used for mailing-list
 	Fixed: Wrong regexp for list names validation
 	Updated: License headers
+	
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3

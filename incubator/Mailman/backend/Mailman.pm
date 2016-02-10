@@ -1,17 +1,11 @@
 =head1 NAME
 
- Plugin::Mailman
-
-=cut
-
-=head1 NAME
-
  Plugin::Mailman - i-MSCP Mailman plugin (backend side)
 
 =cut
 
 # i-MSCP Mailman plugin
-# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -77,7 +71,10 @@ sub install
 		my $file = iMSCP::File->new( filename => '/etc/mailman/mm_cfg.py' );
 
 		unless(-f '/etc/mailman/mm_cfg.py.dist') {
-			$rs = $file->copyFile( '/etc/mailman/mm_cfg.py.dist' );
+		
+			$rs = execute("cp -fR /etc/mailman/mm_cfg.py /etc/mailman/mm_cfg.py.dist", \my $stdout, \my $stderr);
+			debug($stdout) if $stdout;
+			error($stderr) if $stderr && $rs;
 			return $rs if $rs;
 		}
 
@@ -86,6 +83,7 @@ sub install
 
 		$fileContent =~ s#^(DEFAULT_URL_PATTERN\s*=\s*).*$#$1'http://%s/'#gm;
 		$fileContent =~ s/^#\s*(MTA\s*=\s*None)/$1/im;
+		$fileContent =~ s#^(DEFAULT_SERVER_LANGUAGE\s*=\s*).*$#$1'$self->{'config'}->{'DEFAULT_LANGUAGE'}'#gm;
 
 		$rs = $file->set($fileContent);
 		return $rs if $rs;
@@ -106,13 +104,13 @@ sub install
 	return $rs if $rs;
 
 	# Add mailman configuration parameter in Postfix main.cf file
-
+	# We don't use {'wrkDir'}/main.cf because when we copy this file in production directory changes that made listener files or plugins with postconf is lost
 	my $mta = Servers::mta->factory();
 
-	my $file = iMSCP::File->new( filename => "$mta->{'wrkDir'}/main.cf" );
+	my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
 	my $fileContent = $file->get();
 	unless(defined $fileContent) {
-		error("Unable to read $mta->{'wrkDir'}/main.cf");
+		error("Unable to read $mta->{'config'}->{'POSTFIX_CONF_FILE'}");
 		return 1;
 	}
 
@@ -139,10 +137,6 @@ EOF
 	return $rs if $rs;
 
 	$rs = $file->save();
-	return $rs if $rs;
-
-	# Install postfix main.cf file in production directory
-	$rs = $file->copyFile($mta->{'config'}->{'POSTFIX_CONF_FILE'});
 	return $rs if $rs;
 
 	# Schedule Postfix restart
@@ -227,7 +221,9 @@ sub uninstall
 	return $rs if $rs;
 
 	# Install postfix main.cf file in production directory
-	$rs = $file->copyFile($mta->{'config'}->{'POSTFIX_CONF_FILE'});
+	$rs = execute("cp -fR $mta->{'wrkDir'}/main.cf $mta->{'config'}->{'POSTFIX_CONF_FILE'}", \my $stdout, \my $stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
 
 	# Schedule Postfix restart
@@ -240,7 +236,10 @@ sub uninstall
 
 	# Restore original /etc/mailman/mm_cfg.py file if any
 	if( -f '/etc/mailman/mm_cfg.py.dist') {
-		$rs = iMSCP::File->new( filename => '/etc/mailman/mm_cfg.py.dist' )->copyFile( '/etc/mailman/mm_cfg.py.' );
+	
+		$rs = execute("mv /etc/mailman/mm_cfg.py.dist /etc/mailman/mm_cfg.py}", \my $stdout, \my $stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 	}
 
