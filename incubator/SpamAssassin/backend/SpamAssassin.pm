@@ -659,7 +659,7 @@ sub _registerCronjob
 			DAY => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'day'},
 			MONTH => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'month'},
 			DWEEK => $self->{'config'}->{'cronjob_bayes_sa-learn'}->{'dweek'},
-			COMMAND => "perl $cronjobFilePath >/dev/null 2>&1"
+			COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
 		});
 	} elsif($cronjobName eq 'clean_bayes_db') {
 		Servers::cron->factory()->addTask({
@@ -669,7 +669,7 @@ sub _registerCronjob
 			DAY => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'day'},
 			MONTH => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'month'},
 			DWEEK => $self->{'config'}->{'cronjob_clean_bayes_db'}->{'dweek'},
-			COMMAND => "perl $cronjobFilePath >/dev/null 2>&1"
+			COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
 		});
 	} elsif($cronjobName eq 'clean_awl_db') {
 		Servers::cron->factory()->addTask({
@@ -679,13 +679,13 @@ sub _registerCronjob
 			DAY => $self->{'config'}->{'cronjob_clean_awl_db'}->{'day'},
 			MONTH => $self->{'config'}->{'cronjob_clean_awl_db'}->{'month'},
 			DWEEK => $self->{'config'}->{'cronjob_clean_awl_db'}->{'dweek'},
-			COMMAND => "perl $cronjobFilePath >/dev/null 2>&1"
+			COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
 		});
 	} elsif($cronjobName eq 'discover_razor') {
 		Servers::cron->factory()->addTask({
 			TASKID => 'Plugin::SpamAssassin::DiscoverRazor',
 			MINUTE => '@weekly',
-			COMMAND => "perl $cronjobFilePath >/dev/null 2>&1"
+			COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
 		});
 	}
 
