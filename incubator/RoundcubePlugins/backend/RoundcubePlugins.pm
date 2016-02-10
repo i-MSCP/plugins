@@ -660,7 +660,7 @@ sub _registerCronjobPop3fetcher
 		DAY => $self->{'config'}->{'pop3fetcher_cronjob'}->{'day'},
 		MONTH => $self->{'config'}->{'pop3fetcher_cronjob'}->{'month'},
 		DWEEK => $self->{'config'}->{'pop3fetcher_cronjob'}->{'dweek'},
-		COMMAND => "perl $filepath >/dev/null 2>&1"
+		COMMAND => "nice -n 15 ionice -c2 -n5 perl $filepath >/dev/null 2>&1"
 	});
 
 	0;
