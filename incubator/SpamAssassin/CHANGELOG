@@ -1,6 +1,7 @@
 SpamAssassin - ChangeLog
 ========================
 
+	Changed: Run cronjobs with lower priority
 	Changed: Requirements check
 	Updated: SpamAssassin plugin DecodeShortURLs
 	Changed: New default values in config.php
