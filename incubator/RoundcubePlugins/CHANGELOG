@@ -1,6 +1,7 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+	Changed: Run cronjob with lower priority
 	Added: Password config options
 	Fixed: Regex for archive and managesieve plugins
 	Added: Rouncube reCAPTCHA plugin
