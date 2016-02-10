@@ -1,6 +1,9 @@
 SpamAssassin - ChangeLog
 ========================
 
+	Added: Option to define networks which won't be scanned for SPAM
+	Added: Option to scan outgoing mails of SMTP authenticated senders
+	Changed: Option to reject all SPAM mails or only above a defined score level 
 	Changed: Run cronjobs with lower priority
 	Changed: Requirements check
 	Updated: SpamAssassin plugin DecodeShortURLs

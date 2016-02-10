@@ -30,15 +30,6 @@ return array(
 	// WARNING: Don't change anything, if you don't know what you are doing.
 	//
 
-	// Reject spam (default: yes)
-	//
-	// If set to 'yes', the mails are rejected when they are detected as SPAM by SpamAssassin.
-	// If set to 'no', the mails are not rejected but tagged as SPAM when they are detected by SpamAssassin.
-	//
-	// Note: Rejecting SPAM is supported because the checks are done totally legal before the MTA accepts the mails
-	// (before-queue filter with spamass-milter)
-	'reject_spam' => 'yes',
-
 	// Use bayes (default: yes)
 	//
 	// If set to 'yes', enable usage of the bayes database.
@@ -164,10 +155,45 @@ return array(
 	'sauserprefs_dont_override' => "'{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'", // default: ""'{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'"
 
 	//
-	//// SpamAssassin and spamass-milter configuration
+	//// spamass-milter daemon configuration
 	//
 
-	'spamassMilterOptions' => '-e -f -I -u spamass-milter',
-	'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock',
+	'spamassMilter_config' => array(
+		// Reject spam
+		//
+		// If set to '-1', mails are always rejected when they are detected as SPAM.
+		// If set to '15', mails are only rejected when the score is equal or greater then 15. 
+		// Mails below that score are not rejected but tagged as SPAM.
+		//
+		// If you don't want to reject any mails, then use a value higher then '1000'.
+		//
+		// Note: Rejecting SPAM is supported because the checks are done totally legal 
+		// before the MTA accepts the mails (before-queue filter with spamass-milter).
+		'reject_spam' => '-1', // (default: -1)
+
+		// Check mails if the sender has authenticated via SMTP AUTH.
+		// If set to 'yes', all outgoing mails of authenticated senders are scanned.
+		'check_smtp_auth' => 'yes', // (default: yes)
+
+		// Don't scan listed networks 
+		//
+		// Mails will be passed through without beeing scanned if the originating IP is listed 
+		// in networks. Networks is a comma-separated list, where each element can be either an 
+		// IP address (nnn.nnn.nnn.nnn), a CIDR network (nnn.nnn.nnn.nnn/nn), or a network/netmask
+		// pair (nnn.nnn.nnn.nnn/nnn.nnn.nnn.nnn).
+		//
+		// For example: networks => array('127.0.0.1', '172.16.12.0/24', '10.0.0.0/255.0.0.0')
+		'networks' => array(), // (default: array())
+
+		// WARNING: Don't change anything, if you don't know what you are doing.
+		'spamassMilterOptions' => '-e -f -u spamass-milter',
+		'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock'
+	),
+
+	//
+	//// SpamAssassin daemon configuration
+	//
+
+	// WARNING: Don't change anything, if you don't know what you are doing.
 	'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
 );

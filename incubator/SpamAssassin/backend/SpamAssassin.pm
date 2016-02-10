@@ -471,11 +471,17 @@ sub _spamassMilterDefaultConfig
 	}
 
 	if($action eq 'configure') {
-		my $spamassMilterOptions = $self->{'config'}->{'spamassMilterOptions'};
-		my $milterSocket = $self->{'config'}->{'spamassMilterSocket'};
+		my $spamassMilterOptions = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterOptions'};
+		my $spamassMilterSocket = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'};
 
-		if($self->{'config'}->{'reject_spam'} eq 'yes') {
-			$spamassMilterOptions .= ' -r -1';
+		$spamassMilterOptions .= ' -r ' . $self->{'config'}->{'spamassMilter_config'}->{'reject_spam'};
+
+		if($self->{'config'}->{'spamassMilter_config'}->{'check_smtp_auth'} eq 'no') {
+			$spamassMilterOptions .= ' -I';
+		}
+
+		for(@{$self->{'config'}->{'spamassMilter_config'}->{'networks'}}) {
+			$spamassMilterOptions .= ' -i ' . $_;
 		}
 
 		$self->{'config'}->{'spamassassinOptions'} =~ m/port=(\d+)/;
@@ -485,7 +491,7 @@ sub _spamassMilterDefaultConfig
 		}
 
 		$fileContent =~ s/^OPTIONS=.*/OPTIONS="$spamassMilterOptions"/gm;
-		$fileContent =~ s/.*SOCKET=.*/SOCKET="$milterSocket"/gm;
+		$fileContent =~ s/.*SOCKET=.*/SOCKET="$spamassMilterSocket"/gm;
 	} elsif($action eq 'deconfigure') {
 		$fileContent =~ s/^OPTIONS=.*/OPTIONS="-u spamass-milter -i 127.0.0.1"/gm;
 		$fileContent =~ s%^SOCKET=.*%# SOCKET="/var/spool/postfix/spamass/spamass.sock"%gm;
@@ -554,13 +560,13 @@ sub _postfixConfig
 	# Extract postconf values
 	my @postconfValues = split /\n/, $stdout;
 
-	(my $milterValue = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
-	(my $milterValuePrev = $self->{'config_prev'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
+	(my $milterValue = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
+	(my $milterValuePrev = $self->{'config_prev'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 	my $milterMacro = '{if_name} _';
 
 	s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E|\Q$milterMacro\E)//g for @postconfValues;
 
-	(my $milterSocket = $self->{'config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
+	(my $spamassMilterSocket = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
 
 	if($action eq 'configure') {
 		my @postconf = (
@@ -1107,7 +1113,7 @@ sub _setRoundcubePluginConfig
 
 		my $sauserprefsDontOverride = $self->{'config'}->{'sauserprefs_dont_override'};
 
-		if($self->{'config'}->{'reject_spam'} eq 'yes') {
+		if($self->{'config'}->{'spamassMilter_config'}->{'reject_spam'} eq '-1') {
 			$sauserprefsDontOverride .= ", 'rewrite_header Subject', '{report}'";
 		}
 
