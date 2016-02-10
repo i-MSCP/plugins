@@ -89,6 +89,9 @@ sub change
 	$rs = $self->_updateSpamassassinRules();
 	return $rs if $rs;
 
+	$rs = $self->_spamassassinRulesHeinleinSupport('add');
+	return $rs if $rs;
+	
 	$rs = $self->_spamassassinConfig('00_imscp.cf');
 	return $rs if $rs;
 
@@ -242,6 +245,9 @@ sub uninstall
 	$rs = $self->_setSpamassassinPlugin('iXhash2', 'remove');
 	return $rs if $rs;
 
+	$rs = $self->_spamassassinRulesHeinleinSupport('remove');
+	return $rs if $rs;
+
 	iMSCP::Service->getInstance()->restart('spamassassin');
 
 	$self->_dropSaDatabaseUser();
@@ -393,6 +399,15 @@ sub _updateSpamassassinRules
 	error($stderr) if $stderr && $rs >= 4;
 	return $rs if $rs >= 4;
 
+	if($self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
+		$rs = execute(
+			"/bin/su $saUser -c '/usr/bin/sa-update --nogpg --channel spamassassin.heinlein-support.de'", \my $stdout, \my $stderr
+		);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs >= 4;
+		return $rs if $rs >= 4;
+	}
+
 	$rs = execute("su $saUser -c '/usr/bin/sa-compile --quiet'", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
@@ -447,6 +462,53 @@ sub _createRazor
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	$rs;
+}
+
+=item _spamassassinRulesHeinleinSupport($action)
+
+ Add or remove Heinlein Support SpamAssassin rules
+
+ Param string $action Action to perform (add|remove)
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _spamassassinRulesHeinleinSupport
+{
+	my ($self, $action) = @_;
+
+	if($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
+		my $rs = execute("cp -a /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+
+		my $file = iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' );
+		my $fileContent = $file->get();
+		unless(defined $fileContent) {
+			error("Unable to read $file->{'filename'} file");
+			return 1;
+		}
+
+		$fileContent =~ s/3600/600/g;
+		$fileContent =~ s/^(sa-update)$/$1 --nogpg --channel spamassassin.heinlein-support.de/m;
+		$fileContent =~ s/--gpghomedir \/var\/lib\/spamassassin\/sa-update-keys/--nogpg --channel spamassassin.heinlein-support.de/g;
+
+		$rs = $file->set($fileContent);
+		return $rs if $rs;
+
+		$file->save();
+	} elsif($action eq 'remove' || $self->{'config'}->{'heinlein-support_sa-rules'} eq 'no') {
+		my $rs = execute("rm -rf /var/lib/spamassassin/*/spamassassin_heinlein-support_de*", \my $stdout, \my $stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+
+		$rs = execute("rm -f /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
+		debug($stdout) if $stdout;
+		error($stderr) if $stderr && $rs;
+		return $rs if $rs;
+	}
 }
 
 =item _spamassMilterDefaultConfig($action)

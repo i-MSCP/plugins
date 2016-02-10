@@ -104,7 +104,21 @@ return array(
 	'use_lang_check' => 'no', // yes, no (default)
 
 	//
-	//// 3rd party SpamAssasin plugins
+	//// 3rd party SpamAssassin rules
+	//
+
+	// Heinlein Support SpamAssassin rules (default: yes)
+	//
+	// Latest SpamAssassin rules directly from the Heinlein Hosting live systems.
+	// Heinlein Support is a German ISP company and specialized on mail servers. 
+	// The founder and owner Peer Heinlein has written several books about Dovecot and Postfix.
+	// 
+	// For further details check the link below: 
+	// https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
+	'heinlein-support_sa-rules' => 'yes',
+
+	//
+	//// 3rd party SpamAssassin plugins
 	//
 
 	// DecodeShortURLs plugin (default: yes)

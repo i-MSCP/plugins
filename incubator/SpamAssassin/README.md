@@ -46,6 +46,15 @@ See [Configuration file](../SpamAssassin/config.php)
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
 
+## 3rd party SpamAssasin rules
+
+### Heinlein Support SpamAssasin rules
+
+Latest SpamAssassin rules directly from the Heinlein Hosting live systems.
+Heinlein Support is a German ISP company and specialized on mail servers. 
+The founder and owner [Peer Heinlein](https://de.wikipedia.org/wiki/Peer_Heinlein "Peer Heinlein") has written several [books](https://portal.dnb.de/opac.htm?method=simpleSearch&query=123703522) about Dovecot and Postfix.
+For further details check the [blog](https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/ "Aktuelle SpamAssassin-Regeln von Heinlein Support") entry.
+
 ## 3rd party SpamAssasin plugins
 
 ### DecodeShortURLs
