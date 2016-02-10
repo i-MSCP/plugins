@@ -478,7 +478,7 @@ sub _spamassassinRulesHeinleinSupport
 	my ($self, $action) = @_;
 
 	if($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
-		# Create an hourly cronjob from the original SpamassAssin cronjob
+		# Create an hourly cronjob from the original SpamAssassin cronjob
 		my $rs = execute("cp -a /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
