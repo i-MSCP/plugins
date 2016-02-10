@@ -478,6 +478,7 @@ sub _spamassassinRulesHeinleinSupport
 	my ($self, $action) = @_;
 
 	if($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
+		# Create an hourly cronjob from the original SpamassAssin cronjob
 		my $rs = execute("cp -a /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
@@ -490,8 +491,11 @@ sub _spamassassinRulesHeinleinSupport
 			return 1;
 		}
 
+		# Change the sleep timer to 600 seconds on all distributions
 		$fileContent =~ s/3600/600/g;
+		# Change the sa-update channel on Ubuntu Precise
 		$fileContent =~ s/^(sa-update)$/$1 --nogpg --channel spamassassin.heinlein-support.de/m;
+		# Change the sa-update channel on Debian Wheezy / Jessie / Stretch and Ubuntu Xenial
 		$fileContent =~ s/--gpghomedir \/var\/lib\/spamassassin\/sa-update-keys/--nogpg --channel spamassassin.heinlein-support.de/g;
 
 		$rs = $file->set($fileContent);
