@@ -469,7 +469,7 @@ sub _addCronjob
 				'DAY' => $self->{'config'}->{'cronjob_timedate'}->{'day'},
 				'MONTH' => $self->{'config'}->{'cronjob_timedate'}->{'month'},
 				'DWEEK' => $self->{'config'}->{'cronjob_timedate'}->{'dweek'},
-				'COMMAND' => "perl $scriptPath >/dev/null 2>&1"
+				'COMMAND' => "nice -n 15 ionice -c2 -n5 perl $scriptPath >/dev/null 2>&1"
 			}
 		);
 	} else {
