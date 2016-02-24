@@ -528,10 +528,10 @@ SOCKET="inet:$self->{'config'}->{'opendkim_port'}\@localhost"
 # Ending Plugin::OpenDKIM
 EOF
 
-		if(getBloc("Begin Plugin::OpenDKIM\n", "Ending Plugin::OpenDKIM\n", $fileContent) ne '') {
+		if(getBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", $fileContent) ne '') {
 			$fileContent = replaceBloc(
-				"Begin Plugin::OpenDKIM\n",
-				"Ending Plugin::OpenDKIM\n",
+				"# Begin Plugin::OpenDKIM\n",
+				"# Ending Plugin::OpenDKIM\n",
 				$configSnippet,
 				$fileContent
 			);
@@ -539,7 +539,7 @@ EOF
 			$fileContent .= $configSnippet;
 		}
 	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc("Begin Plugin::OpenDKIM\n", "Ending Plugin::OpenDKIM\n", '');
+		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '');
 	}
 
 	my $rs = $file->set($fileContent);
@@ -568,10 +568,10 @@ InternalHosts /etc/opendkim/TrustedHosts
 # Ending Plugin::OpenDKIM
 EOF
 
-		if(getBloc("Begin Plugin::OpenDKIM\n", "Ending Plugin::OpenDKIM\n", $fileContent) ne '') {
+		if(getBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", $fileContent) ne '') {
 			$fileContent = replaceBloc(
-				"Begin Plugin::OpenDKIM\n",
-				"Ending Plugin::OpenDKIM\n",
+				"# Begin Plugin::OpenDKIM\n",
+				"# Ending Plugin::OpenDKIM\n",
 				$configSnippet,
 				$fileContent
 			);
@@ -579,7 +579,7 @@ EOF
 			$fileContent .= $configSnippet;
 		}
 	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc("Begin Plugin::OpenDKIM\n", "Ending Plugin::OpenDKIM\n", '');
+		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '');
 	}
 
 	$rs = $file->set($fileContent);
