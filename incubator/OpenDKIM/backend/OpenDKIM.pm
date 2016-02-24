@@ -34,6 +34,7 @@ use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::Execute;
 use iMSCP::TemplateParser;
+use iMSCP::Rights;
 use iMSCP::Service;
 use Servers::mta;
 use parent 'Common::SingletonClass';
@@ -175,6 +176,16 @@ sub enable
 	return $rs if $rs;
 
 	Servers::mta->factory()->{'restart'} = 'yes';
+
+	setRights('/etc/opendkim', {
+		user => 'opendkim',
+		group => 'opendkim',
+		dirmode => '0750',
+		filemode => '0640',
+		recursive => 1
+	});
+
+	iMSCP::Service->getInstance()->restart('opendkim');
 
 	0;
 }
