@@ -401,7 +401,7 @@ sub _updateSpamassassinRules
 
 	if($self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
 		$rs = execute(
-			"/bin/su $saUser -c '/usr/bin/sa-update --nogpg --channel spamassassin.heinlein-support.de'", \my $stdout, \my $stderr
+			"/bin/su $saUser -c '/usr/bin/sa-update --nogpg --channel spamassassin.heinlein-support.de'", \$stdout, \$stderr
 		);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs >= 4;
@@ -491,7 +491,7 @@ sub _spamassassinRulesHeinleinSupport
 			return 1;
 		}
 
-		# Change the sleep timer to 600 seconds on all distributions
+		# Change the sleep timer to 600 seconds on all versions
 		$fileContent =~ s/3600/600/g;
 		# Change the sa-update channel on Ubuntu Precise
 		$fileContent =~ s/^(sa-update)$/$1 --nogpg --channel spamassassin.heinlein-support.de/m;
@@ -508,7 +508,7 @@ sub _spamassassinRulesHeinleinSupport
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
 
-		$rs = execute("rm -f /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
+		$rs = execute("rm -f /etc/cron.hourly/spamassassin_heinlein-support_de", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 		return $rs if $rs;
