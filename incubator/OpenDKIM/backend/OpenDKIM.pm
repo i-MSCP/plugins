@@ -585,6 +585,7 @@ EOF
 		my $configSnippet = <<EOF;
 # Begin Plugin::OpenDKIM
 UMask 0111
+SyslogSuccess yes
 Canonicalization $self->{'config'}->{'opendkim_canonicalization'}
 KeyTable refile:/etc/opendkim/KeyTable
 SigningTable refile:/etc/opendkim/SigningTable
