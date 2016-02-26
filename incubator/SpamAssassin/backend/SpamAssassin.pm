@@ -86,9 +86,6 @@ sub change
 	my $rs = $self->_getSaDbPassword();
 	return $rs if $rs;
 
-	$rs = $self->_updateSpamassassinRules();
-	return $rs if $rs;
-
 	$rs = $self->_spamassassinRulesHeinleinSupport('add');
 	return $rs if $rs;
 	
@@ -372,51 +369,6 @@ sub _init
 	$self->{'SA_DATABASE_USER'} = 'sa_user';
 	$self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
 	$self;
-}
-
-=item _updateSpamassassinRules()
-
- Update the SpamAssassin filter rules and keys
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _updateSpamassassinRules
-{
-	my $self = shift;
-
-	$self->{'config'}->{'spamassassinOptions'} =~ m/helper-home-dir=(\S*)/;
-	my $helperHomeDir = $1;
-
-	$self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
-	my $saUser = $1;
-
-	my $rs = execute(
-		"/bin/su $saUser -c '/usr/bin/sa-update --gpghomedir $helperHomeDir/sa-update-keys'", \my $stdout, \my $stderr
-	);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs >= 4;
-	return $rs if $rs >= 4;
-
-	if($self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
-		$rs = execute(
-			"/bin/su $saUser -c '/usr/bin/sa-update --nogpg --channel spamassassin.heinlein-support.de'", \$stdout, \$stderr
-		);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs >= 4;
-		return $rs if $rs >= 4;
-	}
-
-	$rs = execute("su $saUser -c '/usr/bin/sa-compile --quiet'", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	$rs = execute("chmod -R go-w,go+rX $helperHomeDir/compiled", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	$rs;
 }
 
 =item _discoverPyzor()

@@ -1,6 +1,7 @@
 SpamAssassin - ChangeLog
 ========================
 
+	Removed: Update SpamAssassin rules and keys. Will be done by the default SpamAssassin cronjob.
 	Added: 3rd party SpamAssassin rules from Heinlein Support
 	Added: Option to define networks which won't be scanned for SPAM
 	Added: Option to scan outgoing mails of SMTP authenticated senders
