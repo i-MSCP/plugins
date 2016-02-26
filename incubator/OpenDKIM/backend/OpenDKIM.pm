@@ -563,7 +563,7 @@ EOF
 			$fileContent .= $configSnippet;
 		}
 	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '');
+		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '', $fileContent);
 	}
 
 	my $rs = $file->set($fileContent);
@@ -604,7 +604,7 @@ EOF
 			$fileContent .= $configSnippet;
 		}
 	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '');
+		$fileContent = replaceBloc("# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", '', $fileContent);
 	}
 
 	$rs = $file->set($fileContent);

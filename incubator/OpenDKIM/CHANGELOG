@@ -1,6 +1,7 @@
 OpenDKIM - ChangeLog
 ====================
 
+	Fixed: Deconfigure removed the entire OpenDKIM file content
 	Changed: Default Socket changed to UNIX
 	Fixed: Set opendkim permissions on activation
 
