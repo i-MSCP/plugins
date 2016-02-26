@@ -108,24 +108,6 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 	}
 
 	/**
-	 * Plugin activation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function enable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		try {
-			iMSCP_Registry::get('dbConfig')->set(
-				'PORT_OPENDKIM', $this->getConfigParam('opendkim_port', 12345) . ';tcp;OPENDKIM;1;127.0.0.1'
-			);
-		} catch(iMSCP_Exception $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
 	 * Plugin deactivation
 	 *
 	 * @throws iMSCP_Plugin_Exception

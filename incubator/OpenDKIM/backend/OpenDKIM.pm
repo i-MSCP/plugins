@@ -61,15 +61,8 @@ sub install
 
 	my $rs = _checkRequirements();
 	return $rs if $rs;
-	
-	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim' )->make(
-		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
-	);
-	return $rs if $rs;
 
-	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim/keys' )->make(
-		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
-	);
+	$rs = $self->_createOpendkimDirectories();
 	return $rs if $rs;
 
 	$rs = $self->_createOpendkimFile('KeyTable');
@@ -107,6 +100,8 @@ sub uninstall
 	iMSCP::Service->getInstance()->restart('opendkim');
 
 	iMSCP::Dir->new( dirname => '/etc/opendkim' )->remove();
+
+	iMSCP::Dir->new( dirname => '/var/spool/postfix/opendkim' )->remove();
 }
 
 =item update()
@@ -121,7 +116,10 @@ sub update
 {
 	my $self = shift;
 
-	my $rs = $self->_opendkimConfig('configure');
+	my $rs = $self->_createOpendkimDirectories();
+	return $rs if $rs;
+
+	$rs = $self->_opendkimConfig('configure');
 	return $rs if $rs;
 
 	iMSCP::Service->getInstance()->restart('opendkim');
@@ -497,6 +495,32 @@ sub _deleteDomainKey
 	0;
 }
 
+=item _createOpendkimDirectories()
+
+ Create OpenDKIM directories
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _createOpendkimDirectories
+{
+	my $rs = iMSCP::Dir->new( dirname => '/etc/opendkim' )->make(
+		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
+	);
+	return $rs if $rs;
+
+	$rs = iMSCP::Dir->new( dirname => '/etc/opendkim/keys' )->make(
+		{ user => 'opendkim', group => 'opendkim', mode => 0750 }
+	);
+	return $rs if $rs;
+
+	$rs = iMSCP::Dir->new( dirname => '/var/spool/postfix/opendkim' )->make(
+		{ user => 'opendkim', group => 'root', mode => 0755 }
+	);
+	return $rs if $rs;
+}
+
 =item _opendkimConfig($action)
 
  Configure or deconfigure OpenDKIM
@@ -524,7 +548,7 @@ sub _opendkimConfig
 
 		$configSnippet = <<EOF;
 # Begin Plugin::OpenDKIM
-SOCKET="inet:$self->{'config'}->{'opendkim_port'}\@localhost"
+SOCKET="$self->{'config'}->{'OpenDKIM_Socket'}"
 # Ending Plugin::OpenDKIM
 EOF
 
@@ -560,6 +584,7 @@ EOF
 	if($action eq 'configure') {
 		my $configSnippet = <<EOF;
 # Begin Plugin::OpenDKIM
+UMask 0111
 Canonicalization $self->{'config'}->{'opendkim_canonicalization'}
 KeyTable refile:/etc/opendkim/KeyTable
 SigningTable refile:/etc/opendkim/SigningTable
@@ -601,8 +626,7 @@ sub _postfixMainConfig
 {
 	my ($self, $action) = @_;
 
-	my ($stdout, $stderr);
-	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \$stdout, \$stderr);
+	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \my $stdout, \my $stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
 	return $rs if $rs;
@@ -610,10 +634,12 @@ sub _postfixMainConfig
 	# Extract postconf values
 	my @postconfValues = split /\n/, $stdout;
 
-	my $milterValue = 'inet:localhost:' . $self->{'config'}->{'opendkim_port'};
-	my $milterValuePrev = 'inet:localhost:' . $self->{'config_prev'}->{'opendkim_port'};
+	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
+	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
+	# Remove the milter value from the deprecated opendkim_port on plugin update
+	$milterValuePrev = "inet:localhost:$self->{'config_prev'}->{'opendkim_port'}" unless $milterValuePrev ne '';
 
-	s/\s*\Q$milterValuePrev\E//g for @postconfValues;
+	s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E)//g for @postconfValues;
 
 	if($action eq 'configure') {
 		my @postconf = (
@@ -627,7 +653,7 @@ sub _postfixMainConfig
 			)
 		);
 
-		$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
+		$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
 	} elsif($action eq 'deconfigure') {
@@ -638,7 +664,7 @@ sub _postfixMainConfig
 				push @postconf, 'non_smtpd_milters=' . escapeShell($postconfValues[1]);
 			}
 
-			$rs = execute("postconf -e @postconf", \$stdout, \$stderr);
+			$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
 			debug($stdout) if $stdout;
 			error($stderr) if $stderr && $rs;
 		}

@@ -21,9 +21,19 @@
  */
 
 return array(
-	// OpenDKIM listening port (default: 12345)
-	// Warning: Don't use a port lower than 1000 nor greater than 65535
-	'opendkim_port' => '12345',
+	// OpenDKIM Socket (default: local:/var/spool/postfix/opendkim/opendkim.sock)
+	//
+	// Possible values:
+	//  'local:/var/spool/postfix/opendkim/opendkim.sock' for connection through UNIX socket
+	//  'inet:12345@localhost' for connection through TCP socket
+	'OpenDKIM_Socket' => 'local:/var/spool/postfix/opendkim/opendkim.sock',
+	
+	// Postfix smtpd milter for OpenDKIM (default: unix:/opendkim/opendkim.sock)
+	//
+	// Possible values:
+	//  'unix:/opendkim/opendkim.sock' for connection through UNIX socket
+	//  'inet:localhost:12345' for connection through TCP socket
+	'PostfixMilterSocket' => 'unix:/opendkim/opendkim.sock',
 
 	// OpenDKIM canonicalization method (default: simple)
 	//

@@ -1,6 +1,7 @@
 OpenDKIM - ChangeLog
 ====================
 
+	Changed: Default Socket changed to UNIX
 	Fixed: Set opendkim permissions on activation
 
 ------------------------------------------------------------------------------------------------------------------------
