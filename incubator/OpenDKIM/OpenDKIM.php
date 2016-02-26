@@ -85,6 +85,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 		try {
 			$this->migrateDb('up');
 			$this->clearTranslations();
+			iMSCP_Registry::get('dbConfig')->del('PORT_OPENDKIM');
 		} catch(iMSCP_Plugin_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
@@ -103,22 +104,6 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
 			$this->migrateDb('down');
 			$this->clearTranslations();
 		} catch(iMSCP_Plugin_Exception $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
-
-	/**
-	 * Plugin deactivation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function disable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		try {
-			iMSCP_Registry::get('dbConfig')->del('PORT_OPENDKIM');
-		} catch(iMSCP_Exception $e) {
 			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
 		}
 	}
