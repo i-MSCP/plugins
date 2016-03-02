@@ -89,7 +89,7 @@ sub enable
 	return $rs if $rs;
 
 	# Install Adminer in production directory
-	my $file = iMSCP::File->new( filename => "$srcDir/adminer$fileSuffix" );
+	$file = iMSCP::File->new( filename => "$srcDir/adminer$fileSuffix" );
 
 	$rs = $file->owner($panelUName, $panelGName);
 	return $rs if $rs;
