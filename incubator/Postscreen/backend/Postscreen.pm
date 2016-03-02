@@ -54,8 +54,13 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	unless(-x '/usr/lib/postfix/postscreen') {
-		error('Your Postfix version is too old. Postscreen requires Postfix version 2.8 or more recent.');
+	my $self = shift;
+
+	my $version = $self->_checkPostfixVersion();
+
+	# Check if Postfix version is 2.8 or later
+	if(version->parse($version) < version->parse("2.8.0")) {
+		error('Your Postfix version is too old. Postscreen requires Postfix version 2.8 or later.');
 		return 1;
 	}
 
@@ -447,6 +452,28 @@ sub _schedulePostfixRestart
 {
 	require Servers::mta;
 	Servers::mta->factory()->restart('defer');
+}
+
+=item _checkPostfixVersion()
+
+ Check Postfix version
+
+ Return string $version
+
+=cut
+
+sub _checkPostfixVersion
+{
+	my $rs = execute("postconf mail_version | awk '{print \$NF}'", \my $stdout, \my $stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr;
+	return $rs if $rs;
+
+	chomp($stdout);
+	$stdout =~ m/^\s*([0-9\.]+)\s*/;
+	my $version = $1;
+
+	$version;
 }
 
 =back
