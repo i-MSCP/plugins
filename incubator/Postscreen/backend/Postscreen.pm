@@ -264,11 +264,19 @@ sub _postfixMainCf
 postscreen_greet_action = $self->{'config'}->{'postscreen_greet_action'}
 postscreen_dnsbl_sites = $postscreenDnsblSites
 postscreen_dnsbl_threshold = $self->{'config'}->{'postscreen_dnsbl_threshold'}
+postscreen_dnsbl_whitelist_threshold = $self->{'config'}->{'postscreen_dnsbl_whitelist_threshold'}
 postscreen_dnsbl_action = $self->{'config'}->{'postscreen_dnsbl_action'}
 postscreen_access_list = $postscreenAccessList
 postscreen_blacklist_action = $self->{'config'}->{'postscreen_blacklist_action'}
 # Plugin::Postscreen - Ending
 EOF
+
+		my $version = $self->_checkPostfixVersion();
+
+		# If Postfix version < 2.11.0 then remove postscreen_dnsbl_whitelist_threshold feature
+		if(version->parse($version) < version->parse("2.11.0")) {
+			$confSnippet =~ s/^postscreen_dnsbl_whitelist_threshold.*\n//m;
+		}
 
 		if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
 			$fileContent = replaceBloc(

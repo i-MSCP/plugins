@@ -1,6 +1,7 @@
 Postscreen - ChangeLog
 ======================
 
+	Added: Postscreen dnsbl whitelist threshold
 	Added: Postfix version check
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -46,6 +46,13 @@ return array(
 	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_threshold
 	'postscreen_dnsbl_threshold' => '3',
 
+	// Postscreen dnsbl whitelist threshold (default: -1)
+	//
+	// Allow "good" clients to skip tests with the postscreen_dnsbl_whitelist_threshold feature 
+	// This feature is available in Postfix 2.11 and later.
+	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_whitelist_threshold
+	'postscreen_dnsbl_whitelist_threshold' => '-1',
+
 	// Postscreen dnsbl action (default: enforce)
 	//
 	// See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_action
