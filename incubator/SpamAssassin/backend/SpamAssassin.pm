@@ -1275,7 +1275,7 @@ sub _setupDatabase
 	};
 	if($@) {
 		error(sprintf('Could not create SQL user for SpamAssassin: %s', $@));
-		return;
+		return 1;
 	}
 
 	$rs = $db->doQuery(
