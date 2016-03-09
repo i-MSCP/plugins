@@ -1,19 +1,21 @@
 SpamAssassin - ChangeLog
 ========================
 
-	Removed: Update SpamAssassin rules and keys. Will be done by the default SpamAssassin cronjob.
+
 	Added: 3rd party SpamAssassin rules from Heinlein Support
 	Added: Option to define networks which won't be scanned for SPAM
 	Added: Option to scan outgoing mails of SMTP authenticated senders
-	Changed: Option to reject all SPAM mails or only above a defined score level 
-	Changed: Run cronjobs with lower priority
+	Changed: Option to reject all SPAM mails or only above a defined score level
 	Changed: Requirements check
-	Updated: SpamAssassin plugin DecodeShortURLs
+	Changed: Run cronjobs with lower priority
 	Changed: New default values in config.php
+	Changed: Usage of i-MSCP API to create/drop SQL user
+	Removed: Deprecated config option sauserprefs_bayes_delete
+	Removed: Update SpamAssassin rules and keys. Will be done by the default SpamAssassin cronjob.
 	Updated: Roundcube plugin markasjunk2
 	Updated: Roundcube plugin sauserprefs
-	Removed: Deprecated config option sauserprefs_bayes_delete
-	
+	Updated: SpamAssassin plugin DecodeShortURLs
+
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.7
 ------------------------------------------------------------------------------------------------------------------------

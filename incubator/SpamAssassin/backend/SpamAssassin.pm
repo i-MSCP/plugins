@@ -35,6 +35,7 @@ use iMSCP::Database;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use Servers::cron;
+use Servers::sqld;
 use version;
 
 use parent 'Common::SingletonClass';
@@ -1221,7 +1222,7 @@ sub _setSpamassassinUserprefs
 
  Setup SpamAssassin database
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
@@ -1263,12 +1264,25 @@ sub _setupDatabase
 	$rs = $self->_getSaDbPassword();
 	return $rs if $rs;
 
+	# Ensure that SQL user doesn't already exists
+	$self->_dropSaDatabaseUser();
+
+	local $@;
+	eval {
+		Servers::sqld->factory()->createUser(
+			$self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}, $self->{'SA_DATABASE_PASSWORD'}
+		);
+	};
+	if($@) {
+		error(sprintf('Could not create SQL user for SpamAssassin: %s', $@));
+		return;
+	}
+
 	$rs = $db->doQuery(
 		'g',
-		"GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@? IDENTIFIED BY ?",
-		 $self->{'SA_DATABASE_USER'},
-		 $self->{'SA_HOST'},
-		 $self->{'SA_DATABASE_PASSWORD'}
+		"GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@?",
+		$self->{'SA_DATABASE_USER'},
+		$self->{'SA_HOST'},
 	);
 	unless(ref $rs eq 'HASH') {
 		error("Unable to add privileges on the '$spamassassinDbName' database: $rs");
@@ -1282,7 +1296,7 @@ sub _setupDatabase
 
  Drop SpamAssassin database user
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, 1 on failure
 
 =cut
 
@@ -1290,12 +1304,11 @@ sub _dropSaDatabaseUser
 {
 	my $self = shift;
 
-	my $rdata = iMSCP::Database->factory->doQuery(
-		'd', "DROP USER ?@?;",  $self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}
-	);
-	unless(ref $rdata eq 'HASH') {
-		error("Unable to drop the $self->{'SA_DATABASE_USER'} SQL user: $rdata");
-		return 1;
+	local $@;
+	eval { Servers::sqld->factory()->dropUser($self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}); };
+	if($@) {
+		error(sprintf('Could not drop SpamAssassin SQL user: %s', $@));
+		return; 1
 	}
 
 	0;
