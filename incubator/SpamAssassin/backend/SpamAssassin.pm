@@ -1282,7 +1282,7 @@ sub _setupDatabase
 		'g',
 		"GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@?",
 		$self->{'SA_DATABASE_USER'},
-		$self->{'SA_HOST'},
+		$self->{'SA_HOST'}
 	);
 	unless(ref $rs eq 'HASH') {
 		error("Unable to add privileges on the '$spamassassinDbName' database: $rs");
