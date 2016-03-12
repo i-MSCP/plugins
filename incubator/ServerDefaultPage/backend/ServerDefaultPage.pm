@@ -119,7 +119,7 @@ sub enable
 
 	if(@{$directives}) {
 		$rs = $self->_createConfig('00_ServerDefaultPage.conf', $directives);
-    	return $rs if $rs;
+		return $rs if $rs;
 	}
 
 	$directives = [ ];
@@ -130,12 +130,16 @@ sub enable
 
 	if(@{$directives}) {
 		if($self->{'config'}->{'certificate'} eq '') {
-    		$rs = iMSCP::OpenSSL->new(
-    			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
-    			certificate_chain_name => 'serverdefaultpage'
-    		)->createSelfSignedCertificate($main::imscpConfig{'SERVER_HOSTNAME'});
-    		return $rs if $rs;
-    	}
+			$rs = iMSCP::OpenSSL->new(
+				certificate_chains_storage_dir => $main::imscpConfig{'CONF_DIR'},
+				certificate_chain_name => 'serverdefaultpage'
+			)->createSelfSignedCertificate({
+				common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
+				email => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
+			});
+		}
+		return $rs if $rs;
+	}
 
 		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
 		return $rs if $rs;
@@ -167,7 +171,7 @@ sub disable
 	if(-f $certificate) {
 		my $rs = iMSCP::File->new( filename => $certificate )->delFile();
 		return $rs if $rs;
-    }
+	}
 
 	$self->{'httpd'}->{'restart'} = 'yes';
 
