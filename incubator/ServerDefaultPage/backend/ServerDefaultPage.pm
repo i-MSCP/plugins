@@ -133,13 +133,12 @@ sub enable
 			$rs = iMSCP::OpenSSL->new(
 				certificate_chains_storage_dir => $main::imscpConfig{'CONF_DIR'},
 				certificate_chain_name => 'serverdefaultpage'
-			)->createSelfSignedCertificate({
+			)->createSelfSignedCertificate(
 				common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
 				email => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
-			});
+			);
+			return $rs if $rs;
 		}
-		return $rs if $rs;
-	}
 
 		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
 		return $rs if $rs;
