@@ -21,9 +21,9 @@
 return array(
 	'author' => 'Ninos Ego',
 	'email' => 'me@ninosego.de',
-	'version' => '1.2.1',
-	'require_api' => '1.0.2',
-	'date' => '2016-02-03',
+	'version' => '1.2.2',
+	'require_api' => '1.0.3',
+	'date' => '2016-03-12',
 	'name' => 'ServerDefaultPage',
 	'desc' => 'Plugin which allows to set a server default page.',
 	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:serverdefaultpage'
