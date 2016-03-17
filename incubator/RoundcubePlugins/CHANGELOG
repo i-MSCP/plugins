@@ -1,24 +1,24 @@
 RoundcubePlugins - ChangeLog
 ============================
 
-	Changed: Run cronjob with lower priority
 	Added: Password config options
-	Fixed: Regex for archive and managesieve plugins
-	Added: Rouncube reCAPTCHA plugin
-	Updated: additional_message_headers config file
-	Added: Roundcube plugin vcard_attachments
 	Added: Managesieve vacation responses (out-of-office)
-	Fixed: Deletion of Roundcube plugins on uninstall
+	Added: Rouncube reCAPTCHA plugin
+	Added: Roundcube plugin vcard_attachments
 	Changed: Managesieve requirements check
-	Added: Check that Roundcube is installed
+	Changed: Run cronjob with lower priority
+	Changed: Switch from imscp_pw_changer to password plugin
+	Fixed: Check that Roundcube is installed
+	Fixed: Deletion of Roundcube plugins on uninstall
+	Fixed: Regex for archive and managesieve plugins
+	Removed: Roundcube plugin imscp_pw_changer
+	Updated: additional_message_headers config file
 	Updated: Roundcube plugin calendar
 	Updated: Roundcube plugin contextmenu
 	Updated: Roundcube plugin logon_page
 	Updated: Roundcube plugin odfviewer
 	Updated: Roundcube plugin pdfviewer
 	Updated: Roundcube plugin tasklist
-	Changed: Switch from imscp_pw_changer to password plugin
-	Removed: Roundcube plugin imscp_pw_changer
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.3
