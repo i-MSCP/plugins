@@ -177,6 +177,21 @@ sub disable
 	0;
 }
 
+=item run()
+
+ Process plugin tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub run
+{
+    my $self = shift;
+
+    $self->_registerListeners();
+}
+
 =item onAddIps()
 
  Process onAddIps tasks
@@ -216,10 +231,24 @@ sub _init
 		$self->{'httpd'} = Servers::httpd->factory();
 	}
 
-	my $eventManager = iMSCP::EventManager->getInstance();
-	$eventManager->register('afterHttpdAddIps', \&onAddIps);
-
 	$self;
+}
+
+=item _registerListeners()
+
+ Register required event listeners
+
+ Return int 0
+
+=cut
+
+sub _registerListeners
+{
+    my $self = shift;
+
+    $self->{'eventManager'}->register('afterHttpdAddIps', \&onAddIps);
+
+	0
 }
 
 =item _createConfig($vhostTplFile, $directives)
