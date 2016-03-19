@@ -32,7 +32,6 @@ use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Database;
 use iMSCP::Net;
-use iMSCP::EventManager;
 use iMSCP::OpenSSL;
 use Servers::httpd;
 use version;
