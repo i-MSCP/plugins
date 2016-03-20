@@ -246,8 +246,6 @@ sub _registerListeners
     my $self = shift;
 
     $self->{'eventManager'}->register('afterHttpdAddIps', \&onAddIps);
-
-	0
 }
 
 =item _createConfig($vhostTplFile, $directives)
