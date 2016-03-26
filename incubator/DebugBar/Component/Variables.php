@@ -28,129 +28,129 @@ require_once 'Interface.php';
  */
 class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar_Component_Interface
 {
-	/**
-	 * @var string component unique identifier
-	 */
-	const IDENTIFIER = 'Variables';
+    /**
+     * @var string component unique identifier
+     */
+    const IDENTIFIER = 'Variables';
 
-	/**
-	 * @var int Priority
-	 */
-	protected $priority = -98;
+    /**
+     * @var int Priority
+     */
+    protected $priority = -98;
 
-	/**
-	 * Returns component unique identifier
-	 *
-	 * @return string Component unique identifier.
-	 */
-	public function getIdentifier()
-	{
-		return self::IDENTIFIER;
-	}
+    /**
+     * Returns component unique identifier
+     *
+     * @return string Component unique identifier.
+     */
+    public function getIdentifier()
+    {
+        return self::IDENTIFIER;
+    }
 
-	/**
-	 * Returns list of events on which this component listens on
-	 *
-	 * @return array
-	 */
-	public function getListenedEvents()
-	{
-		return array();
-	}
+    /**
+     * Returns list of events on which this component listens on
+     *
+     * @return array
+     */
+    public function getListenedEvents()
+    {
+        return array();
+    }
 
-	/**
-	 * Get component priority
-	 *
-	 * @return int
-	 */
-	public function getPriority()
-	{
-		return $this->priority;
-	}
+    /**
+     * Get component priority
+     *
+     * @return int
+     */
+    public function getPriority()
+    {
+        return $this->priority;
+    }
 
-	/**
-	 * Returns component tab
-	 *
-	 * @return string
-	 */
-	public function getTab()
-	{
-		return $this->getIdentifier();
-	}
+    /**
+     * Returns component tab
+     *
+     * @return string
+     */
+    public function getTab()
+    {
+        return $this->getIdentifier();
+    }
 
-	/**
-	 * Returns the component panel
-	 *
-	 * @return string
-	 */
-	public function getPanel()
-	{
-		$vars = '<h4>Variables</h4>';
+    /**
+     * Returns the component panel
+     *
+     * @return string
+     */
+    public function getPanel()
+    {
+        $vars = '<h4>Variables</h4>';
 
-		$vars .= '<h4>$_GET:</h4>'
-			. '<div id="iMSCPdebug_get">' . $this->humanize($_GET) . '</div>';
+        $vars .= '<h4>$_GET:</h4>'
+            . '<div id="iMSCPdebug_get">' . $this->humanize($_GET) . '</div>';
 
-		$vars .= '<h4>$_POST:</h4>'
-			. '<div id="iMSCPdebug_post">' . $this->humanize($_POST) . '</div>';
+        $vars .= '<h4>$_POST:</h4>'
+            . '<div id="iMSCPdebug_post">' . $this->humanize($_POST) . '</div>';
 
-		$vars .= '<h4>$_COOKIE:</h4>'
-			. '<div id="iMSCPdebug_cookie">' . $this->humanize($_COOKIE) . '</div>';
+        $vars .= '<h4>$_COOKIE:</h4>'
+            . '<div id="iMSCPdebug_cookie">' . $this->humanize($_COOKIE) . '</div>';
 
-		$vars .= '<h4>$_FILES:</h4>'
-			. '<div id="iMSCPdebug_file">' . $this->humanize($_FILES) . '</div>';
+        $vars .= '<h4>$_FILES:</h4>'
+            . '<div id="iMSCPdebug_file">' . $this->humanize($_FILES) . '</div>';
 
-		$vars .= '<h4>$_SESSION:</h4>'
-			. '<div id="iMSCPdebug_session">' . $this->humanize($_SESSION) . '</div>';
+        $vars .= '<h4>$_SESSION:</h4>'
+            . '<div id="iMSCPdebug_session">' . $this->humanize($_SESSION) . '</div>';
 
-		$vars .= '<h4>$_SERVER:</h4>'
-			. '<div id="iMSCPdebug_server">' . $this->humanize($_SERVER) . '</div>';
+        $vars .= '<h4>$_SERVER:</h4>'
+            . '<div id="iMSCPdebug_server">' . $this->humanize($_SERVER) . '</div>';
 
-		$vars .= '<h4>$_ENV:</h4>'
-			. '<div id="iMSCPdebug_env">' . $this->humanize($_ENV) . '</div>';
+        $vars .= '<h4>$_ENV:</h4>'
+            . '<div id="iMSCPdebug_env">' . $this->humanize($_ENV) . '</div>';
 
-		return $vars;
-	}
+        return $vars;
+    }
 
-	/**
-	 * Returns component icon path
-	 *
-	 * @return string
-	 */
-	public function getIconPath()
-	{
-		return '/DebugBar/themes/default/assets/images/variables.png';
-	}
+    /**
+     * Returns component icon path
+     *
+     * @return string
+     */
+    public function getIconPath()
+    {
+        return '/DebugBar/themes/default/assets/images/variables.png';
+    }
 
-	/**
-	 * Transforms data into human readable format
-	 *
-	 * @param array $values Values to humanize
-	 * @return string
-	 */
-	protected function humanize($values)
-	{
-		if (is_array($values)) {
-			ksort($values);
-		}
+    /**
+     * Transforms data into human readable format
+     *
+     * @param array $values Values to humanize
+     * @return string
+     */
+    protected function humanize($values)
+    {
+        if (is_array($values)) {
+            ksort($values);
+        }
 
-		$retVal = '<div class="pre">';
+        $retVal = '<div class="pre">';
 
-		foreach ($values as $key => $value) {
-			$key = htmlspecialchars($key);
+        foreach ($values as $key => $value) {
+            $key = htmlspecialchars($key);
 
-			if (is_numeric($value)) {
-				$retVal .= $key . ' => ' . $value . '<br />';
-			} elseif (is_string($value)) {
-				$retVal .= $key . ' => \'' . htmlspecialchars($value) . '\'<br />';
-			} elseif (is_array($value)) {
-				$retVal .= $key . ' => ' . $this->humanize($value);
-			} elseif (is_object($value)) {
-				$retVal .= $key . ' => ' . get_class($value) . ' Object()<br />';
-			} elseif (is_null($value)) {
-				$retVal .= $key . ' => NULL<br />';
-			}
-		}
+            if (is_numeric($value)) {
+                $retVal .= $key . ' => ' . $value . '<br />';
+            } elseif (is_string($value)) {
+                $retVal .= $key . ' => \'' . htmlspecialchars($value) . '\'<br />';
+            } elseif (is_array($value)) {
+                $retVal .= $key . ' => ' . $this->humanize($value);
+            } elseif (is_object($value)) {
+                $retVal .= $key . ' => ' . get_class($value) . ' Object()<br />';
+            } elseif (is_null($value)) {
+                $retVal .= $key . ' => NULL<br />';
+            }
+        }
 
-		return $retVal . '</div>';
-	}
+        return $retVal . '</div>';
+    }
 }

@@ -19,13 +19,13 @@
  */
 
 return array(
-	'components' => array(
-		'Version',
-		'Variables',
-		'Timer',
-		'Memory',
-		'Files',
-		'Database',
-		'Cache'
-	)
+    'components' => array(
+        'Version',
+        'Variables',
+        'Timer',
+        'Memory',
+        'Files',
+        'Database',
+        'Cache'
+    )
 );

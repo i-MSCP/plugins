@@ -1,15 +1,15 @@
-# i-MSCP DebugBar plugin v1.1.0
+# i-MSCP DebugBar plugin v1.1.1
 
-Plugin providing debug information for i-MSCP.
+Plugin that provides debug information for i-MSCP.
 
 ## Introduction
 
-This plugin is a development helper for i-MSCP which provides many debug information. The plugin comes with a set of
+This plugin is a development helper for i-MSCP that provides many debug information. The plugin comes with a set of
 components, each providing a particular set of debug information.
 
 Right now, the followings components are provided:
 
- - Version: i-MSCP version, list of all PHP extensions available.
+ - Version: i-MSCP version, list of all available PHP extensions.
  - Variables: Contents of $_GET, $_POST, $_COOKIE, $_FILES, $_SESSION and $_ENV variables.
  - Timer: Timing information of current request, time spent in level script ; support custom timers. Also average, min and max time for requests.
  - Files: Number and size of files included with complete list.

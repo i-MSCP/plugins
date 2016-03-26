@@ -62,7 +62,7 @@ class iMSCP_Plugin_DebugBar_Component_Memory implements iMSCP_Plugin_DebugBar_Co
 	protected $_memory = array();
 
 	/**
-	 * Catchs all listener methods to avoid to declarare all of them
+	 * Catchs all listener methods to avoid to declare all of them
 	 *
 	 * @throws iMSCP_Plugin_Exception on an unknown listener method
 	 * @param  string $listenerMethod Listener method name

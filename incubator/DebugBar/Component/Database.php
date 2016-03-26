@@ -28,127 +28,127 @@ require_once 'Interface.php';
  */
 class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_Component_Interface
 {
-	/**
-	 * @var string Component unique identifier
-	 */
-	const IDENTIFIER = 'Database';
+    /**
+     * @var string Component unique identifier
+     */
+    const IDENTIFIER = 'Database';
 
-	/**
-	 * @var int Priority
-	 */
-	protected $priority = 100;
+    /**
+     * @var int Priority
+     */
+    protected $priority = 100;
 
-	/**
-	 * @var array Listened events
-	 */
-	protected $_listenedEvents = array(
-		iMSCP_Events::onBeforeQueryExecute,
-		iMSCP_Events::onAfterQueryExecute
-	);
+    /**
+     * @var array Listened events
+     */
+    protected $_listenedEvents = array(
+        iMSCP_Events::onBeforeQueryExecute,
+        iMSCP_Events::onAfterQueryExecute
+    );
 
-	/**
-	 * @var int Total time elapsed
-	 */
-	protected $_totalTimeElapsed = 0;
+    /**
+     * @var int Total time elapsed
+     */
+    protected $_totalTimeElapsed = 0;
 
-	/**
-	 * @var array queries and their execution time
-	 */
-	protected $_queries = array();
+    /**
+     * @var array queries and their execution time
+     */
+    protected $_queries = array();
 
-	/**
-	 * @var int Query index
-	 */
-	protected $_queryIndex = 0;
+    /**
+     * @var int Query index
+     */
+    protected $_queryIndex = 0;
 
-	/**
-	 * Implements the onBeforeQueryExecute listener
-	 *
-	 * @param  iMSCP_Database_Events_Database $event
-	 * @return void
-	 */
-	public function onBeforeQueryExecute($event)
-	{
-		$this->_queries[$this->_queryIndex]['time'] = microtime(true);
-		$this->_queries[$this->_queryIndex]['queryString'] = $event->getQueryString();
-	}
+    /**
+     * Implements the onBeforeQueryExecute listener
+     *
+     * @param  iMSCP_Database_Events_Database $event
+     * @return void
+     */
+    public function onBeforeQueryExecute($event)
+    {
+        $this->_queries[$this->_queryIndex]['time'] = microtime(true);
+        $this->_queries[$this->_queryIndex]['queryString'] = $event->getQueryString();
+    }
 
-	/**
-	 * Implements the onafterQueryExecute listener
-	 *
-	 * @return void
-	 */
-	public function onAfterQueryExecute()
-	{
-		$this->_queries[$this->_queryIndex]['time'] = ((microtime(true)) - $this->_queries[$this->_queryIndex]['time']);
-		$this->_totalTimeElapsed += $this->_queries[$this->_queryIndex]['time'];
-		$this->_queryIndex++;
-	}
+    /**
+     * Implements the onafterQueryExecute listener
+     *
+     * @return void
+     */
+    public function onAfterQueryExecute()
+    {
+        $this->_queries[$this->_queryIndex]['time'] = ((microtime(true)) - $this->_queries[$this->_queryIndex]['time']);
+        $this->_totalTimeElapsed += $this->_queries[$this->_queryIndex]['time'];
+        $this->_queryIndex++;
+    }
 
-	/**
-	 * Returns component unique identifier
-	 *
-	 * @return string
-	 */
-	public function getIdentifier()
-	{
-		return self::IDENTIFIER;
-	}
+    /**
+     * Returns component unique identifier
+     *
+     * @return string
+     */
+    public function getIdentifier()
+    {
+        return self::IDENTIFIER;
+    }
 
-	/**
-	 * Returns listened events
-	 *
-	 * @return array
-	 */
-	public function getListenedEvents()
-	{
-		return $this->_listenedEvents;
-	}
+    /**
+     * Returns listened events
+     *
+     * @return array
+     */
+    public function getListenedEvents()
+    {
+        return $this->_listenedEvents;
+    }
 
-	/**
-	 * Get component priority
-	 *
-	 * @return int
-	 */
-	public function getPriority()
-	{
-		return $this->priority;
-	}
+    /**
+     * Get component priority
+     *
+     * @return int
+     */
+    public function getPriority()
+    {
+        return $this->priority;
+    }
 
-	/**
-	 * Returns component tab
-	 *
-	 * @return string
-	 */
-	public function getTab()
-	{
-		return (count($this->_queries)) . ' queries in ' . round($this->_totalTimeElapsed * 1000, 2) . ' ms';
-	}
+    /**
+     * Returns component tab
+     *
+     * @return string
+     */
+    public function getTab()
+    {
+        return (count($this->_queries)) . ' queries in ' . round($this->_totalTimeElapsed * 1000, 2) . ' ms';
+    }
 
-	/**
-	 * Returns the component panel
-	 *
-	 * @return string
-	 */
-	public function getPanel()
-	{
-		$xhtml = '<h4>Database queries and their execution time</h4><ol>';
+    /**
+     * Returns the component panel
+     *
+     * @return string
+     */
+    public function getPanel()
+    {
+        $xhtml = '<h4>Database queries and their execution time</h4><ol>';
 
-		foreach ($this->_queries as $query) {
-			$xhtml .= '<li><strong>[' . round($query['time'] * 1000, 2) . ' ms]</strong> '
-				. htmlspecialchars($query['queryString']) . '</li>';
-		}
+        foreach ($this->_queries as $query) {
+            $xhtml .= '<li><strong>[' . round($query['time'] * 1000, 2) . ' ms]</strong> '
+                . htmlspecialchars($query['queryString']) . '</li>';
+        }
 
-		return $xhtml . '</ol>';
-	}
+        return $xhtml . '</ol>';
+    }
 
-	/**
-	 * Returns component icon path
-	 *
-	 * @return string
-	 */
-	public function getIconPath()
-	{
-		return '/DebugBar/themes/default/assets/images/database.png';
-	}
+    /**
+     * Returns component icon path
+     *
+     * @return string
+     */
+    public function getIconPath()
+    {
+        return '/DebugBar/themes/default/assets/images/database.png';
+    }
 }

@@ -28,137 +28,137 @@ require_once 'Interface.php';
  */
 class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Component_Interface
 {
-	/**
-	 * @var string Component unique identifier
-	 */
-	const IDENTIFIER = 'Files';
+    /**
+     * @var string Component unique identifier
+     */
+    const IDENTIFIER = 'Files';
 
-	/**
-	 * @var string Listened event
-	 */
-	protected $_listenedEvents = iMSCP_Events::onBeforeLoadTemplateFile;
+    /**
+     * @var string Listened event
+     */
+    protected $_listenedEvents = iMSCP_Events::onBeforeLoadTemplateFile;
 
-	/**
-	 * @var int Priority
-	 */
-	protected $priority = -99;
+    /**
+     * @var int Priority
+     */
+    protected $priority = -99;
 
-	/**
-	 * Implements onLoadTemplateFile listener method
-	 *
-	 * @param iMSCP_Events_Event $event
-	 * @return void
-	 */
-	public function onBeforeLoadTemplateFile($event)
-	{
-		$this->_loadedTemplateFiles[] = realpath($event->getParam('templatePath'));
-	}
+    /**
+     * Implements onLoadTemplateFile listener method
+     *
+     * @param iMSCP_Events_Event $event
+     * @return void
+     */
+    public function onBeforeLoadTemplateFile($event)
+    {
+        $this->_loadedTemplateFiles[] = realpath($event->getParam('templatePath'));
+    }
 
-	/**
-	 * Stores included files
-	 *
-	 * @var
-	 */
-	protected $_includedFiles = array();
+    /**
+     * Stores included files
+     *
+     * @var
+     */
+    protected $_includedFiles = array();
 
-	/**
-	 * Store loaded template files
-	 *
-	 * @var array
-	 */
-	protected $_loadedTemplateFiles = array();
+    /**
+     * Store loaded template files
+     *
+     * @var array
+     */
+    protected $_loadedTemplateFiles = array();
 
-	/**
-	 * Returns component unique identifier
-	 *
-	 * @return string Component unique identifier.
-	 */
-	public function getIdentifier()
-	{
-		return self::IDENTIFIER;
-	}
+    /**
+     * Returns component unique identifier
+     *
+     * @return string Component unique identifier.
+     */
+    public function getIdentifier()
+    {
+        return self::IDENTIFIER;
+    }
 
-	/**
-	 * Returns listened events
-	 *
-	 * @return array
-	 */
-	public function getListenedEvents()
-	{
-		return $this->_listenedEvents;
-	}
+    /**
+     * Returns listened events
+     *
+     * @return array
+     */
+    public function getListenedEvents()
+    {
+        return $this->_listenedEvents;
+    }
 
-	/**
-	 * Get component priority
-	 *
-	 * @return int
-	 */
-	public function getPriority()
-	{
-		return $this->priority;
-	}
+    /**
+     * Get component priority
+     *
+     * @return int
+     */
+    public function getPriority()
+    {
+        return $this->priority;
+    }
 
-	/**
-	 * Returns component tab
-	 *
-	 * @return string
-	 */
-	public function getTab()
-	{
-		return count($this->_getIncludedFiles()) + count($this->_loadedTemplateFiles) . ' ' . $this->getIdentifier();
-	}
+    /**
+     * Returns component tab
+     *
+     * @return string
+     */
+    public function getTab()
+    {
+        return count($this->_getIncludedFiles()) + count($this->_loadedTemplateFiles) . ' ' . $this->getIdentifier();
+    }
 
-	/**
-	 * Returns the component panel
-	 *
-	 * @return string
-	 */
-	public function getPanel()
-	{
-		$includedPhpFiles = $this->_getIncludedFiles();
-		$loadedTemplateFiles = $this->_getLoadedTemplateFiles();
+    /**
+     * Returns the component panel
+     *
+     * @return string
+     */
+    public function getPanel()
+    {
+        $includedPhpFiles = $this->_getIncludedFiles();
+        $loadedTemplateFiles = $this->_getLoadedTemplateFiles();
 
-		$xhtml = "<h4>General Information</h4><pre>\t";
-		$xhtml .= count($includedPhpFiles) + count($loadedTemplateFiles) . ' Files Included/loaded' . PHP_EOL;
-		$size = bytesHuman(array_sum(array_map('filesize', array_merge($includedPhpFiles, $loadedTemplateFiles))));
-		$xhtml .= "\tTotal Size: $size</pre>";
+        $xhtml = "<h4>General Information</h4><pre>\t";
+        $xhtml .= count($includedPhpFiles) + count($loadedTemplateFiles) . ' Files Included/loaded' . PHP_EOL;
+        $size = bytesHuman(array_sum(array_map('filesize', array_merge($includedPhpFiles, $loadedTemplateFiles))));
+        $xhtml .= "\tTotal Size: $size</pre>";
 
-		$xhtml .= "<h4>PHP Files</h4><pre>\t" . implode(PHP_EOL . "\t", $includedPhpFiles) . '</pre>';
-		$xhtml .= "<h4>Templates Files</h4><pre>\t" . implode(PHP_EOL . "\t", $loadedTemplateFiles) . '</pre>';
+        $xhtml .= "<h4>PHP Files</h4><pre>\t" . implode(PHP_EOL . "\t", $includedPhpFiles) . '</pre>';
+        $xhtml .= "<h4>Templates Files</h4><pre>\t" . implode(PHP_EOL . "\t", $loadedTemplateFiles) . '</pre>';
 
-		return $xhtml;
-	}
+        return $xhtml;
+    }
 
-	/**
-	 * Returns component icon path
-	 *
-	 * @return string
-	 */
-	public function getIconPath()
-	{
-		return '/DebugBar/themes/default/assets/images/files.png';
-	}
+    /**
+     * Returns component icon path
+     *
+     * @return string
+     */
+    public function getIconPath()
+    {
+        return '/DebugBar/themes/default/assets/images/files.png';
+    }
 
-	/**
-	 * Returns list of included files
-	 *
-	 * @return array
-	 */
-	protected function _getIncludedFiles()
-	{
-		$this->_includedFiles = get_included_files();
-		sort($this->_includedFiles);
+    /**
+     * Returns list of included files
+     *
+     * @return array
+     */
+    protected function _getIncludedFiles()
+    {
+        $this->_includedFiles = get_included_files();
+        sort($this->_includedFiles);
 
-		return $this->_includedFiles;
-	}
+        return $this->_includedFiles;
+    }
 
-	/**
-	 * Returns list of loaded template files
-	 *
-	 * @return array
-	 */
-	protected function _getLoadedTemplateFiles()
-	{
-		return $this->_loadedTemplateFiles;
-	}
+    /**
+     * Returns list of loaded template files
+     *
+     * @return array
+     */
+    protected function _getLoadedTemplateFiles()
+    {
+        return $this->_loadedTemplateFiles;
+    }
 }
