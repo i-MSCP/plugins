@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.1.0',
-	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
-	'name' => 'DomainAutoApproval',
-	'desc' => 'Plugin which allows auto-approval of new domain aliases.',
-	'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
+    'author' => 'Laurent Declercq',
+    'email' => 'l.declercq@nuxwin.com',
+    'version' => '1.1.1',
+    'require_api' => '1.0.4',
+    'date' => '2016-03-26',
+    'name' => 'DomainAutoApproval',
+    'desc' => 'Plugin that allows auto-approval of domain aliases created by clients.',
+    'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
 );

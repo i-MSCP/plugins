@@ -23,105 +23,75 @@
  */
 class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 {
-	/**
-	 * Register a callback for the given event(s)
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 * @return void
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		# We register this listener with low priority to let any other plugin which listen on the same event a chance
-		# to act before the redirect
-		$eventsManager->registerListener(iMSCP_Events::onAfterAddDomainAlias, $this, -99);
-	}
+    /**
+     * Register a callback for the given event(s)
+     *
+     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @return void
+     */
+    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    {
+        # We register this listener with low priority to let any other plugin which listen on the same event a chance
+        # to act before the redirect
+        $eventsManager->registerListener(iMSCP_Events::onAfterAddDomainAlias, $this, -99);
+    }
 
-	/**
-	 * onAfterAddDomainAlias listener
-	 *
-	 * @throws iMSCP_Exception
-	 * @throws iMSCP_Exception_Database
-	 * @param iMSCP_Events_Event $event
-	 * @throws Exception
-	 */
-	public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
-	{
-		$userIdentity = iMSCP_Authentication::getInstance()->getIdentity();
+    /**
+     * onAfterAddDomainAlias listener
+     *
+     * @throws iMSCP_Exception
+     * @throws iMSCP_Exception_Database
+     * @param iMSCP_Events_Event $event
+     * @throws Exception
+     * @return void
+     */
+    public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
+    {
+        $userIdentity = iMSCP_Authentication::getInstance()->getIdentity();
 
-		if ($userIdentity->admin_type == 'user') {
-			$disallowedDomains = (array)$this->getConfigParam('ignored_domains', array());
-			$domainAliasNameAscii = $event->getParam('domainAliasName');
+        // 1. Do not act if the logged-in user is not the real client (due to changes in i-MSCP v1.2.12)
+        // 2. Do not act if the event has been triggered from reseller interface
+        if (isset($_SESSION['logged_from_type']) || $userIdentity->admin_type == 'reseller') {
+            return;
+        }
 
-			# Only domain aliases which are not listed in the ignored_domains list are auto-approved
-			if (!in_array(decode_idna($domainAliasNameAscii), $disallowedDomains)) {
-				$username = decode_idna($userIdentity->admin_name);
+        $disallowedDomains = (array)$this->getConfigParam('ignored_domains', array());
+        $domainAliasNameAscii = $event->getParam('domainAliasName');
 
-				$approvalRule = $this->getConfigParam('approval_rule', true);
-				$userAccounts = (array)$this->getConfigParam('user_accounts', array());
+        if (in_array(decode_idna($domainAliasNameAscii), $disallowedDomains)) {
+            return; # Only domain aliases which are not listed in the ignored_domains list are auto-approved
+        }
 
-				if ($approvalRule) {
-					# Only domain aliases added by user accounts which are listed in the user_accounts list are
-					# auto-approved
-					if (!in_array($username, $userAccounts)) {
-						$username = false;
-					}
-				} elseif (in_array($username, $userAccounts)) {
-					# Only domain aliases added by user accounts which are not listed in the user_accounts list are
-					# auto-approved
-					$username = false;
-				}
+        $username = decode_idna($userIdentity->admin_name);
+        $approvalRule = $this->getConfigParam('approval_rule', true);
+        $userAccounts = (array)$this->getConfigParam('user_accounts', array());
 
-				if ($username !== false) {
-					$db = iMSCP_Database::getInstance();
+        # 1. Only domain aliases added by user which are listed in the 'user_accounts' list are auto-approved
+        # 2. Only domain aliases added by user which are not listed in the 'user_accounts' list are auto-approved
+        if (($approvalRule && !in_array($username, $userAccounts)) || in_array($username, $userAccounts)) {
+            return;
+        }
 
-					try {
-						$db->beginTransaction();
+        $db = iMSCP_Database::getInstance();
 
-						$domainAliasId = $event->getParam('domainAliasId');
+        try {
+            $db->beginTransaction();
+            $domainAliasId = $event->getParam('domainAliasId');
 
-						exec_query(
-							'UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?',
-							array('toadd', $domainAliasId)
-						);
+            exec_query('UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?', array('toadd', $domainAliasId));
 
-						if (iMSCP_Registry::get('config')->CREATE_DEFAULT_EMAIL_ADDRESSES) {
-							if ($userIdentity->email) {
-								client_mail_add_default_accounts(
-									get_user_domain_id($userIdentity->admin_id), $userIdentity->email,
-									$domainAliasNameAscii, 'alias', $domainAliasId
-								);
-							}
-						}
+            $config = iMSCP_Registry::get('config');
+            if ($config['CREATE_DEFAULT_EMAIL_ADDRESSES'] && $userIdentity->email !== '') {
+                client_mail_add_default_accounts(get_user_domain_id($userIdentity->admin_id), $userIdentity->email, $domainAliasNameAscii, 'alias', $domainAliasId);
+            }
 
-						$db->commit();
-
-						send_request();
-
-						$domainAliasName = decode_idna($domainAliasNameAscii);
-						$username = decode_idna($username);
-
-						write_log(
-							sprintf('DomainAutoApproval: The %s domain alias has been auto-approved', $domainAliasName),
-							E_USER_NOTICE
-						);
-
-						write_log(
-							sprintf(
-								'DomainAutoApproval: %s scheduled addition of domain alias: %s',
-								$username,
-								$domainAliasName
-							),
-							E_USER_NOTICE
-						);
-
-						set_page_message(tr('Domain alias successfully scheduled for addition.'), 'success');
-						redirectTo('domains_manage.php');
-					} catch (iMSCP_Exception $e) {
-						$db->rollBack();
-						throw $e;
-					}
-				}
-			}
-		}
-	}
+            $db->commit();
+            send_request();
+            write_log(sprintf('DomainAutoApproval plugin: The `%s` domain alias has been auto-approved', decode_idna($domainAliasNameAscii)), E_USER_NOTICE);
+            set_page_message(tr('Domain alias auto-approved.'), 'success');
+        } catch (iMSCP_Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
 }
