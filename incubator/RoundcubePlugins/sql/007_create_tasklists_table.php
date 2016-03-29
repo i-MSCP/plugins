@@ -22,20 +22,20 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`tasklists` (
-			`tasklist_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-			`user_id` int(10) unsigned NOT NULL,
-			`name` varchar(255) NOT NULL,
-			`color` varchar(8) NOT NULL,
-			`showalarms` tinyint(2) unsigned NOT NULL DEFAULT '0',
-			PRIMARY KEY (`tasklist_id`),
-			KEY `user_id` (`user_id`),
-			CONSTRAINT `fk_tasklist_user_id` FOREIGN KEY (`user_id`)
-				REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-		) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
-	",
-	'down' => "
-		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`tasklists`;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`tasklists` (
+            `tasklist_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `user_id` int(10) unsigned NOT NULL,
+            `name` varchar(255) NOT NULL,
+            `color` varchar(8) NOT NULL,
+            `showalarms` tinyint(2) unsigned NOT NULL DEFAULT '0',
+            PRIMARY KEY (`tasklist_id`),
+            KEY `user_id` (`user_id`),
+            CONSTRAINT `fk_tasklist_user_id` FOREIGN KEY (`user_id`)
+                REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
+    ",
+    'down' => "
+        DROP TABLE IF EXISTS " . $roundcubeDbName . ".`tasklists`;
+    "
 );

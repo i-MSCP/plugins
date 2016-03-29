@@ -31,7 +31,7 @@ newDebug('roundcubeplugins-plugin-cronjob-pop3fetcher.log');
 silent(1);
 
 iMSCP::Bootstrapper->getInstance()->boot(
-	{ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'nolock' => 'yes' }
+    { 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'nolock' => 'yes' }
 );
 
 my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/backend/RoundcubePlugins.pm";
@@ -40,11 +40,11 @@ my $rs = 0;
 eval { require $pluginFile; };
 
 if($@) {
-	error($@);
-	$rs = 1;
+    error($@);
+    $rs = 1;
 } else {
-	my $pluginClass = "Plugin::RoundcubePlugins";
-	$rs = $pluginClass->getInstance()->fetchmail();
+    my $pluginClass = "Plugin::RoundcubePlugins";
+    $rs = $pluginClass->getInstance()->fetchmail();
 }
 
 exit $rs;

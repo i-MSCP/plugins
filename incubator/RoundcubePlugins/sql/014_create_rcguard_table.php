@@ -21,18 +21,18 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`rcguard` (
-			`ip` VARCHAR(40) NOT NULL,
-			`first` DATETIME NOT NULL,
-			`last` DATETIME NOT NULL,
-			`hits` INT(10) NOT NULL,
-			PRIMARY KEY (`ip`),
-			INDEX `last_index` (`last`),
-			INDEX `hits_index` (`hits`)
-		) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
-	",
-	'down' => "
-		DROP TABLE IF EXISTS " . $roundcubeDbName . ".`rcguard`;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`rcguard` (
+            `ip` VARCHAR(40) NOT NULL,
+            `first` DATETIME NOT NULL,
+            `last` DATETIME NOT NULL,
+            `hits` INT(10) NOT NULL,
+            PRIMARY KEY (`ip`),
+            INDEX `last_index` (`last`),
+            INDEX `hits_index` (`hits`)
+        ) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+    ",
+    'down' => "
+        DROP TABLE IF EXISTS " . $roundcubeDbName . ".`rcguard`;
+    "
 );

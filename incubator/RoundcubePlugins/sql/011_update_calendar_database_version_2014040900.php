@@ -22,9 +22,9 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-	'up' => "
-		ALTER TABLE " . $roundcubeDbName . ".`events` ADD `status` VARCHAR(32) NOT NULL AFTER `sensitivity`;
+    'up' => "
+        ALTER TABLE " . $roundcubeDbName . ".`events` ADD `status` VARCHAR(32) NOT NULL AFTER `sensitivity`;
 
-		REPLACE INTO " . $roundcubeDbName . ".`system` (`name`, `value`) VALUES ('calendar-database-version', '2014040900');
-	"
+        REPLACE INTO " . $roundcubeDbName . ".`system` (`name`, `value`) VALUES ('calendar-database-version', '2014040900');
+    "
 );
