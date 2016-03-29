@@ -103,7 +103,12 @@ sub change
     return $rs if $rs;
 
     unless(iMSCP::Service->getInstance()->isEnabled( 'spamassassin' )) {
-        iMSCP::Service->getInstance()->enable('spamassassin');
+        local $@;
+        eval { iMSCP::Service->getInstance->enable('spamassassin'); };
+        if($@) {
+            error($@);
+            return 1;
+        }
     }
     iMSCP::Service->getInstance()->restart('spamassassin');
 
