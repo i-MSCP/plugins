@@ -102,6 +102,9 @@ sub change
 	$rs = $self->_checkSpamassassinPlugins();
 	return $rs if $rs;
 
+	unless(iMSCP::Service->getInstance()->isEnabled( 'spamassassin' )) {
+		iMSCP::Service->getInstance()->enable('spamassassin');
+	}
 	iMSCP::Service->getInstance()->restart('spamassassin');
 
 	$rs = $self->_spamassMilterDefaultConfig('configure');
