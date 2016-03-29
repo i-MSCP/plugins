@@ -100,86 +100,86 @@ The default SpamAssassin user preferences are stored in the table **userpref** o
 These are the $GLOBAL default values which will be imported during plugin installation.
 
 <table>
-	<tr>
-		<th>username</th>
-		<th>preference</th>
-		<th>value</th>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>required_score</td>
-		<td>5</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>rewrite_header Subject</td>
-		<td>*****SPAM*****</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>report_safe</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_bayes</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_bayes_rules</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>bayes_auto_learn</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>bayes_auto_learn_threshold_nonspam</td>
-		<td>0.1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>bayes_auto_learn_threshold_spam</td>
-		<td>12.0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_auto_whitelist</td>
-		<td>0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>skip_rbl_checks</td>
-		<td>1</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_razor2</td>
-		<td>0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_pyzor</td>
-		<td>0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>use_dcc</td>
-		<td>0</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>score USER_IN_BLACKLIST</td>
-		<td>10</td>
-	</tr>
-	<tr>
-		<td>$GLOBAL</td>
-		<td>score USER_IN_WHITELIST</td>
-		<td>-6</td>
-	</tr>
+    <tr>
+        <th>username</th>
+        <th>preference</th>
+        <th>value</th>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>required_score</td>
+        <td>5</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>rewrite_header Subject</td>
+        <td>*****SPAM*****</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>report_safe</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_bayes</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_bayes_rules</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>bayes_auto_learn</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>bayes_auto_learn_threshold_nonspam</td>
+        <td>0.1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>bayes_auto_learn_threshold_spam</td>
+        <td>12.0</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_auto_whitelist</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>skip_rbl_checks</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_razor2</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_pyzor</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>use_dcc</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>score USER_IN_BLACKLIST</td>
+        <td>10</td>
+    </tr>
+    <tr>
+        <td>$GLOBAL</td>
+        <td>score USER_IN_WHITELIST</td>
+        <td>-6</td>
+    </tr>
 </table>
 
 
@@ -192,26 +192,26 @@ You could also specify domain specific entries, which will be used as default on
 no individual entry in the userpref table. Here are some examples for the domain **example.com**:
 
 <table>
-	<tr>
-		<th>username</th>
-		<th>preference</th>
-		<th>value</th>
-	</tr>
-	<tr>
-		<td>%example.com</td>
-		<td>required_score</td>
-		<td>8</td>
-	</tr>
-	<tr>
-		<td>%example.com</td>
-		<td>rewrite_header Subject</td>
-		<td>[ SPAM ]</td>
-	</tr>
-	<tr>
-		<td>%example.com</td>
-		<td>report_safe</td>
-		<td>0</td>
-	</tr>
+    <tr>
+        <th>username</th>
+        <th>preference</th>
+        <th>value</th>
+    </tr>
+    <tr>
+        <td>%example.com</td>
+        <td>required_score</td>
+        <td>8</td>
+    </tr>
+    <tr>
+        <td>%example.com</td>
+        <td>rewrite_header Subject</td>
+        <td>[ SPAM ]</td>
+    </tr>
+    <tr>
+        <td>%example.com</td>
+        <td>report_safe</td>
+        <td>0</td>
+    </tr>
 </table>
 
 #### Per-User SpamAssassin preferences
@@ -222,21 +222,21 @@ preferences under Roundcube -> Settings -> Spam.
 The user preferences will also be stored in the **userpref** table with the mail address as username.
 
 <table>
-	<tr>
-		<th>username</th>
-		<th>preference</th>
-		<th>value</th>
-	</tr>
-	<tr>
-		<td>user@example.com</td>
-		<td>required_score</td>
-		<td>6</td>
-	</tr>
-	<tr>
-		<td>user@example.com</td>
-		<td>rewrite_header Subject</td>
-		<td>[SPAM-_HITS_]</td>
-	</tr>
+    <tr>
+        <th>username</th>
+        <th>preference</th>
+        <th>value</th>
+    </tr>
+    <tr>
+        <td>user@example.com</td>
+        <td>required_score</td>
+        <td>6</td>
+    </tr>
+    <tr>
+        <td>user@example.com</td>
+        <td>rewrite_header Subject</td>
+        <td>[SPAM-_HITS_]</td>
+    </tr>
 </table>
 
 

@@ -22,5 +22,5 @@
 $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
-	'up' => "CREATE DATABASE IF NOT EXISTS $database CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
+    'up' => "CREATE DATABASE IF NOT EXISTS $database CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
 );

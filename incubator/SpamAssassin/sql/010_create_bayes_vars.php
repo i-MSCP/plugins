@@ -23,20 +23,20 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('bayes_vars');
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS $database.$table (
-			`id` int(11) NOT NULL AUTO_INCREMENT,
-			`username` varchar(200) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`spam_count` int(11) NOT NULL DEFAULT '0',
-			`ham_count` int(11) NOT NULL DEFAULT '0',
-			`token_count` int(11) NOT NULL DEFAULT '0',
-			`last_expire` int(11) NOT NULL DEFAULT '0',
-			`last_atime_delta` int(11) NOT NULL DEFAULT '0',
-			`last_expire_reduce` int(11) NOT NULL DEFAULT '0',
-			`oldest_token_age` int(11) NOT NULL DEFAULT '2147483647',
-			`newest_token_age` int(11) NOT NULL DEFAULT '0',
-			PRIMARY KEY (`id`),
-			UNIQUE KEY `bayes_vars_idx1` (`username`)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS $database.$table (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `username` varchar(200) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `spam_count` int(11) NOT NULL DEFAULT '0',
+            `ham_count` int(11) NOT NULL DEFAULT '0',
+            `token_count` int(11) NOT NULL DEFAULT '0',
+            `last_expire` int(11) NOT NULL DEFAULT '0',
+            `last_atime_delta` int(11) NOT NULL DEFAULT '0',
+            `last_expire_reduce` int(11) NOT NULL DEFAULT '0',
+            `oldest_token_age` int(11) NOT NULL DEFAULT '2147483647',
+            `newest_token_age` int(11) NOT NULL DEFAULT '0',
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `bayes_vars_idx1` (`username`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    "
 );

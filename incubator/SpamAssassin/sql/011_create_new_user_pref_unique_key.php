@@ -23,8 +23,8 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('userpref');
 
 return array(
-	'up' => "
-		ALTER TABLE $database.$table DROP INDEX `user_pref`;
-		ALTER TABLE $database.$table ADD UNIQUE `user_pref` ( `username`, `preference`, `value`);
-	"
+    'up' => "
+        ALTER TABLE $database.$table DROP INDEX `user_pref`;
+        ALTER TABLE $database.$table ADD UNIQUE `user_pref` ( `username`, `preference`, `value`);
+    "
 );

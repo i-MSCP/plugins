@@ -23,24 +23,24 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('userpref');
 
 return array(
-	'up' => "
-		INSERT IGNORE INTO $database.$table
-			(`username`, `preference`, `value`)
-		VALUES
-			('\$GLOBAL', 'required_score', '5'),
-			('\$GLOBAL', 'rewrite_header Subject', '*****SPAM*****'),
-			('\$GLOBAL', 'report_safe', '1'),
-			('\$GLOBAL', 'use_bayes', '1'),
-			('\$GLOBAL', 'use_bayes_rules', '1'),
-			('\$GLOBAL', 'bayes_auto_learn', '1'),
-			('\$GLOBAL', 'bayes_auto_learn_threshold_nonspam', '0.1'),
-			('\$GLOBAL', 'bayes_auto_learn_threshold_spam', '12.0'),
-			('\$GLOBAL', 'use_auto_whitelist', '0'),
-			('\$GLOBAL', 'skip_rbl_checks', '1'),
-			('\$GLOBAL', 'use_razor2', '0'),
-			('\$GLOBAL', 'use_pyzor', '0'),
-			('\$GLOBAL', 'use_dcc', '0'),
-			('\$GLOBAL', 'score USER_IN_BLACKLIST', '10'),
-			('\$GLOBAL', 'score USER_IN_WHITELIST', '-6');
-	"
+    'up' => "
+        INSERT IGNORE INTO $database.$table
+            (`username`, `preference`, `value`)
+        VALUES
+            ('\$GLOBAL', 'required_score', '5'),
+            ('\$GLOBAL', 'rewrite_header Subject', '*****SPAM*****'),
+            ('\$GLOBAL', 'report_safe', '1'),
+            ('\$GLOBAL', 'use_bayes', '1'),
+            ('\$GLOBAL', 'use_bayes_rules', '1'),
+            ('\$GLOBAL', 'bayes_auto_learn', '1'),
+            ('\$GLOBAL', 'bayes_auto_learn_threshold_nonspam', '0.1'),
+            ('\$GLOBAL', 'bayes_auto_learn_threshold_spam', '12.0'),
+            ('\$GLOBAL', 'use_auto_whitelist', '0'),
+            ('\$GLOBAL', 'skip_rbl_checks', '1'),
+            ('\$GLOBAL', 'use_razor2', '0'),
+            ('\$GLOBAL', 'use_pyzor', '0'),
+            ('\$GLOBAL', 'use_dcc', '0'),
+            ('\$GLOBAL', 'score USER_IN_BLACKLIST', '10'),
+            ('\$GLOBAL', 'score USER_IN_WHITELIST', '-6');
+    "
 );

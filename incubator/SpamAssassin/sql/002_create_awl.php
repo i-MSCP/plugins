@@ -23,16 +23,16 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('awl');
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS $database.$table (
-			`username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`email` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`ip` varchar(40) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`count` int(11) NOT NULL DEFAULT '0',
-			`totscore` float NOT NULL DEFAULT '0',
-			`signedby` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (`username`,`email`,`signedby`,`ip`)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS $database.$table (
+            `username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `ip` varchar(40) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `count` int(11) NOT NULL DEFAULT '0',
+            `totscore` float NOT NULL DEFAULT '0',
+            `signedby` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`username`,`email`,`signedby`,`ip`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    "
 );

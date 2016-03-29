@@ -26,21 +26,21 @@ use JSON;
 
 sub getData
 {
-	my $row = iMSCP::Database->factory()->doQuery(
-		'plugin_name',
-		'SELECT plugin_name, plugin_info, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
-		'SpamAssassin'
-	);
-	ref $row eq 'HASH' or die($row);
-	$row->{'SpamAssassin'} or die('SpamAssassin plugin data not found in database');
+    my $row = iMSCP::Database->factory()->doQuery(
+        'plugin_name',
+        'SELECT plugin_name, plugin_info, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
+        'SpamAssassin'
+    );
+    ref $row eq 'HASH' or die($row);
+    $row->{'SpamAssassin'} or die('SpamAssassin plugin data not found in database');
 
-	{
-		action => 'cron',
-		config => decode_json($row->{'SpamAssassin'}->{'plugin_config'}),
-		config_prev => decode_json($row->{'SpamAssassin'}->{'plugin_config_prev'}),
-		eventManager => iMSCP::EventManager->getInstance(),
-		info => decode_json($row->{'SpamAssassin'}->{'plugin_info'})
-	};
+    {
+        action => 'cron',
+        config => decode_json($row->{'SpamAssassin'}->{'plugin_config'}),
+        config_prev => decode_json($row->{'SpamAssassin'}->{'plugin_config_prev'}),
+        eventManager => iMSCP::EventManager->getInstance(),
+        info => decode_json($row->{'SpamAssassin'}->{'plugin_info'})
+    };
 }
 
 newDebug('spamassassin-plugin-cronjob.log');
@@ -51,5 +51,5 @@ require $pluginFile;
 
 my $pluginClass = "Plugin::SpamAssassin";
 $pluginClass->getInstance(getData())->cleanBayesDb() == 0 or die(
-	getMessageByType('error', { amount => 1, remove => 1 }) || 'Unknown error'
+    getMessageByType('error', { amount => 1, remove => 1 }) || 'Unknown error'
 );

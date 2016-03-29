@@ -20,16 +20,16 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.0.7',
-	'require_api' => '1.0.3',
-	'date' => '2015-10-27',
-	'name' => 'SpamAssassin',
-	'desc' => 'Plugin which allows to use SpamAssassin with i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
+    'author' => array(
+        'Laurent Declercq',
+        'Rene Schuster',
+        'Sascha Bay'
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.0.7',
+    'require_api' => '1.0.3',
+    'date' => '2015-10-27',
+    'name' => 'SpamAssassin',
+    'desc' => 'Plugin which allows to use SpamAssassin with i-MSCP.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
 );

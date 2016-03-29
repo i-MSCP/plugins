@@ -23,15 +23,15 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('userpref');
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS $database.$table (
-			`username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`preference` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`prefid` int(11) NOT NULL AUTO_INCREMENT,
-			PRIMARY KEY (`prefid`),
-			KEY `username` (`username`),
-			UNIQUE KEY `user_pref` (`username`,`preference`)
-		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS $database.$table (
+            `username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `preference` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `prefid` int(11) NOT NULL AUTO_INCREMENT,
+            PRIMARY KEY (`prefid`),
+            KEY `username` (`username`),
+            UNIQUE KEY `user_pref` (`username`,`preference`)
+        ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    "
 );
