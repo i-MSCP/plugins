@@ -273,7 +273,7 @@ sub discoverRazor
 
     $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 
-    my $rs = execute("su $1 -c '/usr/bin/razor-admin -discover'", \my $stdout, \my $stderr);
+    my $rs = execute("su -l $1 -c '/usr/bin/razor-admin -discover'", \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     $rs;
@@ -321,7 +321,7 @@ sub cleanAwlDb
 
 sub cleanBayesDb
 {
-    my $rs = execute("/usr/bin/sa-learn --force-expire", \my $stdout, \my $stderr);
+    my $rs = execute("sa-learn --force-expire", \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     $rs;
@@ -394,7 +394,7 @@ sub _discoverPyzor
 
     $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 
-    my $rs = execute("su $1 -c '/usr/bin/pyzor discover'", \my $stdout, \my $stderr);
+    my $rs = execute("su -l $1 -c '/usr/bin/pyzor discover'", \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     $rs;
@@ -414,12 +414,12 @@ sub _createRazor
 
     $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
 
-    my $rs = execute("su $1 -c '/usr/bin/razor-admin -create'", \my $stdout, \my $stderr);
+    my $rs = execute("su -l $1 -c '/usr/bin/razor-admin -create'", \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     return $rs if $rs;
 
-    $rs = execute("su $1 -c '/usr/bin/razor-admin -register'", \$stdout, \$stderr);
+    $rs = execute("su -l $1 -c '/usr/bin/razor-admin -register'", \$stdout, \$stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     $rs;
@@ -440,7 +440,7 @@ sub _spamassassinRulesHeinleinSupport
 
     if($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
         # Create an hourly cronjob from the original SpamAssassin cronjob
-        my $rs = execute("cp -a /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
+        my $rs = execute("cp -f /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de", \my $stdout, \my $stderr);
         debug($stdout) if $stdout;
         error($stderr) if $stderr && $rs;
         return $rs if $rs;
@@ -1114,7 +1114,7 @@ sub _setRoundcubePluginConfig
     my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$plugin";
     my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    my $rs = execute("cp -fr $configPlugin/* $pluginsDir/$plugin", \my $stdout, \my $stderr);
+    my $rs = execute("cp -fR $configPlugin/* $pluginsDir/$plugin", \my $stdout, \my $stderr);
     debug($stdout) if $stdout;
     error($stderr) if $stderr && $rs;
     return $rs if $rs;
