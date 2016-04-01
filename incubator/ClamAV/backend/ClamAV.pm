@@ -54,18 +54,18 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_checkRequirements();
-	return $rs if $rs;
+    my $rs = $self->_checkRequirements();
+    return $rs if $rs;
 
-	$rs = $self->_setupClamavMilter('configure');
-	return $rs if $rs;
+    $rs = $self->_setupClamavMilter('configure');
+    return $rs if $rs;
 
-	$rs = $self->_setupPostfix('configure');
-	return $rs if $rs;
+    $rs = $self->_setupPostfix('configure');
+    return $rs if $rs;
 
-	$self->_restartServices();
+    $self->_restartServices();
 }
 
 =item disable()
@@ -78,20 +78,20 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_setupClamavMilter('deconfigure');
-	return $rs if $rs;
+    my $rs = $self->_setupClamavMilter('deconfigure');
+    return $rs if $rs;
 
-	$rs = $self->_setupPostfix('deconfigure');
-	return $rs if $rs;
+    $rs = $self->_setupPostfix('deconfigure');
+    return $rs if $rs;
 
-	unless($self->{'action'} eq 'change') {
-		$rs = $self->_restartServices();
-		return $rs if $rs;
-	}
+    unless($self->{'action'} eq 'change') {
+        $rs = $self->_restartServices();
+        return $rs if $rs;
+    }
 
-	0;
+    0;
 }
 
 =back
@@ -111,66 +111,66 @@ sub disable
 
 sub _setupClamavMilter
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	if(-f '/etc/clamav/clamav-milter.conf') {
-		my $file = iMSCP::File->new( filename => '/etc/clamav/clamav-milter.conf' );
-		my $fileContent = $file->get();
-		unless (defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
-			return 1;
-		}
+    if(-f '/etc/clamav/clamav-milter.conf') {
+        my $file = iMSCP::File->new( filename => '/etc/clamav/clamav-milter.conf' );
+        my $fileContent = $file->get();
+        unless (defined $fileContent) {
+            error("Unable to read $file->{'filename'} file");
+            return 1;
+        }
 
-		my $baseRegexp = '((?:MilterSocket|MilterSocketGroup|MilterSocketMode|FixStaleSocket|User|' .
-			'AllowSupplementaryGroups|ReadTimeout|Foreground|Chroot|PidFile|TemporaryDirectory|ClamdSocket|LocalNet|' .
-			'Whitelist|SkipAuthenticated|MaxFileSize|OnClean|OnInfected|OnFail|RejectMsg|AddHeader|ReportHostname|' .
-			'VirusAction|LogFile|LogFileUnlock|LogFileMaxSize|LogTime|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
-			'LogClean|LogRotate|SupportMultipleRecipients).*)';
+        my $baseRegexp = '((?:MilterSocket|MilterSocketGroup|MilterSocketMode|FixStaleSocket|User|' .
+            'AllowSupplementaryGroups|ReadTimeout|Foreground|Chroot|PidFile|TemporaryDirectory|ClamdSocket|LocalNet|' .
+            'Whitelist|SkipAuthenticated|MaxFileSize|OnClean|OnInfected|OnFail|RejectMsg|AddHeader|ReportHostname|' .
+            'VirusAction|LogFile|LogFileUnlock|LogFileMaxSize|LogTime|LogSyslog|LogFacility|LogVerbose|LogInfected|' .
+            'LogClean|LogRotate|SupportMultipleRecipients).*)';
 
-		if($action eq 'configure') {
-			$fileContent =~ s/^$baseRegexp/#$1/gm;
+        if($action eq 'configure') {
+            $fileContent =~ s/^$baseRegexp/#$1/gm;
 
-			my $configSnippet = "# Begin Plugin::ClamAV\n";
+            my $configSnippet = "# Begin Plugin::ClamAV\n";
 
-			for my $option(
-				qw /
-					MilterSocket MilterSocketGroup MilterSocketMode FixStaleSocket User AllowSupplementaryGroups
-					ReadTimeout Foreground Chroot PidFile TemporaryDirectory ClamdSocket LocalNet Whitelist
-					SkipAuthenticated MaxFileSize OnClean OnInfected OnFail RejectMsg AddHeader ReportHostname
-					VirusAction LogFile LogFileUnlock LogFileMaxSize LogTime LogSyslog LogFacility LogVerbose
-					LogInfected LogClean LogRotate SupportMultipleRecipients
-				/
-			) {
-				if(exists $self->{'config'}->{$option} && $self->{'config'}->{$option} ne '') {
-					$configSnippet .= "$option $self->{'config'}->{$option}\n";
-				}
-			}
+            for my $option(
+                qw /
+                    MilterSocket MilterSocketGroup MilterSocketMode FixStaleSocket User AllowSupplementaryGroups
+                    ReadTimeout Foreground Chroot PidFile TemporaryDirectory ClamdSocket LocalNet Whitelist
+                    SkipAuthenticated MaxFileSize OnClean OnInfected OnFail RejectMsg AddHeader ReportHostname
+                    VirusAction LogFile LogFileUnlock LogFileMaxSize LogTime LogSyslog LogFacility LogVerbose
+                    LogInfected LogClean LogRotate SupportMultipleRecipients
+                /
+            ) {
+                if(exists $self->{'config'}->{$option} && $self->{'config'}->{$option} ne '') {
+                    $configSnippet .= "$option $self->{'config'}->{$option}\n";
+                }
+            }
 
-			$configSnippet .= "# Ending Plugin::ClamAV\n";
+            $configSnippet .= "# Ending Plugin::ClamAV\n";
 
-			if(getBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', $fileContent) ne '') {
-				$fileContent = replaceBloc(
-					'# Begin Plugin::ClamAV\n',
-					'# Ending Plugin::ClamAV\n',
-					$configSnippet,
-					$fileContent
-				);
-			} else {
-				$fileContent .= $configSnippet;
-			}
-		} elsif($action eq 'deconfigure') {
-			$fileContent = replaceBloc("# Begin Plugin::ClamAV\n", "# Ending Plugin::ClamAV\n", '', $fileContent);
-			$fileContent =~ s/^#$baseRegexp/$1/gm;
-		}
+            if(getBloc('# Begin Plugin::ClamAV\n', '# Ending Plugin::ClamAV\n', $fileContent) ne '') {
+                $fileContent = replaceBloc(
+                    '# Begin Plugin::ClamAV\n',
+                    '# Ending Plugin::ClamAV\n',
+                    $configSnippet,
+                    $fileContent
+                );
+            } else {
+                $fileContent .= $configSnippet;
+            }
+        } elsif($action eq 'deconfigure') {
+            $fileContent = replaceBloc("# Begin Plugin::ClamAV\n", "# Ending Plugin::ClamAV\n", '', $fileContent);
+            $fileContent =~ s/^#$baseRegexp/$1/gm;
+        }
 
-		my $rs = $file->set($fileContent);
-		return $rs if $rs;
+        my $rs = $file->set($fileContent);
+        return $rs if $rs;
 
-		$file->save();
-	} else {
-		error('File /etc/clamav/clamav-milter.conf not found');
-		return 1;
-	}
+        $file->save();
+    } else {
+        error('File /etc/clamav/clamav-milter.conf not found');
+        return 1;
+    }
 }
 
 =item _setupPostfix($action)
@@ -184,48 +184,48 @@ sub _setupClamavMilter
 
 sub _setupPostfix
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \my $stdout, \my $stderr);
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    my $rs = execute('postconf -h smtpd_milters non_smtpd_milters', \my $stdout, \my $stderr);
+    error($stderr) if $stderr && $rs;
+    return $rs if $rs;
 
-	# Extract postconf values
-	my @postconfValues = split /\n/, $stdout;
+    # Extract postconf values
+    my @postconfValues = split /\n/, $stdout;
 
-	my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
-	my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
+    my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
+    my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
 
-	s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E)//g for @postconfValues;
+    s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E)//g for @postconfValues;
 
-	if($action eq 'configure') {
-		my @postconf = (
-			'milter_default_action=accept',
-			'smtpd_milters=' . (
-				(@postconfValues)
-					? escapeShell("$postconfValues[0] $milterValue") : escapeShell($milterValue)
-			),
-			'non_smtpd_milters=' . (
-				(@postconfValues > 1) ? escapeShell("$postconfValues[1] $milterValue") : escapeShell($milterValue)
-			)
-		);
+    if($action eq 'configure') {
+        my @postconf = (
+            'milter_default_action=accept',
+            'smtpd_milters=' . (
+                (@postconfValues)
+                    ? escapeShell("$postconfValues[0] $milterValue") : escapeShell($milterValue)
+            ),
+            'non_smtpd_milters=' . (
+                (@postconfValues > 1) ? escapeShell("$postconfValues[1] $milterValue") : escapeShell($milterValue)
+            )
+        );
 
-		$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
-		error($stderr) if $stderr && $rs;
-	} elsif($action eq 'deconfigure') {
-		if(@postconfValues) {
-			my @postconf = ( 'smtpd_milters=' . escapeShell($postconfValues[0]) );
+        $rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
+        error($stderr) if $stderr && $rs;
+    } elsif($action eq 'deconfigure') {
+        if(@postconfValues) {
+            my @postconf = ( 'smtpd_milters=' . escapeShell($postconfValues[0]) );
 
-			if(@postconfValues > 1) {
-				push @postconf, 'non_smtpd_milters=' . escapeShell($postconfValues[1]);
-			}
+            if(@postconfValues > 1) {
+                push @postconf, 'non_smtpd_milters=' . escapeShell($postconfValues[1]);
+            }
 
-			$rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
-			error($stderr) if $stderr && $rs;
-		}
-	}
+            $rs = execute("postconf -e @postconf", \my $stdout, \my $stderr);
+            error($stderr) if $stderr && $rs;
+        }
+    }
 
-	$rs;
+    $rs;
 }
 
 =item _checkRequirements()
@@ -238,24 +238,24 @@ sub _setupPostfix
 
 sub _checkRequirements
 {
-	my @reqPkgs = qw/clamav clamav-base clamav-daemon clamav-freshclam clamav-milter/;
-	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
-	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
-	my $ret = 0;
+    my @reqPkgs = qw/clamav clamav-base clamav-daemon clamav-freshclam clamav-milter/;
+    execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
+    my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
+    my $ret = 0;
 
-	for my $reqPkg(@reqPkgs) {
-		if($reqPkg ~~ [ keys  %instPkgs ]) {
-			unless($instPkgs{$reqPkg} eq 'installed') {
-				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
-				$ret ||= 1;
-			}
-		} else {
-			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
-			$ret ||= 1;
-		}
-	}
+    for my $reqPkg(@reqPkgs) {
+        if($reqPkg ~~ [ keys  %instPkgs ]) {
+            unless($instPkgs{$reqPkg} eq 'installed') {
+                error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
+                $ret ||= 1;
+            }
+        } else {
+            error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
+            $ret ||= 1;
+        }
+    }
 
-	$ret;
+    $ret;
 }
 
 =item _restartServices
@@ -268,18 +268,18 @@ sub _checkRequirements
 
 sub _restartServices
 {
-	my $self = shift;
+    my $self = shift;
 
-	# Here, we cannot use the i-MSCP service manager because the init script is returning specific status code (4)
-	# even when this is expected (usage of tcp socket instead of unix socket)
-	my $rs = execute('service clamav-milter restart', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $rs && $stderr;
-	return $rs if $rs;
+    # Here, we cannot use the i-MSCP service manager because the init script is returning specific status code (4)
+    # even when this is expected (usage of tcp socket instead of unix socket)
+    my $rs = execute('service clamav-milter restart', \my $stdout, \my $stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $rs && $stderr;
+    return $rs if $rs;
 
-	Servers::mta->factory()->{'restart'} = 'yes';
+    Servers::mta->factory()->{'restart'} = 'yes';
 
-	0;
+    0;
 }
 
 =back

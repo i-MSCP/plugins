@@ -21,71 +21,71 @@
  */
 
 return array(
-	/**
-	 * Clamav-milter configuration options
-	 * 
-	 * For more information about the different configuration options please check 'man clamav-milter.conf'.
-	 * 
-	 * Warning: Don't change anything if you don't know what you are doing.
-	 */
+    /**
+     * Clamav-milter configuration options
+     * 
+     * For more information about the different configuration options please check 'man clamav-milter.conf'.
+     * 
+     * Warning: Don't change anything if you don't know what you are doing.
+     */
 
-	// Postfix smtpd milter for ClamAV (default: unix:/clamav/clamav-milter.ctl)
-	//
-	// Possible values:
-	//  unix:/clamav/clamav-milter.ctl for connection through UNIX socket
-	//  inet:localhost:32767 for connection through TCP
-	'PostfixMilterSocket' => 'unix:/clamav/clamav-milter.ctl',
+    // Postfix smtpd milter for ClamAV (default: unix:/clamav/clamav-milter.ctl)
+    //
+    // Possible values:
+    //  unix:/clamav/clamav-milter.ctl for connection through UNIX socket
+    //  inet:localhost:32767 for connection through TCP
+    'PostfixMilterSocket' => 'unix:/clamav/clamav-milter.ctl',
 
-	/**
-	 * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
-	 *
-	 * Note: If an options is missing, just add it with it name and it will be automatically added.
-	 *
-	 * See man clamav-milter.conf for further details about available options.
-	 */
+    /**
+     * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
+     *
+     * Note: If an options is missing, just add it with it name and it will be automatically added.
+     *
+     * See man clamav-milter.conf for further details about available options.
+     */
 
-	// Main options
+    // Main options
 
-	// Milter socket (default: /var/spool/postfix/clamav/clamav-milter.ctl)
-	//
-	// Possible values:
-	// /var/spool/postfix/clamav/clamav-milter.ctl for connection through UNIX socket
-	//  inet:32767@localhost for connection through TCP
-	'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
-	'MilterSocketGroup' => 'clamav',
-	'MilterSocketMode' => '666',
-	'FixStaleSocket' => 'true',
-	'User' => 'clamav',
-	'AllowSupplementaryGroups' => 'true',
-	'ReadTimeout' => '120',
-	'Foreground' => 'false',
-	'PidFile' => '/var/run/clamav/clamav-milter.pid',
-	'TemporaryDirectory' => '/tmp',
+    // Milter socket (default: /var/spool/postfix/clamav/clamav-milter.ctl)
+    //
+    // Possible values:
+    // /var/spool/postfix/clamav/clamav-milter.ctl for connection through UNIX socket
+    //  inet:32767@localhost for connection through TCP
+    'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
+    'MilterSocketGroup' => 'clamav',
+    'MilterSocketMode' => '666',
+    'FixStaleSocket' => 'true',
+    'User' => 'clamav',
+    'AllowSupplementaryGroups' => 'true',
+    'ReadTimeout' => '120',
+    'Foreground' => 'false',
+    'PidFile' => '/var/run/clamav/clamav-milter.pid',
+    'TemporaryDirectory' => '/tmp',
 
-	// Clamd options
-	'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
+    // Clamd options
+    'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
 
-	// Exclusions options
-	'MaxFileSize' => '25M',
+    // Exclusions options
+    'MaxFileSize' => '25M',
 
-	// Actions options
-	'OnClean' => 'Accept',
-	'OnInfected' => 'Reject',
-	'OnFail' => 'Defer',
-	'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v',
-	'AddHeader' => 'Replace',
-	'VirusAction' => '',
+    // Actions options
+    'OnClean' => 'Accept',
+    'OnInfected' => 'Reject',
+    'OnFail' => 'Defer',
+    'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v',
+    'AddHeader' => 'Replace',
+    'VirusAction' => '',
 
-	// Logging options
-	'LogFile' => '/var/log/clamav/clamav-milter.log',
-	'LogFileUnlock' => 'false',
-	'LogFileMaxSize' => '0M',
-	'LogTime' => 'true',
-	'LogSyslog' => 'true',
-	'LogFacility' => 'LOG_MAIL',
-	'LogVerbose' => 'false',
-	'LogInfected' => 'Basic',
-	'LogClean' => 'Off',
-	'LogRotate' => 'true',
-	'SupportMultipleRecipients' => 'false'
+    // Logging options
+    'LogFile' => '/var/log/clamav/clamav-milter.log',
+    'LogFileUnlock' => 'false',
+    'LogFileMaxSize' => '0M',
+    'LogTime' => 'true',
+    'LogSyslog' => 'true',
+    'LogFacility' => 'LOG_MAIL',
+    'LogVerbose' => 'false',
+    'LogInfected' => 'Basic',
+    'LogClean' => 'Off',
+    'LogRotate' => 'true',
+    'SupportMultipleRecipients' => 'false'
 );
