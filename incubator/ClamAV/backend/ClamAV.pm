@@ -154,9 +154,9 @@ sub _setupClamavMilter
 					'# Ending Plugin::ClamAV\n',
 					$configSnippet,
 					$fileContent
-				)
+				);
 			} else {
-				$fileContent .= $configSnippet
+				$fileContent .= $configSnippet;
 			}
 		} elsif($action eq 'deconfigure') {
 			$fileContent = replaceBloc("# Begin Plugin::ClamAV\n", "# Ending Plugin::ClamAV\n", '', $fileContent);
