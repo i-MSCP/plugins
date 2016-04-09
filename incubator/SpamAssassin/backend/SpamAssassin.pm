@@ -1243,37 +1243,20 @@ sub _setupDatabase
 
     my $db = iMSCP::Database->factory();
 
-    $db->set('DATABASE_NAME', '');
-
-    my $rs = $db->connect();
-    if($rs) {
-        error("Unable to connect to SQL server");
-        return 1;
-    }
-
-    $rs = $db->doQuery('1', 'SHOW DATABASES LIKE ?', $spamassassinDbName);
+    my $rs = $db->doQuery('1', 'SHOW DATABASES LIKE ?', $spamassassinDbName);
     unless(ref $rs eq 'HASH') {
         error($rs);
         return 1;
     }
 
-    unless(%$rs) {
-        error("Unable to find the SpamAssassin '$spamassassinDbName' SQL database.");
+    unless(%{rs}) {
+        error(sprintf( 'Could not find the `%s` SQL database for SpamAssassin.', $spamassassinDbName ));
         return 1;
     }
 
-    $db->set('DATABASE_NAME', $imscpDbName);
-    $rs = $db->connect();
-    if($rs) {
-        error("Unable to connect to the i-MSCP '$imscpDbName' SQL database: $rs");
-        return $rs if $rs;
-    }
-
     $rs = $self->_getSaDbPassword();
+    $rs ||= $self->_dropSaDatabaseUser();
     return $rs if $rs;
-
-    # Ensure that SQL user doesn't already exists
-    $self->_dropSaDatabaseUser();
 
     local $@;
     eval {
@@ -1286,14 +1269,13 @@ sub _setupDatabase
         return 1;
     }
 
+    (my $quotedDbName = $db->quoteIdentifier($spamassassinDbName)) =~ s/([%_])/\\$1/g;
     $rs = $db->doQuery(
-        'g',
-        "GRANT SELECT, INSERT, UPDATE, DELETE ON `$spamassassinDbName`.* TO ?@?",
-        $self->{'SA_DATABASE_USER'},
-        $self->{'SA_HOST'}
+        'g',  "GRANT SELECT, INSERT, UPDATE, DELETE ON $quotedDbName.* TO ?@?",
+        $self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}
     );
     unless(ref $rs eq 'HASH') {
-        error("Unable to add privileges on the '$spamassassinDbName' database: $rs");
+        error(sprintf('Could not grant privileges on the `%s` database: %s', $spamassassinDbName, $rs ));
         return 1;
     }
 
