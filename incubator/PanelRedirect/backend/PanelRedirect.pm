@@ -52,24 +52,21 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-    my $self = $_[0];
+    my $self = shift;
 
     my $rs = $self->_createLogFolder();
+    $rs ||= $self->_createConfig( 'PanelRedirect.conf' );
     return $rs if $rs;
 
-    $rs = $self->_createConfig('PanelRedirect.conf');
-    return $rs if $rs;
-
-    if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-        $rs = $self->_createConfig('PanelRedirect_ssl.conf');
+    if ($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
+        $rs = $self->_createConfig( 'PanelRedirect_ssl.conf' );
         return $rs if $rs;
     } else {
-        $rs = $self->_removeConfig('PanelRedirect_ssl.conf');
+        $rs = $self->_removeConfig( 'PanelRedirect_ssl.conf' );
         return $rs if $rs;
     }
 
     $self->{'httpd'}->{'restart'} = 'yes';
-
     0;
 }
 
@@ -83,18 +80,17 @@ sub enable
 
 sub disable
 {
-    my $self = $_[0];
+    my $self = shift;
 
     my $rs = $self->_removeLogFolder();
     return $rs if $rs;
 
     for('PanelRedirect.conf', 'PanelRedirect_ssl.conf') {
-        $rs = $self->_removeConfig($_);
+        $rs = $self->_removeConfig( $_ );
         return $rs if $rs;
     }
 
     $self->{'httpd'}->{'restart'} = 'yes';
-
     0;
 }
 
@@ -114,7 +110,7 @@ sub disable
 
 sub _init
 {
-    my $self = $_[0];
+    my $self = shift;
 
     if (grep($_ eq $self->{'action'}, ( 'install', 'change', 'update', 'enable', 'disable' ))) {
         $self->{'httpd'} = Servers::httpd->factory();
@@ -137,24 +133,22 @@ sub _createConfig
     my ($self, $vhostTplFile) = @_;
 
     my $tplRootDir = "$main::imscpConfig{'PLUGINS_DIR'}/PanelRedirect/templates/$self->{'config'}->{'type'}";
-
-    my $ipMngr = iMSCP::Net->getInstance();
+    my $net = iMSCP::Net->getInstance();
 
     $self->{'httpd'}->setData(
         {
-            'BASE_SERVER_IP' => (
-                $ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4'
-            ) ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
-            'BASE_SERVER_VHOST' => $main::imscpConfig{'BASE_SERVER_VHOST'},
-            'BASE_SERVER_VHOST_PREFIX' => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
-            'BASE_SERVER_VHOST_PORT' => (
-                $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
-            ) ? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
-            'BASE_SERVER_VHOST_HTTP_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
+            'BASE_SERVER_IP'               => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
+                ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+            'BASE_SERVER_VHOST'            => $main::imscpConfig{'BASE_SERVER_VHOST'},
+            'BASE_SERVER_VHOST_PREFIX'     => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
+            'BASE_SERVER_VHOST_PORT'       => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
+                ? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'}
+            ,
+            'BASE_SERVER_VHOST_HTTP_PORT'  => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
             'BASE_SERVER_VHOST_HTTPS_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
-            'DEFAULT_ADMIN_ADDRESS' => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
-            'HTTPD_LOG_DIR' => $self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'},
-            'CONF_DIR' => $main::imscpConfig{'CONF_DIR'}
+            'DEFAULT_ADMIN_ADDRESS'        => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
+            'HTTPD_LOG_DIR'                => $self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'},
+            'CONF_DIR'                     => $main::imscpConfig{'CONF_DIR'}
         }
     );
 
@@ -163,7 +157,7 @@ sub _createConfig
         sub {
             my ($cfgTpl, $tplName) = @_;
 
-            if($tplName eq 'PanelRedirect.conf' || $tplName eq 'PanelRedirect_ssl.conf') {
+            if ($tplName eq 'PanelRedirect.conf' || $tplName eq 'PanelRedirect_ssl.conf') {
                 $$cfgTpl = replaceBloc(
                     "# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} BEGIN.\n",
                     "# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} END.\n",
@@ -175,14 +169,13 @@ sub _createConfig
             0;
         }
     );
-    return $rs if $rs;
-
-    $rs = $self->{'httpd'}->buildConfFile("$tplRootDir/$vhostTplFile");
-    return $rs if $rs;
-
-    $self->{'httpd'}->installConfFile($vhostTplFile, {
-        destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
-    });
+    $rs ||= $self->{'httpd'}->buildConfFile( "$tplRootDir/$vhostTplFile" );
+    $rs ||= $self->{'httpd'}->installConfFile(
+        $vhostTplFile,
+        {
+            destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
+        }
+    );
 }
 
 =item _removeConfig($vhostFile)
@@ -198,12 +191,11 @@ sub _removeConfig
 {
     my ($self, $vhostFile) = @_;
 
-    for(
-        "$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
+    for("$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
         "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
     ) {
-        if(-f $_) {
-            my $rs = iMSCP::File->new('filename' => $_)->delFile();
+        if (-f $_) {
+            my $rs = iMSCP::File->new( 'filename' => $_ )->delFile();
             return $rs if $rs;
         }
     }
@@ -221,11 +213,17 @@ sub _removeConfig
 
 sub _createLogFolder()
 {
+    my $self = shift;
+
     iMSCP::Dir->new(
-        dirname => "$_[0]->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
-    )->make({
-        user => $main::imscpConfig{'ROOT_USER'}, group => $main::imscpConfig{'ROOT_GROUP'}, mode => 0750
-    });
+        dirname => "$self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
+    )->make(
+        {
+            user  => $main::imscpConfig{'ROOT_USER'},
+            group => $main::imscpConfig{'ROOT_GROUP'},
+            mode  => 0750
+        }
+    );
 }
 
 =item _removeLogFolder()
@@ -238,8 +236,10 @@ sub _createLogFolder()
 
 sub _removeLogFolder()
 {
+    my $self = shift;
+
     iMSCP::Dir->new(
-        'dirname' => "$_[0]->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
+        'dirname' => "$self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
     )->remove();
 }
 
