@@ -25,7 +25,6 @@ package Plugin::ServerDefaultPage;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
@@ -221,7 +220,7 @@ sub _init
 {
     my $self = shift;
 
-    if ($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
+    if (grep($_ eq $self->{'action'}, ( 'install', 'change', 'update', 'enable', 'disable' ))) {
         $self->{'httpd'} = Servers::httpd->factory();
     }
 
