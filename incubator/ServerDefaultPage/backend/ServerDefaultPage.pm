@@ -202,10 +202,8 @@ sub run
 sub onAddIps {
 	my $self = shift;
 
-	$self->disable();
-	$self->enable();
-
-	0;
+	my $rs = $self->disable();
+	$rs ||= $self->enable();
 }
 
 =back
@@ -245,8 +243,7 @@ sub _registerListeners
 {
     my $self = shift;
 
-    my $rs = $self->{'eventManager'}->register('afterHttpdAddIps', \&onAddIps);
-    return $rs;
+    $self->{'eventManager'}->register('afterHttpdAddIps', sub { $self->onAddIps(@_);});
 }
 
 =item _createConfig($vhostTplFile, $directives)
