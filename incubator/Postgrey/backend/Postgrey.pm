@@ -139,14 +139,10 @@ sub disable
 
 sub _checkRequirements
 {
-	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' postgrey | cut -d ' ' -f 3", \my $stdout, \my $stderr
-	);
-	debug($stdout) if $stdout;
-	if($stdout ne 'installed') {
-		error("The postgrey package is not installed on your system");
-		return 1;
-	}
+    if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' postgrey 2>/dev/null | grep -q 'installed'" )) {
+        error( "The `postgrey` package is not installed on your system" );
+        return 1;
+    }
 
 	0;
 }

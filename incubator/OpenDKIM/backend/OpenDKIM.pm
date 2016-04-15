@@ -718,24 +718,16 @@ sub _createOpendkimFile
 
 sub _checkRequirements
 {
-	my @reqPkgs = qw/opendkim opendkim-tools/;
-	execute("dpkg-query --show --showformat '\${Package} \${status}\\n' @reqPkgs", \my $stdout, \my $stderr);
-	my %instPkgs = map { /^([^\s]+).*\s([^\s]+)$/ && $1, $2 } split /\n/, $stdout;
-	my $ret = 0;
+    my $ret = 0;
 
-	for my $reqPkg(@reqPkgs) {
-		if($reqPkg ~~ [ keys  %instPkgs ]) {
-			unless($instPkgs{$reqPkg} eq 'installed') {
-				error(sprintf('The %s package is not installed on your system. Please install it.', $reqPkg));
-				$ret ||= 1;
-			}
-		} else {
-			error(sprintf('The %s package is not available on your system. Check your sources.list file.', $reqPkg));
-			$ret ||= 1;
-		}
-	}
+    for(qw/ opendkim opendkim-tools /) {
+        if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' $_ 2>/dev/null | grep -q 'installed" )) {
+            error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
+            $ret ||= 1;
+        }
+    }
 
-	$ret;
+    $ret;
 }
 
 =back

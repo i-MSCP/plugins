@@ -207,14 +207,10 @@ EOF
 
 sub _checkRequirements
 {
-	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' postfix-policyd-spf-perl | cut -d ' ' -f 3", \my $stdout, \my $stderr
-	);
-	debug($stdout) if $stdout;
-	if($stdout ne 'installed') {
-		error("The postfix-policyd-spf-perl package is not installed on your system");
-		return 1;
-	}
+    if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' postfix-policyd-spf-perl 2>/dev/null | grep -q 'installed'" )) {
+        error( "The `postfix-policyd-spf-perl` package is not installed on your system" );
+        return 1;
+    }
 
 	0;
 }

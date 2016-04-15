@@ -147,14 +147,10 @@ sub disable
 
 sub _checkRequirements
 {
-	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' policyd-weight | cut -d ' ' -f 3", \my $stdout, \my $stderr
-	);
-	debug($stdout) if $stdout;
-	if($stdout ne 'installed') {
-		error("The policyd-weight package is not installed on your system");
-		return 1;
-	}
+    if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' policyd-weight 2>/dev/null | grep -q 'installed'" )) {
+        error( "The `policyd-weight` package is not installed on your system" );
+        return 1;
+    }
 
 	0;
 }
