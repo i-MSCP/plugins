@@ -7,6 +7,7 @@ Version 1.2.3
 
     Fixed: onAddIps() was not able to use $self
 	Enhancement: Only trigger listener if status is enabled
+	Enhancement: Enhancement: Avoid usage of experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
