@@ -53,7 +53,7 @@ use parent 'Common::SingletonClass';
 
 sub change
 {
-	$_[0]->update();
+    $_[0]->update();
 }
 
 =item update()
@@ -66,12 +66,12 @@ sub change
 
 sub update
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	my $rs = $self->_modifyApacheMasterConf('add');
-	return $rs if $rs;
+    my $rs = $self->_modifyApacheMasterConf('add');
+    return $rs if $rs;
 
-	$self->_restartDaemonApache();
+    $self->_restartDaemonApache();
 }
 
 =item enable()
@@ -84,12 +84,12 @@ sub update
 
 sub enable()
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	my $rs = $self->_modifyApacheMasterConf('add');
-	return $rs if $rs;
+    my $rs = $self->_modifyApacheMasterConf('add');
+    return $rs if $rs;
 
-	$self->_restartDaemonApache();
+    $self->_restartDaemonApache();
 }
 
 =item disable()
@@ -102,12 +102,12 @@ sub enable()
 
 sub disable()
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	my $rs = $self->_modifyApacheMasterConf('remove');
-	return $rs if $rs;
+    my $rs = $self->_modifyApacheMasterConf('remove');
+    return $rs if $rs;
 
-	$self->_restartDaemonApache();
+    $self->_restartDaemonApache();
 }
 
 =item _modifyApacheMasterConf($action)
@@ -120,43 +120,43 @@ sub disable()
 
 sub _modifyApacheMasterConf($$)
 {
-	my ($self, $action) = @_;
-	my $ownDdnsConfig;
+    my ($self, $action) = @_;
+    my $ownDdnsConfig;
 
-	my $file = iMSCP::File->new('filename' => '/etc/apache2/sites-available/00_master.conf');
+    my $file = iMSCP::File->new('filename' => '/etc/apache2/sites-available/00_master.conf');
 
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read /etc/apache2/sites-available/00_master.conf");
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless (defined $fileContent) {
+        error("Unable to read /etc/apache2/sites-available/00_master.conf");
+        return 1;
+    }
 
-	if($action eq 'add') {
-		$ownDdnsConfig = "# SECTION custom BEGIN.\n";
-		$ownDdnsConfig .= "    RewriteEngine On\n";
-		$ownDdnsConfig .= "    RewriteCond %{ENV:REDIRECT_STATUS} ^\$\n";
-		$ownDdnsConfig .= "    RewriteCond %{REQUEST_URI} !^/.*ownddns\\.php\n";
-		$ownDdnsConfig .= "    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n";
-		$ownDdnsConfig .= "    # SECTION custom END.\n";
-		
-		if ($fileContent =~ /# SECTION custom BEGIN.*# SECTION custom END\.\n/sgm && $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'https://') {
-			$fileContent =~ s/# SECTION custom BEGIN.*# SECTION custom END\.\n/$ownDdnsConfig/sgm;
-		}
-	} elsif($action eq 'remove') {
-		$ownDdnsConfig = "# SECTION custom BEGIN.\n";
-		$ownDdnsConfig .= "    RewriteEngine On\n";
-		$ownDdnsConfig .= "    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n";
-		$ownDdnsConfig .= "    # SECTION custom END.\n";
-		
-		if ($fileContent =~ /# SECTION custom BEGIN.*# SECTION custom END\.\n/sgm && $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'https://') {
-			$fileContent =~ s/# SECTION custom BEGIN.*# SECTION custom END\.\n/$ownDdnsConfig/sgm;
-		}
-	}
+    if($action eq 'add') {
+        $ownDdnsConfig = "# SECTION custom BEGIN.\n";
+        $ownDdnsConfig .= "    RewriteEngine On\n";
+        $ownDdnsConfig .= "    RewriteCond %{ENV:REDIRECT_STATUS} ^\$\n";
+        $ownDdnsConfig .= "    RewriteCond %{REQUEST_URI} !^/.*ownddns\\.php\n";
+        $ownDdnsConfig .= "    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n";
+        $ownDdnsConfig .= "    # SECTION custom END.\n";
 
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
+        if ($fileContent =~ /# SECTION custom BEGIN.*# SECTION custom END\.\n/sgm && $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'https://') {
+            $fileContent =~ s/# SECTION custom BEGIN.*# SECTION custom END\.\n/$ownDdnsConfig/sgm;
+        }
+    } elsif($action eq 'remove') {
+        $ownDdnsConfig = "# SECTION custom BEGIN.\n";
+        $ownDdnsConfig .= "    RewriteEngine On\n";
+        $ownDdnsConfig .= "    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n";
+        $ownDdnsConfig .= "    # SECTION custom END.\n";
 
-	$file->save();
+        if ($fileContent =~ /# SECTION custom BEGIN.*# SECTION custom END\.\n/sgm && $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'https://') {
+            $fileContent =~ s/# SECTION custom BEGIN.*# SECTION custom END\.\n/$ownDdnsConfig/sgm;
+        }
+    }
+
+    my $rs = $file->set($fileContent);
+    return $rs if $rs;
+
+    $file->save();
 }
 
 =item _restartDaemonApache()
@@ -169,13 +169,13 @@ sub _modifyApacheMasterConf($$)
 
 sub _restartDaemonApache
 {
-	require Servers::httpd;
+    require Servers::httpd;
 
-	my $httpd = Servers::httpd->factory();
+    my $httpd = Servers::httpd->factory();
 
-	$httpd->{'restart'} = 'yes';
+    $httpd->{'restart'} = 'yes';
 
-	0;
+    0;
 }
 
 =back

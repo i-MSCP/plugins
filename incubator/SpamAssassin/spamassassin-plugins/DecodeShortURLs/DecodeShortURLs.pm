@@ -165,7 +165,7 @@ sub set_config {
 
 =over 4
 
-=item url_shortener_log		(default: none)
+=item url_shortener_log (default: none)
 
 A path to a log file to be written to.  The file will be created if it does
 not already exist and must be writable by the user running spamassassin.

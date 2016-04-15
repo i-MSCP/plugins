@@ -51,46 +51,46 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_checkRequirements();
-	return $rs if $rs;
+    my $rs = $self->_checkRequirements();
+    return $rs if $rs;
 
-	$rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $stderr && $rs;
+    return $rs if $rs;
 
-	# Extract postconf values
-	chomp($stdout);
-	my $postconfValues = $stdout;
-	my @smtpRestrictions = split ', ', $postconfValues;
+    # Extract postconf values
+    chomp($stdout);
+    my $postconfValues = $stdout;
+    my @smtpRestrictions = split ', ', $postconfValues;
 
-	# Add policyd-weight policy server
-	s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'policyd_weight_port'}/ for @smtpRestrictions;
-	push @smtpRestrictions, 'permit';
+    # Add policyd-weight policy server
+    s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'policyd_weight_port'}/ for @smtpRestrictions;
+    push @smtpRestrictions, 'permit';
 
-	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
+    my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
 
-	$rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    $rs = execute("postconf -e $postconf", \$stdout, \$stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $stderr && $rs;
+    return $rs if $rs;
 
-	# Create policyd-weight configuration file if needed
-	unless(-f '/etc/policyd-weight.conf') {
-		$rs = execute('policyd-weight defaults >/etc/policyd-weight.conf', \$stdout, \$stderr);
-		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
-	}
+    # Create policyd-weight configuration file if needed
+    unless(-f '/etc/policyd-weight.conf') {
+        $rs = execute('policyd-weight defaults >/etc/policyd-weight.conf', \$stdout, \$stderr);
+        debug($stdout) if $stdout;
+        error($stderr) if $stderr && $rs;
+        return $rs if $rs;
+    }
 
-	# Make sure that policyd-weight daemon is running
-	iMSCP::Service->getInstance()->restart('policyd-weight');
+    # Make sure that policyd-weight daemon is running
+    iMSCP::Service->getInstance()->restart('policyd-weight');
 
-	Servers::mta->factory()->{'restart'} = 1;
+    Servers::mta->factory()->{'restart'} = 1;
 
-	0;
+    0;
 }
 
 =item disable()
@@ -103,32 +103,32 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $stderr && $rs;
+    return $rs if $rs;
 
-	# Extract postconf values
-	chomp($stdout);
-	my $postconfValues = $stdout;
+    # Extract postconf values
+    chomp($stdout);
+    my $postconfValues = $stdout;
 
-	# Remove policyd-weight policy server
-	my @smtpRestrictions = grep {
-		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'policyd_weight_port'}$/
-	} split ', ', $postconfValues;
+    # Remove policyd-weight policy server
+    my @smtpRestrictions = grep {
+        $_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'policyd_weight_port'}$/
+    } split ', ', $postconfValues;
 
-	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
+    my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
 
-	$rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    $rs = execute("postconf -e $postconf", \$stdout, \$stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $stderr && $rs;
+    return $rs if $rs;
 
-	Servers::mta->factory()->{'restart'} = 1;
+    Servers::mta->factory()->{'restart'} = 1;
 
-	0;
+    0;
 }
 
 =back
@@ -152,7 +152,7 @@ sub _checkRequirements
         return 1;
     }
 
-	0;
+    0;
 }
 
 =back

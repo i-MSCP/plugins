@@ -57,35 +57,35 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	my $rs = $self->_checkRequirements();
-	return $rs if $rs;
+    my $rs = $self->_checkRequirements();
+    return $rs if $rs;
 
-	$rs = iMSCP::File->new(
-		filename => "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/config/etc/monitorix/conf.d/20-imscp.conf"
-	)->copyFile(
-		"$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf"
-	);
-	return $rs if $rs;
+    $rs = iMSCP::File->new(
+        filename => "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/config/etc/monitorix/conf.d/20-imscp.conf"
+    )->copyFile(
+        "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf"
+    );
+    return $rs if $rs;
 
-	my $file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" );
+    my $file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" );
 
-	my $fileContent = $file->get();
-	unless(defined $fileContent) {
-		error("Unable to read $file->{'filename'}");
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless(defined $fileContent) {
+        error("Unable to read $file->{'filename'}");
+        return 1;
+    }
 
-	$fileContent = process( { PLUGINS_DIR => $main::imscpConfig{'PLUGINS_DIR'} }, $fileContent );
+    $fileContent = process( { PLUGINS_DIR => $main::imscpConfig{'PLUGINS_DIR'} }, $fileContent );
 
-	$rs = $file->set($fileContent);
-	return $rs if $rs;
+    $rs = $file->set($fileContent);
+    return $rs if $rs;
 
-	$rs = $file->save();
-	return $rs if $rs;
+    $rs = $file->save();
+    return $rs if $rs;
 
-	$self->_setupApache('deconfigure');
+    $self->_setupApache('deconfigure');
 }
 
 =item uninstall()
@@ -98,16 +98,16 @@ sub install
 
 sub uninstall
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	if(-f "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf") {
-		my $rs = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" )->delFile();
-		return $rs if $rs;
+    if(-f "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf") {
+        my $rs = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf" )->delFile();
+        return $rs if $rs;
 
-		iMSCP::Service->getInstance()->restart('monitorix');
-	}
+        iMSCP::Service->getInstance()->restart('monitorix');
+    }
 
-	$self->_setupApache('configure');
+    $self->_setupApache('configure');
 }
 
 =item update($fromVersion, $toVersion)
@@ -122,68 +122,68 @@ sub uninstall
 
 sub update
 {
-	my ($self, $fromVersion, $toVersion) = @_;
+    my ($self, $fromVersion, $toVersion) = @_;
 
-	my $rs = $self->install();
-	return $rs if $rs;
+    my $rs = $self->install();
+    return $rs if $rs;
 
-	if(version->parse($fromVersion) < version->parse("1.1.1")) {
-		unless(-f $self->{'config'}->{'cgi_path'}) {
-			error("File $self->{'config'}->{'cgi_path'} not found");
-			return 1;
-		}
+    if(version->parse($fromVersion) < version->parse("1.1.1")) {
+        unless(-f $self->{'config'}->{'cgi_path'}) {
+            error("File $self->{'config'}->{'cgi_path'} not found");
+            return 1;
+        }
 
-		# Cancel changes made by previous versions in the Monitorix CGI script
+        # Cancel changes made by previous versions in the Monitorix CGI script
 
-		my $file = iMSCP::File->new( filename => $self->{'config'}->{'cgi_path'} );
-		my $fileContent = $file->get();
-		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'}");
-			return 1;
-		}
+        my $file = iMSCP::File->new( filename => $self->{'config'}->{'cgi_path'} );
+        my $fileContent = $file->get();
+        unless(defined $fileContent) {
+            error("Unable to read $file->{'filename'}");
+            return 1;
+        }
 
-		$fileContent =~ s%/var/lib/monitorix/www/cgi/monitorix.conf.path%monitorix.conf.path%;
+        $fileContent =~ s%/var/lib/monitorix/www/cgi/monitorix.conf.path%monitorix.conf.path%;
 
-		$rs = $file->set($fileContent);
-		return $rs if $rs;
+        $rs = $file->set($fileContent);
+        return $rs if $rs;
 
-		$rs = $file->save();
-		return $rs if $rs;
+        $rs = $file->save();
+        return $rs if $rs;
 
-		# Cancel changes made by previous plugin versions in the monitorix.conf file
+        # Cancel changes made by previous plugin versions in the monitorix.conf file
 
-		if(-f "$self->{'config'}->{'confdir_path'}/monitorix.conf") {
-			$file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/monitorix.conf" );
+        if(-f "$self->{'config'}->{'confdir_path'}/monitorix.conf") {
+            $file = iMSCP::File->new( filename => "$self->{'config'}->{'confdir_path'}/monitorix.conf" );
 
-			$fileContent = $file->get();
-			unless(defined $fileContent) {
-				error("Unable to read $file->{'filename'}");
-				return 1;
-			}
+            $fileContent = $file->get();
+            unless(defined $fileContent) {
+                error("Unable to read $file->{'filename'}");
+                return 1;
+            }
 
-			$fileContent = replaceBloc(
-				"# Start_BaseDir Added by Plugins::Monitorix\n",
-				"# Added by Plugins::Monitorix End_BaseDir\n",
-				"base_dir = /var/lib/monitorix/www/\n",
-				$fileContent
-			);
+            $fileContent = replaceBloc(
+                "# Start_BaseDir Added by Plugins::Monitorix\n",
+                "# Added by Plugins::Monitorix End_BaseDir\n",
+                "base_dir = /var/lib/monitorix/www/\n",
+                $fileContent
+            );
 
-			$fileContent = replaceBloc(
-				"# Start_ImgDir Added by Plugins::Monitorix\n",
-				"# Added by Plugins::Monitorix End_ImgDir\n",
-				"imgs_dir = imgs/\n",
-				$fileContent
-			);
+            $fileContent = replaceBloc(
+                "# Start_ImgDir Added by Plugins::Monitorix\n",
+                "# Added by Plugins::Monitorix End_ImgDir\n",
+                "imgs_dir = imgs/\n",
+                $fileContent
+            );
 
-			$rs = $file->set($fileContent);
-			return $rs if $rs;
+            $rs = $file->set($fileContent);
+            return $rs if $rs;
 
-			$rs = $file->save();
-			return $rs if $rs;
-		}
-	}
+            $rs = $file->save();
+            return $rs if $rs;
+        }
+    }
 
-	0;
+    0;
 }
 
 =item enable()
@@ -196,19 +196,19 @@ sub update
 
 sub enable
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		my $rs = $self->_enableGraphs();
-		return $rs if $rs;
+    unless(defined $main::execmode && $main::execmode eq 'setup') {
+        my $rs = $self->_enableGraphs();
+        return $rs if $rs;
 
-		iMSCP::Service->getInstance()->restart('monitorix');
+        iMSCP::Service->getInstance()->restart('monitorix');
 
-		$rs = $self->buildGraphs();
-		return $rs if $rs;
-	}
+        $rs = $self->buildGraphs();
+        return $rs if $rs;
+    }
 
-	$self->_addCronjob();
+    $self->_addCronjob();
 }
 
 =item disable()
@@ -221,13 +221,13 @@ sub enable
 
 sub disable
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		$_[0]->_deleteCronjob();
-	} else {
-		0;
-	}
+    unless(defined $main::execmode && $main::execmode eq 'setup') {
+        $_[0]->_deleteCronjob();
+    } else {
+        0;
+    }
 }
 
 =item buildGraphs()
@@ -240,72 +240,72 @@ sub disable
 
 sub buildGraphs
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	if(defined $self->{'config'}->{'graph_enabled'}) {
-		my $prevDir = getcwd();
-		my $newDir = dirname($self->{'config'}->{'cgi_path'});
+    if(defined $self->{'config'}->{'graph_enabled'}) {
+        my $prevDir = getcwd();
+        my $newDir = dirname($self->{'config'}->{'cgi_path'});
 
-		unless(chdir($newDir)) {
-			error("Unable to change directory to $newDir: $!");
-			return 1;
-		}
+        unless(chdir($newDir)) {
+            error("Unable to change directory to $newDir: $!");
+            return 1;
+        }
 
-		my $graphColor = (
-			defined $self->{'config'}->{'graph_color'} && $self->{'config'}->{'graph_color'} ~~ [ 'black', 'white' ]
-		) ? $self->{'config'}->{'graph_color'} : 'white';
+        my $graphColor = (
+            defined $self->{'config'}->{'graph_color'} && $self->{'config'}->{'graph_color'} ~~ [ 'black', 'white' ]
+        ) ? $self->{'config'}->{'graph_color'} : 'white';
 
-		for my $graph(keys %{$self->{'config'}->{'graph_enabled'}}) {
-			if(lc($self->{'config'}->{'graph_enabled'}->{$graph}) eq 'y') {
-				for my $when('1hour', '1day', '1week', '1month', '1year') {
-					my @cmd = (
-						'perl',
-						$self->{'config'}->{'cgi_path'},
-						'mode=localhost',
-						'graph=' . escapeShell('_' . $graph . '1'),
-						'when=' . escapeShell($when),
-						'color=' . escapeShell($graphColor),
-						'silent=imagetag'
-					);
-					my ($stdout, $stderr);
-					my $rs = execute("@cmd", \$stdout, \$stderr);
-					debug($stdout) if $stdout;
-					error($stderr) if $stderr && $rs;
-					return $rs if $rs;
-				}
-			}
-		}
+        for my $graph(keys %{$self->{'config'}->{'graph_enabled'}}) {
+            if(lc($self->{'config'}->{'graph_enabled'}->{$graph}) eq 'y') {
+                for my $when('1hour', '1day', '1week', '1month', '1year') {
+                    my @cmd = (
+                        'perl',
+                        $self->{'config'}->{'cgi_path'},
+                        'mode=localhost',
+                        'graph=' . escapeShell('_' . $graph . '1'),
+                        'when=' . escapeShell($when),
+                        'color=' . escapeShell($graphColor),
+                        'silent=imagetag'
+                    );
+                    my ($stdout, $stderr);
+                    my $rs = execute("@cmd", \$stdout, \$stderr);
+                    debug($stdout) if $stdout;
+                    error($stderr) if $stderr && $rs;
+                    return $rs if $rs;
+                }
+            }
+        }
 
-		unless(chdir($prevDir)) {
-			error("Unable to change directory to $prevDir: $!");
-			return 1;
-		}
+        unless(chdir($prevDir)) {
+            error("Unable to change directory to $prevDir: $!");
+            return 1;
+        }
 
-		my $panelUname =
-		my $panelGName =
-			$main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+        my $panelUname =
+        my $panelGName =
+            $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-		my $graphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/themes/default/assets/images/graphs';
+        my $graphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/themes/default/assets/images/graphs';
 
-		if(-d $graphsDir) {
-			for(iMSCP::Dir->new( dirname => $graphsDir, fileType => '.png' )->getFiles()) {
-				my $file = iMSCP::File->new( filename => "$graphsDir/$_" );
+        if(-d $graphsDir) {
+            for(iMSCP::Dir->new( dirname => $graphsDir, fileType => '.png' )->getFiles()) {
+                my $file = iMSCP::File->new( filename => "$graphsDir/$_" );
 
-				if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) {
-					my $rs = $file->delFile(); # Remove useless files, only zoom graphics are needed
-					return $rs if $rs;
-				} else {
-					my $rs = $file->owner($panelUname, $panelGName);
-					return $rs if $rs;
+                if($_ !~ /^_[a-z]*\d[a-y]?[z]\.1(?:hour|day|week|month|year)\.png$/) {
+                    my $rs = $file->delFile(); # Remove useless files, only zoom graphics are needed
+                    return $rs if $rs;
+                } else {
+                    my $rs = $file->owner($panelUname, $panelGName);
+                    return $rs if $rs;
 
-					$rs = $file->mode(0640);
-					return $rs if $rs;
-				}
-			}
-		}
-	}
+                    $rs = $file->mode(0640);
+                    return $rs if $rs;
+                }
+            }
+        }
+    }
 
-	0
+    0
 }
 
 =back
@@ -324,13 +324,13 @@ sub buildGraphs
 
 sub _init
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
-		die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
-	}
+    for(qw/bin_path cgi_path confdir_path cronjob_enabled cronjob_timedate/) {
+        die("Missing $_ configuration parameter") unless exists $self->{'config'}->{$_};
+    }
 
-	$self;
+    $self;
 }
 
 =item _enableGraphs()
@@ -343,33 +343,33 @@ sub _init
 
 sub _enableGraphs
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	my $confFile = "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf";
+    my $confFile = "$self->{'config'}->{'confdir_path'}/conf.d/20-imscp.conf";
 
-	unless(-f $confFile) {
-		error("File $confFile not found.");
-		return 1;
-	}
+    unless(-f $confFile) {
+        error("File $confFile not found.");
+        return 1;
+    }
 
-	my $file = iMSCP::File->new( filename => $confFile );
+    my $file = iMSCP::File->new( filename => $confFile );
 
-	my $fileContent = $file->get();
-	unless(defined $fileContent) {
-		error('Unable to read $confFile');
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless(defined $fileContent) {
+        error('Unable to read $confFile');
+        return 1;
+    }
 
-	my $graphs = "<graph_enable>\n";
-	$graphs .= "\t$_ = $self->{'config'}->{'graph_enabled'}->{$_}\n" for keys %{$self->{'config'}->{'graph_enabled'}};
-	$graphs .= "</graph_enable>\n";
+    my $graphs = "<graph_enable>\n";
+    $graphs .= "\t$_ = $self->{'config'}->{'graph_enabled'}->{$_}\n" for keys %{$self->{'config'}->{'graph_enabled'}};
+    $graphs .= "</graph_enable>\n";
 
-	$fileContent = replaceBloc("<graph_enable>\n", "</graph_enable>\n", $graphs, $fileContent);
+    $fileContent = replaceBloc("<graph_enable>\n", "</graph_enable>\n", $graphs, $fileContent);
 
-	my $rs = $file->set($fileContent);
-	return 1 if $rs;
+    my $rs = $file->set($fileContent);
+    return 1 if $rs;
 
-	$file->save();
+    $file->save();
 }
 
 =item _setupApache($action)
@@ -383,30 +383,30 @@ sub _enableGraphs
 
 sub _setupApache
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	my $confFile = '/etc/apache2/conf.d/monitorix.conf';
-	my $backupConffile = '/etc/apache2/conf.d/monitorix.old';
+    my $confFile = '/etc/apache2/conf.d/monitorix.conf';
+    my $backupConffile = '/etc/apache2/conf.d/monitorix.old';
 
-	if($action eq 'configure') {
-		if(-f $backupConffile) {
-			my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($confFile );
-			return $rs if $rs;
+    if($action eq 'configure') {
+        if(-f $backupConffile) {
+            my $rs = iMSCP::File->new( filename => $backupConffile )->moveFile($confFile );
+            return $rs if $rs;
 
-			$rs = $self->_scheduleApacheRestart();
-			return $rs if $rs;
-		}
-	} elsif($action eq 'deconfigure') {
-		if(-f $confFile) {
-			my $rs = iMSCP::File->new( filename => $confFile )->moveFile($backupConffile);
-			return $rs if $rs;
+            $rs = $self->_scheduleApacheRestart();
+            return $rs if $rs;
+        }
+    } elsif($action eq 'deconfigure') {
+        if(-f $confFile) {
+            my $rs = iMSCP::File->new( filename => $confFile )->moveFile($backupConffile);
+            return $rs if $rs;
 
-			$rs = $self->_scheduleApacheRestart();
-			return $rs if $rs;
-		}
-	}
+            $rs = $self->_scheduleApacheRestart();
+            return $rs if $rs;
+        }
+    }
 
-	0;
+    0;
 }
 
 =item _scheduleApacheRestart()
@@ -419,11 +419,11 @@ sub _setupApache
 
 sub _scheduleApacheRestart
 {
-	require Servers::httpd;
+    require Servers::httpd;
 
-	Servers::httpd->factory()->{'restart'} = 'yes';
+    Servers::httpd->factory()->{'restart'} = 'yes';
 
-	0;
+    0;
 }
 
 =item _addCronjob()
@@ -436,45 +436,45 @@ sub _scheduleApacheRestart
 
 sub _addCronjob
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	if($self->{'config'}->{'cronjob_enabled'}) {
-		my $scriptPath = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/cronjob/cronjob.pl';
+    if($self->{'config'}->{'cronjob_enabled'}) {
+        my $scriptPath = $main::imscpConfig{'PLUGINS_DIR'} . '/Monitorix/cronjob/cronjob.pl';
 
-		my $file = iMSCP::File->new( filename => $scriptPath );
+        my $file = iMSCP::File->new( filename => $scriptPath );
 
-		my $fileContent = $file->get();
-		unless(defined $fileContent) {
-			error("Unable to read $file->{'filename'} file");
-			return 1;
-		}
+        my $fileContent = $file->get();
+        unless(defined $fileContent) {
+            error("Unable to read $file->{'filename'} file");
+            return 1;
+        }
 
-		$fileContent = process(
-			{ 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $fileContent
-		);
+        $fileContent = process(
+            { 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $fileContent
+        );
 
-		my $rs = $file->set($fileContent);
-		return $rs if $rs;
+        my $rs = $file->set($fileContent);
+        return $rs if $rs;
 
-		$rs = $file->save();
-		return $rs if $rs;
+        $rs = $file->save();
+        return $rs if $rs;
 
-		require Servers::cron;
+        require Servers::cron;
 
-		Servers::cron->factory()->addTask(
-			{
-				'TASKID' => 'PLUGINS:Monitorix',
-				'MINUTE' => $self->{'config'}->{'cronjob_timedate'}->{'minute'},
-				'HOUR' => $self->{'config'}->{'cronjob_timedate'}->{'hour'},
-				'DAY' => $self->{'config'}->{'cronjob_timedate'}->{'day'},
-				'MONTH' => $self->{'config'}->{'cronjob_timedate'}->{'month'},
-				'DWEEK' => $self->{'config'}->{'cronjob_timedate'}->{'dweek'},
-				'COMMAND' => "nice -n 15 ionice -c2 -n5 perl $scriptPath >/dev/null 2>&1"
-			}
-		);
-	} else {
-		0;
-	}
+        Servers::cron->factory()->addTask(
+            {
+                'TASKID' => 'PLUGINS:Monitorix',
+                'MINUTE' => $self->{'config'}->{'cronjob_timedate'}->{'minute'},
+                'HOUR' => $self->{'config'}->{'cronjob_timedate'}->{'hour'},
+                'DAY' => $self->{'config'}->{'cronjob_timedate'}->{'day'},
+                'MONTH' => $self->{'config'}->{'cronjob_timedate'}->{'month'},
+                'DWEEK' => $self->{'config'}->{'cronjob_timedate'}->{'dweek'},
+                'COMMAND' => "nice -n 15 ionice -c2 -n5 perl $scriptPath >/dev/null 2>&1"
+            }
+        );
+    } else {
+        0;
+    }
 }
 
 =item _deleteCronjob()
@@ -487,9 +487,9 @@ sub _addCronjob
 
 sub _deleteCronjob
 {
-	require Servers::cron;
+    require Servers::cron;
 
-	Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Monitorix' });
+    Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Monitorix' });
 }
 
 =item _checkRequirements
@@ -502,19 +502,19 @@ sub _deleteCronjob
 
 sub _checkRequirements
 {
-	my $self = $_[0];
+    my $self = $_[0];
 
-	unless(-x $self->{'config'}->{'bin_path'}) {
-		error("$self->{'config'}->{'bin_path'} doesn't exists or is not an executable");
-		return 1;
-	}
+    unless(-x $self->{'config'}->{'bin_path'}) {
+        error("$self->{'config'}->{'bin_path'} doesn't exists or is not an executable");
+        return 1;
+    }
 
-	unless(-f $self->{'config'}->{'cgi_path'}) {
-		error("$self->{'config'}->{'cgi_path'} doesn't exists");
-		return 1;
-	}
+    unless(-f $self->{'config'}->{'cgi_path'}) {
+        error("$self->{'config'}->{'cgi_path'} doesn't exists");
+        return 1;
+    }
 
-	0
+    0
 }
 
 =back

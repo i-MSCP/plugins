@@ -54,17 +54,17 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $version = $self->_checkPostfixVersion();
+    my $version = $self->_checkPostfixVersion();
 
-	# Check if Postfix version is 2.8 or later
-	if(version->parse($version) < version->parse("2.8.0")) {
-		error('Your Postfix version is too old. Postscreen requires Postfix version 2.8 or later.');
-		return 1;
-	}
+    # Check if Postfix version is 2.8 or later
+    if(version->parse($version) < version->parse("2.8.0")) {
+        error('Your Postfix version is too old. Postscreen requires Postfix version 2.8 or later.');
+        return 1;
+    }
 
-	0;
+    0;
 }
 
 =item uninstall()
@@ -77,9 +77,9 @@ sub install
 
 sub uninstall
 {
-	my $self = shift;
+    my $self = shift;
 
-	$self->_postscreenAccessFile('remove');
+    $self->_postscreenAccessFile('remove');
 }
 
 =item update()
@@ -92,79 +92,79 @@ sub uninstall
 
 sub update
 {
-	my ($self, $fromVersion, $toVersion) = @_;
+    my ($self, $fromVersion, $toVersion) = @_;
 
-	if(version->parse($fromVersion) < version->parse("0.0.6")) {
-		my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
+    if(version->parse($fromVersion) < version->parse("0.0.6")) {
+        my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
-		# Reset roundcube config.inc.php if any
-		if(-f $roundcubeConffile) {
-			my $file = iMSCP::File->new( filename => $roundcubeConffile );
-			my $fileContent = $file->get();
-			unless (defined $fileContent) {
-				error("Unable to read $file->{'filename'} file");
-				return 1;
-			}
+        # Reset roundcube config.inc.php if any
+        if(-f $roundcubeConffile) {
+            my $file = iMSCP::File->new( filename => $roundcubeConffile );
+            my $fileContent = $file->get();
+            unless (defined $fileContent) {
+                error("Unable to read $file->{'filename'} file");
+                return 1;
+            }
 
-			$fileContent = replaceBloc(
-				"// BEGIN Plugin::Postscreen\n", "// END Plugin::Postscreen\n", '', $fileContent
-			);
+            $fileContent = replaceBloc(
+                "// BEGIN Plugin::Postscreen\n", "// END Plugin::Postscreen\n", '', $fileContent
+            );
 
-			my $rs = $file->set($fileContent);
-			return $rs if $rs;
+            my $rs = $file->set($fileContent);
+            return $rs if $rs;
 
-			$rs = $file->save();
-			return $rs if $rs;
-		}
+            $rs = $file->save();
+            return $rs if $rs;
+        }
 
-		require Servers::mta;
-		my $mta = Servers::mta->factory();
+        require Servers::mta;
+        my $mta = Servers::mta->factory();
 
-		# Reset postfix main.cf file if any
-		if(-f $mta->{'config'}->{'POSTFIX_CONF_FILE'}) {
-			my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
-			my $fileContent = $file->get();
-			unless (defined $fileContent) {
-				error("Unable to read $file->{'filename'} file");
-				return 1;
-			}
+        # Reset postfix main.cf file if any
+        if(-f $mta->{'config'}->{'POSTFIX_CONF_FILE'}) {
+            my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
+            my $fileContent = $file->get();
+            unless (defined $fileContent) {
+                error("Unable to read $file->{'filename'} file");
+                return 1;
+            }
 
-			$fileContent = replaceBloc(
-				"// Begin Plugin::Postscreen\n", "// Ending Plugin::Postscreen\n", '', $fileContent
-			);
+            $fileContent = replaceBloc(
+                "// Begin Plugin::Postscreen\n", "// Ending Plugin::Postscreen\n", '', $fileContent
+            );
 
-			my $rs = $file->set($fileContent);
-			return $rs if $rs;
+            my $rs = $file->set($fileContent);
+            return $rs if $rs;
 
-			$rs = $file->save();
-			return $rs if $rs;
-		}
+            $rs = $file->save();
+            return $rs if $rs;
+        }
 
-		# Reset postfix master.cf file if any
-		if(-f $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'}) {
-			my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
-			my $fileContent = $file->get();
-			unless (defined $fileContent) {
-				error("Unable to read $file->{'filename'} file");
-				return 1;
-			}
+        # Reset postfix master.cf file if any
+        if(-f $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'}) {
+            my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
+            my $fileContent = $file->get();
+            unless (defined $fileContent) {
+                error("Unable to read $file->{'filename'} file");
+                return 1;
+            }
 
-			$fileContent = replaceBloc(
-				"// Begin Plugin::Postscreen\n",
-				"// Ending Plugin::Postscreen\n",
-				'smtp      inet  n       -       -       -       -       smtpd\n',
-				$fileContent
-			);
+            $fileContent = replaceBloc(
+                "// Begin Plugin::Postscreen\n",
+                "// Ending Plugin::Postscreen\n",
+                'smtp      inet  n       -       -       -       -       smtpd\n',
+                $fileContent
+            );
 
-			my $rs = $file->set($fileContent);
-			return $rs if $rs;
+            my $rs = $file->set($fileContent);
+            return $rs if $rs;
 
-			$rs = $file->save();
-			return $rs if $rs;
-		}
-	}
+            $rs = $file->save();
+            return $rs if $rs;
+        }
+    }
 
-	0;
+    0;
 }
 
 =item enable()
@@ -177,24 +177,24 @@ sub update
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_postfixMainCf('configure');
-	return $rs if $rs;
+    my $rs = $self->_postfixMainCf('configure');
+    return $rs if $rs;
 
-	$rs = $self->_postfixMasterCf('configure');
-	return $rs if $rs;
+    $rs = $self->_postfixMasterCf('configure');
+    return $rs if $rs;
 
-	$rs = $self->_postscreenAccessFile('add');
-	return $rs if $rs;
+    $rs = $self->_postscreenAccessFile('add');
+    return $rs if $rs;
 
-	$rs = $self->_schedulePostfixRestart();
-	return $rs if $rs;
+    $rs = $self->_schedulePostfixRestart();
+    return $rs if $rs;
 
-	my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-	if('Roundcube' ~~ @packages) {
-		$self->_roundcubeSmtpPort('configure');
-	}
+    my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
+    if('Roundcube' ~~ @packages) {
+        $self->_roundcubeSmtpPort('configure');
+    }
 }
 
 =item disable()
@@ -207,22 +207,22 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_postfixMainCf('deconfigure');
-	return $rs if $rs;
+    my $rs = $self->_postfixMainCf('deconfigure');
+    return $rs if $rs;
 
-	$rs = $self->_postfixMasterCf('deconfigure');
-	return $rs if $rs;
+    $rs = $self->_postfixMasterCf('deconfigure');
+    return $rs if $rs;
 
-	$rs = $self->_schedulePostfixRestart();
-	return $rs if $rs;
+    $rs = $self->_schedulePostfixRestart();
+    return $rs if $rs;
 
-	if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
-		$self->_roundcubeSmtpPort('deconfigure');
-	}
+    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+        $self->_roundcubeSmtpPort('deconfigure');
+    }
 
-	0;
+    0;
 }
 
 =back
@@ -242,24 +242,24 @@ sub disable
 
 sub _postfixMainCf
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	require Servers::mta;
-	my $mta = Servers::mta->factory();
+    require Servers::mta;
+    my $mta = Servers::mta->factory();
 
-	my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
+    my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
 
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless (defined $fileContent) {
+        error("Unable to read $file->{'filename'} file");
+        return 1;
+    }
 
-	my $postscreenDnsblSites = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_dnsbl_sites'}};
-	my $postscreenAccessList = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_access_list'}};
+    my $postscreenDnsblSites = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_dnsbl_sites'}};
+    my $postscreenAccessList = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_access_list'}};
 
-	if($action eq 'configure') {
-		my $confSnippet = <<EOF;
+    if($action eq 'configure') {
+        my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
 postscreen_greet_action = $self->{'config'}->{'postscreen_greet_action'}
 postscreen_dnsbl_sites = $postscreenDnsblSites
@@ -271,30 +271,30 @@ postscreen_blacklist_action = $self->{'config'}->{'postscreen_blacklist_action'}
 # Plugin::Postscreen - Ending
 EOF
 
-		my $version = $self->_checkPostfixVersion();
+        my $version = $self->_checkPostfixVersion();
 
-		# If Postfix version < 2.11.0 then remove postscreen_dnsbl_whitelist_threshold feature
-		if(version->parse($version) < version->parse("2.11.0")) {
-			$confSnippet =~ s/^postscreen_dnsbl_whitelist_threshold.*\n//m;
-		}
+        # If Postfix version < 2.11.0 then remove postscreen_dnsbl_whitelist_threshold feature
+        if(version->parse($version) < version->parse("2.11.0")) {
+            $confSnippet =~ s/^postscreen_dnsbl_whitelist_threshold.*\n//m;
+        }
 
-		if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
-			$fileContent = replaceBloc(
-				"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
-			);
-		} else {
-			$fileContent .= $confSnippet;
-		}
-	} else {
-		$fileContent = replaceBloc(
-			"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
-		);
-	}
+        if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
+            $fileContent = replaceBloc(
+                "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
+            );
+        } else {
+            $fileContent .= $confSnippet;
+        }
+    } else {
+        $fileContent = replaceBloc(
+            "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
+        );
+    }
 
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
+    my $rs = $file->set($fileContent);
+    return $rs if $rs;
 
-	$file->save();
+    $file->save();
 }
 
 =item _postfixMasterCf($action)
@@ -308,20 +308,20 @@ EOF
 
 sub _postfixMasterCf
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	require Servers::mta;
-	my $mta = Servers::mta->factory();
+    require Servers::mta;
+    my $mta = Servers::mta->factory();
 
-	my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
+    my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
 
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless (defined $fileContent) {
+        error("Unable to read $file->{'filename'} file");
+        return 1;
+    }
 
-	my $confSnippet = <<EOF;
+    my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
 smtp      inet  n       -       -       -       1       postscreen
 smtpd     pass  -       -       -       -       -       smtpd
@@ -330,24 +330,24 @@ dnsblog   unix  -       -       -       -       0       dnsblog
 # Plugin::Postscreen - Ending
 EOF
 
-	if($action eq 'configure') {
-		if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
-			$fileContent = replaceBloc(
-				"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
-			);
-		} else {
-			$fileContent .= $confSnippet;
-		}
-	} else {
-		$fileContent = replaceBloc(
-			"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
-		);
-	}
+    if($action eq 'configure') {
+        if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
+            $fileContent = replaceBloc(
+                "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
+            );
+        } else {
+            $fileContent .= $confSnippet;
+        }
+    } else {
+        $fileContent = replaceBloc(
+            "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
+        );
+    }
 
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
+    my $rs = $file->set($fileContent);
+    return $rs if $rs;
 
-	$file->save();
+    $file->save();
 }
 
 =item _postscreenAccessFile($action)
@@ -361,17 +361,17 @@ EOF
 
 sub _postscreenAccessFile
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	for(@{$self->{'config'}->{'postscreen_access_list'}}) {
-		next unless /^cidr:/;
+    for(@{$self->{'config'}->{'postscreen_access_list'}}) {
+        next unless /^cidr:/;
 
-		(my $fileName = $_) =~ s/^cidr://;
+        (my $fileName = $_) =~ s/^cidr://;
 
-		my $file = iMSCP::File->new( filename => $fileName );
-		if($action eq 'add') {
-			unless(-f $fileName) {
-				my $fileContent = <<EOF;
+        my $file = iMSCP::File->new( filename => $fileName );
+        if($action eq 'add') {
+            unless(-f $fileName) {
+                my $fileContent = <<EOF;
 # For more information please check man postscreen or
 # http://www.postfix.org/postconf.5.html#postscreen_access_list
 #
@@ -381,22 +381,22 @@ sub _postscreenAccessFile
 # 192.168.0.0/16      reject
 EOF
 
-				my $rs = $file->set($fileContent);
-				return $rs if $rs;
+                my $rs = $file->set($fileContent);
+                return $rs if $rs;
 
-				$rs = $file->save();
-				return $rs if $rs;
+                $rs = $file->save();
+                return $rs if $rs;
 
-				$rs = $file->mode(0644);
-				return $rs if $rs;
-			}
-		} elsif(-f $fileName) {
-			my $rs = $file->delFile();
-			return $rs if $rs;
-		}
-	}
+                $rs = $file->mode(0644);
+                return $rs if $rs;
+            }
+        } elsif(-f $fileName) {
+            my $rs = $file->delFile();
+            return $rs if $rs;
+        }
+    }
 
-	0;
+    0;
 }
 
 =item _roundcubeSmtpPort($action)
@@ -410,42 +410,42 @@ EOF
 
 sub _roundcubeSmtpPort
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
+    my $roundcubeMainIncFile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
-	my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
+    my $file = iMSCP::File->new( filename => $roundcubeMainIncFile );
 
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
-		return 1;
-	}
+    my $fileContent = $file->get();
+    unless (defined $fileContent) {
+        error("Unable to read $file->{'filename'} file");
+        return 1;
+    }
 
-	if($action eq 'configure') {
-		my $confSnippet = <<EOF;
+    if($action eq 'configure') {
+        my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
 \$config['smtp_port'] = 587;
 # Plugin::Postscreen - Ending
 EOF
 
-		if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
-			$fileContent = replaceBloc(
-				"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
-			);
-		} else {
-			$fileContent .= $confSnippet;
-		}
-	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc(
-			"# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
-		);
-	}
+        if(getBloc("# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $fileContent) ne '') {
+            $fileContent = replaceBloc(
+                "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", $confSnippet, $fileContent
+            );
+        } else {
+            $fileContent .= $confSnippet;
+        }
+    } elsif($action eq 'deconfigure') {
+        $fileContent = replaceBloc(
+            "# Plugin::Postscreen - Begin\n", "# Plugin::Postscreen - Ending\n", '', $fileContent
+        );
+    }
 
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
+    my $rs = $file->set($fileContent);
+    return $rs if $rs;
 
-	$file->save();
+    $file->save();
 }
 
 =item _schedulePostfixRestart()
@@ -458,8 +458,8 @@ EOF
 
 sub _schedulePostfixRestart
 {
-	require Servers::mta;
-	Servers::mta->factory()->restart('defer');
+    require Servers::mta;
+    Servers::mta->factory()->restart('defer');
 }
 
 =item _checkPostfixVersion()
@@ -472,16 +472,16 @@ sub _schedulePostfixRestart
 
 sub _checkPostfixVersion
 {
-	my $rs = execute("postconf mail_version | awk '{print \$NF}'", \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr;
-	return $rs if $rs;
+    my $rs = execute("postconf mail_version | awk '{print \$NF}'", \my $stdout, \my $stderr);
+    debug($stdout) if $stdout;
+    error($stderr) if $stderr;
+    return $rs if $rs;
 
-	chomp($stdout);
-	$stdout =~ m/^\s*([0-9\.]+)\s*/;
-	my $version = $1;
+    chomp($stdout);
+    $stdout =~ m/^\s*([0-9\.]+)\s*/;
+    my $version = $1;
 
-	$version;
+    $version;
 }
 
 =back
