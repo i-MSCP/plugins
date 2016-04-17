@@ -721,7 +721,7 @@ sub _checkRequirements
     my $ret = 0;
 
     for(qw/ opendkim opendkim-tools /) {
-        if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\s<installed\$'" )) {
+        if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\sinstalled\$'" )) {
             error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
             $ret ||= 1;
         }

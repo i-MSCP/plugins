@@ -147,7 +147,7 @@ sub disable
 
 sub _checkRequirements
 {
-    if (execute( "dpkg-query -W -f='\${Status}' policyd-weight 2>/dev/null | grep -q '\\s<installed\$'" )) {
+    if (execute( "dpkg-query -W -f='\${Status}' policyd-weight 2>/dev/null | grep -q '\\sinstalled\$'" )) {
         error( "The `policyd-weight` package is not installed on your system" );
         return 1;
     }

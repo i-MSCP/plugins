@@ -207,7 +207,7 @@ EOF
 
 sub _checkRequirements
 {
-    if (execute( "dpkg-query -W -f='\${Status}' postfix-policyd-spf-perl 2>/dev/null | grep -q '\\s<installed\$'" )) {
+    if (execute( "dpkg-query -W -f='\${Status}' postfix-policyd-spf-perl 2>/dev/null | grep -q '\\sinstalled\$'" )) {
         error( "The `postfix-policyd-spf-perl` package is not installed on your system" );
         return 1;
     }
