@@ -139,7 +139,7 @@ sub disable
 
 sub _checkRequirements
 {
-    if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' postgrey 2>/dev/null | grep -q 'installed'" )) {
+    if (execute( "dpkg-query -W -f='\${Status}' postgrey 2>/dev/null | grep -q '\\<installed'" )) {
         error( "The `postgrey` package is not installed on your system" );
         return 1;
     }

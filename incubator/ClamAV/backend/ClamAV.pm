@@ -241,7 +241,7 @@ sub _checkRequirements
     my $ret = 0;
 
     for(qw/ clamav clamav-base clamav-daemon clamav-freshclam clamav-milter /) {
-        if (execute( "LANG=C dpkg-query --show --showformat '\${Status}' $_ 2>/dev/null | grep -q 'installed" )) {
+        if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\<installed'" )) {
             error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
             $ret ||= 1;
         }
