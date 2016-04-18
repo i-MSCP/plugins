@@ -25,4 +25,25 @@
  */
 class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
 {
+    /**
+     * Plugin installation
+     *
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function install(iMSCP_Plugin_Manager $pluginManager)
+    {
+        // Only there to tell the plugin manager that this plugin is installable
+    }
+
+    /**
+     * Plugin uninstallation
+     *
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    {
+        // Only there to tell the plugin manager that this plugin can be uninstalled
+    }
 }

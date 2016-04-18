@@ -87,5 +87,70 @@ return array(
     'LogInfected' => 'Basic',
     'LogClean' => 'Off',
     'LogRotate' => 'true',
-    'SupportMultipleRecipients' => 'false'
+    'SupportMultipleRecipients' => 'false',
+
+
+    /**
+     * 3rd party ClamAV Unofficial Signatures - clamav-unofficial-sigs
+     * 
+     * https://github.com/extremeshok/clamav-unofficial-sigs
+     * 
+     * The clamav-unofficial-sigs script provides a simple way to download, test, and update
+     * third-party signature databases provided by Sanesecurity, Foxhole, OITC, Scamnailer, 
+     * BOFHLAND, CRDF, Porcupine, SecuriteInfo, MalwarePatrol, Yara-Rules Project, etc.
+     * 
+     * Warning: Don't change anything if you don't know what you are doing.
+     */
+     
+    // Use ClamAV Unofficial Signatures (default: yes)
+    'clamav_unofficial_sigs' => 'yes',
+
+    /**
+     * MalwarePatrol 2016 (free) clamav signatures: https://www.malwarepatrol.net
+     * 
+     * 1. Sign up for a free account: https://www.malwarepatrol.net/signup-free.shtml
+     * 2. You will recieve an email containing your password/receipt number
+     * 3. Login to your account at MalwarePatrol
+     * 4. In My Accountpage, choose the ClamAV list you will download. Free subscribers only get ClamAV Basic, 
+     *    commercial subscribers have access to ClamAV Extended. Do not use the agressive lists.
+     * 5. In the download URL, you will see 3 parameters: receipt, product and list, enter them in the variables below.
+     */
+    'malwarepatrol_receipt_code' => 'YOUR-RECEIPT-NUMBER',
+    'malwarepatrol_product_code' => '8',
+    'malwarepatrol_list' => 'clamav_basic',  // clamav_basic or clamav_ext
+    'malwarepatrol_free' => 'yes',           // set to 'no' to enable the commercial subscription url
+
+    /**
+     * SecuriteInfo 2015 free clamav signatures: https://www.securiteinfo.com
+     *
+     * 1. Sign up for a free account: https://www.securiteinfo.com/clients/customers/signup
+     * 2. You will recieve an email to activate your account and then a followup email with your login name
+     * 3. Login and navigate to your customer account: https://www.securiteinfo.com/clients/customers/account
+     * 4. Click on the Setup tab
+     * 5. You will need to get your unique identifier from one of the download links, they are individual for every user
+     *    The 128 character string is after the http://www.securiteinfo.com/get/signatures/ 
+     *    Example https://www.securiteinfo.com/get/signatures/your_unique_and_very_long_random_string_of_characters/securiteinfo.hdb
+     *    Your 128 character authorisation signature would be : your_unique_and_very_long_random_string_of_characters
+     * 6. Enter the authorisation signature into the config securiteinfo_authorisation_signature: replacing YOUR-SIGNATURE-NUMBER with your authorisation signature from the link
+     */
+    'securiteinfo_authorisation_signature' => 'YOUR-SIGNATURE-NUMBER',
+
+    // Enabled Signatures
+    // Set to 'no' to disable an entire set of signatures (default: yes)
+    'sanesecurity_enabled' => 'yes',
+    'securiteinfo_enabled' => 'yes',
+    'linuxmalwaredetect_enabled' => 'yes',
+    'malwarepatrol_enabled' => 'yes',
+    'yararulesproject_enabled' => 'yes',
+
+    // By default only signature databases with 'low' risk have been enabled.
+    // For additional information about the database ratings, see:
+    // http://www.sanesecurity.com/clamav/databases.htm
+    //
+    // Warning: Don't change anything if you don't know what you are doing.
+    //
+    // Signature databases defined here will be enabled.
+    'enable_single_signature_database' => array(
+        'badmacro.ndb'
+    )
 );

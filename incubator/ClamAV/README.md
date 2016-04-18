@@ -14,11 +14,14 @@ Plugin which allows to use ClamAV with i-MSCP.
 * clamav-daemon
 * clamav-freshclam
 * clamav-milter
+* curl
+* gnupg
+* rsync
 
 You can install these packages by running the following commands:
 
 ```bash
-# aptitude update && aptitude install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter
+# apt-get update && apt-get install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter curl gnupg rsync
 # service clamav-freshclam stop
 # freshclam
 # service clamav-freshclam start
@@ -45,6 +48,13 @@ See [Configuration file](../ClamAV/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
+
+## 3rd party ClamAV Unofficial Signatures - [clamav-unofficial-sigs](https://github.com/extremeshok/clamav-unofficial-sigs)
+
+The [clamav-unofficial-sigs](https://github.com/extremeshok/clamav-unofficial-sigs) script provides a simple way to download, test, and update third-party signature databases 
+provided by [Sanesecurity](http://sanesecurity.com), [Foxhole](http://sanesecurity.com/foxhole-databases), OITC, [Scamnailer](http://www.scamnailer.info), [BOFHLAND](http://clamav.bofhland.org), [CRDF](https://threatcenter.crdf.fr), Porcupine, [SecuriteInfo](https://www.securiteinfo.com), [MalwarePatrol](https://www.malwarepatrol.net),  [Yara-Rules Project](https://github.com/Yara-Rules/rules), etc.
+
+**Note:** If you already have this or another script that downloads 3rd party ClamAV signatures, then please uninstall or remove it before using this plugin with [clamav-unofficial-sigs](https://github.com/extremeshok/clamav-unofficial-sigs) activated.
 
 ## Eicar-Test-Signature
 
