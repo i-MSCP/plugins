@@ -4,6 +4,7 @@ Postscreen - ChangeLog
     Added: Postfix version check
     Added: Postscreen dnsbl whitelist threshold
     Changed: Align Postscreen main.cf entries for Postfix
+    Removed: Experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0

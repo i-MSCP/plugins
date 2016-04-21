@@ -26,7 +26,6 @@ package Plugin::Postscreen;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
 use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
@@ -191,8 +190,7 @@ sub enable
     $rs = $self->_schedulePostfixRestart();
     return $rs if $rs;
 
-    my @packages = split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'};
-    if('Roundcube' ~~ @packages) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         $self->_roundcubeSmtpPort('configure');
     }
 }
@@ -218,7 +216,7 @@ sub disable
     $rs = $self->_schedulePostfixRestart();
     return $rs if $rs;
 
-    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         $self->_roundcubeSmtpPort('deconfigure');
     }
 
