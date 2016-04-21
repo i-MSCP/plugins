@@ -37,6 +37,7 @@ return array(
     'postscreen_dnsbl_sites' => array(
         'zen.spamhaus.org*2',
         'dnsbl-1.uceprotect.net*1',
+        'ix.dnsbl.manitu.net*1',
         'bl.spamcop.net*1',
         'list.dnswl.org=127.0.[0..255].[1..3]*-2'
     ),
