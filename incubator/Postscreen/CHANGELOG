@@ -1,8 +1,9 @@
 Postscreen - ChangeLog
 ======================
 
-	Added: Postscreen dnsbl whitelist threshold
-	Added: Postfix version check
+    Added: Postfix version check
+    Added: Postscreen dnsbl whitelist threshold
+    Changed: Align Postscreen main.cf entries for Postfix
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0

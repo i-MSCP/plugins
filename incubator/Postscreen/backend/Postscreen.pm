@@ -255,18 +255,20 @@ sub _postfixMainCf
         return 1;
     }
 
-    my $postscreenDnsblSites = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_dnsbl_sites'}};
-    my $postscreenAccessList = join ",\n\t\t\t ", @{$self->{'config'}->{'postscreen_access_list'}};
+    my $postscreenDnsblSites = join ",\n ", @{$self->{'config'}->{'postscreen_dnsbl_sites'}};
+    my $postscreenAccessList = join ",\n ", @{$self->{'config'}->{'postscreen_access_list'}};
 
     if($action eq 'configure') {
         my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
 postscreen_greet_action = $self->{'config'}->{'postscreen_greet_action'}
-postscreen_dnsbl_sites = $postscreenDnsblSites
+postscreen_dnsbl_sites = 
+ $postscreenDnsblSites
 postscreen_dnsbl_threshold = $self->{'config'}->{'postscreen_dnsbl_threshold'}
 postscreen_dnsbl_whitelist_threshold = $self->{'config'}->{'postscreen_dnsbl_whitelist_threshold'}
 postscreen_dnsbl_action = $self->{'config'}->{'postscreen_dnsbl_action'}
-postscreen_access_list = $postscreenAccessList
+postscreen_access_list = 
+ $postscreenAccessList
 postscreen_blacklist_action = $self->{'config'}->{'postscreen_blacklist_action'}
 # Plugin::Postscreen - Ending
 EOF
