@@ -10,38 +10,39 @@ Postscreen - ChangeLog
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: LICENSE file
-	Fixed: Don't harcode service configuration file paths
-	Fixed: Don't replace smtp service already in master.cf file ( Last definition has higher precedence )
-	Removed: Support for i-MSCP 1.1.x serie
-	Removed: Mailgraph patch ( Non compliant to the i-MSCP development policy )
+    Added: LICENSE file
+    Fixed: Don't harcode service configuration file paths
+    Fixed: Don't replace smtp service already in master.cf file ( Last definition has higher precedence )
+    Removed: Support for i-MSCP 1.1.x serie
+    Removed: Mailgraph patch ( Non compliant to the i-MSCP development policy )
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Removed policyd-weight & postgrey
-	Fixed: Catch whether Roundcube is installed
+    Fixed: Removed policyd-weight & postgrey
+    Fixed: Catch whether Roundcube is installed
 
+------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Roundcube version 1.x renamed main.inc.php to config.inc.php
+    Fixed: Roundcube version 1.x renamed main.inc.php to config.inc.php
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: my variable $rs and $rdata masks earlier declaration
+    Fixed: my variable $rs and $rdata masks earlier declaration
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Uninitialized value $policyService
+    Fixed: Uninitialized value $policyService
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release
