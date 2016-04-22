@@ -26,18 +26,16 @@ package Plugin::SpamAssassin;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
-use iMSCP::File;
 use iMSCP::Execute;
-use iMSCP::Database;
+use iMSCP::File;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use Servers::cron;
 use Servers::sqld;
 use version;
-
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -117,7 +115,7 @@ sub change
 
     iMSCP::Service->getInstance()->restart('spamass-milter');
 
-    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         $rs = $self->_roundcubePlugins('add');
         return $rs if $rs;
 
@@ -131,7 +129,7 @@ sub change
         return $rs if $rs;
     }
 
-0;
+    0;
 }
 
 =item update()
@@ -164,7 +162,7 @@ sub enable
     my $rs = $self->_postfixConfig('configure');
     return $rs if $rs;
 
-    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         $rs = $self->_setRoundcubePlugin('add');
         return $rs if $rs;
 
@@ -201,7 +199,7 @@ sub disable
     $rs = $self->_unregisterCronjob('bayes_sa-learn');
     return $rs if $rs;
 
-    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         $rs = $self->_setRoundcubePlugin('remove');
         return $rs if $rs;
 
@@ -229,7 +227,7 @@ sub uninstall
 {
     my $self = shift;
 
-    if('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) {
+    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         my $rs = $self->_roundcubePlugins('remove');
         return $rs if $rs;
     }
