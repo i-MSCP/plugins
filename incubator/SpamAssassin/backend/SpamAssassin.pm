@@ -1247,7 +1247,7 @@ sub _setupDatabase
         return 1;
     }
 
-    unless(%{rs}) {
+    unless(%{$rs}) {
         error(sprintf( 'Could not find the `%s` SQL database for SpamAssassin.', $spamassassinDbName ));
         return 1;
     }
