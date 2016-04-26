@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '0.0.1',
-	'require_api' => '1.0.0',
-	'date' => '2015-02-10',
-	'name' => 'RawPasswd',
-	'desc' => "Plugin which allows to store i-MSCP frontend user's passwords in plain text.",
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:rawpasswd'
+    'author' => 'Laurent Declercq',
+    'email' => 'l.declercq@nuxwin.com',
+    'version' => '0.0.1',
+    'require_api' => '1.0.0',
+    'date' => '2015-02-10',
+    'name' => 'RawPasswd',
+    'desc' => "Plugin which allows to store i-MSCP frontend user's passwords in plain text.",
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:rawpasswd'
 );

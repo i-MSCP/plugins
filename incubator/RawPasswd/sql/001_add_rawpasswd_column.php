@@ -21,15 +21,15 @@
 // Add admin.admin_rawpasswd column in i-MSCP database
 
 return array(
-	'up' => '
-		ALTER TABLE
-			`admin`
-		ADD
-			`admin_rawpasswd` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL
-		AFTER
-			`admin_pass`
-	',
-	'down' => '
-		ALTER TABLE `admin` DROP `admin_rawpasswd`
-	'
+    'up' => '
+        ALTER TABLE
+            `admin`
+        ADD
+            `admin_rawpasswd` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL
+        AFTER
+            `admin_pass`
+    ',
+    'down' => '
+        ALTER TABLE `admin` DROP `admin_rawpasswd`
+    '
 );
