@@ -19,6 +19,6 @@
  */
 
 return array(
-	// policyd-weight listening port ( default: 12525 )
-	'policyd_weight_port' => 12525
+    // policyd-weight listening port ( default: 12525 )
+    'policyd_weight_port' => 12525
 );

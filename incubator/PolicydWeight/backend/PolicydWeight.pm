@@ -25,9 +25,8 @@ package Plugin::PolicydWeight;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::Execute;
 use iMSCP::Service;
 use Servers::mta;
