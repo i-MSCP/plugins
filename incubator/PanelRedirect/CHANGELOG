@@ -5,55 +5,55 @@ PanelRedirect - ChangeLog
 Version 1.1.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Enhancement: Avoid usage of experimental smartmatch operator
-	Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.2.18
+    Enhancement: Avoid usage of experimental smartmatch operator
+    Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.2.18
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Solving Apache 503 "Service temporarily unavailable" error
+    Fixed: Solving Apache 503 "Service temporarily unavailable" error
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: required_api info field
-	Fixed: Log folder not created on plugin change ( eg. when changing panel hostname )
-	Fixed: Override HTTP ports which are defined by i-MSCP in case of proxy usage
+    Added: required_api info field
+    Fixed: Log folder not created on plugin change ( eg. when changing panel hostname )
+    Fixed: Override HTTP ports which are defined by i-MSCP in case of proxy usage
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Checks for update tasks
+    Added: Checks for update tasks
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Wrong permissions applied on the apache2 logs folder, causing issues with logrotate
+    Fixed: Wrong permissions applied on the apache2 logs folder, causing issues with logrotate
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Useless instantiation of Httpd server
+    Fixed: Useless instantiation of Httpd server
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Added ProxyPassReverse
+    Fixed: Added ProxyPassReverse
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: http (proxy) does not work (EOL)
+    Fixed: http (proxy) does not work (EOL)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Release: First released version
+    Release: First released version
