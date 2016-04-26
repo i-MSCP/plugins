@@ -169,12 +169,10 @@ sub _createConfig
             0;
         }
     );
-    $rs ||= $self->{'httpd'}->buildConfFile( "$tplRootDir/$vhostTplFile" );
-    $rs ||= $self->{'httpd'}->installConfFile(
-        $vhostTplFile,
-        {
-            destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
-        }
+    $rs ||= $self->{'httpd'}->buildConfFile(
+        "$tplRootDir/$vhostTplFile",
+        {},
+        { destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
     );
 }
 
