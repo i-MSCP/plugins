@@ -20,12 +20,12 @@
  */
 
 return array(
-	// Adminer SQL driver (default: mysql)
-	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
-	'driver' => 'mysql',
+    // Adminer SQL driver (default: mysql)
+    // Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
+    'driver' => 'mysql',
 
-	// Adminer theme (default: brade)
-	// brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
-	// pilot, pokorny, price
-	'theme' => 'brade'
+    // Adminer theme (default: brade)
+    // brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
+    // pilot, pokorny, price
+    'theme' => 'brade'
 );

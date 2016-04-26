@@ -26,12 +26,11 @@ package Plugin::AdminerSQL;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
-use iMSCP::File;
+use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
+use iMSCP::File;
 use iMSCP::Service;
 use Cwd;
 use parent 'Common::SingletonClass';

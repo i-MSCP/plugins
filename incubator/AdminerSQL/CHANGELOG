@@ -1,48 +1,48 @@
 AdminerSQL - ChangeLog
 ======================
 
-	Fixed: IP-1498 AdminerSQL - Debug warning in syslog
+    Fixed: IP-1498 AdminerSQL - Debug warning in syslog
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Changed: Default theme is now 'brade'
-	Fixed: CS fixes
-	Fixed: imscp_panel service must be restarted on update to flush opcode cache
-	Removed: Support for i-MSCP 1.1.x serie
-	Removed: Useless language configuration parameter
-	Removed: version configuration parameter (version is now defined in backend package)
-	Updated: Adminer to version 4.2.1
+    Fixed: CS fixes
+    Fixed: imscp_panel service must be restarted on update to flush opcode cache
+    Removed: Support for i-MSCP 1.1.x serie
+    Removed: Useless language configuration parameter
+    Removed: version configuration parameter (version is now defined in backend package)
+    Updated: Adminer to version 4.2.1
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added AdminerSQL sources version 4.2.0
-	Updated: License headers for new year
+    Added AdminerSQL sources version 4.2.0
+    Updated: License headers for new year
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: my variable $rs masks earlier declaration
+    Fixed: my variable $rs masks earlier declaration
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added AdminerSQL sources version 4.1.0
+    Added AdminerSQL sources version 4.1.0
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added AdminerSQL sources version 4.0.3
-	Added AdminerSQL sources version 4.0.2
+    Added AdminerSQL sources version 4.0.3
+    Added AdminerSQL sources version 4.0.2
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	RELEASE i-MSCP AdminerSQL plugin 0.0.1
+    RELEASE i-MSCP AdminerSQL plugin 0.0.1
