@@ -27,24 +27,24 @@
  */
 
 return array(
-	'up' => '
-		CREATE TABLE IF NOT EXISTS ownddns_accounts (
-			ownddns_account_id int(11) unsigned NOT NULL AUTO_INCREMENT,
-			admin_id int(11) unsigned NOT NULL,
-			domain_id int(11) unsigned NOT NULL,
-			alias_id int(11) unsigned NOT NULL,
-			ownddns_account_name varchar(50) collate utf8_unicode_ci default NULL,
-			ownddns_account_fqdn varchar(255) collate utf8_unicode_ci default NULL,
-			ownddns_key varchar(255) collate utf8_unicode_ci default NULL,
-			ownddns_last_ip varchar(40) collate utf8_unicode_ci default NULL,
-			ownddns_last_update DATETIME NOT NULL,
-			ownddns_account_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-			PRIMARY KEY (ownddns_account_id),
-			UNIQUE KEY ownddns_account_fqdn (ownddns_account_fqdn),
-			KEY ownddns_account_id (ownddns_account_id)
-		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	',
-	'down' => '
-		DROP TABLE IF EXISTS ownddns_accounts
-	'
+    'up' => '
+        CREATE TABLE IF NOT EXISTS ownddns_accounts (
+            ownddns_account_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+            admin_id int(11) unsigned NOT NULL,
+            domain_id int(11) unsigned NOT NULL,
+            alias_id int(11) unsigned NOT NULL,
+            ownddns_account_name varchar(50) collate utf8_unicode_ci default NULL,
+            ownddns_account_fqdn varchar(255) collate utf8_unicode_ci default NULL,
+            ownddns_key varchar(255) collate utf8_unicode_ci default NULL,
+            ownddns_last_ip varchar(40) collate utf8_unicode_ci default NULL,
+            ownddns_last_update DATETIME NOT NULL,
+            ownddns_account_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            PRIMARY KEY (ownddns_account_id),
+            UNIQUE KEY ownddns_account_fqdn (ownddns_account_fqdn),
+            KEY ownddns_account_id (ownddns_account_id)
+        ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    ',
+    'down' => '
+        DROP TABLE IF EXISTS ownddns_accounts
+    '
 );

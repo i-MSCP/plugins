@@ -27,20 +27,20 @@
  */
 
 return array(
-	'up' => '
-		CREATE TABLE IF NOT EXISTS ownddns (
-			ownddns_id int(11) unsigned NOT NULL AUTO_INCREMENT,
-			admin_id int(11) unsigned NOT NULL,
-			domain_id int(11) unsigned NOT NULL,
-			admin_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-			max_ownddns_accounts int(11) default NULL,
-			customer_dns_previous_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-			ownddns_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-			PRIMARY KEY (OwnDDNS_id),
-			KEY ownddns_id (ownddns_id)
-		) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	',
-	'down' => '
-		DROP TABLE IF EXISTS ownddns
-	'
+    'up' => '
+        CREATE TABLE IF NOT EXISTS ownddns (
+            ownddns_id int(11) unsigned NOT NULL AUTO_INCREMENT,
+            admin_id int(11) unsigned NOT NULL,
+            domain_id int(11) unsigned NOT NULL,
+            admin_name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            max_ownddns_accounts int(11) default NULL,
+            customer_dns_previous_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            ownddns_status varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            PRIMARY KEY (OwnDDNS_id),
+            KEY ownddns_id (ownddns_id)
+        ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    ',
+    'down' => '
+        DROP TABLE IF EXISTS ownddns
+    '
 );

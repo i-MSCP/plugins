@@ -27,11 +27,11 @@
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '0.0.4',
-	'date' => '2014-08-01',
-	'name' => 'OwnDDNS',
-	'desc' => 'Plugin allowing to manage your own DDNS service with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:ownddns'
+    'author' => 'Sascha Bay',
+    'email' => 'info@space2place.de',
+    'version' => '0.0.4',
+    'date' => '2014-08-01',
+    'name' => 'OwnDDNS',
+    'desc' => 'Plugin allowing to manage your own DDNS service with i-MSCP',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:ownddns'
 );

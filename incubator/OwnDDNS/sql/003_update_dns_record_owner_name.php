@@ -26,10 +26,10 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 return array(
-	'up' => "
-		UPDATE domain_dns SET owned_by = 'OwnDDNS_Plugin' WHERE owned_by = 'ownddns_feature'
-	",
-	'down' => "
-		UPDATE domain_dns set owned_by = 'ownddns_feature' WHERE owned_by = 'OwnDDNS_Plugin'
-	"
+    'up' => "
+        UPDATE domain_dns SET owned_by = 'OwnDDNS_Plugin' WHERE owned_by = 'ownddns_feature'
+    ",
+    'down' => "
+        UPDATE domain_dns set owned_by = 'ownddns_feature' WHERE owned_by = 'OwnDDNS_Plugin'
+    "
 );
