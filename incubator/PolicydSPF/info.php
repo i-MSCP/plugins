@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Ninos Ego',
-	'email' => 'me@ninosego.de',
-	'version' => '1.0.0',
-	'require_api' => '1.0.0',
-	'date' => '2016-02-03',
-	'name' => 'PolicydSPF',
-	'desc' => 'Plugin which allows to run postfix-policyd-spf-perl for Postfix.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
+    'author' => 'Ninos Ego',
+    'email' => 'me@ninosego.de',
+    'version' => '1.0.0',
+    'require_api' => '1.0.0',
+    'date' => '2016-02-03',
+    'name' => 'PolicydSPF',
+    'desc' => 'Plugin which allows to run postfix-policyd-spf-perl for Postfix.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
 );
