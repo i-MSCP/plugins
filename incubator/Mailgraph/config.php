@@ -20,14 +20,14 @@
  */
 
 return array(
-	'cronjob_enabled' => true, // TRUE to enable Mailgraph plugin cronjob (default), FALSE to disable it
+    'cronjob_enabled' => true, // TRUE to enable Mailgraph plugin cronjob (default), FALSE to disable it
 
-	// See man CRONTAB(5) for allowed values
-	'cronjob_config' => array(
-		'minute' => '*/5',
-		'hour' => '*',
-		'day' => '*',
-		'month' => '*',
-		'dweek' => '*'
-	)
+    // See man CRONTAB(5) for allowed values
+    'cronjob_config' => array(
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dweek' => '*'
+    )
 );
