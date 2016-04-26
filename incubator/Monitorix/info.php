@@ -20,15 +20,15 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Sascha Bay'
-	),
-	'email' => 'plugins@i-mscp.net',
-	'version' => '1.2.2',
-	'require_api' => '1.0.0',
-	'date' => '2015-10-27',
-	'name' => 'Monitorix',
-	'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
+    'author' => array(
+        'Laurent Declercq',
+        'Sascha Bay'
+    ),
+    'email' => 'plugins@i-mscp.net',
+    'version' => '1.2.2',
+    'require_api' => '1.0.0',
+    'date' => '2015-10-27',
+    'name' => 'Monitorix',
+    'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
 );
