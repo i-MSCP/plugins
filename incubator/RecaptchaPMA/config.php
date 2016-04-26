@@ -19,7 +19,7 @@
  */
 
 return array(
-	// Get your keys on https://www.google.com/recaptcha
-	'reCaptchaLoginPublicKey'  => '',
-	'reCaptchaLoginPrivateKey' => ''
+    // Get your keys on https://www.google.com/recaptcha
+    'reCaptchaLoginPublicKey'  => '',
+    'reCaptchaLoginPrivateKey' => ''
 );
