@@ -26,15 +26,14 @@ package Plugin::RoundcubePlugins;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::Dir;
-use iMSCP::File;
 use iMSCP::Execute;
-use iMSCP::TemplateParser;
+use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Service;
+use iMSCP::TemplateParser;
 use Servers::cron;
 use version;
 use parent 'Common::SingletonClass';
@@ -683,7 +682,7 @@ sub _checkRequirements
 {
     my $self = shift;
 
-    if( !('Roundcube' ~~ [ split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} ]) ) {
+    if(grep($_ ne 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
         error('Roundcube is not installed. Please install it by running the imscp-autoinstall script.');
         return 1;
     }

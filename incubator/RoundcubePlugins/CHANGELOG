@@ -11,6 +11,7 @@ RoundcubePlugins - ChangeLog
     Fixed: Check that Roundcube is installed
     Fixed: Deletion of Roundcube plugins on uninstall
     Fixed: Regex for archive and managesieve plugins
+    Removed: Experimental smartmatch operator
     Removed: Roundcube plugin imscp_pw_changer
     Updated: additional_message_headers config file
     Updated: Roundcube plugin calendar
