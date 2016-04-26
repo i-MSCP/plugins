@@ -25,12 +25,11 @@ package Plugin::RecaptchaPMA;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::File;
-use iMSCP::TemplateParser;
 use iMSCP::Service;
+use iMSCP::TemplateParser;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -104,7 +103,7 @@ sub _init
 {
     my $self = shift;
 
-    if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
+    if(grep($_ $self->{'action'}, ( 'enable', 'disable', 'change', 'update' ))) {
         $self->{'FORCE_RETVAL'} = 'yes';
     }
 
