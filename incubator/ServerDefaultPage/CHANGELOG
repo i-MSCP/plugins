@@ -5,83 +5,83 @@ ServerDefaultPage - ChangeLog
 Version 1.2.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.2.18
-	Fixed: onAddIps() was not able to use $self
-	Enhancement: Only trigger listener if status is enabled
-	Enhancement: Enhancement: Avoid usage of experimental smartmatch operator
+    Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.2.18
+    Fixed: onAddIps() was not able to use $self
+    Enhancement: Only trigger listener if status is enabled
+    Enhancement: Enhancement: Avoid usage of experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Only add BASE_SERVER_IP to ssl ips, if ssl is enabled for panel
-	Fixed: Compatibility with i-MSCP 1.2.17 API
+    Fixed: Only add BASE_SERVER_IP to ssl ips, if ssl is enabled for panel
+    Fixed: Compatibility with i-MSCP 1.2.17 API
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Certificate path in vhost-file
+    Fixed: Certificate path in vhost-file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Always support SSL
+    Added: Always support SSL
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: iMSCP::Dir::make expects the mode passed as octal value
-	CS fixes
+    Fixed: iMSCP::Dir::make expects the mode passed as octal value
+    CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Updated: README.md file (Added note about template customization)
+    Updated: README.md file (Added note about template customization)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Removed: Support for i-MSCP 1.1.x serie
-	Updated: Templates
+    Removed: Support for i-MSCP 1.1.x serie
+    Updated: Templates
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Possibility to define an own certificate
+    Added: Possibility to define an own certificate
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: CS issues
+    Fixed: CS issues
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Smartmatch is experimental ...
+    Fixed: Smartmatch is experimental ...
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Forbidden access to css and image files ( Apache >= 2.4 )
-	Removed: Useless configuration file
+    Fixed: Forbidden access to css and image files ( Apache >= 2.4 )
+    Removed: Useless configuration file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Useless instantiation of Httpd server
+    Fixed: Useless instantiation of Httpd server
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Release: First released version
+    Release: First released version
