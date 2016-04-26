@@ -5,11 +5,11 @@ Postgrey - ChangeLog
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Configuration parameter ( postgrey_port ) which allows to setup postgrey listening port
-	Fixed: Show Postrey service port in i-MSCP interface
+    Added: Configuration parameter ( postgrey_port ) which allows to setup postgrey listening port
+    Fixed: Show Postrey service port in i-MSCP interface
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release

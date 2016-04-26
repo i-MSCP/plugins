@@ -23,42 +23,42 @@
  */
 class iMSCP_Plugin_Postgrey extends iMSCP_Plugin_Action
 {
-	/**
-	 * Plugin activation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function enable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		try {
-			# Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
-			if($pluginManager->pluginIsKnown('PolicydWeight') && $pluginManager->pluginIsEnabled('PolicydWeight')) {
-				$pluginManager->pluginChange('PolicydWeight');
-			}
+    /**
+     * Plugin activation
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function enable(iMSCP_Plugin_Manager $pluginManager)
+    {
+        try {
+            # Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
+            if($pluginManager->pluginIsKnown('PolicydWeight') && $pluginManager->pluginIsEnabled('PolicydWeight')) {
+                $pluginManager->pluginChange('PolicydWeight');
+            }
 
-			iMSCP_Registry::get('dbConfig')->set(
-				'PORT_POSTGREY', $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1'
-			);
-		} catch(iMSCP_Exception $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
+            iMSCP_Registry::get('dbConfig')->set(
+                'PORT_POSTGREY', $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1'
+            );
+        } catch(iMSCP_Exception $e) {
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 
-	/**
-	 * Plugin deactivation
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function disable(iMSCP_Plugin_Manager $pluginManager)
-	{
-		try {
-			iMSCP_Registry::get('dbConfig')->del('PORT_POSTGREY');
-		} catch(iMSCP_Exception $e) {
-			throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
-		}
-	}
+    /**
+     * Plugin deactivation
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function disable(iMSCP_Plugin_Manager $pluginManager)
+    {
+        try {
+            iMSCP_Registry::get('dbConfig')->del('PORT_POSTGREY');
+        } catch(iMSCP_Exception $e) {
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 }
