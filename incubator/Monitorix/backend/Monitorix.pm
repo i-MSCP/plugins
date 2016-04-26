@@ -26,14 +26,13 @@ package Plugin::Monitorix;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
-use iMSCP::File;
 use iMSCP::Execute;
-use iMSCP::Database;
-use iMSCP::TemplateParser;
+use iMSCP::File;
 use iMSCP::Service;
+use iMSCP::TemplateParser;
 use File::Basename;
 use version;
 use Cwd;
@@ -252,7 +251,7 @@ sub buildGraphs
         }
 
         my $graphColor = (
-            defined $self->{'config'}->{'graph_color'} && $self->{'config'}->{'graph_color'} ~~ [ 'black', 'white' ]
+            defined $self->{'config'}->{'graph_color'} && grep($_ eq $self->{'config'}->{'graph_color'}, ( 'black', 'white' ))
         ) ? $self->{'config'}->{'graph_color'} : 'white';
 
         for my $graph(keys %{$self->{'config'}->{'graph_enabled'}}) {

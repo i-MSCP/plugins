@@ -2,6 +2,7 @@ Monitorix - ChangeLog
 =====================
 
 	Changed: Run cronjob with lower priority
+    Removed: Experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
