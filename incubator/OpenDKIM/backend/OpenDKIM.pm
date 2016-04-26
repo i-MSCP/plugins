@@ -27,15 +27,14 @@ package Plugin::OpenDKIM;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::Dir;
-use iMSCP::File;
 use iMSCP::Execute;
-use iMSCP::TemplateParser;
+use iMSCP::File;
 use iMSCP::Rights;
 use iMSCP::Service;
+use iMSCP::TemplateParser;
 use Servers::mta;
 use parent 'Common::SingletonClass';
 
@@ -249,7 +248,7 @@ sub run
 
     if(%{$rdata}) {
         for(keys %{$rdata}) {
-            if($rdata->{$_}->{'opendkim_status'} ~~ [ 'toadd', 'tochange' ]) {
+            if(grep($_ eq $rdata->{$_}->{'opendkim_status'}, ( 'toadd', 'tochange' ))) {
                 $rs = $self->_addDomainKey(
                     $rdata->{$_}->{'domain_id'}, $rdata->{$_}->{'alias_id'}, $rdata->{$_}->{'domain_name'}
                 );
