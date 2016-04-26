@@ -21,10 +21,10 @@
  */
 
 return array(
-	'up' => '
-		ALTER TABLE opendkim CHANGE domain_id domain_id INT(10) UNSIGNED NOT NULL
-	',
-	'down' => '
-		ALTER TABLE opendkim CHANGE domain_id domain_id INT(11) UNSIGNED NOT NULL
-	'
+    'up' => '
+        ALTER TABLE opendkim CHANGE domain_id domain_id INT(10) UNSIGNED NOT NULL
+    ',
+    'down' => '
+        ALTER TABLE opendkim CHANGE domain_id domain_id INT(11) UNSIGNED NOT NULL
+    '
 );

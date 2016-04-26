@@ -21,13 +21,13 @@
  */
 
 return array(
-	'up' => '
-		ALTER TABLE opendkim DROP customer_dns_previous_status
-	',
-	'down' => '
-		ALTER TABLE
-			opendkim
-		ADD
-			customer_dns_previous_status varchar(255) COLLATE utf8_unicode_ci NOT NULL AFTER domain_name
-	'
+    'up' => '
+        ALTER TABLE opendkim DROP customer_dns_previous_status
+    ',
+    'down' => '
+        ALTER TABLE
+            opendkim
+        ADD
+            customer_dns_previous_status varchar(255) COLLATE utf8_unicode_ci NOT NULL AFTER domain_name
+    '
 );

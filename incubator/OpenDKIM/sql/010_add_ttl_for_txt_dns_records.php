@@ -21,10 +21,10 @@
  */
 
 return array(
-	'up' => "
-		UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'
-	",
-	'down' => "
-		UPDATE domain_dns SET domain_dns = 'mail._domainkey' WHERE owned_by = 'OpenDKIM_Plugin'
-	"
+    'up' => "
+        UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'
+    ",
+    'down' => "
+        UPDATE domain_dns SET domain_dns = 'mail._domainkey' WHERE owned_by = 'OpenDKIM_Plugin'
+    "
 );

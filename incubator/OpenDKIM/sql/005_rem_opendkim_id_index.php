@@ -21,10 +21,10 @@
  */
 
 return array(
-	'up' => '
-		ALTER TABLE opendkim DROP KEY opendkim_id
-	',
-	'down' => '
-		ALTER TABLE opendkim ADD KEY opendkim_id (opendkim_id)
-	'
+    'up' => '
+        ALTER TABLE opendkim DROP KEY opendkim_id
+    ',
+    'down' => '
+        ALTER TABLE opendkim ADD KEY opendkim_id (opendkim_id)
+    '
 );
