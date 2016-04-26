@@ -272,14 +272,10 @@ sub _createConfig
         }
     );
 
-    my $rs = $self->{'httpd'}->buildConfFile(
-        "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile"
-    );
-    $rs ||= $self->{'httpd'}->installConfFile(
-        $vhostTplFile,
-        {
-            destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
-        }
+    $self->{'httpd'}->buildConfFile(
+        "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile",
+        {},
+        { destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
     );
 }
 
