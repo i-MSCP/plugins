@@ -4,7 +4,7 @@ Plugin which allows to access i-MSCP panel through Apache using the default HTTP
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP version >= 1.3.0
 
 ## Installation
 

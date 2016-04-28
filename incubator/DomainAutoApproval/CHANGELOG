@@ -6,7 +6,7 @@ Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
     Fixed: Plugin must not act if the logged-in user is not the real client (See changes in i-MSCP v1.2.12 - #IP-1486)
-    Fixed: Could not add domain alias with version 1.2.18
+    Fixed: Could not add domain alias with version 1.3.0
     Review: CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
