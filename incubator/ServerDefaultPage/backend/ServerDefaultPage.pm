@@ -85,7 +85,7 @@ sub update
 {
     my ($self, $fromVersion) = @_;
 
-    if (version->parse( $fromVersion ) < version->parse( "1.0.6" )) {
+    if (version->parse( $fromVersion ) < version->parse( '1.0.6' )) {
         $self->_copyFolder();
     }
 
@@ -195,7 +195,8 @@ sub run
 
 =cut
 
-sub onAddIps {
+sub onAddIps
+{
     my $self = shift;
 
     my $rs = $self->disable();
@@ -220,7 +221,7 @@ sub _init
 {
     my $self = shift;
 
-    if (grep($_ eq $self->{'action'}, ( 'install', 'change', 'update', 'enable', 'disable' ))) {
+    if ($self->{'action'} =~ /^(?:install|change|update|enable|disable)$/) {
         $self->{'httpd'} = Servers::httpd->factory();
     }
 
@@ -274,7 +275,7 @@ sub _createConfig
 
     $self->{'httpd'}->buildConfFile(
         "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile",
-        {},
+        { },
         { destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
     );
 }
@@ -292,13 +293,11 @@ sub _removeConfig
 {
     my ($self, $vhostFile) = @_;
 
-    for my $conffile("$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
-        "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
-    ) {
-        if (-f $conffile) {
-            my $rs = iMSCP::File->new( filename => $conffile )->delFile();
-            return $rs if $rs;
-        }
+    if (-f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile") {
+        my $rs = iMSCP::File->new(
+            filename => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
+        )->delFile();
+        return $rs if $rs;
     }
 
     0;

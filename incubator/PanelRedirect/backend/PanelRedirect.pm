@@ -112,7 +112,7 @@ sub _init
 {
     my $self = shift;
 
-    if (grep($_ eq $self->{'action'}, ( 'install', 'change', 'update', 'enable', 'disable' ))) {
+    if ($self->{'action'} =~ /^(?:install|change|update|enable|disable)$/) {
         $self->{'httpd'} = Servers::httpd->factory();
     }
 
@@ -171,7 +171,7 @@ sub _createConfig
     );
     $rs ||= $self->{'httpd'}->buildConfFile(
         "$tplRootDir/$vhostTplFile",
-        {},
+        { },
         { destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
     );
 }
@@ -189,13 +189,11 @@ sub _removeConfig
 {
     my ($self, $vhostFile) = @_;
 
-    for("$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
-        "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
-    ) {
-        if (-f $_) {
-            my $rs = iMSCP::File->new( 'filename' => $_ )->delFile();
-            return $rs if $rs;
-        }
+    if (-f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile") {
+        my $rs = iMSCP::File->new(
+            'filename' => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
+        )->delFile();
+        return $rs if $rs;
     }
 
     0;
