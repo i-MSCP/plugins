@@ -20,7 +20,7 @@
 
 return array(
     // policyd-spf service ( default: unix:private/policy-spf )
-    'policyd_spf_service' => 'unix:private/policy-spf',
+    'policyd_spf_service'    => 'unix:private/policy-spf',
 
     // policyd-spf time limit ( default: 3600s )
     'policyd_spf_time_limit' => '3600s'

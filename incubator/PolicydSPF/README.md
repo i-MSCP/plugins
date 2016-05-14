@@ -1,4 +1,4 @@
-# i-MSCP PolicydSPF plugin v1.0.0
+# i-MSCP PolicydSPF plugin v1.0.1
 
 Plugin which allows to run postfix-policyd-spf-perl for Postfix.
 
@@ -8,7 +8,7 @@ postfix-policyd-spf-perl is a basic Postfix policy engine for Sender Policy Fram
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
