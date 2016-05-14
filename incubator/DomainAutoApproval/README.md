@@ -4,7 +4,7 @@ Plugin that allows auto-approval of domain aliases created by clients.
 
 ## Requirements
 
-* i-MSCP Serie >= 1.3.x
+* i-MSCP Serie 1.3.x
 
 ## Installation
 

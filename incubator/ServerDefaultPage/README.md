@@ -4,7 +4,7 @@ Plugin which allows to set a server default page.
 
 ## Requirements
 
-* i-MSCP Serie >= 1.3.x
+* i-MSCP Serie 1.3.x
 
 ## Installation
 

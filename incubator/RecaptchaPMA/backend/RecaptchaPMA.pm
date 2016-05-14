@@ -57,8 +57,11 @@ sub enable
     return $rs if $rs;
 
     unless (defined $main::execmode && $main::execmode eq 'setup') {
-        # Needed to flush opcode cache if any
-        iMSCP::Service->getInstance()->restart( 'imscp_panel' );
+        eval {iMSCP::Service->getInstance()->restart('imscp_panel');};
+        if($@) {
+            error($@);
+            return 1;
+        }
     }
 
     0;
@@ -80,8 +83,12 @@ sub disable
     return $rs if $rs;
 
     unless (defined $main::execmode && $main::execmode eq 'setup') {
-        # Needed to flush opcode cache if any
-        iMSCP::Service->getInstance()->restart( 'imscp_panel' );
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
     }
 
     0;

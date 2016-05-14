@@ -19,7 +19,7 @@ Right now, the followings components are provided:
 
 ## Requirements
 
-* i-MSCP Serie >= 1.3.x
+* i-MSCP Serie 1.3.x
 
 ## Installation
 

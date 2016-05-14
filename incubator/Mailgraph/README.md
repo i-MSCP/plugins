@@ -4,7 +4,7 @@ Plugin which provides statistical graphics for SMTP traffic (Postfix and Sendmai
 
 ## Requirements
 
-* i-MSCP Serie >= 1.3.x
+* i-MSCP Serie 1.3.x
 
 ### Debian / Ubuntu package
 
