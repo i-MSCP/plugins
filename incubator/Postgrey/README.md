@@ -1,4 +1,4 @@
-# i-MSCP Postgrey plugin v1.1.0
+# i-MSCP Postgrey plugin v1.1.1
 
 Plugin which allows to run postgrey policy server for Postfix.
 
@@ -11,7 +11,7 @@ Homepage: http://postgrey.schweikert.ch/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages

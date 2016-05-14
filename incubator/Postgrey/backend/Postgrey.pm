@@ -55,13 +55,13 @@ sub enable
     my $rs = $self->_checkRequirements();
     return $rs if $rs;
 
-    $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
+    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
     # Extract postconf values
-    chomp($stdout);
+    chomp( $stdout );
     my $postconfValues = $stdout;
     my @smtpRestrictions = split ', ', $postconfValues;
 
@@ -69,18 +69,16 @@ sub enable
     s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}/ for @smtpRestrictions;
     push @smtpRestrictions, 'permit';
 
-    my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
+    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
 
-    $rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
+    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
     # Make sure that postgrey daemon is running
-    iMSCP::Service->getInstance()->restart('postgrey');
-
-    Servers::mta->factory()->restart('defer');
-
+    iMSCP::Service->getInstance()->restart( 'postgrey' );
+    Servers::mta->factory()->restart( 'defer' );
     0;
 }
 
@@ -96,13 +94,13 @@ sub disable
 {
     my $self = shift;
 
-    my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
+    my $rs = execute( 'postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
     # Extract postconf values
-    chomp($stdout);
+    chomp( $stdout );
     my $postconfValues = $stdout;
 
     # Remove Postgrey policy server
@@ -110,15 +108,13 @@ sub disable
         $_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}$/
     } split ', ', $postconfValues;
 
-    my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
-
-    $rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-    debug($stdout) if $stdout;
-    error($stderr) if $stderr && $rs;
+    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
+    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
-    Servers::mta->factory()->restart('defer');
-
+    Servers::mta->factory()->restart( 'defer' );
     0;
 }
 
