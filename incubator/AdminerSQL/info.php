@@ -25,9 +25,9 @@ return array(
         'Sascha Bay'
     ),
     'email' => 'team@i-mscp.net',
-    'version' => '1.0.0',
-    'require_api' => '1.0.0',
-    'date' => '2015-06-05',
+    'version' => '1.0.1',
+    'require_api' => '1.0.4',
+    'date' => '2016-05-14',
     'name' => 'AdminerSQL',
     'desc' => 'Plugin which allows to manage SQL databases through Adminer.',
     'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'

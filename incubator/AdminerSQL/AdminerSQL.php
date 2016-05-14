@@ -74,39 +74,35 @@ class iMSCP_Plugin_AdminerSQL extends iMSCP_Plugin_Action
             switch ($level) {
                 case 'admin':
                     if (($page = $navigation->findOneBy('uri', '/admin/system_info.php'))) {
-                        $page->addPages(
+                        $page->addPages(array(
                             array(
-                                array(
-                                    'label' => tr('AdminerSQL'),
-                                    'uri' => '/adminer/adminer.php',
-                                    'target' => '_blank'
-                                ),
-                                array(
-                                    'label' => tr('EditorSQL'),
-                                    'uri' => '/adminer/editor.php',
-                                    'target' => '_blank'
-                                )
+                                'label'  => tr('AdminerSQL'),
+                                'uri'    => '/adminer/adminer.php',
+                                'target' => '_blank'
+                            ),
+                            array(
+                                'label'  => tr('EditorSQL'),
+                                'uri'    => '/adminer/editor.php',
+                                'target' => '_blank'
                             )
-                        );
+                        ));
                     }
 
                     break;
                 case 'client':
                     if (($page = $navigation->findOneBy('uri', '/client/sql_manage.php'))) {
-                        $page->addPages(
+                        $page->addPages(array(
                             array(
-                                array(
-                                    'label' => tr('Adminer'),
-                                    'uri' => '/adminer/adminer.php',
-                                    'target' => '_blank'
-                                ),
-                                array(
-                                    'label' => tr('Adminer editor'),
-                                    'uri' => '/adminer/editor.php',
-                                    'target' => '_blank'
-                                )
+                                'label'  => tr('Adminer'),
+                                'uri'    => '/adminer/adminer.php',
+                                'target' => '_blank'
+                            ),
+                            array(
+                                'label'  => tr('Adminer editor'),
+                                'uri'    => '/adminer/editor.php',
+                                'target' => '_blank'
                             )
-                        );
+                        ));
                     }
             }
         }

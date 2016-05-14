@@ -4,7 +4,7 @@ Plugin which allows to manage SQL databases through Adminer.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 
 ## Installation
 
