@@ -4,7 +4,7 @@ Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * Monitorix version >= 3.5.0
 
 ### Debian / Ubuntu packages

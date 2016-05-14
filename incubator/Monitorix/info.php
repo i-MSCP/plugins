@@ -26,8 +26,8 @@ return array(
     ),
     'email' => 'plugins@i-mscp.net',
     'version' => '1.2.2',
-    'require_api' => '1.0.0',
-    'date' => '2015-10-27',
+    'require_api' => '1.0.4',
+    'date' => '2016-05-14',
     'name' => 'Monitorix',
     'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
     'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'

@@ -1,16 +1,15 @@
 Monitorix - ChangeLog
 =====================
 
-    Changed: Run cronjob with lower priority
-    Removed: Experimental smartmatch operator
-
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
 ------------------------------------------------------------------------------------------------------------------------
 
+    Changed: Run cronjob with lower priority
     Fixed: The plugin's data are not available when plugin is loaded through a cron job
     Fixed: #IP-1419 Monitorix: Missing bin_path configuration parameter
     Fixed: Syntax error in cronjob file
+    Removed: Experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1
