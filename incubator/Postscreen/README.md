@@ -1,4 +1,4 @@
-# i-MSCP Postscreen plugin v1.0.0
+#  i-MSCP Postscreen plugin v1.0.1
 
 Plugin which allows to use Postscreen daemon for Postfix with i-MSCP.
 
@@ -20,7 +20,7 @@ In any case, be aware that if you use this plugin, your clients must no longer s
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 * Postfix version >= 2.8
 

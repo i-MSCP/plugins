@@ -1,6 +1,10 @@
 Postscreen - ChangeLog
 ======================
 
+------------------------------------------------------------------------------------------------------------------------
+Version 1.0.1
+------------------------------------------------------------------------------------------------------------------------
+
     Added: NiX Spam (ix.dnsbl.manitu.net) to DNS blacklist test
     Added: Postfix version check
     Added: Postscreen dnsbl whitelist threshold
