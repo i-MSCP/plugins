@@ -1,10 +1,10 @@
-# i-MSCP RecaptchaPMA plugin v1.1.0
+#  i-MSCP RecaptchaPMA plugin v1.1.1
 
 This plugin add reCAPTCHA support to phpMyAdmin.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * Account on https://www.google.com/recaptcha/
 
 ## Installation
