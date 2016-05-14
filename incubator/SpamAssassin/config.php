@@ -34,63 +34,63 @@ return array(
     //
     // If set to 'yes', enable usage of the bayes database.
     // If set to 'no', disable usage of the bayes database.
-    'use_bayes' => 'yes',
+    'use_bayes'                 => 'yes',
 
     // Site wide bayes (default: no)
     //
     // If set to 'yes', global bayes database is activated. This allow to share the bayesian database with all users.
-    'site_wide_bayes' => 'no',
+    'site_wide_bayes'           => 'no',
 
     // SA learn cronjob for learning about spam/ham (default: run every 12 hours)
-    'cronjob_bayes_sa-learn' => array(
+    'cronjob_bayes_sa-learn'    => array(
         'minute' => '*',
-        'hour' => '*/12',
-        'day' => '*',
-        'month' => '*',
-        'dweek' => '*'
+        'hour'   => '*/12',
+        'day'    => '*',
+        'month'  => '*',
+        'dweek'  => '*'
     ),
 
     // SA learn cron job for cleaning the bayesian database (default: run once per day)
-    'cronjob_clean_bayes_db' => array(
+    'cronjob_clean_bayes_db'    => array(
         'minute' => '@daily',
-        'hour' => '',
-        'day' => '',
-        'month' => '',
-        'dweek' => ''
+        'hour'   => '',
+        'day'    => '',
+        'month'  => '',
+        'dweek'  => ''
     ),
 
     // Use auto whitelist (default: no)
     //
     // When set to 'yes', enable usage of the Auto-Whitelist (awl) factor.
     // When set to 'no', disable usage of the Auto-Whitelist (awl) factor.
-    'use_auto-whitelist' => 'no',
+    'use_auto-whitelist'        => 'no',
 
     // Cron job to cleanup the awl database from old entries (default: once per day)
-    'cronjob_clean_awl_db' => array( // See man CRONTAB(5) for allowed values
+    'cronjob_clean_awl_db'      => array( // See man CRONTAB(5) for allowed values
         'minute' => '@daily',
-        'hour' => '',
-        'day' => '',
-        'month' => '',
-        'dweek' => ''
+        'hour'   => '',
+        'day'    => '',
+        'month'  => '',
+        'dweek'  => ''
     ),
 
     // Razor2 (default: yes)
     //
     // If set to 'yes', enable usage of razor2.
     // If set to 'no', disable usage of razor2.
-    'use_razor2' => 'yes',
+    'use_razor2'                => 'yes',
 
     // Pyzor (default: yes)
     //
     // If set to 'yes', enable usage of Pyzor.
     // If set to 'no', disable usage of Pyzor.
-    'use_pyzor' => 'yes',
+    'use_pyzor'                 => 'yes',
 
     // DCC - Distributed Checksum Clearinghouse (default: no)
     //
     // If set to 'yes', enable usage of DCC.
     // If set to 'no', disable usage of DCC.
-    'use_dcc' => 'no',
+    'use_dcc'                   => 'no',
 
     // RBL checks (default: no)
     //
@@ -98,10 +98,10 @@ return array(
     // If set to 'no', disable RBL check.
     //
     // Note: You shouldn't enable this feature if you're already using PolicydWeight or Postscreen plugins.
-    'use_rbl_checks' => 'no',
+    'use_rbl_checks'            => 'no',
 
     // This plugin will try to guess the language used in the message text.
-    'use_lang_check' => 'no', // yes, no (default)
+    'use_lang_check'            => 'no', // yes, no (default)
 
     //
     //// 3rd party SpamAssassin rules
@@ -127,7 +127,7 @@ return array(
     // If set to 'no', disable the DecodeShortURLs plugin.
     //
     // See https://github.com/smfreegard/DecodeShortURLs for further details.
-    'DecodeShortURLs' => 'yes',
+    'DecodeShortURLs'           => 'yes',
 
     // iXhash2 plugin (default: yes)
     //
@@ -135,7 +135,7 @@ return array(
     // If set to 'no', disable the iXhash2 plugin.
     //
     // See http://mailfud.org/iXhash2/ for further details.
-    'iXhash2' => 'yes',
+    'iXhash2'                   => 'yes',
 
     //
     //// Roundcube plugins
@@ -149,7 +149,7 @@ return array(
     // The markasjunk2 roundcube plugin adds a new button to the mailbox toolbar, which allow the users to mark the
     // selected messages as Junk/Not Junk, optionally detaching original messages from spam reports if the message is
     // not junk and learning the bayesian database with junk/not junk.
-    'markasjunk2' => 'yes',
+    'markasjunk2'               => 'yes',
 
     // sauserprefs plugin (default: yes)
     //
@@ -158,7 +158,7 @@ return array(
     //
     // The sauserprefs roundcube plugin adds a 'Spam' tab to the 'Settings' in roundcube, which allow the users to
     // change their SpamAssassin preferences. SA user preference are stored inside the imscp_spamassassin database.
-    'sauserprefs' => 'yes',
+    'sauserprefs'               => 'yes',
 
     // Protected SA user preferences (default: '{headers}', 'use_razor1')
     //
@@ -183,11 +183,11 @@ return array(
         //
         // Note: Rejecting SPAM is supported because the checks are done totally legal 
         // before the MTA accepts the mails (before-queue filter with spamass-milter).
-        'reject_spam' => '-1', // (default: -1)
+        'reject_spam'          => '-1', // (default: -1)
 
         // Check mails if the sender has authenticated via SMTP AUTH.
         // If set to 'yes', all outgoing mails of authenticated senders are scanned.
-        'check_smtp_auth' => 'yes', // (default: yes)
+        'check_smtp_auth'      => 'yes', // (default: yes)
 
         // Don't scan listed networks 
         //
@@ -197,11 +197,11 @@ return array(
         // pair (nnn.nnn.nnn.nnn/nnn.nnn.nnn.nnn).
         //
         // For example: networks => array('127.0.0.1', '172.16.12.0/24', '10.0.0.0/255.0.0.0')
-        'networks' => array(), // (default: array())
+        'networks'             => array(), // (default: array())
 
         // WARNING: Don't change anything, if you don't know what you are doing.
         'spamassMilterOptions' => '-e -f -u spamass-milter',
-        'spamassMilterSocket' => '/var/spool/postfix/spamass/spamass.sock'
+        'spamassMilterSocket'  => '/var/spool/postfix/spamass/spamass.sock'
     ),
 
     //
@@ -209,5 +209,5 @@ return array(
     //
 
     // WARNING: Don't change anything, if you don't know what you are doing.
-    'spamassassinOptions' => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
+    'spamassassinOptions'  => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
 );

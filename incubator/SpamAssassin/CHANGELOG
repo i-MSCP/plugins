@@ -1,6 +1,10 @@
 SpamAssassin - ChangeLog
 ========================
 
+------------------------------------------------------------------------------------------------------------------------
+Version 1.0.8
+------------------------------------------------------------------------------------------------------------------------
+
     Added: 3rd party SpamAssassin rules from Heinlein Support
     Added: Enable SpamAssassin service on systems with systemd
     Added: Option to define networks which won't be scanned for SPAM
@@ -11,18 +15,13 @@ SpamAssassin - ChangeLog
     Changed: New default values in config.php
     Changed: Usage of i-MSCP API to create/drop SQL user
     Fixed: '_' and '%' wildcards must be escaped in GRANT statements
+    Fixed: Syntax error in cronjob files
     Removed: Deprecated config option sauserprefs_bayes_delete
     Removed: Experimental smartmatch operator
     Removed: Update SpamAssassin rules and keys. Will be done by the default SpamAssassin cronjob.
     Updated: Roundcube plugin markasjunk2
     Updated: Roundcube plugin sauserprefs
     Updated: SpamAssassin plugin DecodeShortURLs
-
-------------------------------------------------------------------------------------------------------------------------
-Version 1.0.7
-------------------------------------------------------------------------------------------------------------------------
-
-    Fixed: Syntax error in cronjob files
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.6
