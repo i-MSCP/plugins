@@ -1,4 +1,4 @@
-# i-MSCP DebugBar plugin v1.1.1
+#  i-MSCP DebugBar plugin v1.1.2
 
 Plugin that provides debug information for i-MSCP.
 
@@ -19,7 +19,7 @@ Right now, the followings components are provided:
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie >= 1.3.x
 
 ## Installation
 
