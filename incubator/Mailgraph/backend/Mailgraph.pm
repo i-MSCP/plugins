@@ -22,7 +22,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-
 package Plugin::Mailgraph;
 
 use strict;
@@ -51,8 +50,8 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-    unless(iMSCP::ProgramFinder::find('mailgraph')) {
-        error('Unable to find mailgraph daemon. Please, install the mailgraph package first.');
+    unless (iMSCP::ProgramFinder::find( 'mailgraph' )) {
+        error( 'Could not find mailgraph daemon. Please, install the mailgraph package first.' );
         return 1;
     }
 
@@ -72,9 +71,7 @@ sub enable
     my $self = shift;
 
     my $rs = $self->_registerCronjob();
-    return $rs if $rs;
-
-    $self->buildGraphs();
+    $rs ||= $self->buildGraphs();
 }
 
 =item disable()
@@ -105,12 +102,8 @@ sub buildGraphs
     my $self = shift;
 
     my $rs = $self->_buildMailgraph();
-    return $rs if $rs;
-
-    $rs = $self->_buildMailgraphVirus();
-    return $rs if $rs;
-
-    $self->_buildMailgraphGreylist();
+    $rs ||= $self->_buildMailgraphVirus();
+    $rs ||= $self->_buildMailgraphGreylist();
 }
 
 =back
@@ -133,56 +126,51 @@ sub _buildMailgraph
 
     my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
 
-    return 0 if ! -f $mailgraphRRD;
+    return 0 unless -f $mailgraphRRD;
 
-    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
+    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'}.'/Mailgraph/tmp_graph';
     my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
     my $xPoints = 540;
     my $pointsPerSample = 3;
     my $yPoints = 160;
 
-    my $dayRange = 3600*24*1;
-    my $dayStep = $dayRange*$pointsPerSample/$xPoints;
-    my $dayMailgraphTitle = 'Mailgraph - Daily - ' . $hostname;
-    my $dayOutputfile = $imgGraphsDir . '/mailgraph_day.png';
+    my $dayRange = 3600 * 24 * 1;
+    my $dayStep = $dayRange * $pointsPerSample / $xPoints;
+    my $dayMailgraphTitle = 'Mailgraph - Daily - '.$hostname;
+    my $dayOutputfile = $imgGraphsDir.'/mailgraph_day.png';
 
-    my $weekRange = 3600*24*7;
-    my $weekStep = $weekRange*$pointsPerSample/$xPoints;
-    my $weekMailgraphTitle = 'Mailgraph - Weekly - ' . $hostname;
-    my $weekOutputfile = $imgGraphsDir . '/mailgraph_week.png';
+    my $weekRange = 3600 * 24 * 7;
+    my $weekStep = $weekRange * $pointsPerSample / $xPoints;
+    my $weekMailgraphTitle = 'Mailgraph - Weekly - '.$hostname;
+    my $weekOutputfile = $imgGraphsDir.'/mailgraph_week.png';
 
-    my $monthRange = 3600*24*30;
-    my $monthStep = $monthRange*$pointsPerSample/$xPoints;
-    my $monthMailgraphTitle = 'Mailgraph - Monthly - ' . $hostname;
-    my $monthOutputfile = $imgGraphsDir . '//mailgraph_month.png';
+    my $monthRange = 3600 * 24 * 30;
+    my $monthStep = $monthRange * $pointsPerSample / $xPoints;
+    my $monthMailgraphTitle = 'Mailgraph - Monthly - '.$hostname;
+    my $monthOutputfile = $imgGraphsDir.'//mailgraph_month.png';
 
-    my $yearRange = 3600*24*365;
-    my $yearStep = $yearRange*$pointsPerSample/$xPoints;
-    my $yearMailgraphTitle = 'Mailgraph - Yearly - ' . $hostname;
-    my $yearOutputfile = $imgGraphsDir . '/mailgraph_year.png';
+    my $yearRange = 3600 * 24 * 365;
+    my $yearStep = $yearRange * $pointsPerSample / $xPoints;
+    my $yearMailgraphTitle = 'Mailgraph - Yearly - '.$hostname;
+    my $yearOutputfile = $imgGraphsDir.'/mailgraph_year.png';
 
-    my $endrange  = time; $endrange -= $endrange % $dayStep;
-    my $date = localtime(time);
+    my $endrange = time;
+    $endrange -= $endrange % $dayStep;
+    my $date = localtime( time );
     $date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
 
     my $rs = $self->_createMailgraphPicture(
         $mailgraphRRD, $xPoints, $yPoints, $dayRange, $endrange, $dayStep, $dayMailgraphTitle, $dayOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphPicture(
+    $rs ||= $self->_createMailgraphPicture(
         $mailgraphRRD, $xPoints, $yPoints, $weekRange, $endrange, $weekStep, $weekMailgraphTitle, $weekOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphPicture(
+    $rs ||= $self->_createMailgraphPicture(
         $mailgraphRRD, $xPoints, $yPoints, $monthRange, $endrange, $monthStep, $monthMailgraphTitle, $monthOutputfile,
         $date
     );
-    return $rs if $rs;
-
-    $self->_createMailgraphPicture(
+    $rs ||= $self->_createMailgraphPicture(
         $mailgraphRRD, $xPoints, $yPoints, $yearRange, $endrange, $yearStep, $yearMailgraphTitle, $yearOutputfile, $date
     );
 }
@@ -198,7 +186,7 @@ sub _buildMailgraph
 sub _createMailgraphPicture
 {
     my (
-        $self, $rrdfile, $setXpoints, $setYpoints, $setRange, $setEndrange, $setStep, $setTitle, $setOutputfile,
+        undef, $rrdfile, $setXpoints, $setYpoints, $setRange, $setEndrange, $setStep, $setTitle, $setOutputfile,
         $setDate
     ) = @_;
 
@@ -243,25 +231,21 @@ sub _createMailgraphPicture
         '--color', 'SHADEA#ffffff',
         '--color', 'SHADEB#ffffff',
         '--color', 'BACK#ffffff',
-        $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
+            $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
         @RRDArgs,
-        'COMMENT: Last updated\:[' . $setDate . ']\r',
+        'COMMENT: Last updated\:['.$setDate.']\r',
     );
 
     my $errorMsg = RRDs::error;
-    error($errorMsg) if $errorMsg;
+    error( $errorMsg ) if $errorMsg;
     return 1 if $errorMsg;
 
-    my $file = iMSCP::File->new( filename => $setOutputfile );
-
     my $panelUname =
-    my $panelGName =
-        $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+        my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-    my $rs = $file->owner($panelUname, $panelGName);
-    return $rs if $rs;
-
-    $file->mode(0644);
+    my $file = iMSCP::File->new( filename => $setOutputfile );
+    my $rs = $file->owner( $panelUname, $panelGName );
+    $rs ||= $file->mode( 0644 );
 }
 
 =item _buildMailgraphVirus()
@@ -279,58 +263,53 @@ sub _buildMailgraphVirus
     my $mailgraphRRD = '/var/lib/mailgraph/mailgraph.rrd';
     my $mailgraphVirusRRD = '/var/lib/mailgraph/mailgraph_virus.rrd';
 
-    return 0 if ! -f $mailgraphRRD || ! -f $mailgraphVirusRRD;
+    return 0 if !-f $mailgraphRRD || !-f $mailgraphVirusRRD;
 
-    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
+    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'}.'/Mailgraph/tmp_graph';
     my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
     my $xPoints = 540;
     my $pointsPerSample = 3;
     my $yPoints = 96;
 
-    my $dayRange = 3600*24*1;
-    my $dayStep = $dayRange*$pointsPerSample/$xPoints;
-    my $dayMailgraphTitle = 'Mailgraph virus - Daily - ' . $hostname;
-    my $dayOutputfile = $imgGraphsDir . '/mailgraph_virus_day.png';
+    my $dayRange = 3600 * 24 * 1;
+    my $dayStep = $dayRange * $pointsPerSample / $xPoints;
+    my $dayMailgraphTitle = 'Mailgraph virus - Daily - '.$hostname;
+    my $dayOutputfile = $imgGraphsDir.'/mailgraph_virus_day.png';
 
-    my $weekRange = 3600*24*7;
-    my $weekStep = $weekRange*$pointsPerSample/$xPoints;
-    my $weekMailgraphTitle = 'Mailgraph virus - Weekly - ' . $hostname;
-    my $weekOutputfile = $imgGraphsDir . '/mailgraph_virus_week.png';
+    my $weekRange = 3600 * 24 * 7;
+    my $weekStep = $weekRange * $pointsPerSample / $xPoints;
+    my $weekMailgraphTitle = 'Mailgraph virus - Weekly - '.$hostname;
+    my $weekOutputfile = $imgGraphsDir.'/mailgraph_virus_week.png';
 
-    my $monthRange = 3600*24*30;
-    my $monthStep = $monthRange*$pointsPerSample/$xPoints;
-    my $monthMailgraphTitle = 'Mailgraph virus - Monthly - ' . $hostname;
-    my $monthOutputfile = $imgGraphsDir . '/mailgraph_virus_month.png';
+    my $monthRange = 3600 * 24 * 30;
+    my $monthStep = $monthRange * $pointsPerSample / $xPoints;
+    my $monthMailgraphTitle = 'Mailgraph virus - Monthly - '.$hostname;
+    my $monthOutputfile = $imgGraphsDir.'/mailgraph_virus_month.png';
 
-    my $yearRange = 3600*24*365;
-    my $yearStep = $yearRange*$pointsPerSample/$xPoints;
-    my $yearMailgraphTitle = 'Mailgraph virus - Yearly - ' . $hostname;
-    my $yearOutputfile = $imgGraphsDir .'/mailgraph_virus_year.png';
+    my $yearRange = 3600 * 24 * 365;
+    my $yearStep = $yearRange * $pointsPerSample / $xPoints;
+    my $yearMailgraphTitle = 'Mailgraph virus - Yearly - '.$hostname;
+    my $yearOutputfile = $imgGraphsDir.'/mailgraph_virus_year.png';
 
-    my $endrange  = time; $endrange -= $endrange % $dayStep;
-    my $date = localtime(time);
+    my $endrange = time;
+    $endrange -= $endrange % $dayStep;
+    my $date = localtime( time );
     $date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
 
     my $rs = $self->_createMailgraphVirusPicture(
         $mailgraphRRD, $mailgraphVirusRRD, $xPoints, $yPoints, $dayRange, $endrange, $dayStep, $dayMailgraphTitle,
         $dayOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphVirusPicture(
+    $rs ||= $self->_createMailgraphVirusPicture(
         $mailgraphRRD, $mailgraphVirusRRD, $xPoints, $yPoints, $weekRange, $endrange, $weekStep, $weekMailgraphTitle,
         $weekOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphVirusPicture(
+    $rs ||= $self->_createMailgraphVirusPicture(
         $mailgraphRRD, $mailgraphVirusRRD, $xPoints, $yPoints, $monthRange, $endrange, $monthStep, $monthMailgraphTitle,
-        $monthOutputfile,$date
+        $monthOutputfile, $date
     );
-    return $rs if $rs;
-
-    $self->_createMailgraphVirusPicture(
+    $rs ||= $self->_createMailgraphVirusPicture(
         $mailgraphRRD, $mailgraphVirusRRD, $xPoints, $yPoints, $yearRange, $endrange, $yearStep, $yearMailgraphTitle,
         $yearOutputfile, $date
     );
@@ -347,7 +326,7 @@ sub _buildMailgraphVirus
 sub _createMailgraphVirusPicture
 {
     my (
-        $self, $rrdfile, $rrdvirusfile, $setXpoints, $setYpoints, $setRange, $setEndrange, $setStep, $setTitle,
+        undef, $rrdfile, $rrdvirusfile, $setXpoints, $setYpoints, $setRange, $setEndrange, $setStep, $setTitle,
         $setOutputfile, $setDate
     ) = @_;
 
@@ -414,25 +393,21 @@ sub _createMailgraphVirusPicture
         '--color', 'SHADEA#ffffff',
         '--color', 'SHADEB#ffffff',
         '--color', 'BACK#ffffff',
-        $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
+            $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
         @RRDArgs,
-        'COMMENT: Last updated\:[' . $setDate . ']\r',
+        'COMMENT: Last updated\:['.$setDate.']\r',
     );
 
     my $errorMsg = RRDs::error;
-    error($errorMsg) if $errorMsg;
+    error( $errorMsg ) if $errorMsg;
     return 1 if $errorMsg;
 
-    my $file = iMSCP::File->new('filename' => $setOutputfile);
-
     my $panelUname =
-    my $panelGName =
-        $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+        my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-    my $rs = $file->owner($panelUname, $panelGName);
-    return $rs if $rs;
-
-    $file->mode(0644);
+    my $file = iMSCP::File->new( 'filename' => $setOutputfile );
+    my $rs = $file->owner( $panelUname, $panelGName );
+    $rs ||= $file->mode( 0644 );
 }
 
 =item _buildMailgraphGreylist()
@@ -449,56 +424,51 @@ sub _buildMailgraphGreylist
 
     my $mailgraphRRD = '/var/lib/mailgraph/mailgraph_greylist.rrd';
 
-    return 0 if ! -f $mailgraphRRD;
+    return 0 unless -f $mailgraphRRD;
 
-    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/tmp_graph';
+    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'}.'/Mailgraph/tmp_graph';
     my $hostname = $main::imscpConfig{'SERVER_HOSTNAME'};
 
     my $xPoints = 540;
     my $pointsPerSample = 3;
     my $yPoints = 96;
 
-    my $dayRange = 3600*24*1;
-    my $dayStep = $dayRange*$pointsPerSample/$xPoints;
-    my $dayMailgraphTitle = 'Mailgraph greylist - Daily - ' . $hostname;
-    my $dayOutputfile = $imgGraphsDir . '/mailgraph_greylist_day.png';
+    my $dayRange = 3600 * 24 * 1;
+    my $dayStep = $dayRange * $pointsPerSample / $xPoints;
+    my $dayMailgraphTitle = 'Mailgraph greylist - Daily - '.$hostname;
+    my $dayOutputfile = $imgGraphsDir.'/mailgraph_greylist_day.png';
 
-    my $weekRange = 3600*24*7;
-    my $weekStep = $weekRange*$pointsPerSample/$xPoints;
-    my $weekMailgraphTitle = 'Mailgraph greylist - Weekly - ' . $hostname;
-    my $weekOutputfile = $imgGraphsDir . '/mailgraph_greylist_week.png';
+    my $weekRange = 3600 * 24 * 7;
+    my $weekStep = $weekRange * $pointsPerSample / $xPoints;
+    my $weekMailgraphTitle = 'Mailgraph greylist - Weekly - '.$hostname;
+    my $weekOutputfile = $imgGraphsDir.'/mailgraph_greylist_week.png';
 
-    my $monthRange = 3600*24*30;
-    my $monthStep = $monthRange*$pointsPerSample/$xPoints;
-    my $monthMailgraphTitle = 'Mailgraph greylist - Monthly - ' . $hostname;
-    my $monthOutputfile = $imgGraphsDir . '/mailgraph_greylist_month.png';
+    my $monthRange = 3600 * 24 * 30;
+    my $monthStep = $monthRange * $pointsPerSample / $xPoints;
+    my $monthMailgraphTitle = 'Mailgraph greylist - Monthly - '.$hostname;
+    my $monthOutputfile = $imgGraphsDir.'/mailgraph_greylist_month.png';
 
-    my $yearRange = 3600*24*365;
-    my $yearStep = $yearRange*$pointsPerSample/$xPoints;
-    my $yearMailgraphTitle = 'Mailgraph greylist - Yearly - ' . $hostname;
-    my $yearOutputfile = $imgGraphsDir . '/mailgraph_greylist_year.png';
+    my $yearRange = 3600 * 24 * 365;
+    my $yearStep = $yearRange * $pointsPerSample / $xPoints;
+    my $yearMailgraphTitle = 'Mailgraph greylist - Yearly - '.$hostname;
+    my $yearOutputfile = $imgGraphsDir.'/mailgraph_greylist_year.png';
 
-    my $endrange  = time; $endrange -= $endrange % $dayStep;
-    my $date = localtime(time);
+    my $endrange = time;
+    $endrange -= $endrange % $dayStep;
+    my $date = localtime( time );
     $date =~ s|:|\\:|g unless $RRDs::VERSION < 1.199908;
 
     my $rs = $self->_createMailgraphGreylistPicture(
         $mailgraphRRD, $xPoints, $yPoints, $dayRange, $endrange, $dayStep, $dayMailgraphTitle, $dayOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphGreylistPicture(
+    $rs ||= $self->_createMailgraphGreylistPicture(
         $mailgraphRRD, $xPoints, $yPoints, $weekRange, $endrange, $weekStep, $weekMailgraphTitle, $weekOutputfile, $date
     );
-    return $rs if $rs;
-
-    $rs = $self->_createMailgraphGreylistPicture(
+    $rs ||= $self->_createMailgraphGreylistPicture(
         $mailgraphRRD, $xPoints, $yPoints, $monthRange, $endrange, $monthStep, $monthMailgraphTitle, $monthOutputfile,
         $date
     );
-    return $rs if $rs;
-
-    $self->_createMailgraphGreylistPicture(
+    $rs ||= $self->_createMailgraphGreylistPicture(
         $mailgraphRRD, $xPoints, $yPoints, $yearRange, $endrange, $yearStep, $yearMailgraphTitle, $yearOutputfile,
         $date
     );
@@ -560,24 +530,21 @@ sub _createMailgraphGreylistPicture
         '--color', 'SHADEA#ffffff',
         '--color', 'SHADEB#ffffff',
         '--color', 'BACK#ffffff',
-        $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
+            $RRDs::VERSION < 1.2002 ? () : ( '--slope-mode'),
         @RRDArgs,
-        'COMMENT: Last updated\:[' . $setDate . ']\r',
+        'COMMENT: Last updated\:['.$setDate.']\r',
     );
 
     my $errorMsg = RRDs::error;
-    error($errorMsg) if $errorMsg;
-    return 1 if ($errorMsg);
-
-    my $file = iMSCP::File->new( filename => $setOutputfile );
+    error( $errorMsg ) if $errorMsg;
+    return 1 if $errorMsg;
 
     my $panelUname =
-    my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+        my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-    my $rs = $file->owner($panelUname, $panelGName);
-    return $rs if $rs;
-
-    $file->mode(0644);
+    my $file = iMSCP::File->new( filename => $setOutputfile );
+    my $rs = $file->owner( $panelUname, $panelGName );
+    $rs ||= $file->mode( 0644 );
 }
 
 =item _registerCronjob()
@@ -592,13 +559,13 @@ sub _registerCronjob
 {
     my $self = shift;
 
-    if($self->{'config'}->{'cronjob_enabled'}) {
-        my $cronjobFilePath = $main::imscpConfig{'PLUGINS_DIR'} . '/Mailgraph/cronjob.pl';
+    if ($self->{'config'}->{'cronjob_enabled'}) {
+        my $cronjobFilePath = $main::imscpConfig{'PLUGINS_DIR'}.'/Mailgraph/cronjob.pl';
 
         my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
         my $cronjobFileContent = $cronjobFile->get();
-        unless(defined $cronjobFileContent) {
-            error("Unable to read $cronjobFile");
+        unless (defined $cronjobFileContent) {
+            error( "Unable to read $cronjobFile" );
             return 1;
         }
 
@@ -606,24 +573,25 @@ sub _registerCronjob
         iMSCP::TemplateParser->import();
 
         $cronjobFileContent = process(
-            { 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'} . '/PerlLib' }, $cronjobFileContent
+            {
+                'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'}.'/PerlLib'
+            },
+            $cronjobFileContent
         );
 
-        my $rs = $cronjobFile->set($cronjobFileContent);
-        return $rs if $rs;
-
-        $rs = $cronjobFile->save();
+        my $rs = $cronjobFile->set( $cronjobFileContent );
+        $rs ||= $cronjobFile->save();
         return $rs if $rs;
 
         require Servers::cron;
         Servers::cron->factory()->addTask(
             {
-                'TASKID' => 'PLUGINS:Mailgraph',
-                'MINUTE' => $self->{'config'}->{'cronjob_config'}->{'minute'},
-                'HOUR' => $self->{'config'}->{'cronjob_config'}->{'hour'},
-                'DAY' => $self->{'config'}->{'cronjob_config'}->{'day'},
-                'MONTH' => $self->{'config'}->{'cronjob_config'}->{'month'},
-                'DWEEK' => $self->{'config'}->{'cronjob_config'}->{'dweek'},
+                'TASKID'  => 'PLUGINS:Mailgraph',
+                'MINUTE'  => $self->{'config'}->{'cronjob_config'}->{'minute'},
+                'HOUR'    => $self->{'config'}->{'cronjob_config'}->{'hour'},
+                'DAY'     => $self->{'config'}->{'cronjob_config'}->{'day'},
+                'MONTH'   => $self->{'config'}->{'cronjob_config'}->{'month'},
+                'DWEEK'   => $self->{'config'}->{'cronjob_config'}->{'dweek'},
                 'COMMAND' => "umask 027; perl $cronjobFilePath >/dev/null 2>&1"
             }
         );
@@ -643,8 +611,7 @@ sub _registerCronjob
 sub _unregisterCronjob
 {
     require Servers::cron;
-
-    Servers::cron->factory()->deleteTask({ 'TASKID' => 'PLUGINS:Mailgraph' });
+    Servers::cron->factory()->deleteTask( { 'TASKID' => 'PLUGINS:Mailgraph' } );
 }
 
 =back
