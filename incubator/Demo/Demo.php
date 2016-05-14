@@ -411,7 +411,7 @@ class iMSCP_Plugin_Demo extends iMSCP_Plugin_Action
         });
     });
     </script>
-    EOF;
+EOF;
         } else {
             return '';
         }
