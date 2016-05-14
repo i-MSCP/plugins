@@ -639,7 +639,7 @@ sub _registerCronjob
     my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
     my $cronjobFileContent = $cronjobFile->get();
     unless (defined $cronjobFileContent) {
-        error( sprintf('Could not read %s file', $cronjobFile->{'filename'} );
+        error( sprintf( 'Could not read %s file', $cronjobFile->{'filename'} ) );
         return 1;
     }
 
