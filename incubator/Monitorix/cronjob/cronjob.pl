@@ -33,25 +33,34 @@ sub getData
         'SELECT plugin_name, plugin_info, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
         'Monitorix'
     );
-    ref $row eq 'HASH' or die($row);
-    $row->{'Monitorix'} or die('Monitorix plugin data not found in database');
+    ref $row eq 'HASH' or die( $row );
+    $row->{'Monitorix'} or die( 'Monitorix plugin data not found in database' );
 
     {
-        action => 'cron',
-        config => decode_json($row->{'Monitorix'}->{'plugin_config'}),
-        config_prev => decode_json($row->{'Monitorix'}->{'plugin_config_prev'}),
+        action       => 'cron',
+        config       => decode_json( $row->{'Monitorix'}->{'plugin_config'} ),
+        config_prev  => decode_json( $row->{'Monitorix'}->{'plugin_config_prev'} ),
         eventManager => iMSCP::EventManager->getInstance(),
-        info => decode_json($row->{'Monitorix'}->{'plugin_info'})
+        info         => decode_json( $row->{'Monitorix'}->{'plugin_info'} )
     };
 }
 
-newDebug('monitorix-plugin-cronjob.log');
-iMSCP::Bootstrapper->getInstance()->boot({ norequirements => 'yes', config_readonly => 'yes', nolock => 'yes' });
+newDebug( 'monitorix-plugin-cronjob.log' );
+iMSCP::Bootstrapper->getInstance()->boot(
+    {
+        norequirements  => 'yes',
+        config_readonly => 'yes',
+        nolock          => 'yes'
+    }
+);
 
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/backend/Monitorix.pm";
 require $pluginFile;
 
 my $pluginClass = "Plugin::Monitorix";
-$pluginClass->getInstance(getData())->buildGraphs() == 0 or die(
-    getMessageByType('error', { amount => 1, remove => 1 }) || 'Unknown error'
+$pluginClass->getInstance( getData() )->buildGraphs() == 0 or die(
+    getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
 );
+
+1;
+__END__
