@@ -22,7 +22,7 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-    'up' => "
+    'up'   => "
         ALTER TABLE " . $roundcubeDbName . ".`tasks` ADD `status` ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER `complete`;
 
         UPDATE " . $roundcubeDbName . ".`tasks` SET status='COMPLETED' WHERE complete=1.0 AND status='';

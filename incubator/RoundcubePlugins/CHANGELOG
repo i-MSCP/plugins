@@ -1,6 +1,10 @@
 RoundcubePlugins - ChangeLog
 ============================
 
+------------------------------------------------------------------------------------------------------------------------
+Version 1.2.4
+------------------------------------------------------------------------------------------------------------------------
+
     Added: Password config options
     Added: Managesieve vacation responses (out-of-office)
     Added: Rouncube reCAPTCHA plugin

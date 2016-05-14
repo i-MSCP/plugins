@@ -22,7 +22,7 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-    'up' => "
+    'up'   => "
         CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`attachments` (
             `attachment_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
             `event_id` int(11) UNSIGNED NOT NULL DEFAULT '0',

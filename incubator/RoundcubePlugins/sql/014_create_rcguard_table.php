@@ -21,7 +21,7 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-    'up' => "
+    'up'   => "
         CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`rcguard` (
             `ip` VARCHAR(40) NOT NULL,
             `first` DATETIME NOT NULL,

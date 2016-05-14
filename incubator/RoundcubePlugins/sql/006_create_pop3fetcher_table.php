@@ -22,7 +22,7 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-    'up' => "
+    'up'   => "
         CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`pop3fetcher_accounts` (
             `pop3fetcher_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
             `pop3fetcher_email` varchar(128) NOT NULL,
