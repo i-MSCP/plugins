@@ -231,63 +231,55 @@ sub run
 {
     my $self = shift;
 
-    my $rdata = $self->{'db'}->doQuery(
+    my $rows = $self->{'db'}->doQuery(
         'opendkim_id',
         "
             SELECT opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id, domain_name, opendkim_status
             FROM opendkim WHERE opendkim_status IN('toadd', 'tochange', 'todelete')
         "
     );
-    unless (ref $rdata eq 'HASH') {
-        error( $rdata );
+    unless (ref $rows eq 'HASH') {
+        error( $rows );
         return 1;
     }
 
     my @sql;
-    my $rs = 0;
-
-    if (%{$rdata}) {
-        for(keys %{$rdata}) {
-            if (grep($_ eq $rdata->{$_}->{'opendkim_status'}, ( 'toadd', 'tochange' ))) {
-                $rs = $self->_addDomainKey(
-                    $rdata->{$_}->{'domain_id'}, $rdata->{$_}->{'alias_id'}, $rdata->{$_}->{'domain_name'}
-                );
+    for(values %{$rows}) {
+        if ($_->{'opendkim_status'} =~ /^to(?:add|change)$/) {
+            my $rs = $self->_addDomainKey( $_->{'domain_id'}, $_->{'alias_id'}, $_->{'domain_name'} );
+            @sql = (
+                'UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?',
+                ($rs ? scalar getMessageByType( 'error' ) || 'Unknown error' : 'ok'), $_->{'opendkim_id'}
+            );
+        } elsif ($_->{'opendkim_status'} eq 'todelete') {
+            my $rs = $self->_deleteDomainKey( $_->{'domain_id'}, $_->{'alias_id'}, $_->{'domain_name'} );
+            if ($rs) {
                 @sql = (
                     'UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?',
-                    ($rs ? scalar getMessageByType( 'error' ) : 'ok'), $_
+                    (scalar getMessageByType( 'error' ) || 'Unknown error'), $_->{'opendkim_id'}
                 );
-            } elsif ($rdata->{$_}->{'opendkim_status'} eq 'todelete') {
-                $rs = $self->_deleteDomainKey(
-                    $rdata->{$_}->{'domain_id'}, $rdata->{$_}->{'alias_id'}, $rdata->{$_}->{'domain_name'}
-                );
-                if ($rs) {
-                    @sql = (
-                        'UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?',
-                        scalar getMessageByType( 'error' ), $_
-                    );
-                } else {
-                    @sql = ('DELETE FROM opendkim WHERE opendkim_id = ?', $_);
-                }
-            }
-
-            my $qrs = $self->{'db'}->doQuery( 'dummy', @sql );
-            unless (ref $qrs eq 'HASH') {
-                error( $qrs );
-                return 1;
+            } else {
+                @sql = ('DELETE FROM opendkim WHERE opendkim_id = ?', $_->{'opendkim_id'});
             }
         }
 
-        unless ($rs) {
-            local $@;
-            eval { iMSCP::Service->getInstance()->restart( 'opendkim' ); };
-            if ($@) {
-                error( $@ );
-                return 1;
-            }
+        my $qrs = $self->{'db'}->doQuery( 'dummy', @sql );
+        unless (ref $qrs eq 'HASH') {
+            error( $qrs );
+            return 1;
         }
     }
 
-    $rs;
+    if(%{$rows}) {
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'opendkim' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+    }
+
+    0;
 }
 
 =back
