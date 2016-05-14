@@ -23,9 +23,9 @@
 return array(
     /**
      * Clamav-milter configuration options
-     * 
+     *
      * For more information about the different configuration options please check 'man clamav-milter.conf'.
-     * 
+     *
      * Warning: Don't change anything if you don't know what you are doing.
      */
 
@@ -34,7 +34,7 @@ return array(
     // Possible values:
     //  unix:/clamav/clamav-milter.ctl for connection through UNIX socket
     //  inet:localhost:32767 for connection through TCP
-    'PostfixMilterSocket' => 'unix:/clamav/clamav-milter.ctl',
+    'PostfixMilterSocket'                  => 'unix:/clamav/clamav-milter.ctl',
 
     /**
      * The following configuration options are added in the /etc/clamav/clamav-milter.conf file
@@ -51,74 +51,74 @@ return array(
     // Possible values:
     // /var/spool/postfix/clamav/clamav-milter.ctl for connection through UNIX socket
     //  inet:32767@localhost for connection through TCP
-    'MilterSocket' => '/var/spool/postfix/clamav/clamav-milter.ctl',
-    'MilterSocketGroup' => 'clamav',
-    'MilterSocketMode' => '666',
-    'FixStaleSocket' => 'true',
-    'User' => 'clamav',
-    'AllowSupplementaryGroups' => 'true',
-    'ReadTimeout' => '120',
-    'Foreground' => 'false',
-    'PidFile' => '/var/run/clamav/clamav-milter.pid',
-    'TemporaryDirectory' => '/tmp',
+    'MilterSocket'                         => '/var/spool/postfix/clamav/clamav-milter.ctl',
+    'MilterSocketGroup'                    => 'clamav',
+    'MilterSocketMode'                     => '666',
+    'FixStaleSocket'                       => 'true',
+    'User'                                 => 'clamav',
+    'AllowSupplementaryGroups'             => 'true',
+    'ReadTimeout'                          => '120',
+    'Foreground'                           => 'false',
+    'PidFile'                              => '/var/run/clamav/clamav-milter.pid',
+    'TemporaryDirectory'                   => '/tmp',
 
     // Clamd options
-    'ClamdSocket' => 'unix:/var/run/clamav/clamd.ctl',
+    'ClamdSocket'                          => 'unix:/var/run/clamav/clamd.ctl',
 
     // Exclusions options
-    'MaxFileSize' => '25M',
+    'MaxFileSize'                          => '25M',
 
     // Actions options
-    'OnClean' => 'Accept',
-    'OnInfected' => 'Reject',
-    'OnFail' => 'Defer',
-    'RejectMsg' => 'Blocked by ClamAV - FOUND VIRUS: %v',
-    'AddHeader' => 'Replace',
-    'VirusAction' => '',
+    'OnClean'                              => 'Accept',
+    'OnInfected'                           => 'Reject',
+    'OnFail'                               => 'Defer',
+    'RejectMsg'                            => 'Blocked by ClamAV - FOUND VIRUS: %v',
+    'AddHeader'                            => 'Replace',
+    'VirusAction'                          => '',
 
     // Logging options
-    'LogFile' => '/var/log/clamav/clamav-milter.log',
-    'LogFileUnlock' => 'false',
-    'LogFileMaxSize' => '0M',
-    'LogTime' => 'true',
-    'LogSyslog' => 'true',
-    'LogFacility' => 'LOG_MAIL',
-    'LogVerbose' => 'false',
-    'LogInfected' => 'Basic',
-    'LogClean' => 'Off',
-    'LogRotate' => 'true',
-    'SupportMultipleRecipients' => 'false',
+    'LogFile'                              => '/var/log/clamav/clamav-milter.log',
+    'LogFileUnlock'                        => 'false',
+    'LogFileMaxSize'                       => '0M',
+    'LogTime'                              => 'true',
+    'LogSyslog'                            => 'true',
+    'LogFacility'                          => 'LOG_MAIL',
+    'LogVerbose'                           => 'false',
+    'LogInfected'                          => 'Basic',
+    'LogClean'                             => 'Off',
+    'LogRotate'                            => 'true',
+    'SupportMultipleRecipients'            => 'false',
 
 
     /**
      * 3rd party ClamAV Unofficial Signatures - clamav-unofficial-sigs
-     * 
+     *
      * https://github.com/extremeshok/clamav-unofficial-sigs
-     * 
+     *
      * The clamav-unofficial-sigs script provides a simple way to download, test, and update
-     * third-party signature databases provided by Sanesecurity, Foxhole, OITC, Scamnailer, 
+     * third-party signature databases provided by Sanesecurity, Foxhole, OITC, Scamnailer,
      * BOFHLAND, CRDF, Porcupine, SecuriteInfo, MalwarePatrol, Yara-Rules Project, etc.
-     * 
+     *
      * Warning: Don't change anything if you don't know what you are doing.
      */
-     
+
     // Use ClamAV Unofficial Signatures (default: yes)
-    'clamav_unofficial_sigs' => 'yes',
+    'clamav_unofficial_sigs'               => 'yes',
 
     /**
      * MalwarePatrol 2016 (free) clamav signatures: https://www.malwarepatrol.net
-     * 
+     *
      * 1. Sign up for a free account: https://www.malwarepatrol.net/signup-free.shtml
      * 2. You will recieve an email containing your password/receipt number
      * 3. Login to your account at MalwarePatrol
-     * 4. In My Accountpage, choose the ClamAV list you will download. Free subscribers only get ClamAV Basic, 
+     * 4. In My Accountpage, choose the ClamAV list you will download. Free subscribers only get ClamAV Basic,
      *    commercial subscribers have access to ClamAV Extended. Do not use the agressive lists.
      * 5. In the download URL, you will see 3 parameters: receipt, product and list, enter them in the variables below.
      */
-    'malwarepatrol_receipt_code' => 'YOUR-RECEIPT-NUMBER',
-    'malwarepatrol_product_code' => '8',
-    'malwarepatrol_list' => 'clamav_basic',  // clamav_basic or clamav_ext
-    'malwarepatrol_free' => 'yes',           // set to 'no' to enable the commercial subscription url
+    'malwarepatrol_receipt_code'           => 'YOUR-RECEIPT-NUMBER',
+    'malwarepatrol_product_code'           => '8',
+    'malwarepatrol_list'                   => 'clamav_basic',  // clamav_basic or clamav_ext
+    'malwarepatrol_free'                   => 'yes',           // set to 'no' to enable the commercial subscription url
 
     /**
      * SecuriteInfo 2015 free clamav signatures: https://www.securiteinfo.com
@@ -128,7 +128,7 @@ return array(
      * 3. Login and navigate to your customer account: https://www.securiteinfo.com/clients/customers/account
      * 4. Click on the Setup tab
      * 5. You will need to get your unique identifier from one of the download links, they are individual for every user
-     *    The 128 character string is after the http://www.securiteinfo.com/get/signatures/ 
+     *    The 128 character string is after the http://www.securiteinfo.com/get/signatures/
      *    Example https://www.securiteinfo.com/get/signatures/your_unique_and_very_long_random_string_of_characters/securiteinfo.hdb
      *    Your 128 character authorisation signature would be : your_unique_and_very_long_random_string_of_characters
      * 6. Enter the authorisation signature into the config securiteinfo_authorisation_signature: replacing YOUR-SIGNATURE-NUMBER with your authorisation signature from the link
@@ -137,11 +137,11 @@ return array(
 
     // Enabled Signatures
     // Set to 'no' to disable an entire set of signatures (default: yes)
-    'sanesecurity_enabled' => 'yes',
-    'securiteinfo_enabled' => 'yes',
-    'linuxmalwaredetect_enabled' => 'yes',
-    'malwarepatrol_enabled' => 'yes',
-    'yararulesproject_enabled' => 'yes',
+    'sanesecurity_enabled'                 => 'yes',
+    'securiteinfo_enabled'                 => 'yes',
+    'linuxmalwaredetect_enabled'           => 'yes',
+    'malwarepatrol_enabled'                => 'yes',
+    'yararulesproject_enabled'             => 'yes',
 
     // By default only signature databases with 'low' risk have been enabled.
     // For additional information about the database ratings, see:
@@ -150,7 +150,7 @@ return array(
     // Warning: Don't change anything if you don't know what you are doing.
     //
     // Signature databases defined here will be enabled.
-    'enable_single_signature_database' => array(
+    'enable_single_signature_database'     => array(
         'badmacro.ndb'
     )
 );
