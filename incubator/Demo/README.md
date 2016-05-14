@@ -1,4 +1,4 @@
-# i-MSCP Demo plugin v1.1.1
+# i-MSCP Demo plugin v1.1.2
 
 Plugin which allows to create an i-MSCP Demo server in few minutes.
 
@@ -12,7 +12,7 @@ The demo plugin allows to setup an i-MSCP demo server in few minutes. It allow t
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 
 ## Installation
 

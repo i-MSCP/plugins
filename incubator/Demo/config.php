@@ -23,23 +23,23 @@
 return array(
     // List of user accounts which have to be available in select box on login page. Those users must exists.
     // If an user account is protected, it will be impossible to edit it or remove it.
-    'user_accounts' => array(
+    'user_accounts'    => array(
         array(
-            'label' => 'Administrator',
-            'username' => 'admin1',
-            'password' => 'admin1',
+            'label'     => 'Administrator',
+            'username'  => 'admin1',
+            'password'  => 'admin1',
             'protected' => true
         ),
         array(
-            'label' => 'Reseller',
-            'username' => 'reseller1',
-            'password' => 'reseller1',
+            'label'     => 'Reseller',
+            'username'  => 'reseller1',
+            'password'  => 'reseller1',
             'protected' => true
         ),
         array(
-            'label' => 'Client',
-            'username' => 'domain1.tld',
-            'password' => 'domain1',
+            'label'     => 'Client',
+            'username'  => 'domain1.tld',
+            'password'  => 'domain1',
             'protected' => true
         ),
     ),
@@ -94,7 +94,7 @@ return array(
     // For instance, the software installer pages doesn't trigger any events. Thus, they must be fully disabled.
     //
     // Note: Only the pages from the admin, reseller and client levels can be disabled through this parameter.
-    'disabled_pages' => array(
+    'disabled_pages'   => array(
         '^/admin/software.*',
         '^/reseller/software.*',
         '^/client/software.*'
