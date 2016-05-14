@@ -21,7 +21,7 @@
 return array(
     'author' => 'Laurent Declercq',
     'email' => 'l.declercq@nuxwin.com',
-    'version' => '1.1.1',
+    'version' => '1.0.1',
     'require_api' => '1.0.4',
     'date' => '2016-05-15',
     'name' => 'HelloWorld',
