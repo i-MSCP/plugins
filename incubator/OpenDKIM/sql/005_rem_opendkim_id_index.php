@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => '
+    'up'   => '
         ALTER TABLE opendkim DROP KEY opendkim_id
     ',
     'down' => '

@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => '
+    'up'   => '
         CREATE TABLE IF NOT EXISTS opendkim (
             opendkim_id int(11) unsigned NOT NULL AUTO_INCREMENT,
             admin_id int(11) unsigned NOT NULL,

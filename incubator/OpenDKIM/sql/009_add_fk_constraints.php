@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => '
+    'up'   => '
         ALTER TABLE opendkim ADD CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id)
         ON DELETE CASCADE;
 

@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => "
+    'up'   => "
         UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'
     ",
     'down' => "

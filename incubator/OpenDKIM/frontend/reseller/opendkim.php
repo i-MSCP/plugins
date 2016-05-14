@@ -44,18 +44,8 @@ function opendkim_activate($customerId)
 {
     $stmt = exec_query(
         '
-            SELECT
-                domain_id, domain_name
-            FROM
-                domain
-            INNER JOIN
-                admin ON(admin_id = domain_admin_id)
-            WHERE
-                admin_id = ?
-            AND
-                created_by = ?
-            AND
-                admin_status = ?
+            SELECT domain_id, domain_name FROM domain INNER JOIN admin ON(admin_id = domain_admin_id)
+            WHERE admin_id = ? AND created_by = ? AND admin_status = ?
         ',
         array($customerId, $_SESSION['user_id'], 'ok')
     );
@@ -74,16 +64,9 @@ function opendkim_activate($customerId)
 
             exec_query(
                 '
-                    INSERT INTO
-                        opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
-                    SELECT
-                        ?, domain_id, alias_id, alias_name, ?
-                    FROM
-                        domain_aliasses
-                    WHERE
-                        domain_id = ?
-                    AND
-                        alias_status = ?
+                    INSERT INTO opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
+                    SELECT ?, domain_id, alias_id, alias_name, ? FROM domain_aliasses
+                    WHERE domain_id = ? AND alias_status = ?
                 ',
                 array($customerId, 'toadd', $row['domain_id'], 'ok')
             );
@@ -133,18 +116,9 @@ function _opendkim_generateCustomerList($tpl)
 {
     $stmt = exec_query(
         '
-            SELECT
-                admin_id, admin_name
-            FROM
-                admin
-            WHERE
-                created_by = ?
-            AND
-                admin_status = ?
-            AND
-                admin_id NOT IN (SELECT admin_id FROM opendkim)
-            ORDER BY
-                admin_name ASC
+            SELECT admin_id, admin_name FROM admin WHERE created_by = ?
+            AND admin_status = ? AND admin_id NOT IN (SELECT admin_id FROM opendkim)
+            ORDER BY admin_name ASC
         ',
         array($_SESSION['user_id'], 'ok')
     );
@@ -153,9 +127,8 @@ function _opendkim_generateCustomerList($tpl)
         while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
             $tpl->assign(array(
                 'SELECT_VALUE' => $row['admin_id'],
-                'SELECT_NAME' => tohtml(decode_idna($row['admin_name'])),
+                'SELECT_NAME'  => tohtml(decode_idna($row['admin_name'])),
             ));
-
             $tpl->parse('SELECT_ITEM', '.select_item');
         }
     } else {
@@ -171,10 +144,9 @@ function _opendkim_generateCustomerList($tpl)
  */
 function opendkim_generatePage($tpl)
 {
-    _opendkim_generateCustomerList($tpl, $_SESSION['user_id']);
+    _opendkim_generateCustomerList($tpl);
 
     $cfg = Registry::get('config');
-
     $rowsPerPage = $cfg['DOMAIN_ROWS_PER_PAGE'];
 
     if (isset($_GET['psi']) && $_GET['psi'] == 'last') {
@@ -185,16 +157,8 @@ function opendkim_generatePage($tpl)
 
     $stmt = exec_query(
         '
-            SELECT
-                COUNT(admin_id) AS cnt
-            FROM
-                admin
-            INNER JOIN
-                opendkim USING(admin_id)
-            WHERE
-                created_by = ?
-            AND
-                alias_id IS NULL
+            SELECT COUNT(admin_id) AS cnt FROM admin INNER JOIN opendkim USING(admin_id)
+            WHERE created_by = ? AND alias_id IS NULL
         ',
         array($_SESSION['user_id'])
     );
@@ -204,20 +168,8 @@ function opendkim_generatePage($tpl)
     if ($rowCount) {
         $stmt = exec_query(
             "
-                SELECT
-                    admin_name, admin_id
-                FROM
-                    admin
-                INNER JOIN
-                    opendkim USING(admin_id)
-                WHERE
-                    created_by = ?
-                AND
-                    alias_id IS NULL
-                ORDER BY
-                    admin_id ASC
-                LIMIT
-                    $startIndex, $rowsPerPage
+                SELECT admin_name, admin_id FROM admin INNER JOIN opendkim USING(admin_id)
+                WHERE created_by = ? AND alias_id IS NULL ORDER BY admin_id ASC LIMIT $startIndex, $rowsPerPage
             ",
             array($_SESSION['user_id'])
         );
@@ -225,19 +177,11 @@ function opendkim_generatePage($tpl)
         while ($row = $stmt->fetchRow()) {
             $stmt2 = exec_query(
                 '
-                    SELECT
-                        opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
-                    FROM
-                        opendkim
+                    SELECT opendkim_id, domain_name, opendkim_status, domain_dns, domain_text FROM opendkim
                     LEFT JOIN domain_dns ON(
-                            domain_dns.domain_id = opendkim.domain_id
-                        AND
-                            domain_dns.alias_id = IFNULL(opendkim.alias_id, 0)
-                        AND
-                            owned_by = ?
-                    )
-                    WHERE
-                        admin_id = ?
+                        domain_dns.domain_id = opendkim.domain_id
+                        AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0) AND owned_by = ?
+                    ) WHERE admin_id = ?
                 ',
                 array('OpenDKIM_Plugin', $row['admin_id'])
             );
@@ -269,12 +213,12 @@ function opendkim_generatePage($tpl)
                     }
 
                     $tpl->assign(array(
-                        'KEY_STATUS' => translate_dmn_status($row2['opendkim_status']),
+                        'KEY_STATUS'  => translate_dmn_status($row2['opendkim_status']),
                         'STATUS_ICON' => $statusIcon,
                         'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
-                        'DOMAIN_KEY' => ($row2['domain_text'])
+                        'DOMAIN_KEY'  => ($row2['domain_text'])
                             ? tohtml($row2['domain_text']) : tr('Generation in progress.'),
-                        'DNS_NAME' => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
+                        'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
                         'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
                     ));
 
@@ -283,9 +227,9 @@ function opendkim_generatePage($tpl)
             }
 
             $tpl->assign(array(
-                'TR_CUSTOMER' => tr('OpenDKIM entries for customer: %s', decode_idna($row['admin_name'])),
+                'TR_CUSTOMER'   => tr('OpenDKIM entries for customer: %s', decode_idna($row['admin_name'])),
                 'TR_DEACTIVATE' => tr('Deactivate OpenDKIM'),
-                'CUSTOMER_ID' => tohtml($row['admin_id'])
+                'CUSTOMER_ID'   => tohtml($row['admin_id'])
             ));
 
             $tpl->parse('CUSTOMER_ITEM', '.customer_item');
@@ -299,7 +243,7 @@ function opendkim_generatePage($tpl)
         } else {
             $tpl->assign(array(
                 'SCROLL_PREV_GRAY' => '',
-                'PREV_PSI' => $prevSi
+                'PREV_PSI'         => $prevSi
             ));
         }
 
@@ -310,7 +254,7 @@ function opendkim_generatePage($tpl)
         } else {
             $tpl->assign(array(
                 'SCROLL_NEXT_GRAY' => '',
-                'NEXT_PSI' => $nextSi
+                'NEXT_PSI'         => $nextSi
             ));
         }
     } else {
@@ -326,66 +270,67 @@ function opendkim_generatePage($tpl)
 EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 check_login('reseller');
 
-if (resellerHasCustomers()) {
-    if (isset($_REQUEST['action'])) {
-        $action = clean_input($_REQUEST['action']);
-
-        if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id'] != '') {
-            $customerId = intval($_REQUEST['admin_id']);
-
-            switch ($action) {
-                case 'activate':
-                    opendkim_activate($customerId);
-                    break;
-                case 'deactivate';
-                    opendkim_deactivate($customerId);
-                    break;
-                default:
-                    showBadRequestErrorPage();
-            }
-
-            redirectTo('opendkim.php');
-        } else {
-            showBadRequestErrorPage();
-        }
-    }
-
-    $tpl = new TemplateEngine();
-    $tpl->define_dynamic(array(
-        'layout' => 'shared/layouts/ui.tpl',
-        'page' => '../../plugins/OpenDKIM/themes/default/view/reseller/opendkim.tpl',
-        'page_message' => 'layout',
-        'select_list' => 'page',
-        'select_item' => 'select_list',
-        'customer_list' => 'page',
-        'customer_item' => 'customer_list',
-        'key_item' => 'customer_item',
-        'scroll_prev_gray' => 'customer_list',
-        'scroll_prev' => 'customer_list',
-        'scroll_next_gray', 'customer_list',
-        'scroll_next' => 'customer_list'
-    ));
-
-    $tpl->assign(array(
-        'TR_PAGE_TITLE' => tr('Customers / OpenDKIM'),
-        'TR_SELECT_NAME' => tr('Select a customer'),
-        'TR_ACTIVATE_ACTION' => tr('Activate OpenDKIM for this customer'),
-        'TR_DOMAIN_NAME' => tr('Domain Name'),
-        'TR_DOMAIN_KEY' => tr('OpenDKIM domain key'),
-        'TR_STATUS' => tr('Status'),
-        'TR_DNS_NAME' => tr('Name'),
-        'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?')),
-        'TR_PREVIOUS' => tr('Previous'),
-        'TR_NEXT' => tr('Next')
-    ));
-
-    generateNavigation($tpl);
-    opendkim_generatePage($tpl);
-    generatePageMessage($tpl);
-
-    $tpl->parse('LAYOUT_CONTENT', 'page');
-    EventManager::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
-    $tpl->prnt();
-} else {
+if (!resellerHasCustomers()) {
     showBadRequestErrorPage();
 }
+
+if (isset($_REQUEST['action'])) {
+    $action = clean_input($_REQUEST['action']);
+
+    if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id'] != '') {
+        $customerId = intval($_REQUEST['admin_id']);
+
+        switch ($action) {
+            case 'activate':
+                opendkim_activate($customerId);
+                break;
+            case 'deactivate';
+                opendkim_deactivate($customerId);
+                break;
+            default:
+                showBadRequestErrorPage();
+        }
+
+        redirectTo('opendkim.php');
+    } else {
+        showBadRequestErrorPage();
+    }
+}
+
+$tpl = new TemplateEngine();
+$tpl->define_dynamic(array(
+    'layout'           => 'shared/layouts/ui.tpl',
+    'page'             => '../../plugins/OpenDKIM/themes/default/view/reseller/opendkim.tpl',
+    'page_message'     => 'layout',
+    'select_list'      => 'page',
+    'select_item'      => 'select_list',
+    'customer_list'    => 'page',
+    'customer_item'    => 'customer_list',
+    'key_item'         => 'customer_item',
+    'scroll_prev_gray' => 'customer_list',
+    'scroll_prev'      => 'customer_list',
+    'scroll_next_gray', 'customer_list',
+    'scroll_next'      => 'customer_list'
+));
+
+$tpl->assign(array(
+    'TR_PAGE_TITLE'           => tr('Customers / OpenDKIM'),
+    'TR_SELECT_NAME'          => tr('Select a customer'),
+    'TR_ACTIVATE_ACTION'      => tr('Activate OpenDKIM for this customer'),
+    'TR_DOMAIN_NAME'          => tr('Domain Name'),
+    'TR_DOMAIN_KEY'           => tr('OpenDKIM domain key'),
+    'TR_STATUS'               => tr('Status'),
+    'TR_DNS_NAME'             => tr('Name'),
+    'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?')),
+    'TR_PREVIOUS'             => tr('Previous'),
+    'TR_NEXT'                 => tr('Next')
+));
+
+generateNavigation($tpl);
+opendkim_generatePage($tpl);
+generatePageMessage($tpl);
+
+$tpl->parse('LAYOUT_CONTENT', 'page');
+EventManager::getInstance()->dispatch(Events::onResellerScriptEnd, array('templateEngine' => $tpl));
+$tpl->prnt();
+

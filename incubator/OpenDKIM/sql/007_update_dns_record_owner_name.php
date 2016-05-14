@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => "
+    'up'   => "
         UPDATE domain_dns SET owned_by = 'OpenDKIM_Plugin' WHERE owned_by = 'opendkim_feature'
     ",
     'down' => "

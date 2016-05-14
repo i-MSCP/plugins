@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => "
+    'up'   => "
         ALTER TABLE opendkim CHANGE alias_id alias_id int(10) unsigned DEFAULT NULL;
         UPDATE opendkim SET alias_id = NULL WHERE alias_id = '0';
     ",

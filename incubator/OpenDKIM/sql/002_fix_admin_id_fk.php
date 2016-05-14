@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => '
+    'up'   => '
         ALTER TABLE opendkim CHANGE admin_id admin_id INT(10) UNSIGNED NOT NULL
     ',
     'down' => '

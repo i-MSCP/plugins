@@ -26,14 +26,14 @@ return array(
     // Possible values:
     //  'local:/var/spool/postfix/opendkim/opendkim.sock' for connection through UNIX socket
     //  'inet:12345@localhost' for connection through TCP socket
-    'OpenDKIM_Socket' => 'local:/var/spool/postfix/opendkim/opendkim.sock',
+    'OpenDKIM_Socket'           => 'local:/var/spool/postfix/opendkim/opendkim.sock',
 
     // Postfix smtpd milter for OpenDKIM (default: unix:/opendkim/opendkim.sock)
     //
     // Possible values:
     //  'unix:/opendkim/opendkim.sock' for connection through UNIX socket
     //  'inet:localhost:12345' for connection through TCP socket
-    'PostfixMilterSocket' => 'unix:/opendkim/opendkim.sock',
+    'PostfixMilterSocket'       => 'unix:/opendkim/opendkim.sock',
 
     // OpenDKIM canonicalization method (default: simple)
     //
@@ -48,7 +48,7 @@ return array(
     // Trusted hosts (default: 127.0.0.1, localhost)
     //
     // List of host which must be trusted by OpenDKIM
-    'opendkim_trusted_hosts' => array(
+    'opendkim_trusted_hosts'    => array(
         '127.0.0.1',
         'localhost'
     )

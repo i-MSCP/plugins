@@ -1,17 +1,16 @@
 OpenDKIM - ChangeLog
 ====================
 
-    Added: SyslogSuccess to indicate successful signing or verification of messages
-    Changed: Default Socket changed to UNIX
-    Fixed: Deconfigure removed the entire OpenDKIM file content
-    Fixed: Set opendkim permissions on activation
-    Removed: Experimental smartmatch operator
-
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
+    Added: SyslogSuccess to indicate successful signing or verification of messages
+    Changed: Default Socket changed to UNIX
     Fixed: Create parent dir of keys folder
+    Fixed: Deconfigure removed the entire OpenDKIM file content
+    Fixed: Set opendkim permissions on activation
+    Removed: Experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2

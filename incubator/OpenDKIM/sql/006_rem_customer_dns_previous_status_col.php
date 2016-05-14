@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up' => '
+    'up'   => '
         ALTER TABLE opendkim DROP customer_dns_previous_status
     ',
     'down' => '
