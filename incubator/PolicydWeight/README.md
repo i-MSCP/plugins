@@ -1,4 +1,4 @@
-# i-MSCP PolicydWeight plugin v1.0.0
+# i-MSCP PolicydWeight plugin v1.0.1
 
 Plugin which allows to run policyd-weight policy daemon for Postfix.
 
@@ -14,7 +14,7 @@ Homepage: http://www.policyd-weight.org/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
