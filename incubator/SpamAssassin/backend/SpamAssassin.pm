@@ -145,8 +145,12 @@ sub enable
         return $rs if $rs;
 
         unless (defined $main::execmode && $main::execmode eq 'setup') {
-            # Needed to flush opcode cache if any
-            iMSCP::Service->getInstance()->restart( 'imscp_panel' );
+            local $@;
+            eval {iMSCP::Service->getInstance()->restart('imscp_panel');};
+            if($@) {
+                error($@);
+                return 1;
+            }
         }
     }
 
@@ -176,8 +180,12 @@ sub disable
         return $rs if $rs;
 
         unless (defined $main::execmode && $main::execmode eq 'setup') {
-            # Needed to flush opcode cache if any
-            iMSCP::Service->getInstance()->restart( 'imscp_panel', 'defer' );
+            local $@;
+            eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+            if ($@) {
+                error( $@ );
+                return 1;
+            }
         }
     }
 
@@ -611,7 +619,7 @@ sub _postfixConfig
 sub _schedulePostfixRestart
 {
     require Servers::mta;
-    Servers::mta->factory()->restart( 'defer' );
+    Servers::mta->factory()->{'restart'} = 1;
 }
 
 =item _registerCronjob($cronjobName)
@@ -631,7 +639,7 @@ sub _registerCronjob
     my $cronjobFile = iMSCP::File->new( filename => $cronjobFilePath );
     my $cronjobFileContent = $cronjobFile->get();
     unless (defined $cronjobFileContent) {
-        error( "Unable to read $cronjobFile->{'filename'} file" );
+        error( sprintf('Could not read %s file', $cronjobFile->{'filename'} );
         return 1;
     }
 

@@ -158,8 +158,12 @@ sub enable
     }
 
     unless(defined $main::execmode && $main::execmode eq 'setup') {
-        # Needed to flush opcode cache if any
-        iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+        local $@;
+        eval {iMSCP::Service->getInstance()->restart('imscp_panel');};
+        if($@) {
+            error($@);
+            return 1;
+        }
     }
 
     0;
@@ -188,8 +192,12 @@ sub disable
     }
 
     unless(defined $main::execmode && $main::execmode eq 'setup') {
-        # Needed to flush opcode cache if any
-        iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
     }
 
     0;
