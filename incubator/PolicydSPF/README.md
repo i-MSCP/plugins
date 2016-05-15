@@ -18,7 +18,8 @@ postfix-policyd-spf-perl is a basic Postfix policy engine for Sender Policy Fram
 You can install this package by running the following command:
 
 ```
-# aptitude update && aptitude install postfix-policyd-spf-perl
+# apt-get update
+# apt-get install postfix-policyd-spf-perl
 ```
 
 ## Installation
