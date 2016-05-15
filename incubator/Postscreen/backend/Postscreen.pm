@@ -94,7 +94,7 @@ sub update
 {
     my (undef, $fromVersion) = @_;
 
-    if (version->parse( $fromVersion ) < version->parse( "0.0.6" )) {
+    if (version->parse( $fromVersion ) < version->parse( '0.0.6' )) {
         my $roundcubeConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
 
         # Reset roundcube config.inc.php if any
@@ -102,7 +102,7 @@ sub update
             my $file = iMSCP::File->new( filename => $roundcubeConffile );
             my $fileContent = $file->get();
             unless (defined $fileContent) {
-                error( "Unable to read $file->{'filename'} file" );
+                error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
                 return 1;
             }
 
@@ -123,7 +123,7 @@ sub update
             my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_CONF_FILE'} );
             my $fileContent = $file->get();
             unless (defined $fileContent) {
-                error( "Unable to read $file->{'filename'} file" );
+                error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
                 return 1;
             }
 
@@ -141,14 +141,14 @@ sub update
             my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
             my $fileContent = $file->get();
             unless (defined $fileContent) {
-                error( "Unable to read $file->{'filename'} file" );
+                error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
                 return 1;
             }
 
             $fileContent = replaceBloc(
                 "// Begin Plugin::Postscreen\n",
                 "// Ending Plugin::Postscreen\n",
-                'smtp      inet  n       -       -       -       -       smtpd\n',
+                "smtp      inet  n       -       y       -       -       smtpd\n",
                 $fileContent
             );
 
@@ -305,10 +305,10 @@ sub _postfixMasterCf
 
     my $confSnippet = <<EOF;
 # Plugin::Postscreen - Begin
-smtp      inet  n       -       -       -       1       postscreen
-smtpd     pass  -       -       -       -       -       smtpd
-tlsproxy  unix  -       -       -       -       0       tlsproxy
-dnsblog   unix  -       -       -       -       0       dnsblog
+smtp      inet  n       -       y       -       1       postscreen
+smtpd     pass  -       -       y       -       -       smtpd
+tlsproxy  unix  -       -       y       -       0       tlsproxy
+dnsblog   unix  -       -       y       -       0       dnsblog
 # Plugin::Postscreen - Ending
 EOF
 

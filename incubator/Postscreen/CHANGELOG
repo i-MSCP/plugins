@@ -9,6 +9,7 @@ Version 1.0.1
     Added: Postfix version check
     Added: Postscreen dnsbl whitelist threshold
     Changed: Align Postscreen main.cf entries for Postfix
+    Fixed: Postfix (>= 3.0) is showing many warnings about backwards-compatible settings (default setting chroot=y)
     Removed: Experimental smartmatch operator
 
 ------------------------------------------------------------------------------------------------------------------------
