@@ -21,7 +21,8 @@ Homepage: http://postgrey.schweikert.ch/
 You can install this package by running the following command:
 
 ```
-# aptitude update && aptitude install postgrey
+# apt-get update
+# apt-get install postgrey
 ```
 
 ## Installation
