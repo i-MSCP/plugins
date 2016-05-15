@@ -10,10 +10,11 @@ Plugin which provides statistical graphics for SMTP traffic (Postfix and Sendmai
 
 * mailgraph
 
-You can install this package by running the following command:
+You can install this package by running the following commands:
 
 ```
-# aptitude install mailgraph
+# apt-get update
+# apt-get install mailgraph
 ```
 
 ## Installation
