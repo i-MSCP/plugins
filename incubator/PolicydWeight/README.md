@@ -24,7 +24,8 @@ Homepage: http://www.policyd-weight.org/
 You can install this package by running the following command:
 
 ```
-# aptitude update && aptitude install policyd-weight
+# apt-get update
+# apt-get install policyd-weight
 ```
 
 ## Installation

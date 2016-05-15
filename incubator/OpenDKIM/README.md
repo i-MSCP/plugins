@@ -14,7 +14,8 @@ Plugin which provides an OpenDKIM implementation for i-MSCP.
 You can install these packages by running the following command:
 
 ```
-# aptitude update && aptitude install opendkim opendkim-tools
+# apt-get update
+# apt-get install opendkim opendkim-tools
 ```
 
 **Note:** For Debian Squeeze, Ubuntu Lucid and Precise, you must install these packages from the backports repositories.
