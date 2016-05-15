@@ -55,7 +55,7 @@ sub enable
     my $rs = $self->_checkRequirements();
     return $rs if $rs;
 
-    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr );
+    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
@@ -70,15 +70,20 @@ sub enable
     push @smtpRestrictions, 'permit';
 
     my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
-
     $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
     # Make sure that postgrey daemon is running
-    iMSCP::Service->getInstance()->restart( 'postgrey' );
-    Servers::mta->factory()->restart( 'defer' );
+    local $@;
+    eval { iMSCP::Service->getInstance()->restart( 'postgrey' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
+    Servers::mta->factory()->{'restart'} = 1;
     0;
 }
 
@@ -94,7 +99,7 @@ sub disable
 {
     my $self = shift;
 
-    my $rs = execute( 'postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr );
+    my $rs = execute( 'postconf -h smtpd_recipient_restrictions', \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
@@ -114,7 +119,7 @@ sub disable
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
-    Servers::mta->factory()->restart( 'defer' );
+    Servers::mta->factory()->{'restart'} = 1;
     0;
 }
 
