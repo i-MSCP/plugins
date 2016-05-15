@@ -18,8 +18,8 @@ Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 You can install these packages by running the following commands:
 
 ```bash
-# aptitude update
-# aptitude install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
+# apt-get update
+# apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
 ```
 
 #### Monitorix package
