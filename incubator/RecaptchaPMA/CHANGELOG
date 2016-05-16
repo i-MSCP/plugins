@@ -6,6 +6,7 @@ Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
     Removed: Experimental smartmatch operator
+    #IP-1553: An error must be raised on activation when public or private key is not set in configuration file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
