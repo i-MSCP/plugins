@@ -35,7 +35,6 @@ class iMSCP_Plugin_RecaptchaPMA extends iMSCP_Plugin_Action
         if (!isset($config['reCaptchaLoginPublicKey']) || $config['reCaptchaLoginPublicKey'] == '' ||
             !isset($config['reCaptchaLoginPrivateKey']) || $config['reCaptchaLoginPrivateKey'] == ''
         ) {
-            $pluginManager->pluginEnable($this->getName(), 'disabled');
             throw  new iMSCP_Plugin_Exception('You must first set public and private keys in plugin configuration file');
         }
     }
