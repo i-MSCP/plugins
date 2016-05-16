@@ -20,6 +20,6 @@
 
 return array(
     // Certificate path for the https connection
-    // Leave empty for default value (panel certificate)
+    // Leave empty for self-signed SSL certificate
     'certificate' => ''
 );
