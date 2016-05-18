@@ -11,6 +11,7 @@ Version 1.0.3
     Fixed: Deconfigure removed the entire OpenDKIM file content
     Fixed: Set opendkim permissions on activation
     Removed: Experimental smartmatch operator
+    Removed: OpenDKIM service restart on DKIM key generation
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2

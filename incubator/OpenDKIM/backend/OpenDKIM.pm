@@ -270,15 +270,6 @@ sub run
         }
     }
 
-    if(%{$rows}) {
-        local $@;
-        eval { iMSCP::Service->getInstance()->restart( 'opendkim' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
-    }
-
     0;
 }
 
