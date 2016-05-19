@@ -57,8 +57,8 @@ change by updating the plugin list through the plugin management interface.
 ### Nginx fails to start due to Monitorix httpd daemon that listens on same port (8080)
 
 When deactivating or uninstalling this plugin, the monitorix package is still installed, meaning that the default
-Monitorix configuration parameters apply. This can lead to Nginx start failure because the Monitorix httpd daemon aslo
-listen on the port 8080. To solve this this issue, you must either deinstall the monitorix package, or edit the 
+Monitorix configuration parameters apply. This can lead to Nginx start failure because the Monitorix httpd daemon also
+listens on the port 8080. To solve this this issue, you must either deinstall the monitorix package, or edit the 
 `/etc/monitorix/monitorix.conf` file manually to disable the monitorix httpd daemon:
 
 ```
