@@ -9,6 +9,7 @@ Version 1.2.4
     Added: Managesieve vacation responses (out-of-office)
     Added: Rouncube reCAPTCHA plugin
     Added: Roundcube plugin vcard_attachments
+    Changed: Default values for archive and managesieve
     Changed: Managesieve requirements check
     Changed: Run cronjob with lower priority
     Changed: Switch from imscp_pw_changer to password plugin

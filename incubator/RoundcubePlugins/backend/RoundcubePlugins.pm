@@ -367,9 +367,6 @@ sub _setRoundcubePlugin
 
                 $rs = $self->_modifyDovecotConfig( 'managesieve', 'add' );
                 return $rs if $rs;
-            } else {
-                error( 'The managesieve plugin requires the Dovecot PO server.' );
-                return 1;
             }
         } elsif ($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
             my $rs = $self->_modifyDovecotConfig( 'managesieve', 'remove' );
