@@ -14,6 +14,7 @@ Version 1.2.4
     Changed: Switch from imscp_pw_changer to password plugin
     Fixed: Check that Roundcube is installed
     Fixed: Deletion of Roundcube plugins on uninstall
+    Fixed: Perl `version' module doesn't handle roundcube version strings such as `1.2-rc'
     Fixed: Regex for archive and managesieve plugins
     Removed: Experimental smartmatch operator
     Removed: Roundcube plugin imscp_pw_changer
