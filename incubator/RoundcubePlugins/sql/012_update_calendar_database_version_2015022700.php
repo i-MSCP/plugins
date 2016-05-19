@@ -22,18 +22,27 @@
 $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
-    'up' => "
-        ALTER TABLE " . $roundcubeDbName . ".`events` ADD `instance` varchar(16) NOT NULL DEFAULT '' AFTER `uid`;
-        ALTER TABLE " . $roundcubeDbName . ".`events` ADD `isexception` tinyint(1) NOT NULL DEFAULT '0' AFTER `instance`;
+    'up'   => "
+        ALTER TABLE " . $roundcubeDbName . ".events ADD instance varchar(16) NOT NULL DEFAULT '' AFTER uid;
+        ALTER TABLE " . $roundcubeDbName . ".events ADD isexception tinyint(1) NOT NULL DEFAULT '0' AFTER instance;
 
-        UPDATE " . $roundcubeDbName . ".`events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%d')
-            WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 1;
+        UPDATE " . $roundcubeDbName . ".events SET instance = DATE_FORMAT(start, '%Y%m%d')
+            WHERE recurrence_id != 0 AND instance = '' AND all_day = 1;
 
-        UPDATE " . $roundcubeDbName . ".`events` SET `instance` = DATE_FORMAT(`start`, '%Y%m%dT%k%i%s')
-            WHERE `recurrence_id` != 0 AND `instance` = '' AND `all_day` = 0;
+        UPDATE " . $roundcubeDbName . ".events SET instance = DATE_FORMAT(start, '%Y%m%dT%k%i%s')
+            WHERE recurrence_id != 0 AND instance = '' AND all_day = 0;
 
-        ALTER TABLE " . $roundcubeDbName . ".`events` CHANGE `alarms` `alarms` TEXT NULL DEFAULT NULL;
+        ALTER TABLE " . $roundcubeDbName . ".events CHANGE alarms alarms TEXT NULL DEFAULT NULL;
 
-        REPLACE INTO " . $roundcubeDbName . ".`system` (`name`, `value`) VALUES ('calendar-database-version', '2015022700');
+        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('calendar-database-version', '2015022700');
+    ",
+    'down' => "
+        ALTER TABLE " . $roundcubeDbName . ".events DROP instance;
+
+        ALTER TABLE " . $roundcubeDbName . ".events DROP isexception;
+
+        ALTER TABLE " . $roundcubeDbName . ".events CHANGE alarms alarms varchar(255) DEFAULT NULL;
+
+        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('calendar-database-version', '2014040900');
     "
 );

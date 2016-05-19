@@ -23,13 +23,15 @@ $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
     'up'   => "
-        ALTER TABLE " . $roundcubeDbName . ".`tasks` ADD `status` ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER `complete`;
+        ALTER TABLE " . $roundcubeDbName . ".tasks ADD status ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER complete;
 
-        UPDATE " . $roundcubeDbName . ".`tasks` SET status='COMPLETED' WHERE complete=1.0 AND status='';
+        UPDATE " . $roundcubeDbName . ".tasks SET status='COMPLETED' WHERE complete=1.0 AND status='';
 
-        REPLACE INTO " . $roundcubeDbName . ".`system` (`name`, `value`) VALUES ('tasklist-database-version', '2014051900');
+        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('tasklist-database-version', '2014051900');
     ",
     'down' => "
-        DELETE FROM " . $roundcubeDbName . ".`system` WHERE `name` = 'tasklist-database-version';
+        ALTER TABLE " . $roundcubeDbName . ".tasks DROP status;
+
+        DELETE FROM " . $roundcubeDbName . ".system WHERE name = 'tasklist-database-version';
     "
 );

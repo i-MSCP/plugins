@@ -23,26 +23,26 @@ $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
     'up'   => "
-        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`pop3fetcher_accounts` (
-            `pop3fetcher_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-            `pop3fetcher_email` varchar(128) NOT NULL,
-            `pop3fetcher_username` varchar(128) NOT NULL,
-            `pop3fetcher_password` varchar(128) NOT NULL,
-            `pop3fetcher_serveraddress` varchar(128) NOT NULL,
-            `pop3fetcher_serverport` varchar(128) NOT NULL,
-            `pop3fetcher_ssl` varchar(10) DEFAULT '0',
-            `pop3fetcher_leaveacopyonserver` tinyint(1) DEFAULT '0',
-            `user_id` int(10) unsigned NOT NULL DEFAULT '0',
-            `last_check` int(10) unsigned NOT NULL DEFAULT '0',
-            `last_uidl` varchar(70) DEFAULT NULL,
-            `update_lock` tinyint(1) NOT NULL DEFAULT '0',
-            `pop3fetcher_provider` varchar(128) DEFAULT NULL,
-            `default_folder` varchar(128) DEFAULT NULL,
-            PRIMARY KEY (`pop3fetcher_id`),
-            KEY `user_id_fk_accounts` (`user_id`)
+        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".pop3fetcher_accounts (
+            pop3fetcher_id int(10) unsigned NOT NULL AUTO_INCREMENT,
+            pop3fetcher_email varchar(128) NOT NULL,
+            pop3fetcher_username varchar(128) NOT NULL,
+            pop3fetcher_password varchar(128) NOT NULL,
+            pop3fetcher_serveraddress varchar(128) NOT NULL,
+            pop3fetcher_serverport varchar(128) NOT NULL,
+            pop3fetcher_ssl varchar(10) DEFAULT '0',
+            pop3fetcher_leaveacopyonserver tinyint(1) DEFAULT '0',
+            user_id int(10) unsigned NOT NULL DEFAULT '0',
+            last_check int(10) unsigned NOT NULL DEFAULT '0',
+            last_uidl varchar(70) DEFAULT NULL,
+            update_lock tinyint(1) NOT NULL DEFAULT '0',
+            pop3fetcher_provider varchar(128) DEFAULT NULL,
+            default_folder varchar(128) DEFAULT NULL,
+            PRIMARY KEY (pop3fetcher_id),
+            KEY user_id_fk_accounts (user_id)
         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     ",
     'down' => "
-        DROP TABLE IF EXISTS " . $roundcubeDbName . ".`pop3fetcher_accounts`;
+        DROP TABLE IF EXISTS " . $roundcubeDbName . ".pop3fetcher_accounts;
     "
 );

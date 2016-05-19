@@ -23,19 +23,19 @@ $roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
 
 return array(
     'up'   => "
-        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".`attachments` (
-            `attachment_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-            `event_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
-            `filename` varchar(255) NOT NULL DEFAULT '',
-            `mimetype` varchar(255) NOT NULL DEFAULT '',
-            `size` int(11) NOT NULL DEFAULT '0',
-            `data` longtext NOT NULL DEFAULT '',
-            PRIMARY KEY(`attachment_id`),
-            CONSTRAINT `fk_attachments_event_id` FOREIGN KEY (`event_id`)
-                REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
+        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".attachments (
+            attachment_id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+            event_id int(11) UNSIGNED NOT NULL DEFAULT '0',
+            filename varchar(255) NOT NULL DEFAULT '',
+            mimetype varchar(255) NOT NULL DEFAULT '',
+            size int(11) NOT NULL DEFAULT '0',
+            data longtext NOT NULL DEFAULT '',
+            PRIMARY KEY(attachment_id),
+            CONSTRAINT fk_attachments_event_id FOREIGN KEY (event_id)
+                REFERENCES events(event_id) ON DELETE CASCADE ON UPDATE CASCADE
         ) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
     ",
     'down' => "
-        DROP TABLE IF EXISTS " . $roundcubeDbName . ".`attachments`;
+        DROP TABLE IF EXISTS " . $roundcubeDbName . ".attachments;
     "
 );
