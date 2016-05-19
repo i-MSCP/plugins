@@ -10,6 +10,7 @@ Version 1.2.2
     Fixed: #IP-1419 Monitorix: Missing bin_path configuration parameter
     Fixed: Syntax error in cronjob file
     Removed: Experimental smartmatch operator
+    Fixed: IP-1556 Monitorix - Monitorix httpd daemon service is not disabled
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1

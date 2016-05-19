@@ -241,7 +241,7 @@ sub buildGraphs
         my $newDir = dirname( $self->{'config'}->{'cgi_path'} );
 
         unless (chdir( $newDir )) {
-            error( sprintf('Could not change directory to %s: %s', $newDir, $!) );
+            error( sprintf( 'Could not change directory to %s: %s', $newDir, $! ) );
             return 1;
         }
 
@@ -272,13 +272,12 @@ sub buildGraphs
         }
 
         unless (chdir( $prevDir )) {
-            error( "Unable to change directory to $prevDir: $!" );
+            error( sprintf( 'Could not change directory to %s: %s', $prevDir, $! ) );
             return 1;
         }
 
         my $panelUname =
             my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-
         my $graphsDir = $main::imscpConfig{'PLUGINS_DIR'}.'/Monitorix/themes/default/assets/images/graphs';
 
         if (-d $graphsDir) {
@@ -347,7 +346,7 @@ sub _enableGraphs
     my $file = iMSCP::File->new( filename => $confFile );
     my $fileContent = $file->get();
     unless (defined $fileContent) {
-        error( 'Unable to read $confFile' );
+        error( sprintf( 'Could not read %s file', $confFile ) );
         return 1;
     }
 
@@ -426,7 +425,7 @@ sub _addCronjob
         my $file = iMSCP::File->new( filename => $scriptPath );
         my $fileContent = $file->get();
         unless (defined $fileContent) {
-            error( "Unable to read $file->{'filename'} file" );
+            error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
             return 1;
         }
 

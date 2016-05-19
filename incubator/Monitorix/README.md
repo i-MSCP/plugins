@@ -52,6 +52,33 @@ See [Configuration file](../Monitorix/config.php)
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
  
+## Troubleshootings
+
+### Nginx fails to start due to Monitorix httpd daemon that listens on same port (8080)
+
+When deactivating or uninstalling this plugin, the monitorix package is still installed, meaning that the default
+Monitorix configuration parameters apply. This can lead to Nginx start failure because the Monitorix httpd daemon aslo
+listen on the port 8080. To solve this this issue, you must either deinstall the monitorix package, or edit the 
+`/etc/monitorix/monitorix.conf` file manually to disable the monitorix httpd daemon:
+
+```
+<httpd_builtin>
+        enabled = y
+        ...
+</httpd_builtin>
+```
+
+should become
+
+```
+<httpd_builtin>
+        enabled = n
+        ...
+</httpd_builtin>
+```
+
+Once done, you should be able to start the Nginx service.
+ 
 ## Translation
 
 You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) language file, and by translating all the
