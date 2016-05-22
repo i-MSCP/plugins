@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # i-MSCP SpamAssassin plugin
-# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 # Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,9 +20,9 @@
 use strict;
 use warnings;
 use lib '{IMSCP_PERLLIB_PATH}';
-use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::EventManager;
 use JSON;
 

@@ -21,15 +21,12 @@
 use strict;
 use warnings;
 use lib "{IMSCP_PERLLIB_PATH}";
-use iMSCP::Debug;
 use iMSCP::Bootstrapper;
+use iMSCP::Debug;
 
 $ENV{'LANG'} = 'C.UTF-8';
 
 newDebug( 'roundcubeplugins-plugin-cronjob-pop3fetcher.log' );
-
-silent( 1 );
-
 iMSCP::Bootstrapper->getInstance()->boot(
     {
         norequirements  => 'yes',
@@ -41,15 +38,12 @@ iMSCP::Bootstrapper->getInstance()->boot(
 );
 
 my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/backend/RoundcubePlugins.pm";
-my $rs = 0;
+require $pluginFile;
 
-eval { require $pluginFile; };
-if ($@) {
-    error( $@ );
-    $rs = 1;
-} else {
-    my $pluginClass = "Plugin::RoundcubePlugins";
-    $rs = $pluginClass->getInstance()->fetchmail();
-}
+my $pluginClass = "Plugin::SpamAssassin";
+$pluginClass->getInstance()->fetchmail() == 0 or die(
+    getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
+);
 
-exit $rs;
+1;
+__END__
