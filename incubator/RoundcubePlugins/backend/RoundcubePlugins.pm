@@ -665,10 +665,7 @@ sub _checkRequirements
 
     my $version = $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'};
 
-    # Perl `version' module doesn't handle version strings such as `1.2-rc'.
-    # We use `dpkg --compare-version' as a temporary working solution
-    my $ret = execute( sprintf( 'dpkg --compare-versions %s lt %s 2>/dev/null', escapeShell( $version ), '1.1.0' ) );
-    unless ($ret) {
+    if (version->parse( $version ) < version->parse( '1.1.0' )) {
         error( sprintf( 'Your Roundcube version %s is not compatible with this plugin version.', $version ) );
         return 1;
     }
