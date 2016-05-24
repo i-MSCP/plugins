@@ -20,9 +20,9 @@
 use strict;
 use warnings;
 use lib '{IMSCP_PERLLIB_PATH}';
-use iMSCP::Debug;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::EventManager;
 use JSON;
 
