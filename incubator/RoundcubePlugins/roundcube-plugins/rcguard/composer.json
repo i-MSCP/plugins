@@ -8,9 +8,14 @@
     "authors": [
         {
             "name": "Denny Lin",
-	    "email": "dennylin93@hs.ntnu.edu.tw",
+            "email": "dennylin93@hs.ntnu.edu.tw",
             "homepage": "https://github.com/dennylin93",
             "role": "Developer"
+        },
+        {
+            "name": "Diana Soares",
+            "email": "diana.soares@gmail.com",
+            "homepage": "https://github.com/dsoares"
         }
     ],
     "repositories": [
@@ -20,12 +25,12 @@
         }
     ],
     "require": {
-	"php": ">=5.2.1"
+        "php": ">=5.2.1"
     },
     "extra": {
-	"roundcube": {
-	    "min-version": "1.0",
-	    "sql-dir": "SQL"
-	}
+        "roundcube": {
+            "min-version": "1.0",
+            "sql-dir": "SQL"
+        }
     }
 }

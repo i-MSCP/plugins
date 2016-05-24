@@ -1,4 +1,5 @@
-Rouncube rcguard plugin
+Rouncube Plugin rcguard
+=======================
 
 Introduction
 ----------------------------------------
@@ -46,7 +47,14 @@ distributed under its own license. See the file for exact details.
 
 Contact
 ----------------------------------------
-This is my first plugin, so please let me know what you think about it!
-Comments and suggestions are welcome.
 
-Email: dennylin93@hs.ntnu.edu.tw
+The original author of this plugin is Denny Lin (dennylin93@hs.ntnu.edu.tw). 
+I forked it some years ago to quickly add reCAPTCHA v2.0 and the larry skin 
+and because the project issues were taking too long to be answered.
+
+Comments and suggestions are welcome (preferentially via issues).
+
+Email: [Diana Soares][email]
+
+[email]: mailto:diana.soares@gmail.com
+

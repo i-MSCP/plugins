@@ -36,7 +36,7 @@ define('RCGUARD_RECAPTCHA_FAILURE', 1);
 
 class rcguard extends rcube_plugin
 {
-    function init()
+    public function init()
     {
         $this->load_config();
         $this->add_hook('template_object_loginform', array($this, 'loginform'));
@@ -45,13 +45,13 @@ class rcguard extends rcube_plugin
         $this->add_hook('login_failed', array($this, 'login_failed'));
     }
 
-    function loginform($loginform)
+    public function loginform($loginform)
     {
         $rcmail = rcmail::get_instance();
-        $client_ip = $this->_get_client_ip();
+        $client_ip = $this->get_client_ip();
 
         $query = $rcmail->db->query("SELECT " . $this->unixtimestamp('last') . " AS last, " . $this->unixtimestamp('NOW()') . " as time " .
-                                    " FROM rcguard WHERE ip = ? AND hits >= ?",
+                                    " FROM ".$this->table_name()." WHERE ip = ? AND hits >= ?",
                                     $client_ip, $rcmail->config->get('failed_attempts'));
         $result = $rcmail->db->fetch_assoc($query);
 
@@ -63,13 +63,13 @@ class rcguard extends rcube_plugin
         return $this->show_recaptcha($loginform);
     }
 
-    function authenticate($args)
+    public function authenticate($args)
     {
         $this->add_texts('localization/');
         $rcmail = rcmail::get_instance();
-        $client_ip = $this->_get_client_ip();
+        $client_ip = $this->get_client_ip();
 
-        $query  = $rcmail->db->query("SELECT ip FROM rcguard WHERE ip = ? AND hits >= ?",
+        $query  = $rcmail->db->query("SELECT ip FROM ".$this->table_name()." WHERE ip = ? AND hits >= ?",
                                     $client_ip, $rcmail->config->get('failed_attempts'));
         $result = $rcmail->db->fetch_assoc($query);
 
@@ -77,57 +77,47 @@ class rcguard extends rcube_plugin
             return $args;
         }
 
-        if ($rcmail->config->get('pl_plugin')) {
-            if (!empty($_COOKIE[$rcmail->config->get('pl_cookie_name')])) {
-                $args = $this->pl_authenticate($args);
-                return $args;
-            }
-        }
+        $msg = 'rcguard.recaptchaempty';
 
         if ($response = $_POST['g-recaptcha-response']) {
             if ($this->verify_recaptcha($client_ip, $response)) {
                 $this->log_recaptcha(RCGUARD_RECAPTCHA_SUCCESS, $args['user']);
                 return $args;
             }
-            else {
-                $this->log_recaptcha(RCGUARD_RECAPTCHA_FAILURE, $args['user']);
 
-                $rcmail->output->show_message('rcguard.recaptchafailed', 'error');
-                $rcmail->output->set_env('task', 'login');
-                $rcmail->output->send('login');
-            }
+            $msg = 'rcguard.recaptchafailed';
         }
-        else {
-            $this->log_recaptcha(RCGUARD_RECAPTCHA_FAILURE, $args['user']);
 
-            $rcmail->output->show_message('rcguard.recaptchaempty', 'error');
-            $rcmail->output->set_env('task', 'login');
-            $rcmail->output->send('login');
-        }
+        $this->log_recaptcha(RCGUARD_RECAPTCHA_FAILURE, $args['user']);
+        $rcmail->output->show_message($msg, 'error');
+        $rcmail->output->set_env('task', 'login');
+        $rcmail->output->send('login');
 
         return null;
     }
 
-    function login_after($args)
+    public function login_after($args)
     {
-        $client_ip = $this->_get_client_ip();
-        $this->delete_rcguard('', $client_ip, true);
+        $client_ip = $this->get_client_ip();
+
+        if (rcmail::get_instance()->config->get('rcguard_reset_after_success', true)) {
+            $this->delete_rcguard('', $client_ip, true);
+        }
 
         return $args;
     }
 
-    function login_failed($args)
+    public function login_failed($args)
     {
         $rcmail = rcmail::get_instance();
-        $client_ip = $this->_get_client_ip();
+        $client_ip = $this->get_client_ip();
 
-        $query  = $rcmail->db->query("SELECT hits FROM rcguard WHERE ip = ?", $client_ip);
+        $query  = $rcmail->db->query("SELECT hits FROM ".$this->table_name()." WHERE ip = ?", $client_ip);
         $result = $rcmail->db->fetch_assoc($query);
 
         if ($result) {
             $this->update_rcguard($result['hits'], $client_ip);
-        }
-        else {
+        } else {
             $this->insert_rcguard($client_ip);
         }
     }
@@ -135,14 +125,14 @@ class rcguard extends rcube_plugin
     private function insert_rcguard($client_ip)
     {
         $rcmail = rcmail::get_instance();
-        $query  = $rcmail->db->query("INSERT INTO rcguard (ip, first, last, hits) VALUES (?, NOW(), NOW(), ?)",
+        $query  = $rcmail->db->query("INSERT INTO ".$this->table_name()." (ip, first, last, hits) VALUES (?, ".$this->unixnow().", ".$this->unixnow().", ?)",
                                     $client_ip, 1);
     }
 
     private function update_rcguard($hits, $client_ip)
     {
         $rcmail = rcmail::get_instance();
-        $query  = $rcmail->db->query("UPDATE rcguard SET last = NOW(), hits = ? WHERE ip = ?",
+        $query  = $rcmail->db->query("UPDATE ".$this->table_name()." SET last = ".$this->unixnow().", hits = ? WHERE ip = ?",
                                     $hits + 1, $client_ip);
     }
 
@@ -151,7 +141,7 @@ class rcguard extends rcube_plugin
         $rcmail = rcmail::get_instance();
 
         if ($force) {
-            $query = $rcmail->db->query("DELETE FROM rcguard WHERE ip = ?", $client_ip);
+            $query = $rcmail->db->query("DELETE FROM ".$this->table_name()." WHERE ip = ?", $client_ip);
             $this->flush_rcguard();
             return true;
         }
@@ -171,7 +161,7 @@ class rcguard extends rcube_plugin
     {
         $rcmail = rcmail::get_instance();
 
-        $query = $rcmail->db->query("DELETE FROM rcguard " .
+        $query = $rcmail->db->query("DELETE FROM ".$this->table_name()." " .
                                     " WHERE " . $this->unixtimestamp('last') . " + ? < " . $this->unixtimestamp('NOW()'),
                                     $rcmail->config->get('expire_time') * 60);
     }
@@ -181,7 +171,9 @@ class rcguard extends rcube_plugin
         $rcmail = rcmail::get_instance();
 
         $skin_path = $this->local_skin_path();
-        if (!file_exists(INSTALL_PATH . '/plugins/rcguard/'.$skin_path)) { $skin_path = 'skins/larry'; }
+        if (!file_exists(INSTALL_PATH . '/plugins/rcguard/'.$skin_path)) {
+            $skin_path = 'skins/larry';
+        }
         $this->include_stylesheet($skin_path . '/rcguard.css');
         $this->include_script('rcguard.js');
 
@@ -194,7 +186,7 @@ class rcguard extends rcube_plugin
 
         $tmp = $loginform['content'];
         $tmp = str_ireplace('</tbody>',
-                            '<tr><td class="title" colspan="2"><div class="g-recaptcha" data-sitekey="'.$rcmail->config->get('recaptcha_publickey').'"></div></td>
+                            '<tr><td class="title"/><td class="input"><div class="g-recaptcha" data-sitekey="'.$rcmail->config->get('recaptcha_publickey').'"></div></td>
 </tr>
 </tbody>', $tmp);
         $loginform['content'] = $tmp;
@@ -218,7 +210,7 @@ class rcguard extends rcube_plugin
     private function log_recaptcha($log_type, $username)
     {
         $rcmail = rcmail::get_instance();
-        $client_ip = $this->_get_client_ip();
+        $client_ip = $this->get_client_ip();
         $username = (empty($username)) ? 'empty username' : $username;
 
         if (!$rcmail->config->get('recaptcha_log')) {
@@ -252,6 +244,10 @@ class rcguard extends rcube_plugin
         case 'postgres':
             $ts = "EXTRACT (EPOCH FROM $field)";
             break;
+        case 'sqlite':
+            $field = preg_replace('/now\(\)/i', "'now'", $field);
+            $ts = "strftime('%s', $field)";
+            break;
         default:
             $ts = "UNIX_TIMESTAMP($field)";
         }
@@ -259,31 +255,27 @@ class rcguard extends rcube_plugin
         return $ts;
     }
 
-    private function pl_authenticate($args)
+    private function unixnow()
     {
         $rcmail = rcmail::get_instance();
-
-        // Code from persistent login plugin
-        $plain_token = $rcmail->decrypt($_COOKIE[$this->cookie_name]);
-        $token_parts = explode('|', $plain_token);
-
-        if (!empty($token_parts) && is_array($token_parts) && count($token_parts == 5)) {
-            if (time() <= $token_parts[4]) {
-                $args['user'] = $token_parts[1];
-                $args['pass'] = $rcmail->decrypt($token_parts[2]);
-                $args['host'] = $token_parts[3];
-                $args['cookiecheck'] = false;
-                $args['valid'] = true;
-            }
+        $now = '';
+        switch ($rcmail->db->db_provider) {
+        case 'sqlite':
+            $now = "strftime('%s', 'now')";
+            break;
+        default:
+            $now = "NOW()";
         }
-
-        return $args;
+        return $now;
     }
 
-    private function _get_client_ip()
+    private function table_name()
+    {
+        return rcmail::get_instance()->db->table_name('rcguard', true);
+    }
+
+    private function get_client_ip()
     {
         return rcube_utils::remote_addr();
     }
 }
-
-?>
