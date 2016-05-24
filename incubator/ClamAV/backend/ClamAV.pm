@@ -274,13 +274,7 @@ sub _configureClamavUnofficialSigs
     }
 
     my $data = { };
-    if ($confFile eq 'master.conf') {
-        for(@{$self->{'config'}->{'enable_single_signature_database'}}) {
-            $fileContent =~ s/^#($_.*)/$1/m;
-        }
-    } elsif ($confFile eq 'os.conf') {
-        $fileContent =~ s/^#(clamd_socket=.*)/$1/m;
-    } elsif ($confFile eq 'user.conf') {
+    if ($confFile eq 'user.conf') {
         my $userConf = <<"EOF";
 malwarepatrol_receipt_code="$self->{'config'}->{'malwarepatrol_receipt_code'}"
 malwarepatrol_product_code="$self->{'config'}->{'malwarepatrol_product_code'}"
@@ -295,8 +289,12 @@ linuxmalwaredetect_enabled="$self->{'config'}->{'linuxmalwaredetect_enabled'}"
 malwarepatrol_enabled="$self->{'config'}->{'malwarepatrol_enabled'}"
 yararulesproject_enabled="$self->{'config'}->{'yararulesproject_enabled'}"
 
+sanesecurity_dbs_rating="$self->{'config'}->{'sanesecurity_dbs_rating'}"
+securiteinfo_dbs_rating="$self->{'config'}->{'securiteinfo_dbs_rating'}"
+linuxmalwaredetect_dbs_rating="$self->{'config'}->{'linuxmalwaredetect_dbs_rating'}"
+yararulesproject_dbs_rating="$self->{'config'}->{'yararulesproject_dbs_rating'}"
+
 enable_random="no"
-#remove_disabled_databases="yes"
 user_configuration_complete="yes"
 EOF
         $fileContent = process(

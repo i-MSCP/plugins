@@ -143,14 +143,26 @@ return array(
     'malwarepatrol_enabled'                => 'yes',
     'yararulesproject_enabled'             => 'yes',
 
-    // By default only signature databases with 'low' risk have been enabled.
-    // For additional information about the database ratings, see:
-    // http://www.sanesecurity.com/clamav/databases.htm
-    //
-    // Warning: Don't change anything if you don't know what you are doing.
-    //
-    // Signature databases defined here will be enabled.
-    'enable_single_signature_database'     => array(
-        'badmacro.ndb'
-    )
+    /**
+     * Rating (False Positive Rating)
+     *
+     * By default only signature databases with 'LOW risk have been enabled.
+     * For additional information about the database ratings, see:
+     * http://www.sanesecurity.com/clamav/databases.htm
+     *
+     * Valid ratings:
+     *    LOW : used when the rating is low, medium and high
+     *    MEDIUM : used when the rating is medium and high
+     *    HIGH : used when the rating is high
+     *    LOWONLY : used only when the rating is low
+     *    MEDIUMONLY : used only when the rating is medium
+     *    LOWMEDIUMONLY : used only when the rating is medium or low
+     *    DISABLED : never used
+     *
+     * Warning: Don't change anything if you don't know what you are doing.
+    */
+    'sanesecurity_dbs_rating'              => 'LOW',
+    'securiteinfo_dbs_rating'              => 'LOW',
+    'linuxmalwaredetect_dbs_rating'        => 'LOW',
+    'yararulesproject_dbs_rating'          => 'LOW'
 );
