@@ -22,7 +22,7 @@
 return array(
     'author' => 'Sascha Bay',
     'email' => 'info@space2place.de',
-    'version' => '1.0.2',
+    'version' => '1.0.1',
     'require_api' => '1.0.4',
     'date' => '2016-05-24',
     'name' => 'Mailgraph',
