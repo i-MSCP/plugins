@@ -7,7 +7,7 @@ Version 1.2.4
 
     Added: Password config options
     Added: Managesieve vacation responses (out-of-office)
-    Added: Rouncube reCAPTCHA plugin (rcguard 1.0.5)
+    Added: Roundcube reCAPTCHA plugin (rcguard 1.0.5)
     Added: Roundcube plugin vcard_attachments
     Changed: Default values for archive and managesieve
     Changed: Managesieve requirements check
