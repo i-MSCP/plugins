@@ -137,7 +137,7 @@ sub disable
 
  Check for requirements
 
- Return int 0 if all requirements are meet, other otherwise
+ Return int 0 if all requirements are met, other otherwise
 
 =cut
 

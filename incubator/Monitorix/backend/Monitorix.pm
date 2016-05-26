@@ -475,7 +475,7 @@ sub _deleteCronjob
 
  Check requirements
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 if all requirements are met, other otherwise
 
 =cut
 

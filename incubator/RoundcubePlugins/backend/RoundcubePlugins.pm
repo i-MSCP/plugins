@@ -648,7 +648,7 @@ sub _unregisterCronjobPop3fetcher
 
  Check for requirements
 
- Return int 0 on success, other on failure
+ Return int 0 if all requirements are met, other otherwise
 
 =cut
 
@@ -656,8 +656,8 @@ sub _checkRequirements
 {
     my $self = shift;
 
-    if (grep($_ ne 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
-        error( 'Roundcube is not installed. Please install it by running the imscp-autoinstall script.' );
+    unless (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
+        error( 'Roundcube is not installed. Install it by running the imscp-reconfigure script.' );
         return 1;
     }
 

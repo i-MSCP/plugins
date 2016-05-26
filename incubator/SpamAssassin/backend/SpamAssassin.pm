@@ -1403,14 +1403,13 @@ sub _checkSaUser
  
  Check for requirements
 
- Return int 0 if all requirements are meet, other otherwise
+ Return int 0 if all requirements are met, other otherwise
 
 =cut
 
 sub _checkRequirements
 {
     my $ret = 0;
-
     for(qw/ spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor /) {
         if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\sinstalled\$'" )) {
             error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
