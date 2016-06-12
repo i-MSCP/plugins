@@ -25,7 +25,6 @@ package Plugin::PolicydSPF;
 
 use strict;
 use warnings;
-use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Execute;
 use iMSCP::File;
@@ -56,39 +55,27 @@ sub enable
     my $rs = $self->_checkRequirements();
     return $rs if $rs;
 
-    # Add policy-spf time limit
-    $rs = execute( 'postconf -e policy-spf_time_limit='.escapeShell( $self->{'config'}->{'policyd_spf_time_limit'} ),
-        \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    # Extract postconf values
-    chomp( $stdout );
-    my $postconfValues = $stdout;
-    my @smtpRestrictions = split ', ', $postconfValues;
-
-    # Add policyd-spf policy server
-    s/^permit$/check_policy_service $self->{'config'}->{'policyd_spf_service'}/ for @smtpRestrictions;
-    push @smtpRestrictions, 'permit';
-
-    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
-
-    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
+    my $mta = Servers::mta->factory();
 
     # Add entries to master.cf
+    # Must be done prior adding the `policyd_spf_time_limit' setting in the main.cf file, else
+    # postconf will raise a warning due to unknown parameter.
     $rs = $self->_postfixMasterCf( 'configure' );
-    return $rs if $rs;
+    $rs ||= $mta->postconf(
+        (
+            'policy-spf_time_limit'        => {
+                action => 'replace',
+                values => [ "$self->{'config'}->{'policyd_spf_time_limit'}" ]
+            },
+            'smtpd_recipient_restrictions' => {
+                action => 'add',
+                before => qr/permit/,
+                values => [ "check_policy_service $self->{'config'}->{'policyd_spf_service'}" ]
+            }
+        )
+    ),
 
-    Servers::mta->factory()->{'restart'} = 1;
+        $mta->{'restart'} = 1;
     0;
 }
 
@@ -104,38 +91,23 @@ sub disable
 {
     my $self = shift;
 
-    # Remove policy-spf time limit
-    my $rs = execute( 'postconf -X policy-spf_time_limit', \my $stdout, \my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    return 0 if defined $main::execmode && $main::execmode eq 'setup';
+
+    my $mta = Servers::mta->factory();
+    my $rs = $mta->postconf(
+        'policy-spf_time_limit'        => {
+            action => 'replace',
+            values => [ '' ]
+        },
+        'smtpd_recipient_restrictions' => {
+            action => 'remove',
+            values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
+        }
+    );
+    $rs ||= $self->_postfixMasterCf( 'deconfigure' );
     return $rs if $rs;
 
-    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    # Extract postconf values
-    chomp( $stdout );
-    my $postconfValues = $stdout;
-
-    # Remove policyd-spf policy server
-    my @smtpRestrictions = grep {
-        $_ !~ /^check_policy_service\s+$self->{'config_prev'}->{'policyd_spf_service'}$/
-    } split ', ', $postconfValues;
-
-    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
-
-    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    # Remove entries from master.cf
-    $rs = $self->_postfixMasterCf( 'deconfigure' );
-    return $rs if $rs;
-
-    Servers::mta->factory()->{'restart'} = 1;
+    $mta->{'restart'} = 1;
     0;
 }
 
@@ -163,21 +135,27 @@ sub _postfixMasterCf
     my $confSnippet = <<EOF;
 # Plugin::PolicydSPF - Begin
 policy-spf  unix  -       n       n       -       -       spawn
-     user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
+  user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
 # Plugin::PolicydSPF - Ending
 EOF
 
     if ($action eq 'configure') {
         if (getBloc( "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $fileContent ) ne '') {
             $fileContent = replaceBloc(
-                "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $confSnippet, $fileContent
+                "# Plugin::PolicydSPF - Begin\n",
+                "# Plugin::PolicydSPF - Ending\n",
+                $confSnippet,
+                $fileContent
             );
         } else {
             $fileContent .= $confSnippet;
         }
     } else {
         $fileContent = replaceBloc(
-            "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
+            "# Plugin::PolicydSPF - Begin\n",
+            "# Plugin::PolicydSPF - Ending\n",
+            '',
+            $fileContent
         );
     }
 
@@ -202,7 +180,7 @@ EOF
 sub _checkRequirements
 {
     if (execute( "dpkg-query -W -f='\${Status}' postfix-policyd-spf-perl 2>/dev/null | grep -q '\\sinstalled\$'" )) {
-        error( "The `postfix-policyd-spf-perl` package is not installed on your system" );
+        error( "The `postfix-policyd-spf-perl' package is not installed on your system" );
         return 1;
     }
 

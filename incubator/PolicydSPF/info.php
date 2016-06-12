@@ -23,7 +23,7 @@ return array(
     'email'       => 'me@ninosego.de',
     'version'     => '1.0.1',
     'require_api' => '1.0.4',
-    'date'        => '2016-05-14',
+    'date'        => '2016-06-12',
     'name'        => 'PolicydSPF',
     'desc'        => 'Plugin which allows to run postfix-policyd-spf-perl for Postfix.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'

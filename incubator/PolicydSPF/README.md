@@ -4,7 +4,8 @@ Plugin which allows to run postfix-policyd-spf-perl for Postfix.
 
 ## Introduction
 
-postfix-policyd-spf-perl is a basic Postfix policy engine for Sender Policy Framework (SPF) checking. It is implemented in pure Perl and uses Mail::SPF.
+postfix-policyd-spf-perl is a basic Postfix policy engine for Sender Policy Framework (SPF) checking. It is
+implemented in pure Perl and uses Mail::SPF.
 
 ## Requirements
 
