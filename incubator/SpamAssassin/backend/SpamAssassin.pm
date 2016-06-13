@@ -31,10 +31,13 @@ use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
+use iMSCP::Rights;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use Servers::cron;
+use Servers::mta;
 use Servers::sqld;
+
 use version;
 use parent 'Common::SingletonClass';
 
@@ -564,57 +567,30 @@ sub _postfixConfig
 {
     my ($self, $action) = @_;
 
-    my $rs = execute( 'postconf -h smtpd_milters non_smtpd_milters milter_connect_macros', \my $stdout, \my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    my $mta = Servers::mta->factory();
+
+    (my $milterValuePrev = $self->{'config_prev'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
+    my $milterMacros = 'i j {daemon_name} v {if_name} _';
+    my $rs = $mta->postconf(
+        (
+            smtpd_milters         => { action => 'remove', values => [ qr/\Q$milterValuePrev\E/ ] },
+            non_smtpd_milters     => { action => 'remove', values => [ qr/\Q$milterValuePrev\E/ ] },
+            milter_connect_macros => { action => 'remove', values => [ qr/\Q$milterMacros\E/ ] }
+        )
+    );
     return $rs if $rs;
 
-    # Extract postconf values
-    my @postconfValues = split /\n/, $stdout;
-
-    (my $milterValue = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
-    (my $milterValuePrev = $self->{'config_prev'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
-    my $milterMacro = '{if_name} _';
-
-    s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E|\Q$milterMacro\E)//g for @postconfValues;
-
-    (my $spamassMilterSocket = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
-
     if ($action eq 'configure') {
-        my @postconf = (
-            'milter_default_action=accept',
-            'smtpd_milters='.(
-                (@postconfValues ? escapeShell( "$postconfValues[0] $milterValue" ) : escapeShell( $milterValue ))
-            ),
-            'non_smtpd_milters='.(
-                (@postconfValues > 1 ? escapeShell( "$postconfValues[1] $milterValue" ) : escapeShell( $milterValue ))
-            ),
-            'milter_connect_macros='.(
-                (@postconfValues > 2 ? escapeShell( "$postconfValues[2] $milterMacro" ) : escapeShell( $milterMacro ))
+        (my $milterValue = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'}) =~ s%/var/spool/postfix%unix:%;
+        $rs = $mta->postconf(
+            (
+                milter_default_action => { action => 'replace', values => [ 'accept' ] },
+                smtpd_milters         => { action => 'add', values => [ $milterValue ] },
+                non_smtpd_milters     => { action => 'add', values => [ $milterValue ] },
+                milter_connect_macros => { action => 'replace', values => [ $milterMacros ] }
             )
         );
-
-        $rs = execute( "postconf -e @postconf", \$stdout, \$stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
         return $rs if $rs;
-    } elsif ($action eq 'deconfigure') {
-        if (@postconfValues) {
-            my @postconf = ( 'smtpd_milters='.escapeShell( $postconfValues[0] ) );
-
-            if (@postconfValues > 1) {
-                push @postconf, 'non_smtpd_milters='.escapeShell( $postconfValues[1] );
-            }
-
-            if (@postconfValues > 2) {
-                push @postconf, 'milter_connect_macros='.escapeShell( $postconfValues[2] );
-            }
-
-            $rs = execute( "postconf -e @postconf", \$stdout, \$stderr );
-            debug( $stdout ) if $stdout;
-            error( $stderr ) if $stderr && $rs;
-            return $rs if $rs;
-        }
     }
 
     0;
@@ -860,9 +836,6 @@ sub _roundcubePlugins
         return $rs if $rs;
 
         my $user = my $group = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-
-        require iMSCP::Rights;
-        iMSCP::Rights->import();
 
         $rs = setRights(
             $pluginDestDir,
@@ -1162,7 +1135,6 @@ sub _setRoundcubePluginConfig
         }
 
         $fileContent =~ s/\Q{SAUSERPREFS_DONT_OVERRIDE}/$sauserprefsDontOverride/g;
-
     } elsif ($plugin eq 'markasjunk2') {
         $fileContent =~ s/\Q{GUI_ROOT_DIR}/$main::imscpConfig{'GUI_ROOT_DIR'}/g;
     }

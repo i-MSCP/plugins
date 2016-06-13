@@ -28,8 +28,8 @@ return array(
     'email' => 'team@i-mscp.net',
     'version' => '1.1.0',
     'require_api' => '1.0.4',
-    'date' => '2016-05-15',
+    'date' => '2016-06-13',
     'name' => 'SpamAssassin',
-    'desc' => 'Plugin that allows to use SpamAssassin with i-MSCP.',
+    'desc' => 'Plugin that provides spam filter for Postfix using SpamAssassin.',
     'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
 );

@@ -1,6 +1,11 @@
 #  i-MSCP SpamAssassin plugin v1.1.0
 
-Plugin that allows to use SpamAssassin with i-MSCP.
+Plugin that provides spam filter for Postfix using SpamAssassin.
+
+## Introduction
+
+SpamAssassin is a very powerful and fully configurable spam filter with numerous features including automatic
+white-listing, RBL testing, Bayesian analysis, header and body text analysis.
 
 ## Requirements
 
@@ -27,16 +32,16 @@ You can install these packages by running the following commands:
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
