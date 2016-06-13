@@ -21,10 +21,10 @@
 return array(
     'author'      => 'Ninos Ego',
     'email'       => 'me@ninosego.de',
-    'version'     => '1.0.1',
+    'version'     => '1.1.1',
     'require_api' => '1.0.4',
-    'date'        => '2016-06-12',
+    'date'        => '2016-06-13',
     'name'        => 'PolicydSPF',
-    'desc'        => 'Plugin which allows to run postfix-policyd-spf-perl for Postfix.',
+    'desc'        => 'Plugin that provides Postfix policy server for RFC 4408 SPF checking.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
 );

@@ -53,30 +53,7 @@ sub enable
     my $self = shift;
 
     my $rs = $self->_checkRequirements();
-    return $rs if $rs;
-
-    my $mta = Servers::mta->factory();
-
-    # Add entries to master.cf
-    # Must be done prior adding the `policyd_spf_time_limit' setting in the main.cf file, else
-    # postconf will raise a warning due to unknown parameter.
-    $rs = $self->_postfixMasterCf( 'configure' );
-    $rs ||= $mta->postconf(
-        (
-            'policy-spf_time_limit'        => {
-                action => 'replace',
-                values => [ "$self->{'config'}->{'policyd_spf_time_limit'}" ]
-            },
-            'smtpd_recipient_restrictions' => {
-                action => 'add',
-                before => qr/permit/,
-                values => [ "check_policy_service $self->{'config'}->{'policyd_spf_service'}" ]
-            }
-        )
-    ),
-
-        $mta->{'restart'} = 1;
-    0;
+    $rs ||= $self->_configurePostfix( 'configure' );
 }
 
 =item disable()
@@ -93,74 +70,91 @@ sub disable
 
     return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
-    my $mta = Servers::mta->factory();
-    my $rs = $mta->postconf(
-        'policy-spf_time_limit'        => {
-            action => 'replace',
-            values => [ '' ]
-        },
-        'smtpd_recipient_restrictions' => {
-            action => 'remove',
-            values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
-        }
-    );
-    $rs ||= $self->_postfixMasterCf( 'deconfigure' );
-    return $rs if $rs;
-
-    $mta->{'restart'} = 1;
-    0;
+    $self->_configurePostfix( 'deconfigure' );
 }
 
-=item _postfixMasterCf($action)
+=item _configurePostfix($action)
 
- Modify postfix master.cf config file
+ Configure Postfix
 
  Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _postfixMasterCf
+sub _configurePostfix
 {
-    my (undef, $action) = @_;
+    my ($self, $action) = @_;
 
     my $mta = Servers::mta->factory();
-    my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
-    my $fileContent = $file->get();
-    unless (defined $fileContent) {
-        error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
-        return 1;
-    }
 
-    my $confSnippet = <<EOF;
+    if ($action eq 'configure') {
+        my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
+        my $fileContent = $file->get();
+        unless (defined $fileContent) {
+            error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+            return 1;
+        }
+
+        my $confSnippet = <<EOF;
 # Plugin::PolicydSPF - Begin
 policy-spf  unix  -       n       n       -       -       spawn
   user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
 # Plugin::PolicydSPF - Ending
 EOF
-
-    if ($action eq 'configure') {
         if (getBloc( "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $fileContent ) ne '') {
             $fileContent = replaceBloc(
-                "# Plugin::PolicydSPF - Begin\n",
-                "# Plugin::PolicydSPF - Ending\n",
-                $confSnippet,
-                $fileContent
+                "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $confSnippet, $fileContent
             );
         } else {
             $fileContent .= $confSnippet;
         }
-    } else {
-        $fileContent = replaceBloc(
-            "# Plugin::PolicydSPF - Begin\n",
-            "# Plugin::PolicydSPF - Ending\n",
-            '',
-            $fileContent
+
+        my $rs = $file->set( $fileContent );
+        $rs ||= $file->save();
+        $rs ||= $mta->postconf(
+            (
+                'policy-spf_time_limit'        => {
+                    action => 'replace',
+                    values => [ "$self->{'config'}->{'policyd_spf_time_limit'}" ]
+                },
+                'smtpd_recipient_restrictions' => {
+                    action => 'add',
+                    before => qr/permit/,
+                    values => [ "check_policy_service $self->{'config'}->{'policyd_spf_service'}" ]
+                }
+            )
         );
+        return $rs if $rs;
+    } elsif ($action eq 'deconfigure') {
+        my $rs = $mta->postconf(
+            'policy-spf_time_limit'        => {
+                action => 'replace',
+                values => [ '' ]
+            },
+            'smtpd_recipient_restrictions' => {
+                action => 'remove',
+                values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
+            }
+        );
+        return $rs if $rs;
+
+        my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
+        my $fileContent = $file->get();
+        unless (defined $fileContent) {
+            error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+            return 1;
+        }
+        $fileContent = replaceBloc(
+            "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
+        );
+        $rs = $file->set( $fileContent );
+        $rs ||= $file->save();
+        return $rs if $rs;
     }
 
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save();
+    $mta->{'restart'} = 1;
+    0;
 }
 
 =back
