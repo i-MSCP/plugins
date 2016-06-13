@@ -31,10 +31,10 @@ You can install this package by running the following command:
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are met.
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
