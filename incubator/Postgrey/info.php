@@ -23,9 +23,9 @@ return array(
     'email'       => 'l.declercq@nuxwin.com',
     'version'     => '1.1.1',
     'require_api' => '1.0.4',
-    'date'        => '2016-05-14',
+    'date'        => '2016-06-13',
     'name'        => 'Postgrey',
-    'desc'        => 'Plugin which allows to run postgrey policy server for Postfix.',
+    'desc'        => 'Plugin that provides greylisting implementation for Postfix using Postgrey policy server.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:postgrey',
     'priority'    => 10
 );

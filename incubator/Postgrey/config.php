@@ -19,6 +19,6 @@
  */
 
 return array(
-    // Postgrey listening port ( default: 10023 )
+    // Postgrey listening port (default: 10023)
     'postgrey_port' => 10023
 );

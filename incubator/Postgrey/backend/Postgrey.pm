@@ -55,27 +55,19 @@ sub enable
     my $rs = $self->_checkRequirements();
     return $rs if $rs;
 
-    $rs = execute( 'postconf -h smtpd_recipient_restrictions', \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    my $mta = Servers::mta->factory();
+    $rs = $mta->postconf(
+        (
+            smtpd_recipient_restrictions => {
+                action => 'add',
+                before => qr/permit/,
+                values => [ "check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}" ]
+            },
+
+        )
+    );
     return $rs if $rs;
 
-    # Extract postconf values
-    chomp( $stdout );
-    my $postconfValues = $stdout;
-    my @smtpRestrictions = split ', ', $postconfValues;
-
-    # Add Postgrey policy server
-    s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}/ for @smtpRestrictions;
-    push @smtpRestrictions, 'permit';
-
-    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
-    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    # Make sure that postgrey daemon is running
     local $@;
     eval { iMSCP::Service->getInstance()->restart( 'postgrey' ); };
     if ($@) {
@@ -83,7 +75,7 @@ sub enable
         return 1;
     }
 
-    Servers::mta->factory()->{'restart'} = 1;
+    $mta->{'reload'} = 1;
     0;
 }
 
@@ -99,27 +91,21 @@ sub disable
 {
     my $self = shift;
 
-    my $rs = execute( 'postconf -h smtpd_recipient_restrictions', \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    return 0 if defined $main::execmode && $main::execmode eq 'setup';
+
+    my $mta = Servers::mta->factory();
+    my $rs = $mta->postconf(
+        (
+            smtpd_recipient_restrictions => {
+                action => 'remove',
+                values => [ qr/check_policy_service\s+\Qinet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}\E/ ]
+            },
+
+        )
+    );
     return $rs if $rs;
 
-    # Extract postconf values
-    chomp( $stdout );
-    my $postconfValues = $stdout;
-
-    # Remove Postgrey policy server
-    my @smtpRestrictions = grep {
-        $_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}$/
-    } split ', ', $postconfValues;
-
-    my $postconf = 'smtpd_recipient_restrictions='.escapeShell( join ', ', @smtpRestrictions );
-    $rs = execute( "postconf -e $postconf", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    Servers::mta->factory()->{'restart'} = 1;
+    $mta->{'reload'} = 1;
     0;
 }
 
