@@ -2,7 +2,7 @@ Postscreen - ChangeLog
 ======================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.0.1
+Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Added: NiX Spam (ix.dnsbl.manitu.net) to DNS blacklist test
@@ -11,6 +11,8 @@ Version 1.0.1
     Changed: Align Postscreen main.cf entries for Postfix
     Fixed: Postfix (>= 3.0) is showing many warnings about backwards-compatible settings (default setting chroot=y)
     Removed: Experimental smartmatch operator
+    Removed: Postfix version check on installation (all supported distributions provide Postfix > 2.8)
+    Updated for i-MSCP 1.3.x Serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
