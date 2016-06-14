@@ -56,7 +56,6 @@ return array(
     'MilterSocketMode'                     => '666',
     'FixStaleSocket'                       => 'true',
     'User'                                 => 'clamav',
-    'AllowSupplementaryGroups'             => 'true',
     'ReadTimeout'                          => '120',
     'Foreground'                           => 'false',
     'PidFile'                              => '/var/run/clamav/clamav-milter.pid',
