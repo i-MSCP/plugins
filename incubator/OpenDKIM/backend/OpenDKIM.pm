@@ -171,7 +171,7 @@ sub enable
     $rs = $self->_postfixMainConfig( 'configure' );
     return $rs if $rs;
 
-    Servers::mta->factory()->{'restart'} = 'yes';
+    Servers::mta->factory()->{'reload'} = 1;
 
     $rs = setRights( '/etc/opendkim', {
             user      => 'opendkim',
@@ -215,7 +215,7 @@ sub disable
     $rs = $self->_postfixMainConfig( 'deconfigure' );
     return $rs if $rs;
 
-    Servers::mta->factory()->{'restart'} = 'yes';
+    Servers::mta->factory()->{'reload'} = 1;
     0;
 }
 
