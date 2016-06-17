@@ -404,8 +404,15 @@ sub _setupClamavMilter
                     LogInfected LogClean LogRotate SupportMultipleRecipients
                     /
             ) {
-                if (exists $self->{'config'}->{$option} && $self->{'config'}->{$option} ne '') {
-                    $configSnippet .= "$option $self->{'config'}->{$option}\n";
+                if (exists $self->{'config'}->{$option} && $self->{'config'}->{$option} ne '') {                  
+                    # If Clamav Milter version < 0.99.2 then add option 'AllowSupplementaryGroups'
+                    if ($option eq 'AllowSupplementaryGroups') {
+                        if (version->parse( $self->_getClamavMilterVersion() ) < version->parse( '0.99.2' )) {
+                            $configSnippet .= "$option $self->{'config'}->{$option}\n";
+                        }
+                    } else {
+                        $configSnippet .= "$option $self->{'config'}->{$option}\n";
+                    }
                 }
             }
 
@@ -545,6 +552,23 @@ sub _restartServices
 
     Servers::mta->factory()->{'restart'} = 'yes';
     0;
+}
+
+=item _getClamavMilterVersion()
+
+ Get ClamAV Milter version
+
+ Return string ClamAV Milter version
+
+=cut
+
+sub _getClamavMilterVersion
+{
+    my $rs = execute( "clamav-milter --version | awk '{print \$NF}'", \ my $stdout, \ my $stderr );
+    error( $stderr || 'Unknown error' ) if $rs;
+    return $rs if $rs;
+
+    $stdout =~ s/^([\d.]+)/$1/r;
 }
 
 =back

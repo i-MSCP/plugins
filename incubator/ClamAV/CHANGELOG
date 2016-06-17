@@ -6,6 +6,7 @@ Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Added: 3rd party ClamAV Unofficial Signatures script (clamav-unofficial-sigs v5.3.2)
+    Fixed: Set AllowSupplementaryGroups option only on ClamAV Milter version below 0.99.2
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.5
