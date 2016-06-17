@@ -607,7 +607,7 @@ sub _postfixConfig
 sub _schedulePostfixRestart
 {
     require Servers::mta;
-    Servers::mta->factory()->{'restart'} = 1;
+    Servers::mta->factory()->{'reload'} = 1;
     0;
 }
 

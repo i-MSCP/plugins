@@ -9,10 +9,11 @@ Version 1.1.0
     Added: Enable SpamAssassin service on systems with systemd
     Added: Option to define networks which won't be scanned for SPAM
     Added: Option to scan outgoing mails of SMTP authenticated senders
+    Changed: New default values in config.php
     Changed: Option to reject all SPAM mails or only above a defined score level
     Changed: Requirements check
     Changed: Run cronjobs with lower priority
-    Changed: New default values in config.php
+    Changed: Switch Postfix service restart to reload
     Changed: Usage of i-MSCP API to create/drop SQL user
     Fixed: '_' and '%' wildcards must be escaped in GRANT statements
     Fixed: Syntax error in cronjob files
