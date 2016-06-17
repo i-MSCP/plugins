@@ -550,7 +550,7 @@ sub _restartServices
     error( $stderr ) if $rs && $stderr;
     return $rs if $rs;
 
-    Servers::mta->factory()->{'restart'} = 'yes';
+    Servers::mta->factory()->{'reload'} = 1;
     0;
 }
 
