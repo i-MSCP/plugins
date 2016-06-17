@@ -157,7 +157,7 @@ sub enable
         return $rs if $rs;
     }
 
-    Servers::mta->factory()->{'restart'} = 1;
+    Servers::mta->factory()->{'reload'} = 1;
     0;
 }
 
@@ -183,7 +183,7 @@ sub disable
         return $rs if $rs;
     }
 
-    Servers::mta->factory()->{'restart'} = 1;
+    Servers::mta->factory()->{'reload'} = 1;
     0;
 }
 
