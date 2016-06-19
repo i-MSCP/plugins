@@ -89,8 +89,8 @@ sub change
     local $@;
     eval {
         my $serviceMngr = iMSCP::Service->getInstance();
-        $serviceMngr->getInstance()->enable( 'spamassassin' );
-        $serviceMngr->getInstance()->restart( 'spamassassin' );
+        $serviceMngr->enable( 'spamassassin' );
+        $serviceMngr->restart( 'spamassassin' );
     };
     if ($@) {
         error( $@ );
