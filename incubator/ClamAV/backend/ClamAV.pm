@@ -281,20 +281,19 @@ sub _configureClamavUnofficialSigsConffile
         my $configSnippet = '';
 
         # MalwarePatrol options
-        if ($options->{'malwarepatrol_options'}->{'malwarepatrol_receipt_code'} ne 'YOUR-RECEIPT-NUMBER') {
-            while(my ($option, $value) = each( %{$options->{'malwarepatrol_options'}} )) {
-                $configSnippet .= "$option=\"$value\"\n";
-            }
+        $configSnippet .= "# MalwarePatrol options\n";
+        while(my ($option, $value) = each( %{$options->{'malwarepatrol_options'}} )) {
+            $configSnippet .= "$option=\"$value\"\n";
         }
 
         # SecuriteInfo options
-        if ($options->{'securiteinfo_options'}->{'securiteinfo_authorisation_signature'} ne 'YOUR-SIGNATURE-NUMBER') {
-            while(my ($option, $value) = each( %{$options->{'securiteinfo_options'}} )) {
-                $configSnippet .= "$option=\"$value\"\n";
-            }
+        $configSnippet .= "\n# SecuriteInfo options\n";
+        while(my ($option, $value) = each( %{$options->{'securiteinfo_options'}} )) {
+            $configSnippet .= "$option=\"$value\"\n";
         }
 
         # Rating options
+        $configSnippet .= "\n# Rating options\n";
         while(my ($option, $value) = each( %{$options->{'rating_options'}} )) {
             $configSnippet .= "$option=\"$value\"\n";
         }
@@ -375,7 +374,7 @@ sub _configureClamavMilter
     }
 
     my $options = $self->{'config'}->{'clamav_milter_options'};
-    my $optionReg = '((?:'.(join('|', (keys %{$options}, 'AllowSupplementaryGroups'))).').*)';
+    my $optionReg = '((?:'.(join( '|', (keys %{$options}, 'AllowSupplementaryGroups') )).').*)';
 
     if ($action eq 'configure') {
         my $clamavVersion = $self->_getClamavMilterVersion();
@@ -390,7 +389,7 @@ sub _configureClamavMilter
         $fileContent =~ s/^$optionReg/#$1/gim; # Disable default configuration options (those that we want redefine)
 
         my $configSnippet = "# Begin Plugin::ClamAV\n";
-        while (my ($option, $value) = each(%{$options})) {
+        while (my ($option, $value) = each( %{$options} )) {
             next if $value eq '';
             $configSnippet .= "$option $value\n";
         }
