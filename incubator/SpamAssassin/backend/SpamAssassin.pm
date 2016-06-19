@@ -37,7 +37,6 @@ use iMSCP::TemplateParser;
 use Servers::cron;
 use Servers::mta;
 use Servers::sqld;
-
 use version;
 use parent 'Common::SingletonClass';
 
@@ -61,8 +60,7 @@ sub install
 {
     my $self = shift;
 
-    my $rs = _checkRequirements();
-    $rs ||= $self->_checkSaUser();
+    my $rs = $self->_checkRequirements();
     $rs ||= $self->_setupDatabase();
     $rs ||= $self->change();
 }
@@ -79,7 +77,8 @@ sub change
 {
     my $self = shift;
 
-    my $rs = $self->_getSaDbPassword();
+    my $rs = $self->_createSaUser();
+    $rs ||= $self->_getSaDbPassword();
     $rs ||= $self->_spamassassinRulesHeinleinSupport( 'add' );
     $rs ||= $self->_spamassassinConfig( '00_imscp.cf' );
     $rs ||= $self->_spamassassinDefaultConfig( 'configure' );
@@ -88,16 +87,11 @@ sub change
     return $rs if $rs;
 
     local $@;
-
-    unless (iMSCP::Service->getInstance()->isEnabled( 'spamassassin' )) {
-        eval { iMSCP::Service->getInstance->enable( 'spamassassin' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
-    }
-
-    eval { iMSCP::Service->getInstance()->restart( 'spamassassin' ); };
+    eval {
+        my $serviceMngr = iMSCP::Service->getInstance();
+        $serviceMngr->getInstance()->enable( 'spamassassin' );
+        $serviceMngr->getInstance()->restart( 'spamassassin' );
+    };
     if ($@) {
         error( $@ );
         return 1;
@@ -260,9 +254,9 @@ sub discoverRazor
 {
     my $self = shift;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
+    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
 
-    my $rs = execute( "su -l $1 -c '/usr/bin/razor-admin -discover'", \my $stdout, \my $stderr );
+    my $rs = execute( "su - $saUser -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     $rs;
@@ -380,9 +374,8 @@ sub _discoverPyzor
 {
     my $self = shift;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
-
-    my $rs = execute( "su -l $1 -c '/usr/bin/pyzor discover'", \ my $stdout, \ my $stderr );
+    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+    my $rs = execute( "su - $saUser -c '/usr/bin/pyzor discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     $rs;
@@ -400,14 +393,14 @@ sub _createRazor
 {
     my $self = shift;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
+    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
 
-    my $rs = execute( "su -l $1 -c '/usr/bin/razor-admin -create'", \ my $stdout, \ my $stderr );
+    my $rs = execute( "su - $saUser -c '/usr/bin/razor-admin -create'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
 
-    $rs = execute( "su -l $1 -c '/usr/bin/razor-admin -register'", \$stdout, \$stderr );
+    $rs = execute( "su - $saUser -c '/usr/bin/razor-admin -register'", \$stdout, \$stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     $rs;
@@ -428,13 +421,9 @@ sub _spamassassinRulesHeinleinSupport
 
     if ($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
         # Create an hourly cronjob from the original SpamAssassin cronjob
-        my $rs = execute(
-            "cp -f /etc/cron.daily/spamassassin /etc/cron.hourly/spamassassin_heinlein-support_de",
-            \ my $stdout,
-            \ my $stderr
+        my $rs = iMSCP::File->new( filename => '/etc/cron.daily/spamassassin' )->copyFile(
+            '/etc/cron.hourly/spamassassin_heinlein-support_de'
         );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
         return $rs if $rs;
 
         my $file = iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' );
@@ -449,7 +438,7 @@ sub _spamassassinRulesHeinleinSupport
         # Change the sa-update channel on Ubuntu Precise
         $fileContent =~ s/^(sa-update)$/$1 --nogpg --channel spamassassin.heinlein-support.de/m;
         # Change the sa-update channel on Debian Wheezy / Jessie / Stretch and Ubuntu Xenial
-        $fileContent =~ s/--gpghomedir \/var\/lib\/spamassassin\/sa-update-keys/--nogpg --channel spamassassin.heinlein-support.de/g;
+        $fileContent =~ s%--gpghomedir /var/lib/spamassassin/sa-update-keys%--nogpg --channel spamassassin.heinlein-support.de%g;
 
         $rs = $file->set( $fileContent );
         $rs ||= $file->save();
@@ -462,18 +451,20 @@ sub _spamassassinRulesHeinleinSupport
         error( $stderr ) if $stderr && $rs;
         return $rs if $rs;
 
-        $rs = execute( "rm -f /etc/cron.hourly/spamassassin_heinlein-support_de", \$stdout, \$stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
-        return $rs if $rs;
+        if (-f '/etc/cron.hourly/spamassassin_heinlein-support_de') {
+            $rs = iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' )->delFile();
+            return $rs if $rs;
+        }
     }
+
+    0;
 }
 
 =item _spamassMilterDefaultConfig($action)
 
  Modify spamass-milter default config file
 
- Param string $action Action to perform ( configure|deconfigure)
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
@@ -503,8 +494,7 @@ sub _spamassMilterDefaultConfig
             $spamassMilterOptions .= ' -i '.$_;
         }
 
-        $self->{'config'}->{'spamassassinOptions'} =~ m/port=(\d+)/;
-
+        $self->{'config'}->{'spamassassinOptions'} =~ /port=(\d+)/;
         if ($1 ne '783') {
             $spamassMilterOptions .= ' -- -p '.$1;
         }
@@ -606,7 +596,6 @@ sub _postfixConfig
 
 sub _schedulePostfixRestart
 {
-    require Servers::mta;
     Servers::mta->factory()->{'reload'} = 1;
     0;
 }
@@ -632,8 +621,7 @@ sub _registerCronjob
     }
 
     $cronjobFileContent = process(
-        { 'IMSCP_PERLLIB_PATH' => $main::imscpConfig{'ENGINE_ROOT_DIR'}.'/PerlLib' },
-        $cronjobFileContent
+        { IMSCP_PERLLIB_PATH => $main::imscpConfig{'ENGINE_ROOT_DIR'}.'/PerlLib' }, $cronjobFileContent
     );
 
     my $rs = $cronjobFile->set( $cronjobFileContent );
@@ -737,14 +725,13 @@ sub _spamassassinConfig
 {
     my ($self, $saFile) = @_;
 
-    my $rs = execute(
-        "cp -f $main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$saFile /etc/spamassassin",
-        \my $stdout,
-        \my $stderr
+    my ($saGroup) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+
+    iMSCP::File->new(
+        filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$saFile"
+    )->copyFile(
+        "/etc/spamassassin/$saFile"
     );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
 
     my $file = iMSCP::File->new( filename => "/etc/spamassassin/$saFile" );
     my $fileContent = $file->get();
@@ -754,7 +741,7 @@ sub _spamassassinConfig
     }
 
     if ($saFile eq '00_imscp.cf') {
-        my $disableDCC = "";
+        my $disableDCC = '';
         if ($self->{'config'}->{'use_dcc'} eq 'no') {
             $disableDCC = "AND preference NOT LIKE 'use_dcc'";
         }
@@ -792,8 +779,9 @@ sub _spamassassinConfig
         }
     }
 
-    $rs = $file->set( $fileContent );
+    my $rs = $file->set( $fileContent );
     $rs ||= $file->save();
+    $rs ||= $file->owner( 'root', $saGroup );
     $rs ||= $file->mode( 0640 );
 }
 
@@ -849,8 +837,8 @@ sub _roundcubePlugins
         );
         return $rs if $rs;
     } elsif ($action eq 'remove') {
-        for my $dir(iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs()) {
-            my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$dir" )->remove();
+        for (iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs()) {
+            my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove();
             return $rs if $rs;
         }
     }
@@ -881,7 +869,7 @@ sub _setRoundcubePlugin
     } elsif (-f "$roundcubeConfDir/config.inc.php") {
         $confFilename = 'config.inc.php';
     } else {
-        error( 'Could not find roundcube configuration file' );
+        error( 'Could not find RoundCube configuration file' );
         return 1;
     }
 
@@ -932,11 +920,8 @@ sub _checkSpamassassinPlugins
 {
     my $self = shift;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/helper-home-dir=(\S*)/;
-    my $helperHomeDir = $1;
-
-    $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
-    my $saUser = $1;
+    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+    my ($helperHomeDir) = $self->{'config'}->{'spamassassinOptions'} =~ /helper-home-dir=(\S*)/;
 
     my $rs = execute( "chown -R $saUser:$saUser $helperHomeDir", \ my $stdout, \ my $stderr );
     return $rs if $rs;
@@ -1033,7 +1018,7 @@ sub _checkSpamassassinPlugins
 
  Check which Roundcube Plugins have to be activated
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
@@ -1068,7 +1053,7 @@ sub _setRoundcubePluginConfig
     my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$plugin";
     my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    my $rs = execute( "cp -fR $configPlugin/* $pluginsDir/$plugin", \my $stdout, \my $stderr );
+    my $rs = execute( "cp -fR $configPlugin/* $pluginsDir/$plugin", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
@@ -1093,15 +1078,12 @@ sub _setRoundcubePluginConfig
         );
 
         my $sauserprefsDontOverride = $self->{'config'}->{'sauserprefs_dont_override'};
-
         if ($self->{'config'}->{'spamassMilter_config'}->{'reject_spam'} eq '-1') {
             $sauserprefsDontOverride .= ", 'rewrite_header Subject', '{report}'";
         }
-
         if ($self->{'config'}->{'use_bayes'} eq 'no') {
             $sauserprefsDontOverride .= ", '{bayes}'";
         }
-
         if ($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
             $sauserprefsDontOverride .= ", 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'";
         }
@@ -1116,15 +1098,12 @@ sub _setRoundcubePluginConfig
             if ($self->{'config'}->{'use_razor2'} eq 'no') {
                 $sauserprefsDontOverride .= ", 'use_razor2'";
             }
-
             if ($self->{'config'}->{'use_pyzor'} eq 'no') {
                 $sauserprefsDontOverride .= ", 'use_pyzor'";
             }
-
             if ($self->{'config'}->{'use_dcc'} eq 'no') {
                 $sauserprefsDontOverride .= ", 'use_dcc'";
             }
-
             if ($self->{'config'}->{'use_rbl_checks'} eq 'no') {
                 $sauserprefsDontOverride .= ", 'skip_rbl_checks'";
             }
@@ -1143,8 +1122,8 @@ sub _setRoundcubePluginConfig
 
     $rs = $file->set( $fileContent );
     $rs ||= $file->save();
-    $rs ||= $file->mode( 0440 );
     $rs ||= $file->owner( $user, $group );
+    $rs ||= $file->mode( 0440 );
 }
 
 =item _setSpamassassinUserprefs($preference, $value)
@@ -1261,7 +1240,6 @@ sub _getSaDbPassword
     my $self = shift;
 
     my $saImscpCF = '/etc/spamassassin/00_imscp.cf';
-
     if (-f $saImscpCF) {
         my $file = iMSCP::File->new( filename => $saImscpCF );
         my $fileContent = $file->get();
@@ -1298,7 +1276,6 @@ sub _setSpamassassinPlugin
     my ($self, $plugin, $action) = @_;
 
     my $spamassassinFolder = '/etc/spamassassin';
-
     if ($action eq 'add') {
         my $pluginDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/spamassassin-plugins/$plugin";
         my $rs = execute( "cp -fR $pluginDir/$plugin.* $spamassassinFolder/", \ my $stdout, \ my $stderr );
@@ -1320,55 +1297,36 @@ sub _setSpamassassinPlugin
     0;
 }
 
-=item _checkSaUser()
+=item _createSaUser()
 
- Check the SpamAssassin user and home directory
+ Create SpamAssassin user and home directory if needed
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _checkSaUser
+sub _createSaUser
 {
     my $self = shift;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/username=(\S*)/;
-    my $user = my $group = $1;
+    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+    my $saGroup = $saUser;
+    my ($saHelperHomedir) = $self->{'config'}->{'spamassassinOptions'} =~ /helper-home-dir=(\S*)/;
 
-    $self->{'config'}->{'spamassassinOptions'} =~ m/helper-home-dir=(\S*)/;
-    my $helperHomeDir = $1;
+    require iMSCP::SystemUser;
 
-    my $rs = execute( "id -g $group", \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    if ($rs eq '1') {
-        $rs = execute( "groupadd -r $group", \$stdout, \$stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
-        return $rs if $rs;
-    }
-
-    $rs = execute( "id -u $user", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    if ($rs eq '1') {
-        $rs = execute( "useradd -r -g $group -s /bin/sh -d $helperHomeDir $user", \$stdout, \$stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
-        return $rs if $rs;
-    }
-
-    unless (-d $helperHomeDir) {
-        $rs = execute( "mkdir -p $helperHomeDir", \$stdout, \$stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
-        return $rs if $rs;
-    }
-
-    $rs = execute( "chown -R $user:$group $helperHomeDir", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    $rs;
+    my $rs ||= iMSCP::SystemUser->new(
+        {
+            username => $saUser,
+            group    => getgrnam( $saGroup ) ? $saGroup : undef,
+            system   => 1,
+            comment  => '',
+            home     => $saHelperHomedir,
+            shell    => '/bin/sh'
+        }
+    )->addSystemUser();
+    $rs ||= iMSCP::Dir->new( dirname => $saHelperHomedir )->make();
+    $rs ||= setRights( $saHelperHomedir, { user => $saUser, group => $saGroup, recursive => 1 } );
 }
 
 =item _checkRequirements()
