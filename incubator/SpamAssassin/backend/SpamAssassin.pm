@@ -794,7 +794,7 @@ sub _spamassassinConfig
 
     $rs = $file->set( $fileContent );
     $rs ||= $file->save();
-    $rs ||= $file->mode( 0644 );
+    $rs ||= $file->mode( 0640 );
 }
 
 =item _removeSpamassassinConfig()
@@ -830,7 +830,7 @@ sub _roundcubePlugins
     my $pluginDestDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
     if ($action eq 'add') {
-        my $rs = execute( "cp -fR $pluginsSrcDir/* $pluginDestDir/", \my $stdout, \my $stderr );
+        my $rs = execute( "cp -fR $pluginsSrcDir/* $pluginDestDir/", \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr ) if $stderr && $rs;
         return $rs if $rs;
