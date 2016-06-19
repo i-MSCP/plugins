@@ -161,7 +161,7 @@ sub enable
         }
     }
 
-    $self->_schedulePostfixRestart();
+    0;
 }
 
 =item disable()
@@ -195,8 +195,7 @@ sub disable
         }
     }
 
-    my $rs = $self->_postfixConfig( 'deconfigure' );
-    $rs ||= $self->_schedulePostfixRestart();
+    $self->_postfixConfig( 'deconfigure' );
 }
 
 =item uninstall()
@@ -583,20 +582,8 @@ sub _postfixConfig
         return $rs if $rs;
     }
 
-    0;
-}
-
-=item _schedulePostfixRestart()
-
- Schedule restart of Postfix
-
- Return int 0
-
-=cut
-
-sub _schedulePostfixRestart
-{
     Servers::mta->factory()->{'reload'} = 1;
+
     0;
 }
 
