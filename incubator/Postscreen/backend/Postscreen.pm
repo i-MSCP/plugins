@@ -284,7 +284,9 @@ EOF
         );
 
         # If Postfix version >= 2.11.0 then add postscreen_dnsbl_whitelist_threshold feature
-        if (version->parse( $self->_getPostfixVersion() ) >= version->parse( '2.11.0' )) {
+        my $postfixVersion = $self->_getPostfixVersion();
+        return 1 unless defined $postfixVersion;
+        if (version->parse( $postfixVersion ) >= version->parse( '2.11.0' )) {
             $params{'postscreen_dnsbl_whitelist_threshold'} = {
                 action => 'replace', values => [ $self->{'config'}->{'postscreen_dnsbl_whitelist_threshold'} ]
             };
@@ -392,17 +394,20 @@ EOF
 
  Get Postfix version
 
- Return string Postfix version
+ Return string Postfix version on success, undef on failure
 
 =cut
 
 sub _getPostfixVersion
 {
-    my $rs = execute( "postconf mail_version | awk '{print \$NF}'", \ my $stdout, \ my $stderr );
-    error( $stderr || 'Unknown error' ) if $rs;
-    return $rs if $rs;
+    my $rs = execute( "postconf mail_version", \ my $stdout, \ my $stderr );
 
-    $stdout =~ s/^([\d.]+)/$1/r;
+    if ($rs || $stdout !~ /([\d.]+)/) {
+        error( sprintf( 'Could not get version: %s', $stderr || 'Version not found' ) );
+        return;
+    }
+
+    $1;
 }
 
 =back
