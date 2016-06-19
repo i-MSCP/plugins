@@ -2,7 +2,7 @@ OpenDKIM - ChangeLog
 ====================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.0.3
+Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Added: SyslogSuccess to indicate successful signing or verification of messages
@@ -13,6 +13,7 @@ Version 1.0.3
     Fixed: Set opendkim permissions on activation
     Removed: Experimental smartmatch operator
     Removed: OpenDKIM service restart on DKIM key generation
+    Updated for iMSCP 1.3.x Serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2

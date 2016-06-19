@@ -1,6 +1,11 @@
-#  i-MSCP OpenDKIM plugin v1.0.3
+#  i-MSCP OpenDKIM plugin v1.1.0
 
-Plugin which provides an OpenDKIM implementation for i-MSCP.
+Plugin that provides DomainKeys Identified Mail (DKIM) service.
+
+## Introduction
+
+DKIM provides a way for senders to confirm their identity when sending email by adding a cryptographic signature to the
+headers of the message.
 
 ## Requirements
 
@@ -18,8 +23,8 @@ You can install these packages by running the following command:
 # apt-get install opendkim opendkim-tools
 ```
 
-**Note:** For Debian Squeeze, Ubuntu Lucid and Precise, you must install these packages from the backports repositories.
-Refer to your distribution documentation for further details.
+**Note:** For Ubuntu Precise, you must install these packages from the backports repositories. Refer to your
+distribution documentation for further details.
 
 ## Installation
 
@@ -28,10 +33,10 @@ Refer to your distribution documentation for further details.
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration

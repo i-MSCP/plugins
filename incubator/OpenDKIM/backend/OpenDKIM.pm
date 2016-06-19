@@ -58,7 +58,7 @@ sub install
 {
     my $self = shift;
 
-    my $rs = _checkRequirements();
+    my $rs = $self->_checkRequirements();
     $rs ||= $self->_createOpendkimDirectories();
     $rs ||= $self->_createOpendkimFile( 'KeyTable' );
     $rs ||= $self->_createOpendkimFile( 'SigningTable' );
@@ -66,7 +66,13 @@ sub install
     $rs ||= $self->_opendkimConfig( 'configure' );
     return $rs if $rs;
 
-    iMSCP::Service->getInstance()->restart( 'opendkim' );
+    local $@;
+    eval { iMSCP::Service->getInstance()->restart( 'opendkim' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
     0;
 }
 
@@ -173,13 +179,16 @@ sub enable
 
     Servers::mta->factory()->{'reload'} = 1;
 
-    $rs = setRights( '/etc/opendkim', {
+    $rs = setRights(
+        '/etc/opendkim',
+        {
             user      => 'opendkim',
             group     => 'opendkim',
             dirmode   => '0750',
             filemode  => '0640',
             recursive => 1
-        } );
+        }
+    );
     return $rs if $rs;
 
     local $@;
@@ -325,7 +334,7 @@ sub _addDomainKey
 
     # Generate the domain private key and the DNS TXT record suitable for inclusion in DNS zone file
     # The DNS TXT record contain the public key
-    $rs = execute( "opendkim-genkey -D /etc/opendkim/keys/$domain -r -s mail -d $domain", \ my $stdout, \my $stderr );
+    $rs = execute( "opendkim-genkey -D /etc/opendkim/keys/$domain -r -s mail -d $domain", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr ) if $stderr && $rs;
     return $rs if $rs;
@@ -516,7 +525,7 @@ sub _opendkimConfig
     }
 
     if ($action eq 'configure') {
-        my $configSnippet = <<EOF;
+        my $configSnippet = <<"EOF";
 # Begin Plugin::OpenDKIM
 SOCKET="$self->{'config'}->{'OpenDKIM_Socket'}"
 # Ending Plugin::OpenDKIM
@@ -550,7 +559,7 @@ EOF
     }
 
     if ($action eq 'configure') {
-        my $configSnippet = <<EOF;
+        my $configSnippet = <<"EOF";
 # Begin Plugin::OpenDKIM
 UMask 0111
 SyslogSuccess yes
@@ -590,49 +599,35 @@ sub _postfixMainConfig
 {
     my ($self, $action) = @_;
 
-    my $rs = execute( 'postconf -h smtpd_milters non_smtpd_milters', \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
+    my $mta = Servers::mta->factory();
 
-    # Extract postconf values
-    my @postconfValues = split /\n/, $stdout;
-    my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
-    my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
-    # Remove the milter value from the deprecated opendkim_port on plugin update
-    $milterValuePrev = "inet:localhost:$self->{'config_prev'}->{'opendkim_port'}" unless $milterValuePrev ne '';
-
-    s/\s*(?:\Q$milterValuePrev\E|\Q$milterValue\E)//g for @postconfValues;
-
-    if ($action eq 'configure') {
-        my @postconf = (
-            'milter_default_action=accept',
-            'smtpd_milters='.(
-                    @postconfValues ? escapeShell( "$postconfValues[0] $milterValue" ) : escapeShell( $milterValue )
-            ),
-            'non_smtpd_milters='.(
-                    @postconfValues > 1 ? escapeShell( "$postconfValues[1] $milterValue" ) : escapeShell( $milterValue )
-            )
-        );
-
-        $rs = execute( "postconf -e @postconf", \ $stdout, \ $stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr ) if $stderr && $rs;
-    } elsif ($action eq 'deconfigure') {
-        if (@postconfValues) {
-            my @postconf = ( 'smtpd_milters='.escapeShell( $postconfValues[0] ) );
-
-            if (@postconfValues > 1) {
-                push @postconf, 'non_smtpd_milters='.escapeShell( $postconfValues[1] );
-            }
-
-            $rs = execute( "postconf -e @postconf", \ $stdout, \ $stderr );
-            debug( $stdout ) if $stdout;
-            error( $stderr ) if $stderr && $rs;
-        }
+    my @milterPrevValues = (qr/\Q$self->{'config_prev'}->{'PostfixMilterSocket'}\E/);
+    if (defined $self->{'config_prev'}->{'opendkim_port'}) {
+        # Remove the milter value from the deprecated opendkim_port configuration parameter
+        push @milterPrevValues, qr/\Qinet:localhost:$self->{'config_prev'}->{'opendkim_port'}\E/;
     }
 
-    $rs;
+    my $rs = $mta->postconf(
+        (
+            smtpd_milters     => { action => 'remove', values => [ @milterPrevValues ] },
+            non_smtpd_milters => { action => 'remove', values => [ @milterPrevValues ] }
+        )
+    );
+    return $rs if $rs;
+
+    if ($action eq 'configure') {
+        my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
+        $rs = $mta->postconf(
+            (
+                milter_default_action => { action => 'replace', values => [ 'accept' ] },
+                smtpd_milters         => { action => 'add', values => [ $milterValue ] },
+                non_smtpd_milters     => { action => 'add', values => [ $milterValue ] }
+            )
+        );
+        return $rs if $rs;
+    }
+
+    0;
 }
 
 =item _createOpendkimFile($fileName)
@@ -649,10 +644,11 @@ sub _createOpendkimFile
     my ($self, $fileName) = @_;
 
     my $file = iMSCP::File->new( filename => "/etc/opendkim/$fileName" );
+
     if ($fileName eq 'TrustedHosts') {
         my $fileContent = '';
         for(@{$self->{'config'}->{'opendkim_trusted_hosts'}}) {
-            $fileContent .= $_."\n";
+            $fileContent .= "$_\n";
         }
 
         my $rs = $file->set( $fileContent );
