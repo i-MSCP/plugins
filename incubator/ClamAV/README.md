@@ -21,7 +21,8 @@ Plugin that allows to use ClamAV with i-MSCP.
 You can install these packages by running the following commands:
 
 ```bash
-# apt-get update && apt-get install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter curl gnupg rsync
+# apt-get update
+# apt-get install clamav clamav-base clamav-daemon clamav-freshclam clamav-milter curl gnupg rsync
 # service clamav-freshclam stop
 # freshclam
 # service clamav-freshclam start
@@ -30,16 +31,16 @@ You can install these packages by running the following commands:
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Upload the plugin through the plugin management interface
 3. Activate the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
