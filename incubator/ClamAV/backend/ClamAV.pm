@@ -442,7 +442,7 @@ sub _configurePostfix
     my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
     $mta->postconf(
         (
-            milter_default_action => { action => 'add', values => [ 'accept' ] },
+            milter_default_action => { action => 'replace', values => [ 'accept' ] },
             smtpd_milters         => { action => 'add', values => [ $milterValue ] },
             non_smtpd_milters     => { action => 'add', values => [ $milterValue ] }
         )
