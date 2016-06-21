@@ -118,7 +118,7 @@ sub enable
     my $ips = $self->_getIps();
     return 1 unless defined $ips;
 
-    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', $ips->{'IPS'} );
+    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}} );
     return $rs if $rs;
 
     if (@{$ips->{'SSL_IPS'}}) {
@@ -135,7 +135,7 @@ sub enable
             return $rs if $rs;
         }
 
-        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', $ips->{'SSL_IPS'} );
+        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
         return $rs if $rs;
     }
 
@@ -240,30 +240,25 @@ sub _init
     $self;
 }
 
-=item _createVhost($vhostTplFile, \%ips)
+=item _createVhost($vhostTplFile, @ips)
 
  Create the given vhost using given directives
 
  Param string $vhostTplFile Vhost template file
- Param hashref \%ips IP addresses
+ Param list @ips IP addresses
  Return int 0 on success, other on failure
 
 =cut
 
 sub _createVhost
 {
-    my ($self, $vhostTplFile, $ips) = @_;
+    my ($self, $vhostTplFile, @ips) = @_;
 
     my $net = iMSCP::Net->getInstance();
 
-    my @directives;
-    for(@{$ips}) {
-        push @directives, $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80";
-    }
-
     $self->{'httpd'}->setData(
         {
-            IPS_PORTS       => "@directives",
+            IPS_PORTS       => join( ' ', (map { $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80" } @ips) ),
             BASE_SERVER_IP  => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
                 ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
             APACHE_WWW_DIR  => $main::imscpConfig{'USER_WEB_DIR'},
