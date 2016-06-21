@@ -66,7 +66,7 @@ sub enable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'restart'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 1;
     0;
 }
 
@@ -90,7 +90,7 @@ sub disable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'restart'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 1;
     0;
 }
 
@@ -112,7 +112,7 @@ sub _init
 {
     my $self = shift;
 
-    if ($self->{'action'} =~ /^(?:install|change|update|enable|disable)$/) {
+    if ($self->{'action'} =~ /^(?:change|update|enable|disable)$/) {
         $self->{'httpd'} = Servers::httpd->factory();
     }
 
@@ -137,18 +137,18 @@ sub _createConfig
 
     $self->{'httpd'}->setData(
         {
-            'BASE_SERVER_IP'               => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
+            BASE_SERVER_IP               => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
                 ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
-            'BASE_SERVER_VHOST'            => $main::imscpConfig{'BASE_SERVER_VHOST'},
-            'BASE_SERVER_VHOST_PREFIX'     => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
-            'BASE_SERVER_VHOST_PORT'       => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
+            BASE_SERVER_VHOST            => $main::imscpConfig{'BASE_SERVER_VHOST'},
+            BASE_SERVER_VHOST_PREFIX     => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
+            BASE_SERVER_VHOST_PORT       => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
                 ? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'} : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'}
             ,
-            'BASE_SERVER_VHOST_HTTP_PORT'  => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
-            'BASE_SERVER_VHOST_HTTPS_PORT' => $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
-            'DEFAULT_ADMIN_ADDRESS'        => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
-            'HTTPD_LOG_DIR'                => $self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'},
-            'CONF_DIR'                     => $main::imscpConfig{'CONF_DIR'}
+            BASE_SERVER_VHOST_HTTP_PORT  => $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'},
+            BASE_SERVER_VHOST_HTTPS_PORT => $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'},
+            DEFAULT_ADMIN_ADDRESS        => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'},
+            HTTPD_LOG_DIR                => $self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'},
+            CONF_DIR                     => $main::imscpConfig{'CONF_DIR'}
         }
     );
 
@@ -158,11 +158,11 @@ sub _createConfig
             my ($cfgTpl, $tplName) = @_;
 
             if ($tplName eq 'PanelRedirect.conf' || $tplName eq 'PanelRedirect_ssl.conf') {
-                $$cfgTpl = replaceBloc(
+                ${$cfgTpl} = replaceBloc(
                     "# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} BEGIN.\n",
                     "# SECTION VHOST_PREFIX != $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} END.\n",
                     '',
-                    $$cfgTpl
+                    ${$cfgTpl}
                 );
             }
 
@@ -189,14 +189,11 @@ sub _removeConfig
 {
     my ($self, $vhostFile) = @_;
 
-    if (-f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile") {
-        my $rs = iMSCP::File->new(
-            'filename' => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
-        )->delFile();
-        return $rs if $rs;
-    }
+    return 0 unless -f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile";
 
-    0;
+    iMSCP::File->new(
+        filename => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
+    )->delFile();
 }
 
 =item _createLogFolder()
@@ -235,7 +232,7 @@ sub _removeLogFolder()
     my $self = shift;
 
     iMSCP::Dir->new(
-        'dirname' => "$self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
+        dirname => "$self->{'httpd'}->{'config'}->{'HTTPD_LOG_DIR'}/$main::imscpConfig{'BASE_SERVER_VHOST'}"
     )->remove();
 }
 

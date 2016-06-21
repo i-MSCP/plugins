@@ -15,7 +15,7 @@ Plugin which allows to access i-MSCP panel through Apache using the default HTTP
 
 1. Backup your plugin configuration file if needed
 2. Upload the plugin through the plugin management interface
-3. Restore your plugin configuration file if needed ( compare it with the new version first )
+3. Restore your plugin configuration file if needed (compare it with the new version first)
 4. Update the plugin list through the plugin management interface
 
 ## License
@@ -40,6 +40,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 See [LICENSE](LICENSE)
 
-## Author(s)
+## Author
 
 * Ninos Ego <me@ninosego.de>
