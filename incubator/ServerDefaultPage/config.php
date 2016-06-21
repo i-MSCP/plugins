@@ -20,6 +20,6 @@
 
 return array(
     // Certificate path for the https connection
-    // Leave empty for self-signed SSL certificate
+    // Leave empty for use of a self-signed SSL certificate
     'certificate' => ''
 );

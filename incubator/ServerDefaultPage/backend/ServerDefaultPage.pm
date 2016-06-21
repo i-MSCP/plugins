@@ -69,14 +69,14 @@ sub install
 
 sub uninstall
 {
-    iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->remove();
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage" )->remove();
 }
 
 =item update($fromVersion, $toVersion)
 
  Process update tasks
 
- Param string $fromVersion
+ Param string $fromVersion Version from which the plugin is being updated
  Return int 0 on success, other on failure
 
 =cut
@@ -86,7 +86,18 @@ sub update
     my ($self, $fromVersion) = @_;
 
     if (version->parse( $fromVersion ) < version->parse( '1.0.6' )) {
-        $self->_copyFolder();
+        my $rs = $self->_copyFolder();
+        return $rs if $rs;
+    }
+
+    if (version->parse( $fromVersion ) < version->parse( '1.2.3' )) {
+        # Rename server default page document root from `default' to `ServerDefaultPage'
+        if (-d "$main::imscpConfig{'USER_WEB_DIR'}/default") {
+            my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->moveDir(
+                "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage"
+            );
+            return $rs if $rs;
+        }
     }
 
     0;
@@ -104,27 +115,13 @@ sub enable
 {
     my $self = shift;
 
-    my $rs = $self->_getIps();
+    my $ips = $self->_getIps();
+    return 1 unless defined $ips;
+
+    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', $ips->{'IPS'} );
     return $rs if $rs;
 
-    my $net = iMSCP::Net->getInstance();
-
-    my $directives = [ ];
-    for(@{$self->{'ipaddrs'}}) {
-        push @{$directives}, $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80";
-    }
-
-    if (@{$directives}) {
-        $rs = $self->_createConfig( '00_ServerDefaultPage.conf', $directives );
-        return $rs if $rs;
-    }
-
-    $directives = [ ];
-    for my $ipAddr(@{$self->{'ssl_ipaddrs'}}) {
-        push @{$directives}, $net->getAddrVersion( $ipAddr ) eq 'ipv4' ? "$ipAddr:443" : "[$ipAddr]:443";
-    }
-
-    if (@{$directives}) {
+    if (@{$ips->{'SSL_IPS'}}) {
         if ($self->{'config'}->{'certificate'} eq '') {
             $rs = iMSCP::OpenSSL->new(
                 certificate_chains_storage_dir => $main::imscpConfig{'CONF_DIR'},
@@ -138,11 +135,11 @@ sub enable
             return $rs if $rs;
         }
 
-        $rs = $self->_createConfig( '00_ServerDefaultPage_ssl.conf', $directives );
+        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', $ips->{'SSL_IPS'} );
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'restart'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 'yes';
     0;
 }
 
@@ -158,17 +155,17 @@ sub disable
 {
     my $self = shift;
 
-    for my $conffile('00_ServerDefaultPage.conf', '00_ServerDefaultPage_ssl.conf') {
-        my $rs = $self->_removeConfig( $conffile );
-        return $rs if $rs;
-    }
+    my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
+    $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
+    return $rs if $rs;
 
     if (-f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem") {
-        my $rs = iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile();
+        $rs = iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile();
         return $rs if $rs;
+
     }
 
-    $self->{'httpd'}->{'restart'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 'yes';
     0;
 }
 
@@ -184,23 +181,38 @@ sub run
 {
     my $self = shift;
 
-    $self->_registerListeners();
+    $self->{'eventManager'}->register( 'afterAddIps', sub { $self->onAddIps( @_ );} );
 }
 
-=item onAddIps()
+=back
 
- Process onAddIps tasks
+=head1 EVENT LISTENERS
 
+=over 4
+
+=item onAddIps(\%$ips)
+
+ Event listener that is responsible to update vhost files for default page
+
+ Param hashref \%ips IP addresses
  Return int 0 on success, other on failure
 
 =cut
 
 sub onAddIps
 {
-    my $self = shift;
+    my ($self, $ips) = @_;
 
-    my $rs = $self->disable();
-    $rs ||= $self->enable();
+    my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
+    $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
+    $rs ||= $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}} );
+
+    if (@{$ips->{'SSL_IPS'}}) {
+        $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
+    }
+
+    $self->{'httpd'}->{'reload'} = 'yes' unless $rs;
+    $rs;
 }
 
 =back
@@ -221,47 +233,37 @@ sub _init
 {
     my $self = shift;
 
-    if ($self->{'action'} =~ /^(?:install|change|update|enable|disable)$/) {
+    if ($self->{'action'} =~ /^(?:install|update|change|enable|disable|run)$/) {
         $self->{'httpd'} = Servers::httpd->factory();
     }
 
     $self;
 }
 
-=item _registerListeners()
+=item _createVhost($vhostTplFile, \%ips)
 
- Register required event listeners
-
- Return int 0
-
-=cut
-
-sub _registerListeners
-{
-    my $self = shift;
-
-    $self->{'eventManager'}->register( 'afterHttpdAddIps', sub { $self->onAddIps( @_ );} );
-}
-
-=item _createConfig($vhostTplFile, $directives)
-
- Create httpd configs
+ Create the given vhost using given directives
 
  Param string $vhostTplFile Vhost template file
- Param array $directives Vhost directives
+ Param hashref \%ips IP addresses
  Return int 0 on success, other on failure
 
 =cut
 
-sub _createConfig
+sub _createVhost
 {
-    my ($self, $vhostTplFile, $directives) = @_;
+    my ($self, $vhostTplFile, $ips) = @_;
 
     my $net = iMSCP::Net->getInstance();
 
+    my @directives;
+    for(@{$ips}) {
+        push @directives, $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80";
+    }
+
     $self->{'httpd'}->setData(
         {
-            IPS_PORTS       => "@{$directives}",
+            IPS_PORTS       => "@directives",
             BASE_SERVER_IP  => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
                 ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
             APACHE_WWW_DIR  => $main::imscpConfig{'USER_WEB_DIR'},
@@ -280,16 +282,16 @@ sub _createConfig
     );
 }
 
-=item _removeConfig($vhostFile)
+=item _deleteVhost($vhostFile)
 
- Remove httpd configs
+ Delete the given vhost file
 
  Param string $vhostFile Vhost file
  Return int 0 on success, other on failure
 
 =cut
 
-sub _removeConfig
+sub _deleteVhost
 {
     my ($self, $vhostFile) = @_;
 
@@ -315,8 +317,8 @@ sub _copyFolder()
 {
     my $self = shift;
 
-    my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates";
-    my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
+    my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/default";
+    my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage";
 
     my $rs = iMSCP::Dir->new( dirname => $targetDir )->make(
         {
@@ -325,7 +327,7 @@ sub _copyFolder()
             mode  => 0750
         }
     );
-    $rs ||= iMSCP::Dir->new( dirname => "$srcDir/default" )->rcopy( $targetDir );
+    $rs ||= iMSCP::Dir->new( dirname => "$srcDir" )->rcopy( $targetDir );
     $rs ||= setRights(
         $targetDir,
         {
@@ -340,17 +342,17 @@ sub _copyFolder()
 
 =item _getIps()
 
- Get all the used httpd Ips
+ Get all IP addresses
 
- Return int 0 on success, other on failure
+ Return hashref on success, undef on failure
 
 =cut
 
 sub _getIps()
 {
-    my $self = shift;
-
     my $db = iMSCP::Database->factory();
+
+    my $ips = { };
 
     my $rdata = $db->doQuery(
         'ip_number',
@@ -366,13 +368,13 @@ sub _getIps()
     );
     unless (ref $rdata eq 'HASH') {
         error( $rdata );
-        return 1;
+        undef;
     }
 
     # The Base server IP must always be here because even if not used by any domain, the panel use it
     $rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
 
-    @{$self->{'ipaddrs'}} = keys %{$rdata};
+    @{$ips->{'IPS'}} = keys %{$rdata};
 
     $rdata = $db->doQuery(
         'ip_number',
@@ -399,7 +401,7 @@ sub _getIps()
     );
     unless (ref $rdata eq 'HASH') {
         error( $rdata );
-        return 1;
+        undef;
     }
 
     if ($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
@@ -407,8 +409,8 @@ sub _getIps()
         $rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
     }
 
-    @{$self->{'ssl_ipaddrs'}} = keys %{$rdata};
-    0;
+    @{$ips->{'SSL_IPS'}} = keys %{$rdata};
+    $ips;
 }
 
 =back

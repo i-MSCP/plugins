@@ -5,10 +5,13 @@ ServerDefaultPage - ChangeLog
 Version 1.2.3
 ------------------------------------------------------------------------------------------------------------------------
 
+    Fixed: Avoid usage of experimental smartmatch operator
+    Fixed: HTTPD server instance not defined in run() action context, leading to errors
     Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.3.x
-    Fixed: onAddIps() was not able to use $self
-    Enhancement: Only trigger listener if status is enabled
-    Enhancement: Enhancement: Avoid usage of experimental smartmatch operator
+    Fixed: Only register listener if status is enabled
+    Fixed: SSL certificate must not be re-created in run() action context
+    Fixed: Undefined $self variable in onAddIps event listener
+    Renamed: Server default page document root from `default' to `ServerDefaultPage'
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
