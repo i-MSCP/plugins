@@ -139,7 +139,7 @@ sub enable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'reload'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 1;
     0;
 }
 
@@ -165,7 +165,7 @@ sub disable
 
     }
 
-    $self->{'httpd'}->{'reload'} = 'yes';
+    $self->{'httpd'}->{'reload'} = 1;
     0;
 }
 
@@ -181,7 +181,7 @@ sub run
 {
     my $self = shift;
 
-    $self->{'eventManager'}->register( 'afterAddIps', sub { $self->onAddIps( @_ );} );
+    $self->{'eventManager'}->register( 'afterAddIps', sub { $self->onAddIps( @_ ); } );
 }
 
 =back
@@ -190,9 +190,9 @@ sub run
 
 =over 4
 
-=item onAddIps(\%$ips)
+=item onAddIps(\%ips)
 
- Event listener that is responsible to update vhost files for default page
+ Event listener that is responsibles to update vhost files for the default page
 
  Param hashref \%ips IP addresses
  Return int 0 on success, other on failure
@@ -211,7 +211,7 @@ sub onAddIps
         $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
     }
 
-    $self->{'httpd'}->{'reload'} = 'yes' unless $rs;
+    $self->{'httpd'}->{'reload'} = 1 unless $rs;
     $rs;
 }
 
@@ -255,7 +255,6 @@ sub _createVhost
     my ($self, $vhostTplFile, @ips) = @_;
 
     my $net = iMSCP::Net->getInstance();
-
     $self->{'httpd'}->setData(
         {
             IPS_PORTS       => join( ' ', (map { $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80" } @ips) ),
@@ -269,7 +268,6 @@ sub _createVhost
                 ? 'Require all granted' : 'Allow from all',
         }
     );
-
     $self->{'httpd'}->buildConfFile(
         "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile",
         { },
@@ -290,14 +288,11 @@ sub _deleteVhost
 {
     my ($self, $vhostFile) = @_;
 
-    if (-f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile") {
-        my $rs = iMSCP::File->new(
-            filename => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
-        )->delFile();
-        return $rs if $rs;
-    }
+    return 0 unless -f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile";
 
-    0;
+    iMSCP::File->new(
+        filename => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
+    )->delFile();
 }
 
 =item _copyFolder()
