@@ -5,7 +5,7 @@ ServerDefaultPage - ChangeLog
 Version 1.2.3
 ------------------------------------------------------------------------------------------------------------------------
 
-    Changed: Listen on `afterAddIps' (since 1.3.x) event instead of `afterHttpdAddIps' event
+    Changed: Listen on the `afterAddIps' event (available since 1.3.x) instead of the `afterHttpdAddIps' event
     Fixed: Avoid usage of experimental smartmatch operator
     Fixed: HTTPD server instance not defined in run() action context, leading to errors
     Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.3.x
