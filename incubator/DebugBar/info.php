@@ -23,7 +23,7 @@ return array(
     'email' => 'l.declercq@nuxwin.com',
     'version' => '1.1.2',
     'require_api' => '1.0.4',
-    'date' => '2016-05-14',
+    'date' => '2016-06-25',
     'name' => 'DebugBar',
     'desc' => 'Plugin that provides debug information for i-MSCP.',
     'url' => 'http://i-mscp.net'
