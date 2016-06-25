@@ -23,7 +23,7 @@ return array(
     'email'       => 'info@space2place.de',
     'version'     => '1.1.1',
     'require_api' => '1.0.4',
-    'date'        => '2016-05-14',
+    'date'        => '2016-06-25',
     'name'        => 'RecaptchaPMA',
     'desc'        => "This plugin add reCAPTCHA support to phpMyAdmin.",
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:recaptchapma'
