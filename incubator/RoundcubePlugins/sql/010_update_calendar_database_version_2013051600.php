@@ -19,17 +19,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+$roundcubeDbName = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube');
+
+# We must check column existence before add it due error made at commit 6c17b88771f0586ec0949c838b091dc0f4b1d4cc, in
+# which that column has been added in an existent migration file instead of a new one.
+$addColumn = function ($dbName, $table, $column, $def) {
+    $table = quoteIdentifier($table);
+    $stmt = exec_query("SHOW COLUMNS FROM $dbName.$table LIKE ?", $column);
+    if (!$stmt->rowCount()) {
+        return sprintf('ALTER TABLE %s.%s ADD %s %s;', $dbName, $table, quoteIdentifier($column), $def);
+    }
+    return '';
+};
 
 return array(
-    'up'   => "
-        ALTER TABLE " . $roundcubeDbName . ".events ADD url VARCHAR(255) NOT NULL AFTER categories;
-
-        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('calendar-database-version', '2013051600');
+    'up'   =>
+        $addColumn($roundcubeDbName, 'events', 'url', 'VARCHAR(255) NOT NULL AFTER categories') . "
+        REPLACE INTO $roundcubeDbName.system (name, value) VALUES ('calendar-database-version', '2013051600');
     ",
     'down' => "
-        ALTER TABLE " . $roundcubeDbName . ".events DROP url;
-
-        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('calendar-database-version', '2013042700');
+        ALTER TABLE $roundcubeDbName.events DROP url;
+        REPLACE INTO $roundcubeDbName.system (name, value) VALUES ('calendar-database-version', '2013042700');
     "
 );

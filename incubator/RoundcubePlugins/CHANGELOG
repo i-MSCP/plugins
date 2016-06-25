@@ -13,7 +13,9 @@ Version 1.2.4
     Changed: Managesieve requirements check
     Changed: Run cronjob with lower priority
     Changed: Switch from imscp_pw_changer to password plugin
+    Changed: The Managesieve plugin is now disabled by default to make package installation optional
     Fixed: Check that Roundcube is installed
+    Fixed: Could not update from version 1.1.0 due to duplicate columns
     Fixed: Deletion of Roundcube plugins on uninstall
     Fixed: Regex for archive and managesieve plugins
     Removed: Experimental smartmatch operator

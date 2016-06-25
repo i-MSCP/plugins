@@ -1,6 +1,6 @@
 #  i-MSCP RoundcubePlugins plugin v1.2.4
 
-Plugin allows to use Roundcube Plugins with i-MSCP.
+Plugin that provides many plugins for Roundcube.
 
 ## Requirements
 
@@ -46,17 +46,17 @@ This plugin adds an header identifying the originating IP for the mails sent via
 
 ### Archive
 
-This plugin adds a new button to the Roundcube toolbar to move messages to an ( user selectable ) archive folder. The
-button will only appear after the user configured the archive folder.
+This plugin adds a new button to the Roundcube toolbar to move messages to an (user selectable) archive folder. The
+button will appears after the user configured the archive folder.
 
 ### Calendar
 
-This plugin provide cCalendar feature for roundcube
+This plugin provides calendar feature for roundcube
 
 ### ContextMenu
 
-This plugin adds a context menus to the message list, folder list and address book. It allow to mark mails as
-read/unread, delete, reply and forward mails.
+This plugin adds a context menus to the message list, folder list and address book. It allows to mark mails as
+read/unread, delete, reply or forward them.
 
 ### dkimstatus
 
@@ -64,21 +64,23 @@ This plugin displays the DKIM Signature status of each mail in Roundcube.
 
 ### emoticons
 
-This plugin allows to inserts nice smileys and other emoticons when the appropriate text representations e.g. :-) are
-discovered in the mail text.
+This plugin allows to parse and display smileys and other emoticons found in body of mails.
 
 ### LogonPage
 
-This plugin allows to display additional information ( HTML code block ) at logon page.
+This plugin allows to display additional information (HTML code block) at logon page.
 
 #### Configuration
 
 Put your content into the file config-templates/logon_page/logon_page.html It will be parsed by Roundcube templates
-engine, so you can use all template features ( tags ).
+engine, so you can use all template features (tags).
 
 ### ManageSieve
 
-This plugin add support for  managesieve protocol and allows the users to manage their sieve mail rules.
+This plugin adds support for managesieve protocol and allows the users to manage their sieve mail rules. Note that this
+plugins is disabled by default. You can enable that plugin by updating the plugin configuration file (by changing the
+`managesieve_plugin` configuration parameter value from `no` to `yes`), and by updating the plugin list through the
+plugin management interface.
 
 **Note:** A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
 
@@ -105,12 +107,10 @@ This plugin allows to add pop3 accounts and automatically fetch emails from them
 
 ## Rcguard
 
-This plugin logs failed login attempts and requires users to go through
-a reCAPTCHA verification process when the number of failed attempts go
-too high. This provides protection against automated attacks.
+This plugin logs the failed login attempts and requires users to go through a reCAPTCHA verification process when the
+number of failed attempts are reaching limit. This provides protection against automated attacks.
 
-Failed attempts are logged by IP and stored within MySQL. IPs are also
-released after a certain amount of time.
+Failed attempts are logged by IP and stored within MySQL. IPs are also released after a certain amount of time.
 
 ### TaskList
 

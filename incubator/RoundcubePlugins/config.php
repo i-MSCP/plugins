@@ -49,7 +49,7 @@ return array(
     // Uses the managesieve protocol and allows the user to manage his sieve mail rules.
     // A default Spam sieve rule will be created after the user opened the Filters configuration in Roundcube.
     // This plugin only works with po server dovecot.
-    'managesieve_plugin'                => 'yes', // YES to enable (default), NO to disable
+    'managesieve_plugin'                => 'no', // YES to enable, NO (default) to disable
 
     'managesieve_config'      => array(
         // Enables separate management interface for vacation responses (out-of-office)

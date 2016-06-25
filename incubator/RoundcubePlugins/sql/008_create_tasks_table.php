@@ -19,11 +19,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+$roundcubeDbName = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube');
 
 return array(
     'up'   => "
-        CREATE TABLE IF NOT EXISTS " . $roundcubeDbName . ".tasks (
+        CREATE TABLE IF NOT EXISTS $roundcubeDbName.tasks (
             task_id int(10) unsigned NOT NULL AUTO_INCREMENT,
             tasklist_id int(10) unsigned NOT NULL,
             parent_id int(10) unsigned DEFAULT NULL,
@@ -53,6 +53,6 @@ return array(
         ) /*!40000 ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci */;
     ",
     'down' => "
-        DROP TABLE IF EXISTS " . $roundcubeDbName . ".tasks;
+        DROP TABLE IF EXISTS $roundcubeDbName.tasks;
     "
 );

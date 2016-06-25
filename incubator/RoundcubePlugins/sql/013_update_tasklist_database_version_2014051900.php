@@ -19,19 +19,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+$roundcubeDbName = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube');
 
 return array(
     'up'   => "
-        ALTER TABLE " . $roundcubeDbName . ".tasks ADD status ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER complete;
-
-        UPDATE " . $roundcubeDbName . ".tasks SET status='COMPLETED' WHERE complete=1.0 AND status='';
-
-        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('tasklist-database-version', '2014051900');
+        ALTER TABLE $roundcubeDbName.tasks ADD status ENUM('','NEEDS-ACTION','IN-PROCESS','COMPLETED','CANCELLED') NOT NULL DEFAULT '' AFTER complete;
+        UPDATE $roundcubeDbName.tasks SET status='COMPLETED' WHERE complete=1.0 AND status='';
+        REPLACE INTO $roundcubeDbName.system (name, value) VALUES ('tasklist-database-version', '2014051900');
     ",
     'down' => "
-        ALTER TABLE " . $roundcubeDbName . ".tasks DROP status;
-
-        DELETE FROM " . $roundcubeDbName . ".system WHERE name = 'tasklist-database-version';
+        ALTER TABLE $roundcubeDbName.tasks DROP status;
+        DELETE FROM $roundcubeDbName.system WHERE name = 'tasklist-database-version';
     "
 );

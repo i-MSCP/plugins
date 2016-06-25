@@ -19,13 +19,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$roundcubeDbName = iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube';
+$roundcubeDbName = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_roundcube');
 
 return array(
     'up'   => "
-        REPLACE INTO " . $roundcubeDbName . ".system (name, value) VALUES ('calendar-database-version', '2013042700');
+        REPLACE INTO $roundcubeDbName.system (name, value) VALUES ('calendar-database-version', '2013042700');
     ",
     'down' => "
-        DELETE FROM " . $roundcubeDbName . ".system WHERE name = 'calendar-database-version';
+        DELETE FROM $roundcubeDbName.system WHERE name = 'calendar-database-version';
     "
 );
