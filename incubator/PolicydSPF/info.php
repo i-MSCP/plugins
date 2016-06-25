@@ -21,9 +21,9 @@
 return array(
     'author'      => 'Ninos Ego',
     'email'       => 'me@ninosego.de',
-    'version'     => '1.1.1',
+    'version'     => '1.1.0',
     'require_api' => '1.0.4',
-    'date'        => '2016-06-13',
+    'date'        => '2016-06-25',
     'name'        => 'PolicydSPF',
     'desc'        => 'Plugin that provides Postfix policy server for RFC 4408 SPF checking.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
