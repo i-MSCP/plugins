@@ -27,8 +27,8 @@ return array(
     'email' => 'team@i-mscp.net',
     'version' => '1.0.1',
     'require_api' => '1.0.4',
-    'date' => '2016-05-14',
+    'date' => '2016-06-25',
     'name' => 'AdminerSQL',
-    'desc' => 'Plugin which allows to manage SQL databases through Adminer.',
+    'desc' => 'Plugin that allows to manage SQL databases through Adminer.',
     'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
 );

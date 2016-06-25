@@ -1,6 +1,6 @@
 # i-MSCP AdminerSQL plugin v1.0.0
 
-Plugin which allows to manage SQL databases through Adminer.
+Plugin that allows to manage SQL databases through Adminer.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ Plugin which allows to manage SQL databases through Adminer.
 1. Backup your plugin configuration file if needed
 2. Login into the panel as admin and go to the plugin management interface
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
