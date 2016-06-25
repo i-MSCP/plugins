@@ -23,7 +23,7 @@ return array(
     'email' => 'l.declercq@nuxwin.com',
     'version' => '1.1.2',
     'require_api' => '1.0.4',
-    'date' => '2016-05-14',
+    'date' => '2016-06-25',
     'name' => 'DomainAutoApproval',
     'desc' => 'Plugin that allows auto-approval of domain aliases created by clients.',
     'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
