@@ -21,9 +21,9 @@
 return array(
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '1.0.1',
+    'version'     => '1.1.0',
     'require_api' => '1.0.4',
-    'date'        => '2016-06-13',
+    'date'        => '2016-06-25',
     'name'        => 'PolicydWeight',
     'desc'        => 'Plugin that provides the policyd-weight policy daemon for Postfix.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
