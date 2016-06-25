@@ -23,7 +23,7 @@ return array(
     'email' => 'l.declercq@nuxwin.com',
     'version' => '1.0.1',
     'require_api' => '1.0.4',
-    'date' => '2016-05-15',
+    'date' => '2016-06-15',
     'name' => 'HelloWorld',
     'desc' => 'A plugin sample that say Hello World when the i-MSCP login page is loaded',
     'url' => 'http://i-mscp.net'
