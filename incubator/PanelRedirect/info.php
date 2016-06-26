@@ -21,7 +21,7 @@
 return array(
     'author'      => 'Ninos Ego',
     'email'       => 'me@ninosego.de',
-    'version'     => '1.1.2',
+    'version'     => '1.1.3',
     'require_api' => '1.0.4',
     'date'        => '2016-06-25',
     'name'        => 'PanelRedirect',

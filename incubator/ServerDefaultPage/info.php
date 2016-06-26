@@ -21,7 +21,7 @@
 return array(
     'author'      => 'Ninos Ego',
     'email'       => 'me@ninosego.de',
-    'version'     => '1.2.3',
+    'version'     => '1.2.4',
     'require_api' => '1.0.4',
     'date'        => '2016-06-25',
     'name'        => 'ServerDefaultPage',

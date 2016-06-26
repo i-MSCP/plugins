@@ -66,7 +66,7 @@ sub enable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'reload'} = 1;
+    $self->{'httpd'}->{'restart'} = 1;
     0;
 }
 
@@ -90,7 +90,7 @@ sub disable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'reload'} = 1;
+    $self->{'httpd'}->{'restart'} = 1;
     0;
 }
 

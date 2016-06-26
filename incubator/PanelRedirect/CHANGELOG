@@ -5,6 +5,12 @@ PanelRedirect - ChangeLog
 Version 1.1.2
 ------------------------------------------------------------------------------------------------------------------------
 
+    Fixed: Apache2 not reloaded - reload attribute is not defined
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.2
+------------------------------------------------------------------------------------------------------------------------
+
     Enhancement: Avoid usage of experimental smartmatch operator
     Enhancement: Allow invalid SSL certificates
     Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.3.0

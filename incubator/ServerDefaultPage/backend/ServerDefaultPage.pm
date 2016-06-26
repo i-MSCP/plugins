@@ -139,7 +139,7 @@ sub enable
         return $rs if $rs;
     }
 
-    $self->{'httpd'}->{'reload'} = 1;
+    $self->{'httpd'}->{'restart'} = 1;
     0;
 }
 
@@ -165,7 +165,7 @@ sub disable
 
     }
 
-    $self->{'httpd'}->{'reload'} = 1;
+    $self->{'httpd'}->{'restart'} = 1;
     0;
 }
 
@@ -211,7 +211,7 @@ sub onAddIps
         $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
     }
 
-    $self->{'httpd'}->{'reload'} = 1 unless $rs;
+    $self->{'httpd'}->{'restart'} = 1 unless $rs;
     $rs;
 }
 
