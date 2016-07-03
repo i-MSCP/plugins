@@ -89,9 +89,7 @@ sub uninstall
 {
     my $self = shift;
 
-    my $rs = $self->{'db'}->doQuery(
-        'u', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'todelete', 'OpenDKIM_Plugin'
-    );
+    my $rs = $self->{'db'}->doQuery( 'd', "DELETE FROM domain_dns WHERE owned_by = 'OpenDKIM_Plugin'" );
     unless (ref $rs eq 'HASH') {
         error( $rs );
         return $rs;
@@ -127,10 +125,8 @@ sub update
 
     if (version->parse( $fromVersion ) < version->parse( '1.1.1' )) {
         # Fix bug in versions < 1.1.1 where the `owned_by' field for DKIM DNS resource records was reseted back to
-        # `opendkim_feature' and not removed on plugin uninstallation 
-        my $rs = $self->{'db'}->doQuery(
-            'd', 'DELETE FROM domain_dns  WHERE owned_by = ?', 'todelete', 'opendkim_feature'
-        );
+        # `opendkim_feature', leading to orphaned custom DNS resource records 
+        my $rs = $self->{'db'}->doQuery( 'd', "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
         unless (ref $rs eq 'HASH') {
             error( $rs );
             return $rs;
