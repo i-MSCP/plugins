@@ -125,7 +125,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
      */
     public function onClientScriptStart()
     {
-        if (self::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
+        if (self::customerHasOpenDKIM($_SESSION['user_id'])) {
             $this->setupNavigation('client');
         }
     }

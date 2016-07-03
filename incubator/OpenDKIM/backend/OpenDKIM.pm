@@ -36,6 +36,7 @@ use iMSCP::Rights;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use Servers::mta;
+use version;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -88,7 +89,15 @@ sub uninstall
 {
     my $self = shift;
 
-    my $rs = $self->_opendkimConfig( 'deconfigure' );
+    my $rs = $self->{'db'}->doQuery(
+        'u', 'UPDATE domain_dns SET domain_dns_status = ? WHERE owned_by = ?', 'todelete', 'OpenDKIM_Plugin'
+    );
+    unless (ref $rs eq 'HASH') {
+        error( $rs );
+        return $rs;
+    }
+
+    $rs = $self->_opendkimConfig( 'deconfigure' );
     return $rs if $rs;
 
     local $@;
@@ -102,17 +111,31 @@ sub uninstall
     $rs ||= iMSCP::Dir->new( dirname => '/var/spool/postfix/opendkim' )->remove();
 }
 
-=item update()
+=item update($fromVersion)
 
  Perform update tasks
 
+ 
+ Param string $fromVersion Version from which the plugin is being updated
  Return int 0 on success, other on failure
 
 =cut
 
 sub update
 {
-    my $self = shift;
+    my ($self, $fromVersion) = @_;
+
+    if (version->parse( $fromVersion ) < version->parse( '1.1.1' )) {
+        # Fix bug in versions < 1.1.1 where the `owned_by' field for DKIM DNS resource records was reseted back to
+        # `opendkim_feature' and not removed on plugin uninstallation 
+        my $rs = $self->{'db'}->doQuery(
+            'd', 'DELETE FROM domain_dns  WHERE owned_by = ?', 'todelete', 'opendkim_feature'
+        );
+        unless (ref $rs eq 'HASH') {
+            error( $rs );
+            return $rs;
+        }
+    }
 
     my $rs = $self->_createOpendkimDirectories();
     $rs ||= $self->_opendkimConfig( 'configure' );
