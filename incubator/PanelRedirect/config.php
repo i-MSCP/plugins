@@ -19,7 +19,8 @@
  */
 
 return array(
-    // Redirection type ( default: proxy )
+    // Operational modes ( default: proxy )
     // Possible values: proxy, redirect
+    // See the README.md file for more details
     'type' => 'proxy'
 );
