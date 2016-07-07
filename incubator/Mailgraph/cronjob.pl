@@ -54,7 +54,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
     }
 );
 
-my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/backend/Mailgraph.pm";
+my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Mailgraph/backend/Mailgraph.pm";
 require $pluginFile;
 
 my $pluginClass = "Plugin::Mailgraph";
