@@ -5,6 +5,12 @@ Mailgraph - Changelog
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
+    Fixed: Cronjob make reference to wrong plugin backend file (Monitorix instead of Mailgraph)
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.0
+------------------------------------------------------------------------------------------------------------------------
+
     Fixed: Compile time errors (backend)
     Fixed: The plugin's data are not available when plugin is loaded through a cron job
     Fixed: Syntax error in cronjob file

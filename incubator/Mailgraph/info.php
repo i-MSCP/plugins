@@ -24,8 +24,8 @@ return array(
     'email' => 'info@space2place.de',
     'version' => '1.1.0',
     'require_api' => '1.0.4',
-    'date' => '2016-06-25',
+    'date' => '2016-07-07',
     'name' => 'Mailgraph',
-    'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail).',
+    'desc' => 'Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail).',
     'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailgraph'
 );
