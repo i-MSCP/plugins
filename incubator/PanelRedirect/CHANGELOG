@@ -5,6 +5,7 @@ PanelRedirect - ChangeLog
 Version 1.1.4
 ------------------------------------------------------------------------------------------------------------------------
 
+    Added: Request headers in proxy mode
     Updated: README.md file (added section for available operational modes)
 
 ------------------------------------------------------------------------------------------------------------------------
