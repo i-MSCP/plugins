@@ -118,7 +118,7 @@ sub enable
     my $ips = $self->_getIps();
     return 1 unless defined $ips;
 
-    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}} );
+    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}}, 80 );
     return $rs if $rs;
 
     if (@{$ips->{'SSL_IPS'}}) {
@@ -135,7 +135,7 @@ sub enable
             return $rs if $rs;
         }
 
-        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
+        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}}, 443 );
         return $rs if $rs;
     }
 
@@ -205,10 +205,10 @@ sub onAddIps
 
     my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
     $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
-    $rs ||= $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}} );
+    $rs ||= $self->_createVhost( '00_ServerDefaultPage.conf', @{$ips->{'IPS'}}, 80 );
 
     if (@{$ips->{'SSL_IPS'}}) {
-        $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}} );
+        $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', @{$ips->{'SSL_IPS'}}, 443 );
     }
 
     $self->{'httpd'}->{'restart'} = 1 unless $rs;
@@ -240,24 +240,25 @@ sub _init
     $self;
 }
 
-=item _createVhost($vhostTplFile, @ips)
+=item _createVhost($vhostTplFile, @ips, $port)
 
  Create the given vhost using given directives
 
  Param string $vhostTplFile Vhost template file
  Param list @ips IP addresses
+ Param int $port Listen port
  Return int 0 on success, other on failure
 
 =cut
 
 sub _createVhost
 {
-    my ($self, $vhostTplFile, @ips) = @_;
+    my ($self, $vhostTplFile, @ips, $port) = @_;
 
     my $net = iMSCP::Net->getInstance();
     $self->{'httpd'}->setData(
         {
-            IPS_PORTS       => join( ' ', (map { $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80" } @ips) ),
+            IPS_PORTS       => join( ' ', map { ( $net->getAddrVersion( $_ ) eq 'ipv4' ? $_ : "[$_]" ).":$port" } @ips),
             BASE_SERVER_IP  => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
                 ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
             APACHE_WWW_DIR  => $main::imscpConfig{'USER_WEB_DIR'},
