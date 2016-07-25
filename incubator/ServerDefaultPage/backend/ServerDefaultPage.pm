@@ -258,6 +258,7 @@ sub _createVhost
     $self->{'httpd'}->setData(
         {
             IPS_PORTS       => join( ' ', (map { $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:80" : "[$_]:80" } @ips) ),
+            SSL_IPS_PORTS       => join( ' ', (map { $net->getAddrVersion( $_ ) eq 'ipv4' ? "$_:443" : "[$_]:443" } @ips) ),
             BASE_SERVER_IP  => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
                 ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
             APACHE_WWW_DIR  => $main::imscpConfig{'USER_WEB_DIR'},
