@@ -43,7 +43,7 @@ return array(
 
     // SA learn cronjob for learning about spam/ham (default: run every 12 hours)
     'cronjob_bayes_sa-learn'    => array(
-        'minute' => '*',
+        'minute' => '0',
         'hour'   => '*/12',
         'day'    => '*',
         'month'  => '*',
