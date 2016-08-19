@@ -77,7 +77,8 @@ sub change
 {
     my $self = shift;
 
-    my $rs = $self->_createSaUser();
+    my $rs = $self->_checkRequirements();
+    $rs ||= $self->_createSaUser();
     $rs ||= $self->_getSaDbPassword();
     $rs ||= $self->_spamassassinRulesHeinleinSupport( 'add' );
     $rs ||= $self->_spamassassinConfig( '00_imscp.cf' );
@@ -1326,8 +1327,13 @@ sub _createSaUser
 
 sub _checkRequirements
 {
+    my $self = shift;
+
     my $ret = 0;
     for(qw/ spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor /) {
+        next if ($_ eq 'pyzor' && $self->{'config'}->{'use_pyzor'} ne 'yes');
+        next if ($_ eq 'razor' && $self->{'config'}->{'use_razor2'} ne 'yes');
+
         if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\sinstalled\$'" )) {
             error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
             $ret ||= 1;

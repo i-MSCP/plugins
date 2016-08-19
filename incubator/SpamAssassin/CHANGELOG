@@ -2,6 +2,7 @@ SpamAssassin - ChangeLog
 ========================
 
     Fixed: Wrong cron settings for cronjob_bayes_sa-learn
+    Fixed: Requirements check for pyzor & razor if not enabled in config
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
