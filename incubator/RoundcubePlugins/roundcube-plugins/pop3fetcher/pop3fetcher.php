@@ -5,6 +5,7 @@
  *
  * @version 1.9
  * @author Paolo Moretti <morepaolo@gmail.com>
+ * Fixed by @theqkash to make it work in newer roundcube versions
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -118,7 +119,7 @@ function init(){
 						}
 						// These two calls create errors in Roundcube 0.7.2, maybe they are useless also in later versions.... testing...
 						$this->rcmail->get_storage();
-						$this->rcmail->imap_connect();
+						$this->rcmail->storage_connect();
 						$max_messages_downloaded_x_session=10;
 						$max_bytes_downloaded_x_session=1000000;
 						$cur_bytes_downloaded=0;
@@ -275,7 +276,7 @@ function edit_do(){
 	
 	
 	//MUST CREATE THE TARGET FOLDER IF IT DOESN'T EXIST
-	$rcmail->imap_connect();
+	$rcmail->storage_connect();
 	$delimiter = $rcmail->imap->get_hierarchy_delimiter();
 	
 	if($pop3fetcher_defaultfolder=="#AUTO_FOLDER#")
@@ -445,7 +446,7 @@ function accounts_form_content($email="",$username="",$password="",$server="", $
 	
 	// SET TARGET DEFAULT FOLDER
 	$field_id = 'pop3fetcher_defaultfolder';
-	$this->rcmail->imap_connect();
+	$this->rcmail->storage_connect();
 	// get mailbox list
 	$a_folders = $rcmail->imap->list_folders();
 	$delimiter = $rcmail->imap->get_hierarchy_delimiter();
@@ -557,7 +558,7 @@ function add_do(){
 	$pop3fetcher_import_old_messages = get_input_value('_pop3fetcher_import_old_messages', RCUBE_INPUT_POST);
 		
 	//MUST CREATE THE TARGET FOLDER IF IT DOESN'T EXIST
-	$rcmail->imap_connect();
+	$rcmail->storage_connect();
 	$delimiter = $rcmail->imap->get_hierarchy_delimiter();
 	if($this->config["debug"]) write_log("pop3fetcher.txt", "SET DEFAULT FOLDER ON SAVE: $pop3fetcher_defaultfolder");
 	if($pop3fetcher_defaultfolder=="#AUTO_FOLDER#")
