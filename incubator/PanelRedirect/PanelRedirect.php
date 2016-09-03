@@ -23,40 +23,4 @@
  */
 class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
 {
-    /**
-     * Register a callback for the given event(s)
-     *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
-     * @return void
-     */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
-    {
-        $eventsManager->registerListener(
-            array(
-                iMSCP_Events::onLoginScriptStart,
-                iMSCP_Events::onLostPasswordScriptStart,
-                iMSCP_Events::onAdminScriptStart,
-                iMSCP_Events::onResellerScriptStart,
-                iMSCP_Events::onClientScriptStart,
-                iMSCP_Events::onBeforePluginsRoute
-            ),
-            array($this, 'overrideHttpPorts')
-        );
-    }
-
-    /**
-     * Override HTTP ports which are defined by i-MSCP in case of proxy usage
-     *
-     * @return void
-     */
-    public function overrideHttpPorts()
-    {
-        if ($this->getConfigParam('type', 'unknown') !== 'proxy') {
-            return;
-        }
-
-        $config = iMSCP_Registry::get('config');
-        $config['BASE_SERVER_VHOST_HTTP_PORT'] = 80;
-        $config['BASE_SERVER_VHOST_HTTPS_PORT'] = 443;
-    }
 }

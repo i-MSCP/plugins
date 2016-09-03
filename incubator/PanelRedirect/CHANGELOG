@@ -6,6 +6,7 @@ Version 1.1.4
 ------------------------------------------------------------------------------------------------------------------------
 
     Added: X-Forwarded-Proto and X-Forwarded-Port request headers (proxy mode)
+    Fixed: Do not override frontEnd HTTP ports
     Fixed: Possible proxy timeout on statistic page (increased timeout value)
     Updated: README.md file (added section for available operational modes)
 
