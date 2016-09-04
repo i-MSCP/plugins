@@ -3,7 +3,7 @@
 /**
  * Download emails from POP3 accounts and save them in your IMAP account.
  *
- * @version 1.91
+ * @version 1.9.1
  * @author Paolo Moretti <morepaolo@gmail.com>
  *
  *
