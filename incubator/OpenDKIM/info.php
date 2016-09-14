@@ -27,8 +27,8 @@ return array(
         'Rene Schuster'
     ),
     'email' => 'team@i-mscp.net',
-    'version' => '1.1.1',
-    'require_api' => '1.0.4',
+    'version' => '1.1.2',
+    'require_api' => '1.0.5',
     'date' => '2016-09-14',
     'name' => 'OpenDKIM',
     'desc' => 'Plugin that provides DomainKeys Identified Mail (DKIM) service.',
