@@ -110,10 +110,10 @@ return array(
     // Heinlein Support SpamAssassin rules (default: yes)
     //
     // Latest SpamAssassin rules directly from the Heinlein Hosting live systems.
-    // Heinlein Support is a German ISP company and specialized on mail servers. 
+    // Heinlein Support is a German ISP company and specialized on mail servers.
     // The founder and owner Peer Heinlein has written several books about Dovecot and Postfix.
-    // 
-    // For further details check the link below: 
+    //
+    // For further details check the link below:
     // https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
     'heinlein-support_sa-rules' => 'yes',
 
@@ -176,12 +176,12 @@ return array(
         // Reject spam
         //
         // If set to '-1', mails are always rejected when they are detected as SPAM.
-        // If set to '15', mails are only rejected when the score is equal or greater then 15. 
+        // If set to '15', mails are only rejected when the score is equal or greater then 15.
         // Mails below that score are not rejected but tagged as SPAM.
         //
         // If you don't want to reject any mails, then use a value higher then '1000'.
         //
-        // Note: Rejecting SPAM is supported because the checks are done totally legal 
+        // Note: Rejecting SPAM is supported because the checks are done totally legal
         // before the MTA accepts the mails (before-queue filter with spamass-milter).
         'reject_spam'          => '-1', // (default: -1)
 
@@ -189,10 +189,10 @@ return array(
         // If set to 'yes', all outgoing mails of authenticated senders are scanned.
         'check_smtp_auth'      => 'yes', // (default: yes)
 
-        // Don't scan listed networks 
+        // Don't scan listed networks
         //
-        // Mails will be passed through without beeing scanned if the originating IP is listed 
-        // in networks. Networks is a comma-separated list, where each element can be either an 
+        // Mails will be passed through without beeing scanned if the originating IP is listed
+        // in networks. Networks is a comma-separated list, where each element can be either an
         // IP address (nnn.nnn.nnn.nnn), a CIDR network (nnn.nnn.nnn.nnn/nn), or a network/netmask
         // pair (nnn.nnn.nnn.nnn/nnn.nnn.nnn.nnn).
         //
