@@ -1,7 +1,7 @@
 <?php
 
 /* automatic_addressbook plugin */
-$rcmail_config['default_addressbook'] = '0';
+$rcmail_config['default_addressbook'] = '1';
 
 /* on edit move to default addressbook */
 $rcmail_config['on_edit_move_to_default'] = FALSE;
