@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+    http://pear.php.net/dtd/tasks-1.0.xsd
+    http://pear.php.net/dtd/package-2.0
+    http://pear.php.net/dtd/package-2.0.xsd">
+ <name>automatic_addressbook</name>
+ <channel>pear.roundcube.net</channel>
+ <summary>The automatic addressbook plugin collect each address you send an email to and records it in an address book, making it available for later use or auto-completion.</summary>
+ <description>Simple plugin to register to &quot;collect&quot; all recipients of sent mail
+to a dedicated address book (usefull for autocompleting email you
+already used). User can choose in preferences (compose group) to
+enable or disable the feature of this plugin.
+Aims to reproduce the similar features of thunderbird or gmail.</description>
+ <lead>
+  <name>Jocelyn Delalande</name>
+  <user>jdelalande</user>
+  <email />
+  <active>no</active>
+ </lead>
+ <lead>
+  <name>Sebastien Blaisot</name>
+  <user>sblaisot</user>
+  <email>sebastien@blaisot.org</email>
+  <active>yes</active>
+ </lead>
+ <date>2012-11-06</date>
+ <time>23:08:19</time>
+ <version>
+  <release>0.4</release>
+  <api>0.4</api>
+ </version>
+ <stability>
+  <release>stable</release>
+  <api>stable</api>
+ </stability>
+ <license uri="http://www.gnu.org/licenses/gpl-3.0.html">GNU GPLv3+</license>
+ <notes>
+v0.4 :
+* Refresh contact list when editing a contact in collected addressbook and having on_edit_move_to_default set to true (#68)
+* Refresh contact list when copying a contact from collected addressbook and having on_edit_move_to_default set to true (Fix #69)
+* Added polish translation. Thanks to Marcin Dorota (#72)
+* Added lithuanian translation. Thanks to Kestutis M (#73)
+
+v0.3.1 :
+* Fix a bug that prevents RC &lt; 0.8 to send mail with plugin activated (#67)
+
+v0.3 :
+* Added nl_NL translation (thanks to Daniel)
+* Updated german translation (thanks to Dennis Riehle)
+* Added zh_CN translation (thaks to FDF)
+
+v0.3-rc1 :
+* Populated documentation files (README and INSTALL) to have documentation available when installing offline
+* Added Changelog File
+* Fixed compatibility with other addressbook_plugins (#46)
+* Fixed Add contact button disabled in default abook after viewing collected abook (#58).
+  Side effect is that you can now add contact in collected abook.
+* Disabled contact groups in collected abook
+* Added calls to exec_hook when creating or deleting a contact to improve compatibility with other plugins (thanks to Venia Legendi for submitting patch) (#56)
+* Added user setting to use automatic abook for autocompletion or not. (#49)
+* Updated database statements in SQL to reflect changes from RC 0.5
+* Now call decode_address_list function from rcube_mime as it is deprecated from rcube_imap (#51)
+* Fixed on_edit_move_to_default not working. Fixes #47. Also Fixes #25
+* Defined plugin task list as advised in plugin writing documentation (maybe will improve performance ?)
+* Added pear package.xml file. This way, the plugin is referenced in the about dialog of interface
+* added vietnamese translation found on internet
+
+v0.2 and before :
+* previous releases
+ </notes>
+ <contents>
+  <dir baseinstalldir="/" name="/">
+   <dir name="config">
+    <file name="config.inc.php.dist" role="cfg" />
+   </dir> <!-- /config -->
+   <dir name="localization">
+    <file name="bg_BG.inc" role="data" />
+    <file name="de_DE.inc" role="data" />
+    <file name="el_GR.inc" role="data" />
+    <file name="en_EN.inc" role="data" />
+    <file name="en_US.inc" role="data" />
+    <file name="es_ES.inc" role="data" />
+    <file name="fr_FR.inc" role="data" />
+    <file name="gl_ES.inc" role="data" />
+    <file name="hu_HU.inc" role="data" />
+    <file name="it_IT.inc" role="data" />
+    <file name="lt_LT.inc" role="data" />
+    <file name="nl_NL.inc" role="data" />
+    <file name="pl_PL.inc" role="data" />
+    <file name="pt_BR.php" role="data" />
+    <file name="ru_RU.inc" role="data" />
+    <file name="vi_VN.inc" role="data" />
+    <file name="zh_CN.inc" role="data" />
+   </dir> <!-- /localization -->
+   <dir name="SQL">
+    <file name="mssql.initial.sql" role="data" />
+    <file name="mssql.update.sql" role="data" />
+    <file name="mysql.initial.sql" role="data" />
+    <file name="mysql.update.sql" role="data" />
+    <file name="postgres.initial.sql" role="data" />
+    <file name="postgres.update.sql" role="data" />
+    <file name="sqlite.initial.sql" role="data" />
+    <file name="sqlite.update.sql" role="data" />
+   </dir> <!-- /SQL -->
+   <file name="automatic_addressbook.php" role="php" />
+   <file name="automatic_addressbook_backend.php" role="php" />
+   <file name="Changelog" role="doc" />
+   <file name="composer.json" role="data" />
+   <file name="INSTALL" role="doc" />
+   <file name="LICENSE" role="doc" />
+   <file name="README" role="doc" />
+  </dir> <!-- / -->
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>5.1.4</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0</min>
+   </pearinstaller>
+   <package>
+    <name>PEAR</name>
+    <channel>pear.php.net</channel>
+    <min>1.4.0</min>
+   </package>
+  </required>
+ </dependencies>
+ <phprelease />
+ <changelog>
+  <release>
+   <version>
+    <release>0.4</release>
+    <api>0.4</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2012-11-06</date>
+   <license uri="http://www.gnu.org/licenses/gpl-3.0.html">GNU GPLv3+</license>
+   <notes>
+v0.4 :
+* Refresh contact list when editing a contact in collected addressbook and having on_edit_move_to_default set to true (#68)
+* Refresh contact list when copying a contact from collected addressbook and having on_edit_move_to_default set to true (Fix #69)
+* Added polish translation. Thanks to Marcin Dorota (#72)
+* Added lithuanian translation. Thanks to Kestutis M (#73)
+
+v0.3.1 :
+* Fix a bug that prevents RC &lt; 0.8 to send mail with plugin activated (#67)
+
+v0.3 :
+* Added nl_NL translation (thanks to Daniel)
+* Updated german translation (thanks to Dennis Riehle)
+* Added zh_CN translation (thaks to FDF)
+
+v0.3-rc1 :
+* Populated documentation files (README and INSTALL) to have documentation available when installing offline
+* Added Changelog File
+* Fixed compatibility with other addressbook_plugins (#46)
+* Fixed Add contact button disabled in default abook after viewing collected abook (#58).
+  Side effect is that you can now add contact in collected abook.
+* Disabled contact groups in collected abook
+* Added calls to exec_hook when creating or deleting a contact to improve compatibility with other plugins (thanks to Venia Legendi for submitting patch) (#56)
+* Added user setting to use automatic abook for autocompletion or not. (#49)
+* Updated database statements in SQL to reflect changes from RC 0.5
+* Now call decode_address_list function from rcube_mime as it is deprecated from rcube_imap (#51)
+* Fixed on_edit_move_to_default not working. Fixes #47. Also Fixes #25
+* Defined plugin task list as advised in plugin writing documentation (maybe will improve performance ?)
+* Added pear package.xml file. This way, the plugin is referenced in the about dialog of interface
+* added vietnamese translation found on internet
+
+v0.2 and before :
+* previous releases
+   </notes>
+  </release>
+ </changelog>
+</package>
