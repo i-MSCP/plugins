@@ -1,4 +1,4 @@
-#  i-MSCP OpenDKIM plugin v1.1.1
+#  i-MSCP OpenDKIM plugin v1.1.2
 
 Plugin that provides DomainKeys Identified Mail (DKIM) service.
 

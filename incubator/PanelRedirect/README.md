@@ -1,4 +1,4 @@
-#  i-MSCP PanelRedirect plugin v1.1.3
+#  i-MSCP PanelRedirect plugin v1.1.4
 
 Plugin that provides access to i-MSCP panel (and tools) through standard https ports (80, 443).
 
@@ -25,14 +25,14 @@ The plugin provides two operational modes which are:
 ### Redirect mode
 
 In this case, a request made on `http://panel.hostname.tld/webmail` would be redirected to 
-`http//panel.hostname.tld:8080/webmail`, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such
-a case, the request would be redirected to `https//panel.hostname.tld:4443/webmail`.
+`http//panel.hostname.tld:8880/webmail`, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such
+case, the request would be redirected to `https//panel.hostname.tld:8443/webmail`.
 
 ###Proxy mode (default mode)
 
 In this mode, all is transparent. A request made on `http://panel.hostname.tld/webmail` would result to the view of the
-webmail without any URL change, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such a case,
-the request would be redirected to `https://panel.hostname.tld/webmail`.
+webmail without any URL change, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such case, the
+request would be redirected to `https://panel.hostname.tld/webmail`.
 
 ## License
 

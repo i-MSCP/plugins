@@ -1,4 +1,4 @@
-#  i-MSCP SpamAssassin plugin v1.1.0
+#  i-MSCP SpamAssassin plugin v1.1.1
 
 Plugin that provides spam filter for Postfix using SpamAssassin.
 
