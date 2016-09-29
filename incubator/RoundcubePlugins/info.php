@@ -26,7 +26,7 @@ return array(
     ),
     'email' => 'team@i-mscp.net',
     'version' => '1.2.5',
-    'require_api' => '1.0.5',
+    'require_api' => '1.0.6',
     'date' => '2016-09-14',
     'name' => 'RoundcubePlugins',
     'desc' => 'Plugin that provides many plugins for Roundcube',

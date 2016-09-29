@@ -528,22 +528,14 @@ sub _modifyDovecotConfig
 
     if ($plugin eq 'archive') {
         if (version->parse( $version ) > version->parse( '2.1.0' )) {
+            $fileContent =~ s/\n\t# Begin Plugin::RoundcubePlugin::archive.*Ending Plugin::RoundcubePlugin::archive\n//sm;
             if ($action eq 'add') {
-                $fileContent =~ s/\n\t# Begin Plugin::RoundcubePlugin::archive.*Ending Plugin::RoundcubePlugin::archive\n//sm;
                 $fileContent =~ s/^(namespace\s+inbox\s+\{.*?)(^\})/$1\n\t# Begin Plugin::RoundcubePlugin::archive\n\tmailbox Archive \{\n\t\tauto = subscribe\n\t\tspecial_use = \\Archive\n\t\}\n\t# Ending Plugin::RoundcubePlugin::archive\n$2/sm;
-            } elsif ($action eq 'remove') {
-                $fileContent =~ s/\n\t# Begin Plugin::RoundcubePlugin::archive.*Ending Plugin::RoundcubePlugin::archive\n//sm;
             }
         } else {
+            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::1st.*Ending Plugin::RoundcubePlugin::archive::1st\n//sm;
             if ($action eq 'add') {
-                $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::1st.*Ending Plugin::RoundcubePlugin::archive::1st\n//sm;
                 $fileContent =~ s/^(plugin\s+\{)/$1\n\t# Begin Plugin::RoundcubePlugin::archive::1st\n\tautocreate = INBOX.Archive\n\tautosubscribe = INBOX.Archive\n\t# Ending Plugin::RoundcubePlugin::archive::1st/sm;
-
-                $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::2nd.*(\tmail_plugins\s+=.*?)\s+autocreate\n\t# Ending Plugin::RoundcubePlugin::archive::2nd\n/$1\n/sm;
-                $fileContent =~ s/^(protocol\s+imap.*?)(\tmail_plugins\s+=.*?)$/$1\t# Begin Plugin::RoundcubePlugin::archive::2nd\n$2 autocreate\n\t# Ending Plugin::RoundcubePlugin::archive::2nd/sm;
-            } elsif ($action eq 'remove') {
-                $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::1st.*Ending Plugin::RoundcubePlugin::archive::1st\n//sm;
-                $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::2nd.*(\tmail_plugins\s+=.*?)\s+autocreate\n\t# Ending Plugin::RoundcubePlugin::archive::2nd\n/$1\n/sm;
             }
         }
     } elsif ($plugin eq 'managesieve') {

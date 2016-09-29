@@ -162,13 +162,14 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
      */
     protected function checkCompat(iMSCP_Events_Event $event)
     {
-        if ($event->getParam('pluginName') == $this->getName()) {
-            $config = iMSCP_Registry::get('config');
+        if ($event->getParam('pluginName') != $this->getName()) {
+            return;
+        }
 
-            if (isset($config['WEBMAIL_PACKAGES']) && !in_array('Roundcube', getWebmailList())) {
-                set_page_message(tr('This plugin require the i-MSCP Roundcube package.'), 'error');
-                $event->stopPropagation();
-            }
+        $config = iMSCP_Registry::get('config');
+        if (isset($config['WEBMAIL_PACKAGES']) && !in_array('Roundcube', getWebmailList())) {
+            set_page_message(tr('This plugin requires the i-MSCP Roundcube package.'), 'error');
+            $event->stopPropagation();
         }
     }
 
@@ -185,9 +186,10 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
             if (!isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
                 $dbConfig['PORT_DOVECOT-SIEVE'] = '4190;tcp;DOVECOT-SIEVE;1;127.0.0.1';
             }
-        } else {
-            $this->removeDovecotSieveServicePort();
+            return;
         }
+
+        $this->removeDovecotSieveServicePort();
     }
 
     /**
@@ -198,7 +200,6 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
     protected function removeDovecotSieveServicePort()
     {
         $dbConfig = iMSCP_Registry::get('dbConfig');
-
         if (isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
             unset($dbConfig['PORT_DOVECOT-SIEVE']);
         }

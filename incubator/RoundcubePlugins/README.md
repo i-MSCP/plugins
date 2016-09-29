@@ -1,10 +1,10 @@
-#  i-MSCP RoundcubePlugins plugin v1.2.5
+#  i-MSCP RoundcubePlugins plugin v1.2.6
 
 Plugin that provides many plugins for Roundcube.
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x (API 1.0.6)
 * Dovecot (Only needed if you want use the managesieve Roundcube plugin)
 * Roundcube >= 1.1.0
 
