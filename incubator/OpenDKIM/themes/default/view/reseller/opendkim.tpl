@@ -1,6 +1,14 @@
 
 <!-- BDP: select_list -->
-<form name="activate_customer" action="opendkim.php" method="post">
+<script>
+    $(function () {
+        $("#activate_customer").on('submit', function($e) {
+            if($(this).find("select").val() == -1)
+                $e.preventDefault();
+        });
+    });
+</script>
+<form name="activate_customer" id="activate_customer" action="opendkim.php" method="post">
     <label>
         <select name="admin_id">
             <option value="-1">{TR_SELECT_NAME}</option>

@@ -113,7 +113,6 @@ sub uninstall
 
  Perform update tasks
 
- 
  Param string $fromVersion Version from which the plugin is being updated
  Return int 0 on success, other on failure
 
@@ -428,6 +427,13 @@ sub _addDomainKey
         return 1;
     }
 
+    local $@;
+    eval { iMSCP::Service->getInstance()->reload( 'opendkim' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
     0;
 }
 
@@ -483,6 +489,13 @@ sub _deleteDomainKey
     );
     unless (ref $rs eq 'HASH') {
         error( $rs );
+        return 1;
+    }
+
+    local $@;
+    eval { iMSCP::Service->getInstance()->reload( 'opendkim' ); };
+    if ($@) {
+        error( $@ );
         return 1;
     }
 
