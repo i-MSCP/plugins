@@ -6,6 +6,7 @@ Version 1.1.5
 ------------------------------------------------------------------------------------------------------------------------
 
     Fixed: Don't proxy/redirect URIs matching ACME http-01 challenge path (Required by LetsEncrypt plugin >= v1.3.0)
+    Fixed: Don't override proxy errors
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.4
