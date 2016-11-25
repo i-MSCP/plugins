@@ -29,17 +29,31 @@ return array(
     // Possible values: ignore, enforce, drop
     'postscreen_greet_action'              => 'enforce',
 
-    // Postscreen dnsbl sites (default: zen.spamhaus.org*2, dnsbl-1.uceprotect.net*1, bl.spamcop.net*1,
-    //                                   list.dnswl.org=127.0.[0..255].[1..3]*-2 )
+    // Postscreen dnsbl sites (default: zen.spamhaus.org*3, bl.mailspike.net*2, b.barracudacentral.org*2, 
+    //      bl.spameatingmonkey.net, bl.spamcop.net, spamtrap.trblspam.com, dnsbl.sorbs.net=127.0.0.[2;3;6;7;10], 
+    //      ix.dnsbl.manitu.net, bl.blocklist.de, list.dnswl.org=127.0.[0..255].0*-1, list.dnswl.org=127.0.[0..255].1*-2, 
+    //      list.dnswl.org=127.0.[0..255].[2..3]*-3, iadb.isipp.com=127.0.[0..255].[0..255]*-2, 
+    //      iadb.isipp.com=127.3.100.[6..200]*-2, wl.mailspike.net=127.0.0.[17;18]*-1, wl.mailspike.net=127.0.0.[19;20]*-2 )
     //
     // See http://www.postfix.org/POSTSCREEN_README.html#dnsbl
     // See http://www.postfix.org/postconf.5.html#postscreen_dnsbl_sites
     'postscreen_dnsbl_sites'               => array(
-        'zen.spamhaus.org*2',
-        'dnsbl-1.uceprotect.net*1',
-        'ix.dnsbl.manitu.net*1',
-        'bl.spamcop.net*1',
-        'list.dnswl.org=127.0.[0..255].[1..3]*-2'
+        'zen.spamhaus.org*3',
+        'bl.mailspike.net*2',
+        'b.barracudacentral.org*2',
+        'bl.spameatingmonkey.net',
+        'bl.spamcop.net',
+        'spamtrap.trblspam.com',
+        'dnsbl.sorbs.net=127.0.0.[2;3;6;7;10]',
+        'ix.dnsbl.manitu.net',
+        'bl.blocklist.de',
+        'list.dnswl.org=127.0.[0..255].0*-1',
+        'list.dnswl.org=127.0.[0..255].1*-2',
+        'list.dnswl.org=127.0.[0..255].[2..3]*-3',
+        'iadb.isipp.com=127.0.[0..255].[0..255]*-2',
+        'iadb.isipp.com=127.3.100.[6..200]*-2',
+        'wl.mailspike.net=127.0.0.[17;18]*-1',
+        'wl.mailspike.net=127.0.0.[19;20]*-2'
     ),
 
     // Postscreen dnsbl threshold (default: 3)
