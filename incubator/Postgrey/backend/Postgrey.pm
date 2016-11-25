@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP Postgrey plugin
-# Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -25,9 +25,8 @@ package Plugin::Postgrey;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::Execute;
 use iMSCP::Service;
 use Servers::mta;
@@ -51,38 +50,33 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_checkRequirements();
-	return $rs if $rs;
+    my $rs = $self->_checkRequirements();
+    return $rs if $rs;
 
-	$rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    my $mta = Servers::mta->factory();
+    $rs = $mta->postconf(
+        (
+            smtpd_recipient_restrictions => {
+                action => 'add',
+                before => qr/permit/,
+                values => [ "check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}" ]
+            },
 
-	# Extract postconf values
-	chomp($stdout);
-	my $postconfValues = $stdout;
-	my @smtpRestrictions = split ', ', $postconfValues;
+        )
+    );
+    return $rs if $rs;
 
-	# Add Postgrey policy server
-	s/^permit$/check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}/ for @smtpRestrictions;
-	push @smtpRestrictions, 'permit';
+    local $@;
+    eval { iMSCP::Service->getInstance()->restart( 'postgrey' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
 
-	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
-
-	$rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	# Make sure that postgrey daemon is running
-	iMSCP::Service->getInstance()->restart('postgrey');
-
-	Servers::mta->factory()->restart('defer');
-
-	0;
+    $mta->{'reload'} = 1;
+    0;
 }
 
 =item disable()
@@ -95,32 +89,24 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = execute('postconf -h smtpd_recipient_restrictions', \my $stdout, \my $stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
-	# Extract postconf values
-	chomp($stdout);
-	my $postconfValues = $stdout;
+    my $mta = Servers::mta->factory();
+    my $rs = $mta->postconf(
+        (
+            smtpd_recipient_restrictions => {
+                action => 'remove',
+                values => [ qr/check_policy_service\s+\Qinet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}\E/ ]
+            },
 
-	# Remove Postgrey policy server
-	my @smtpRestrictions = grep {
-		$_ !~ /^check_policy_service\s+inet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}$/
-	} split ', ', $postconfValues;
+        )
+    );
+    return $rs if $rs;
 
-	my $postconf = 'smtpd_recipient_restrictions=' . escapeShell(join ', ', @smtpRestrictions);
-
-	$rs = execute("postconf -e $postconf", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	Servers::mta->factory()->restart('defer');
-
-	0;
+    $mta->{'reload'} = 1;
+    0;
 }
 
 =back
@@ -133,22 +119,18 @@ sub disable
 
  Check for requirements
 
- Return int 0 if all requirements are meet, other otherwise
+ Return int 0 if all requirements are met, other otherwise
 
 =cut
 
 sub _checkRequirements
 {
-	my $rs = execute(
-		"LANG=C dpkg-query --show --showformat '\${Status}' postgrey | cut -d ' ' -f 3", \my $stdout, \my $stderr
-	);
-	debug($stdout) if $stdout;
-	if($stdout ne 'installed') {
-		error("The postgrey package is not installed on your system");
-		return 1;
-	}
+    if (execute( "dpkg-query -W -f='\${Status}' postgrey 2>/dev/null | grep -q '\\sinstalled\$'" )) {
+        error( "The `postgrey` package is not installed on your system" );
+        return 1;
+    }
 
-	0;
+    0;
 }
 
 =back

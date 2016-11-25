@@ -1,10 +1,10 @@
-# i-MSCP DomainAutoApproval plugin v1.1.0
+#  i-MSCP DomainAutoApproval plugin v1.1.2
 
-Plugin which allows auto-approval of new domain aliases.
+Plugin that allows auto-approval of domain aliases created by clients.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 
 ## Installation
 
@@ -15,7 +15,7 @@ Plugin which allows auto-approval of new domain aliases.
 
 1. Backup your plugin configuration file if needed
 2. Upload the plugin through the plugin management interface
-3. Restore your plugin configuration file if needed ( compare it with the new version first )
+3. Restore your plugin configuration file if needed (compare it with the new version first)
 4. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -29,7 +29,7 @@ change by updating the plugin list through the plugin management interface.
 
 ```
 i-MSCP DomainAutoApproval plugin
-copyright (c) 2012-2015 laurent declercq <l.declercq@nuxwin.com>
+copyright (C) 2012-2016 laurent declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public

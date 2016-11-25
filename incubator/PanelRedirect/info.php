@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PanelRedirect plugin
- * Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+ * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Ninos Ego',
-	'email' => 'me@ninosego.de',
-	'version' => '1.1.0',
-	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
-	'name' => 'PanelRedirect',
-	'desc' => 'Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
+    'author'      => 'Ninos Ego',
+    'email'       => 'me@ninosego.de',
+    'version'     => '1.1.5',
+    'require_api' => '1.0.5',
+    'date'        => '2016-11-10',
+    'name'        => 'PanelRedirect',
+    'desc'        => 'Plugin that provides access to i-MSCP panel (and tools) through standard ports (80, 443).',
+    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
 );

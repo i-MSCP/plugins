@@ -68,9 +68,12 @@ class pdfviewer extends rcube_plugin
     {
         // redirect to viewer/viewer.html
         if (!$args['download'] && $args['mimetype'] && empty($_GET['_load']) && in_array($args['mimetype'], $this->pdf_mimetypes)) {
-            $file_url = $this->abs_url(rcube::get_instance()->url($_GET + array('_load' => 1)));
-            header('Location: ' . $this->abs_url($this->urlbase . 'viewer/viewer.html') . '?file=' . urlencode($file_url));
-            $args['abort'] = true;
+            $rcmail   = rcube::get_instance();
+            $file_url = $_SERVER['REQUEST_URI'] . '&_load=1';
+            $location = $rcmail->output->asset_url($this->urlbase . 'viewer/viewer.html');
+
+            header('Location: ' . $location . '?file=' . urlencode($file_url));
+            exit;
         }
 
         return $args;
@@ -116,19 +119,4 @@ class pdfviewer extends rcube_plugin
 
         list($part->ctype_primary, $part->ctype_secondary) = explode('/', $part->mimetype);
     }
-
-    /**
-     * Build an absolute URL with the given relative path
-     */
-    private function abs_url($relpath = '')
-    {
-        $webroot = '/';
-
-        if (dirname($_SERVER['SCRIPT_NAME']) != '/')
-            $webroot = dirname($_SERVER['SCRIPT_NAME']) . '/';
-
-        return $webroot . preg_replace('!^\./!', '', $relpath);
-    }
-
 }
-

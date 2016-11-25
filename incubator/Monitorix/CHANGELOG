@@ -5,108 +5,112 @@ Monitorix - ChangeLog
 Version 1.2.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: The plugin's data are not available when plugin is loaded through a cron job
-	Fixed: #IP-1419 Monitorix: Missing bin_path configuration parameter
+    Changed: Run cronjob with lower priority
+    Fixed: The plugin's data are not available when plugin is loaded through a cron job
+    Fixed: #IP-1419 Monitorix: Missing bin_path configuration parameter
+    Fixed: Syntax error in cronjob file
+    Removed: Experimental smartmatch operator
+    Fixed: IP-1556 Monitorix - Monitorix httpd daemon service is not disabled
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Updated: Dutch language file
+    Updated: Dutch language file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Removed: Support for i-MSCP 1.1.x serie
+    Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Wrong name passed to the iMSCP_Plugin_Manager::getPluginInfo() method
+    Fixed: Wrong name passed to the iMSCP_Plugin_Manager::getPluginInfo() method
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Missing cgi directory ( relative to the base_dir directory )
-	Disabled: Graphs which require further configuration to be enabled
-	Fixed: Wrong graph names inserted into extra configuration file ( 20-imscp.conf )
+    Added: Missing cgi directory ( relative to the base_dir directory )
+    Disabled: Graphs which require further configuration to be enabled
+    Fixed: Wrong graph names inserted into extra configuration file ( 20-imscp.conf )
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Dedicated monitorix configuration file ( Good practice )
-	Added: bin_path, cgi_path and confdir_path configuration parameters ( Good practice )
-	Added: Localization support
-	Changed: Monitorix cronjob is now run every 30 minutes
-	Changed: The default monitorix configuration file is now left untouched ( Good practice )
-	Fixed: Graphs must not be loaded through PHP ( Performance issue )
-	Fixed: Monitorix CGI script must be left untouched ( Good practice )
-	Fixed: Plugin is not compatible with i-MSCP 1.2.x
-	Fixed: Unable to restart monitorix ( umask issue - fixed in i-MSCP Core )
+    Added: Dedicated monitorix configuration file ( Good practice )
+    Added: bin_path, cgi_path and confdir_path configuration parameters ( Good practice )
+    Added: Localization support
+    Changed: Monitorix cronjob is now run every 30 minutes
+    Changed: The default monitorix configuration file is now left untouched ( Good practice )
+    Fixed: Graphs must not be loaded through PHP ( Performance issue )
+    Fixed: Monitorix CGI script must be left untouched ( Good practice )
+    Fixed: Plugin is not compatible with i-MSCP 1.2.x
+    Fixed: Unable to restart monitorix ( umask issue - fixed in i-MSCP Core )
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Disable internal httpd daemon of Monitorix
+    Fixed: Disable internal httpd daemon of Monitorix
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.9
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Backend file path in cronjob
-	Fixed: Unable to connect to MySQL
+    Fixed: Backend file path in cronjob
+    Fixed: Unable to connect to MySQL
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Monitorix CGI binary must be run indirectly for partitions which are mounted with the noexec option
+    Fixed: Monitorix CGI binary must be run indirectly for partitions which are mounted with the noexec option
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Cronjob file path
+    Fixed: Cronjob file path
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Path to monitorix.conf
-	Fixed: Url for graphics creation
-	Added: New parameter in config.php to enable graphs
+    Fixed: Path to monitorix.conf
+    Fixed: Url for graphics creation
+    Added: New parameter in config.php to enable graphs
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Plugin is not compatible with monitorix 3.5.0
+    Fixed: Plugin is not compatible with monitorix 3.5.0
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Plugin is not compatible with Perl version from Squeeze
+    Fixed: Plugin is not compatible with Perl version from Squeeze
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Updated according new plugin API (0.2.4)
+    Updated according new plugin API (0.2.4)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Updated according new plugin API (0.2.0)
+    Updated according new plugin API (0.2.0)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	First Release
+    First Release

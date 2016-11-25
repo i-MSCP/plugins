@@ -2,15 +2,22 @@ RecaptchaPMA - ChangeLog
 ========================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.1.1
+------------------------------------------------------------------------------------------------------------------------
+
+    Removed: Experimental smartmatch operator
+    #IP-1553: An error must be raised on activation when public or private key is not set in configuration file
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: License file
-	Fixed: imscp_panel service must be restarted to force flush of any opcode cache
-	Removed: Support for i-MSCP 1.1.x serie
+    Added: License file
+    Fixed: imscp_panel service must be restarted to force flush of any opcode cache
+    Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release

@@ -5,8 +5,8 @@
 =cut
 
 # i-MSCP AdminerSQL plugin
-# Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+# Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,12 +26,11 @@ package Plugin::AdminerSQL;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
-use iMSCP::File;
+use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
+use iMSCP::File;
 use iMSCP::Service;
 use Cwd;
 use parent 'Common::SingletonClass';
@@ -56,79 +55,73 @@ my $ADMINER_VERSION = '4.2.1';
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $curDir = getcwd();
-	my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
-	my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/src";
-	my $panelUName =
-	my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+    my $curDir = getcwd();
+    my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
+    my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/src";
+    my $panelUName =
+        my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
-	# Create production directory
-	my $rs = iMSCP::Dir->new( dirname => $prodDir )->make({ user => $panelUName, group => $panelGName, mode => 0550 });
-	return $rs if $rs;
+    # Create production directory
+    my $rs = iMSCP::Dir->new( dirname => $prodDir )->make( { user => $panelUName, group => $panelGName, mode =>
+            0550 } );
+    return $rs if $rs;
 
+    my $file = iMSCP::File->new( filename => "$srcDir/designs/$self->{'config'}->{'theme'}/adminer.css" );
+    $rs = $file->copyFile( "$srcDir/adminer/static/default.css" );
+    return $rs if $rs;
 
-	my $file = iMSCP::File->new( filename => "$srcDir/designs/$self->{'config'}->{'theme'}/adminer.css" );
-	$rs = $file->copyFile("$srcDir/adminer/static/default.css");
-	return $rs if $rs;
+    my $fileSuffix = '-'.$ADMINER_VERSION.
+        ( ($self->{'config'}->{'driver'} eq 'all') ? '' : '-'.$self->{'config'}->{'driver'} ).'.php';
 
-	my $fileSuffix = '-' . $ADMINER_VERSION .
-		( ($self->{'config'}->{'driver'} eq 'all') ? '' :  '-' . $self->{'config'}->{'driver'} ) . '.php';
+    unless (chdir( $srcDir )) {
+        error( sprintf( "Unable to change directory to $srcDir: %s", $! ) );
+        return 1;
+    }
 
-	unless(chdir($srcDir)) {
-		error(sprintf("Unable to change directory to $srcDir: %s", $!));
-		return 1;
-	}
+    # Compile Adminer
+    my ($stdout, $stderr);
+    $rs = execute( "php $srcDir/compile.php $self->{'config'}->{'driver'}", \$stdout, \$stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
+    return $rs if $rs;
 
-	# Compile Adminer
-	my ($stdout, $stderr);
-	$rs = execute("php $srcDir/compile.php $self->{'config'}->{'driver'}", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
+    # Install Adminer in production directory
+    $file = iMSCP::File->new( filename => "$srcDir/adminer$fileSuffix" );
+    $rs = $file->owner( $panelUName, $panelGName );
+    $rs ||= $file->mode( 0440 );
+    $rs ||= $file->moveFile( "$prodDir/adminer.php" );
+    return $rs if $rs;
 
-	# Install Adminer in production directory
-	my $file = iMSCP::File->new( filename => "$srcDir/adminer$fileSuffix" );
+    # Compile Adminer editor
+    $rs = execute( "php $srcDir/compile.php editor $self->{'config'}->{'driver'}", \$stdout, \$stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr ) if $stderr && $rs;
+    return $rs if $rs;
 
-	$rs = $file->owner($panelUName, $panelGName);
-	return $rs if $rs;
+    # Install Adminer editor in production directory
+    $file = iMSCP::File->new( filename => "$srcDir/editor$fileSuffix" );
+    $rs = $file->owner( $panelUName, $panelGName );
+    $rs ||= $file->mode( 0440 );
+    $rs ||= $file->moveFile( "$prodDir/editor.php" );
+    return $rs if $rs;
 
-	$rs = $file->mode(0440);
-	return $rs if $rs;
+    unless (chdir( $curDir )) {
+        error( sprintf( "Could not to change directory to %s: %s", $curDir, $! ) );
+        return 1;
+    }
 
-	$rs = $file->moveFile("$prodDir/adminer.php");
-	return $rs if $rs;
+    unless (defined $main::execmode && $main::execmode eq 'setup') {
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+    }
 
-	# Compile Adminer editor
-	$rs = execute("php $srcDir/compile.php editor $self->{'config'}->{'driver'}", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return $rs if $rs;
-
-	# Install Adminer editor in production directory
-	$file = iMSCP::File->new( filename => "$srcDir/editor$fileSuffix" );
-
-	$rs = $file->owner($panelUName, $panelGName);
-	return $rs if $rs;
-
-	$rs = $file->mode(0440);
-	return $rs if $rs;
-
-	$rs = $file->moveFile("$prodDir/editor.php");
-	return $rs if $rs;
-
-	unless(chdir($curDir)) {
-		error(sprintf("Unable to change directory to $curDir: %s", $!));
-		return 1;
-	}
-
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		# Needed to flush opcode cache if any
-		eval { iMSCP::Service->getInstance()->restart('imscp_panel', 'defer'); };
-	}
-
-	0;
+    0;
 }
 
 =item disable()
@@ -141,15 +134,19 @@ sub enable
 
 sub disable
 {
-	my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
-	return $rs if $rs;
+    my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
+    return $rs if $rs;
 
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		# Needed to flush opcode cache if any
-		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
-	}
+    unless (defined $main::execmode && $main::execmode eq 'setup') {
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+    }
 
-	0;
+    0;
 }
 
 =back

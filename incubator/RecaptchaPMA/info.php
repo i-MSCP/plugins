@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP RecaptchaPMA Plugin
- * Copyright (C) 2010-2015 by Sascha Bay
+ * Copyright (C) 2010-2016 by Sascha Bay
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '1.1.0',
-	'require_api' => '1.0.0',
-	'date' => '2015-06-11',
-	'name' => 'RecaptchaPMA',
-	'desc' => "This plugin add reCAPTCHA support to phpMyAdmin.",
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:recaptchapma'
+    'author'      => 'Sascha Bay',
+    'email'       => 'info@space2place.de',
+    'version'     => '1.1.1',
+    'require_api' => '1.0.4',
+    'date'        => '2016-06-25',
+    'name'        => 'RecaptchaPMA',
+    'desc'        => "This plugin add reCAPTCHA support to phpMyAdmin.",
+    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:recaptchapma'
 );

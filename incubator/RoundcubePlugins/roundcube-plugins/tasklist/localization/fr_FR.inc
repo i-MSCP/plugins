@@ -1,68 +1,168 @@
 <?php
-
-$labels = array();
+/**
+ * Localizations for the Kolab Tasks plugin
+ *
+ * Copyright (C) 2014, Kolab Systems AG
+ *
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/tasklist/
+ */
 $labels['navtitle'] = 'Tâches';
 $labels['lists'] = 'Liste des tâches';
 $labels['list'] = 'Liste de tâche';
 $labels['tags'] = 'Étiquettes';
-
+$labels['tasklistsubscribe'] = 'Lister définitivement';
+$labels['listsearchresults'] = 'Listes de Tâche disponibles';
+$labels['findlists'] = 'Trouver listes de Tache....';
+$labels['searchterms'] = 'Critères de recherche';
+$labels['notasklistsfound'] = 'Aucune liste de tâches trouvée';
+$labels['nrtasklistsfound'] = '$nr listes de tâches trouvées';
+$labels['removelist'] = 'supprimer de la liste';
 $labels['newtask'] = 'Nouvelle tâche';
+$labels['createtask'] = 'Créer une tâche <Entrer>';
 $labels['createnewtask'] = 'Créer une nouvelle tâche (ex : Samedi, tondre la pelouse)';
-$labels['createfrommail'] = 'Enregistrer la tâche';
+$labels['createfrommail'] = 'Sauvegarder comme une tâche';
+$labels['printdescriptions'] = 'Imprimer les descriptions';
 $labels['mark'] = 'Sélectionner';
 $labels['unmark'] = 'Désélectionner';
 $labels['edit'] = 'Modifier';
-$labels['delete'] = 'Supprimet';
+$labels['delete'] = 'Supprimer';
 $labels['title'] = 'Titre';
 $labels['description'] = 'Description';
-$labels['datetime'] = 'Date/heure';
+$labels['datetime'] = 'Fin';
+$labels['duetime'] = 'Date de fin';
 $labels['start'] = 'Début';
+$labels['starttime'] = 'Date de début';
 $labels['alarms'] = 'Rappel';
-
+$labels['repeat'] = 'Répéter';
+$labels['links'] = 'Référence';
+$labels['status'] = 'Statut';
+$labels['status-needs-action'] = 'Action exigée';
+$labels['status-in-process'] = 'En cours';
+$labels['status-completed'] = 'Terminée';
+$labels['status-cancelled'] = 'Annulée';
+$labels['assignedto'] = 'Affectée à';
+$labels['created'] = 'Créée';
+$labels['changed'] = 'Dernière modification';
 $labels['all'] = 'Tous';
 $labels['flagged'] = 'Marqué';
 $labels['complete'] = 'Terminé';
+$labels['completeness'] = 'Progression';
 $labels['overdue'] = 'En retard';
 $labels['today'] = 'Aujourd\'hui';
 $labels['tomorrow'] = 'Demain';
 $labels['next7days'] = '7 prochains jours';
 $labels['later'] = 'Plus tard';
+$labels['assigned'] = 'Affectée';
+$labels['assignedtitle'] = 'Tâches que vous avez affecté à d\'autres';
+$labels['mytasks'] = 'Mes tâches';
+$labels['mytaskstitle'] = 'Tâches qui me sont affectées';
 $labels['nodate'] = 'Pas de date';
 $labels['removetag'] = 'Supprimer';
-
+$labels['removelink'] = 'Enlever référence d\'e-mail';
+$labels['auto'] = 'Automatique';
 $labels['taskdetails'] = 'Détails';
 $labels['newtask'] = 'Nouvelle tâche';
 $labels['edittask'] = 'Modifier la tâche';
 $labels['save'] = 'Enregistrer';
 $labels['cancel'] = 'Annuler';
+$labels['saveandnotify'] = 'Enregistrer et notifier';
 $labels['addsubtask'] = 'Ajouter une sous-tâche';
 $labels['deletetask'] = 'Supprimer la tâche';
 $labels['deletethisonly'] = 'Supprimer seulement cette tâche';
 $labels['deletewithchilds'] = 'Supprimer avec toutes les sous-tâches';
-
+$labels['taskactions'] = 'Options de la tâche...';
 $labels['tabsummary'] = 'Résumé';
 $labels['tabrecurrence'] = 'Récurrence';
+$labels['tabassignments'] = 'Affectations';
 $labels['tabattachments'] = 'Pièces jointes';
 $labels['tabsharing'] = 'Partage';
-
 $labels['editlist'] = 'Modifier une liste';
 $labels['createlist'] = 'Ajouter une liste';
-$labels['listactions'] = 'Liste des options';
+$labels['listactions'] = 'Plus d\'options...';
 $labels['listname'] = 'Nom';
-$labels['showalarms'] = 'Montrer les alarmes';
+$labels['showalarms'] = 'Afficher les rappels';
 $labels['import'] = 'Importer';
-
-// date words
+$labels['viewactions'] = 'Voir les actions';
+$labels['focusview'] = 'Afficher uniquement cette liste';
 $labels['on'] = 'sur';
 $labels['at'] = 'à';
 $labels['this'] = 'ce';
 $labels['next'] = 'suivant';
-
-// mesages
 $labels['savingdata'] = 'Enregistrer...';
-$labels['errorsaving'] = 'Échec de l\'enregistrement';
+$labels['errorsaving'] = 'Échec lors de la sauvegarde des donnés';
 $labels['notasksfound'] = 'Pas de tâche trouvé avec les critères sélectionnés';
 $labels['invalidstartduedates'] = 'La date de début ne doit pas être supérieur à la date de fin';
 $labels['deletetasktconfirm'] = 'Êtes-vous sur de vouloir supprimer cette tâche?';
 $labels['deleteparenttasktconfirm'] = 'Êtes-vous sur de vouloir supprimer cette tâche et ses sous-tâches?';
 $labels['deletelistconfirm'] = 'Êtes-vous sur de vouloir supprimer cette liste et toutes ses tâches?';
+$labels['deletelistconfirmrecursive'] = 'Voulez-vous vraiment supprimer cette liste avec tous ses sous-listes et tâches?';
+$labels['aclnorights'] = 'Vous ne disposez pas des droits d´ administrateur pour cette liste de tâches.';
+$labels['changetaskconfirm'] = 'Modifier la tâche';
+$labels['changeconfirmnotifications'] = 'Voulez-vous avertir les invitées à propos de cette modification ?';
+$labels['partstatupdatenotification'] = 'Voulez-vous avertir l\'organisateur a propos du changement de statut ?';
+$labels['quickaddinput'] = 'Nouvelle tâche, date et titre';
+$labels['arialabelquickaddbox'] = 'Ajout rapide d\'une nouvelle tâche';
+$labels['arialabelsearchform'] = 'Recherche de tâches';
+$labels['arialabelquicksearchbox'] = 'Saisie d\'une recherche de tâche';
+$labels['arialabellistsearchform'] = 'Recherche de listes de tâches';
+$labels['arialabeltaskselector'] = 'Type de liste';
+$labels['arialabeltasklisting'] = 'Liste des tâches';
+$labels['attendee'] = 'Utilisateurs affectés';
+$labels['role'] = 'Rôle';
+$labels['availability'] = 'Dispo.';
+$labels['confirmstate'] = 'Statut';
+$labels['addattendee'] = 'Affecter un utilisateur';
+$labels['roleorganizer'] = 'Organisateur';
+$labels['rolerequired'] = 'Requis';
+$labels['roleoptional'] = 'Optionel';
+$labels['rolenonparticipant'] = 'Observateur';
+$labels['sendinvitations'] = 'Envoyer les invitations';
+$labels['sendnotifications'] = 'Avertir les utilisateurs concernant les modifications';
+$labels['sendcancellation'] = 'Avertir les utilisateurs concernant l\'annulation de la tâche';
+$labels['invitationsubject'] = 'Vous avez été affecté à la tâche "$title"';
+$labels['invitationmailbody'] = "*\$title*\n\nFin: \$date\n\nAffectée à : \$attendees\n\nVous trouverez en attachement un objet de type iCalendar comprenant le détail de cette tâche et que vous pouvez importer dans votre gestionnaire de tâches.";
+$labels['itipupdatesubject'] = '"$title" a été modifié';
+$labels['itipupdatesubjectempty'] = 'Une tâche vous concernant a été modifiée';
+$labels['itipupdatemailbody'] = "*\$title*\n\nFin : \$date\n\nAffectée à : \$attendees\n\nVous trouverez en attachement un objet de type iCalendar comprenant le détail de cette tâche modifiée et que vous pouvez importer dans votre gestionnaire de tâches.";
+$labels['itipcancelsubject'] = '"$title" a été annulé';
+$labels['itipcancelmailbody'] = "*\$title*\n\nFin : \$date\n\nAffectée à : \$attendees\n\nLa tâche a été supprimée par \$organizer.\n\nous trouverez en attachement un objet de type iCalendar comprenant le détail de cette tâche.";
+$labels['saveintasklist'] = 'Sauvegardé dans';
+$labels['itipobjectnotfound'] = 'La tâche correspondant à ce massage n\'a pas été trouvée dans votre liste de têches.';
+$labels['itipmailbodyaccepted'] = "\$sender a accepté l'affectation à cette tâche :\n\n*\$title*\n\nFin : \$date\n\nAffectée à : \$attendees";
+$labels['itipmailbodytentative'] = "\$sender va tenter d’accepter l'affectation à cette tâche :\n\n*\$title*\n\nFin : \$date\n\nAffectée à : \$attendees";
+$labels['itipmailbodydeclined'] = "\$sender ne pourra probablement pas accepter l'affectation à cette tâche :\n\n*\$title*\n\nFin : \$date\n\nAffectée à: \$attendees";
+$labels['itipmailbodycancel'] = "\$sender a refusé l'affectation à cette tâche :\n\n*\$title*\n\nFin : \$date";
+$labels['itipmailbodyin-process'] = "\$sender a fixer le statut de la tâche suivante dans l'état \"en cours de traitement\"  :\n\n*\$title*\n\nFin : \$date";
+$labels['itipmailbodycompleted'] = "\$sender a fini la tâche suivante :\n\n*\$title*\n\nFin: \$date";
+$labels['attendeeaccepted'] = 'L\'utilisateur a accepté l\'affectation';
+$labels['attendeetentative'] = 'L\'utilisateur va tenté d\'accepter l\'affectation';
+$labels['attendeedeclined'] = 'L\'utilisateur a décliné l\'affectation';
+$labels['attendeedelegated'] = 'L\'affectation a été délégué à $delegatedto';
+$labels['attendeein-process'] = 'Cette tâche est en cours de traitement par les utilisateurs affectés';
+$labels['attendeecompleted'] = 'Cette tâche a été traité par les utilisateurs affectés';
+$labels['acceptinvitation'] = 'Acceptez-vous cet affectation ?';
+$labels['itipdeclinetask'] = 'Décline à l\'organisateur votre affectation à cette tâche';
+$labels['declinedeleteconfirm'] = 'Voulez-vous supprimer cette tâche déclinée de votre liste ?';
+$labels['itipcomment'] = 'Commentaire d’invitation ou de notification';
+$labels['itipcommenttitle'] = 'Ce commentaire sera inséré au message d\'invitation envoyé aux utilisateurs affectés';
+$labels['itipsendsuccess'] = 'Notification envoyée aux utilisateurs assignés';
+$labels['errornotifying'] = 'Erreur d\'envoi des notifications aux utilisateurs affectés à la tâche';
+$labels['removefromcalendar'] = 'Supprimer de mes tâches';
+$labels['andnmore'] = '$nr de plus...';
+$labels['delegatedto'] = 'Délégué à :';
+$labels['delegatedfrom'] = 'Délégué de :';
+$labels['savetotasklist'] = 'Sauvegarde des tâches';
+$labels['comment'] = 'Commentaire';
+$labels['errorimportingtask'] = 'Importation impossible';
+$labels['importwarningexists'] = 'Une copie de cette tâche existe déjà dans votre liste.';
+$labels['importsuccess'] = '$nr tâches ont été importées avec succès';
+$labels['newerversionexists'] = 'Une version plus récente de cette tâche existe déjà ! Abandon.';
+$labels['nowritetasklistfound'] = 'Aucune liste trouvée pour sauvegarder cette tâche';
+$labels['importedsuccessfully'] = 'Cette tâche a été ajoutée avec succès à \'$list\'';
+$labels['updatedsuccessfully'] = 'Cette tâche a été modifiée avec succès dans \'$list\'';
+$labels['attendeupdateesuccess'] = 'Le statut des participants a été modifié';
+$labels['itipresponseerror'] = 'Impossible d\'envoyer la réponse de l\'utilisateur affecté à la tâche';
+$labels['itipinvalidrequest'] = 'C\'est invitation n\'est plus valide.';
+$labels['sentresponseto'] = 'La réponse de l\'utilisateur affecté a été envoyé avec succès à $mailto';
+$labels['successremoval'] = 'Cette tâche a été supprimée avec succès.';
+$labels['arialabelsortmenu'] = 'Options de tri des tâches';

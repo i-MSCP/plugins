@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
-# Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+# Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,30 +21,29 @@
 use strict;
 use warnings;
 use lib "{IMSCP_PERLLIB_PATH}";
-use iMSCP::Debug;
 use iMSCP::Bootstrapper;
+use iMSCP::Debug;
 
 $ENV{'LANG'} = 'C.UTF-8';
 
-newDebug('roundcubeplugins-plugin-cronjob-pop3fetcher.log');
-
-silent(1);
-
+newDebug( 'roundcubeplugins-plugin-cronjob-pop3fetcher.log' );
 iMSCP::Bootstrapper->getInstance()->boot(
-	{ 'norequirements' => 'yes', 'config_readonly' => 'yes', 'nokeys' => 'yes', 'nodatabase' => 'yes', 'nolock' => 'yes' }
+    {
+        norequirements  => 'yes',
+        config_readonly => 'yes',
+        nokeys          => 'yes',
+        nodatabase      => 'yes',
+        nolock          => 'yes'
+    }
 );
 
 my $pluginFile = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/RoundcubePlugins/backend/RoundcubePlugins.pm";
-my $rs = 0;
+require $pluginFile;
 
-eval { require $pluginFile; };
+my $pluginClass = "Plugin::SpamAssassin";
+$pluginClass->getInstance()->fetchmail() == 0 or die(
+    getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
+);
 
-if($@) {
-	error($@);
-	$rs = 1;
-} else {
-	my $pluginClass = "Plugin::RoundcubePlugins";
-	$rs = $pluginClass->getInstance()->fetchmail();
-}
-
-exit $rs;
+1;
+__END__

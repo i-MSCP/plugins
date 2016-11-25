@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2010-2015 by Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,82 +39,82 @@ use iMSCP_Registry as Registry;
  */
 function mailgraph_generatePage($tpl)
 {
-	/** @var PluginManager $pluginManager */
-	$pluginManager = Registry::get('pluginManager');
+    /** @var PluginManager $pluginManager */
+    $pluginManager = Registry::get('pluginManager');
 
-	$pluginDir = $pluginManager->pluginGetDirectory();
+    $pluginDir = $pluginManager->pluginGetDirectory();
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
-		$tpl->assign('MAILGRAPH_DAY_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_DAY_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
+        $tpl->assign('MAILGRAPH_DAY_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_DAY_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_week.png')) {
-		$tpl->assign('MAILGRAPH_WEEK_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_WEEK_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_week.png')) {
+        $tpl->assign('MAILGRAPH_WEEK_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_WEEK_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_month.png')) {
-		$tpl->assign('MAILGRAPH_MONTH_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_MONTH_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_month.png')) {
+        $tpl->assign('MAILGRAPH_MONTH_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_MONTH_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_year.png')) {
-		$tpl->assign('MAILGRAPH_YEAR_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_YEAR_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_year.png')) {
+        $tpl->assign('MAILGRAPH_YEAR_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_YEAR_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
-		$tpl->assign('MAILGRAPH_VIRUS_DAY_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_VIRUS_DAY_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_day.png')) {
+        $tpl->assign('MAILGRAPH_VIRUS_DAY_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_VIRUS_DAY_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
-		$tpl->assign('MAILGRAPH_VIRUS_WEEK_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_VIRUS_WEEK_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_week.png')) {
+        $tpl->assign('MAILGRAPH_VIRUS_WEEK_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_VIRUS_WEEK_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
-		$tpl->assign('MAILGRAPH_VIRUS_MONTH_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_VIRUS_MONTH_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_month.png')) {
+        $tpl->assign('MAILGRAPH_VIRUS_MONTH_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_VIRUS_MONTH_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
-		$tpl->assign('MAILGRAPH_VIRUS_YEAR_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_VIRUS_YEAR_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_virus_year.png')) {
+        $tpl->assign('MAILGRAPH_VIRUS_YEAR_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_VIRUS_YEAR_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
-		$tpl->assign('MAILGRAPH_GREYLIST_DAY_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_GREYLIST_DAY_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_day.png')) {
+        $tpl->assign('MAILGRAPH_GREYLIST_DAY_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_GREYLIST_DAY_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
-		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_GREYLIST_WEEK_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_week.png')) {
+        $tpl->assign('MAILGRAPH_GREYLIST_WEEK_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_GREYLIST_WEEK_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
-		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_GREYLIST_MONTH_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_month.png')) {
+        $tpl->assign('MAILGRAPH_GREYLIST_MONTH_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_GREYLIST_MONTH_EXIST', '');
+    }
 
-	if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
-		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_NOT_EXIST', '');
-	} else {
-		$tpl->assign('MAILGRAPH_GREYLIST_YEAR_EXIST', '');
-	}
+    if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_greylist_year.png')) {
+        $tpl->assign('MAILGRAPH_GREYLIST_YEAR_NOT_EXIST', '');
+    } else {
+        $tpl->assign('MAILGRAPH_GREYLIST_YEAR_EXIST', '');
+    }
 }
 
 /***********************************************************************************************************************
@@ -129,17 +129,17 @@ $hostname = $cfg['SERVER_HOSTNAME'];
 
 $tpl = new TemplateEngine();
 $tpl->define_dynamic(array(
-	'layout' => 'shared/layouts/ui.tpl',
-	'page' => '../../plugins/Mailgraph/frontend/mailgraph.tpl',
-	'page_message' => 'layout'
+    'layout' => 'shared/layouts/ui.tpl',
+    'page' => '../../plugins/Mailgraph/frontend/mailgraph.tpl',
+    'page_message' => 'layout'
 ));
 
 $tpl->assign(array(
-	'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
-	'MAILGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
-	'TR_MAILGRAPH' => tr("Mailgraph - %s", $hostname),
-	'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
-	'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $hostname)
+    'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
+    'MAILGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
+    'TR_MAILGRAPH' => tr("Mailgraph - %s", $hostname),
+    'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
+    'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $hostname)
 ));
 
 generateNavigation($tpl);

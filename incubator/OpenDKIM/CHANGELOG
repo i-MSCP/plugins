@@ -2,79 +2,106 @@ OpenDKIM - ChangeLog
 ====================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.0.3
+Version 1.1.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Create parent dir of keys folder
+    Fixed: opendkim service must be reloaded each time a DKIM key is added or removed (Closes: #IP-1643)
+    Fixed: Prevent form submission when no customer is selected (Reseller side)
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.2
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: Polish translation
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.1
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: DKIM DNS resource records not removed on uninstallation
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.0
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: SyslogSuccess to indicate successful signing or verification of messages
+    Changed: Default Socket changed to UNIX
+    Changed: Switch Postfix service restart to reload
+    Fixed: Create parent dir of keys folder
+    Fixed: Deconfigure removed the entire OpenDKIM file content
+    Fixed: Set opendkim permissions on activation
+    Removed: Experimental smartmatch operator
+    Removed: OpenDKIM service restart on DKIM key generation
+    Updated for iMSCP 1.3.x Serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Chinese (Taiwan) language file
-	Fixed: Possible uninitialized values
-	Review: CS fixes + code cleanup
-	Updated: Dutch language file
+    Added: Chinese (Taiwan) language file
+    Fixed: Possible uninitialized values
+    Review: CS fixes + code cleanup
+    Updated: Dutch language file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Possible uninitialized value
+    Fixed: Possible uninitialized value
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Localization support
-	Changed: Usage of postconf to edit Postfix main.cf configuration parameters
-	Changed: Usage of CustomDNS module to add custom dns records
-	Removed: Support for i-MSCP 1.1.x serie
-	Updated: License headers for new year
+    Added: Localization support
+    Changed: Usage of postconf to edit Postfix main.cf configuration parameters
+    Changed: Usage of CustomDNS module to add custom dns records
+    Removed: Support for i-MSCP 1.1.x serie
+    Updated: License headers for new year
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Wrong DNS record under Ubuntu 14.04 Trusty Tahr
+    Fixed: Wrong DNS record under Ubuntu 14.04 Trusty Tahr
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Disabled items must not be counted by the getCountRequests() method
+    Fixed: Disabled items must not be counted by the getCountRequests() method
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: my variable $rs masks earlier declaration
+    Fixed: my variable $rs masks earlier declaration
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: OpenDKIM keys are not generated for domain aliases which are added after OpenDKIM activation
+    Fixed: OpenDKIM keys are not generated for domain aliases which are added after OpenDKIM activation
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Changed: Plugin DNS record owner name from 'opendkim_feature' to 'OpenDKIM_Plugin'
-	Changed: Plugin now use the database migration API provided by i-MSCP
-	Fixed: Backend action must be idempotent
-	Fixed: Database schema (wrong foreign keys, useless opendkim_id index, useless column, missing fk constraints)
-	Fixed: Domain data are not removed properly on deletion when OpenDKIM support is enabled
-	Fixed: Many i18n issues
-	Fixed: Customers list must be displayed only if one customer is candidate for OpenDKIM feature (reseller level)
-	Fixed: OpenDKIM must not force activation of the custom DNS record feature, it must stay independant
-	Fixed: Status 'tochange' for OpenDKIM items is not handled
-	Fixed: TTL for OpenDKIM TXT DNS record must be set to a low value to allow faster key renewal
-	Fixed: When a reseller has no customer, the OpenDKIM management interface must not be reachable (reseller level)
-	Fixed: When OpenDKIM feature is disabled the disabled domains should stay disabled
+    Changed: Plugin DNS record owner name from 'opendkim_feature' to 'OpenDKIM_Plugin'
+    Changed: Plugin now use the database migration API provided by i-MSCP
+    Fixed: Backend action must be idempotent
+    Fixed: Database schema (wrong foreign keys, useless opendkim_id index, useless column, missing fk constraints)
+    Fixed: Domain data are not removed properly on deletion when OpenDKIM support is enabled
+    Fixed: Many i18n issues
+    Fixed: Customers list must be displayed only if one customer is candidate for OpenDKIM feature (reseller level)
+    Fixed: OpenDKIM must not force activation of the custom DNS record feature, it must stay independant
+    Fixed: Status 'tochange' for OpenDKIM items is not handled
+    Fixed: TTL for OpenDKIM TXT DNS record must be set to a low value to allow faster key renewal
+    Fixed: When a reseller has no customer, the OpenDKIM management interface must not be reachable (reseller level)
+    Fixed: When OpenDKIM feature is disabled the disabled domains should stay disabled
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release

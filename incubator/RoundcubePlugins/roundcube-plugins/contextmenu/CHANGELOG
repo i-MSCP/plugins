@@ -1,6 +1,14 @@
 Roundcube Webmail ContextMenu
 =============================
 
+Version 2.1.2 (2015-04-18, rc-1.1)
+=================================================
+ * Fix #67 address book copy/move action not updated
+
+Version 2.1.1 (2015-03-18, rc-1.1)
+=================================================
+ * Update submenu detection after 619891c
+
 Version 2.1 (2015-01-06, rc-1.1)
 =================================================
  * Add specific menu for adding contact to group

@@ -2,113 +2,152 @@ RoundcubePlugins - ChangeLog
 ============================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.2.6
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: Dovecot (2.x) `autocreate' plugin is now enabled by i-MSCP Core (API 1.0.6)
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.2.5
+------------------------------------------------------------------------------------------------------------------------
+
+    Updated: Roundcube plugin pop3fetcher
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.2.4
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: Password config options
+    Added: Managesieve vacation responses (out-of-office)
+    Added: Roundcube reCAPTCHA plugin (rcguard 1.0.5)
+    Added: Roundcube plugin vcard_attachments
+    Changed: Default values for archive and managesieve
+    Changed: Managesieve requirements check
+    Changed: Run cronjob with lower priority
+    Changed: Switch from imscp_pw_changer to password plugin
+    Changed: The Managesieve plugin is now disabled by default to make package installation optional
+    Fixed: Check that Roundcube is installed
+    Fixed: Could not update from version 1.1.0 due to duplicate columns
+    Fixed: Deletion of Roundcube plugins on uninstall
+    Fixed: Regex for archive and managesieve plugins
+    Removed: Experimental smartmatch operator
+    Removed: Roundcube plugin imscp_pw_changer
+    Updated: additional_message_headers config file
+    Updated: Roundcube plugin calendar
+    Updated: Roundcube plugin contextmenu
+    Updated: Roundcube plugin logon_page
+    Updated: Roundcube plugin odfviewer
+    Updated: Roundcube plugin pdfviewer
+    Updated: Roundcube plugin tasklist
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.2.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Database username is not escaped in password changer configuration file
-	Fixed: Do not restart imscp_panel service when running in setup mode
-	Fixed: Missing database port in password changer configuration file
-	Fixed: Wrong check for managesieve plugin tasks
-	Fixed #IP-1390: Password is not escaped in roundcube plugins imscp_password_changer conffile
+    Fixed: Database username is not escaped in password changer configuration file
+    Fixed: Do not restart imscp_panel service when running in setup mode
+    Fixed: Missing database port in password changer configuration file
+    Fixed: Wrong check for managesieve plugin tasks
+    Fixed #IP-1390: Password is not escaped in roundcube plugins imscp_password_changer conffile
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: imscp_panel service must be restarted to force flush of any opcode cache
+    Fixed: imscp_panel service must be restarted to force flush of any opcode cache
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Roundcube version is badly checked resulting to installation failure
+    Fixed: Roundcube version is badly checked resulting to installation failure
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Roundcube version check
-	Removed: Support for i-MSCP 1.1.x serie
+    Fixed: Roundcube version check
+    Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: odfviewer
-	Updated: calendar
-	Updated: contextmenu
-	Updated: dkimstatus
-	Updated: libcalendaring
-	Updated: pdfviewer
+    Added: odfviewer
+    Updated: calendar
+    Updated: contextmenu
+    Updated: dkimstatus
+    Updated: libcalendaring
+    Updated: pdfviewer
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
-	Updated: License headers for new year
+    Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
+    Updated: License headers for new year
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Plugin is not compatible with Roundcube 1.x serie
-	Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
-	Fixed: PO server implementation in use must be checked ( Some plugins don't work with Dovecot )
-	Removed: send_request() from imscp_pw_changer ( sql.php )
+    Fixed: Plugin is not compatible with Roundcube 1.x serie
+    Fixed: Read/Update permissions on the mail_users ( i-MSCP database ) are now set by the package installer
+    Fixed: PO server implementation in use must be checked ( Some plugins don't work with Dovecot )
+    Removed: send_request() from imscp_pw_changer ( sql.php )
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.9
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: my variable $rs masks earlier declaration
+    Fixed: my variable $rs masks earlier declaration
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: i-MSCP password changer
-	Fixed: Roundcube plugins wont be activated after installation
-	Changed: Plugin now use the database migration API provided by i-MSCP
+    Added: i-MSCP password changer
+    Fixed: Roundcube plugins wont be activated after installation
+    Changed: Plugin now use the database migration API provided by i-MSCP
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Backend file path in cronjob
+    Fixed: Backend file path in cronjob
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Missing array on listener
+    Fixed: Missing array on listener
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Cronjob file path
+    Fixed: Cronjob file path
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: pop3fetcher version 1.9
+    Added: pop3fetcher version 1.9
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Cronjob of pop3fetcher does not work
+    Fixed: Cronjob of pop3fetcher does not work
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Dovecot version must be checked
+    Fixed: Dovecot version must be checked
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release

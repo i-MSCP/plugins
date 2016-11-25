@@ -1,9 +1,9 @@
 <?php
 /**
  * i-MSCP ClamAV plugin
- * Copyright (C) 2014-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2014-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,16 +21,16 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Rene Schuster',
-		'Sascha Bay',
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.1.5',
-	'require_api' => '1.0.0',
-	'date' => '2015-10-08',
-	'name' => 'ClamAV',
-	'desc' => 'Plugin which allows to use ClamAV with i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'
+    'author' => array(
+        'Laurent Declercq',
+        'Rene Schuster',
+        'Sascha Bay',
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.2.0',
+    'require_api' => '1.0.4',
+    'date' => '2016-06-25',
+    'name' => 'ClamAV',
+    'desc' => 'Plugin that allows to use ClamAV with i-MSCP.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'
 );

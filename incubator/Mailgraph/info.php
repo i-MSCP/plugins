@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2010-2015 by Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,12 +20,12 @@
  */
 
 return array(
-	'author' => 'Sascha Bay',
-	'email' => 'info@space2place.de',
-	'version' => '1.0.1',
-	'require_api' => '1.0.0',
-	'date' => '2015-08-24',
-	'name' => 'Mailgraph',
-	'desc' => 'Plugin providing statistical graphics for SMTP traffic (Postfix and Sendmail).',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailgraph'
+    'author' => 'Sascha Bay',
+    'email' => 'info@space2place.de',
+    'version' => '1.1.1',
+    'require_api' => '1.0.5',
+    'date' => '2016-09-14',
+    'name' => 'Mailgraph',
+    'desc' => 'Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail).',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailgraph'
 );

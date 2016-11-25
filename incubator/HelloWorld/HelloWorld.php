@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP HelloWorld plugin
- * Copyright (C) 2010-2015 by Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,24 +23,24 @@
  */
 class iMSCP_Plugin_HelloWorld extends iMSCP_Plugin_Action
 {
-	/**
-	 * Register event listeners
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 * @return void
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
-	}
+    /**
+     * Register event listeners
+     *
+     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @return void
+     */
+    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    {
+        $eventsManager->registerListener(iMSCP_Events::onLoginScriptStart, $this, -500);
+    }
 
-	/**
-	 * onLoginScriptStart event listener
-	 * @return void
-	 */
-	public function onLoginScriptStart()
-	{
-		// Say Hello World on the login page
-		set_page_message('i-MSCP HelloWorld plugin says: Hello World', 'info');
-	}
+    /**
+     * onLoginScriptStart event listener
+     * @return void
+     */
+    public function onLoginScriptStart()
+    {
+        // Say Hello World on the login page
+        set_page_message('i-MSCP HelloWorld plugin says: Hello World', 'info');
+    }
 }

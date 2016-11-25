@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP ServerDefaultPage plugin
-# Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+# Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -25,14 +25,13 @@ package Plugin::ServerDefaultPage;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
+use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::File;
-use iMSCP::Rights;
-use iMSCP::Database;
 use iMSCP::Net;
 use iMSCP::OpenSSL;
+use iMSCP::Rights;
 use Servers::httpd;
 use version;
 use parent 'Common::SingletonClass';
@@ -55,9 +54,9 @@ use parent 'Common::SingletonClass';
 
 sub install
 {
-	my $self = shift;
+    my $self = shift;
 
-	$self->_copyFolder();
+    $self->_copyFolder();
 }
 
 =item uninstall()
@@ -70,28 +69,38 @@ sub install
 
 sub uninstall
 {
-	my $self = shift;
-
-	iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->remove();
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage" )->remove();
 }
 
 =item update($fromVersion, $toVersion)
 
  Process update tasks
 
- Param string $fromVersion
- Param string $toVersion
+ Param string $fromVersion Version from which the plugin is being updated
  Return int 0 on success, other on failure
 
 =cut
 
 sub update
 {
-	my ($self, $fromVersion, $toVersion) = @_;
+    my ($self, $fromVersion) = @_;
 
-	if(version->parse($fromVersion) < version->parse("1.0.6")) {
-		$self->_copyFolder();
-	}
+    if (version->parse( $fromVersion ) < version->parse( '1.0.6' )) {
+        my $rs = $self->_copyFolder();
+        return $rs if $rs;
+    }
+
+    if (version->parse( $fromVersion ) < version->parse( '1.2.3' )) {
+        # Rename server default page document root from `default' to `ServerDefaultPage'
+        if (-d "$main::imscpConfig{'USER_WEB_DIR'}/default") {
+            my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/default" )->moveDir(
+                "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage"
+            );
+            return $rs if $rs;
+        }
+    }
+
+    0;
 }
 
 =item enable()
@@ -104,45 +113,34 @@ sub update
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_getIps();
-	return $rs if $rs;
+    my $ips = $self->_getIps();
+    return 1 unless defined $ips;
 
-	my $ipMngr = iMSCP::Net->getInstance();
+    my $rs = $self->_createVhost( '00_ServerDefaultPage.conf', $ips->{'IPS'}, 80 );
+    return $rs if $rs;
 
-	my $directives = [ ];
-	for( @{$self->{'ipaddrs'}} ) {
-		push @{$directives}, ($ipMngr->getAddrVersion($_) eq 'ipv4') ? "$_:80" : "[$_]:80";
-	}
+    if (@{$ips->{'SSL_IPS'}}) {
+        if ($self->{'config'}->{'certificate'} eq '') {
+            $rs = iMSCP::OpenSSL->new(
+                certificate_chains_storage_dir => $main::imscpConfig{'CONF_DIR'},
+                certificate_chain_name         => 'serverdefaultpage'
+            )->createSelfSignedCertificate(
+                {
+                    common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
+                    email       => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
+                }
+            );
+            return $rs if $rs;
+        }
 
-	if(@{$directives}) {
-		$rs = $self->_createConfig('00_ServerDefaultPage.conf', $directives);
-    	return $rs if $rs;
-	}
+        $rs = $self->_createVhost( '00_ServerDefaultPage_ssl.conf', $ips->{'SSL_IPS'}, 443 );
+        return $rs if $rs;
+    }
 
-	$directives = [ ];
-
-	for my $ipAddr( @{$self->{'ssl_ipaddrs'}} ) {
-		push @{$directives}, ($ipMngr->getAddrVersion($ipAddr) eq 'ipv4') ? "$ipAddr:443" : "[$ipAddr]:443";
-	}
-
-	if(@{$directives}) {
-		if($self->{'config'}->{'certificate'} eq '') {
-    		$rs = iMSCP::OpenSSL->new(
-    			certificate_chains_storage_dir =>  $main::imscpConfig{'CONF_DIR'},
-    			certificate_chain_name => 'serverdefaultpage'
-    		)->createSelfSignedCertificate($main::imscpConfig{'SERVER_HOSTNAME'});
-    		return $rs if $rs;
-    	}
-
-		$rs = $self->_createConfig('00_ServerDefaultPage_ssl.conf', $directives);
-		return $rs if $rs;
-	}
-
-	$self->{'httpd'}->{'restart'} = 'yes';
-
-	0;
+    $self->{'httpd'}->{'restart'} = 1;
+    0;
 }
 
 =item disable()
@@ -155,22 +153,66 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	for my $conffile('00_ServerDefaultPage.conf', '00_ServerDefaultPage_ssl.conf') {
-		my $rs = $self->_removeConfig($conffile);
-		return $rs if $rs;
-	}
+    my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
+    $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
+    return $rs if $rs;
 
-	my $certificate = "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem";
-	if(-f $certificate) {
-		my $rs = iMSCP::File->new( filename => $certificate )->delFile();
-		return $rs if $rs;
+    if (-f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem") {
+        $rs = iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile();
+        return $rs if $rs;
+
     }
 
-	$self->{'httpd'}->{'restart'} = 'yes';
+    $self->{'httpd'}->{'restart'} = 1;
+    0;
+}
 
-	0;
+=item run()
+
+ Process plugin tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub run
+{
+    my $self = shift;
+
+    $self->{'eventManager'}->register( 'afterAddIps', sub { $self->onAddIps( @_ ); } );
+}
+
+=back
+
+=head1 EVENT LISTENERS
+
+=over 4
+
+=item onAddIps(\%ips)
+
+ Event listener that is responsibles to update vhost files for the default page
+
+ Param hashref \%ips IP addresses
+ Return int 0 on success, other on failure
+
+=cut
+
+sub onAddIps
+{
+    my ($self, $ips) = @_;
+
+    my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
+    $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
+    $rs ||= $self->_createVhost( '00_ServerDefaultPage.conf', $ips->{'IPS'}, 80 );
+
+    if (@{$ips->{'SSL_IPS'}}) {
+        $rs ||= $self->_createVhost( '00_ServerDefaultPage_ssl.conf', $ips->{'SSL_IPS'}, 443 );
+    }
+
+    $self->{'httpd'}->{'restart'} = 1 unless $rs;
+    $rs;
 }
 
 =back
@@ -189,79 +231,69 @@ sub disable
 
 sub _init
 {
-	my $self = shift;
+    my $self = shift;
 
-	if($self->{'action'} ~~ [ 'install', 'change', 'update', 'enable', 'disable' ]) {
-		$self->{'httpd'} = Servers::httpd->factory();
-	}
+    if ($self->{'action'} =~ /^(?:install|update|change|enable|disable|run)$/) {
+        $self->{'httpd'} = Servers::httpd->factory();
+    }
 
-	$self;
+    $self;
 }
 
-=item _createConfig($vhostTplFile, $directives)
+=item _createVhost($vhostTplFile, $ips, $port)
 
- Create httpd configs
+ Create the given vhost using given directives
 
  Param string $vhostTplFile Vhost template file
- Param array $directives Vhost directives
+ Param array_ref $ips IP addresses
+ Param int $port Listen port
  Return int 0 on success, other on failure
 
 =cut
 
-sub _createConfig
+sub _createVhost
 {
-	my ($self, $vhostTplFile, $directives) = @_;
+    my ($self, $vhostTplFile, $ips, $port) = @_;
 
-	my $ipMngr = iMSCP::Net->getInstance();
-
-	$self->{'httpd'}->setData({
-		IPS_PORTS => "@{$directives}",
-		BASE_SERVER_IP => ($ipMngr->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'}) eq 'ipv4')
-			? $main::imscpConfig{'BASE_SERVER_IP'}
-			: "[$main::imscpConfig{'BASE_SERVER_IP'}]",
-		APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
-		CERTIFICATE => ($self->{'config'}->{'certificate'} eq '')
-			? "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem"
-			: $self->{'config'}->{'certificate'},
-		AUTHZ_ALLOW_ALL => (version->parse("$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}") >= version->parse('2.4.0'))
-			? 'Require all granted'
-			: 'Allow from all',
-	});
-
-	my $rs = $self->{'httpd'}->buildConfFile(
-		"$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile"
-	);
-	return $rs if $rs;
-
-	$self->{'httpd'}->installConfFile($vhostTplFile, {
-		destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before"
-	});
+    my $net = iMSCP::Net->getInstance();
+    $self->{'httpd'}->setData(
+        {
+            IPS_PORTS       => join( ' ', map { ( $net->getAddrVersion( $_ ) eq 'ipv4' ? $_ : "[$_]" ).":$port" } @{$ips}),
+            BASE_SERVER_IP  => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
+                ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+            APACHE_WWW_DIR  => $main::imscpConfig{'USER_WEB_DIR'},
+            CERTIFICATE     => $self->{'config'}->{'certificate'} eq ''
+                ? "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" : $self->{'config'}->{'certificate'},
+            AUTHZ_ALLOW_ALL =>
+                version->parse( "$self->{'httpd'}->{'config'}->{'HTTPD_VERSION'}" ) >= version->parse( '2.4.0' )
+                ? 'Require all granted' : 'Allow from all',
+        }
+    );
+    $self->{'httpd'}->buildConfFile(
+        "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile",
+        { },
+        { destination => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
+    );
 }
 
-=item _removeConfig($vhostFile)
+=item _deleteVhost($vhostFile)
 
- Remove httpd configs
+ Delete the given vhost file
 
  Param string $vhostFile Vhost file
  Return int 0 on success, other on failure
 
 =cut
 
-sub _removeConfig
+sub _deleteVhost
 {
-	my ($self, $vhostFile) = @_;
+    my ($self, $vhostFile) = @_;
 
-	for my $conffile(
-		"$self->{'httpd'}->{'apacheWrkDir'}/$vhostFile",
-		"$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
-	) {
-		if(-f $conffile) {
-			my $rs = iMSCP::File->new( filename => $conffile )->delFile();
-			return $rs if $rs;
-		}
-	}
+    return 0 unless -f "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile";
 
-	0;
+    iMSCP::File->new(
+        filename => "$self->{'httpd'}->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFile"
+    )->delFile();
 }
 
 =item _copyFolder()
@@ -274,135 +306,102 @@ sub _removeConfig
 
 sub _copyFolder()
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates";
-	my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/default";
+    my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/default";
+    my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage";
 
-	my $rs = iMSCP::Dir->new( dirname => $targetDir )->make({
-		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
-		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
-		mode => 0750
-	});
-	return $rs if $rs;
-
-	$rs = iMSCP::Dir->new( dirname => "$srcDir/default" )->rcopy($targetDir);
-	return $rs if $rs;
-
-	setRights($targetDir, {
-		user => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
-		group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
-		dirmode => '0750',
-		filemode => '0640',
-		recursive => 1
-	});
+    my $rs = iMSCP::Dir->new( dirname => $targetDir )->make(
+        {
+            user  => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+            group => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
+            mode  => 0750
+        }
+    );
+    $rs ||= iMSCP::Dir->new( dirname => "$srcDir" )->rcopy( $targetDir );
+    $rs ||= setRights(
+        $targetDir,
+        {
+            user      => $self->{'httpd'}->{'config'}->{'HTTPD_USER'},
+            group     => $self->{'httpd'}->{'config'}->{'HTTPD_GROUP'},
+            dirmode   => '0750',
+            filemode  => '0640',
+            recursive => 1
+        }
+    );
 }
 
 =item _getIps()
 
- Get all the used httpd Ips
+ Get all IP addresses
 
- Return int 0 on success, other on failure
+ Return hashref on success, undef on failure
 
 =cut
 
 sub _getIps()
 {
-	my $self = shift;
+    my $db = iMSCP::Database->factory();
 
-	my $db = iMSCP::Database->factory();
+    my $ips = { };
 
-	my $rdata = $db->doQuery('ip_number', "
-		SELECT
-			domain_ip_id AS ip_id, ip_number
-		FROM
-			domain
-		INNER JOIN
-			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-		WHERE
-			domain_status != 'todelete'
-		UNION
-		SELECT
-			alias_ip_id AS ip_id, ip_number
-		FROM
-			domain_aliasses
-		INNER JOIN
-			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-		WHERE
-			alias_status NOT IN ('todelete', 'ordered')
-	");
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
+    my $rdata = $db->doQuery(
+        'ip_number',
+        "
+            SELECT domain_ip_id AS ip_id, ip_number
+            FROM domain INNER JOIN server_ips ON (domain.domain_ip_id = server_ips.ip_id)
+            WHERE domain_status != 'todelete'
+            UNION
+            SELECT alias_ip_id AS ip_id, ip_number FROM domain_aliasses
+            INNER JOIN server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+            WHERE alias_status NOT IN ('todelete', 'ordered')
+        "
+    );
+    unless (ref $rdata eq 'HASH') {
+        error( $rdata );
+        undef;
+    }
 
-	# The Base server IP must always be here because even if not used by any domain, the panel use it
-	$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
+    # The Base server IP must always be here because even if not used by any domain, the panel use it
+    $rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
 
-	@{$self->{'ipaddrs'}} = keys %{$rdata};
+    @{$ips->{'IPS'}} = keys %{$rdata};
 
-	$rdata = $db->doQuery('ip_number', "
-		SELECT
-			ip_number
-		FROM
-			ssl_certs
-		INNER JOIN
-			domain ON (ssl_certs.domain_id = domain.domain_id)
-		INNER JOIN
-			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-		WHERE
-			ssl_certs.domain_type = 'dmn'
-		UNION
-		SELECT
-			ip_number
-		FROM
-			ssl_certs
-		INNER JOIN
-			domain_aliasses ON (ssl_certs.domain_id = domain_aliasses.alias_id)
-		INNER JOIN
-			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-		WHERE
-			ssl_certs.domain_type = 'als'
-		UNION
-		SELECT
-			ip_number
-		FROM
-			ssl_certs
-		INNER JOIN
-			subdomain_alias ON (ssl_certs.domain_id = subdomain_alias.subdomain_alias_id)
-		INNER JOIN
-			domain_aliasses ON (subdomain_alias.alias_id = domain_aliasses.alias_id)
-		INNER JOIN
-			server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
-		WHERE
-			ssl_certs.domain_type = 'alssub'
-		UNION
-		SELECT
-			ip_number
-		FROM
-			ssl_certs
-		INNER JOIN
-			subdomain ON (ssl_certs.domain_id = subdomain.subdomain_id)
-		INNER JOIN
-			domain ON (subdomain.domain_id = domain.domain_id)
-		INNER JOIN
-			server_ips ON (domain.domain_ip_id = server_ips.ip_id)
-		WHERE
-			ssl_certs.domain_type = 'sub'
-	");
-	unless(ref $rdata eq 'HASH') {
-		error($rdata);
-		return 1;
-	}
+    $rdata = $db->doQuery(
+        'ip_number',
+        "
+            SELECT ip_number FROM ssl_certs INNER JOIN domain ON (ssl_certs.domain_id = domain.domain_id)
+            INNER JOIN server_ips ON (domain.domain_ip_id = server_ips.ip_id) WHERE ssl_certs.domain_type = 'dmn'
+            UNION
+            SELECT ip_number FROM ssl_certs
+            INNER JOIN domain_aliasses ON (ssl_certs.domain_id = domain_aliasses.alias_id)
+            INNER JOIN server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+            WHERE ssl_certs.domain_type = 'als'
+            UNION
+            SELECT ip_number FROM ssl_certs
+            INNER JOIN subdomain_alias ON (ssl_certs.domain_id = subdomain_alias.subdomain_alias_id)
+            INNER JOIN domain_aliasses ON (subdomain_alias.alias_id = domain_aliasses.alias_id)
+            INNER JOIN server_ips ON (domain_aliasses.alias_ip_id = server_ips.ip_id)
+            WHERE ssl_certs.domain_type = 'alssub'
+            UNION
+            SELECT ip_number FROM ssl_certs INNER JOIN subdomain ON (ssl_certs.domain_id = subdomain.subdomain_id)
+            INNER JOIN domain ON (subdomain.domain_id = domain.domain_id)
+            INNER JOIN server_ips ON (domain.domain_ip_id = server_ips.ip_id)
+            WHERE ssl_certs.domain_type = 'sub'
+        "
+    );
+    unless (ref $rdata eq 'HASH') {
+        error( $rdata );
+        undef;
+    }
 
-	if($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
-		# The Base server IP must always be here because even if not used by any domain, the panel use it
-		$rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
-	}
+    if ($main::imscpConfig{'PANEL_SSL_ENABLED'} eq 'yes') {
+        # The Base server IP must always be here because even if not used by any domain, the panel use it
+        $rdata->{$main::imscpConfig{'BASE_SERVER_IP'}} = undef;
+    }
 
-	@{$self->{'ssl_ipaddrs'}} = keys %{$rdata};
-
-	0;
+    @{$ips->{'SSL_IPS'}} = keys %{$rdata};
+    $ips;
 }
 
 =back

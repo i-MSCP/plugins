@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,11 +23,11 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('bayes_global_vars');
 
 return array(
-	'up' => "
-		CREATE TABLE IF NOT EXISTS $database.$table (
-			`variable` varchar(30) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			`value` varchar(200) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-			PRIMARY KEY (`variable`)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-	"
+    'up' => "
+        CREATE TABLE IF NOT EXISTS $database.$table (
+            `variable` varchar(30) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            `value` varchar(200) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+            PRIMARY KEY (`variable`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    "
 );

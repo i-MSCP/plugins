@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Demo plugin
- * Copyright (C) 2012-2014 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2016 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,12 +19,12 @@
  */
 
 return array(
-	'author' => 'Laurent Declercq',
-	'email' => 'l.declercq@nuxwin.com',
-	'version' => '1.1.1',
-	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
-	'name' => 'Demo',
-	'desc' => 'Plugin which allows to create an i-MSCP Demo server in few minutes.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:demo'
+    'author' => 'Laurent Declercq',
+    'email' => 'l.declercq@nuxwin.com',
+    'version' => '1.1.2',
+    'require_api' => '1.0.4',
+    'date' => '2016-05-15',
+    'name' => 'Demo',
+    'desc' => 'Plugin which allows to create an i-MSCP Demo server in few minutes.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:demo'
 );

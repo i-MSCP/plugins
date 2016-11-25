@@ -1,6 +1,6 @@
-# i-MSCP Postscreen plugin v1.0.0
+#  i-MSCP Postscreen plugin v1.1.0
 
-Plugin which allows to use Postscreen daemon for Postfix with i-MSCP.
+Plugin that provides Postscreen daemon for Postfix.
 
 ## Introduction
 
@@ -20,7 +20,7 @@ In any case, be aware that if you use this plugin, your clients must no longer s
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 * Postfix version >= 2.8
 
@@ -29,16 +29,16 @@ package using backports repository. Refer to your distro documentation for furth
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -51,8 +51,8 @@ change by updating the plugin list through the plugin management interface.
 ## License
 
 ```
-Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

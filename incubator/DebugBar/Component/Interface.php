@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2015 by Laurent Declercq
+ * Copyright (C) 2010-2016 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,50 +23,50 @@
  */
 interface iMSCP_Plugin_DebugBar_Component_Interface
 {
-	/**
-	 * Returns component unique identifier
-	 *
-	 * @abstract
-	 * @return string
-	 */
-	public function getIdentifier();
+    /**
+     * Returns component unique identifier
+     *
+     * @abstract
+     * @return string
+     */
+    public function getIdentifier();
 
-	/**
-	 * Returns component tab
-	 *
-	 * @abstract
-	 * @return string
-	 */
-	public function getTab();
+    /**
+     * Returns component tab
+     *
+     * @abstract
+     * @return string
+     */
+    public function getTab();
 
-	/**
-	 * Returns component panel
-	 *
-	 * @abstract
-	 * @return string
-	 */
-	public function getPanel();
+    /**
+     * Returns component panel
+     *
+     * @abstract
+     * @return string
+     */
+    public function getPanel();
 
-	/**
-	 * Returns component icon path
-	 *
-	 * @abstract
-	 * @return string
-	 */
-	public function getIconPath();
+    /**
+     * Returns component icon path
+     *
+     * @abstract
+     * @return string
+     */
+    public function getIconPath();
 
-	/**
-	 * Returns listened event(s).
-	 *
-	 * @abstract
-	 * @return array|string
-	 */
-	public function getListenedEvents();
+    /**
+     * Returns listened event(s)
+     *
+     * @abstract
+     * @return array|string
+     */
+    public function getListenedEvents();
 
-	/**
-	 * Get component priority
-	 *
-	 * @return int
-	 */
-	public function getPriority();
+    /**
+     * Get component priority
+     *
+     * @return int
+     */
+    public function getPriority();
 }

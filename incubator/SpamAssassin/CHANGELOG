@@ -2,119 +2,157 @@ SpamAssassin - ChangeLog
 ========================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.1.1
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: Wrong cron settings for cronjob_bayes_sa-learn
+    Fixed: Requirements check for pyzor & razor if not enabled in config
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.1.0
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: 3rd party SpamAssassin rules from Heinlein Support
+    Added: Enable SpamAssassin service on systems with systemd
+    Added: Option to define networks which won't be scanned for SPAM
+    Added: Option to scan outgoing mails of SMTP authenticated senders
+    Changed: New default values in config.php
+    Changed: Option to reject all SPAM mails or only above a defined score level
+    Changed: Requirements check
+    Changed: Run cronjobs with lower priority
+    Changed: Switch Postfix service restart to reload
+    Changed: Usage of i-MSCP API to create/drop SQL user
+    Fixed: '_' and '%' wildcards must be escaped in GRANT statements
+    Fixed: Configuration files containing sensitive informations such as SQL user password must not be world-readable
+    Fixed: Syntax error in cronjob files
+    Removed: Deprecated config option sauserprefs_bayes_delete
+    Removed: Experimental smartmatch operator
+    Removed: Update SpamAssassin rules and keys. Will be done by the default SpamAssassin cronjob.
+    Updated: Roundcube plugin markasjunk2
+    Updated: Roundcube plugin sauserprefs
+    Updated: SpamAssassin plugin DecodeShortURLs
+    Updated for i-MSCP 1.3.x Serie
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.0.6
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: Syntax error in bayes cronjob
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: The plugin's data are not available when plugin is loaded through a cron job
-	Fixed: Double entry on milter_connect_macros
-	Updated: DecodeShortURLs.pm
+    Fixed: The plugin's data are not available when plugin is loaded through a cron job
+    Fixed: Double entry on milter_connect_macros
+    Updated: DecodeShortURLs.pm
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Do not try to restart imscp_panel service if we are in setup mode
-	Fixed: Errors from the sa-update task are not handled correctly in plugin backend
+    Fixed: Do not try to restart imscp_panel service if we are in setup mode
+    Fixed: Errors from the sa-update task are not handled correctly in plugin backend
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: imscp_panel service must be restarted to force flush of any opcode cache
+    Fixed: imscp_panel service must be restarted to force flush of any opcode cache
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Possible uninitialized values
-	Review: CS fixes
+    Fixed: Possible uninitialized values
+    Review: CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Possible uninitialized value
-	Fixed: ​$spamassassinDbName variable is not interpolated (backend)
+    Fixed: Possible uninitialized value
+    Fixed: ​$spamassassinDbName variable is not interpolated (backend)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Compatibility issues with ClamAV plugin
-	Removed: Support for i-MSCP 1.1.x serie
+    Fixed: Compatibility issues with ClamAV plugin
+    Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.12
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Catch whether Roundcube is installed
+    Fixed: Catch whether Roundcube is installed
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.11
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Support for Roundcube 1.0.x
+    Added: Support for Roundcube 1.0.x
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.10
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: my variable $rs masks earlier declaration
-	Fixed: Roundcube plugins wont be activated after installation
+    Fixed: my variable $rs masks earlier declaration
+    Fixed: Roundcube plugins wont be activated after installation
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.9
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Unable to add more than one whitelist/blacklist entry with roundcube sauserprefs
+    Fixed: Unable to add more than one whitelist/blacklist entry with roundcube sauserprefs
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.8
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Plugin now compatible with SpamAssassin 3.4.0
+    Added: Plugin now compatible with SpamAssassin 3.4.0
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.7
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Backend file path in cronjob
-	Fixed: Unable to connect to MySQL
+    Fixed: Backend file path in cronjob
+    Fixed: Unable to connect to MySQL
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.6
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Missing array on listener
-	Fixed: Use DATABASE_USER_HOST for the SpamAssassin database
+    Fixed: Missing array on listener
+    Fixed: Use DATABASE_USER_HOST for the SpamAssassin database
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Cronjob file path
+    Fixed: Cronjob file path
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Bug in combination with OpenDKIM plugin while creating the main.cf entry.
+    Fixed: Bug in combination with OpenDKIM plugin while creating the main.cf entry.
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: The permissions were not set if the spamassassin library folder was already present.
-	Added: Option to change the cronjob for sa-learn and also changed the cron interval.
+    Fixed: The permissions were not set if the spamassassin library folder was already present.
+    Added: Option to change the cronjob for sa-learn and also changed the cron interval.
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Database table bayes_vars was not created
+    Fixed: Database table bayes_vars was not created
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 0.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	First release
+    First release

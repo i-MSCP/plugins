@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,15 +20,15 @@
  */
 
 return array(
-	'author' => array(
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.2.3',
-	'require_api' => '1.0.0',
-	'date' => '2015-08-12',
-	'name' => 'RoundcubePlugins',
-	'desc' => 'Plugin allows to use Roundcube Plugins with i-MSCP',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+    'author' => array(
+        'Rene Schuster',
+        'Sascha Bay'
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.2.6',
+    'require_api' => '1.0.6',
+    'date' => '2016-01-01',
+    'name' => 'RoundcubePlugins',
+    'desc' => 'Plugin that provides many plugins for Roundcube',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 );

@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,12 +20,12 @@
  */
 
 return array(
-	// Adminer SQL driver (default: mysql)
-	// Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
-	'driver' => 'mysql',
+    // Adminer SQL driver (default: mysql)
+    // Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
+    'driver' => 'mysql',
 
-	// Adminer theme (default: brade)
-	// brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
-	// pilot, pokorny, price
-	'theme' => 'brade'
+    // Adminer theme (default: brade)
+    // brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
+    // pilot, pokorny, price
+    'theme' => 'brade'
 );

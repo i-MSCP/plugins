@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,16 +20,16 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Rene Schuster',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.0.5',
-	'require_api' => '1.0.0',
-	'date' => '2015-10-08',
-	'name' => 'SpamAssassin',
-	'desc' => 'Plugin which allows to use SpamAssassin with i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
+    'author' => array(
+        'Laurent Declercq',
+        'Rene Schuster',
+        'Sascha Bay'
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.1.1',
+    'require_api' => '1.0.5',
+    'date' => '2016-09-14',
+    'name' => 'SpamAssassin',
+    'desc' => 'Plugin that provides spam filter for Postfix using SpamAssassin.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
 );

@@ -4,7 +4,7 @@ Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * Monitorix version >= 3.5.0
 
 ### Debian / Ubuntu packages
@@ -18,8 +18,8 @@ Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 You can install these packages by running the following commands:
 
 ```bash
-# aptitude update
-# aptitude install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
+# apt-get update
+# apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
 ```
 
 #### Monitorix package
@@ -33,16 +33,16 @@ You can install these packages by running the following commands:
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -51,6 +51,33 @@ See [Configuration file](../Monitorix/config.php)
 
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
+ 
+## Troubleshootings
+
+### Nginx failing to start due to Monitorix httpd daemon that listens on same port (8080)
+
+When deactivating or uninstalling this plugin, the monitorix package is still installed, meaning that the default
+Monitorix configuration parameters apply. This can lead to an Nginx start failure because the Monitorix httpd daemon
+also listens on the port 8080. To solve this this issue, you must either deinstall the monitorix package, or edit the 
+`/etc/monitorix/monitorix.conf` file manually to disable the monitorix httpd daemon:
+
+```
+<httpd_builtin>
+        enabled = y
+        ...
+</httpd_builtin>
+```
+
+should become
+
+```
+<httpd_builtin>
+        enabled = n
+        ...
+</httpd_builtin>
+```
+
+Once done, you should be able to start the Nginx service.
  
 ## Translation
 
@@ -65,8 +92,8 @@ repository and do a pull request if you've a github account.
 ## License
 
 ```
-Copyright (C) Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) Sascha Bay <info@space2place.de>
+Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

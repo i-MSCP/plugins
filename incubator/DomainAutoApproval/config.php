@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DomainAutoApproval plugin
- * Copyright (C) 2012-2015 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2016 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,17 +19,14 @@
  */
 
 return array(
-	// If set to TRUE, any domain alias created by user accounts listed in the 'user_accounts' parameter will be
-	// auto-approved
-	//
-	// If set to FALSE, any domain alias created by user accounts not listed in the 'user_accounts' parameter will be
-	// auto approved
-	'approval_rule' => false,
+    // When set to TRUE, any domain alias created by a client listed in the 'user_accounts' parameter will be auto-approved
+    // When set to FALSE, any domain alias created by a client not listed in the 'user_accounts' parameter will be auto approved
+    'approval_rule' => false,
 
-	// Here, you can provide the list of user accounts ( read above to know how the list is used )
-	'user_accounts' => array(),
+    // List of client accounts (read above to know how this list is used)
+    'user_accounts' => array(),
 
-	// List of ignored domains
-	// Any domain listed here will be ignored by this plugin, whatever the value of the approval rule above
-	'ignored_domains' => array()
+    // List of ignored domains
+    // Any domain listed in that list will be ignored by this plugin, whatever the value of the approval rule above
+    'ignored_domains' => array()
 );

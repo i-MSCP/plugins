@@ -1,9 +1,9 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,25 +21,35 @@
  */
 
 return array(
-	// OpenDKIM listening port (default: 12345)
-	// Warning: Don't use a port lower than 1000 nor greater than 65535
-	'opendkim_port' => '12345',
+    // OpenDKIM Socket (default: local:/var/spool/postfix/opendkim/opendkim.sock)
+    //
+    // Possible values:
+    //  'local:/var/spool/postfix/opendkim/opendkim.sock' for connection through UNIX socket
+    //  'inet:12345@localhost' for connection through TCP socket
+    'OpenDKIM_Socket'           => 'local:/var/spool/postfix/opendkim/opendkim.sock',
 
-	// OpenDKIM canonicalization method (default: simple)
-	//
-	// Canonicalization method(s) to be used when signing messages. When verifying, the message's DKIM-Signature: header
-	// field specifies the canonicalization method. The recognized values are relaxed and simple as defined by the DKIM
-	// specification. The value may include two different canonicalizations separated by a slash ("/") character, in
-	// which case the first will be applied to the header and the second to the body.
-	//
-	// Possible values: simple, relaxed, simple/relaxed or relaxed/simple
-	'opendkim_canonicalization' => 'simple',
+    // Postfix smtpd milter for OpenDKIM (default: unix:/opendkim/opendkim.sock)
+    //
+    // Possible values:
+    //  'unix:/opendkim/opendkim.sock' for connection through UNIX socket
+    //  'inet:localhost:12345' for connection through TCP socket
+    'PostfixMilterSocket'       => 'unix:/opendkim/opendkim.sock',
 
-	// Trusted hosts (default: 127.0.0.1, localhost)
-	//
-	// List of host which must be trusted by OpenDKIM
-	'opendkim_trusted_hosts' => array(
-		'127.0.0.1',
-		'localhost'
-	)
+    // OpenDKIM canonicalization method (default: simple)
+    //
+    // Canonicalization method(s) to be used when signing messages. When verifying, the message's DKIM-Signature: header
+    // field specifies the canonicalization method. The recognized values are relaxed and simple as defined by the DKIM
+    // specification. The value may include two different canonicalizations separated by a slash ("/") character, in
+    // which case the first will be applied to the header and the second to the body.
+    //
+    // Possible values: simple, relaxed, simple/relaxed or relaxed/simple
+    'opendkim_canonicalization' => 'simple',
+
+    // Trusted hosts (default: 127.0.0.1, localhost)
+    //
+    // List of host which must be trusted by OpenDKIM
+    'opendkim_trusted_hosts'    => array(
+        '127.0.0.1',
+        'localhost'
+    )
 );

@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP RecaptchaPMA plugin
-# Copyright (C) 2010-2015 by Sascha Bay
+# Copyright (C) 2010-2016 by Sascha Bay
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,12 +25,11 @@ package Plugin::RecaptchaPMA;
 
 use strict;
 use warnings;
-no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-use iMSCP::Debug;
 use iMSCP::Database;
+use iMSCP::Debug;
 use iMSCP::File;
-use iMSCP::TemplateParser;
 use iMSCP::Service;
+use iMSCP::TemplateParser;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -52,17 +51,20 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_pmaConfig('configure');
-	return $rs if $rs;
+    my $rs = $self->_pmaConfig( 'configure' );
+    return $rs if $rs;
 
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		# Needed to flush opcode cache if any
-		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
-	}
+    unless (defined $main::execmode && $main::execmode eq 'setup') {
+        eval {iMSCP::Service->getInstance()->restart('imscp_panel');};
+        if($@) {
+            error($@);
+            return 1;
+        }
+    }
 
-	0;
+    0;
 }
 
 =item disable()
@@ -75,18 +77,24 @@ sub enable
 
 sub disable
 {
-	my $self = shift;
+    my $self = shift;
 
-	my $rs = $self->_pmaConfig('deconfigure');
-	return $rs if $rs;
+    my $rs = $self->_pmaConfig( 'deconfigure' );
+    return $rs if $rs;
 
-	unless(defined $main::execmode && $main::execmode eq 'setup') {
-		# Needed to flush opcode cache if any
-		iMSCP::Service->getInstance()->restart('imscp_panel', 'defer');
-	}
+    unless (defined $main::execmode && $main::execmode eq 'setup') {
+        local $@;
+        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+    }
 
-	0;
+    0;
 }
+
+=back
 
 =head1 PRIVATE METHODS
 
@@ -102,13 +110,10 @@ sub disable
 
 sub _init
 {
-	my $self = shift;
+    my $self = shift;
 
-	if($self->{'action'} ~~ [ 'enable', 'disable', 'change', 'update' ]) {
-		$self->{'FORCE_RETVAL'} = 'yes';
-	}
-
-	$self;
+    $self->{'FORCE_RETVAL'} = 'yes' if $self->{'action'} =~ /^(?:enable|disable|change|update)$/;
+    $self;
 }
 
 =item _pmaConfig($action)
@@ -122,48 +127,43 @@ sub _init
 
 sub _pmaConfig
 {
-	my ($self, $action) = @_;
+    my ($self, $action) = @_;
 
-	my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php" );
-	my $fileContent = $file->get();
-	unless (defined $fileContent) {
-		error("Unable to read $file->{'filename'} file");
-		return 1;
-	}
+    my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php" );
+    my $fileContent = $file->get();
+    unless (defined $fileContent) {
+        error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+        return 1;
+    }
 
-	if($action eq 'configure') {
-		my $configSnippet = <<EOF;
+    if ($action eq 'configure') {
+        my $configSnippet = <<EOF;
 # Begin Plugin::RecaptchaPMA
 \$cfg['CaptchaLoginPublicKey'] = "$self->{'config'}->{'reCaptchaLoginPublicKey'}";
 \$cfg['CaptchaLoginPrivateKey'] = "$self->{'config'}->{'reCaptchaLoginPrivateKey'}";
 # Ending Plugin::RecaptchaPMA
 EOF
 
-		if(getBloc("# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $fileContent) ne '') {
-			$fileContent = replaceBloc(
-				"# Begin Plugin::RecaptchaPMA\n",
-				"# Ending Plugin::RecaptchaPMA\n",
-				$configSnippet,
-				$fileContent
-			);
-		} else {
-			$fileContent .= $configSnippet;
-		}
-	} elsif($action eq 'deconfigure') {
-		$fileContent = replaceBloc(
-			"# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", '', $fileContent
-		);
-	}
+        if (getBloc( "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $fileContent ) ne '') {
+            $fileContent = replaceBloc(
+                "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $configSnippet, $fileContent
+            );
+        } else {
+            $fileContent .= $configSnippet;
+        }
+    } elsif ($action eq 'deconfigure') {
+        $fileContent = replaceBloc(
+            "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", '', $fileContent
+        );
+    }
 
-	my $rs = $file->set($fileContent);
-	return $rs if $rs;
-
-	$file->save();
+    my $rs = $file->set( $fileContent );
+    $rs ||= $file->save();
 }
 
 =back
 
-=head1 AUTHORS
+=head1 AUTHOR
 
  Sascha Bay <info@space2place.de>
 

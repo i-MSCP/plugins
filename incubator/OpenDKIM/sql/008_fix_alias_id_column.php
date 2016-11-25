@@ -1,9 +1,9 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,12 +21,12 @@
  */
 
 return array(
-	'up' => "
-		ALTER TABLE opendkim CHANGE alias_id alias_id int(10) unsigned DEFAULT NULL;
-		UPDATE opendkim SET alias_id = NULL WHERE alias_id = '0';
-	",
-	'down' => "
-		UPDATE opendkim SET alias_id = '0' WHERE alias_id IS NULL;
-		ALTER TABLE opendkim CHANGE alias_id alias_id int(10) unsigned NOT NULL;
-	"
+    'up'   => "
+        ALTER TABLE opendkim CHANGE alias_id alias_id int(10) unsigned DEFAULT NULL;
+        UPDATE opendkim SET alias_id = NULL WHERE alias_id = '0';
+    ",
+    'down' => "
+        UPDATE opendkim SET alias_id = '0' WHERE alias_id IS NULL;
+        ALTER TABLE opendkim CHANGE alias_id alias_id int(10) unsigned NOT NULL;
+    "
 );

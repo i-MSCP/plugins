@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2015 by Laurent Declercq
+ * Copyright (C) 2010-2016 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,150 +23,152 @@
  */
 class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
 {
-	/**
-	 * @var iMSCP_Events_Event
-	 */
-	protected $event;
+    /**
+     * @var iMSCP_Events_Event
+     */
+    protected $event;
 
-	/**
-	 * @var iMSCP_Plugin_DebugBar_Component_Interface[]
-	 */
-	protected $components = array();
+    /**
+     * @var iMSCP_Plugin_DebugBar_Component_Interface[]
+     */
+    protected $components = array();
 
-	/**
-	 * @var array Listened events
-	 */
-	protected $listenedEvents = array(
-		iMSCP_Events::onLoginScriptEnd,
-		iMSCP_Events::onLostPasswordScriptEnd,
-		iMSCP_Events::onAdminScriptEnd,
-		iMSCP_Events::onResellerScriptEnd,
-		iMSCP_Events::onClientScriptEnd,
-		iMSCP_Events::onExceptionToBrowserEnd
-	);
+    /**
+     * @var array Listened events
+     */
+    protected $listenedEvents = array(
+        iMSCP_Events::onLoginScriptEnd,
+        iMSCP_Events::onLostPasswordScriptEnd,
+        iMSCP_Events::onAdminScriptEnd,
+        iMSCP_Events::onResellerScriptEnd,
+        iMSCP_Events::onClientScriptEnd,
+        iMSCP_Events::onExceptionToBrowserEnd
+    );
 
-	/**
-	 * Register a callback for the given event(s)
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		if(!is_xhr()) { // Do not act on AJAX request
-			$components = $this->getConfigParam('components');
+    /**
+     * Register a callback for the given event(s)
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param iMSCP_Events_Manager_Interface $eventsManager
+     */
+    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    {
+        if (is_xhr()) { // Do not act on AJAX requests
+            return;
+        }
 
-			if($components) {
-				if(is_array($components)) {
-					foreach ($components as $component) {
-						require_once 'Component/' . $component . '.php';
-						$componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
-						$component = new $componentClass();
+        $components = $this->getConfigParam('components');
+        if (!$components) {
+            return;
+        }
 
-						if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
-							throw new iMSCP_Plugin_Exception(
-								'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
-							);
-						} else {
-							$events = $component->getListenedEvents();
+        if (!is_array($components)) {
+            throw new iMSCP_Plugin_Exception(
+                'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
+            );
+        }
 
-							if(!empty($events)) {
-								$eventsManager->registerListener($events, $component, $component->getPriority());
-							}
-						}
+        foreach ($components as $component) {
+            require_once 'Component/' . $component . '.php';
+            $componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
+            $component = new $componentClass();
 
-						$this->components[] = $component;
-					}
+            if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
+                throw new iMSCP_Plugin_Exception(
+                    'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
+                );
+            }
 
-					$eventsManager->registerListener($this->getListenedEvents(), $this, -100);
-				} else {
-					throw new iMSCP_Plugin_Exception(
-						'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
-					);
-				}
-			}
-		}
-	}
+            $events = $component->getListenedEvents();
+            if (!empty($events)) {
+                $eventsManager->registerListener($events, $component, $component->getPriority());
+            }
 
-	/**
-	 * Catch all calls for listener methods of this class to avoid to declarate them since they do same job
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param string $listenerMethod Listener method
-	 * @param array $arguments Enumerated array containing listener method arguments (always an iMSCP_Events_Description object)
-	 */
-	public function __call($listenerMethod, $arguments)
-	{
-		if (in_array($listenerMethod, $this->getListenedEvents())) {
-			$this->event = $arguments[0];
-			$this->buildDebugBar();
-		}
-	}
+            $this->components[] = $component;
+        }
 
-	/**
-	 * Returns list of listeneds events
-	 *
-	 * @return array
-	 */
-	public function getListenedEvents()
-	{
-		return $this->listenedEvents;
-	}
+        $eventsManager->registerListener($this->getListenedEvents(), $this, -100);
+    }
 
-	/**
-	 * Builds the Debug Bar and adds it to the repsonse
-	 *
-	 * @return void
-	 */
-	protected function buildDebugBar()
-	{
-		$xhtml = '<div>';
+    /**
+     * Catch all calls for listener methods of this class to avoid to declarate them since they do same job
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param string $listenerMethod Listener method
+     * @param array $arguments Enumerated array containing listener method arguments (always an iMSCP_Events_Description object)
+     */
+    public function __call($listenerMethod, $arguments)
+    {
+        if (in_array($listenerMethod, $this->getListenedEvents())) {
+            $this->event = $arguments[0];
+            $this->buildDebugBar();
+        }
+    }
 
-		/** @var $component iMSCP_Plugin_DebugBar_Component_Interface */
-		foreach ($this->components as $component) {
-			if (($tab = $component->getTab()) != '') {
-				$xhtml .= '<span class="iMSCPdebug_span clickable" onclick="iMSCPdebugPanel(\'iMSCPdebug_' . $component->getIdentifier() . '\');">';
-				$xhtml .= '<img src="' . $component->getIconPath() . '" width="16" height="16" style="vertical-align:middle" alt="' . $component->getIdentifier() . '" title="' . $component->getIdentifier() . '" /> ';
-				$xhtml .= $tab . '</span>';
-			}
+    /**
+     * Returns list of listeneds events
+     *
+     * @return array
+     */
+    public function getListenedEvents()
+    {
+        return $this->listenedEvents;
+    }
 
-			if (($panel = $component->getPanel()) != '') {
-				$xhtml .= '<div id="iMSCPdebug_' . $component->getIdentifier() . '" class="iMSCPdebug_panel">' . $panel . '</div>';
-			}
-		}
+    /**
+     * Builds the Debug Bar and adds it to the repsonse
+     *
+     * @return void
+     */
+    protected function buildDebugBar()
+    {
+        $xhtml = '<div>';
 
-		$xhtml .= '<span class="iMSCPdebug_span iMSCPdebug_last clickable" id="iMSCPdebug_toggler" onclick="iMSCPdebugSlideBar()">&#171;</span>';
-		$xhtml .= '</div>';
+        /** @var $component iMSCP_Plugin_DebugBar_Component_Interface */
+        foreach ($this->components as $component) {
+            if (($tab = $component->getTab()) != '') {
+                $xhtml .= '<span class="iMSCPdebug_span clickable" onclick="iMSCPdebugPanel(\'iMSCPdebug_' . $component->getIdentifier() . '\');">';
+                $xhtml .= '<img src="' . $component->getIconPath() . '" width="16" height="16" style="vertical-align:middle" alt="' . $component->getIdentifier() . '" title="' . $component->getIdentifier() . '" /> ';
+                $xhtml .= $tab . '</span>';
+            }
 
-		/** @var $templateEngine iMSCP_pTemplate */
-		$templateEngine = $this->event->getParam('templateEngine');
-		$response = $templateEngine->getLastParseResult();
-		$response = preg_replace('@(</head>)@i', $this->buildHeader() . PHP_EOL . '$1', $response);
-		$response = str_ireplace('</body>', '<div id="iMSCPdebug_debug">' . $xhtml . '</div></body>', $response);
-		$templateEngine->replaceLastParseResult($response);
-	}
+            if (($panel = $component->getPanel()) != '') {
+                $xhtml .= '<div id="iMSCPdebug_' . $component->getIdentifier() . '" class="iMSCPdebug_panel">' . $panel . '</div>';
+            }
+        }
 
-	/**
-	 * Returns xhtml header for the Debug Bar
-	 *
-	 * @return string
-	 */
-	protected function buildHeader()
-	{
-		$collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
+        $xhtml .= '<span class="iMSCPdebug_span iMSCPdebug_last clickable" id="iMSCPdebug_toggler" onclick="iMSCPdebugSlideBar()">&#171;</span>';
+        $xhtml .= '</div>';
 
-		$backgroundColor = array(
-			'black' => '#000000',
-			'red' => '#5a0505',
-			'blue' => '#151e72',
-			'green' => '#055a0d',
-			'yellow' => '#85742f'
-		);
+        /** @var $templateEngine iMSCP_pTemplate */
+        $templateEngine = $this->event->getParam('templateEngine');
+        $response = $templateEngine->getLastParseResult();
+        $response = preg_replace('@(</head>)@i', $this->buildHeader() . PHP_EOL . '$1', $response);
+        $response = str_ireplace('</body>', '<div id="iMSCPdebug_debug">' . $xhtml . '</div></body>', $response);
+        $templateEngine->replaceLastParseResult($response);
+    }
 
-		$color = isset($_SESSION['user_id'])
-			? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : '#000000';
+    /**
+     * Returns xhtml header for the Debug Bar
+     *
+     * @return string
+     */
+    protected function buildHeader()
+    {
+        $collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
 
-		return ('
+        $backgroundColor = array(
+            'black' => '#000000',
+            'red' => '#5a0505',
+            'blue' => '#151e72',
+            'green' => '#055a0d',
+            'yellow' => '#85742f'
+        );
+
+        $color = isset($_SESSION['user_id'])
+            ? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : '#000000';
+
+        return ('
             <style type="text/css" media="screen">
                 #iMSCPdebug_debug h4 {margin:0.5em;font-weight:bold;}
                 #iMSCPdebug_debug strong {font-weight:bold;}
@@ -178,7 +180,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
                 #iMSCPdebug_debug li {margin:0 0 10px 0;}
                 #iMSCPdebug_debug .clickable { cursor:pointer }
                 #iMSCPdebug_toggler { font-weight:bold; background:' . $color . '; }
-                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0; background:' . $color .'; padding: 6px 5px; }
+                .iMSCPdebug_span { border: 1px solid #ccc; border-right:0; background:' . $color . '; padding: 6px 5px; }
                 .iMSCPdebug_last { border: 1px solid #ccc; }
                 .iMSCPdebug_panel { text-align:left; position:absolute;bottom:21px;width:600px; max-height:400px; overflow:auto; display:none; background:' . $color . '; padding:0.5em; border: 1px solid #ccc; }
                 .iMSCPdebug_panel .pre {font: 1em Geneva, Arial, Helvetica, sans-serif; margin:0 0 0 22px}
@@ -246,5 +248,5 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
                     jQuery(name).slideToggle();
                 }
             </script>');
-	}
+    }
 }

@@ -1,10 +1,10 @@
-# i-MSCP PanelRedirect plugin v1.1.0
+#  i-MSCP PanelRedirect plugin v1.1.5
 
-Plugin which allows to access i-MSCP panel through Apache using the default HTTP ports (80, 443).
+Plugin that provides access to i-MSCP panel (and tools) through standard ports (80, 443).
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 
 ## Installation
 
@@ -15,13 +15,29 @@ Plugin which allows to access i-MSCP panel through Apache using the default HTTP
 
 1. Backup your plugin configuration file if needed
 2. Upload the plugin through the plugin management interface
-3. Restore your plugin configuration file if needed ( compare it with the new version first )
+3. Restore your plugin configuration file if needed (compare it with the new version first)
 4. Update the plugin list through the plugin management interface
+
+## Operational modes
+
+The plugin provides two operational modes which are:
+
+### Redirect mode
+
+In this case, a request made on `http://panel.hostname.tld/webmail` would be redirected to 
+`http//panel.hostname.tld:8880/webmail`, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such
+case, the request would be redirected to `https//panel.hostname.tld:8443/webmail`.
+
+###Proxy mode (default mode)
+
+In this mode, all is transparent. A request made on `http://panel.hostname.tld/webmail` would result to the view of the
+webmail without any URL change, excepted if the `BASE_SERVER_VHOST_PREFIX` value is set to `https://`. In such case, the
+request would be redirected to `https://panel.hostname.tld/webmail`.
 
 ## License
 
 ```
-Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -40,6 +56,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 See [LICENSE](LICENSE)
 
-## Author(s)
+## Author
 
 * Ninos Ego <me@ninosego.de>

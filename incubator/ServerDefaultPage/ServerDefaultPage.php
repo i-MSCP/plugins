@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP ServerDefaultPage plugin
- * Copyright (C) 2014-2015 by Ninos Ego <me@ninosego.de>
+ * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,25 +23,25 @@
  */
 class iMSCP_Plugin_ServerDefaultPage extends iMSCP_Plugin_Action
 {
-	/**
-	 * Plugin installation
-	 *
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function install(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only here to tell the plugin manager that this plugin is installable
-	}
+    /**
+     * Plugin installation
+     *
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function install(iMSCP_Plugin_Manager $pluginManager)
+    {
+        // Only here to tell the plugin manager that this plugin is installable
+    }
 
-	/**
-	 * Plugin uninstallation
-	 *
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function uninstall(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only here to tell the plugin manager that this plugin can be uninstalled
-	}
+    /**
+     * Plugin uninstallation
+     *
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    {
+        // Only here to tell the plugin manager that this plugin can be uninstalled
+    }
 }

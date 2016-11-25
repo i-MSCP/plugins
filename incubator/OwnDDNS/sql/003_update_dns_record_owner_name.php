@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,10 +26,10 @@
  * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
 return array(
-	'up' => "
-		UPDATE domain_dns SET owned_by = 'OwnDDNS_Plugin' WHERE owned_by = 'ownddns_feature'
-	",
-	'down' => "
-		UPDATE domain_dns set owned_by = 'ownddns_feature' WHERE owned_by = 'OwnDDNS_Plugin'
-	"
+    'up' => "
+        UPDATE domain_dns SET owned_by = 'OwnDDNS_Plugin' WHERE owned_by = 'ownddns_feature'
+    ",
+    'down' => "
+        UPDATE domain_dns set owned_by = 'ownddns_feature' WHERE owned_by = 'OwnDDNS_Plugin'
+    "
 );

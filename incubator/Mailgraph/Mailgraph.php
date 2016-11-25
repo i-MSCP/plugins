@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
- * Copyright (C) 2010-2015 by Sascha Bay <info@space2place.de>
+ * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,75 +23,75 @@
  */
 class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
 {
-	/**
-	 * Register a callback for the given event(s).
-	 *
-	 * @param iMSCP_Events_Manager_Interface $eventsManager
-	 */
-	public function register(iMSCP_Events_Manager_Interface $eventsManager)
-	{
-		$eventsManager->registerListener(iMSCP_Events::onAdminScriptStart, $this);
-	}
+    /**
+     * Register a callback for the given event(s).
+     *
+     * @param iMSCP_Events_Manager_Interface $eventsManager
+     */
+    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    {
+        $eventsManager->registerListener(iMSCP_Events::onAdminScriptStart, $this);
+    }
 
-	/**
-	 * Plugin installation
-	 *
-	 * This method is automatically called by the plugin manager when the plugin is being installed.
-	 *
-	 * @throws iMSCP_Plugin_Exception
-	 * @param iMSCP_Plugin_Manager $pluginManager
-	 * @return void
-	 */
-	public function install(iMSCP_Plugin_Manager $pluginManager)
-	{
-		// Only there to tell the plugin manager that this plugin is installable
-	}
+    /**
+     * Plugin installation
+     *
+     * This method is automatically called by the plugin manager when the plugin is being installed.
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    public function install(iMSCP_Plugin_Manager $pluginManager)
+    {
+        // Only there to tell the plugin manager that this plugin is installable
+    }
 
-	/**
-	 * onAdminScriptStart listener
-	 *
-	 * @return void
-	 */
-	public function onAdminScriptStart()
-	{
-		$this->setupNavigation();
-	}
+    /**
+     * onAdminScriptStart listener
+     *
+     * @return void
+     */
+    public function onAdminScriptStart()
+    {
+        $this->setupNavigation();
+    }
 
-	/**
-	 * Get routes
-	 *
-	 * @return array
-	 */
-	public function getRoutes()
-	{
-		$pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
+    /**
+     * Get routes
+     *
+     * @return array
+     */
+    public function getRoutes()
+    {
+        $pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
-		return array(
-			'/admin/mailgraph.php' => $pluginDir . '/frontend/mailgraph.php',
-			'/admin/mailgraphics.php' => $pluginDir . '/frontend/mailgraphics.php'
-		);
-	}
+        return array(
+            '/admin/mailgraph.php' => $pluginDir . '/frontend/mailgraph.php',
+            '/admin/mailgraphics.php' => $pluginDir . '/frontend/mailgraphics.php'
+        );
+    }
 
-	/**
-	 * Inject Mailgraph links into the navigation object
-	 *
-	 * @return void
-	 */
-	protected function setupNavigation()
-	{
-		if (iMSCP_Registry::isRegistered('navigation')) {
-			/** @var Zend_Navigation $navigation */
-			$navigation = iMSCP_Registry::get('navigation');
+    /**
+     * Inject Mailgraph links into the navigation object
+     *
+     * @return void
+     */
+    protected function setupNavigation()
+    {
+        if (iMSCP_Registry::isRegistered('navigation')) {
+            /** @var Zend_Navigation $navigation */
+            $navigation = iMSCP_Registry::get('navigation');
 
-			if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
-				$page->addPage(
-					array(
-						'label' => tr('Mailgraph'),
-						'uri' => '/admin/mailgraph.php',
-						'title_class' => 'stats'
-					)
-				);
-			}
-		}
-	}
+            if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
+                $page->addPage(
+                    array(
+                        'label' => tr('Mailgraph'),
+                        'uri' => '/admin/mailgraph.php',
+                        'title_class' => 'stats'
+                    )
+                );
+            }
+        }
+    }
 }

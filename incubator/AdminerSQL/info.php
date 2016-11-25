@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,16 +20,15 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Sascha Bay'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.0.0',
-	'require_api' => '1.0.0',
-	'date' => '2015-06-05',
-	'name' => 'AdminerSQL',
-	'desc' => 'Plugin which allows to manage SQL databases through Adminer.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql',
-
+    'author' => array(
+        'Laurent Declercq',
+        'Sascha Bay'
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.0.1',
+    'require_api' => '1.0.4',
+    'date' => '2016-06-25',
+    'name' => 'AdminerSQL',
+    'desc' => 'Plugin that allows to manage SQL databases through Adminer.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
 );

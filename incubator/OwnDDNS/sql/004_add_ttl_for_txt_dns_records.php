@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2014 by i-MSCP Team
+ * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,10 +29,10 @@
 $ttlUpdateTime = $this->getConfigParam('update_ttl_time', '60');
  
 return array(
-	'up' => "
-		UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '".$ttlUpdateTime."') WHERE owned_by = 'OwnDDNS_Plugin';
-	",
-	'down' => "
-		UPDATE `domain_dns` SET `domain_dns` = CONCAT(SUBSTRING_INDEX(`domain_dns`,' ',1),'','') WHERE owned_by = 'OwnDDNS_Plugin';
-	"
+    'up' => "
+        UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '".$ttlUpdateTime."') WHERE owned_by = 'OwnDDNS_Plugin';
+    ",
+    'down' => "
+        UPDATE `domain_dns` SET `domain_dns` = CONCAT(SUBSTRING_INDEX(`domain_dns`,' ',1),'','') WHERE owned_by = 'OwnDDNS_Plugin';
+    "
 );

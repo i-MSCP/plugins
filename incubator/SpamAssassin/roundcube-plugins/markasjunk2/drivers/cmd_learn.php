@@ -10,12 +10,12 @@
 
 class markasjunk2_cmd_learn
 {
-	public function spam($uids)
+	public function spam($uids, $mbox)
 	{
 		$this->_do_salearn($uids, true);
 	}
 
-	public function ham($uids)
+	public function ham($uids, $mbox)
 	{
 		$this->_do_salearn($uids, false);
 	}
@@ -41,11 +41,14 @@ class markasjunk2_cmd_learn
 			$command = str_replace('%i', $identity_arr['email'], $command);
 		}
 
-		foreach (explode(",", $uids) as $uid) {
+		foreach ($uids as $uid) {
+			// reset command for next message
+			$tmp_command = $command;
+
 			// get DSPAM signature from header (if %xds macro is used)
 			if (preg_match('/%xds/', $command)) {
 				if (preg_match('/^X\-DSPAM\-Signature:\s+((\d+,)?([a-f\d]+))\s*$/im', $rcmail->storage->get_raw_headers($uid), $dspam_signature))
-					$tmp_command = str_replace('%xds', $dspam_signature[1], $command);
+					$tmp_command = str_replace('%xds', $dspam_signature[1], $tmp_command);
 				else
 					continue; // no DSPAM signature found in headers -> continue with next uid/message
 			}
@@ -53,7 +56,7 @@ class markasjunk2_cmd_learn
 			if (preg_match('/%f/', $command)) {
 				$tmpfname = tempnam($temp_dir, 'rcmSALearn');
 				file_put_contents($tmpfname, $rcmail->storage->get_raw_body($uid));
-				$tmp_command = str_replace('%f', $tmpfname, $command);
+				$tmp_command = str_replace('%f', $tmpfname, $tmp_command);
 			}
 
 			exec($tmp_command, $output);

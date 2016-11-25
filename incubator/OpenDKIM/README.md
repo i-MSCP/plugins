@@ -1,10 +1,15 @@
-# i-MSCP OpenDKIM plugin v1.0.2
+#  i-MSCP OpenDKIM plugin v1.1.3
 
-Plugin which provides an OpenDKIM implementation for i-MSCP.
+Plugin that provides DomainKeys Identified Mail (DKIM) service.
+
+## Introduction
+
+DKIM provides a way for senders to confirm their identity when sending email by adding a cryptographic signature to the
+headers of the message.
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 
 ### Debian / Ubuntu packages
 
@@ -14,11 +19,12 @@ Plugin which provides an OpenDKIM implementation for i-MSCP.
 You can install these packages by running the following command:
 
 ```
-# aptitude update && aptitude install opendkim opendkim-tools
+# apt-get update
+# apt-get install opendkim opendkim-tools
 ```
 
-**Note:** For Debian Squeeze, Ubuntu Lucid and Precise, you must install these packages from the backports repositories.
-Refer to your distribution documentation for further details.
+**Note:** For Ubuntu Precise, you must install these packages from the backports repositories. Refer to your
+distribution documentation for further details.
 
 ## Installation
 
@@ -27,10 +33,10 @@ Refer to your distribution documentation for further details.
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -118,9 +124,9 @@ Details:
 
 ```
 i-MSCP  OpenDKIM plugin
-Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
-Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -2,76 +2,102 @@ ServerDefaultPage - ChangeLog
 =============================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.2.5
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: Wrong port set in SSL vhost
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.2.4
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: Apache2 not reloaded - reload attribute is not defined
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.2.3
+------------------------------------------------------------------------------------------------------------------------
+
+    Changed: Listen on the `afterAddIps' event (available since 1.3.x) instead of the `afterHttpdAddIps' event
+    Fixed: Avoid usage of experimental smartmatch operator
+    Fixed: HTTPD server instance not defined in run() action context, leading to errors
+    Fixed: Method installConfFile() from httpd server packages has been removed in i-MSCP 1.3.x
+    Fixed: Only register listener if status is enabled
+    Fixed: SSL certificate must not be re-created in run() action context
+    Fixed: Undefined $self variable in onAddIps event listener
+    Renamed: Server default page document root from `default' to `ServerDefaultPage'
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.2.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Only add BASE_SERVER_IP to ssl ips, if ssl is enabled for panel
+    Fixed: Only add BASE_SERVER_IP to ssl ips, if ssl is enabled for panel
+    Fixed: Compatibility with i-MSCP 1.2.17 API
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Certificate path in vhost-file
+    Fixed: Certificate path in vhost-file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Always support SSL
+    Added: Always support SSL
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: iMSCP::Dir::make expects the mode passed as octal value
-	CS fixes
+    Fixed: iMSCP::Dir::make expects the mode passed as octal value
+    CS fixes
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Updated: README.md file (Added note about template customization)
+    Updated: README.md file (Added note about template customization)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Removed: Support for i-MSCP 1.1.x serie
-	Updated: Templates
+    Removed: Support for i-MSCP 1.1.x serie
+    Updated: Templates
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.5
 ------------------------------------------------------------------------------------------------------------------------
 
-	Added: Possibility to define an own certificate
+    Added: Possibility to define an own certificate
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.4
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: CS issues
+    Fixed: CS issues
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.3
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Smartmatch is experimental ...
+    Fixed: Smartmatch is experimental ...
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.2
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Forbidden access to css and image files ( Apache >= 2.4 )
-	Removed: Useless configuration file
+    Fixed: Forbidden access to css and image files ( Apache >= 2.4 )
+    Removed: Useless configuration file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.1
 ------------------------------------------------------------------------------------------------------------------------
 
-	Fixed: Useless instantiation of Httpd server
+    Fixed: Useless instantiation of Httpd server
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-	Release: First released version
+    Release: First released version

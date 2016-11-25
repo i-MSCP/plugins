@@ -1,9 +1,9 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2015 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2015 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2015 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,16 +21,16 @@
  */
 
 return array(
-	'author' => array(
-		'Laurent Declercq',
-		'Sascha Bay',
-		'Rene Schuster'
-	),
-	'email' => 'team@i-mscp.net',
-	'version' => '1.0.2',
-	'require_api' => '1.0.0',
-	'date' => '2015-07-22',
-	'name' => 'OpenDKIM',
-	'desc' => 'Plugin which provides an OpenDKIM implementation for i-MSCP.',
-	'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
+    'author' => array(
+        'Laurent Declercq',
+        'Sascha Bay',
+        'Rene Schuster'
+    ),
+    'email' => 'team@i-mscp.net',
+    'version' => '1.1.3',
+    'require_api' => '1.0.5',
+    'date' => '2016-10-24',
+    'name' => 'OpenDKIM',
+    'desc' => 'Plugin that provides DomainKeys Identified Mail (DKIM) service.',
+    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
 );

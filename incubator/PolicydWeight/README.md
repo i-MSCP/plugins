@@ -1,6 +1,6 @@
-# i-MSCP PolicydWeight plugin v1.0.0
+# i-MSCP PolicydWeight plugin v1.1.0
 
-Plugin which allows to run policyd-weight policy daemon for Postfix.
+Plugin that provides the policyd-weight policy daemon for Postfix.
 
 ## Introduction
 
@@ -14,7 +14,7 @@ Homepage: http://www.policyd-weight.org/
 
 ## Requirements
 
-* i-MSCP version >= 1.2.3
+* i-MSCP Serie 1.3.x
 * i-MSCP Postfix server implementation
 
 ## Debian / Ubuntu packages
@@ -24,21 +24,22 @@ Homepage: http://www.policyd-weight.org/
 You can install this package by running the following command:
 
 ```
-# aptitude update && aptitude install policyd-weight
+# apt-get update
+# apt-get install policyd-weight
 ```
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Upload the plugin through the plugin management interface
 3. Activate the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are meets
+1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed ( compare it with the new version first )
+4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -48,7 +49,7 @@ See [Configuration file](../PolicydWeight/config.php)
 **Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
 change by updating the plugin list through the plugin management interface.
 
-### policyd-weight
+### policyd-weight configuration options
 
 This plugin doesn't handle policy-weight configuration options. To configure policyd-weight, you must edit the
 /etc/policyd-weight configuration.
@@ -57,7 +58,7 @@ This plugin doesn't handle policy-weight configuration options. To configure pol
 
 ```
 i-MSCP PolicydWeight plugin
-Copyright (C) 2015 Laurent Declercq <l.declercq@nuxwin.com>
+Copyright (C) 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
