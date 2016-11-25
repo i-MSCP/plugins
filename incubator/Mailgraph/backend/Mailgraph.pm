@@ -7,6 +7,7 @@
 # i-MSCP Mailgraph plugin
 # Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
+# Copyright (C) 2016      Rene Schuster <mail@reneschuster.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,8 +28,10 @@ package Plugin::Mailgraph;
 use strict;
 use warnings;
 use iMSCP::Debug;
+use iMSCP::Dir;
 use iMSCP::File;
 use iMSCP::ProgramFinder;
+use iMSCP::Rights;
 use RRDs;
 use parent 'Common::SingletonClass';
 
@@ -71,6 +74,7 @@ sub enable
     my $self = shift;
 
     my $rs = $self->_registerCronjob();
+    $rs ||= $self->_createGraphDir();
     $rs ||= $self->buildGraphs();
 }
 
@@ -111,6 +115,38 @@ sub buildGraphs
 =head1 PRIVATE METHODS
 
 =over 4
+
+=item _createGraphDir()
+
+ Create graph directory
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _createGraphDir
+{
+    my $self = shift;
+
+    my $imgGraphsDir = $main::imscpConfig{'PLUGINS_DIR'}.'/Mailgraph/tmp_graph';
+    unless (-d $imgGraphsDir) {
+        my $rs = iMSCP::Dir->new( dirname => $imgGraphsDir )->make();
+        return $rs if $rs;
+
+        my $panelUName =
+            my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+
+        setRights(
+            $imgGraphsDir,
+            {
+                user      => $panelUName,
+                group     => $panelGName,
+                mode      => '0750'
+            }
+        );
+    }
+    0;
+}
 
 =item _buildMailgraph()
 
@@ -620,6 +656,7 @@ sub _unregisterCronjob
 
  Sascha Bay <info@space2place.de>
  Laurent Declercq <l.declercq@nuxwin.com>
+ Rene Schuster <mail@reneschuster.de>
 
 =cut
 
