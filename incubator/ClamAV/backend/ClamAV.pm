@@ -292,6 +292,12 @@ sub _configureClamavUnofficialSigsConffile
             $configSnippet .= "$option=\"$value\"\n";
         }
 
+        # Signatures enabled
+        $configSnippet .= "\n# Signatures enabled\n";
+        while(my ($option, $value) = each( %{$options->{'signatures_enabled'}} )) {
+            $configSnippet .= "$option=\"$value\"\n";
+        }
+
         # Rating options
         $configSnippet .= "\n# Rating options\n";
         while(my ($option, $value) = each( %{$options->{'rating_options'}} )) {
