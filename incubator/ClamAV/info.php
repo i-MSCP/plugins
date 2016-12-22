@@ -21,16 +21,16 @@
  */
 
 return array(
-    'author' => array(
+    'author'      => array(
         'Laurent Declercq',
         'Rene Schuster',
         'Sascha Bay',
     ),
-    'email' => 'team@i-mscp.net',
-    'version' => '1.2.0',
+    'email'       => 'team@i-mscp.net',
+    'version'     => '1.2.1',
     'require_api' => '1.0.4',
-    'date' => '2016-06-25',
-    'name' => 'ClamAV',
-    'desc' => 'Plugin that allows to use ClamAV with i-MSCP.',
-    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'
+    'date'        => '2016-12-22',
+    'name'        => 'ClamAV',
+    'desc'        => 'Plugin that allows to use ClamAV with i-MSCP.',
+    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'
 );
