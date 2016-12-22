@@ -30,6 +30,7 @@ return array(
     'version'     => '1.1.2',
     'require_api' => '1.0.5',
     'date'        => '2016-11-25',
+    'build'       => '2016112501',
     'name'        => 'Mailgraph',
     'desc'        => 'Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail).',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:mailgraph'
