@@ -5,6 +5,7 @@
  *
  * @version 1.9.1
  * @author Paolo Moretti <morepaolo@gmail.com>
+ * Fixed by @theqkash to make it work in newer roundcube versions
  *
  *
  * This program is free software; you can redistribute it and/or modify
