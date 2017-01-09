@@ -1,0 +1,4 @@
+##Left to do before first release:
+Create install script, so when installed in i-MSCP, after configuring, nolisting will be enabled.
+Remove script
+Create page that allows IP changes, enable/disable email refusal on first IP.
