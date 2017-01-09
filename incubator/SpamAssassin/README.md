@@ -1,4 +1,4 @@
-#  i-MSCP SpamAssassin plugin v1.1.1
+# i-MSCP SpamAssassin plugin v1.1.1
 
 Plugin that provides spam filter for Postfix using SpamAssassin.
 
@@ -83,7 +83,7 @@ If enabled in the config.php file, the Roundcube plugin markasjunk2 adds a new b
 selected messages as 'Junk'/'Not Junk' and will also learn the bayesian database. It will also detach original messages
 from spam reports if the message is not junk.
 
-### sauserprefs
+### sauserprefs
 
 If enabled in the config.php file, the Roundcube plugin sauserprefs adds a 'Spam' tab to the 'Settings' to allow the
 users to change their SpamAssassin preferences which are stored in the imscp_spamassassin database. The SpamAssassin

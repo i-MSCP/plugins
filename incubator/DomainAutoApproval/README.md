@@ -1,4 +1,4 @@
-#  i-MSCP DomainAutoApproval plugin v1.1.2
+# i-MSCP DomainAutoApproval plugin v1.1.2
 
 Plugin that allows auto-approval of domain aliases created by clients.
 

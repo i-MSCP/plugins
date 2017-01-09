@@ -23,8 +23,9 @@ return array(
     'email'       => 'me@ninosego.de',
     'version'     => '1.1.5',
     'require_api' => '1.0.5',
-    'date'        => '2016-11-10',
+    'date'        => '2016-12-09',
+    'build'       => '2016120901',
     'name'        => 'PanelRedirect',
-    'desc'        => 'Plugin that provides access to i-MSCP panel (and tools) through standard ports (80, 443).',
+    'desc'        => 'Provides access to i-MSCP panel (and tools) through standard http(s) ports.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
 );

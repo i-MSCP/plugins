@@ -1,6 +1,6 @@
-#  i-MSCP PanelRedirect plugin v1.1.5
+# i-MSCP PanelRedirect plugin v1.1.5
 
-Plugin that provides access to i-MSCP panel (and tools) through standard ports (80, 443).
+Provides access to i-MSCP panel (and tools) through standard http(s) ports.
 
 ## Requirements
 

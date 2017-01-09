@@ -1,4 +1,4 @@
-# i-MSCP Mailgraph plugin v1.1.2
+# i-MSCP Mailgraph plugin v1.1.2
 
 Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail).
 
