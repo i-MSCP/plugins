@@ -123,9 +123,11 @@ return array(
         //    YOUR-SIGNATURE-NUMBER with your authorisation signature from the link
         'securiteinfo_options'   => array(
             'securiteinfo_authorisation_signature' => 'YOUR-SIGNATURE-NUMBER',
+        ),
 
-            // Enabled Signatures
-            // Set to 'no' to disable an entire set of signatures (default: yes)
+        // Signatures enabled
+        // Set to 'no' to disable an entire set of signatures
+        'signatures_enabled'    => array(
             'sanesecurity_enabled'                 => 'yes',
             'securiteinfo_enabled'                 => 'yes',
             'linuxmalwaredetect_enabled'           => 'yes',

@@ -2,6 +2,12 @@ ClamAV - ChangeLog
 ==================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.2.1
+------------------------------------------------------------------------------------------------------------------------
+    Changed: Disabled antidebug_antivm.yar signature which is causing errors in ClamAV
+    Updated: 3rd party ClamAV Unofficial Signatures script (clamav-unofficial-sigs v5.4.1)
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -45,8 +51,8 @@ Version 1.1.0
 ------------------------------------------------------------------------------------------------------------------------
 
     Fixed: Do not refer to smtpd_milters using the $smtpd_milters to avoid conflict with other plugins
-    Fixed #IP-1278: Old setting not removed on upgrade
-    Fixed #IP-1282: Add config Parameter "VirusAction"
+    Fixed: #IP-1278: Old setting not removed on upgrade
+    Fixed: #IP-1282: Add config Parameter "VirusAction"
     Removed: Support for i-MSCP 1.1.x serie
 
 ------------------------------------------------------------------------------------------------------------------------
