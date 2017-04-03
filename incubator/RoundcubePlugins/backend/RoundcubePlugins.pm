@@ -356,7 +356,7 @@ sub _setRoundcubePlugin
  Configure the given plugin
 
  Param string pluginName Plugin name
- Param $pluginConffileTpl Plugin configuration file template
+ Param string $pluginConffileTpl Plugin configuration file template
  Return int 0 on success, other on failure
 
 =cut
@@ -448,7 +448,7 @@ sub _configurePlugin
  Deconfigure the given plugin
 
  Param string pluginName Plugin name
- Param $pluginConffileTpl Plugin configuration file template
+ Param string $pluginConffileTpl Plugin configuration file template
  Return int 0 on success, other on failure
 
 =cut
@@ -630,7 +630,7 @@ sub _installComposerPackages
     my $panelGName = $panelUName;
 
     # Make sure that Web user can write into base directory
-    my $rs = setRights( $webmailDir, { user => $panelUName, group => $panelGName, mode => '0700' } );
+    my $rs = setRights( $webmailDir, { user => $panelUName, group => $panelGName, mode => '0750' } );
     return $rs if $rs;
 
     # Make sure that composer.json and composer.lock (if any) files are writable and owned by expected Web user
