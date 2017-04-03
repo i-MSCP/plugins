@@ -84,7 +84,7 @@ sub uninstall
 
 sub update
 {
-    my (undef, $fromVersion) = @_;
+    my ($self, $fromVersion) = @_;
 
     if (version->parse($fromVersion) < version->parse('2.0.0')) {
         # Remove pop3fetcher plugin which is no longer provided
@@ -99,7 +99,7 @@ sub update
         return $rs if $rs;
     }
 
-    $_[0]->install();
+    $self->install();
 }
 
 =item change( )
