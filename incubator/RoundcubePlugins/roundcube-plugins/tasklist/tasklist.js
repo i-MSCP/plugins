@@ -106,8 +106,8 @@ function rcube_tasklist_ui(settings)
 
     /*  public members  */
     this.tasklists = rcmail.env.tasklists;
-    this.selected_task;
-    this.selected_list;
+    this.selected_task = null;
+    this.selected_list = null;
 
     /*  public methods  */
     this.init = init;
@@ -139,6 +139,7 @@ function rcube_tasklist_ui(settings)
     function init()
     {
         if (rcmail.env.action == 'print' && rcmail.task == 'tasks') {
+            filtermask = rcmail.env.filtermask;
             data_ready({data: rcmail.env.tasks});
             return;
         }
@@ -150,10 +151,13 @@ function rcube_tasklist_ui(settings)
                 me.selected_list = settings.selected_list;
                 $(rcmail.gui_objects.tasklistslist).find("input[value='"+settings.selected_list+"']").prop('checked', true);
             }
-            if (me.tasklists[id].editable && (!me.selected_list || me.tasklists[id].default || (me.tasklists[id].active && !me.tasklists[me.selected_list].active))) {
+            if (me.tasklists[id].editable && (!me.selected_list || me.tasklists[id]['default'] || (me.tasklists[id].active && !me.tasklists[me.selected_list].active))) {
                 me.selected_list = id;
             }
         }
+
+        if (rcmail.env.source && me.tasklists[rcmail.env.source])
+            me.selected_list = rcmail.env.source;
 
         // initialize treelist widget that controls the tasklists list
         var widget_class = window.kolab_folderlist || rcube_treelist_widget;
@@ -175,6 +179,7 @@ function rcube_tasklist_ui(settings)
             rcmail.enable_command('list-remove', me.tasklists[node.id] && me.tasklists[node.id].removable);
             rcmail.enable_command('list-showurl', me.tasklists[node.id] && !!me.tasklists[node.id].caldavurl);
             me.selected_list = node.id;
+            rcmail.update_state({source: node.id});
         });
         tasklists_widget.addEventListener('subscribe', function(p) {
             var list;
@@ -276,6 +281,7 @@ function rcube_tasklist_ui(settings)
         rcmail.addEventListener('plugin.update_tasklist', update_list);
         rcmail.addEventListener('plugin.destroy_tasklist', destroy_list);
         rcmail.addEventListener('plugin.unlock_saving', unlock_saving);
+        rcmail.addEventListener('plugin.refresh_tagcloud', function() { update_tagcloud(); });
         rcmail.addEventListener('requestrefresh', before_refresh);
         rcmail.addEventListener('plugin.reload_data', function(){
             list_tasks(null, true);
@@ -319,13 +325,14 @@ function rcube_tasklist_ui(settings)
 
         // quick-add a task
         $(rcmail.gui_objects.quickaddform).submit(function(e){
+            if (saving_lock)
+                return false;
+
             var tasktext = this.elements.text.value,
                 rec = { id:-(++idcount), title:tasktext, readonly:true, mask:0, complete:0 };
 
             if (tasktext && tasktext.length) {
                 save_task({ tempid:rec.id, raw:tasktext, list:me.selected_list }, 'new');
-                render_task(rec);
-
                 $('#listmessagebox').hide();
             }
 
@@ -649,9 +656,7 @@ function rcube_tasklist_ui(settings)
         $('#taskedit').tabs({
             activate: function(event, ui) {
                 // reset autocompletion on tab change (#3389)
-                if (ui.oldPanel.selector == '#taskedit-panel-attendees') {
-                    rcmail.ksearch_blur();
-                }
+                rcmail.ksearch_blur();
             }
         });
 
@@ -723,6 +728,11 @@ function rcube_tasklist_ui(settings)
         $('#edit-attendees-invite').click();
         return false;
       });
+
+        // configure drop-down menu on time input fields based on jquery UI autocomplete
+        $('#taskedit-starttime, #taskedit-time, #taskedit input.edit-alarm-time').each(function() {
+            me.init_time_autocomplete(this, {container: '#taskedit'});
+        });
     }
 
     /**
@@ -813,6 +823,99 @@ function rcube_tasklist_ui(settings)
         me.tasklists[list_id].active = false;
         loadstate.lists = active_lists();
     }
+
+    // open a tasks export dialog
+    this.export_tasks = function()
+    {
+      // close show dialog first
+      var $dialog = $("#tasksexport"),
+        form = rcmail.gui_objects.exportform,
+        buttons = {};
+
+      if (!form)
+        return;
+
+      if ($dialog.is(':ui-dialog'))
+        $dialog.dialog('close');
+
+      $("#task-export-list").val('');
+
+      buttons[rcmail.gettext('export', 'tasklist')] = function() {
+        var data = {},
+            source = $('#task-export-list option:selected').val(),
+            form_elements = $('select, input', form);
+
+        // "current view" export, use hidden form to POST task IDs
+        if (source === '') {
+          var cache = {}, tasks = [], inputs = [],
+            postform = $('#tasks-export-form-post');
+
+          $.each(listindex || [], function() {
+            var rec = listdata[this];
+            if (match_filter(rec, cache)) {
+              tasks.push(rec.id);
+            }
+          });
+
+          // copy form inputs, there may be controls added by other plugins
+          form_elements.each(function() {
+            if (this.type != 'checkbox' || this.checked)
+              inputs.push($('<input>').attr({type: 'hidden', name: this.name, value: this.value}));
+          });
+
+          inputs.push($('<input>').attr({type: 'hidden', name: '_token', value: rcmail.env.request_token}));
+          inputs.push($('<input>').attr({type: 'hidden', name: 'id', value: tasks.join(',')}));
+
+          if (!postform.length)
+            postform = $('<form>')
+              .attr({style: 'display: none', method: 'POST', action: '?_task=tasks&_action=export'})
+              .appendTo('body');
+
+          postform.html('').append(inputs).submit();
+        }
+        // otherwise we can use simple GET
+        else {
+          form_elements.each(function() {
+            if (this.type != 'checkbox' || this.checked)
+              data[this.name] = $(this).val();
+          });
+
+          rcmail.goto_url('export', data);
+        }
+
+        $dialog.dialog("close");
+      };
+
+      buttons[rcmail.gettext('cancel', 'tasklist')] = function() {
+        $dialog.dialog("close");
+      };
+
+      // open jquery UI dialog
+      $dialog.dialog({
+        modal: true,
+        resizable: false,
+        closeOnEscape: false,
+        title: rcmail.gettext('exporttitle', 'tasklist'),
+        open: function() {
+          $dialog.parent().find('.ui-dialog-buttonset .ui-button').first().addClass('mainaction');
+        },
+        close: function() {
+          $('.ui-dialog-buttonpane button', $dialog.parent()).button('enable');
+          $dialog.dialog("destroy").hide();
+        },
+        buttons: buttons,
+        width: 520
+      }).show();
+    };
+/*
+    // download the selected task as iCal
+    this.task_download = function(task)
+    {
+      if (task && task.id) {
+        rcmail.goto_url('export', {source: task.list, id: task.id, attachments: 1});
+      }
+    };
+*/
 
     /**
      * Modify query parameters for refresh requests
@@ -1089,9 +1192,9 @@ function rcube_tasklist_ui(settings)
         // iterate over all selector links and update counts
         $('#taskselector a').each(function(i, elem){
             var link = $(elem),
-                f = link.parent().attr('class').replace(/\s\w+/, '');
+                f = link.parent().attr('class').replace(/\s\w+/g, '');
             if (f != 'all')
-                link.children('span').html(taskcounts[f] || '')[(taskcounts[f] ? 'show' : 'hide')]();
+                link.children('span').html('+' + (taskcounts[f] || ''))[(taskcounts[f] ? 'show' : 'hide')]();
         });
 
         // spacial case: overdue
@@ -1115,6 +1218,9 @@ function rcube_tasklist_ui(settings)
             oldindex = $.inArray(oldid, listindex),
             oldparent = oldrec ? (oldrec._old_parent_id || oldrec.parent_id) : null,
             list = me.tasklists[rec.list];
+
+        if (!id || !list)
+            return;
 
         if (oldindex >= 0)
             listindex[oldindex] = id;
@@ -1186,7 +1292,7 @@ function rcube_tasklist_ui(settings)
             $('button.ui-button:ui-button').button('option', 'disabled', rcmail.busy);
             return true;
         }
-        
+
         return false;
     }
 
@@ -1285,6 +1391,7 @@ function rcube_tasklist_ui(settings)
         if (saving_lock) {
             rcmail.set_busy(false, null, saving_lock);
             $('button.ui-button:ui-button').button('option', 'disabled', false);
+            saving_lock = null;
         }
     }
 
@@ -1780,16 +1887,19 @@ function rcube_tasklist_ui(settings)
         // delete icon
         var icon = rcmail.env.deleteicon ? '<img src="' + rcmail.env.deleteicon + '" alt="" />' : rcmail.gettext('delete');
         var dellink = '<a href="#delete" class="iconlink delete deletelink" title="' + Q(rcmail.gettext('delete')) + '">' + icon + '</a>';
-        var tooltip = data.status || '';
+        var tooltip, status = (data.status || '').toLowerCase(),
+            status_label = rcmail.gettext('status' + status, 'libcalendaring');
 
         // send invitation checkbox
         var invbox = '<input type="checkbox" class="edit-attendee-reply" value="' + Q(data.email) +'" title="' + Q(rcmail.gettext('tasklist.sendinvitations')) + '" '
             + (!data.noreply && settings.itip_notify & 1 ? 'checked="checked" ' : '') + '/>';
 
         if (data['delegated-to'])
-            tooltip = rcmail.gettext('delegatedto', 'tasklist') + data['delegated-to'];
+            tooltip = rcmail.gettext('libcalendaring.delegatedto') + ' ' + data['delegated-to'];
         else if (data['delegated-from'])
-            tooltip = rcmail.gettext('delegatedfrom', 'tasklist') + data['delegated-from'];
+            tooltip = rcmail.gettext('libcalendaring.delegatedfrom') + ' ' + data['delegated-from'];
+        else if (status)
+            tooltip = status_label;
 
         // add expand button for groups
         if (data.cutype == 'GROUP') {
@@ -1798,7 +1908,7 @@ function rcube_tasklist_ui(settings)
         }
 
         var html = '<td class="name"><span class="attendee-name">' + dispname + '</span></td>' +
-            '<td class="confirmstate"><span class="' + String(data.status).toLowerCase() + '" title="' + Q(tooltip) + '">' + Q(data.status || '') + '</span></td>' +
+            '<td class="confirmstate"><span class="' + status + '" title="' + Q(tooltip) + '">' + Q(status ? status_label : '') + '</span></td>' +
             (data.cutype != 'RESOURCE' ? '<td class="invite">' + (readonly || !invbox ? '' : invbox) + '</td>' : '') +
             '<td class="options">' + (readonly ? '' : dellink) + '</td>';
 
@@ -1954,7 +2064,7 @@ function rcube_tasklist_ui(settings)
                         rsvp = mystatus;
                 }
 
-                line = task_attendee_html(data);
+                line = rcube_libcalendaring.attendee_html(data);
 
                 if (morelink)
                     overflow += line;
@@ -1994,7 +2104,7 @@ function rcube_tasklist_ui(settings)
                     .removeClass('accepted tentative declined delegated needs-action')
                     .addClass(mystatus)
                     .children('.task-text')
-                    .html(Q(rcmail.gettext('itip' + mystatus, 'libcalendaring')));
+                    .html(rcmail.gettext('status' + mystatus, 'libcalendaring'));
             }
 */
             var show_rsvp = !temp && rsvp && list.editable && !is_organizer(rec) && rec.status != 'CANCELLED';
@@ -2008,7 +2118,7 @@ function rcube_tasklist_ui(settings)
             $('#task-rsvp .itip-reply-comment textarea').hide().val('');
 
             if (rec.organizer && !organizer) {
-                $('#task-organizer').show().children('.task-text').html(task_attendee_html($.extend(rec.organizer, { role:'ORGANIZER' })));
+                $('#task-organizer').show().children('.task-text').html(rcube_libcalendaring.attendee_html($.extend(rec.organizer, { role:'ORGANIZER' })));
             }
         }
 
@@ -2062,24 +2172,6 @@ function rcube_tasklist_ui(settings)
 
         // set dialog size according to content
         me.dialog_resize($dialog.get(0), $dialog.height(), 580);
-    }
-
-    // render HTML code for displaying an attendee record
-    function task_attendee_html(data)
-    {
-        var dispname = Q(data.name || data.email), tooltip = '';
-
-        if (data.email) {
-          tooltip = data.email;
-          dispname = '<a href="mailto:' + data.email + '" class="mailtolink" data-cutype="' + data.cutype + '">' + dispname + '</a>';
-        }
-
-        if (data['delegated-to'])
-          tooltip = rcmail.gettext('delegatedto', 'tasklist') + data['delegated-to'];
-        else if (data['delegated-from'])
-          tooltip = rcmail.gettext('delegatedfrom', 'tasklist') + data['delegated-from'];
-
-        return '<span class="attendee ' + String(data.role == 'ORGANIZER' ? 'organizer' : data.status).toLowerCase() + '" title="' + Q(tooltip) + '">' + dispname + '</span> ';
     }
 
     /**
@@ -2186,8 +2278,8 @@ function rcube_tasklist_ui(settings)
               }
               // format attendees struct
               else if (prop == 'attendees') {
-                  if (change['old']) change.old_ = task_attendee_html(change['old']);
-                  if (change['new']) change.new_ = task_attendee_html($.extend({}, change['old'] || {}, change['new']));
+                  if (change['old']) change.old_ = rcube_libcalendaring.attendee_html(change['old']);
+                  if (change['new']) change.new_ = rcube_libcalendaring.attendee_html($.extend({}, change['old'] || {}, change['new']));
                   html = true;
               }
               // localize status
@@ -2271,7 +2363,7 @@ function rcube_tasklist_ui(settings)
     {
         $('#taskshow:ui-dialog').dialog('close');
 
-        var rec = listdata[id] || presets,
+        var selected_list, rec = listdata[id] || presets,
             $dialog = $('<div>'),
             editform = $('#taskedit'),
             list = rec.list && me.tasklists[rec.list] ? me.tasklists[rec.list] :
@@ -2290,6 +2382,9 @@ function rcube_tasklist_ui(settings)
         // reset dialog first
         $('#taskeditform').get(0).reset();
 
+        // allow other plugins to do actions when task form is opened
+        rcmail.triggerEvent('tasklist-task-init', {o: rec});
+
         // fill form data
         var title = $('#taskedit-title').val(rec.title || '');
         var description = $('#taskedit-description').val(rec.description || '');
@@ -2300,7 +2395,7 @@ function rcube_tasklist_ui(settings)
         var complete = $('#taskedit-completeness').val((rec.complete || 0) * 100);
         completeness_slider.slider('value', complete.val());
         var taskstatus = $('#taskedit-status').val(rec.status || '');
-        var tasklist = $('#taskedit-tasklist').val(rec.list || me.selected_list).prop('disabled', rec.parent_id ? true : false);
+        var tasklist = $('#taskedit-tasklist').prop('disabled', rec.parent_id ? true : false);
         var notify = $('#edit-attendees-donotify').get(0);
         var invite = $('#edit-attendees-invite').get(0);
         var comment = $('#edit-attendees-comment');
@@ -2310,9 +2405,15 @@ function rcube_tasklist_ui(settings)
 
         // set tasklist selection according to permissions
         tasklist.find('option').each(function(i, opt) {
-            var l = me.tasklists[opt.value] || {};
-            $(opt).prop('disabled', !(l.editable || (action == 'new' && has_permission(l, 'i'))));
+            var l = me.tasklists[opt.value] || {},
+                writable = l.editable || (action == 'new' && has_permission(l, 'i'));
+            $(opt).prop('disabled', !writable);
+
+            if (!selected_list && writable)
+                selected_list = opt.value;
         });
+
+        tasklist.val(rec.list || me.selected_list || selected_list);
 
         // tag-edit line
         var tagline = $(rcmail.gui_objects.edittagline).empty();
@@ -2509,7 +2610,7 @@ function rcube_tasklist_ui(settings)
             }
 
             // tell server to send notifications
-            if ((data.attendees.length || (rec.id && rec.attendees.length)) && allow_invitations && (notify.checked || invite.checked || need_invitation)) {
+            if ((has_attendees(data) || (rec.id && has_attendees(rec))) && allow_invitations && (notify.checked || invite.checked || need_invitation)) {
                 data._notify = settings.itip_notify;
                 data._comment = comment.val();
             }
@@ -2787,6 +2888,9 @@ function rcube_tasklist_ui(settings)
      */
     function match_filter(rec, cache, recursive)
     {
+        if (!rec)
+            return false;
+
         // return cached result
         if (typeof cache[rec.id] != 'undefined' && recursive != 2) {
             return cache[rec.id];
@@ -2826,6 +2930,7 @@ function rcube_tasklist_ui(settings)
         if (recursive != 1) {
             cache[rec.id] = match;
         }
+
         return match;
     }
 
@@ -2843,7 +2948,7 @@ function rcube_tasklist_ui(settings)
             }
         }
 
-        return $.unqiqueStrings(itags);
+        return $.uniqueStrings(itags);
     }
 
     /**
@@ -3239,8 +3344,7 @@ function rcube_tasklist_ui(settings)
     this.dialog_resize = function(id, height, width)
     {
         var win = $(window), w = win.width(), h = win.height();
-            $(id).dialog('option', { height: Math.min(h-20, height+130), width: Math.min(w-20, width+50) })
-                .dialog('option', 'position', ['center', 'center']);  // only works in a separate call (!?)
+        $(id).dialog('option', { height: Math.min(h-20, height+130), width: Math.min(w-20, width+50) });
     };
 
     /**
@@ -3319,7 +3423,7 @@ jQuery.fn.sortElements = (function(){
 })();
 
 // equivalent to $.unique() but working on arrays of strings
-jQuery.unqiqueStrings = (function() {
+jQuery.uniqueStrings = (function() {
     return function(arr) {
         var hash = {}, out = [];
 
@@ -3351,6 +3455,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   rcmail.register_command('list-remove', function(){ rctasks.list_remove(rctasks.selected_list); }, false);
   rcmail.register_command('list-showurl', function(){ rctasks.list_showurl(rctasks.selected_list); }, false);
 
+  rcmail.register_command('export', function(){ rctasks.export_tasks(); }, true);
   rcmail.register_command('search', function(){ rctasks.quicksearch(); }, true);
   rcmail.register_command('reset-search', function(){ rctasks.reset_search(); }, true);
   rcmail.register_command('expand-all', function(){ rctasks.expand_collapse(true); }, true);

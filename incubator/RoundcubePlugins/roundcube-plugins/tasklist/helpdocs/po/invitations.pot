@@ -1,0 +1,30 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2015, roundcube.net
+# This file is distributed under the same license as the Roundcube Webmail Help package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Roundcube Webmail Help 1.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-01-12 11:31+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en_US/_plugins/tasklist/invitations.rst:8
+msgid "Handle Task Assignments"
+msgstr ""
+
+#: ../../en_US/_plugins/tasklist/invitations.rst:10
+msgid "You can assign other people to a task. This will send out invitation emails to all assignees with the task data attached. That allows one to directly accept or decline the invitation."
+msgstr ""
+
+#: ../../en_US/_plugins/tasklist/invitations.rst:14
+msgid "Chapter :ref:`calendar-invitations` describes how email invitations work for event participants. The same applies for task assignees."
+msgstr ""
+

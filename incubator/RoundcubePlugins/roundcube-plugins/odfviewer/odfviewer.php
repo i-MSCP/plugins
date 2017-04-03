@@ -97,9 +97,9 @@ class odfviewer extends rcube_plugin
         $rcmail     = rcube::get_instance();
         $assets_dir = $rcmail->config->get('assets_dir');
 
-        $mtime = filemtime($this->home . '/' . $path);
+        $mtime = @filemtime($this->home . '/' . $path);
         if (!$mtime && $assets_dir) {
-            $mtime = filemtime($assets_dir . '/plugins/odfviewer/' . $path);
+            $mtime = @filemtime($assets_dir . '/plugins/odfviewer/' . $path);
         }
 
         $path = $this->urlbase . $path . ($mtime ? '?s=' . $mtime : '');

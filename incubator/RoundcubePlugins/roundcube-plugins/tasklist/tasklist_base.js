@@ -51,7 +51,7 @@ function rcube_tasklist(settings)
             if (!ui_loaded) {
                 $.when(
                     $.getScript(rcmail.assets_path('plugins/tasklist/tasklist.js')),
-                    $.get(rcmail.url('tasks/inlineui'), function(html){ $(document.body).append(html); }, 'html')
+                    $.get(rcmail.url('tasks/inlineui'), function(html) { $(document.body).append(html); }, 'html')
                 ).then(function() {
                     // register attachments form
                     // rcmail.gui_object('attachmentlist', 'attachmentlist');
@@ -60,16 +60,16 @@ function rcube_tasklist(settings)
                     me.ui = new rcube_tasklist_ui($.extend(rcmail.env.tasklist_settings, settings));
                     create_from_mail(uid);  // start over
                 });
+
                 return;
             }
-            else {
-                // get message contents for task dialog
-                var lock = rcmail.set_busy(true, 'loading');
-                rcmail.http_post('tasks/mail2task', {
-                    '_mbox': rcmail.env.mailbox,
-                    '_uid': uid
-                }, lock);
-            }
+
+            // get message contents for task dialog
+            var lock = rcmail.set_busy(true, 'loading');
+            rcmail.http_post('tasks/mail2task', {
+                '_mbox': rcmail.env.mailbox,
+                '_uid': uid
+            }, lock);
         }
     }
 

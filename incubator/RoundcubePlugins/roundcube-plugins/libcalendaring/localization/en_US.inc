@@ -29,7 +29,18 @@ $labels['trigger-D'] = 'days before';
 $labels['trigger+M'] = 'minutes after';
 $labels['trigger+H'] = 'hours after';
 $labels['trigger+D'] = 'days after';
-$labels['triggerattime'] = 'at time';
+$labels['triggerend-M'] = 'minutes before end';
+$labels['triggerend-H'] = 'hours before end';
+$labels['triggerend-D'] = 'days before end';
+$labels['triggerend+M'] = 'minutes after end';
+$labels['triggerend+H'] = 'hours after end';
+$labels['triggerend+D'] = 'days after end';
+$labels['trigger0'] = 'on time';
+$labels['triggerattime'] = 'at start time';
+$labels['triggerattimeend'] = 'at end time';
+$labels['relatedstart'] = 'start';
+$labels['relatedendevent'] = 'end';
+$labels['relatedendtask'] = 'due time';
 $labels['addalarm'] = 'Add alarm';
 $labels['removealarm'] = 'Remove alarm';
 
@@ -77,6 +88,18 @@ $labels['dayofmonth'] = 'Day of month';
 $labels['addrdate'] = 'Add repeat date';
 $labels['except'] = 'except';
 
+$labels['statusorganizer'] = 'Organizer';
+$labels['statusaccepted'] = 'Accepted';
+$labels['statustentative'] = 'Tentative';
+$labels['statusdeclined'] = 'Declined';
+$labels['statusdelegated'] = 'Delegated';
+$labels['statusneeds-action'] = 'Needs action';
+$labels['statusunknown'] = 'Unknown';
+$labels['statuscompleted'] = 'Completed';
+$labels['statusin-process'] = 'In process';
+$labels['delegatedto'] = 'Delegated to: ';
+$labels['delegatedfrom'] = 'Delegated from: ';
+
 // itip related labels
 $labels['itipinvitation'] = 'Invitation to';
 $labels['itipupdate'] = 'Update of';
@@ -108,6 +131,14 @@ $labels['acceptinvitation'] = 'Do you accept this invitation?';
 $labels['acceptattendee'] = 'Accept participant';
 $labels['declineattendee'] = 'Decline participant';
 $labels['declineattendeeconfirm'] = 'Enter a message to the declined participant (optional):';
+$labels['rsvpmodeall'] = 'The entire series';
+$labels['rsvpmodecurrent'] = 'This occurrence only';
+$labels['rsvpmodefuture'] = 'This and future occurrences';
+
+$labels['itipsingleoccurrence'] = 'This is a <em>single occurrence</em> out of a series of events';
+$labels['itipfutureoccurrence'] = 'Refers to <em>this and all future occurrences</em> of a series of events';
+$labels['itipmessagesingleoccurrence'] = 'The message only refers to this single occurrence';
+$labels['itipmessagefutureoccurrence'] = 'The message refers to this and all future occurrences';
 
 $labels['youhaveaccepted'] = 'You have accepted this invitation';
 $labels['youhavetentative'] = 'You have tentatively accepted this invitation';

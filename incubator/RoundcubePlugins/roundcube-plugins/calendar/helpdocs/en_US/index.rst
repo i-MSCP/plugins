@@ -14,5 +14,6 @@ The *Calendar* gives you access to your personal and shared calendar and schedul
    manage
    invitations
    importexport
+   printing
    sharing
 

@@ -82,6 +82,7 @@
 
 <div id="eventshow" class="uidialog eventdialog" aria-hidden="true">
 	<h1 id="event-title">Event Title</h1>
+	<div id="event-status-badge"><span></span></div>
 	<div class="event-section" id="event-location">Location</div>
 	<div class="event-section" id="event-date">From-To</div>
 	<div class="event-section" id="event-description">
@@ -163,6 +164,7 @@
 	<ul id="eventoptionsmenu-menu" class="toolbarmenu" role="menu" aria-labelledby="aria-label-eventoptions">
 		<li role="menuitem"><roundcube:button command="event-download" label="download" classAct="active" /></li>
 		<li role="menuitem"><roundcube:button command="event-sendbymail" label="send" classAct="active" /></li>
+		<li role="menuitem"><roundcube:button command="event-copy" label="copy" classAct="active" /></li>
 		<roundcube:if condition="env:calendar_driver == 'kolab' && config:kolab_bonnie_api" />
 		<li role="menuitem"><roundcube:button command="event-history" type="link" label="calendar.eventhistory" classAct="active" /></li>
 		<roundcube:endif />
@@ -368,8 +370,6 @@
 var UI = new rcube_mail_ui();
 
 $(document).ready(function(e){
-	UI.init();
-
 	new calendarview_splitter({ id:'calsidebarsplitter', p1:'#calendarsidebar', p2:'#calendar',
 		orientation:'v', relative:true, start:280, min:260, size:12, offset:0 });
 

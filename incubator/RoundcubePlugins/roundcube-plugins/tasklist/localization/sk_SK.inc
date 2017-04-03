@@ -6,6 +6,9 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/tasklist/
  */
+$labels['export'] = 'Exportovať';
+$labels['exporttitle'] = 'Exportovať do iCalendar';
+$labels['exportattachments'] = 'S prílohami';
 $labels['removelist'] = 'Odstrániť zo zoznamu';
 $labels['edit'] = 'Upraviť';
 $labels['description'] = 'Popis';

@@ -29,7 +29,7 @@ return array(
             WHERE recurrence_id != 0 AND instance = '' AND all_day = 1;
         UPDATE $roundcubeDbName.events SET instance = DATE_FORMAT(start, '%Y%m%dT%k%i%s')
             WHERE recurrence_id != 0 AND instance = '' AND all_day = 0;
-        ALTER TABLE $roundcubeDbName.events CHANGE alarms alarms TEXT NULL DEFAULT NULL;
+        ALTER TABLE $roundcubeDbName.events CHANGE alarms alarms TEXT NULL;
         REPLACE INTO $roundcubeDbName.system (name, value) VALUES ('calendar-database-version', '2015022700');
     ",
     'down' => "

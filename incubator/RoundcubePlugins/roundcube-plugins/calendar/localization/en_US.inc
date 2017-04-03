@@ -82,6 +82,7 @@ $labels['mystatus'] = 'My status';
 $labels['status'] = 'Status';
 $labels['status-confirmed'] = 'Confirmed';
 $labels['status-cancelled'] = 'Cancelled';
+$labels['status-tentative'] = 'Tentative';
 $labels['priority'] = 'Priority';
 $labels['sensitivity'] = 'Privacy';
 $labels['public'] = 'public';
@@ -164,8 +165,6 @@ $labels['availbusy'] = 'Busy';
 $labels['availunknown'] = 'Unknown';
 $labels['availtentative'] = 'Tentative';
 $labels['availoutofoffice'] = 'Out of Office';
-$labels['delegatedto'] = 'Delegated to: ';
-$labels['delegatedfrom'] = 'Delegated from: ';
 $labels['scheduletime'] = 'Find availability';
 $labels['sendinvitations'] = 'Send invitations';
 $labels['sendnotifications'] = 'Notify participants about modifications';
@@ -182,7 +181,7 @@ $labels['invitationattendlinks'] = "In case your email client doesn't support iT
 $labels['eventupdatesubject'] = '"$title" has been updated';
 $labels['eventupdatesubjectempty'] = 'An event that concerns you has been updated';
 $labels['eventupdatemailbody'] = "*\$title*\n\nWhen: \$date\n\nInvitees: \$attendees\n\nPlease find attached an iCalendar file with the updated event details which you can import to your calendar application.";
-$labels['eventcancelsubject'] = '"$title" has been canceled';
+$labels['eventcancelsubject'] = '"$title" has been cancelled';
 $labels['eventcancelmailbody'] = "*\$title*\n\nWhen: \$date\n\nInvitees: \$attendees\n\nThe event has been cancelled by \$organizer.\n\nPlease find attached an iCalendar file with the updated event details.";
 
 // invitation handling (overrides labels from libcalendaring)

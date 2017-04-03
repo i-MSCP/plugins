@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
+ * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -19,17 +20,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Events_Event as Event;
+use iMSCP_Events_Manager_Interface as EventManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_RoundcubePlugins
  */
-class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
+class iMSCP_Plugin_RoundcubePlugins extends PluginAction
 {
     /**
      * Register a callback for the given event(s)
      *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @param EventManagerInterface $eventsManager
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventManagerInterface $eventsManager)
     {
         $eventsManager->registerListener(
             array(
@@ -44,133 +52,150 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
     /**
      * onBeforeInstallPlugin event listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
+     * @return void
      */
-    public function onBeforeInstallPlugin(iMSCP_Events_Event $event)
+    public function onBeforeInstallPlugin(Event $event)
     {
-        $this->checkCompat($event);
+        if ($event->getParam('pluginName') != $this->getName()) {
+            return;
+        }
+
+        if (!$this->checkCompat()) {
+            $event->stopPropagation();
+        }
     }
 
     /**
      * Plugin installation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
         try {
             $this->migrateDb('up');
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Plugin uninstallation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         try {
             $this->migrateDb('down');
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * onBeforeUpdatePlugin event listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
      * @return void
      */
-    public function onBeforeUpdatePlugin(iMSCP_Events_Event $event)
+    public function onBeforeUpdatePlugin(Event $event)
     {
-        $this->checkCompat($event);
+        if ($event->getParam('pluginName') != $this->getName()) {
+            return;
+        }
+
+        if (!$this->checkCompat()) {
+            $event->stopPropagation();
+        }
     }
 
     /**
      * Plugin update
      *
-     * @throws iMSCP_Plugin_Exception When update fail
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException When update fail
+     * @param PluginManager $pluginManager
      * @param string $fromVersion Version from which plugin update is initiated
      * @param string $toVersion Version to which plugin is updated
      * @return void
      */
-    public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
     {
         try {
             $this->migrateDb('up');
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * onBeforeEnablePlugin listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
      * @return void
      */
-    public function onBeforeEnablePlugin(iMSCP_Events_Event $event)
+    public function onBeforeEnablePlugin(Event $event)
     {
-        $this->checkCompat($event);
+        if ($event->getParam('pluginName') != $this->getName()) {
+            return;
+        }
+
+        if (!$this->checkCompat()) {
+            $event->stopPropagation();
+        }
     }
 
     /**
      * Plugin enable
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function enable(iMSCP_Plugin_Manager $pluginManager)
+    public function enable(PluginManager $pluginManager)
     {
         try {
             $this->addDovecotSieveServicePort();
-        } catch (iMSCP_Exception_Database $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Plugin disable
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function disable(iMSCP_Plugin_Manager $pluginManager)
+    public function disable(PluginManager $pluginManager)
     {
         try {
             $this->removeDovecotSieveServicePort();
-        } catch (iMSCP_Exception_Database $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Check plugin compatibility
      *
-     * @param iMSCP_Events_Event $event
+     * @return bool TRUE if all requirements are met, FALSE otherwise
      */
-    protected function checkCompat(iMSCP_Events_Event $event)
+    protected function checkCompat()
     {
-        if ($event->getParam('pluginName') != $this->getName()) {
-            return;
-        }
-
-        $config = iMSCP_Registry::get('config');
+        $config = Registry::get('config');
         if (isset($config['WEBMAIL_PACKAGES']) && !in_array('Roundcube', getWebmailList())) {
             set_page_message(tr('This plugin requires the i-MSCP Roundcube package.'), 'error');
-            $event->stopPropagation();
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -180,9 +205,8 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
      */
     protected function addDovecotSieveServicePort()
     {
-        $dbConfig = iMSCP_Registry::get('dbConfig');
-
-        if ($this->getConfigParam('managesieve_plugin', 'no') == 'yes') {
+        $dbConfig = Registry::get('dbConfig');
+        if (strtolower($this->getConfigParam('managesieve_plugin', 'no')) == 'yes') {
             if (!isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
                 $dbConfig['PORT_DOVECOT-SIEVE'] = '4190;tcp;DOVECOT-SIEVE;1;127.0.0.1';
             }
@@ -199,7 +223,7 @@ class iMSCP_Plugin_RoundcubePlugins extends iMSCP_Plugin_Action
      */
     protected function removeDovecotSieveServicePort()
     {
-        $dbConfig = iMSCP_Registry::get('dbConfig');
+        $dbConfig = Registry::get('dbConfig');
         if (isset($dbConfig['PORT_DOVECOT-SIEVE'])) {
             unset($dbConfig['PORT_DOVECOT-SIEVE']);
         }
