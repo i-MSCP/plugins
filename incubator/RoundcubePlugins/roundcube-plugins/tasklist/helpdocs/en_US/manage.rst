@@ -12,6 +12,7 @@ Create new Tasks
 **The New Task Dialog**
     Click the *New task* button in the toolbar to get an empty dialog where you enter the
     tasks properties like title, description, start/due dates and reminder settings.
+
     Click *Save* to finally add it to the selected task list.
 
 **Quick Entry**
@@ -45,22 +46,37 @@ This general section has text fields and selectors for various properties. Hereâ
 * ``Tags``: A list of tags assigned to this task. Add one by typing to the text box and hit <Enter>.
 * ``Start``: The date/time, the task is supposed to be worked on.
 * ``Due``: The date/time this job is due. Define a time when setting a reminder for this task.
-* ``Reminder``: This will pop up with an notification at a the specified time before the task is due.
+* ``Reminder``: Will pop up with a notification at a the specified time before the task is due. It is possible to select 'Message' (default) or 'Sound'. When 'Sound' is selected, a sound will be played at the selected time. This setting requires the host to be able to play sounds.
 * ``Complete``: The completeness state of a task in percent. Use the slider or enter a number.
 * ``Tasklist``: The list the task is saved in. Change it to move an event from one list to another.
 
+**Recurrence**
 
-.. only:: kolab
+For periodically recurring task series, this tab has the settings how a task is repeated
+over time.
 
-    **Attachments**
+* ``Repeat``: Start with selecting a repetition interval (e.g. monthly)
+* ``Every``: How often the frequency will be relevant. For example, for a task that takes place every other week choose Weekly and then 2.
+If you choose a frequency of weekly or monthly you can select which days of the week or month the task will occur.
+* ``Until``: Determines the duration of the repetition. The recurrence can either run forever, for a number of times or until a specific date.
 
-    Append files and documents related to this task directly as attachments.
-    Switch to the Attachments tab to upload files to the current task or to remove them again. Adding
-    files works pretty much the same as :ref:`attaching them to email messages <mail-compose-attachments>`:
-    first select a file from your local disk and click *Upload* in order to attach it.
+**Assignments**
 
-    .. note:: Don't forget to finally save the changes by clicking *Save* in the edit dialog.
-        Switching back and forth the tabs will not yet save the data.
+One, or a list of, users can be assigned to the task. The list is managed in this tab.
+
+* ``Organizer``: The user organizing (creating) the task. This is set to the default identity of the logged in user, but a diferent identity for this user can be selected.
+* ``Add Assignee``: Type three letters of the username, and the search box will show a dropdown list of relevant users. Then clieck the 'Add Assignee' button.
+* ``Invitation/notification comment``: When a user is assigned to a task, an email notification is sent out. This field is giving the opportunity to add extra text to this mail notification.
+
+**Attachments**
+
+Sometimes a description text isn't enough to collect information for a specific task.
+Switch to this tab to attach files to the current task or to remove them again. Adding
+files works pretty much the same as :ref:`attaching them to email messages <mail-compose-attachments>`:
+first select a file from your local disk and click *Upload* in order to attach it.
+
+.. note:: Don't forget to finally save the changes by clicking *Save* in the task edit dialog.
+    Switching back and forth between the tabs will not yet save the data.
 
 
 .. index:: Tags

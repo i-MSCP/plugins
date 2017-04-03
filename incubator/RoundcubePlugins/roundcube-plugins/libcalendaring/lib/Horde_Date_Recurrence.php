@@ -1,26 +1,27 @@
 <?php
 
 /**
- * This is a modified copy of Horde/Date/Recurrence.php
+ * This is a modified copy of Horde/Date/Recurrence.php (2015-01-05)
  * Pull the latest version of this file from the PEAR channel of the Horde
  * project at http://pear.horde.org by installing the Horde_Date package.
  */
 
-if (!class_exists('Horde_Date'))
-	require_once(dirname(__FILE__) . '/Horde_Date.php');
+if (!class_exists('Horde_Date')) {
+    require_once(__DIR__ . '/Horde_Date.php');
+}
 
 // minimal required implementation of Horde_Date_Translation to avoid a huge dependency nightmare
 class Horde_Date_Translation
 {
-	function t($arg) { return $arg; }
-	function ngettext($sing, $plur, $num) { return ($num > 1 ? $plur : $sing); }
+    function t($arg) { return $arg; }
+    function ngettext($sing, $plur, $num) { return ($num > 1 ? $plur : $sing); }
 }
 
 
 /**
  * This file contains the Horde_Date_Recurrence class and according constants.
  *
- * Copyright 2007-2012 Horde LLC (http://www.horde.org/)
+ * Copyright 2007-2015 Horde LLC (http://www.horde.org/)
  *
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.horde.org/licenses/lgpl21.
@@ -285,14 +286,19 @@ class Horde_Date_Recurrence
     public function getRecurName()
     {
         switch ($this->getRecurType()) {
-        case self::RECUR_NONE: return Horde_Date_Translation::t("No recurrence");
-        case self::RECUR_DAILY: return Horde_Date_Translation::t("Daily");
-        case self::RECUR_WEEKLY: return Horde_Date_Translation::t("Weekly");
+        case self::RECUR_NONE:
+            return Horde_Date_Translation::t("No recurrence");
+        case self::RECUR_DAILY:
+            return Horde_Date_Translation::t("Daily");
+        case self::RECUR_WEEKLY:
+            return Horde_Date_Translation::t("Weekly");
         case self::RECUR_MONTHLY_DATE:
-        case self::RECUR_MONTHLY_WEEKDAY: return Horde_Date_Translation::t("Monthly");
+        case self::RECUR_MONTHLY_WEEKDAY:
+            return Horde_Date_Translation::t("Monthly");
         case self::RECUR_YEARLY_DATE:
         case self::RECUR_YEARLY_DAY:
-        case self::RECUR_YEARLY_WEEKDAY: return Horde_Date_Translation::t("Yearly");
+        case self::RECUR_YEARLY_WEEKDAY:
+            return Horde_Date_Translation::t("Yearly");
         }
     }
 
@@ -453,6 +459,7 @@ class Horde_Date_Recurrence
                 $next->compareDateTime($after) >= 0) {
                 return $next;
             }
+
             break;
 
         case self::RECUR_WEEKLY:
@@ -650,6 +657,10 @@ class Horde_Date_Recurrence
                 $next = clone $estart;
                 $next->setNthWeekday($weekday, $nth);
 
+                if ($next->month != $estart->month) {
+                    // We're already in the next month.
+                    continue;
+                }
                 if ($next->compareDateTime($after) < 0) {
                     // We haven't made it past $after yet, try again.
                     continue;
@@ -875,7 +886,10 @@ class Horde_Date_Recurrence
      */
     public function addException($year, $month, $mday)
     {
-        $this->exceptions[] = sprintf('%04d%02d%02d', $year, $month, $mday);
+        $key = sprintf('%04d%02d%02d', $year, $month, $mday);
+        if (array_search($key, $this->exceptions) === false) {
+            $this->exceptions[] = sprintf('%04d%02d%02d', $year, $month, $mday);
+        }
     }
 
     /**
@@ -1053,13 +1067,15 @@ class Horde_Date_Recurrence
             if (strpos($remainder, '#') === 0) {
                 $this->setRecurCount(substr($remainder, 1));
             } else {
-                list($year, $month, $mday) = sscanf($remainder, '%04d%02d%02d');
+                list($year, $month, $mday, $hour, $min, $sec, $tz) =
+                    sscanf($remainder, '%04d%02d%02dT%02d%02d%02d%s');
                 $this->setRecurEnd(new Horde_Date(array('year' => $year,
                                                         'month' => $month,
                                                         'mday' => $mday,
-                                                        'hour' => 23,
-                                                        'min' => 59,
-                                                        'sec' => 59)));
+                                                        'hour' => $hour,
+                                                        'min' => $min,
+                                                        'sec' => $sec),
+                                                  $tz == 'Z' ? 'UTC' : $this->start->timezone));
             }
         }
     }
@@ -1225,15 +1241,23 @@ class Horde_Date_Recurrence
                 break;
             }
 
+            // MUST take into account the time portion if it is present.
+            // See Bug: 12869 and Bug: 2813
             if (isset($rdata['UNTIL'])) {
-                list($year, $month, $mday) = sscanf($rdata['UNTIL'],
-                                                    '%04d%02d%02d');
-                $this->setRecurEnd(new Horde_Date(array('year' => $year,
-                                                        'month' => $month,
-                                                        'mday' => $mday,
-                                                        'hour' => 23,
-                                                        'min' => 59,
-                                                        'sec' => 59)));
+                if (preg_match('/^(\d{4})-?(\d{2})-?(\d{2})T? ?(\d{2}):?(\d{2}):?(\d{2})(?:\.\d+)?(Z?)$/', $rdata['UNTIL'], $parts)) {
+                    $until = new Horde_Date($rdata['UNTIL'], 'UTC');
+                    $until->setTimezone($this->start->timezone);
+                } else {
+                    list($year, $month, $mday) = sscanf($rdata['UNTIL'],
+                                                        '%04d%02d%02d');
+                    $until = new Horde_Date(
+                        array('year' => $year,
+                              'month' => $month,
+                              'mday' => $mday + 1),
+                        $this->start->timezone
+                    );
+                }
+                $this->setRecurEnd($until);
             }
             if (isset($rdata['COUNT'])) {
                 $this->setRecurCount($rdata['COUNT']);
@@ -1266,16 +1290,18 @@ class Horde_Date_Recurrence
             break;
 
         case self::RECUR_WEEKLY:
-            $rrule = 'FREQ=WEEKLY;INTERVAL=' . $this->recurInterval . ';BYDAY=';
+            $rrule = 'FREQ=WEEKLY;INTERVAL=' . $this->recurInterval;
             $vcaldays = array('SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA');
 
             for ($i = $flag = 0; $i <= 7; ++$i) {
                 if ($this->recurOnDay(pow(2, $i))) {
-                    if ($flag) {
+                    if ($flag == 0) {
+                        $rrule .= ';BYDAY=';
+                        $flag = 1;
+                    } else {
                         $rrule .= ',';
                     }
                     $rrule .= $vcaldays[$i];
-                    $flag = true;
                 }
             }
             break;
@@ -1341,13 +1367,13 @@ class Horde_Date_Recurrence
     }
 
     /**
-     * Parses the recurrence data from a hash.
+     * Parses the recurrence data from a Kolab hash.
      *
      * @param array $hash  The hash to convert.
      *
      * @return boolean  True if the hash seemed valid, false otherwise.
      */
-    public function fromHash($hash)
+    public function fromKolab($hash)
     {
         $this->reset();
 
@@ -1426,7 +1452,7 @@ class Horde_Date_Recurrence
                 break;
 
             case 'yearday':
-                if (!isset($hash['month'])) {
+                if (!isset($hash['daynumber'])) {
                     $this->setRecurType(self::RECUR_NONE);
                     return false;
                 }
@@ -1537,23 +1563,31 @@ class Horde_Date_Recurrence
         }
 
         // Exceptions.
-        if (isset($hash['exceptions'])) {
-            $this->exceptions = $hash['exceptions'];
+        if (isset($hash['exclusion'])) {
+            foreach ($hash['exclusion'] as $exception) {
+                if ($exception instanceof DateTime) {
+                    $this->exceptions[] = $exception->format('Ymd');
+                }
+            }
         }
 
-        if (isset($hash['completions'])) {
-            $this->completions = $hash['completions'];
+        if (isset($hash['complete'])) {
+            foreach ($hash['complete'] as $completion) {
+                if ($exception instanceof DateTime) {
+                    $this->completions[] = $completion->format('Ymd');
+                }
+            }
         }
 
         return true;
     }
 
     /**
-     * Export this object into a hash.
+     * Export this object into a Kolab hash.
      *
      * @return array  The recurrence hash.
      */
-    public function toHash()
+    public function toKolab()
     {
         if ($this->getRecurType() == self::RECUR_NONE) {
             return array();
@@ -1651,15 +1685,20 @@ class Horde_Date_Recurrence
         } elseif ($this->hasRecurEnd()) {
             $date = $this->getRecurEnd();
             $hash['range-type'] = 'date';
-            $hash['range'] = $date->datestamp();
+            $hash['range'] = $date->toDateTime();
         } else {
             $hash['range-type'] = 'none';
             $hash['range'] = '';
         }
 
         // Recurrence exceptions
-        $hash['exceptions'] = $this->exceptions;
-        $hash['completions'] = $this->completions;
+        $hash['exclusion'] = $hash['complete'] = array();
+        foreach ($this->exceptions as $exception) {
+            $hash['exclusion'][] = new DateTime($exception);
+        }
+        foreach ($this->completions as $completionexception) {
+            $hash['complete'][] = new DateTime($completionexception);
+        }
 
         return $hash;
     }

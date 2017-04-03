@@ -20,15 +20,17 @@
  */
 
 return array(
-    'author' => array(
+    'author'      => array(
+        'Laurent Declercq',
         'Rene Schuster',
         'Sascha Bay'
     ),
-    'email' => 'team@i-mscp.net',
-    'version' => '1.2.6',
+    'email'       => 'team@i-mscp.net',
+    'version'     => '2.0.0',
+    'build'       => '2017040300',
     'require_api' => '1.0.6',
-    'date' => '2016-01-01',
-    'name' => 'RoundcubePlugins',
-    'desc' => 'Plugin that provides many plugins for Roundcube',
-    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+    'date'        => '2017-04-03',
+    'name'        => 'RoundcubePlugins',
+    'desc'        => 'Provides many plugins for the Roundcube Webmail.',
+    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 );

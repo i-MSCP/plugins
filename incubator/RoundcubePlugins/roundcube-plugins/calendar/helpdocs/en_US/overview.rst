@@ -92,11 +92,9 @@ Calendars List
 Events can be organized in different calendars which are all displayed in the lower left list.
 Use the checkboxes in that list to show or hide events from the specific calendars in the main view.
 
-.. only:: kolab
-
-    Beside your personal calendars, the list also displays calendars shared by other users
-    or ones that are shared amongst your workgroup. Small icons in the list give a hint
-    about the origin and some of them are possibly read-only which is denoted with a small lock icon.
+Beside your personal calendars, the list also displays calendars shared by other users
+or ones that are shared amongst your workgroup. Small icons in the list give a hint
+about the origin and some of them are possibly read-only which is denoted with a small lock icon.
 
 
 Colorized Events
@@ -135,4 +133,11 @@ Remove entire Calendars
 2. Click the gear icon in the calendars list footer and select *Remove* from the options menu.
 3. After a confirmation dialog, the selected calendar with all its events will be deleted.
    Caution: This action cannot be undone!
- 
+
+Special Calendars
+-----------------
+
+A number of special calendars are prepared a default:
+* ``Birthdays``: This calendar is listing birthdays of contacts as selected in the :ref:`settings-calendar`.
+* ``Pending Invitations``: All pending invitations are listed in this calendar.
+* ``Declined Invitations``: When invitations are declined, the events are listed in this calendar.

@@ -41,7 +41,7 @@ $config['password_force_new_user'] = {password_force_new_user};
 // Possible options: des-crypt, ext-des-crypt, md5-crypt, blowfish-crypt,
 // sha256-crypt, sha512-crypt, md5, sha, smd5, ssha, samba, ad, dovecot, clear.
 // For details see password::hash_password() method.
-$config['password_algorithm'] = 'clear';
+$config['password_algorithm'] = '{PASSWORD_SCHEME}';
 
 // Password prefix (e.g. {CRYPT}, {SHA}) for passwords generated
 // using password_algorithm above. Default: empty.
@@ -65,7 +65,7 @@ $config['password_blowfish_cost'] = 12;
 // Must be at least 1000. If not set, then the number of rounds is left up
 // to the crypt() implementation. On glibc this defaults to 5000.
 // Be aware, the higher the value, the longer it takes to generate the password hashes.
-//$config['password_crypt_rounds'] = 50000;
+$config['password_crypt_rounds'] = 5000;
 
 // This option temporarily disables the password change functionality.
 // Use it when the users database server is in maintenance mode or sth like that.
@@ -103,7 +103,7 @@ $config['password_db_dsn'] = 'mysqli://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{
 //      %q is replaced with the hashed password before the change
 // Escaping of macros is handled by this module.
 // Default: "SELECT update_passwd(%c, %u)"
-$config['password_query'] = 'UPDATE mail_users SET mail_pass=%p WHERE mail_addr=%u';
+$config['password_query'] = 'UPDATE mail_users SET mail_pass={PASSWORD_SCHEME_SQL_MACRO} WHERE mail_addr=%u';
 
 // By default the crypt() function which is used to create the %c
 // parameter uses the md5 algorithm (deprecated, use %P).

@@ -391,7 +391,7 @@ class database_driver extends calendar_driver
             if ($event['id'] == $master['id']) {
               $event += $old;
               $event['recurrence_id'] = $master['id'];
-              $event['_instance'] = libcalendaring::recurrence_instance_identifier($old);
+              $event['_instance'] = libcalendaring::recurrence_instance_identifier($old, $master['allday']);
               $event['isexception'] = 1;
               $event_id = $this->_insert_event($event);
               return $event_id;
@@ -1450,7 +1450,7 @@ class database_driver extends calendar_driver
     }
     // decode the old serialization format
     else {
-      foreach (explode("\n", $event['attendees']) as $line) {
+      foreach (explode("\n", $s_attendees) as $line) {
         $att = array();
         foreach (rcube_utils::explode_quoted_string(';', $line) as $prop) {
           list($key, $value) = explode("=", $prop);

@@ -64,7 +64,7 @@ class libcalendaring_test extends PHPUnit_Framework_TestCase
         $date = date('Ymd', strtotime('today + 2 days'));
         $event = array(
             'start' => new DateTime($date . 'T160000Z'),
-            'end'   => new DateTime($date . 'T180000Z'),
+            'end'   => new DateTime($date . 'T200000Z'),
             'valarms' => array(
                 array(
                     'trigger' => '-PT10M',
@@ -76,7 +76,7 @@ class libcalendaring_test extends PHPUnit_Framework_TestCase
         $this->assertEquals($event['valarms'][0]['action'], $alarm['action']);
         $this->assertEquals(strtotime($date . 'T155000Z'), $alarm['time']);
 
-        // alarm 1 hour after before event
+        // alarm 1 hour after event start
         $event['valarms'] = array(
             array(
                 'trigger' => '+PT1H',
@@ -84,7 +84,29 @@ class libcalendaring_test extends PHPUnit_Framework_TestCase
         );
         $alarm = libcalendaring::get_next_alarm($event);
         $this->assertEquals('DISPLAY', $alarm['action']);
+        $this->assertEquals(strtotime($date . 'T170000Z'), $alarm['time']);
+
+        // alarm 1 hour before event end
+        $event['valarms'] = array(
+            array(
+                'trigger' => '-PT1H',
+                'related' => 'END',
+            ),
+        );
+        $alarm = libcalendaring::get_next_alarm($event);
+        $this->assertEquals('DISPLAY', $alarm['action']);
         $this->assertEquals(strtotime($date . 'T190000Z'), $alarm['time']);
+
+        // alarm 1 hour after event end
+        $event['valarms'] = array(
+            array(
+                'trigger' => 'PT1H',
+                'related' => 'END',
+            ),
+        );
+        $alarm = libcalendaring::get_next_alarm($event);
+        $this->assertEquals('DISPLAY', $alarm['action']);
+        $this->assertEquals(strtotime($date . 'T210000Z'), $alarm['time']);
 
         // ignore past alarms
         $event['start'] = new DateTime('today 22:00:00');
@@ -159,6 +181,4 @@ class libcalendaring_test extends PHPUnit_Framework_TestCase
         $this->assertRegExp('/BYDAY='.$rrule['BYDAY'].'/',        $s, "Recurrence BYDAY");
         $this->assertRegExp('/UNTIL=20250501T160000Z/',           $s, "Recurrence End date (in UTC)");
     }
-
 }
-

@@ -157,6 +157,7 @@ class tasklist_ui
         $this->plugin->register_handler('plugin.edit_attendees_notify', array($this, 'edit_attendees_notify'));
         $this->plugin->register_handler('plugin.task_rsvp_buttons', array($this->plugin->itip, 'itip_rsvp_buttons'));
         $this->plugin->register_handler('plugin.object_changelog_table', array('libkolab', 'object_changelog_table'));
+        $this->plugin->register_handler('plugin.tasks_export_form', array($this, 'tasks_export_form'));
 
         jqueryui::tagedit();
 
@@ -177,7 +178,11 @@ class tasklist_ui
     {
         $tree = true;
         $jsenv = array();
-        $lists = $this->plugin->driver->get_lists($tree);
+        $lists = $this->plugin->driver->get_lists(0, $tree);
+
+        if (empty($attrib['id'])) {
+            $attrib['id'] = 'rcmtasklistslist';
+        }
 
         // walk folder tree
         if (is_object($tree)) {
@@ -201,6 +206,7 @@ class tasklist_ui
             }
         }
 
+        $this->rc->output->set_env('source', rcube_utils::get_input_value('source', rcube_utils::INPUT_GET));
         $this->rc->output->set_env('tasklists', $jsenv);
         $this->register_gui_object('tasklistslist', $attrib['id']);
 
@@ -306,10 +312,17 @@ class tasklist_ui
      */
     function tasklist_select($attrib = array())
     {
-        $attrib['name']       = 'list';
+        if (empty($attrib['name'])) {
+            $attrib['name'] = 'list';
+        }
+
         $attrib['is_escaped'] = true;
         $select = new html_select($attrib);
         $default = null;
+
+        foreach ((array) $attrib['extra'] as $id => $name) {
+            $select->add($name, $id);
+        }
 
         foreach ((array)$this->plugin->driver->get_lists() as $id => $prop) {
             if ($prop['editable'] || strpos($prop['rights'], 'i') !== false) {
@@ -447,7 +460,7 @@ class tasklist_ui
 
         return html::div($attrib,
             html::div(null, $input->show()) .
-            html::div('formbuttons', $button->show($this->rc->gettext('upload'), array('class' => 'button mainaction',
+            html::div('buttons', $button->show($this->rc->gettext('upload'), array('class' => 'button mainaction',
                 'onclick' => rcmail_output::JS_OBJECT_NAME . ".upload_file(this.form)"))) .
             html::div('hint', $this->rc->gettext(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
         );
@@ -519,6 +532,38 @@ class tasklist_ui
     {
         $checkbox = new html_checkbox(array('name' => '_notify', 'id' => 'edit-attendees-donotify', 'value' => 1));
         return html::div($attrib, html::label(null, $checkbox->show(1) . ' ' . $this->plugin->gettext('sendnotifications')));
+    }
+
+    /**
+     * Form to select options for exporting tasks
+     */
+    function tasks_export_form($attrib = array())
+    {
+        if (!$attrib['id']) {
+            $attrib['id'] = 'rcmTaskExportForm';
+        }
+
+        $html .= html::div('form-section',
+            html::label('task-export-list', $this->plugin->gettext('list')) .
+                $this->tasklist_select(array(
+                        'name'  => 'source',
+                        'id'    => 'task-export-list',
+                        'extra' => array('' => '- ' . $this->plugin->gettext('currentview') . ' -'),
+                ))
+        );
+
+        $checkbox = new html_checkbox(array('name' => 'attachments', 'id' => 'task-export-attachments', 'value' => 1));
+        $html .= html::div('form-section',
+            html::label('task-export-attachments', $this->plugin->gettext('exportattachments')) .
+                $checkbox->show(1)
+        );
+
+        $this->register_gui_object('exportform', $attrib['id']);
+
+        return html::tag('form', array('action' => $this->rc->url(array('task' => 'tasklist', 'action' => 'export')),
+            'method' => "post", 'id' => $attrib['id']),
+            $html
+        );
     }
 
     /**

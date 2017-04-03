@@ -43,7 +43,7 @@ return array(
             priority tinyint(1) NOT NULL DEFAULT '0',
             sensitivity tinyint(1) NOT NULL DEFAULT '0',
             alarms varchar(255) DEFAULT NULL,
-            attendees text DEFAULT NULL,
+            attendees text,
             notifyat datetime DEFAULT NULL,
             PRIMARY KEY(event_id),
             INDEX uid_idx (uid),

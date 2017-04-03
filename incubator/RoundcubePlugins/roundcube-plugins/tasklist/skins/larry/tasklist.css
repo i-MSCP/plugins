@@ -11,7 +11,7 @@
  */
 
 #taskbar a.button-tasklist span.button-inner {
-	background-image: url(buttons.png);
+	background-image: url(images/buttons.png);
 	background-position: 0 0;
 }
 
@@ -22,10 +22,23 @@
 
 ul.toolbarmenu li span.icon.taskadd,
 #attachmentmenu li a.tasklistlink span.icon.taskadd {
-	background-image: url(buttons.png);
+	background-image: url(images/buttons.png);
 	background-position: -4px -90px;
 }
 
+#taskstoolbar a.button.export {
+	background-image: url(images/buttons.png);
+	background-position: center -179px;
+	min-width: 50px;
+	max-width: 70px;
+}
+
+#taskstoolbar a.button.import {
+	background-image: url(images/buttons.png);
+	background-position: center -139px;
+}
+
+#taskedit.uidialog,
 .tasklistview div.uidialog {
 	display: none;
 }
@@ -295,7 +308,7 @@ ul.toolbarmenu li span.icon.taskadd,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	background: url(sprites.png) right 20px no-repeat;
+	background: url(images/sprites.png) right 20px no-repeat;
 }
 
 .quickview-active #tasklistsbox .treelist li input,
@@ -340,7 +353,7 @@ ul.toolbarmenu li span.icon.taskadd,
 	height: 16px;
 	padding: 0;
 	margin-right: 4px;
-	background: url(sprites.png) -200px 0 no-repeat;
+	background: url(images/sprites.png) -200px 0 no-repeat;
 	overflow: hidden;
 	text-indent: -5000px;
 	cursor: pointer;
@@ -460,7 +473,7 @@ ul.toolbarmenu li span.icon.taskadd,
 }
 
 #taskstoolbar a.button.newtask {
-	background-image: url(buttons.png);
+	background-image: url(images/buttons.png);
 	background-position: center -53px;
 }
 
@@ -546,7 +559,7 @@ ul.toolbarmenu li span.icon.taskadd,
 
 .buttonbar-right a.iconbutton {
 	padding: 0;
-	background-image: url(sprites.png);
+	background-image: url(images/sprites.png);
 	background-position: 0 -238px;
 }
 
@@ -598,7 +611,7 @@ ul.toolbarmenu li span.icon.taskadd,
 	
 	width: 14px;
 	height: 14px;
-	background: url(sprites.png) -2px -80px no-repeat;
+	background: url(images/sprites.png) -2px -80px no-repeat;
 	text-indent: -1000px;
 	overflow: hidden;
 }
@@ -647,7 +660,7 @@ ul.toolbarmenu li span.icon.taskadd,
 	display: inline-block;
 	width: 16px;
 	height: 16px;
-	background: url(sprites.png) 1000px -3px no-repeat;
+	background: url(images/sprites.png) 1000px -3px no-repeat;
 	margin: -3px 1em 0 0;
 	vertical-align: middle;
 	cursor: pointer;
@@ -729,7 +742,7 @@ ul.toolbarmenu li span.icon.taskadd,
 	right: 6px;
 	width: 18px;
 	height: 18px;
-	background: url(sprites.png) 1000px -80px no-repeat;
+	background: url(images/sprites.png) 1000px -80px no-repeat;
 	text-indent: -5000px;
 	overflow: hidden;
 	cursor: pointer;
@@ -771,7 +784,7 @@ ul.toolbarmenu li span.expand,
 ul.toolbarmenu li span.collapse,
 ul.toolbarmenu li span.history,
 ul.toolbarmenu.iconized .selected span.icon {
-	background-image: url(sprites.png);
+	background-image: url(images/sprites.png);
 }
 
 ul.toolbarmenu li span.add {
@@ -912,7 +925,7 @@ a.morelink:hover {
 	width: 97%;
 }
 
-#taskeditform .formbuttons {
+#taskeditform .buttons {
 	margin: 0.5em 0;
 }
 
@@ -956,7 +969,7 @@ a.morelink:hover {
 
 #taskedit .edit-attendees-table th.invite,
 #taskedit .edit-attendees-table td.invite {
-	width: 48px;
+	width: 50px;
 	padding: 2px;
 }
 
@@ -1161,7 +1174,7 @@ label.block {
 
 #taskedit-links .attachmentslist li.message.eml,
 #task-links .attachmentslist li.message.eml {
-	background-image: url(sprites.png);
+	background-image: url(images/sprites.png);
 	background-position: -2px -388px;
 }
 
@@ -1410,7 +1423,7 @@ div.messagetasklinks::before {
 	left: 8px;
 	width: 18px;
 	height: 18px;
-	background: url(buttons.png) -6px -115px no-repeat;
+	background: url(images/buttons.png) -6px -115px no-repeat;
 }
 
 div.messagetasklinks ul.tasklist {

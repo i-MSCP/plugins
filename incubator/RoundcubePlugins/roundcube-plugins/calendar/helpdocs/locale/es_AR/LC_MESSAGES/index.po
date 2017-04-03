@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the Roundcube Webmail Help package.
 # 
 # Translators:
+# alfvicente <alfvicente@yahoo.com.ar>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: Kolab Documentation\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-26 23:28+0100\n"
-"PO-Revision-Date: 2014-11-27 23:33+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: Spanish (Argentina) (http://www.transifex.com/projects/p/kolab-documentation/language/es_AR/)\n"
+"PO-Revision-Date: 2016-06-30 12:22+0000\n"
+"Last-Translator: alfvicente <alfvicente@yahoo.com.ar>\n"
+"Language-Team: Spanish (Argentina) (http://www.transifex.com/kolab/kolab-documentation/language/es_AR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,7 +20,7 @@ msgstr ""
 
 #: ../../en_US/_plugins/calendar/index.rst:9
 msgid "Calendar"
-msgstr ""
+msgstr "Calendario"
 
 #: ../../en_US/_plugins/calendar/index.rst:11
 msgid ""

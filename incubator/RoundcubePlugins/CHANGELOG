@@ -2,6 +2,24 @@ RoundcubePlugins - ChangeLog
 ============================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 2.0.0
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: Routine for installation of the sabre/vobject composer package that is required by the libcalendaring library
+    Fixed: Couldn't create recurring events due to incompatible libcalendaring library version (calendar plugin)
+    Fixed: Installation failure on SGBD with SQL strict mode enabled (SQL migration files)
+    Fixed: Wrong password scheme in use with i-MSCP Serie 1.4.x. In i-MSCP Serie 1.4.x passwords are hashed (password plugin)
+    Removed: Unmaintained pop3fetcher plugin - Will be re-integrated only if someone is taking care of it
+    Removed: Unmaintained dkimstatus plugin - Will be re-integrated only if someone is taking care of it
+    Updated: calendar plugin to version 3.2.8
+    Updated: contextmenu plugin to version 2.1.2
+    Updated: lilbcalendaring library to version 3.2.8
+    Updated: odvviewer plugin to version 3.2.3
+    Updated: pdfviewer plugin to version 3.2.5
+    Updated: rcguard plugin to version 1.0.7
+    Updated: tasklist plugin to version 3.2.8
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.2.6
 ------------------------------------------------------------------------------------------------------------------------
 

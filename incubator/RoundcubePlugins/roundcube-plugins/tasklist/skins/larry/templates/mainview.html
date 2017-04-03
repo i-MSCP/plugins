@@ -17,6 +17,7 @@
 		<div id="taskstoolbar" class="toolbar" role="toolbar" aria-labelledby="aria-label-toolbar">
 			<roundcube:button command="newtask" type="link" class="button newtask disabled" classAct="button newtask" classSel="button newtask pressed" label="tasklist.newtask" title="tasklist.newtask" />
 			<roundcube:button command="print" type="link" class="button print disabled" classAct="button print" classSel="button print pressed" label="print" title="tasklist.printtitle" />
+			<roundcube:button command="export" type="link" class="button export disabled" classAct="button export" classSel="button export pressed" label="tasklist.export" title="tasklist.exporttitle" />
 			<roundcube:container name="toolbar" id="taskstoolbar" />
 		</div>
 
@@ -86,18 +87,18 @@
 		<div class="boxtitle buttonbar">
 			<h2 id="aria-label-taskselector" class="voice"><roundcube:label name="tasklist.arialabeltaskselector" /></h2>
 			<ul id="taskselector" role="radiogroup" aria-labelledby="aria-label-taskselector" aria-controls="thelist">
-				<li class="all selected" role="radio" aria-checked="true" aria-labelledby="aria-radio-all"><a href="#all" id="aria-radio-all"><roundcube:label name="tasklist.all" /><span class="count"></span></a></li>
+				<li class="all selected" role="radio" aria-checked="true" aria-labelledby="aria-radio-all"><a href="#all" id="aria-radio-all"><roundcube:label name="tasklist.all" /></a></li>
 				<li class="overdue inactive" role="radio" aria-checked="false" aria-labelledby="aria-radio-overdue"><a href="#overdue" id="aria-radio-overdue"><roundcube:label name="tasklist.overdue" /><span class="count"></span></a></li>
-				<li class="flagged" role="radio" aria-checked="false" aria-labelledby="aria-radio-flagged"><a href="#flagged" id="aria-radio-flagged"><roundcube:label name="tasklist.flagged" /><span class="count"></span></a></li>
 				<li class="today" role="radio" aria-checked="false" aria-labelledby="aria-radio-today"><a href="#today" id="aria-radio-today"><roundcube:label name="tasklist.today" /><span class="count"></span></a></li>
 				<li class="tomorrow" role="radio" aria-checked="false" aria-labelledby="aria-radio-tomorrow"><a href="#tomorrow" id="aria-radio-tomorrow"><roundcube:label name="tasklist.tomorrow" /><span class="count"></span></a></li>
 				<roundcube:if condition="env:tasklist_driver != 'kolab'" />
 				<li class="week" role="radio" aria-checked="false" aria-labelledby="aria-radio-week"><a href="#week" id="aria-radio-week"><roundcube:label name="tasklist.next7days" /></a></li>
 				<roundcube:endif />
-				<li class="later" role="radio" aria-checked="false" aria-labelledby="aria-radio-later"><a href="#later" id="aria-radio-later"><roundcube:label name="tasklist.later" /></a></li>
+				<li class="later" role="radio" aria-checked="false" aria-labelledby="aria-radio-later"><a href="#later" id="aria-radio-later"><roundcube:label name="tasklist.later" /><span class="count"></span></a></li>
 				<li class="nodate" role="radio" aria-checked="false" aria-labelledby="aria-radio-nodate"><a href="#nodate" id="aria-radio-nodate"><roundcube:label name="tasklist.nodate" ucfirst="true" /></a></li>
+				<li class="flagged" role="radio" aria-checked="false" aria-labelledby="aria-radio-flagged"><a href="#flagged" id="aria-radio-flagged"><roundcube:label name="tasklist.flagged" /></a></li>
 				<roundcube:if condition="env:tasklist_driver == 'kolab'" />
-				<li class="mytasks" role="radio" aria-checked="false" aria-labelledby="aria-radio-mytasks"><a href="#mytasks" id="aria-radio-mytasks" title="<roundcube:label name='tasklist.mytaskstitle'/>"><roundcube:label name="tasklist.mytasks" /><span class="count"></span></a></li>
+				<li class="mytasks" role="radio" aria-checked="false" aria-labelledby="aria-radio-mytasks"><a href="#mytasks" id="aria-radio-mytasks" title="<roundcube:label name='tasklist.mytaskstitle'/>"><roundcube:label name="tasklist.mytasks" /></a></li>
 				<li class="assigned" role="radio" aria-checked="false" aria-labelledby="aria-radio-assigned"><a href="#assigned" id="aria-radio-assigned" title="<roundcube:label name='tasklist.assignedtitle'/>"><roundcube:label name="tasklist.assigned" /></a></li>
 				<roundcube:endif />
 				<li class="complete" role="radio" aria-checked="false" aria-labelledby="aria-radio-complete"><a href="#complete" id="aria-radio-complete"><roundcube:label name="tasklist.complete" /><span class="count"></span></a></li>
@@ -320,14 +321,16 @@
 	<roundcube:container name="tasklistform" id="tasklistform" />
 </div>
 
+<div id="tasksexport" class="uidialog">
+	<roundcube:object name="plugin.tasks_export_form" id="tasks-export-form" />
+</div>
+
 <script type="text/javascript">
 
 // UI startup
 var UI = new rcube_mail_ui();
 
 $(document).ready(function(e){
-	UI.init();
-
 	rcmail.addEventListener('tasklist_editform_load', function(e){
 		if (rcmail.env.tasklist_driver == 'kolab')
 			UI.init_tabs($('#tasklistform > form').addClass('propform tabbed'));

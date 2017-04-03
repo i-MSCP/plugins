@@ -89,7 +89,7 @@ class tasklist_database_driver extends tasklist_driver
     /**
      * Get a list of available tasks lists from this source
      */
-    public function get_lists()
+    public function get_lists($filter = 0)
     {
       // attempt to create a default list for this user
       if (empty($this->lists)) {
@@ -254,26 +254,26 @@ class tasklist_database_driver extends tasklist_driver
             join(',', $list_ids)
         ));
 
-        $counts = array('all' => 0, 'flagged' => 0, 'today' => 0, 'tomorrow' => 0, 'overdue' => 0, 'nodate' => 0);
+        $counts = array('all' => 0, 'today' => 0, 'tomorrow' => 0, 'overdue' => 0, 'later' => 0);
         while ($result && ($rec = $this->rc->db->fetch_assoc($result))) {
             $counts['all']++;
-            if ($rec['flagged'])
-                $counts['flagged']++;
             if (empty($rec['date']))
-                $counts['nodate']++;
+                $counts['later']++;
             else if ($rec['date'] == $today)
                 $counts['today']++;
             else if ($rec['date'] == $tomorrow)
                 $counts['tomorrow']++;
             else if ($rec['date'] < $today)
                 $counts['overdue']++;
+            else if ($rec['date'] > $tomorrow)
+                $counts['later']++;
         }
 
         return $counts;
     }
 
     /**
-     * Get all taks records matching the given filter
+     * Get all task records matching the given filter
      *
      * @param array Hash array wiht filter criterias
      * @param array List of lists to get tasks from
@@ -332,6 +332,10 @@ class tasklist_database_driver extends tasklist_driver
             $sql_add .= ' AND changed >= ' . $this->rc->db->quote(date('Y-m-d H:i:s', $filter['since']));
         }
 
+        if ($filter['uid']) {
+            $sql_add .= ' AND `uid` IN (' . implode(',', array_map(array($this->rc->db, 'quote'), $filter['uid'])) . ')';
+        }
+
         $tasks = array();
         if (!empty($list_ids)) {
             $result = $this->rc->db->query(sprintf(
@@ -357,10 +361,13 @@ class tasklist_database_driver extends tasklist_driver
     /**
      * Return data of a specific task
      *
-     * @param mixed  Hash array with task properties or task UID
+     * @param mixed   Hash array with task properties or task UID
+     * @param integer Bitmask defining filter criterias.
+     *                See FILTER_* constants for possible values.
+     *
      * @return array Hash array with task properties or false if not found
      */
-    public function get_task($prop)
+    public function get_task($prop, $filter = 0)
     {
         if (is_string($prop))
             $prop['uid'] = $prop;
@@ -558,6 +565,9 @@ class tasklist_database_driver extends tasklist_driver
         if (is_array($prop['recurrence'])) {
             $prop['recurrence'] = $this->serialize_recurrence($prop['recurrence']);
         }
+        if (array_key_exists('complete', $prop)) {
+            $prop['complete'] = number_format($prop['complete'], 2, '.', '');
+        }
 
         foreach (array('parent_id', 'date', 'time', 'startdate', 'starttime', 'alarms', 'recurrence', 'status') as $col) {
             if (empty($prop[$col]))
@@ -584,7 +594,7 @@ class tasklist_database_driver extends tasklist_driver
             join(',', (array)$prop['tags']),
             $prop['flagged'] ? 1 : 0,
             intval($prop['complete']),
-            $prop['status'],
+            strval($prop['status']),
             $prop['alarms'],
             $prop['recurrence'],
             $notify_at
@@ -610,6 +620,9 @@ class tasklist_database_driver extends tasklist_driver
         }
         if (is_array($prop['recurrence'])) {
             $prop['recurrence'] = $this->serialize_recurrence($prop['recurrence']);
+        }
+        if (array_key_exists('complete', $prop)) {
+            $prop['complete'] = number_format($prop['complete'], 2, '.', '');
         }
 
         $sql_set = array();

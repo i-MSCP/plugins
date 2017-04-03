@@ -29,6 +29,8 @@ In case you accept, by either clicking *Accept* or *Maybe*, this will also copy
 the event into your personal calendar. The selector right next to the buttons lets you
 choose the right one.
 
+.. note:: It is sometimes useful (especially when declining or delegating an event) to respond without saving the event in your calendar. To do this use "--" entry in calendars selector.
+
 The copy in your calendar now knows about the invitation and its original sender. If you now
 delete it from your calendar, you'll be asked whether this should send a declination
 message to the person who organizes the event.
@@ -52,4 +54,3 @@ your calendar will be updated with the RSVP status from the person who responded
 
 When you now look at the event details in the calendar view, the status icons next
 to each participant now displays the new status.
-

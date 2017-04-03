@@ -9,7 +9,7 @@ All functions to maintain your events are accessible from the main calendar view
 Add Events to a Calendar
 ------------------------
 
-**Via toolbar** 
+**Via toolbar**
     Click the *New event* button in the toolbar to get an empty dialog where you enter
     the :ref:`event properties <calendar-edit-event>` such as summary, date/time, reminders, etc.
     Click *Save* to finally add it to the selected calendar.
@@ -50,7 +50,7 @@ Here's a description of all the possible values:
 * ``Start``: Date and time when the event starts.
 * ``End``: Date and time when the event starts.
 * ``all-day``: Check this if the event has no start/end time.
-* ``Reminder``: Will pop up with an notification at a the specified time before the event.
+* ``Reminder``: Will pop up with a notification at a the specified time before the event. It is possible to select 'Message' (default) or 'Sound'. When Sound is selected, a sound will be played at the selected time. This setting requires the host to be able to play sounds.
 * ``Calendar``: The calendar the event is saved in. Change it to move an event from one calendar to another.
 * ``Category``: The type of event. Categories can also be used for :ref:`coloring <settings-calendar>`.
 * ``Show me as``: The representation in your free/busy scheduling calendar visible to others.
@@ -72,6 +72,13 @@ over time.
 An important part of managing your schedule is to invite others to events and track their RSVP.
 In this part of the edit dialog you can manage the participants of an event. Read more about this
 further down in the :ref:`calendar-event-participants` section.
+
+**Resources**
+
+As with participants, it is possible to manage the provided resources needed for the planned event. The tab is showing a list of the resources reserved for the current event.
+
+* ``Book Resource``: If the name of the resource is known, it can be typed into the textfield, and will be booked when the Book Resource button is pushed.
+* ``Find Resource``: If the name of the resource is not known, the Find Resource button is an option. It will open a new popup window showing a list of available resources, The FreeBusy information for these, and the Book Resource button.
 
 **Attachments**
 
@@ -146,21 +153,19 @@ When creating a new event, switch to the *Participants* tab. You're already list
 
 Invitations will be sent out when you click *Save* and the event is created.
 
-.. only:: kolab
+.. index:: Availability
+.. _calendar-availability-finder:
 
-    .. index:: Availability
-    .. _calendar-availability-finder:
+Find Availability
+^^^^^^^^^^^^^^^^^
 
-    Find Availability
-    ^^^^^^^^^^^^^^^^^
+Once all the participants are added to the list, you see the individual availability status for each one
+of them, given that this information is available. In case not everybody is free, click the *Find availability...*
+button to open the scheduling dialog. In that dialog, detailed availability information for all participants is
+displayed. Use the *Previous/Next Slot* buttons to find the next time slot where all required participants are
+available. Or drag the gray area representing the event duration with the mouse to manually select a free slot.
 
-    Once all the participants are added to the list, you see the individual availability status for each one
-    of them, given that this information is available. In case not everybody is free, click the *Find availability...*
-    button to open the scheduling dialog. In that dialog, detailed availability information for all participants is
-    displayed. Use the *Previous/Next Slot* buttons to find the next time slot where all required participants are
-    available. Or drag the gray area representing the event duration with the mouse to manually select a free slot.
-
-    Click *Select* to copy the rescheduled date/time back into the event form and to close this dialog.
+Click *Select* to copy the rescheduled date/time back into the event form and to close this dialog.
 
 
 Receive Event Invitations

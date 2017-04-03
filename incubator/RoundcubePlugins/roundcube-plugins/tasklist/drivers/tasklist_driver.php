@@ -79,10 +79,22 @@ abstract class tasklist_driver
     public $alarm_absolute = true;
     public $last_error;
 
+    const FILTER_ALL           = 0;
+    const FILTER_WRITEABLE     = 1;
+    const FILTER_INSERTABLE    = 2;
+    const FILTER_ACTIVE        = 4;
+    const FILTER_PERSONAL      = 8;
+    const FILTER_PRIVATE       = 16;
+    const FILTER_CONFIDENTIAL  = 32;
+    const FILTER_SHARED        = 64;
+
+
     /**
      * Get a list of available task lists from this source
+     * @param integer Bitmask defining filter criterias.
+     *                See FILTER_* constants for possible values.
      */
-    abstract function get_lists();
+    abstract function get_lists($filter = 0);
 
     /**
      * Create a new list assigned to the current user
@@ -144,7 +156,7 @@ abstract class tasklist_driver
     abstract function count_tasks($lists = null);
 
     /**
-     * Get all taks records matching the given filter
+     * Get all task records matching the given filter
      *
      * @param array Hash array with filter criterias:
      *  - mask:  Bitmask representing the filter selection (check against tasklist::FILTER_MASK_* constants)
@@ -196,10 +208,13 @@ abstract class tasklist_driver
     /**
      * Return data of a specific task
      *
-     * @param mixed  Hash array with task properties or task UID
+     * @param mixed   Hash array with task properties or task UID
+     * @param integer Bitmask defining filter criterias for folders.
+     *                See FILTER_* constants for possible values.
+     *
      * @return array Hash array with task properties or false if not found
      */
-    abstract public function get_task($prop);
+    abstract public function get_task($prop, $filter = 0);
 
     /**
      * Get decendents of the given task record
