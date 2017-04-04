@@ -43,7 +43,6 @@ return array(
         'b.barracudacentral.org*2',
         'bl.spameatingmonkey.net',
         'bl.spamcop.net',
-        'spamtrap.trblspam.com',
         'dnsbl.sorbs.net=127.0.0.[2;3;6;7;10]',
         'ix.dnsbl.manitu.net',
         'bl.blocklist.de',
