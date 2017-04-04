@@ -1,4 +1,4 @@
-# i-MSCP RoundcubePlugins plugin v2.0.0
+# i-MSCP RoundcubePlugins plugin v2.0.1
 
 Provides many plugins for the Roundcube Webmail.
 

@@ -26,10 +26,10 @@ return array(
         'Sascha Bay'
     ),
     'email'       => 'team@i-mscp.net',
-    'version'     => '2.0.0',
-    'build'       => '2017040300',
+    'version'     => '2.0.1',
+    'build'       => '2017040400',
     'require_api' => '1.0.6',
-    'date'        => '2017-04-03',
+    'date'        => '2017-04-04',
     'name'        => 'RoundcubePlugins',
     'desc'        => 'Provides many plugins for the Roundcube Webmail.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
