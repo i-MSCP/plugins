@@ -31,7 +31,7 @@ use autouse 'iMSCP::Debug' => qw / debug error /;
 use autouse 'iMSCP::Execute' => qw / execute escapeShell /;
 use autouse 'iMSCP::Rights' => qw/ setRights /;
 use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
-use Class::Autouse qw/ :nostat iMSCP::Database iMSCP::Dir iMSCP::File Servers::po iMSCP::Service Servers::Cron /;
+use Class::Autouse qw/ :nostat iMSCP::Database iMSCP::Dir iMSCP::File Servers::po iMSCP::Service Servers::cron /;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -663,7 +663,7 @@ sub _installComposerPackages
                     ."COMPOSER_DISCARD_CHANGES=true " # discard any change made in vendor
                     ."php -d date.timezone=UTC -d allow_url_fopen=1 -d suhosin.executor.include.whitelist=phar "
                     ."/var/local/imscp/composer.phar require  --no-ansi -n -d=$webmailDir --update-no-dev ".
-                    "--prefer-stable --no-suggest sabre/vobject ~3.3.3"
+                    "--ignore-platform-reqs --prefer-stable --no-suggest sabre/vobject ~3.3.3"
             )
         ),
         \my $stdout,
