@@ -5,7 +5,7 @@ ClamAV - ChangeLog
 Version 1.2.1
 ------------------------------------------------------------------------------------------------------------------------
     Changed: Disabled antidebug_antivm.yar signature which is causing errors in ClamAV
-    Updated: 3rd party ClamAV Unofficial Signatures script (clamav-unofficial-sigs v5.4.1)
+    Updated: 3rd party ClamAV Unofficial Signatures script (clamav-unofficial-sigs v5.6.2)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
