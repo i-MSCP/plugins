@@ -415,8 +415,7 @@ sub _configurePlugin
         $data = {
             password_confirm_current  => $self->{'config'}->{'password_config'}->{'password_confirm_current'}
                 ? 'true' : 'false',
-            password_minimum_length   => $self->{'config'}->{'password_config'}->{'password_minimum_length'}
-                ? 'true' : 'false',
+            password_minimum_length   => $self->{'config'}->{'password_config'}->{'password_minimum_length'},
             password_require_nonalpha => $self->{'config'}->{'password_config'}->{'password_require_nonalpha'}
                 ? 'true' : 'false',
             password_force_new_user   => $self->{'config'}->{'password_config'}->{'password_force_new_user'}
