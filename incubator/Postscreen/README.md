@@ -4,28 +4,29 @@ Plugin that provides Postscreen daemon for Postfix.
 
 ## Introduction
 
-The Postfix Postscreen daemon provides additional protection against mail server overload. One Postscreen process
-handles multiple inbound SMTP connections, and decides which clients may talk to a Postfix SMTP server process. By
-keeping spambots away, Postscreen leaves more SMTP server processes available for legitimate clients, and delays the
-onset of server overload conditions.
+The Postfix Postscreen daemon provides additional protection against mail server overload. Postscreen process handles
+multiple inbound SMTP connections and decides which clients may communicate with the Postfix SMTP server process. By
+keeping spambots away, Postscreen leaves more SMTP server processes available for legitimate clients, and mitigate
+server overload.
 
 ## Warning
 
 Before installing this plugin, you're greatly encouraged to read the Postscreen howto for Postfix which is available at
 [Postfix Postscreen Howto](http://www.postfix.org/POSTSCREEN_README.html "Postfix Postscreen Howto")
 
-In any case, be aware that if you use this plugin, your clients must no longer submit mails via SMTP service on TCP port
-25 because it is used by the Postscreen daemon. Instead your clients must submit mails via SUBMISSION service on TCP port
-587 or via SMTPS service on TCP port 465 which both require client authentication.
+Be in mind that when using Postscreen, the mail clients must not submit mails through the port 25. This is also true
+when not using the Postscreen plugin anyway. Indeed, the port 25 should be used by SMTP servers only. Mail clients
+should be configured to submit mails through the submission port which is 587, or eventually but not recommended, the
+port 465 for SSL connection.
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP 1.3.x Serie or 1.4.x Serie
 * i-MSCP Postfix server implementation
 * Postfix version >= 2.8
 
-For those that are using a distribution which doesn't provides Postfix version >= 2.8, you must update the postfix
-package using backports repository. Refer to your distro documentation for further details.
+For people that are using a distribution that doesn't provides Postfix version >= 2.8, you must update the postfix
+package using the backports repository. Please refer to the documentation of your distribution documentation further details.
 
 ## Installation
 

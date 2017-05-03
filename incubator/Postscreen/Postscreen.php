@@ -19,18 +19,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Manager as PluginManager;
+
 /**
  * Class iMSCP_Plugin_Postscreen
  */
-class iMSCP_Plugin_Postscreen extends iMSCP_Plugin_Action
+class iMSCP_Plugin_Postscreen extends PluginAction
 {
     /**
      * Plugin uninstallation
      *
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin can be uninstalled
     }

@@ -20,7 +20,7 @@
  */
 
 return array(
-    // For the different Postscreen options please check man postscreen or
+    // For the Postscreen options please check man postscreen or
     // visit the online documentation: http://www.postfix.org/postscreen.8.html
 
     // Pregreet test (default: enforce)
