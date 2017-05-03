@@ -1,4 +1,4 @@
-# i-MSCP Postscreen plugin v1.1.1
+# i-MSCP Postscreen plugin v1.1.2
 
 Plugin that provides Postscreen daemon for Postfix.
 

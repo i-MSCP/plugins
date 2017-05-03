@@ -33,6 +33,17 @@ class iMSCP_Plugin_Postscreen extends PluginAction
      * @param PluginManager $pluginManager
      * @return void
      */
+    public function install(PluginManager $pluginManager)
+    {
+        // Only there to tell the plugin manager that this plugin can be installed
+    }
+
+    /**
+     * Plugin uninstallation
+     *
+     * @param PluginManager $pluginManager
+     * @return void
+     */
     public function uninstall(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin can be uninstalled

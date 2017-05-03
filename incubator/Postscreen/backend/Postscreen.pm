@@ -54,7 +54,7 @@ use parent 'Common::SingletonClass';
 
 sub uninstall
 {
-    $_[1]->_setupPostscreenAccessFile( 'remove' );
+    $_[0]->_setupPostscreenAccessFile( 'remove' );
 }
 
 =item update( $fromVersion )
@@ -324,7 +324,7 @@ EOF
         );
 
         # If Postfix version >= 2.11.0 then add postscreen_dnsbl_whitelist_threshold feature
-        if (version->parse( $mta->{'config'}->{'POSTFIX_VERSION'} ) >= version->parse( '2.11.0' )) {
+        if (version->parse( $self->_getPostfixVersion() ) >= version->parse( '2.11.0' )) {
             $params{'postscreen_dnsbl_whitelist_threshold'} = {
                 action => 'replace',
                 values => [ $self->{'config'}->{'postscreen_dnsbl_whitelist_threshold'} ]
@@ -431,6 +431,21 @@ EOF
 
     my $rs = $file->set( $fileContent );
     $rs ||= $file->save( );
+}
+
+=item _getPostfixVersion( )
+
+ Get Postfix version
+
+ Return string Postfix version, die on failure
+
+=cut
+
+sub _getPostfixVersion
+{
+    my $rs = execute( 'postconf -h mail_version', \ my $stdout, \ my $stderr );
+    die( sprintf( "Couldn't get Postfix version: %s", $stderr || 'Unknown error' ) ) if $rs;
+    ($stdout) = $stdout =~ /^([\d\.]+)/;
 }
 
 =back
