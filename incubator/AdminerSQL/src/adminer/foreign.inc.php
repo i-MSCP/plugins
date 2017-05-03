@@ -7,13 +7,15 @@ if ($_POST && !$error && !$_POST["add"] && !$_POST["change"] && !$_POST["change-
 	$message = ($_POST["drop"] ? lang('Foreign key has been dropped.') : ($name != "" ? lang('Foreign key has been altered.') : lang('Foreign key has been created.')));
 	$location = ME . "table=" . urlencode($TABLE);
 	
-	$row["source"] = array_filter($row["source"], 'strlen');
-	ksort($row["source"]); // enforce input order
-	$target = array();
-	foreach ($row["source"] as $key => $val) {
-		$target[$key] = $row["target"][$key];
+	if (!$_POST["drop"]) {
+		$row["source"] = array_filter($row["source"], 'strlen');
+		ksort($row["source"]); // enforce input order
+		$target = array();
+		foreach ($row["source"] as $key => $val) {
+			$target[$key] = $row["target"][$key];
+		}
+		$row["target"] = $target;
 	}
-	$row["target"] = $target;
 	
 	if ($jush == "sqlite") {
 		queries_redirect($location, $message, recreate_table($TABLE, $TABLE, array(), array(), array(" $name" => ($_POST["drop"] ? "" : " " . format_foreign_key($row)))));
@@ -60,13 +62,13 @@ $referencable = array_keys(array_filter(table_status('', true), 'fk_support'));
 <input type="hidden" name="change-js" value="">
 <noscript><p><input type="submit" name="change" value="<?php echo lang('Change'); ?>"></noscript>
 <table cellspacing="0">
-<thead><tr><th><?php echo lang('Source'); ?><th><?php echo lang('Target'); ?></thead>
+<thead><tr><th id="label-source"><?php echo lang('Source'); ?><th id="label-target"><?php echo lang('Target'); ?></thead>
 <?php
 $j = 0;
 foreach ($row["source"] as $key => $val) {
 	echo "<tr>";
-	echo "<td>" . html_select("source[" . (+$key) . "]", array(-1 => "") + $source, $val, ($j == count($row["source"]) - 1 ? "foreignAddRow(this);" : 1));
-	echo "<td>" . html_select("target[" . (+$key) . "]", $target, $row["target"][$key]);
+	echo "<td>" . html_select("source[" . (+$key) . "]", array(-1 => "") + $source, $val, ($j == count($row["source"]) - 1 ? "foreignAddRow(this);" : 1), "label-source");
+	echo "<td>" . html_select("target[" . (+$key) . "]", $target, $row["target"][$key], 1, "label-target");
 	$j++;
 }
 ?>

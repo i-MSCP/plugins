@@ -1,8 +1,8 @@
 <?php
 
 /** Display JSON values as table in edit
-* @link http://www.adminer.org/plugins/#use
-* @author Jakub Vrana, http://www.vrana.cz/
+* @link https://www.adminer.org/plugins/#use
+* @author Jakub Vrana, https://www.vrana.cz/
 * @author Martin Zeman (Zemistr), http://www.zemistr.eu/
 * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
 * @license http://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 (one or other)

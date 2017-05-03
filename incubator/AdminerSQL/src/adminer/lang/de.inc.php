@@ -8,7 +8,6 @@ $translations = array(
 	'Password' => 'Passwort',
 	'Select database' => 'Datenbank auswählen',
 	'Invalid database.' => 'Datenbank ungültig.',
-	'Create new database' => 'Datenbank erstellen',
 	'Table has been dropped.' => 'Tabelle wurde entfernt.',
 	'Table has been altered.' => 'Tabelle wurde geändert.',
 	'Table has been created.' => 'Tabelle wurde erstellt.',
@@ -284,6 +283,6 @@ $translations = array(
 	'Saving' => 'Speichere',
 	'yes' => 'ja',
 	'no' => 'nein',
-	'Master password expired. <a href="http://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.' => 'Das Master-Passwort ist abgelaufen.  <a href="http://www.adminer.org/de/extension/" target="_blank">Implementieren</a> Sie die %s Methode, um es permanent zu machen.',
+	'Master password expired. <a href="https://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.' => 'Das Master-Passwort ist abgelaufen.  <a href="https://www.adminer.org/de/extension/" target="_blank">Implementieren</a> Sie die %s Methode, um es permanent zu machen.',
 	'%d / ' => '%d / ',
 );

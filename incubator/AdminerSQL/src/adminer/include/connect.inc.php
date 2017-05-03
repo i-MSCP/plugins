@@ -12,11 +12,12 @@ function connect_error() {
 		page_header(lang('Select database'), $error, false);
 		echo "<p class='links'>\n";
 		foreach (array(
-			'database' => lang('Create new database'),
+			'database' => lang('Create database'),
 			'privileges' => lang('Privileges'),
 			'processlist' => lang('Process list'),
 			'variables' => lang('Variables'),
 			'status' => lang('Status'),
+			'replication' => lang('Replication'),
 		) as $key => $val) {
 			if (support($key)) {
 				echo "<a href='" . h(ME) . "$key='>$val</a>\n";
@@ -35,7 +36,7 @@ function connect_error() {
 				. "<th>" . lang('Database') . " - <a href='" . h(ME) . "refresh=1'>" . lang('Refresh') . "</a>"
 				. "<td>" . lang('Collation')
 				. "<td>" . lang('Tables')
-				. "<td>" . lang('Size') . " - <a href='" . h(ME) . "dbsize=1' onclick=\"return !ajaxSetHtml('" . js_escape(ME) . "script=connect');\">" . lang('Compute') . "</a>"
+				. "<td>" . lang('Size') . " - <a href='" . h(ME) . "dbsize=1' onclick=\"return !ajaxSetHtml('" . h(js_escape(ME)) . "script=connect');\">" . lang('Compute') . "</a>"
 				. "</thead>\n"
 			;
 			
@@ -43,8 +44,9 @@ function connect_error() {
 			
 			foreach ($databases as $db => $tables) {
 				$root = h(ME) . "db=" . urlencode($db);
-				echo "<tr" . odd() . ">" . (support("database") ? "<td>" . checkbox("db[]", $db, in_array($db, (array) $_POST["db"])) : "");
-				echo "<th><a href='$root'>" . h($db) . "</a>";
+				$id = h("Db-" . $db);
+				echo "<tr" . odd() . ">" . (support("database") ? "<td>" . checkbox("db[]", $db, in_array($db, (array) $_POST["db"]), "", "", "", $id) : "");
+				echo "<th><a href='$root' id='$db'>" . h($db) . "</a>";
 				$collation = nbsp(db_collation($db, $collations));
 				echo "<td>" . (support("database") ? "<a href='$root" . ($scheme ? "&amp;ns=" : "") . "&amp;database=' title='" . lang('Alter database') . "'>$collation</a>" : $collation);
 				echo "<td align='right'><a href='$root&amp;schema=' id='tables-" . h($db) . "' title='" . lang('Database schema') . "'>" . ($_GET["dbsize"] ? $tables : "?") . "</a>";
@@ -76,7 +78,7 @@ if (isset($_GET["import"])) {
 	$_GET["sql"] = $_GET["import"];
 }
 
-if (!(DB != "" ? $connection->select_db(DB) : isset($_GET["sql"]) || isset($_GET["dump"]) || isset($_GET["database"]) || isset($_GET["processlist"]) || isset($_GET["privileges"]) || isset($_GET["user"]) || isset($_GET["variables"]) || $_GET["script"] == "connect" || $_GET["script"] == "kill")) {
+if (!(DB != "" ? $connection->select_db(DB) : isset($_GET["sql"]) || isset($_GET["dump"]) || isset($_GET["database"]) || isset($_GET["processlist"]) || isset($_GET["privileges"]) || isset($_GET["user"]) || isset($_GET["replication"]) || isset($_GET["variables"]) || $_GET["script"] == "connect" || $_GET["script"] == "kill")) {
 	if (DB != "" || $_GET["refresh"]) {
 		restart_session();
 		set_session("dbs", null);

@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
+ *
  * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -21,11 +22,12 @@
 
 return array(
     // Adminer SQL driver (default: mysql)
-    // Available drivers: all, mysql, mssql, oracle, pgsql, sqlite, elastic, mongo, simpledb, firebird
+    // Available drivers: all, elastic, firebird, mongo, mssql, mysql, oracle, pgsql, simpledb, sqlite
     'driver' => 'mysql',
 
     // Adminer theme (default: brade)
-    // brade, bueltge, cvicebni-ubor, haeckel, hever, jukin, kahi, konya, nette, ng9, pappu687, paranoiq, pepa-linha,
-    // pilot, pokorny, price
-    'theme' => 'brade'
+    //
+    // Possible value: brade, bueltge, cvicebni-ubor, flat, galkaev, haeckel, hever, jukin, kahi, konya, lucas-sandery,
+    // nette, ng9, nicu, pappu687, paranoiq, pepa-linha, pilot, pokorny, price
+    'theme'  => 'brade'
 );

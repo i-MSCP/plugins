@@ -1,10 +1,10 @@
-# i-MSCP AdminerSQL plugin v1.0.0
+# i-MSCP AdminerSQL plugin v1.1.0
 
-Plugin that allows to manage SQL databases through Adminer.
+Provides Adminer database management tool
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x, Serie 1.4.x
 
 ## Installation
 
@@ -14,8 +14,7 @@ Plugin that allows to manage SQL databases through Adminer.
 ## Update
 
 1. Backup your plugin configuration file if needed
-2. Login into the panel as admin and go to the plugin management interface
-3. Upload the plugin through the plugin management interface
+2. Upload the plugin through the plugin management interface
 4. Restore your plugin configuration file if needed (compare it with the new version first)
 5. Update the plugin list through the plugin management interface
 
@@ -23,24 +22,25 @@ Plugin that allows to manage SQL databases through Adminer.
 
 See [Configuration file](../AdminerSQL/config.php)
 
-**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin management interface.
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger a plugin
+list update.
 
 ## License
 
-```
-i-MSCP AdminerSQL plugin
-Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+    i-MSCP AdminerSQL plugin
+    
+    Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 of the License
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-```
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
 

@@ -62,10 +62,9 @@ if ($adminer->homepage()) {
 					search_tables();
 				}
 			}
-			echo "<table cellspacing='0' class='nowrap checkable' onclick='tableClick(event);' ondblclick='tableClick(event, true);'>\n";
-
-			echo '<thead><tr class="wrap"><td><input id="check-all" type="checkbox" onclick="formCheck(this, /^(tables|views)\[/);">';
 			$doc_link = doc_link(array('sql' => 'show-table-status.html'));
+			echo "<table cellspacing='0' class='nowrap checkable' onclick='tableClick(event);' ondblclick='tableClick(event, true);'>\n";
+			echo '<thead><tr class="wrap"><td><input id="check-all" type="checkbox" onclick="formCheck(this, /^(tables|views)\[/);" class="jsonly">';
 			echo '<th>' . lang('Table');
 			echo '<td>' . lang('Engine') . doc_link(array('sql' => 'storage-engines.html'));
 			echo '<td>' . lang('Collation') . doc_link(array('sql' => 'charset-mysql.html'));
@@ -80,10 +79,11 @@ if ($adminer->homepage()) {
 			$tables = 0;
 			foreach ($tables_list as $name => $type) {
 				$view = ($type !== null && !preg_match('~table~i', $type));
-				echo '<tr' . odd() . '><td>' . checkbox(($view ? "views[]" : "tables[]"), $name, in_array($name, $tables_views, true), "", "formUncheck('check-all');");
-				echo '<th>' . (support("table") || support("indexes") ? '<a href="' . h(ME) . 'table=' . urlencode($name) . '" title="' . lang('Show structure') . '">' . h($name) . '</a>' : h($name));
+				$id = h("Table-" . $name);
+				echo '<tr' . odd() . '><td>' . checkbox(($view ? "views[]" : "tables[]"), $name, in_array($name, $tables_views, true), "", "formUncheck('check-all');", "", $id);
+				echo '<th>' . (support("table") || support("indexes") ? "<a href='" . h(ME) . "table=" . urlencode($name) . "' title='" . lang('Show structure') . "' id='$id'>" . h($name) . '</a>' : h($name));
 				if ($view) {
-					echo '<td colspan="6"><a href="' . h(ME) . "view=" . urlencode($name) . '" title="' . lang('Alter view') . '">' . (preg_match('~materialized~i', $type) ? lang('Materialized View') : lang('View')) . '</a>';
+					echo '<td colspan="6"><a href="' . h(ME) . "view=" . urlencode($name) . '" title="' . lang('Alter view') . '">' . (preg_match('~materialized~i', $type) ? lang('Materialized view') : lang('View')) . '</a>';
 					echo '<td align="right"><a href="' . h(ME) . "select=" . urlencode($name) . '" title="' . lang('Select data') . '">?</a>';
 				} else {
 					foreach (array(
@@ -145,7 +145,6 @@ if ($adminer->homepage()) {
 
 		echo '<p class="links"><a href="' . h(ME) . 'create=">' . lang('Create table') . "</a>\n";
 		echo (support("view") ? '<a href="' . h(ME) . 'view=">' . lang('Create view') . "</a>\n" : "");
-		echo (support("materializedview") ? '<a href="' . h(ME) . 'view=&amp;materialized=1">' . lang('Create materialized view') . "</a>\n" : "");
 
 		if (support("routine")) {
 			echo "<h3 id='routines'>" . lang('Routines') . "</h3>\n";

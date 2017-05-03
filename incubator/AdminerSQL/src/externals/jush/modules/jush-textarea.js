@@ -94,7 +94,7 @@ jush.textarea = (function () {
 		event = event || window.event;
 		if ((event.ctrlKey || event.metaKey) && !event.altKey) {
 			var isUndo = (event.keyCode == 90); // 90 - z
-			var isRedo = (event.keyCode == 89); // 89 - y
+			var isRedo = (event.keyCode == 89 || (event.keyCode == 90 && event.shiftKey)); // 89 - y
 			if (isUndo || isRedo) {
 				if (isRedo) {
 					if (this.jushUndoPos + 1 < this.jushUndo.length) {

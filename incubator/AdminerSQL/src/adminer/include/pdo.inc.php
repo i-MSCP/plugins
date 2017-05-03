@@ -16,10 +16,10 @@ if (extension_loaded('pdo')) {
 			try {
 				parent::__construct($dsn, $username, $password);
 			} catch (Exception $ex) {
-				auth_error($ex->getMessage());
+				auth_error(h($ex->getMessage()));
 			}
 			$this->setAttribute(13, array('Min_PDOStatement')); // 13 - PDO::ATTR_STATEMENT_CLASS
-			$this->server_info = $this->getAttribute(4); // 4 - PDO::ATTR_SERVER_VERSION
+			$this->server_info = @$this->getAttribute(4); // 4 - PDO::ATTR_SERVER_VERSION
 		}
 		
 		/*abstract function select_db($database);*/

@@ -60,18 +60,6 @@ function typePassword(el, disable) {
 	}
 }
 
-/** Hide or show some login rows for selected driver
-* @param HTMLSelectElement
-*/
-function loginDriver(driver) {
-	var trs = parentTag(driver, 'table').rows;
-	for (var i=1; i < trs.length - 1; i++) {
-		var disabled = /sqlite/.test(driver.value);
-		alterClass(trs[i], 'hidden', disabled);
-		trs[i].getElementsByTagName('input')[0].disabled = disabled;
-	}
-}
-
 
 
 var dbCtrl;
@@ -280,6 +268,22 @@ function editingRemoveRow(button, name) {
 	var field = formField(button.form, button.name.replace(/[^\[]+(.+)/, name));
 	field.parentNode.removeChild(field);
 	parentTag(button, 'tr').style.display = 'none';
+	return true;
+}
+
+/** Move table row for field
+* @param HTMLInputElement
+* @param boolean direction to move row, true for up or false for down
+* @return boolean
+*/
+function editingMoveRow(button, dir){
+	var row = parentTag(button, 'tr');
+	if (!('nextElementSibling' in row)) {
+		return false;
+	}
+	row.parentNode.insertBefore(row, dir
+		? row.previousElementSibling
+		: row.nextElementSibling ? row.nextElementSibling.nextElementSibling : row.parentNode.firstChild);
 	return true;
 }
 

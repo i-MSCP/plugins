@@ -6,6 +6,7 @@ if ($_SERVER["HTTP_IF_MODIFIED_SINCE"]) {
 
 header("Expires: " . gmdate("D, d M Y H:i:s", time() + 365*24*60*60) . " GMT");
 header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("Cache-Control: immutable");
 
 if ($_GET["file"] == "favicon.ico") {
 	header("Content-Type: image/x-icon");
@@ -18,7 +19,7 @@ if ($_GET["file"] == "favicon.ico") {
 	echo lzw_decompress(compile_file('../adminer/static/functions.js;static/editing.js', 'minify_js'));
 } elseif ($_GET["file"] == "jush.js") {
 	header("Content-Type: text/javascript; charset=utf-8");
-	echo lzw_decompress(compile_file('../externals/jush/modules/jush.js;../externals/jush/modules/jush-textarea.js;../externals/jush/modules/jush-txt.js;../externals/jush/modules/jush-sql.js;../externals/jush/modules/jush-pgsql.js;../externals/jush/modules/jush-sqlite.js;../externals/jush/modules/jush-mssql.js;../externals/jush/modules/jush-oracle.js;../externals/jush/modules/jush-simpledb.js', 'minify_js'));
+	echo lzw_decompress(compile_file('../externals/jush/modules/jush.js;../externals/jush/modules/jush-textarea.js;../externals/jush/modules/jush-txt.js;../externals/jush/modules/jush-js.js;../externals/jush/modules/jush-sql.js;../externals/jush/modules/jush-pgsql.js;../externals/jush/modules/jush-sqlite.js;../externals/jush/modules/jush-mssql.js;../externals/jush/modules/jush-oracle.js;../externals/jush/modules/jush-simpledb.js', 'minify_js'));
 } else {
 	header("Content-Type: image/gif");
 	switch ($_GET["file"]) {

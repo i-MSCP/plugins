@@ -9,7 +9,7 @@ class Adminer {
 	* @return string HTML code
 	*/
 	function name() {
-		return "<a href='http://www.adminer.org/' target='_blank' id='h1'>Adminer</a>";
+		return "<a href='https://www.adminer.org/' target='_blank' id='h1'>Adminer</a>";
 	}
 
 	/** Connection parameters
@@ -88,16 +88,14 @@ class Adminer {
 		global $drivers;
 		?>
 <table cellspacing="0">
-<tr><th><?php echo lang('System'); ?><td><?php echo html_select("auth[driver]", $drivers, DRIVER, "loginDriver(this);"); ?>
+<tr><th><?php echo lang('System'); ?><td><?php echo html_select("auth[driver]", $drivers, DRIVER); ?>
 <tr><th><?php echo lang('Server'); ?><td><input name="auth[server]" value="<?php echo h(SERVER); ?>" title="hostname[:port]" placeholder="localhost" autocapitalize="off">
 <tr><th><?php echo lang('Username'); ?><td><input name="auth[username]" id="username" value="<?php echo h($_GET["username"]); ?>" autocapitalize="off">
 <tr><th><?php echo lang('Password'); ?><td><input type="password" name="auth[password]">
 <tr><th><?php echo lang('Database'); ?><td><input name="auth[db]" value="<?php echo h($_GET["db"]); ?>" autocapitalize="off">
 </table>
 <script type="text/javascript">
-var username = document.getElementById('username');
-focus(username);
-username.form['auth[driver]'].onchange();
+focus(document.getElementById('username'));
 </script>
 <?php
 		echo "<p><input type='submit' value='" . lang('Login') . "'>\n";
@@ -107,9 +105,13 @@ username.form['auth[driver]'].onchange();
 	/** Authorize the user
 	* @param string
 	* @param string
-	* @return bool
+	* @return mixed true for success, string for error message, false for unknown error
 	*/
 	function login($login, $password) {
+		global $jush;
+		if ($jush == "sqlite") {
+			return lang('<a href="https://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to use SQLite.', '<code>login()</code>');
+		}
 		return true;
 	}
 
@@ -195,6 +197,15 @@ username.form['auth[driver]'].onchange();
 		;
 	}
 
+	/** Query printed in SQL command before execution
+	* @param string query to be executed
+	* @return string escaped query to be printed
+	*/
+	function sqlCommandQuery($query)
+	{
+		return shorten_utf8(trim($query), 1000);
+	}
+
 	/** Description of a row in a table
 	* @param string
 	* @return string SQL expression, empty string for no description
@@ -230,7 +241,10 @@ username.form['auth[driver]'].onchange();
 	function selectVal($val, $link, $field, $original) {
 		$return = ($val === null ? "<i>NULL</i>" : (preg_match("~char|binary~", $field["type"]) && !preg_match("~var~", $field["type"]) ? "<code>$val</code>" : $val));
 		if (preg_match('~blob|bytea|raw|file~', $field["type"]) && !is_utf8($val)) {
-			$return = lang('%d byte(s)', strlen($original));
+			$return = "<i>" . lang('%d byte(s)', strlen($original)) . "</i>";
+		}
+		if (preg_match('~json~', $field["type"])) {
+			$return = "<code class='jush-js'>$return</code>";
 		}
 		return ($link ? "<a href='" . h($link) . "'" . (is_url($link) ? " rel='noreferrer'" : "") . ">$return</a>" : $return);
 	}
@@ -242,6 +256,45 @@ username.form['auth[driver]'].onchange();
 	*/
 	function editVal($val, $field) {
 		return $val;
+	}
+
+	/** Print table structure in tabular format
+	* @param array data about individual fields
+	* @return null
+	*/
+	function tableStructurePrint($fields) {
+		echo "<table cellspacing='0'>\n";
+		echo "<thead><tr><th>" . lang('Column') . "<td>" . lang('Type') . (support("comment") ? "<td>" . lang('Comment') : "") . "</thead>\n";
+		foreach ($fields as $field) {
+			echo "<tr" . odd() . "><th>" . h($field["field"]);
+			echo "<td><span title='" . h($field["collation"]) . "'>" . h($field["full_type"]) . "</span>";
+			echo ($field["null"] ? " <i>NULL</i>" : "");
+			echo ($field["auto_increment"] ? " <i>" . lang('Auto Increment') . "</i>" : "");
+			echo (isset($field["default"]) ? " <span title='" . lang('Default value') . "'>[<b>" . h($field["default"]) . "</b>]</span>" : "");
+			echo (support("comment") ? "<td>" . nbsp($field["comment"]) : "");
+			echo "\n";
+		}
+		echo "</table>\n";
+	}
+
+	/** Print list of indexes on table in tabular format
+	* @param array data about all indexes on a table
+	* @return null
+	*/
+	function tableIndexesPrint($indexes) {
+		echo "<table cellspacing='0'>\n";
+		foreach ($indexes as $name => $index) {
+			ksort($index["columns"]); // enforce correct columns order
+			$print = array();
+			foreach ($index["columns"] as $key => $val) {
+				$print[] = "<i>" . h($val) . "</i>"
+					. ($index["lengths"][$key] ? "(" . $index["lengths"][$key] . ")" : "")
+					. ($index["descs"][$key] ? " DESC" : "")
+				;
+			}
+			echo "<tr title='" . h($name) . "'><th>$index[type]<td>" . implode(", ", $print) . "\n";
+		}
+		echo "</table>\n";
 	}
 
 	/** Print columns box in select
@@ -350,8 +403,9 @@ username.form['auth[driver]'].onchange();
 		echo "var indexColumns = ";
 		$columns = array();
 		foreach ($indexes as $index) {
-			if ($index["type"] != "FULLTEXT") {
-				$columns[reset($index["columns"])] = 1;
+			$current_key = reset($index["columns"]);
+			if ($index["type"] != "FULLTEXT" && $current_key) {
+				$columns[$current_key] = 1;
 			}
 		}
 		$columns[""] = 1;
@@ -778,7 +832,7 @@ username.form['auth[driver]'].onchange();
 		?>
 <h1>
 <?php echo $this->name(); ?> <span class="version"><?php echo $VERSION; ?></span>
-<a href="http://www.adminer.org/#download" target="_blank" id="version"><?php echo (version_compare($VERSION, $_COOKIE["adminer_version"]) < 0 ? h($_COOKIE["adminer_version"]) : ""); ?></a>
+<a href="https://www.adminer.org/#download" target="_blank" id="version"><?php echo (version_compare($VERSION, $_COOKIE["adminer_version"]) < 0 ? h($_COOKIE["adminer_version"]) : ""); ?></a>
 </h1>
 <?php
 		if ($missing == "auth") {
@@ -804,11 +858,14 @@ username.form['auth[driver]'].onchange();
 				$connection->select_db(DB);
 				$tables = table_status('', true);
 			}
-			if (support("sql")) {
-				?>
+			?>
 <script type="text/javascript" src="../externals/jush/modules/jush.js"></script>
 <script type="text/javascript" src="../externals/jush/modules/jush-textarea.js"></script>
 <script type="text/javascript" src="../externals/jush/modules/jush-txt.js"></script>
+<script type="text/javascript" src="../externals/jush/modules/jush-js.js"></script>
+<?php
+			if (support("sql")) {
+				?>
 <script type="text/javascript" src="../externals/jush/modules/jush-<?php echo $jush; ?>.js"></script>
 <script type="text/javascript">
 <?php
@@ -884,17 +941,18 @@ bodyLoad('<?php echo (is_object($connection) ? substr($connection->server_info, 
 	* @return null
 	*/
 	function tablesPrint($tables) {
-		echo "<p id='tables' onmouseover='menuOver(this, event);' onmouseout='menuOut(this);'>\n";
+		echo "<ul id='tables' onmouseover='menuOver(this, event);' onmouseout='menuOut(this);'>\n";
 		foreach ($tables as $table => $status) {
-			echo '<a href="' . h(ME) . 'select=' . urlencode($table) . '"' . bold($_GET["select"] == $table || $_GET["edit"] == $table, "select") . ">" . lang('select') . "</a> ";
+			echo '<li><a href="' . h(ME) . 'select=' . urlencode($table) . '"' . bold($_GET["select"] == $table || $_GET["edit"] == $table, "select") . ">" . lang('select') . "</a> ";
 			$name = $this->tableName($status);
 			echo (support("table") || support("indexes")
 				? '<a href="' . h(ME) . 'table=' . urlencode($table) . '"'
-					. bold(in_array($table, array($_GET["table"], $_GET["create"], $_GET["indexes"], $_GET["foreign"], $_GET["trigger"])), (is_view($status) ? "view" : ""), "structure")
+					. bold(in_array($table, array($_GET["table"], $_GET["create"], $_GET["indexes"], $_GET["foreign"], $_GET["trigger"])), (is_view($status) ? "view" : "structure"))
 					. " title='" . lang('Show structure') . "'>$name</a>"
 				: "<span>$name</span>"
-			) . "<br>\n";
+			) . "\n";
 		}
+		echo "</ul>\n";
 	}
 
 }

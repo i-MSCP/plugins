@@ -5,7 +5,8 @@
 =cut
 
 # i-MSCP AdminerSQL plugin
-# Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+#
+# Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
@@ -26,16 +27,13 @@ package Plugin::AdminerSQL;
 
 use strict;
 use warnings;
-use iMSCP::Database;
+use Cwd;
 use iMSCP::Debug;
 use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::Service;
-use Cwd;
 use parent 'Common::SingletonClass';
-
-my $ADMINER_VERSION = '4.2.1';
 
 =head1 DESCRIPTION
 
@@ -45,7 +43,7 @@ my $ADMINER_VERSION = '4.2.1';
 
 =over 4
 
-=item enable()
+=item enable( )
 
  Process enable tasks
 
@@ -57,34 +55,38 @@ sub enable
 {
     my $self = shift;
 
-    my $curDir = getcwd();
+    my $curDir = getcwd( );
     my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
     my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/src";
-    my $panelUName =
-        my $panelGName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+    my $panelUName = my $panelGName =
+        $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
     # Create production directory
-    my $rs = iMSCP::Dir->new( dirname => $prodDir )->make( { user => $panelUName, group => $panelGName, mode =>
-            0550 } );
+    my $rs = iMSCP::Dir->new( dirname => $prodDir )->make(
+        {
+            user  => $panelUName,
+            group => $panelGName,
+            mode  => 0550
+        }
+    );
     return $rs if $rs;
 
     my $file = iMSCP::File->new( filename => "$srcDir/designs/$self->{'config'}->{'theme'}/adminer.css" );
     $rs = $file->copyFile( "$srcDir/adminer/static/default.css" );
     return $rs if $rs;
 
-    my $fileSuffix = '-'.$ADMINER_VERSION.
-        ( ($self->{'config'}->{'driver'} eq 'all') ? '' : '-'.$self->{'config'}->{'driver'} ).'.php';
+    my $fileSuffix = '-4.3.1'
+        .(($self->{'config'}->{'driver'} eq 'all') ? '' : '-'.$self->{'config'}->{'driver'}).'.php';
 
     unless (chdir( $srcDir )) {
-        error( sprintf( "Unable to change directory to $srcDir: %s", $! ) );
+        error( sprintf( "Coudln't change directory to $srcDir: %s", $! ) );
         return 1;
     }
 
     # Compile Adminer
-    my ($stdout, $stderr);
-    $rs = execute( "php $srcDir/compile.php $self->{'config'}->{'driver'}", \$stdout, \$stderr );
+    $rs = execute( "php $srcDir/compile.php $self->{'config'}->{'driver'}", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    error( $stderr || 'Unknown error' ) if $rs;
     return $rs if $rs;
 
     # Install Adminer in production directory
@@ -95,9 +97,9 @@ sub enable
     return $rs if $rs;
 
     # Compile Adminer editor
-    $rs = execute( "php $srcDir/compile.php editor $self->{'config'}->{'driver'}", \$stdout, \$stderr );
+    $rs = execute( "php $srcDir/compile.php editor $self->{'config'}->{'driver'}", \ $stdout, \ $stderr );
     debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
+    error( $stderr || 'Unknown error' ) if $rs;
     return $rs if $rs;
 
     # Install Adminer editor in production directory
@@ -108,23 +110,23 @@ sub enable
     return $rs if $rs;
 
     unless (chdir( $curDir )) {
-        error( sprintf( "Could not to change directory to %s: %s", $curDir, $! ) );
+        error( sprintf( "Couldn't change directory to %s: %s", $curDir, $! ) );
         return 1;
     }
 
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        local $@;
-        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
+    return 0 if defined $main::execmode && $main::execmode eq 'setup';
+
+    local $@;
+    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
     }
 
     0;
 }
 
-=item disable()
+=item disable( )
 
  Process disable tasks
 
@@ -134,16 +136,15 @@ sub enable
 
 sub disable
 {
-    my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
-    return $rs if $rs;
+    my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove( );
 
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        local $@;
-        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
+    return $rs if $rs || (defined $main::execmode && $main::execmode eq 'setup');
+
+    local $@;
+    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
+    if ($@) {
+        error( $@ );
+        return 1;
     }
 
     0;

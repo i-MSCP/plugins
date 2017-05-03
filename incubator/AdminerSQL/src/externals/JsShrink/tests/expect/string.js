@@ -1,2 +1,0 @@
-var
-s=' double '+' space ';

@@ -20,15 +20,16 @@
  */
 
 return array(
-    'author' => array(
+    'author'      => array(
         'Laurent Declercq',
         'Sascha Bay'
     ),
-    'email' => 'team@i-mscp.net',
-    'version' => '1.0.1',
+    'email'       => 'team@i-mscp.net',
+    'version'     => '1.1.0',
     'require_api' => '1.0.4',
-    'date' => '2016-06-25',
-    'name' => 'AdminerSQL',
-    'desc' => 'Plugin that allows to manage SQL databases through Adminer.',
-    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
+    'date'        => '2017-05-24',
+    'build'       => '2017050300',
+    'name'        => 'AdminerSQL',
+    'desc'        => 'Provides Adminer database management tool.',
+    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
 );

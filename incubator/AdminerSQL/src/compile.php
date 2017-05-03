@@ -134,7 +134,7 @@ function put_file_lang($match) {
 		case "' . $lang . '": $compressed = "' . add_quo_slashes(lzw_compress(implode("\n", $translation_ids))) . '"; break;';
 	}
 	$translations_version = crc32($return);
-	return '$translations = &$_SESSION["translations"];
+	return '$translations = $_SESSION["translations"];
 if ($_SESSION["translations_version"] != ' . $translations_version . ') {
 	$translations = array();
 	$_SESSION["translations_version"] = ' . $translations_version . ';
@@ -152,6 +152,7 @@ function get_translations($lang) {
 
 if (!$translations) {
 	$translations = get_translations($LANG);
+	$_SESSION["translations"] = $translations;
 }
 ';
 }
@@ -343,7 +344,7 @@ foreach (glob(dirname(__FILE__) . "/adminer/drivers/" . ($driver ? $driver : "*"
 
 include dirname(__FILE__) . "/adminer/include/pdo.inc.php";
 include dirname(__FILE__) . "/adminer/include/driver.inc.php";
-$features = array("call" => "routine", "dump", "event", "privileges", "procedure" => "routine", "processlist", "routine", "scheme", "sequence", "status", "trigger", "type", "user" => "privileges", "variables", "view");
+$features = array("call" => "routine", "dump", "event", "privileges", "procedure" => "routine", "processlist", "routine", "scheme", "sequence", "status", "trigger", "type", "user" => "privileges", "replication", "variables", "view");
 $lang_ids = array(); // global variable simplifies usage in a callback function
 $file = file_get_contents(dirname(__FILE__) . "/$project/index.php");
 if ($driver) {
@@ -375,9 +376,9 @@ if ($driver) {
 		}
 	}
 	if (count($drivers) == 1) {
-		$file = str_replace('<?php echo html_select("driver", $drivers, DRIVER); ?>', "<input type='hidden' name='driver' value='" . ($driver == "mysql" ? "server" : $driver) . "'>" . reset($drivers), $file);
+		$file = str_replace('<?php echo html_select("auth[driver]", $drivers, DRIVER); ?>', "<input type='hidden' name='auth[driver]' value='" . ($driver == "mysql" ? "server" : $driver) . "'>" . reset($drivers), $file);
 	}
-	$file = preg_replace('(;../externals/jush/modules/jush-(?!textarea\.|txt\.|' . preg_quote($driver == "mysql" ? "sql" : $driver) . '\.)[^.]+.js)', '', $file);
+	$file = preg_replace('(;../externals/jush/modules/jush-(?!textarea\.|txt\.|js\.|' . preg_quote($driver == "mysql" ? "sql" : $driver) . '\.)[^.]+.js)', '', $file);
 }
 if ($project == "editor") {
 	$file = preg_replace('~;../externals/jush/jush.css~', '', $file);
@@ -395,6 +396,7 @@ if ($_SESSION["lang"]) {
 $file = str_replace('<script type="text/javascript" src="static/editing.js"></script>' . "\n", "", $file);
 $file = str_replace('<script type="text/javascript" src="../externals/jush/modules/jush-textarea.js"></script>' . "\n", "", $file);
 $file = str_replace('<script type="text/javascript" src="../externals/jush/modules/jush-txt.js"></script>' . "\n", "", $file);
+$file = str_replace('<script type="text/javascript" src="../externals/jush/modules/jush-js.js"></script>' . "\n", "", $file);
 $file = str_replace('<script type="text/javascript" src="../externals/jush/modules/jush-<?php echo $jush; ?>.js"></script>' . "\n", "", $file);
 $file = str_replace('<link rel="stylesheet" type="text/css" href="../externals/jush/jush.css">' . "\n", "", $file);
 $file = preg_replace_callback("~compile_file\\('([^']+)'(?:, '([^']*)')?\\)~", 'compile_file', $file); // integrate static files

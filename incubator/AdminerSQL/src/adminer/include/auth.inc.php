@@ -120,7 +120,6 @@ function unset_permanent() {
 */
 function auth_error($error) {
 	global $adminer, $has_token;
-	$error = h($error);
 	$session_name = session_name();
 	if (isset($_GET["username"])) {
 		header("HTTP/1.1 403 Forbidden"); // 401 requires sending WWW-Authenticate header
@@ -131,7 +130,7 @@ function auth_error($error) {
 			$password = get_password();
 			if ($password !== null) {
 				if ($password === false) {
-					$error .= '<br>' . lang('Master password expired. <a href="http://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.', '<code>permanentLogin()</code>');
+					$error .= '<br>' . lang('Master password expired. <a href="https://www.adminer.org/en/extension/" target="_blank">Implement</a> %s method to make it permanent.', '<code>permanentLogin()</code>');
 				}
 				set_password(DRIVER, SERVER, $_GET["username"], null);
 			}
@@ -167,8 +166,8 @@ if (isset($_GET["username"])) {
 
 $driver = new Min_Driver($connection);
 
-if (!is_object($connection) || !$adminer->login($_GET["username"], get_password())) {
-	auth_error((is_string($connection) ? $connection : lang('Invalid credentials.')));
+if (!is_object($connection) || ($login = $adminer->login($_GET["username"], get_password())) !== true) {
+	auth_error((is_string($connection) ? h($connection) : (is_string($login) ? $login : lang('Invalid credentials.'))));
 }
 
 if ($auth && $_POST["token"]) {

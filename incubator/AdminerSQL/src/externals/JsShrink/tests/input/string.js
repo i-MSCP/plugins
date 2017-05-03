@@ -1,1 +1,0 @@
-var s = ' double ' + ' space ';

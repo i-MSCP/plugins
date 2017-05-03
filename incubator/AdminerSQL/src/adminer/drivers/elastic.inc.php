@@ -59,7 +59,8 @@ if (isset($_GET["elastic"])) {
 			}
 
 			function connect($server, $username, $password) {
-				$this->_url = "http://$username:$password@$server/";
+				preg_match('~^(https?://)?(.*)~', $server, $match);
+				$this->_url = ($match[1] ? $match[1] : "http://") . "$username:$password@$match[2]/";
 				$return = $this->query('');
 				if ($return) {
 					$this->server_info = $return['version']['number'];
@@ -81,7 +82,7 @@ if (isset($_GET["elastic"])) {
 		class Min_Result {
 			var $num_rows, $_rows;
 
-			function Min_Result($rows) {
+			function __construct($rows) {
 				$this->num_rows = count($this->_rows);
 				$this->_rows = $rows;
 				reset($this->_rows);
@@ -257,9 +258,9 @@ if (isset($_GET["elastic"])) {
 					"Engine" => "table",
 					"Rows" => $table["count"],
 				);
-			}
-			if ($name != "" && $name == $table["term"]) {
-				return $return[$name];
+				if ($name != "" && $name == $table["term"]) {
+					return $return[$name];
+				}
 			}
 		}
 		return $return;
