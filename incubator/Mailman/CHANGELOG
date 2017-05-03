@@ -1,0 +1,38 @@
+Mailman - ChangeLog
+===================
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.0.0
+------------------------------------------------------------------------------------------------------------------------
+
+	Added: Localization support
+	Added: Support for i-mscp Version >= 1.2.11
+	Added: config.php to set default language from mailman
+	Fixed: List names must be lowered in Plugin::Mailman::_listExists() method
+	Fixed: Postfix entries are not re-added on update
+	Fixed: Prevent creation of any mail account with address already used for mailing-list
+	Fixed: Wrong regexp for list names validation
+	Updated: License headers
+	
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.3
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: 'mailman' list name must be disallowed
+	Fixed: The 'onBeforeAddSubdomain' listener must be registered with a high priority
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.2
+------------------------------------------------------------------------------------------------------------------------
+
+	Fixed: Entities with status set to 'disabled' must not be counted by the getItemWithErrorStatus() plugin method
+	Fixed: IP addresses used in the Apache vhost files must match the IP addresses of the domains
+	Fixed: IPv6 addresses in the Apache vhost file must be enclosed in square brackets
+	Fixed: Wrong DNS resources record added when an IPv6 address is used
+
+------------------------------------------------------------------------------------------------------------------------
+Version 0.0.1
+------------------------------------------------------------------------------------------------------------------------
+
+	Release: First released version
