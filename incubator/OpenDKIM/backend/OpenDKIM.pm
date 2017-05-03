@@ -338,6 +338,7 @@ sub _addDomainKey
     my ($self, $domainId, $aliasId, $domain) = @_;
 
     # This action must be idempotent ( this allow to handle 'tochange' status which include key renewal )
+    # mode 0750 let to permission error on debian 8.6 so changed to 0700 by CISC, LLC.
     my $rs = $self->_deleteDomainKey( $domainId, $aliasId, $domain );
     return $rs if $rs;
 
@@ -345,7 +346,7 @@ sub _addDomainKey
         {
             user  => 'opendkim',
             group => 'opendkim',
-            mode  => 0750
+            mode  => 0700
         }
     );
     return $rs if $rs;
