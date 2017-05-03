@@ -7,6 +7,7 @@ Version 2.0.1
 
     Fixed: Modules::Plugin::_call: Can't locate object method "factory" via package "Servers::cron"
     Fixed: pear-pear.php.net/Net_LDAP2 2.2.0 required ext-ldap while running composer
+    Fixed: Wrong TIMEZONE used in composer command; UTC instead of administrator defined value
     Fixed: Wrong value for the password minimum length parameter - boolean while number is expected (Password plugin)
 
 ------------------------------------------------------------------------------------------------------------------------

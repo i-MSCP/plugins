@@ -657,12 +657,13 @@ sub _installComposerPackages
             "su -l $imscpWebUser -s /bin/sh -c %s",
             escapeShell(
                 "COMPOSER_HOME=$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer " # Override composer homedir
-                    ."COMPOSER_PROCESS_TIMEOUT=2000 " # Increase composer process timeout for slow connections
-                    ."COMPOSER_NO_INTERACTION=1 " # not user interaction
-                    ."COMPOSER_DISCARD_CHANGES=true " # discard any change made in vendor
-                    ."php -d date.timezone=UTC -d allow_url_fopen=1 -d suhosin.executor.include.whitelist=phar "
-                    ."/var/local/imscp/composer.phar require  --no-ansi -n -d=$webmailDir --update-no-dev ".
-                    "--ignore-platform-reqs --prefer-stable --no-suggest sabre/vobject ~3.3.3"
+                    .'COMPOSER_PROCESS_TIMEOUT=2000 ' # Increase composer process timeout for slow connections
+                    .'COMPOSER_NO_INTERACTION=1 ' # not user interaction
+                    .'COMPOSER_DISCARD_CHANGES=true ' # discard any change made in vendor
+                    ."php -d date.timezone=$main::imscpConfig{'TIMEZONE'} -d allow_url_fopen=1 "
+                    .'-d suhosin.executor.include.whitelist=phar '
+                    ."/var/local/imscp/composer.phar require  --no-ansi -n -d=$webmailDir --update-no-dev "
+                    .'--ignore-platform-reqs --prefer-stable --no-suggest sabre/vobject ~3.3.3'
             )
         ),
         \my $stdout,
