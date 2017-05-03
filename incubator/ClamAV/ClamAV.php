@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP ClamAV plugin
- * Copyright (C) 2014-2016 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2014-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Manager as PluginManager;
+
 /**
  * Class iMSCP_Plugin_ClamAV
  */
-class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
+class iMSCP_Plugin_ClamAV extends PluginAction
 {
     /**
      * Plugin installation
      *
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin is installable
     }
@@ -39,10 +42,10 @@ class iMSCP_Plugin_ClamAV extends iMSCP_Plugin_Action
     /**
      * Plugin uninstallation
      *
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin can be uninstalled
     }

@@ -5,8 +5,8 @@
 =cut
 
 # i-MSCP ClamAV plugin
-# Copyright (C) 2014-2016 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+# Copyright (C) 2014-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2017 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item install()
+=item install( )
 
  Perform install tasks
 
@@ -57,11 +57,11 @@ sub install
 {
     my $self = shift;
 
-    my $rs = $self->_checkRequirements();
-    $rs ||= $self->_installClamavUnofficialSigs();
+    my $rs = $self->_checkRequirements( );
+    $rs ||= $self->_installClamavUnofficialSigs( );
 }
 
-=item uninstall()
+=item uninstall( )
 
  Perform uninstall tasks
 
@@ -73,10 +73,10 @@ sub uninstall
 {
     my $self = shift;
 
-    $self->_removeClamavUnofficialSigs();
+    $self->_removeClamavUnofficialSigs( );
 }
 
-=item update()
+=item update( )
 
  Perform update tasks
 
@@ -88,10 +88,10 @@ sub update
 {
     my $self = shift;
 
-    $self->install();
+    $self->install( );
 }
 
-=item enable()
+=item enable( )
 
  Process enable tasks
 
@@ -106,10 +106,10 @@ sub enable
     my $rs = $self->_configureClamavMilter( 'configure' );
     $rs ||= $self->_configurePostfix( 'configure' );
     $rs ||= $self->_configureClamavUnofficialSigs( 'configure' );
-    $rs ||= $self->_restartServices();
+    $rs ||= $self->_restartServices( );
 }
 
-=item disable()
+=item disable( )
 
  Process disable tasks
 
@@ -127,7 +127,7 @@ sub disable
     return $rs if $rs;
 
     if ($self->{'action'} eq 'disable') {
-        $rs = $self->_restartServices();
+        $rs = $self->_restartServices( );
         return $rs if $rs;
     }
 
@@ -140,7 +140,7 @@ sub disable
 
 =over 4
 
-=item _init()
+=item _init( )
 
  Initialize plugin
 
@@ -159,7 +159,7 @@ sub _init
     $self;
 }
 
-=item _installClamavUnofficialSigs()
+=item _installClamavUnofficialSigs( )
 
  Install clamav-unofficial-sigs
 
@@ -184,7 +184,7 @@ sub _installClamavUnofficialSigs
     );
 }
 
-=item _removeClamavUnofficialSigs()
+=item _removeClamavUnofficialSigs( )
 
  Remove clamav-unofficial-sigs
 
@@ -196,17 +196,17 @@ sub _removeClamavUnofficialSigs
 {
     my $self = shift;
 
-    my $rs = $self->_disableClamavUnofficialSigs();
+    my $rs = $self->_disableClamavUnofficialSigs( );
     return $rs if $rs;
 
     if (!$rs && -f '/usr/local/bin/clamav-unofficial-sigs.sh') {
-        $rs = iMSCP::File->new( filename => '/usr/local/bin/clamav-unofficial-sigs.sh' )->delFile();
+        $rs = iMSCP::File->new( filename => '/usr/local/bin/clamav-unofficial-sigs.sh' )->delFile( );
     }
 
     $rs;
 }
 
-=item _configureClamavUnofficialSigs($action)
+=item _configureClamavUnofficialSigs( $action )
 
  Configure or deconfigure clamav-unofficial-sigs
 
@@ -221,7 +221,7 @@ sub _configureClamavUnofficialSigs
 
     if ($action eq 'configure') {
         if ($self->{'config'}->{'clamav_unofficial_sigs_options'}->{'clamav_unofficial_sigs'} eq 'yes') {
-            my $rs = $self->_checkClamavUnofficialSigsRequirements();
+            my $rs = $self->_checkClamavUnofficialSigsRequirements( );
             $rs ||= $self->_configureClamavUnofficialSigsConffile( 'master.conf' );
             $rs ||= $self->_configureClamavUnofficialSigsConffile( 'os.conf' );
             $rs ||= $self->_configureClamavUnofficialSigsConffile( 'user.conf' );
@@ -235,11 +235,11 @@ sub _configureClamavUnofficialSigs
             return $rs;
         }
 
-        return $self->_disableClamavUnofficialSigs();
+        return $self->_disableClamavUnofficialSigs( );
     } elsif ($action eq 'deconfigure') {
         # Remove user.conf file for deactivation
         if (-f '/etc/clamav-unofficial-sigs/user.conf') {
-            my $rs = iMSCP::File->new( filename => '/etc/clamav-unofficial-sigs/user.conf' )->delFile();
+            my $rs = iMSCP::File->new( filename => '/etc/clamav-unofficial-sigs/user.conf' )->delFile( );
             return $rs if $rs;
         }
     }
@@ -247,7 +247,7 @@ sub _configureClamavUnofficialSigs
     0;
 }
 
-=item _configureClamavUnofficialSigsConffile($confFile)
+=item _configureClamavUnofficialSigsConffile( $confFile )
 
  Configure the given clamav-unofficial-sigs config files
 
@@ -261,7 +261,7 @@ sub _configureClamavUnofficialSigsConffile
     my ($self, $confFile) = @_;
 
     my $clamavUnofficialSigsEtc = '/etc/clamav-unofficial-sigs';
-    my $rs = iMSCP::Dir->new( dirname => $clamavUnofficialSigsEtc )->make();
+    my $rs = iMSCP::Dir->new( dirname => $clamavUnofficialSigsEtc )->make( );
     $rs ||= iMSCP::File->new(
         filename => "$main::imscpConfig{'PLUGINS_DIR'}/ClamAV/clamav-unofficial-sigs/config/$confFile"
     )->copyFile(
@@ -270,7 +270,7 @@ sub _configureClamavUnofficialSigsConffile
     return $rs if $rs;
 
     my $file = iMSCP::File->new( filename => "$clamavUnofficialSigsEtc/$confFile" );
-    my $fileContent = $file->get();
+    my $fileContent = $file->get( );
     unless (defined $fileContent) {
         error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
         return 1;
@@ -308,10 +308,10 @@ sub _configureClamavUnofficialSigsConffile
     }
 
     $rs ||= $file->set( $fileContent );
-    $rs ||= $file->save();
+    $rs ||= $file->save( );
 }
 
-=item _disableClamavUnofficialSigs
+=item _disableClamavUnofficialSigs( )
 
  Disable clamav-unofficial-sigs
 
@@ -331,7 +331,7 @@ sub _disableClamavUnofficialSigs
 
     if (-f '/var/lib/clamav-unofficial-sigs/configs/purge.txt') {
         my $file = iMSCP::File->new( filename => '/var/lib/clamav-unofficial-sigs/configs/purge.txt' );
-        my $fileContent = $file->get();
+        my $fileContent = $file->get( );
         unless (defined $fileContent) {
             error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
             return 1;
@@ -342,19 +342,19 @@ sub _disableClamavUnofficialSigs
 
     for (@files) {
         next unless -f;
-        my $rs = iMSCP::File->new( filename => $_ )->delFile();
+        my $rs = iMSCP::File->new( filename => $_ )->delFile( );
         return $rs if $rs;
     }
 
     for ('/etc/clamav-unofficial-sigs', '/var/lib/clamav-unofficial-sigs', '/var/log/clamav-unofficial-sigs') {
-        my $rs = iMSCP::Dir->new( dirname => $_ )->remove();
+        my $rs = iMSCP::Dir->new( dirname => $_ )->remove( );
         return $rs if $rs;
     }
 
     0;
 }
 
-=item _configureClamavMilter($action)
+=item _configureClamavMilter( $action )
 
  Configure or deconfigure clamav-milter
 
@@ -373,7 +373,7 @@ sub _configureClamavMilter
     }
 
     my $file = iMSCP::File->new( filename => '/etc/clamav/clamav-milter.conf' );
-    my $fileContent = $file->get();
+    my $fileContent = $file->get( );
     unless (defined $fileContent) {
         error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
         return 1;
@@ -383,7 +383,7 @@ sub _configureClamavMilter
     my $optionReg = '((?:'.(join( '|', (keys %{$options}, 'AllowSupplementaryGroups') )).').*)';
 
     if ($action eq 'configure') {
-        my $clamavVersion = $self->_getClamavMilterVersion();
+        my $clamavVersion = $self->_getClamavMilterVersion( );
         return 1 unless defined $clamavVersion;
 
         # The `AllowSupplementaryGroups' option is not longer supported by ClamAV >= 0.99.2. Thus, we add it
@@ -414,10 +414,10 @@ sub _configureClamavMilter
     }
 
     my $rs = $file->set( $fileContent );
-    $rs ||= $file->save();
+    $rs ||= $file->save( );
 }
 
-=item _configurePostfix($action)
+=item _configurePostfix( $action )
 
  Configure or deconfigure postfix
 
@@ -430,14 +430,21 @@ sub _configurePostfix
 {
     my ($self, $action) = @_;
 
-    my $mta = Servers::mta->factory();
+    my $mta = Servers::mta->factory( );
 
     unless (defined $main::execmode && $main::execmode eq 'setup') {
         my $milterValuePrev = $self->{'config_prev'}->{'PostfixMilterSocket'};
         my $rs = $mta->postconf(
             (
-                smtpd_milters     => { action => 'remove', values => [ qr/\Q$milterValuePrev\E/ ] },
-                non_smtpd_milters => { action => 'remove', values => [ qr/\Q$milterValuePrev\E/ ] }
+                smtpd_milters     => {
+                    action => 'remove',
+                    values => [
+                        qr/\Q$milterValuePrev\E/ ]
+                },
+                non_smtpd_milters => {
+                    action => 'remove',
+                    values => [ qr/\Q$milterValuePrev\E/ ]
+                }
             )
         );
         return $rs if $rs;
@@ -448,9 +455,18 @@ sub _configurePostfix
     my $milterValue = $self->{'config'}->{'PostfixMilterSocket'};
     $mta->postconf(
         (
-            milter_default_action => { action => 'replace', values => [ 'accept' ] },
-            smtpd_milters         => { action => 'add', values => [ $milterValue ] },
-            non_smtpd_milters     => { action => 'add', values => [ $milterValue ] }
+            milter_default_action => {
+                action => 'replace',
+                values => [ 'accept' ]
+            },
+            smtpd_milters         => {
+                action => 'add',
+                values => [ $milterValue ]
+            },
+            non_smtpd_milters     => {
+                action => 'add',
+                values => [ $milterValue ]
+            }
         )
     );
 }
@@ -476,7 +492,7 @@ sub _checkRequirements
     $ret;
 }
 
-=item _checkClamavUnofficialSigsRequirements
+=item _checkClamavUnofficialSigsRequirements( )
 
  Check requirements for clamav-unofficial-sigs
 
@@ -499,7 +515,7 @@ sub _checkClamavUnofficialSigsRequirements
 
 =item _restartServices
 
- Restart clamav-milter and schedule restart of Postfix
+ Restart clamav-milter and schedule Postfix reload
 
  Return int 0, other on failure
 
@@ -509,10 +525,10 @@ sub _restartServices
 {
     local $@;
     eval {
-        my $serviceMngr = iMSCP::Service->getInstance();
+        my $serviceMngr = iMSCP::Service->getInstance( );
         # Set pid pattern to get service status because the status command that is provided by the clamav-milter
         # sysvinit script can return specific status code (4) instead of (0) when service is running
-        $serviceMngr->getProvider()->setPidPattern( 'clamav-milter' );
+        $serviceMngr->getProvider( )->setPidPattern( 'clamav-milter' );
         $serviceMngr->restart( 'clamav-milter' );
     };
     if ($@) {
@@ -520,11 +536,11 @@ sub _restartServices
         return 1;
     }
 
-    Servers::mta->factory()->{'reload'} = 1;
+    Servers::mta->factory( )->{'reload'} = 1;
     0;
 }
 
-=item _getClamavMilterVersion()
+=item _getClamavMilterVersion( )
 
  Get ClamAV Milter version
 

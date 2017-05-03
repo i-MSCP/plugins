@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP ClamAV plugin
- * Copyright (C) 2014-2016 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2014-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -127,12 +127,12 @@ return array(
 
         // Signatures enabled
         // Set to 'no' to disable an entire set of signatures
-        'signatures_enabled'    => array(
-            'sanesecurity_enabled'                 => 'yes',
-            'securiteinfo_enabled'                 => 'yes',
-            'linuxmalwaredetect_enabled'           => 'yes',
-            'malwarepatrol_enabled'                => 'yes',
-            'yararulesproject_enabled'             => 'yes'
+        'signatures_enabled'     => array(
+            'sanesecurity_enabled'       => 'yes',
+            'securiteinfo_enabled'       => 'yes',
+            'linuxmalwaredetect_enabled' => 'yes',
+            'malwarepatrol_enabled'      => 'yes',
+            'yararulesproject_enabled'   => 'yes'
         ),
 
         // Rating (False Positive Rating)
