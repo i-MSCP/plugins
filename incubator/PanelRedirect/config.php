@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP PanelRedirect plugin
+ * Copyright (C) 2016-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
@@ -21,6 +22,5 @@
 return array(
     // Operational modes ( default: proxy )
     // Possible values: proxy, redirect
-    // See the README.md file for more details
     'type' => 'proxy'
 );

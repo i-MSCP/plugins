@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP PanelRedirect plugin
+ * Copyright (C) 2016-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
@@ -19,13 +20,16 @@
  */
 
 return array(
-    'author'      => 'Ninos Ego',
-    'email'       => 'me@ninosego.de',
-    'version'     => '1.1.5',
-    'require_api' => '1.0.5',
-    'date'        => '2016-12-09',
-    'build'       => '2016120901',
+    'author'      => array(
+        'Laurent Declercq',
+        'Ninos Ego',
+    ),
+    'email'       => 'team@i-mscp.net',
+    'version'     => '1.2.0',
+    'require_api' => '1.4.0',
+    'date'        => '2017-06-08',
+    'build'       => '2017060800',
     'name'        => 'PanelRedirect',
-    'desc'        => 'Provides access to i-MSCP panel (and tools) through standard http(s) ports.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
+    'desc'        => 'Provides access to i-MSCP panel through standard HTTP ports.',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:panelredirect'
 );

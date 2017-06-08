@@ -1,6 +1,8 @@
 <?php
 /**
  * i-MSCP PanelRedirect plugin
+ *
+ * Copyright (C) 2016-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
@@ -18,9 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+
 /**
  * Class iMSCP_Plugin_PanelRedirect
  */
-class iMSCP_Plugin_PanelRedirect extends iMSCP_Plugin_Action
+class iMSCP_Plugin_PanelRedirect extends PluginAction
 {
 }
