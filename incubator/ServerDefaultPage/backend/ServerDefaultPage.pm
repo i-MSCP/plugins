@@ -140,7 +140,7 @@ sub enable
                 TASKID  => 'Plugin::ServerDefaultPage',
                 MINUTE  => '@monthly',
                 COMMAND => 'nice -n 10 ionice -c2 -n5 '
-                    ."perl $main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/cronjob.pl >/dev/null 2>&1"
+                    ."perl $main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/cronjob.pl > /dev/null 2>&1"
             }
         );
         $rs ||= _updateVhost( );
@@ -220,12 +220,15 @@ sub createSelfSignedCertificate
         return 0 if defined $expireDate && $expireDate > (time()+2419200 );
     }
 
-    $openSSL->createSelfSignedCertificate(
+    my $rs = $openSSL->createSelfSignedCertificate(
         {
             common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
             email       => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
         }
     );
+
+    Servers::httpd->factory( )->{'restart'} = 1 unless $rs;
+    $rs;
 }
 
 =back
