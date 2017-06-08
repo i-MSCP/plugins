@@ -18,29 +18,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Manager as PluginManager;
+
 /**
  * Class iMSCP_Plugin_ServerDefaultPage
  */
-class iMSCP_Plugin_ServerDefaultPage extends iMSCP_Plugin_Action
+class iMSCP_Plugin_ServerDefaultPage extends PluginAction
 {
     /**
      * Plugin installation
      *
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
-        // Only here to tell the plugin manager that this plugin is installable
+        // Only here to tell the plugin manager that this plugin can be installed
     }
 
     /**
      * Plugin uninstallation
      *
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         // Only here to tell the plugin manager that this plugin can be uninstalled
     }

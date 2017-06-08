@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP ServerDefaultPage plugin
+ * Copyright (C) 2017 by Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2014-2016 by Ninos Ego <me@ninosego.de>
  *
  * This library is free software; you can redistribute it and/or
@@ -19,12 +20,16 @@
  */
 
 return array(
-    'author'      => 'Ninos Ego',
-    'email'       => 'me@ninosego.de',
-    'version'     => '1.2.5',
-    'require_api' => '1.0.4',
-    'date'        => '2016-07-25',
+    'author'      => array(
+        'Laurent Declercq',
+        'Ninos Ego'
+    ),
+    'email'       => 'team@i-mscp.net',
+    'version'     => '1.3.0',
+    'require_api' => '1.4.0',
+    'date'        => '2017-06-09',
+    'build'       => '2017060900',
     'name'        => 'ServerDefaultPage',
-    'desc'        => 'Plugin which allows to set a server default page.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:serverdefaultpage'
+    'desc'        => 'Provides Apache2 server default page.',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:serverdefaultpage'
 );
