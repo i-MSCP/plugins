@@ -105,6 +105,8 @@ sub run
 {
     my ($self) = @_;
 
+    $self->{'FORCE_RETVAL'} = 1;
+
     # Event listener responsible to remove vhost files added by this plugin
     # when BASE_SERVER_VHOST is being used as customer domain
     my $rs = $self->{'eventManager'}->register(
