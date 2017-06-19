@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+#
 # i-MSCP SpamAssassin plugin
 # Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
@@ -19,7 +20,8 @@
 
 use strict;
 use warnings;
-use lib '{IMSCP_PERLLIB_PATH}';
+use FindBin qw/ $Bin /;
+use lib "$Bin/../../../../engine/PerlLib", "$Bin/../../../../engine/PerlVendor";
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
 use iMSCP::Debug;
@@ -58,7 +60,7 @@ my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAss
 require $pluginFile;
 
 my $pluginClass = "Plugin::SpamAssassin";
-$pluginClass->getInstance( getData() )->discoverRazor() == 0 or die(
+$pluginClass->getInstance( getData() )->discoverRazor( ) == 0 or die(
     getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
 );
 

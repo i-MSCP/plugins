@@ -1,6 +1,6 @@
-# i-MSCP SpamAssassin plugin v1.1.1
+# i-MSCP SpamAssassin plugin v1.1.2
 
-Plugin that provides spam filter for Postfix using SpamAssassin.
+Provides SpamAssassin for Postfix.
 
 ## Introduction
 
@@ -9,26 +9,18 @@ white-listing, RBL testing, Bayesian analysis, header and body text analysis.
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie >= 1.4.x
 * SpamAssassin 3.3.x or 3.4.x
 * Roundcube >= 1.1.0 (Optional)
 
 ### Debian / Ubuntu packages 
 
-* spamassassin
-* spamass-milter
-* libmail-dkim-perl
-* libnet-ident-perl
-* libencode-detect-perl
-* pyzor
-* razor
+* spamassassin, spamass-milter, libmail-dkim-perl, libnet-ident-perl, libencode-detect-perl, pyzor, razor
 
 You can install these packages by running the following commands:
 
-```
-# apt-get update
-# apt-get install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor
-```
+    # apt-get update
+    # apt-get install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor
 
 ## Installation
 
@@ -48,8 +40,8 @@ You can install these packages by running the following commands:
 
 See [Configuration file](../SpamAssassin/config.php)
 
-**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin management interface.
+**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger a plugin
+list update, else you're changes will not be token into account.
 
 ## 3rd party SpamAssassin rules
 
@@ -259,23 +251,18 @@ Be aware that the **GTUBE** signature above must be added on a line, without whi
 
 ## License
 
-Copyright (C) 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
-Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    i-MSCP SpamAssassin plugin
+    Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+    Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+    
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 of the License
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
-
-## Authors
-
-* Laurent Declercq <l.declercq@nuxwin.com>
-* Rene Schuster <mail@reneschuster.de>
-* Sascha Bay <info@space2place.de>
