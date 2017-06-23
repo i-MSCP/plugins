@@ -70,10 +70,10 @@ sub enable
 
     my $rs = $self->_createSaUnixUser( );
     $rs ||= $self->_createSaSqlUser( );
-    $rs ||= $self->_configureHeinleinRuleset( 'configure' );
     $rs ||= $self->_configureSa( 'configure' );
-    $rs ||= $self->_installSaPlugin( 'install');
+    $rs ||= $self->_installSaPlugins( 'install');
     $rs ||= $self->_setupSaPlugins( );
+    $rs ||= $self->_configureHeinleinRuleset( 'configure' );
     $rs ||= $self->_configureSpamassMilter( 'configure' );
     $rs ||= $self->_configurePostfix( 'configure' );
     return $rs if $rs;
@@ -162,12 +162,13 @@ sub disable
 
     my $rs = $self->_configurePostfix( 'deconfigure' );
     $rs ||= $self->_configureSpamassMilter( 'deconfigure' );
-    $rs ||= $self->_configureSa( 'deconfigure' );
-    $rs ||= $self->_installSaPlugin( 'uninstall' );
     $rs ||= $self->_configureHeinleinRuleset( 'deconfigure' );
+    $rs ||= $self->_installSaPlugins( 'uninstall' );
+    $rs ||= $self->_configureSa( 'deconfigure' );
     $rs ||= $self->_dropSaSqlUser( );
     return $rs if $rs;
 
+    local $@;
     eval {
         my $serviceMngr = iMSCP::Service->getInstance( );
         for(qw/ spamass-milter spamassassin /) {
@@ -909,7 +910,7 @@ EOF
 
 =item _setupSaPlugins( )
 
- Enable/Disable SpamAssassin plugins
+ Setup SpamAssassin plugins
 
  Return int 0 on success, other on failure
 
@@ -1063,7 +1064,7 @@ sub _dropSaSqlUser
     0;
 }
 
-=item _installSaPlugin( [ $action = 'uninstall' ] )
+=item _installSaPlugins( [ $action = 'uninstall' ] )
 
  Install/Uninstall the given SpamAssassin plugin
 
@@ -1072,7 +1073,7 @@ sub _dropSaSqlUser
 
 =cut
 
-sub _installSaPlugin
+sub _installSaPlugins
 {
     my (undef, $action) = @_;
     $action //= 'uninstall';
