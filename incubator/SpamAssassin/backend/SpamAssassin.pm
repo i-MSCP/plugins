@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP SpamAssassin plugin
-# Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 # Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 #
@@ -27,6 +27,7 @@ package Plugin::SpamAssassin;
 
 use strict;
 use warnings;
+use autouse 'File::Basename' => qw / basename /;
 use autouse 'iMSCP::Crypt' => qw/ randomStr /;
 use autouse 'iMSCP::Debug' => qw/ debug error /;
 use autouse 'iMSCP::Execute' => qw/ execute /;
@@ -34,7 +35,8 @@ use autouse 'iMSCP::Rights' => qw/ setRights /;
 use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
 use autouse 'List::MoreUtils' => qw/ uniq /;
 use Class::Autouse qw/ :nostat
-    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser Servers::cron Servers::mta Servers::sqld /;
+    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser Servers::cron Servers::mta
+    Servers::sqld /;
 use iMSCP::Umask;
 use version;
 use parent 'Common::SingletonClass';
@@ -59,7 +61,9 @@ sub enable
 {
     my ($self) = @_;
 
-    unless (defined $main::execmode && $main::execmode eq 'setup' || $self->{'action'} eq 'enable') {
+    unless (defined $main::execmode && $main::execmode eq 'setup'
+        || !grep( $_ eq $self->{'action'}, 'install', 'update' )
+    ) {
         my $rs = $self->_installDistributionPackages( );
         return $rs if $rs;
     }
@@ -100,12 +104,12 @@ sub enable
         );
         return $rs if $rs;
     } else {
-        $rs = $serviceTasksSub->();
+        $rs = $serviceTasksSub->( );
         return $rs if $rs;
         undef $serviceTasksSub;
     }
 
-    if (grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
+    if (grep( lc $_ eq 'roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
         $rs = $self->_installRoundcubePlugins( 'install' );
         $rs ||= $self->_configureRoundcubePlugins( );
         $rs ||= $self->_enableRoundcubePlugins( 'enable' );
@@ -136,14 +140,12 @@ sub disable
 {
     my ($self) = @_;
 
-    return 0 unless $self->{'action'} eq 'disable';
-
     for(qw/ BayesSaLearn CleanAwlDb CleanBayesDb DiscoverRazor /) {
         my $rs = $self->_unregisterCronjob( $_);
         return $rs if $rs;
     }
 
-    if (grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
+    if (grep( lc $_ eq 'roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
         my $rs = $self->_enableRoundcubePlugins( 'disable' );
         $rs ||= $self->_installRoundcubePlugins( 'uninstall' );
         return $rs if $rs;
@@ -361,6 +363,7 @@ sub _setupRazor
 sub _configureHeinleinRuleset
 {
     my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
     if ($action eq 'configure' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
         # Create an hourly cronjob from the original SpamAssassin cronjob
@@ -721,24 +724,35 @@ sub _installRoundcubePlugins
     my $pluginsSrcDir = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/roundcube-plugins";
     my $pluginDestDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    if ($action eq 'install') {
-        for(<$pluginsSrcDir/*>) {
-            my $rs = iMSCP::Dir->new( dirname => $_ )->rcopy( $pluginDestDir );
-            return $rs ||= setRights(
-                $pluginDestDir,
-                {
-                    user      => $self->{'_panel_user'},
-                    group     => $self->{'_panel_group'},
-                    dirmode   => '0550',
-                    filemode  => '0440',
-                    recursive => 1
-                }
-            );
-        }
+    local $@;
+    eval { iMSCP::Dir->new( dirname => $pluginDestDir.'/'.basename( $_ ) )->remove( ) for <$pluginsSrcDir/*> };
+    if ($@) {
+        error( $@ );
+        return 1
     }
 
-    for (iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs( )) {
-        my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove( );
+    return 0 unless $action eq 'install';
+
+    for(<$pluginsSrcDir/*>) {
+        my $pluginName = basename( $_ );
+        next unless $self->{'config'}->{$pluginName} eq 'yes';
+
+        eval { iMSCP::Dir->new( dirname => $_ )->rcopy( $pluginDestDir.'/'.$pluginName ); };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+
+        my $rs = setRights(
+            $pluginDestDir.'/'.$pluginName,
+            {
+                user      => $self->{'_panel_user'},
+                group     => $self->{'_panel_group'},
+                dirmode   => '0550',
+                filemode  => '0440',
+                recursive => 1
+            }
+        );
         return $rs if $rs;
     }
 
@@ -757,7 +771,9 @@ sub _configureRoundcubePlugins
 {
     my ($self) = @_;
 
-    for(qw / sauserprefs markasjunk2/) {
+    for(qw / sauserprefs markasjunk2 /) {
+        next unless $self->{'config'}->{$_} eq 'yes';
+
         my $file = iMSCP::File->new(
             filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$_/config.inc.php"
         );
@@ -867,10 +883,7 @@ sub _enableRoundcubePlugins
     }
 
     $fileContent = replaceBloc(
-        qr/(:?^\n)?\Q# Begin Plugin::SpamAssassin\E\n/m,
-        qr/\Q# Ending Plugin::SpamAssassin\E\n/,
-        '',
-        $fileContent
+        qr/(:?^\n)?\Q# Begin Plugin::SpamAssassin\E\n/m, qr/\Q# Ending Plugin::SpamAssassin\E\n/, '', $fileContent
     );
 
     if ($action eq 'enable') {
@@ -949,7 +962,9 @@ sub _setupSaPlugins
 
  Set the values in the SpamAssassin userpref table
 
- Return int 0 success, other on failureif all requirements are meet, 1 otherwise
+ Param string $preference Preference name
+ Param string $value Preference value
+ Return int 0 on success, other on failure
 
 =cut
 
@@ -1048,7 +1063,7 @@ sub _dropSaSqlUser
     0;
 }
 
-=item _installSaPlugin( [, $action = 'uninstall' ] )
+=item _installSaPlugin( [ $action = 'uninstall' ] )
 
  Install/Uninstall the given SpamAssassin plugin
 
@@ -1089,11 +1104,7 @@ sub _installSaPlugin
 
 =item _createSaUnixUser( )
 
- Create/Update SpamAssassin unix user and home directory
-
- - Create/Update SA unix user
- - Make sure that SA homedir exists (update case)
- - Make sure that ownership is correctly set for SA homedir, including contained files
+ Create/Update SpamAssassin unix user and its home directory
 
  Return int 0 on success, other on failure
 
@@ -1103,7 +1114,7 @@ sub _createSaUnixUser
 {
     my ($self) = @_;
 
-    my $rs ||= iMSCP::SystemUser->new(
+    my $rs = iMSCP::SystemUser->new(
         {
             username => $self->{'_sa_user'},
             group    => $self->{'_sa_group'},
@@ -1113,8 +1124,16 @@ sub _createSaUnixUser
             shell    => '/bin/sh'
         }
     )->addSystemUser( );
-    $rs ||= iMSCP::Dir->new( dirname => $self->{'_sa_homedir'} )->make( );
-    $rs ||= setRights(
+    return $rs if $rs;
+
+    local $@;
+    eval {  iMSCP::Dir->new( dirname => $self->{'_sa_homedir'} )->make( ); };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
+    setRights(
         $self->{'_sa_homedir'},
         {
             user      => $self->{'_sa_user'},

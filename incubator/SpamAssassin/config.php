@@ -91,6 +91,8 @@ return array(
 
     // Enable or disable DCC - Distributed Checksum Clearinghouse (default: no)
     //
+    // You must first install which is not provided by default DCC
+    //
     // Possible values: yes, no
     'use_dcc'                   => 'no',
 
@@ -135,7 +137,7 @@ return array(
     //
     // See http://mailfud.org/iXhash2/ for further details.
     // Possible value: yes, no
-    'iXhash2'                   => 'no',
+    'iXhash2'                   => 'yes',
 
     //
     //// Roundcube plugins

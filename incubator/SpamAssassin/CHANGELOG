@@ -17,9 +17,9 @@ Version 2.0.0
     Fixed: Cronjobs are not registered when the plugin get re-activated
     Fixed: Delay restart of SpamAssassin services in i-MSCP upgrade/reconfiguration mode
     Fixed: Make use of iMSCP::Crypt library to generate SA SQL password (CS fix)
-    Fixed: Stop and disable SpamAssassin services on plugin deactivation
     Fixed: Make sure that configuration files are created with expected UMASK(2)
     Fixed: SpamAssassin database must be dropped on plugin uninstallation
+    Fixed: Stop and disable SpamAssassin services on plugin deactivation
     Updated: Roundcube MarkAsJunk2 plugin from version 1.9 to version 1.10
     Updated: Roundcube SAUserPrefs plugin from version 1.15 to version 1.16
     Removed: `i` sendmail macro (MILTER)

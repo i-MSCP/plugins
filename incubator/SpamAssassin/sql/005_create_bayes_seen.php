@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -29,8 +29,8 @@ return array(
     'email'       => 'team@i-mscp.net',
     'version'     => '2.0.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-06-22',
-    'build'       => '2017062200',
+    'date'        => '2017-06-23',
+    'build'       => '2017062300',
     'name'        => 'SpamAssassin',
     'desc'        => 'Provides SpamAssassin software through MILTER.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
