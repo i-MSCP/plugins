@@ -6,3 +6,6 @@ loadplugin Mail::SpamAssassin::Plugin::AWL
 
 # TextCat language guesser plugin
 #loadplugin Mail::SpamAssassin::Plugin::TextCat
+
+# Rule2XSBody - speedup by compilation of ruleset to native code
+#loadplugin Mail::SpamAssassin::Plugin::Rule2XSBody

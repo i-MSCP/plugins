@@ -27,7 +27,7 @@ $labels['spamreportsettings'] = 'Berichtseinstellungen';
 $labels['spamreport0'] = 'Bericht in den Header der Orginalnachricht einfügen';
 $labels['spamreport1'] = 'Orginalmeldung dem Bericht als MIME Anhang hinzufügen';
 $labels['spamreport2'] = 'Orginalmeldung dem Bericht als Text Anhang hinzufügen';
-$labels['spamaddressrules'] = 'Addressregeln';
+$labels['spamaddressrules'] = 'Adressregeln';
 $labels['whitelist_from'] = 'Mails akzeptieren von';
 $labels['blacklist_from'] = 'Mails ablehnen von';
 $labels['whitelist_to'] = 'Akzeptiere Mails gesendet an';
@@ -82,5 +82,3 @@ $messages['levelhelp'] = 'Der \'Spam Level\' Header kann  Mitteilungen anhand vo
 $messages['foldhelp'] = 'Standardmäßig werden Header, die von SpamAssasin hinzugefügt werden, "whitespace foled". In anderen Worten: Sie werden auf mehrere Zeilen verteilt anstelle von einer sehr langen Zeile. Jeder andere Zeile wird ein Tabulator vorgesetzt um es als eine weiterführende Zeile der Vorhergehenden zu markieren.';
 $messages['bayesruleshlp'] = 'Es empfiehlt sich, die "naive bayesische Stil Klassifizierung" zu verwenden. Damit können auch die Regeln deaktiviert werden auch wenn das automatisch und manuelle Lernen aktiviert ist.';
 $messages['purgebayesconfirm'] = 'Sind Sie sicher, dass Sie alle bayesischen Daten löschen möchten?';
-
-?>

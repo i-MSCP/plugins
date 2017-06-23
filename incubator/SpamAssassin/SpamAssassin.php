@@ -49,12 +49,35 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     /**
      * Plugin uninstallation
      *
+     * @throws PluginException
      * @param PluginManager $pluginManager
      * @return void
      */
     public function uninstall(PluginManager $pluginManager)
     {
-        // Only there to tell the plugin manager that this plugin can be uninstalled
+        try {
+            $this->migrateDb('down');
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Plugin update
+     *
+     * @throws PluginException
+     * @param PluginManager $pluginManager
+     * @param string $fromVersion Version from which plugin update is initiated
+     * @param string $toVersion Version to which plugin is updated
+     * @return void
+     */
+    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
+    {
+        try {
+            $this->migrateDb('up');
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     /**
@@ -83,25 +106,8 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     public function disable(PluginManager $pluginManager)
     {
         try {
-            $this->removeSpamAssassinServicePort();
-        } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    /**
-     * Plugin update
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @param string $fromVersion Version from which plugin update is initiated
-     * @param string $toVersion Version to which plugin is updated
-     * @return void
-     */
-    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
-    {
-        try {
-            $this->migrateDb('up');
+            $dbConfig = Registry::get('dbConfig');
+            unset($dbConfig['PORT_SPAMASSASSIN']);
         } catch (Exception $e) {
             throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
@@ -116,26 +122,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     {
         $dbConfig = Registry::get('dbConfig');
         $pluginConfig = $this->getConfig();
-
         preg_match("/port=([0-9]+)/", $pluginConfig['spamassassinOptions'], $spamAssassinPort);
-
-        if (!isset($dbConfig['PORT_SPAMASSASSIN'])) {
-            $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
-            return;
-        }
-
-        $this->removeSpamAssassinServicePort();
         $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
-    }
-
-    /**
-     * Remove SpamAssassin service port
-     *
-     * @return void
-     */
-    protected function removeSpamAssassinServicePort()
-    {
-        $dbConfig = Registry::get('dbConfig');
-        unset($dbConfig['PORT_SPAMASSASSIN']);
     }
 }

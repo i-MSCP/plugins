@@ -12,13 +12,13 @@ $config['markasjunk2_learning_driver'] = 'dir_learn';
 // Ham mailbox
 // Mailbox messages should be moved to when they are marked as ham. null = INBOX
 // set to FALSE to disable message moving
-$config['markasjunk2_ham_mbox'] = null;
+$config['markasjunk2_ham_mbox'] = NULL;
 
 // Spam mailbox
 // Mailbox messages should be moved to when they are marked as spam.
 // null = the mailbox assigned as the spam folder in Roundcube settings
 // set to FALSE to disable message moving
-$config['markasjunk2_spam_mbox'] = null;
+$config['markasjunk2_spam_mbox'] = NULL;
 
 // Mark messages as read when reporting them as spam
 $config['markasjunk2_read_spam'] = true;
@@ -32,18 +32,18 @@ $config['markasjunk2_spam_flag'] = 'Junk';
 
 // Add flag to messages marked as ham (flag will be removed when marking as spam)
 // If you do not want to use message flags set this to null
-$config['markasjunk2_ham_flag'] = null;
+$config['markasjunk2_ham_flag'] = NULL;
 
 // Write output from spam/ham commands to the log for debug
 $config['markasjunk2_debug'] = false;
 
-// Show icon on mailbox toolbar
+// Show icon on toolbar
 // The mark as spam/ham icon can either be displayed on the toolbar or as part of the mark messages menu
-$config['markasjunk2_mb_toolbar'] = true;
-
-// Show icon on compose toolbar
-// The mark as spam/ham icon can either be displayed on the toolbar or as part of the mark messages menu
-$config['markasjunk2_cp_toolbar'] = true;
+// 0 - always show in mark message menu
+// 1 - always show on toolbar
+// 2 - show in toolbar on mailbox screen, show in mark message menu message on screen
+// 3 - show in mark message menu on mailbox screen, show in toolbar message on screen
+$config['markasjunk2_toolbar'] = 1;
 
 // Learn any message moved to the spam mailbox as spam (not just when the button is pressed)
 $config['markasjunk2_move_spam'] = true;
@@ -62,7 +62,7 @@ $config['markasjunk2_move_ham'] = true;
 //      %xds is replaced with the X-DSPAM-Signature header
 //      %f is replaced with the path to the message file
 // If you do not want run the command set this to null
-$config['markasjunk2_spam_cmd'] = null;
+$config['markasjunk2_spam_cmd'] = NULL;
 
 // The command used to learn that a message is ham
 // The command can contain the following macros that will be expanded as follows:
@@ -73,7 +73,7 @@ $config['markasjunk2_spam_cmd'] = null;
 //      %xds is replaced with the X-DSPAM-Signature header
 //      %f is replaced with the path to the message file
 // If you do not want run the command set this to null
-$config['markasjunk2_ham_cmd'] = null;
+$config['markasjunk2_ham_cmd'] = NULL;
 
 // dir_learn Driver options
 // ------------------------
@@ -100,7 +100,7 @@ $config['markasjunk2_filename'] = '%u__%t__';
 //      %d is replaced with the domain part of the username (if the username is an email address or default mail domain if not)
 //      %i is replaced with the email address from the user's default identity
 // If you do not want to send an email set this to null
-$config['markasjunk2_email_spam'] = null;
+$config['markasjunk2_email_spam'] = NULL;
 
 // The email address that ham messages will be sent to
 // The address can contain the following macros that will be expanded as follows:
@@ -109,7 +109,7 @@ $config['markasjunk2_email_spam'] = null;
 //      %d is replaced with the domain part of the username (if the username is an email address or default mail domain if not)
 //      %i is replaced with the email address from the user's default identity
 // If you do not want to send an email set this to null
-$config['markasjunk2_email_ham'] = null;
+$config['markasjunk2_email_ham'] = NULL;
 
 // Should the spam/ham message be sent as an attachment
 $config['markasjunk2_email_attach'] = true;
@@ -140,8 +140,8 @@ $config['markasjunk2_amacube_config'] = '../amacube/config.inc.php';
 // see the README for an example
 // TEST CAREFULLY BEFORE USE ON REAL MESSAGES
 $config['markasjunk2_spam_patterns'] = array(
-	'patterns' => array(),
-	'replacements' => array()
+    'patterns'     => array(),
+    'replacements' => array()
 );
 
 // Patterns to match and replace headers for spam messages
@@ -150,6 +150,6 @@ $config['markasjunk2_spam_patterns'] = array(
 // see the README for an example
 // TEST CAREFULLY BEFORE USE ON REAL MESSAGES
 $config['markasjunk2_ham_patterns'] = array(
-	'patterns' => array(),
-	'replacements' => array()
+    'patterns'     => array(),
+    'replacements' => array()
 );

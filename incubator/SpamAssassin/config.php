@@ -21,6 +21,17 @@
  */
 
 return array(
+
+    // Enable/Disable Rule2XSBody plugin (default: yes)
+    //
+    // When set to yes, the site-wide parts of the SpamAssassin ruleset are
+    // compiled into native code using sa-compile and the SA Rule2XSBody plugin
+    // is enabled.
+    //
+    // See SA-COMPILE(1p) for further details
+    //
+    'sa_compile'                => 'yes',
+
     // Enable or disable bayesian filtering (default: yes)
     //
     // possible values: yes, no
@@ -33,7 +44,7 @@ return array(
     // Possible values: yes, no
     'site_wide_bayes'           => 'no',
 
-    // Cronjob for SA learn (default: run every 12 hours)
+    // Cronjob for sa-learn (default: run every 12 hours)
     // See man CRONTAB(5) for allowed values
     'cronjob_bayes_sa-learn'    => array(
         'minute' => '0',
@@ -124,7 +135,7 @@ return array(
     //
     // See http://mailfud.org/iXhash2/ for further details.
     // Possible value: yes, no
-    'iXhash2'                   => 'yes',
+    'iXhash2'                   => 'no',
 
     //
     //// Roundcube plugins
@@ -143,23 +154,29 @@ return array(
 
     // sauserprefs plugin (default: yes)
     //
-    // The sauserprefs roundcube plugin adds a 'Spam' tab to the 'Settings' in
-    // roundcube, which allow the users to change their SpamAssassin
-    // preferences. SA user preference are stored inside the imscp_spamassassin
+    // The SAUserPrefs Roundcube plugin adds a 'Spam' tab to the 'Settings' in
+    // Roundcube, which allow the users to change their SpamAssassin preferences.
+    //
+    // SpamAssassin user preference are stored inside the i-MSCP SpamAssassin
     // database.
     //
     // Possible values: yes, no
     'sauserprefs'               => 'yes',
 
     // Protected SA user preferences
-    // (default: '{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam')
+    // (default: {headers}, use_razor1, bayes_auto_learn_threshold_nonspam, bayes_auto_learn_threshold_spam)
     //
     // Any user preference listed in that configuration parameter will be
     // protected against overriding by users. See Check
     // webmail/plugins/sauserprefs/config.inc.php for list of available options.
     //
     // WARNING: Don't change anything if you don't know what you are doing.
-    'sauserprefs_dont_override' => "'{headers}', 'use_razor1', 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'",
+    'sauserprefs_dont_override' => array(
+        '{headers}',
+        'use_razor1',
+        'bayes_auto_learn_threshold_nonspam',
+        'bayes_auto_learn_threshold_spam'
+    ),
 
     //
     // SPAMASS_MILTER(8) configuration

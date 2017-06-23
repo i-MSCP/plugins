@@ -1,26 +1,17 @@
-# i-MSCP SpamAssassin plugin v1.2.0
+# i-MSCP SpamAssassin plugin v2.0.0
 
-Provides SpamAssassin for Postfix.
+Provides SpamAssassin software through MILTER.
 
 ## Introduction
 
-SpamAssassin is a very powerful and fully configurable spam filter with numerous features including automatic
-white-listing, RBL testing, Bayesian analysis, header and body text analysis.
+SpamAssassin is a very powerful and fully configurable SPAM filter with
+numerous features including automatic white-listing, RBL testing, Bayesian
+analysis, header and body text analysis.
 
 ## Requirements
 
 * i-MSCP Serie >= 1.4.x
-* SpamAssassin 3.3.x or 3.4.x
 * Roundcube >= 1.1.0 (Optional)
-
-### Debian / Ubuntu packages 
-
-* spamassassin, spamass-milter, libmail-dkim-perl, libnet-ident-perl, libencode-detect-perl, pyzor, razor
-
-You can install these packages by running the following commands:
-
-    # apt-get update
-    # apt-get install spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor
 
 ## Installation
 
@@ -33,68 +24,86 @@ You can install these packages by running the following commands:
 1. Be sure that all requirements as stated in the requirements section are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed (compare it with the new version first)
-5. Update the plugin list through the plugin management interface
+
+### Restore you plugin configuration file if needed
+
+1. Restore your plugin configuration file (compare it with the new version first)
+2. Update the plugin list through the plugin management interface
 
 ## Configuration
 
 See [Configuration file](../SpamAssassin/config.php)
 
-**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger a plugin
-list update, else you're changes will not be token into account.
+When changing a configuration parameter in the plugin configuration file, don't
+forget to trigger a plugin list update, else you're changes will not be token
+into account.
 
 ## 3rd party SpamAssassin rules
 
 ### Heinlein Support SpamAssassin rules
 
 Latest SpamAssassin rules directly from the Heinlein Hosting live systems.
-Heinlein Support is a German ISP company and specialized on mail servers. 
-The founder and owner [Peer Heinlein](https://de.wikipedia.org/wiki/Peer_Heinlein "Peer Heinlein") has written several [books](https://portal.dnb.de/opac.htm?method=simpleSearch&query=123703522) about Dovecot and Postfix.
-For further details check the [blog](https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/ "Aktuelle SpamAssassin-Regeln von Heinlein Support") entry.
+Heinlein Support is a German ISP that is specialized in mail servers.
+ 
+The founder and owner [Peer Heinlein](https://de.wikipedia.org/wiki/Peer_Heinlein "Peer Heinlein")
+has written several [books](https://portal.dnb.de/opac.htm?method=simpleSearch&query=123703522)
+about Dovecot and Postfix.
+
+For further details look at [blog](https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/ "Aktuelle SpamAssassin-Regeln von Heinlein Support")
 
 ## 3rd party SpamAssassin plugins
 
 ### DecodeShortURLs
 
-The [DecodeShortURLs](https://github.com/smfreegard/DecodeShortURLs "DecodeShortURLs") plugin looks for URLs shortened
-by a list of URL shortening services and upon finding a matching URL will connect using to the shortening service and do
-an HTTP HEAD lookup and retrieve the location header which points to the actual shortened URL, it then adds this URL to
-the list of URIs extracted by SpamAssassin which can then be accessed by other plugins, such as URIDNSBL.
+The [DecodeShortURLs](https://github.com/smfreegard/DecodeShortURLs "DecodeShortURLs")
+plugin looks for URLs shortened by a list of URL shortening services and upon
+finding a matching URL will connect using to the shortening service and do an
+HTTP HEAD lookup and retrieve the location header which points to the actual
+shortened URL, it then adds this URL to the list of URIs extracted by
+SpamAssassin which can then be accessed by other plugins, such as URIDNSBL.
 
 ### iXhash2
 
-[iXhash2](http://mailfud.org/iXhash2/ "iXhash2") is an unofficial improved version of 
-[iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin, adding async DNS lookups for performance and removing
-unneeded features. It's fully compatible with the iXhash 1.5.5 implementation.
+[iXhash2](http://mailfud.org/iXhash2/ "iXhash2") is an unofficial improved
+version of  [iXhash](http://www.ixhash.net/ "iXhash") plugin for SpamAssassin,
+adding async DNS lookups for performance and removing unneeded features. It's
+fully compatible with the iXhash 1.5.5 implementation.
 
 ## Included Roundcube Plugins
 
 ### markasjunk2
 
-If enabled in the config.php file, the Roundcube plugin markasjunk2 adds a new button to the mailbox toolbar to mark the
-selected messages as 'Junk'/'Not Junk' and will also learn the bayesian database. It will also detach original messages
-from spam reports if the message is not junk.
+If enabled in the plugin configuration file, the `markasjunk2` Roundcube plugin
+adds a new button to the mailbox toolbar to mark the selected messages as
+'Junk'/'Not Junk' and will also learn the bayesian database. It will also
+detach original messages from spam reports if the message is not junk.
 
 ### sauserprefs
 
-If enabled in the config.php file, the Roundcube plugin sauserprefs adds a 'Spam' tab to the 'Settings' to allow the
-users to change their SpamAssassin preferences which are stored in the imscp_spamassassin database. The SpamAssassin
-preferences shown in Roundcube will vary depending the changes you make in the config.php file.
+If enabled, the `sauserprefs` Roundcube plugin adds a 'Spam' tab to the
+'Settings' page to allow the users to change their SpamAssassin preferences
+which are stored in the i-MSCP SpamAssassin database.
+
+The SpamAssassin preferences displayed in Roundcube will vary depending the
+changes you make in the plugin configuration file.
 
 Roundcube user config: Settings -> Spam
 
 #### Move Spam into Junk folder
 
-If you want to move Spam massages into the users Junk folder, you will need the Roundcube Plugin managesieve, which is
-included in the I-MSCP Plugin RoundcubePlugins.
+If you want to move Spam into the users Junk folder, you will need the
+`managesieve` Roundcube plugin that is included in the i-MSCP RoundcubePlugins
+plugin.
 
 #### SpamAssassin user preferences
 
-The default SpamAssassin user preferences are stored in the table **userpref** of the **imscp_spamassassin** database.
+The default SpamAssassin user preferences are stored in the table `userpref` of
+the i-MSCP SpamAssassin database.
 
 #### Global SpamAssassin preferences
 
-These are the $GLOBAL default values which will be imported during plugin installation.
+These are the `$GLOBAL` default values which will be imported during plugin
+installation.
 
 <table>
     <tr>
@@ -179,14 +188,15 @@ These are the $GLOBAL default values which will be imported during plugin instal
     </tr>
 </table>
 
-
-The $GLOBAL values will be used as long as the user has no specific entries in the table. If you want to change some
-$GLOBAL options, please do that directly in the database.
+The `$GLOBAL` values will be used as long as the user has not specific entries
+in the table. If you want to change some `$GLOBAL` options, please do that
+directly in the database.
 
 #### Per-Domain SpamAssassin preferences
 
-You could also specify domain specific entries, which will be used as default only for that domain, until the user has
-no individual entry in the userpref table. Here are some examples for the domain **example.com**:
+You can also specify domain specific entries, which will be used as default
+only for the specified domain, until the user has no individual entry in the
+userpref table. Here are some examples for the domain `example.com`:
 
 <table>
     <tr>
@@ -213,10 +223,11 @@ no individual entry in the userpref table. Here are some examples for the domain
 
 #### Per-User SpamAssassin preferences
 
-If you enabled the Roundcube Plugin **sauserprefs** in the config.php file, then the user can change his SpamAssassin
-preferences under Roundcube -> Settings -> Spam.
+If you have enabled the `sauserprefs` Roundcube Plugin, Users will be able to
+change their SpamAssassin preferences under Roundcube -> Settings -> Spam.
 
-The user preferences will also be stored in the **userpref** table with the mail address as username.
+The user preferences are also stored in the `userpref` table with the mail
+address as username.
 
 <table>
     <tr>
@@ -236,7 +247,6 @@ The user preferences will also be stored in the **userpref** table with the mail
     </tr>
 </table>
 
-
 ## Testing
 
 ### GTUBE (Generic Test for Unsolicited Bulk Email)
@@ -247,7 +257,8 @@ Send a mail with the following content to one of your i-MSCP mail accounts:
 XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
 ```
 
-Be aware that the **GTUBE** signature above must be added on a line, without whitespace nor line break.
+Be aware that the `GTUBE` signature above must be added on a line, without
+whitespace nor line break.
 
 ## License
 

@@ -14,6 +14,15 @@ When in the Junk mailbox:
   The buttons are changed to "mark as not spam" or "this message is not spam"
   and the message is moved to the Inbox
 
+ATTENTION
+---------
+This is just a snapshot from the GIT repository and is **NOT A STABLE version
+of MarkAsJunk2**. It is Intended for use with the **GIT-master** version of
+Roundcube and it may not be compatible with older versions. Stable versions of
+MarkAsJunk2 are available from the [Roundcube plugin repository][rcplugrepo]
+(for 1.0 and above) or the [releases section][releases] of the GitHub
+repository.
+
 License
 -------
 This plugin is released under the [GNU General Public License Version 3+][gpl].
@@ -42,13 +51,17 @@ The Learning Driver
 -------------------
 The learning driver allows you to perform additional processing on each message
 marked as spam/ham. A driver must contain a class named markasjunk2_{driver
-file name}. The class must contain 2 functions:
+file name}. The class must contain 3 functions:
 
 **spam:** This function should take 2 arguments: an array of UIDs of message(s)
 being marked as spam, the name of the mailbox containing those messages
 
 **ham:** This function should take 2 arguments: an array of UIDs of message(s)
 being marked as ham, the name of the mailbox containing those messages
+
+**init:** Optional, this function should take 0 arguments. eg: allows drivers
+to add JS to the page to control which of the spam/ham options are displayed
+An [example driver][jsevents] is available to show how to use the JS events
 
 Several drivers are provided by default they are:
 
@@ -129,3 +142,4 @@ $config['markasjunk2_ham_patterns'] = array(
 [releases]: http://github.com/JohnDoh/Roundcube-Plugin-Mark-as-Junk-2/releases
 [gpl]: http://www.gnu.org/licenses/gpl.html
 [multidriver]: http://gist.github.com/JohnDoh/8173505
+[jsevents]: http://gist.github.com/JohnDoh/37ab8610f9fa63052197c89e5ef89266

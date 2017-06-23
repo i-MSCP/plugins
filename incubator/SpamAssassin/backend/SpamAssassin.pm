@@ -27,17 +27,15 @@ package Plugin::SpamAssassin;
 
 use strict;
 use warnings;
-use iMSCP::Database;
-use iMSCP::Debug;
-use iMSCP::Dir;
-use iMSCP::Execute;
-use iMSCP::File;
-use iMSCP::Rights;
-use iMSCP::Service;
-use iMSCP::TemplateParser;
-use Servers::cron;
-use Servers::mta;
-use Servers::sqld;
+use autouse 'iMSCP::Crypt' => qw/ randomStr /;
+use autouse 'iMSCP::Debug' => qw/ debug error /;
+use autouse 'iMSCP::Execute' => qw/ execute /;
+use autouse 'iMSCP::Rights' => qw/ setRights /;
+use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
+use autouse 'List::MoreUtils' => qw/ uniq /;
+use Class::Autouse qw/ :nostat
+    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser Servers::cron Servers::mta Servers::sqld /;
+use iMSCP::Umask;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -48,90 +46,6 @@ use parent 'Common::SingletonClass';
 =head1 PUBLIC METHODS
 
 =over 4
-
-=item install( )
-
- Perform install tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-    my $self = shift;
-
-    my $rs = $self->_checkRequirements( );
-    $rs ||= $self->_setupDatabase( );
-    $rs ||= $self->change( );
-}
-
-=item change( )
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-    my ($self) = @_;
-
-    my $rs = $self->_checkRequirements( );
-    $rs ||= $self->_createSaUser( );
-    $rs ||= $self->_getSaDbPassword( );
-    $rs ||= $self->_spamassassinRulesHeinleinSupport( 'add' );
-    $rs ||= $self->_spamassassinConfig( '00_imscp.cf' );
-    $rs ||= $self->_spamassassinDefaultConfig( 'configure' );
-    $rs ||= $self->_spamassassinConfig( '00_imscp.pre' );
-    $rs ||= $self->_checkSpamassassinPlugins( );
-    return $rs if $rs;
-
-    local $@;
-    eval {
-        my $serviceMngr = iMSCP::Service->getInstance( );
-        $serviceMngr->enable( 'spamassassin' );
-        $serviceMngr->restart( 'spamassassin' );
-    };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    $rs = $self->_spamassMilterDefaultConfig( 'configure' );
-    return $rs if $rs;
-
-    eval { iMSCP::Service->getInstance( )->restart( 'spamass-milter' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
-        $rs = $self->_roundcubePlugins( 'add' );
-        $rs ||= $self->_setRoundcubePluginConfig( 'sauserprefs' );
-        $rs ||= $self->_setRoundcubePluginConfig( 'markasjunk2' );
-        $rs ||= $self->_checkRoundcubePlugins( );
-    }
-
-    $rs;
-}
-
-=item update( )
-
- Perform update tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-    # Nothing to do here yet
-    # The plugin manager will automatically call the change() method if needed
-    0;
-}
 
 =item enable( )
 
@@ -145,17 +59,66 @@ sub enable
 {
     my ($self) = @_;
 
-    my $rs = $self->_postfixConfig( 'configure' );
-    return $rs if $rs || !grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} );
+    unless (defined $main::execmode && $main::execmode eq 'setup' || $self->{'action'} eq 'enable') {
+        my $rs = $self->_installDistributionPackages( );
+        return $rs if $rs;
+    }
 
-    $rs = $self->_setRoundcubePlugin( 'add' );
-    return $rs if $rs || defined $main::execmode && $main::execmode eq 'setup';
+    my $rs = $self->_createSaUnixUser( );
+    $rs ||= $self->_createSaSqlUser( );
+    $rs ||= $self->_configureHeinleinRuleset( 'configure' );
+    $rs ||= $self->_configureSa( 'configure' );
+    $rs ||= $self->_installSaPlugin( 'install');
+    $rs ||= $self->_setupSaPlugins( );
+    $rs ||= $self->_configureSpamassMilter( 'configure' );
+    $rs ||= $self->_configurePostfix( 'configure' );
+    return $rs if $rs;
 
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
+    my $serviceTasksSub = sub {
+        local $@;
+        eval {
+            my $serviceMngr = iMSCP::Service->getInstance( );
+            for(qw/ spamassassin spamass-milter /) {
+                $serviceMngr->enable( $_ );
+                $serviceMngr->restart( $_ );
+            }
+        };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+        0;
+    };
+
+    if (defined $main::execmode && $main::execmode eq 'setup') {
+        $rs = $self->{'eventManager'}->register(
+            'beforeSetupRestartServices',
+            sub {
+                unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin services' ];
+                0;
+            },
+        );
+        return $rs if $rs;
+    } else {
+        $rs = $serviceTasksSub->();
+        return $rs if $rs;
+        undef $serviceTasksSub;
+    }
+
+    if (grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
+        $rs = $self->_installRoundcubePlugins( 'install' );
+        $rs ||= $self->_configureRoundcubePlugins( );
+        $rs ||= $self->_enableRoundcubePlugins( 'enable' );
+        return $rs if $rs;
+
+        unless (defined $main::execmode && $main::execmode eq 'setup') {
+            local $@;
+            eval { iMSCP::Service->getInstance( )->reload( 'imscp_panel' ); };
+            if ($@) {
+                error( $@ );
+                return 1;
+            }
+        }
     }
 
     0;
@@ -173,67 +136,49 @@ sub disable
 {
     my ($self) = @_;
 
-    for('discover_razor', 'clean_awl_db', 'clean_bayes_db', 'ayes_sa-learn') {
-        my $rs = $self->_unregisterCronjob( $_ );
+    return 0 unless $self->{'action'} eq 'disable';
+
+    for(qw/ BayesSaLearn CleanAwlDb CleanBayesDb DiscoverRazor /) {
+        my $rs = $self->_unregisterCronjob( $_);
         return $rs if $rs;
     }
 
-    return 0 unless grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} );
-
-    my $rs = $self->_setRoundcubePlugin( 'remove' );
-    return $rs if $rs || defined $main::execmode && $main::execmode eq 'setup';
-
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    $self->_postfixConfig( 'deconfigure' );
-}
-
-=item uninstall( )
-
- Perform uninstall tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub uninstall
-{
-    my ($self) = @_;
-
-    if (grep($_ eq 'Roundcube', (split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'}))) {
-        my $rs = $self->_roundcubePlugins( 'remove' );
+    if (grep( $_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'} )) {
+        my $rs = $self->_enableRoundcubePlugins( 'disable' );
+        $rs ||= $self->_installRoundcubePlugins( 'uninstall' );
         return $rs if $rs;
+
+        unless (defined $main::execmode && $main::execmode eq 'setup') {
+            local $@;
+            eval { iMSCP::Service->getInstance( )->reload( 'imscp_panel' ); };
+            if ($@) {
+                error( $@ );
+                return 1;
+            }
+        }
     }
 
-    my $rs = $self->_spamassMilterDefaultConfig( 'deconfigure' );
+    my $rs = $self->_configurePostfix( 'deconfigure' );
+    $rs ||= $self->_configureSpamassMilter( 'deconfigure' );
+    $rs ||= $self->_configureSa( 'deconfigure' );
+    $rs ||= $self->_installSaPlugin( 'uninstall' );
+    $rs ||= $self->_configureHeinleinRuleset( 'deconfigure' );
+    $rs ||= $self->_dropSaSqlUser( );
     return $rs if $rs;
 
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'spamass-milter' ); };
+    eval {
+        my $serviceMngr = iMSCP::Service->getInstance( );
+        for(qw/ spamass-milter spamassassin /) {
+            $serviceMngr->stop( $_ );
+            $serviceMngr->disable( $_ );
+        }
+    };
     if ($@) {
         error( $@ );
         return 1;
     }
 
-    $rs ||= $self->_spamassassinDefaultConfig( 'deconfigure' );
-    $rs ||= $self->_removeSpamassassinConfig( );
-    $rs ||= $self->_setSpamassassinPlugin( 'DecodeShortURLs', 'remove' );
-    $rs ||= $self->_setSpamassassinPlugin( 'iXhash2', 'remove' );
-    $rs ||= $self->_spamassassinRulesHeinleinSupport( 'remove' );
-    return $rs if $rs;
-
-    eval { iMSCP::Service->getInstance( )->restart( 'spamassassin' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    $self->_dropSaDatabaseUser( );
+    0;
 }
 
 =item discoverRazor( )
@@ -248,8 +193,9 @@ sub discoverRazor
 {
     my ($self) = @_;
 
-    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
-    my $rs = execute( "su -l $saUser -s /bin/sh -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr );
+    my $rs = execute(
+        "su -l $self->{'_sa_user'} -s /bin/sh -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr
+    );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -265,7 +211,7 @@ sub discoverRazor
 
 sub cleanAwlDb
 {
-    my $rdata = iMSCP::Database->factory( )->doQuery(
+    my $qrs = iMSCP::Database->factory( )->doQuery(
         'd',
         "
             DELETE FROM `$main::imscpConfig{'DATABASE_NAME'}_spamassassin`.`awl`
@@ -276,8 +222,8 @@ sub cleanAwlDb
             )
         "
     );
-    unless (ref $rdata eq 'HASH') {
-        error( $rdata );
+    unless (ref $qrs eq 'HASH') {
+        error( $qrs );
         return 1;
     }
 
@@ -288,7 +234,8 @@ sub cleanAwlDb
 
  Expire old tokens from the bayes database
  
- It cleans the database only when the number of tokens surpasses the bayes_expiry_max_db_size value.
+ It cleans the database only when the number of tokens is higher than the
+ bayes_expiry_max_db_size value.
 
  Return int 0 on success, other on failure
 
@@ -314,17 +261,12 @@ sub bayesSaLearn
 {
     my $saLearnDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/sa-learn";
 
-    for my $saFile (glob( "$saLearnDir/*" )) {
-        my ($learningMode, $username) = $saFile =~ /^\Q$saLearnDir\E\/(.*)__(spam|ham)__.*/;
-        next unless defined $learningMode && defined $username;
-
-        my $rs = execute( "sa-learn --$learningMode --username=$username $saFile", \ my $stdout, \ my $stderr );
+    for (<$saLearnDir/*>) {
+        my ($username, $learningMode) = /^\Q$saLearnDir\E\/(.*)__(spam|ham)__.*/ or next;
+        my $rs = execute( "sa-learn --$learningMode -u $username $_", \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
-        return $rs if $rs;
-
-        next unless -f $saFile;
-        $rs = iMSCP::File->new( filename => $saFile )->delFile( );
+        $rs ||= iMSCP::File->new( filename => $_ )->delFile( ) if -f;
         return $rs if $rs;
     }
 
@@ -350,76 +292,79 @@ sub _init
     my ($self) = @_;
 
     $self->{'FORCE_RETVAL'} = 'yes';
-    $self->{'SA_DATABASE_USER'} = 'sa_user';
-    $self->{'SA_HOST'} = $main::imscpConfig{'DATABASE_USER_HOST'};
+    ($self->{'_sa_user'}) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/ or die(
+        "Couldn't parse SpamAssassin username from the `spamassassinOptions' configuration parameter"
+    );
+    $self->{'_sa_group'} = getgrgid ( (getpwnam( $self->{'_sa_user'} ))[3] ) || $self->{'_sa_user'};
+
+    ($self->{'_sa_homedir'}) = $self->{'config'}->{'spamassassinOptions'} =~ /helper-home-dir=(\S*)/ or die(
+        "Couldn't parse SpamAssassin homedir from the `spamassassinOptions' configuration parameter"
+    );
+    $self->{'_panel_user'} = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+    $self->{'_panel_group'} = getgrgid ( (getpwnam( $self->{'_panel_user'} ))[3] ) or die(
+        "Couldn't find panel user group"
+    );
     $self;
 }
 
-=item _discoverPyzor( )
+=item _setupPyzor( )
 
- Create Pyzor home folder and discover the servers
+ Setup Pyzor service
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _discoverPyzor
+sub _setupPyzor
 {
     my ($self) = @_;
 
-    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
-    my $rs = execute( "su -l $saUser -s /bin/sh -c 'pyzor discover' 1> /dev/null", \ my $stdout, \ my $stderr );
+    my $rs = execute( "su -l $self->{'_sa_user'} -s /bin/sh -c 'pyzor discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
 }
 
-=item _createRazor( )
+=item _setupRazor( )
 
- Create Razor home folder and registers a new identity
+ Setup Razor service
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _createRazor
+sub _setupRazor
 {
     my ($self) = @_;
 
-    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+    return 0 if -d "$self->{'_sa_homedir'}/.razor";
 
-    my $rs = execute( "su -l $saUser -s /bin/sh -c 'razor-admin -create'", \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr || 'Unknown error' ) if $rs;
-    return $rs if $rs;
+    for(qw/ create register /) {
+        my $rs = execute( "su -l $self->{'_sa_user'} -s /bin/sh -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
+        debug( $stdout ) if $stdout;
+        error( $stderr || 'Unknown error' ) if $rs;
+        return $rs if $rs;
+    }
 
-    $rs = execute( "su -l $saUser -s /bin/sh -c 'razor-admin -register'", \ $stdout, \ $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr || 'Unknown error' ) if $rs;
-    $rs;
+    0;
 }
 
-=item _spamassassinRulesHeinleinSupport( $action )
+=item _configureHeinleinRuleset( [ $action = 'deconfigure ] )
 
- Add or remove Heinlein Support SpamAssassin rules
+ Configure/Deconfigure Heinlein SpamAssassin ruleset
 
- Param string $action Action to perform (add|remove)
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _spamassassinRulesHeinleinSupport
+sub _configureHeinleinRuleset
 {
     my ($self, $action) = @_;
 
-    if ($action eq 'add' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
+    if ($action eq 'configure' && $self->{'config'}->{'heinlein-support_sa-rules'} eq 'yes') {
         # Create an hourly cronjob from the original SpamAssassin cronjob
-        my $rs = iMSCP::File->new( filename => '/etc/cron.daily/spamassassin' )->copyFile(
-            '/etc/cron.hourly/spamassassin_heinlein-support_de'
-        );
-        return $rs if $rs;
-
-        my $file = iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' );
+        my $file = iMSCP::File->new( filename => '/etc/cron.daily/spamassassin' );
         my $fileContent = $file->get( );
         unless (defined $fileContent) {
             error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
@@ -433,38 +378,33 @@ sub _spamassassinRulesHeinleinSupport
         # Change the sa-update channel on Debian Wheezy / Jessie / Stretch and Ubuntu Xenial
         $fileContent =~ s%--gpghomedir /var/lib/spamassassin/sa-update-keys%--nogpg --channel spamassassin.heinlein-support.de%g;
 
-        $rs = $file->set( $fileContent );
+        $file->{'filename'} = '/etc/cron.hourly/spamassassin_heinlein-support_de';
+        my $rs = $file->set( $fileContent );
         $rs ||= $file->save( );
-        return $rs if $rs;
-    } elsif ($action eq 'remove' || $self->{'config'}->{'heinlein-support_sa-rules'} eq 'no') {
-        my $rs = execute(
-            "rm -rf /var/lib/spamassassin/*/spamassassin_heinlein-support_de*", \ my $stdout, \ my $stderr
-        );
-        debug( $stdout ) if $stdout;
-        error( $stderr || 'Unknown error' ) if $rs;
-        return $rs if $rs;
-
-        if (-f '/etc/cron.hourly/spamassassin_heinlein-support_de') {
-            $rs = iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' )->delFile( );
-            return $rs if $rs;
-        }
+        return $rs;
     }
 
-    0;
+    my $rs = execute( "rm -rf /var/lib/spamassassin/*/spamassassin_heinlein-support_de*", \ my $stdout, \ my $stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr || 'Unknown error' ) if $rs;
+    return $rs if $rs || !-f '/etc/cron.hourly/spamassassin_heinlein-support_de';
+
+    iMSCP::File->new( filename => '/etc/cron.hourly/spamassassin_heinlein-support_de' )->delFile( );
 }
 
-=item _spamassMilterDefaultConfig( $action )
+=item _configureSpamassMilter( [ $action = 'deconfigure' ] )
 
- Modify spamass-milter default config file
+ Configure/Deconfigure spamass-milter service
 
  Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _spamassMilterDefaultConfig
+sub _configureSpamassMilter
 {
     my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
     my $file = iMSCP::File->new( filename => '/etc/default/spamass-milter' );
     my $fileContent = $file->get( );
@@ -486,18 +426,10 @@ sub _spamassMilterDefaultConfig
         }
 
         $spamassMilterOptions .= ' -r '.$self->{'config'}->{'spamassMilter_config'}->{'reject_spam'};
+        $spamassMilterOptions .= ' -I' if $self->{'config'}->{'spamassMilter_config'}->{'check_smtp_auth'} eq 'no';
+        $spamassMilterOptions .= " -i $_" for @{$self->{'config'}->{'spamassMilter_config'}->{'networks'}};
 
-        if ($self->{'config'}->{'spamassMilter_config'}->{'check_smtp_auth'} eq 'no') {
-            $spamassMilterOptions .= ' -I';
-        }
-
-        for(@{$self->{'config'}->{'spamassMilter_config'}->{'networks'}}) {
-            $spamassMilterOptions .= ' -i '.$_;
-        }
-
-        if ($self->{'config'}->{'spamassassinOptions'} =~ /port=(\d+)/ && $1 != 783) {
-            push @spamcFlags, '-p', $1;
-        }
+        push @spamcFlags, '-p', $1 if $self->{'config'}->{'spamassassinOptions'} =~ /port=(\d+)/ && $1 != 783;
 
         if (@spamcFlags) {
             $fileContent =~ s/^OPTIONS=.*/OPTIONS="$spamassMilterOptions -- @spamcFlags"/gm;
@@ -506,69 +438,34 @@ sub _spamassMilterDefaultConfig
         }
 
         $fileContent =~ s/.*SOCKET=.*/SOCKET="$spamassMilterSocket"/gm;
-    } elsif ($action eq 'deconfigure') {
+    } else {
         $fileContent =~ s/^OPTIONS=.*/OPTIONS="-u spamass-milter -i 127.0.0.1"/gm;
         $fileContent =~ s%^SOCKET=.*%# SOCKET="/var/spool/postfix/spamass/spamass.sock"%gm;
     }
 
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
+    $file->set( $fileContent );
+    $file->save( );
 }
 
-=item _spamassassinDefaultConfig( $action )
+=item _configurePostfix( [ $action = 'deconfigure' ] )
 
- Modify SpamAssassin default config file
+ Configure/Deconfigure postfix
 
- Param string $action Action to perform ( configure|deconfigure)
+ Param string $action Action to be performed (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _spamassassinDefaultConfig
+sub _configurePostfix
 {
     my ($self, $action) = @_;
-
-    my $file = iMSCP::File->new( filename => '/etc/default/spamassassin' );
-    my $fileContent = $file->get( );
-    unless (defined $fileContent) {
-        error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
-        return 1;
-    }
-
-    if ($action eq 'configure') {
-        $fileContent =~ s/^ENABLED=.*/ENABLED=1/gm;
-        $fileContent =~ s/^OPTIONS=.*/OPTIONS="$self->{'config'}->{'spamassassinOptions'}"/gm;
-        $fileContent =~ s/^CRON=.*/CRON=1/gm;
-    } elsif ($action eq 'deconfigure') {
-        $fileContent =~ s/^ENABLED=.*/ENABLED=0/gm;
-        $fileContent =~ s/^OPTIONS=.*/OPTIONS="--create-prefs --max-children 5 --helper-home-dir"/gm;
-        $fileContent =~ s/^CRON=.*/CRON=0/gm;
-    }
-
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
-}
-
-=item _postfixConfig( $action )
-
- Configure or deconfigure postfix
-
- Param string $action Action to be performed ( configure|deconfigure )
- Return int 0 on success, other on failure
-
-=cut
-
-sub _postfixConfig
-{
-    my ($self, $action) = @_;
-
-    my $mta = Servers::mta->factory( );
+    $action //= 'deconfigure';
 
     (my $milterValuePrev = $self->{'config_prev'}->{'spamassMilter_config'}->{'spamassMilterSocket'})
         =~ s%/var/spool/postfix%unix:%;
+    my $milterMacros = 'j {daemon_name} v {if_name} _';
 
-    my $milterMacros = 'i j {daemon_name} v {if_name} _';
-    my $rs = $mta->postconf(
+    my $rs = Servers::mta->factory( )->postconf(
         (
             smtpd_milters         => {
                 action => 'remove',
@@ -580,58 +477,53 @@ sub _postfixConfig
             },
             milter_connect_macros => {
                 action => 'remove',
-                values => [ qr/\Q$milterMacros\E/ ]
+                values => [ qr/(?:i\s+)?\Q$milterMacros\E/ ]
             }
         )
     );
-    return $rs if $rs;
+    return $rs if $rs || $action ne 'configure';
 
-    if ($action eq 'configure') {
-        (my $milterValue = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'})
-            =~ s%/var/spool/postfix%unix:%;
+    (my $milterValue = $self->{'config'}->{'spamassMilter_config'}->{'spamassMilterSocket'})
+        =~ s%/var/spool/postfix%unix:%;
 
-        $rs = $mta->postconf(
-            (
-                milter_default_action => {
-                    action => 'replace',
-                    values => [ 'accept' ]
-                },
-                smtpd_milters         => {
-                    action => 'add',
-                    values => [ $milterValue ]
-                },
-                non_smtpd_milters     => {
-                    action => 'add',
-                    values => [ $milterValue ]
-                },
-                milter_connect_macros => {
-                    action => 'replace',
-                    values => [ $milterMacros ]
-                }
-            )
-        );
-        return $rs if $rs;
-    }
-
-    Servers::mta->factory( )->{'reload'} = 1;
-    0;
+    Servers::mta->factory( )->postconf(
+        (
+            milter_default_action => {
+                action => 'replace',
+                values => [ 'tempfail' ]
+            },
+            smtpd_milters         => {
+                action => 'add',
+                values => [ $milterValue ]
+            },
+            non_smtpd_milters     => {
+                action => 'add',
+                values => [ $milterValue ]
+            },
+            milter_connect_macros => {
+                action => 'replace',
+                values => [ $milterMacros ]
+            }
+        )
+    );
 }
 
-=item _registerCronjob($cronjobName)
+=item _registerCronjob( $cronjobId )
 
- Register cronjob
+ Register the given cronjob
 
+ Param string $cronjobId Cronjob unique identifier
  Return int 0 on success, other on failure
 
 =cut
 
 sub _registerCronjob
 {
-    my ($self, $cronjobName) = @_;
+    my ($self, $cronjobId) = @_;
 
-    my $cronjobFilePath = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/cronjobs/cronjob_$cronjobName.pl";
+    my $cronjobFilePath = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/cronjobs/cronjob_$cronjobId.pl";
 
-    if ($cronjobName eq 'bayes_sa-learn') {
+    if ($cronjobId eq 'bayes_sa-learn') {
         Servers::cron->factory( )->addTask(
             {
                 TASKID  => 'Plugin::SpamAssassin::BayesSaLearn',
@@ -643,7 +535,10 @@ sub _registerCronjob
                 COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
             }
         );
-    } elsif ($cronjobName eq 'clean_bayes_db') {
+        return 0;
+    }
+
+    if ($cronjobId eq 'clean_bayes_db') {
         Servers::cron->factory( )->addTask(
             {
                 TASKID  => 'Plugin::SpamAssassin::CleanBayesDb',
@@ -655,7 +550,10 @@ sub _registerCronjob
                 COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
             }
         );
-    } elsif ($cronjobName eq 'clean_awl_db') {
+        return 0;
+    }
+
+    if ($cronjobId eq 'clean_awl_db') {
         Servers::cron->factory( )->addTask(
             {
                 TASKID  => 'Plugin::SpamAssassin::CleanAwlDb',
@@ -667,7 +565,10 @@ sub _registerCronjob
                 COMMAND => "nice -n 15 ionice -c2 -n5 perl $cronjobFilePath >/dev/null 2>&1"
             }
         );
-    } elsif ($cronjobName eq 'discover_razor') {
+        return 0;
+    }
+
+    if ($cronjobId eq 'discover_razor') {
         Servers::cron->factory( )->addTask(
             {
                 TASKID  => 'Plugin::SpamAssassin::DiscoverRazor',
@@ -680,168 +581,251 @@ sub _registerCronjob
     0;
 }
 
-=item _unregisterCronjob( $cronjobName )
+=item _unregisterCronjob( $cronjobId )
 
- Unregister cronjob
+ Unregister the given cronjob
 
+ Param string $cronjobId Cronjob unique identifier
  Return int 0 on success, other on failure
 
 =cut
 
 sub _unregisterCronjob
 {
-    my $cronjobName = $_[1];
+    my (undef, $cronjobId) = @_;
 
-    if ($cronjobName eq 'bayes_sa-learn') {
-        my $rs = Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::SpamAssassin::BayesSaLearn' } );
-        return $rs;
-    }
-
-    if ($cronjobName eq 'clean_bayes_db') {
-        my $rs = Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::SpamAssassin::CleanBayesDb' } );
-        return $rs;
-    }
-
-    if ($cronjobName eq 'clean_awl_db') {
-        my $rs = Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::SpamAssassin::CleanAwlDb' } );
-        return $rs;
-    }
-
-    if ($cronjobName eq 'discover_razor') {
-        my $rs = Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::SpamAssassin::DiscoverRazor' } );
-        return $rs;
-    }
-
-    0;
+    Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::SpamAssassin::'.$cronjobId } );
 }
 
-=item _spamassassinConfig( $saFile )
+=item _configureSa( [ $action = 'deconfigure ] )
 
- Copy the SpamAssassin config files and set the values
+ Configure/Deconfigure SpamAssassin
 
- Param string $saFile SpamAssassin configuration file to generate
+ Param string $action Action to be performed (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _spamassassinConfig
+sub _configureSa
 {
-    my ($self, $saFile) = @_;
+    my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
-    my ($saGroup) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
+    if ($action eq 'configure') {
+        for(qw/ 00_imscp.cf 00_imscp.pre /) {
+            my $file = iMSCP::File->new(
+                filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$_"
+            );
+            my $fileContent = $file->get( );
+            unless (defined $fileContent) {
+                error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
+                return 1;
+            }
 
-    iMSCP::File->new(
-        filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/spamassassin/$saFile"
-    )->copyFile(
-        "/etc/spamassassin/$saFile"
-    );
+            if ($_ eq '00_imscp.cf') {
+                my $disableDCC = '';
+                if ($self->{'config'}->{'use_dcc'} eq 'no') {
+                    $disableDCC = "AND preference NOT LIKE 'use_dcc'";
+                }
 
-    my $file = iMSCP::File->new( filename => "/etc/spamassassin/$saFile" );
+                $fileContent = process(
+                    {
+                        DATABASE_HOST        => $main::imscpConfig{'DATABASE_HOST'},
+                        DATABASE_PORT        => $main::imscpConfig{'DATABASE_PORT'},
+                        SA_DATABASE_NAME     => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
+                        SA_DATABASE_USER     => 'sa_user',
+                        SA_DATABASE_PASSWORD => $self->{'_sa_db_passwd'},
+                        DISABLE_DCC          => $disableDCC
+                    },
+                    $fileContent
+                );
+
+                if ($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
+                    $fileContent =~ s/^#bayes_sql_override_username/bayes_sql_override_username/gm;
+                    $fileContent =~ s/^#bayes_auto_expire/bayes_auto_expire/gm;
+                } else {
+                    $fileContent =~ s/^bayes_sql_override_username/#bayes_sql_override_username/gm;
+                    $fileContent =~ s/^bayes_auto_expire/#bayes_auto_expire/gm;
+                }
+            } else {
+                if ($self->{'config'}->{'use_lang_check'} eq 'yes') {
+                    $fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::TextCat/loadplugin Mail::SpamAssassin::Plugin::TextCat/gm;
+                } else {
+                    $fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::TextCat/#loadplugin Mail::SpamAssassin::Plugin::TextCat/gm;
+                }
+
+                if ($self->{'config'}->{'use_dcc'} eq 'yes') {
+                    $fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::DCC/loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
+                } else {
+                    $fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::DCC/#loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
+                }
+
+                if ($self->{'config'}->{'sa_compile'} eq 'yes') {
+                    $fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::Rule2XSBody/loadplugin Mail::SpamAssassin::Plugin::Rule2XSBody/gm;
+                } else {
+                    $fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::Rule2XSBody/#loadplugin Mail::SpamAssassin::Plugin::Rule2XSBody/gm;
+                }
+            }
+
+            local $UMASK = 027;
+            $file->{'filename'} = "/etc/spamassassin/$_";
+
+            my $rs = $file->set( $fileContent );
+            $rs ||= $file->save( );
+            $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $self->{'_sa_group'} );
+            $rs ||= $file->mode( 0640 );
+            return $rs if $rs;
+        }
+    } else {
+        my $rs = execute( 'rm -f /etc/spamassassin/00_imscp.*', \ my $stdout, \ my $stderr );
+        debug( $stdout ) if $stdout;
+        error( $stderr || 'Unknown error' ) if $rs;
+        return $rs if $rs;
+    }
+
+    my $file = iMSCP::File->new( filename => '/etc/default/spamassassin' );
     my $fileContent = $file->get( );
     unless (defined $fileContent) {
         error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
         return 1;
     }
 
-    if ($saFile eq '00_imscp.cf') {
-        my $disableDCC = '';
-        if ($self->{'config'}->{'use_dcc'} eq 'no') {
-            $disableDCC = "AND preference NOT LIKE 'use_dcc'";
-        }
-
-        $fileContent = process(
-            {
-                DATABASE_HOST        => $main::imscpConfig{'DATABASE_HOST'},
-                DATABASE_PORT        => $main::imscpConfig{'DATABASE_PORT'},
-                SA_DATABASE_NAME     => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
-                SA_DATABASE_USER     => $self->{'SA_DATABASE_USER'},
-                SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'},
-                DISABLE_DCC          => $disableDCC
-            },
-            $fileContent
-        );
-
-        if ($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
-            $fileContent =~ s/^#bayes_sql_override_username/bayes_sql_override_username/gm;
-            $fileContent =~ s/^#bayes_auto_expire/bayes_auto_expire/gm;
-        } else {
-            $fileContent =~ s/^bayes_sql_override_username/#bayes_sql_override_username/gm;
-            $fileContent =~ s/^bayes_auto_expire/#bayes_auto_expire/gm;
-        }
-    } elsif ($saFile eq '00_imscp.pre') {
-        if ($self->{'config'}->{'use_lang_check'} eq 'yes') {
-            $fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::TextCat/loadplugin Mail::SpamAssassin::Plugin::TextCat/gm;
-        } else {
-            $fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::TextCat/#loadplugin Mail::SpamAssassin::Plugin::TextCat/gm;
-        }
-
-        if ($self->{'config'}->{'use_dcc'} eq 'yes') {
-            $fileContent =~ s/^#loadplugin Mail::SpamAssassin::Plugin::DCC/loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
-        } else {
-            $fileContent =~ s/^loadplugin Mail::SpamAssassin::Plugin::DCC/#loadplugin Mail::SpamAssassin::Plugin::DCC/gm;
-        }
+    if ($action eq 'configure') {
+        $fileContent =~ s/^ENABLED=.*/ENABLED=1/gm;
+        $fileContent =~ s/^OPTIONS=.*/OPTIONS="$self->{'config'}->{'spamassassinOptions'}"/gm;
+        $fileContent =~ s/^CRON=.*/CRON=1/gm;
+    } else {
+        $fileContent =~ s/^ENABLED=.*/ENABLED=0/gm;
+        $fileContent =~ s/^OPTIONS=.*/OPTIONS="--create-prefs --max-children 5 --helper-home-dir"/gm;
+        $fileContent =~ s/^CRON=.*/CRON=0/gm;
     }
 
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
-    $rs ||= $file->owner( 'root', $saGroup );
-    $rs ||= $file->mode( 0640 );
+    $file->set( $fileContent );
+    $file->save( );
 }
 
-=item _removeSpamassassinConfig( )
+=item _installRoundcubePlugins( [ $action = 'uninstall' ] )
 
- Remove SpamAssassin config files
+ Install/Uninstall RoundCube plugins
 
+ Param string $action Action to perform (install|uninstall)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _removeSpamassassinConfig
+sub _installRoundcubePlugins
 {
-    my $rs = execute( 'rm -f /etc/spamassassin/00_imscp.*', \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr || 'Unknown error' ) if $rs;
-    $rs;
-}
-
-=item _roundcubePlugins( )
-
- Add or remove Roundcube plugin
-
- Param string $action Action to perform (add|remove)
- Return int 0 on success, other on failure
-
-=cut
-
-sub _roundcubePlugins
-{
-    my $action = $_[1];
+    my ($self, $action) = @_;
+    $action //= 'uninstall';
 
     my $pluginsSrcDir = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/roundcube-plugins";
     my $pluginDestDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    if ($action eq 'add') {
-        my $rs = execute( "cp -fR $pluginsSrcDir/* $pluginDestDir/", \ my $stdout, \ my $stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr || 'Unknown error' ) if $rs;
+    if ($action eq 'install') {
+        for(<$pluginsSrcDir/*>) {
+            my $rs = iMSCP::Dir->new( dirname => $_ )->rcopy( $pluginDestDir );
+            return $rs ||= setRights(
+                $pluginDestDir,
+                {
+                    user      => $self->{'_panel_user'},
+                    group     => $self->{'_panel_group'},
+                    dirmode   => '0550',
+                    filemode  => '0440',
+                    recursive => 1
+                }
+            );
+        }
+    }
+
+    for (iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs( )) {
+        my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove( );
         return $rs if $rs;
+    }
 
-        my $user = my $group = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+    0;
+}
 
-        $rs = setRights(
-            $pluginDestDir,
-            {
-                user      => $user,
-                group     => $group,
-                dirmode   => '0550',
-                filemode  => '0440',
-                recursive => 1
-            }
+=item _configureRoundcubePlugins( )
+
+ Configure Roundcube plugins
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _configureRoundcubePlugins
+{
+    my ($self) = @_;
+
+    for(qw / sauserprefs markasjunk2/) {
+        my $file = iMSCP::File->new(
+            filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$_/config.inc.php"
         );
+        my $fileContent = $file->get( );
+        unless (defined $fileContent) {
+            error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
+            return 1;
+        }
+
+        if ($_ eq 'sauserprefs') {
+            $fileContent = process(
+                {
+                    DATABASE_HOST        => $main::imscpConfig{'DATABASE_HOST'},
+                    DATABASE_PORT        => $main::imscpConfig{'DATABASE_PORT'},
+                    SA_DATABASE_NAME     => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
+                    SA_DATABASE_USER     => 'sa_user',
+                    SA_DATABASE_PASSWORD => $self->{'_sa_db_passwd'}
+                },
+                $fileContent
+            );
+
+            my @settings = @{$self->{'config'}->{'sauserprefs_dont_override'}};
+
+            if ($self->{'config'}->{'spamassMilter_config'}->{'reject_spam'} eq '-1') {
+                push @settings, 'rewrite_header Subject', '{report}';
+            }
+
+            push @settings, '{bayes}' if $self->{'config'}->{'use_bayes'} eq 'no';
+
+            if ($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
+                push @settings, 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam';
+            }
+
+            if ($self->{'config'}->{'use_razor2'} eq 'no'
+                && $self->{'config'}->{'use_pyzor'} eq 'no'
+                && $self->{'config'}->{'use_dcc'} eq 'no'
+                && $self->{'config'}->{'use_rbl_checks'} eq 'no'
+            ) {
+                push @settings, '{tests}';
+            } else {
+                push @settings, 'use_razor2' if $self->{'config'}->{'use_razor2'} eq 'no';
+                push @settings, 'use_pyzor' if $self->{'config'}->{'use_pyzor'} eq 'no';
+                push @settings, 'use_dcc' if $self->{'config'}->{'use_dcc'} eq 'no';
+                push @settings, 'skip_rbl_checks' if $self->{'config'}->{'use_rbl_checks'} eq 'no';
+            }
+
+            push @settings, 'ok_languages', 'ok_locales' if $self->{'config'}->{'use_lang_check'} eq 'no';
+            $fileContent =~ s/\Q{SAUSERPREFS_DONT_OVERRIDE}\E/@{[ join ",\n    ", map qq{'$_'}, uniq @settings ]}/g;
+        } else {
+            $fileContent =~ s/\Q{GUI_ROOT_DIR}\E/$main::imscpConfig{'GUI_ROOT_DIR'}/g;
+        }
+
+        local $UMASK = 227;
+        $file->{'filename'} = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/$_/config.inc.php";
+
+        $file->set( $fileContent );
+        my $rs = $file->save( );
+        $rs ||= $file->owner( $self->{'_panel_user'}, $self->{'_panel_group'} );
+        $rs ||= $file->mode( 0440 );
         return $rs if $rs;
-    } elsif ($action eq 'remove') {
-        for (iMSCP::Dir->new( dirname => $pluginsSrcDir )->getDirs( )) {
-            my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove( );
+
+        if ($_ eq 'markasjunk2') {
+            if ($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
+                $rs = $self->_registerCronjob( 'bayes_sa-learn' );
+                return $rs if $rs;
+            }
+
+            $rs = $self->bayesSaLearn( );
             return $rs if $rs;
         }
     }
@@ -849,313 +833,135 @@ sub _roundcubePlugins
     0;
 }
 
-=item _setRoundcubePlugin( $action )
+=item _enableRoundcubePlugins( [ $action = 'disable' ] )
 
- Activate or deactivate the Roundcube Plugin
+ Enable/Disable Roundcube Plugins
 
- Param string $action Action to perform (add|remove)
+ Param string $action Action to perform (enable|disable)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setRoundcubePlugin
+sub _enableRoundcubePlugins
 {
     my ($self, $action) = @_;
-
-    my $spamassassinPlugins = '';
-    my $roundcubePluginConfig = '';
-    my $roundcubeConfDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config";
+    $action //= 'disable';
 
     my $confFilename;
-    if (-f "$roundcubeConfDir/main.inc.php") {
+    if (-f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/main.inc.php") {
         $confFilename = 'main.inc.php';
-    } elsif (-f "$roundcubeConfDir/config.inc.php") {
+    } elsif (-f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php") {
         $confFilename = 'config.inc.php';
     } else {
         error( "Couldn't find RoundCube configuration file" );
         return 1;
     }
 
-    my $file = iMSCP::File->new( filename => "$roundcubeConfDir/$confFilename" );
+    my $file = iMSCP::File->new(
+        filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/$confFilename"
+    );
     my $fileContent = $file->get( );
     unless (defined $fileContent) {
         error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
         return 1;
     }
 
-    if ($action eq 'add') {
-        if ($self->{'config'}->{'sauserprefs'} eq 'yes') {
-            $spamassassinPlugins = "'sauserprefs'";
-        }
+    $fileContent = replaceBloc(
+        qr/(:?^\n)?\Q# Begin Plugin::SpamAssassin\E\n/m,
+        qr/\Q# Ending Plugin::SpamAssassin\E\n/,
+        '',
+        $fileContent
+    );
 
-        if ($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
-            $spamassassinPlugins .= ($spamassassinPlugins eq '') ? "'markasjunk2'" : ", 'markasjunk2'";
-        }
+    if ($action eq 'enable') {
+        my @plugins;
+        push @plugins, 'sauserprefs' if $self->{'config'}->{'sauserprefs'} eq 'yes';
+        push @plugins, 'markasjunk2' if $self->{'config'}->{'markasjunk2'} eq 'yes'
+            && $self->{'config'}->{'use_bayes'} eq 'yes';
 
-        $fileContent =~ s/^\n# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
-        $roundcubePluginConfig = "\n# Begin Plugin::SpamAssassin\n";
+        $fileContent .= <<"EOF" if @plugins;
 
-        if ($confFilename eq 'main.inc.php') {
-            $roundcubePluginConfig .= "\$rcmail_config['plugins'] = array_merge(\$rcmail_config['plugins'], array(".$spamassassinPlugins."));\n";
-        } else {
-            $roundcubePluginConfig .= "\$config['plugins'] = array_merge(\$config['plugins'], array(".$spamassassinPlugins."));\n";
-        }
-
-        $roundcubePluginConfig .= "# Ending Plugin::SpamAssassin\n";
-        $fileContent .= $roundcubePluginConfig;
-    } elsif ($action eq 'remove') {
-        $fileContent =~ s/^\n# Begin Plugin::SpamAssassin.*Ending Plugin::SpamAssassin\n//sgm;
+# Begin Plugin::SpamAssassin
+@{[ $confFilename eq 'main.inc.php' ? '$rcmail_config' : '$config' ]}\['plugins'] = array_merge(
+    @{[ $confFilename eq 'main.inc.php' ? '$rcmail_config' : '$config' ]}\['plugins'],
+    @{[ join ",\n    ", map qq/'$_'/, @plugins ]}
+);
+# Ending Plugin::SpamAssassin
+EOF
     }
 
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
+    $file->set( $fileContent );
+    $file->save( );
 }
 
-=item _checkSpamassassinPlugins( )
+=item _setupSaPlugins( )
 
- Check which SpamAssassin Plugins have to be activated
+ Enable/Disable SpamAssassin plugins
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
-sub _checkSpamassassinPlugins
+sub _setupSaPlugins
 {
     my ($self) = @_;
 
-    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
-    my ($helperHomeDir) = $self->{'config'}->{'spamassassinOptions'} =~ /helper-home-dir=(\S*)/;
-
-    my $rs = setRights(
-        $helperHomeDir,
-        {
-            user      => $saUser,
-            mode      => $saUser,
-            recursive => 1
-        }
-    );
-    return $rs if $rs;
-
     if ($self->{'config'}->{'use_pyzor'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'use_pyzor', '1' );
-        $rs ||= $self->_discoverPyzor( );
+        my $rs = $self->_setSaUserprefs( 'use_pyzor', '1' );
+        $rs ||= $self->_setupPyzor( );
         return $rs if $rs;
     } else {
-        $rs = $self->_setSpamassassinUserprefs( 'use_pyzor', '0' );
+        my $rs = $self->_setSaUserprefs( 'use_pyzor', '0' );
         return $rs if $rs;
     }
 
     if ($self->{'config'}->{'use_razor2'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'use_razor2', '1' );
-        return $rs if $rs;
-
-        unless (-d "$helperHomeDir/.razor") {
-            $rs = $self->_createRazor( );
-            return $rs if $rs;
-        }
-
-        $rs = $self->_registerCronjob( 'discover_razor' );
+        my $rs = $self->_setSaUserprefs( 'use_razor2', '1' );
+        $rs ||= $self->_setupRazor( );
+        $rs ||= $self->_registerCronjob( 'discover_razor' );
         return $rs if $rs;
     } else {
-        $rs = $self->_setSpamassassinUserprefs( 'use_razor2', '0' );
-        $rs ||= $self->_unregisterCronjob( 'discover_razor' );
+        my $rs = $self->_setSaUserprefs( 'use_razor2', '0' );
         return $rs if $rs;
     }
 
     if ($self->{'config'}->{'use_auto-whitelist'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'use_auto_whitelist', '1' );
+        my $rs = $self->_setSaUserprefs( 'use_auto_whitelist', '1' );
         $rs ||= $self->_registerCronjob( 'clean_awl_db' );
         return $rs if $rs;
     } else {
-        $rs = $self->_setSpamassassinUserprefs( 'use_auto_whitelist', '0' );
-        $rs ||= $self->_unregisterCronjob( 'clean_awl_db' );
+        my $rs = $self->_setSaUserprefs( 'use_auto_whitelist', '0' );
         $rs ||= $self->cleanAwlDb( );
         return $rs if $rs;
     }
 
     if ($self->{'config'}->{'site_wide_bayes'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
-        $rs = $self->_registerCronjob( 'clean_bayes_db' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_unregisterCronjob( 'clean_bayes_db' );
+        my $rs = $self->_registerCronjob( 'clean_bayes_db' );
         return $rs if $rs;
     }
 
-    if ($self->{'config'}->{'use_bayes'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'use_bayes', '1' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_setSpamassassinUserprefs( 'use_bayes', '0' );
-        return $rs if $rs;
-    }
-
-    if ($self->{'config'}->{'use_dcc'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'use_dcc', '1' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_setSpamassassinUserprefs( 'use_dcc', '0' );
-        return $rs if $rs;
-    }
-
-    if ($self->{'config'}->{'use_rbl_checks'} eq 'yes') {
-        $rs = $self->_setSpamassassinUserprefs( 'skip_rbl_checks', '0' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_setSpamassassinUserprefs( 'skip_rbl_checks', '1' );
-        return $rs if $rs;
-    }
-
-    if ($self->{'config'}->{'DecodeShortURLs'} eq 'yes') {
-        $rs = $self->_setSpamassassinPlugin( 'DecodeShortURLs', 'add' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_setSpamassassinPlugin( 'DecodeShortURLs', 'remove' );
-        return $rs if $rs;
-    }
-
-    if ($self->{'config'}->{'iXhash2'} eq 'yes') {
-        $rs = $self->_setSpamassassinPlugin( 'iXhash2', 'add' );
-        return $rs if $rs;
-    } else {
-        $rs = $self->_setSpamassassinPlugin( 'iXhash2', 'remove' );
-        return $rs if $rs;
-    }
-
-    0;
+    my $rs ||= $self->_setSaUserprefs( 'use_bayes', $self->{'config'}->{'use_bayes'} eq 'yes' ? '1' : '0' );
+    $rs ||= $self->_setSaUserprefs( 'use_dcc', $self->{'config'}->{'use_dcc'} eq 'yes' ? '1' : '0' );
+    $rs ||= $self->_setSaUserprefs( 'skip_rbl_checks', $self->{'config'}->{'use_rbl_checks'} eq 'yes' ? '0' : '1' );
 }
 
-=item _checkRoundcubePlugins( )
-
- Check which Roundcube Plugins have to be activated
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _checkRoundcubePlugins
-{
-    my ($self) = @_;
-
-    if ($self->{'config'}->{'markasjunk2'} eq 'yes' && $self->{'config'}->{'use_bayes'} eq 'yes') {
-        my $rs = $self->_registerCronjob( 'bayes_sa-learn' );
-        return $rs if $rs;
-    } else {
-        my $rs = $self->_unregisterCronjob( 'bayes_sa-learn' );
-        $rs ||= $self->bayesSaLearn( );
-        return $rs if $rs;
-    }
-
-    $self->_setRoundcubePlugin( 'add' );
-}
-
-=item _setRoundcubePluginConfig( $plugin )
-
- Set the values in the Roundcube Plugin config file config.inc.php
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _setRoundcubePluginConfig
-{
-    my ($self, $plugin) = @_;
-
-    my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/config-templates/$plugin";
-    my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-
-    local $@;
-    eval { iMSCP::Dir->new( dirname => $configPlugin )->rcopy( "$pluginsDir/$plugin" ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    my $file = iMSCP::File->new( filename => "$pluginsDir/$plugin/config.inc.php" );
-    my $fileContent = $file->get( );
-    unless (defined $fileContent) {
-        error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
-        return 1;
-    }
-
-    if ($plugin eq 'sauserprefs') {
-        $fileContent = process(
-            {
-                DATABASE_HOST        => $main::imscpConfig{'DATABASE_HOST'},
-                DATABASE_PORT        => $main::imscpConfig{'DATABASE_PORT'},
-                SA_DATABASE_NAME     => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
-                SA_DATABASE_USER     => $self->{'SA_DATABASE_USER'},
-                SA_DATABASE_PASSWORD => $self->{'SA_DATABASE_PASSWORD'}
-            },
-            $fileContent
-        );
-
-        my $sauserprefsDontOverride = $self->{'config'}->{'sauserprefs_dont_override'};
-        if ($self->{'config'}->{'spamassMilter_config'}->{'reject_spam'} eq '-1') {
-            $sauserprefsDontOverride .= ", 'rewrite_header Subject', '{report}'";
-        }
-
-        if ($self->{'config'}->{'use_bayes'} eq 'no') {
-            $sauserprefsDontOverride .= ", '{bayes}'";
-        }
-
-        if ($self->{'config'}->{'site_wide_bayes'} eq 'yes') {
-            $sauserprefsDontOverride .= ", 'bayes_auto_learn_threshold_nonspam', 'bayes_auto_learn_threshold_spam'";
-        }
-
-        if ($self->{'config'}->{'use_razor2'} eq 'no' && $self->{'config'}->{'use_pyzor'} eq 'no'
-            && $self->{'config'}->{'use_dcc'} eq 'no' && $self->{'config'}->{'use_rbl_checks'} eq 'no'
-        ) {
-            $sauserprefsDontOverride .= ", '{tests}'";
-        } else {
-            if ($self->{'config'}->{'use_razor2'} eq 'no') {
-                $sauserprefsDontOverride .= ", 'use_razor2'";
-            }
-
-            if ($self->{'config'}->{'use_pyzor'} eq 'no') {
-                $sauserprefsDontOverride .= ", 'use_pyzor'";
-            }
-
-            if ($self->{'config'}->{'use_dcc'} eq 'no') {
-                $sauserprefsDontOverride .= ", 'use_dcc'";
-            }
-
-            if ($self->{'config'}->{'use_rbl_checks'} eq 'no') {
-                $sauserprefsDontOverride .= ", 'skip_rbl_checks'";
-            }
-        }
-
-        if ($self->{'config'}->{'use_lang_check'} eq 'no') {
-            $sauserprefsDontOverride .= ", 'ok_languages', 'ok_locales'";
-        }
-
-        $fileContent =~ s/\Q{SAUSERPREFS_DONT_OVERRIDE}/$sauserprefsDontOverride/g;
-    } elsif ($plugin eq 'markasjunk2') {
-        $fileContent =~ s/\Q{GUI_ROOT_DIR}/$main::imscpConfig{'GUI_ROOT_DIR'}/g;
-    }
-
-    my $user = my $group = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
-    $rs ||= $file->owner( $user, $group );
-    $rs ||= $file->mode( 0440 );
-}
-
-=item _setSpamassassinUserprefs( $preference, $value )
+=item _setSaUserprefs( $preference, $value )
 
  Set the values in the SpamAssassin userpref table
 
- Return int 0 if all requirements are meet, 1 otherwise
+ Return int 0 success, other on failureif all requirements are meet, 1 otherwise
 
 =cut
 
-sub _setSpamassassinUserprefs
+sub _setSaUserprefs
 {
     my (undef, $preference, $value) = @_;
 
     my $qrs = iMSCP::Database->factory( )->doQuery(
         'u',
         "UPDATE `$main::imscpConfig{'DATABASE_NAME'}_spamassassin`.`userpref` SET `value` = ? WHERE `preference` = ?",
-        $value, $preference
+        $value,
+        $preference
     );
     unless (ref $qrs eq 'HASH') {
         error( $qrs );
@@ -1165,41 +971,41 @@ sub _setSpamassassinUserprefs
     0;
 }
 
-=item _setupDatabase( )
+=item _createSaSqlUser( )
 
- Setup SpamAssassin database
+ Create SpamAssassin SQL user
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setupDatabase
+sub _createSaSqlUser
 {
     my ($self) = @_;
 
-    my $imscpDbName = $main::imscpConfig{'DATABASE_NAME'};
-    my $spamassassinDbName = $imscpDbName.'_spamassassin';
+    my $dbName = $main::imscpConfig{'DATABASE_NAME'}.'_spamassassin';
 
     my $db = iMSCP::Database->factory( );
-    my $qrs = $db->doQuery( '1', 'SHOW DATABASES LIKE ?', $spamassassinDbName );
+    my $qrs = $db->doQuery( '1', 'SHOW DATABASES LIKE ?', $dbName );
     unless (ref $qrs eq 'HASH') {
         error( $qrs );
         return 1;
     }
 
     unless (%{$qrs}) {
-        error( sprintf( "Couldn't find the `%s` SQL database for SpamAssassin.", $spamassassinDbName ) );
+        error( sprintf( "Couldn't find the `%s' SQL database for SpamAssassin.", $dbName ) );
         return 1;
     }
 
-    my $rs = $self->_getSaDbPassword( );
-    $rs ||= $self->_dropSaDatabaseUser( );
+    my $rs = $self->_dropSaSqlUser( );
     return $rs if $rs;
+
+    $self->{'_sa_db_passwd'} = randomStr( 16, iMSCP::Crypt::ALNUM );
 
     local $@;
     eval {
         Servers::sqld->factory( )->createUser(
-            $self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'}, $self->{'SA_DATABASE_PASSWORD'}
+            'sa_user', $main::imscpConfig{'DATABASE_USER_HOST'}, $self->{'_sa_db_passwd'}
         );
     };
     if ($@) {
@@ -1207,33 +1013,33 @@ sub _setupDatabase
         return 1;
     }
 
-    (my $quotedDbName = $db->quoteIdentifier( $spamassassinDbName )) =~ s/([%_])/\\$1/g;
+    (my $quotedDbName = $db->quoteIdentifier( $dbName )) =~ s/([%_])/\\$1/g;
     $qrs = $db->doQuery(
-        'g', "GRANT SELECT, INSERT, UPDATE, DELETE ON $quotedDbName.* TO ?\@?", $self->{'SA_DATABASE_USER'},
-        $self->{'SA_HOST'}
+        'g',
+        "GRANT SELECT, INSERT, UPDATE, DELETE ON $quotedDbName.* TO ?\@?",
+        'sa_user',
+        $main::imscpConfig{'DATABASE_USER_HOST'}
     );
     unless (ref $qrs eq 'HASH') {
-        error( sprintf( "Couldn't grant privileges on the `%s` database: %s", $spamassassinDbName, $qrs ) );
+        error( sprintf( "Couldn't grant privileges on the `%s` database: %s", $dbName, $qrs ) );
         return 1;
     }
 
     0;
 }
 
-=item _dropSaDatabaseUser( )
+=item _dropSaSqlUser( )
 
- Drop SpamAssassin database user
+ Drop SpamAssassin SQL user
 
  Return int 0 on success, 1 on failure
 
 =cut
 
-sub _dropSaDatabaseUser
+sub _dropSaSqlUser
 {
-    my ($self) = @_;
-
     local $@;
-    eval { Servers::sqld->factory( )->dropUser( $self->{'SA_DATABASE_USER'}, $self->{'SA_HOST'} ); };
+    eval { Servers::sqld->factory( )->dropUser( 'sa_user', $main::imscpConfig{'DATABASE_USER_HOST'} ); };
     if ($@) {
         error( sprintf( "Couldn't drop SpamAssassin SQL user: %s", $@ ) );
         return 1;
@@ -1242,141 +1048,112 @@ sub _dropSaDatabaseUser
     0;
 }
 
-=item _getSaDbPassword( )
+=item _installSaPlugin( [, $action = 'uninstall' ] )
 
- Get the SpamAssassin database user password from file or create a new one
+ Install/Uninstall the given SpamAssassin plugin
 
-=cut
-
-sub _getSaDbPassword
-{
-    my ($self) = @_;
-
-    my $saImscpCF = '/etc/spamassassin/00_imscp.cf';
-    if (-f $saImscpCF) {
-        my $file = iMSCP::File->new( filename => $saImscpCF );
-        my $fileContent = $file->get( );
-        unless (defined $fileContent) {
-            error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
-            return 1;
-        }
-
-        $fileContent =~ m/user_scores_sql_password\s*([a-zA-Z0-9_]+)/;
-        $self->{'SA_DATABASE_PASSWORD'} = $1;
-        return 0;
-    }
-
-    unless ($self->{'SA_DATABASE_PASSWORD'}) {
-        # Create the SpamAssassin database user password
-        my @allowedChars = ('A' .. 'Z', 'a' .. 'z', '0' .. '9', '_');
-        my $saDbPassword;
-        $saDbPassword .= $allowedChars[rand @allowedChars] for 1 .. 16;
-        $saDbPassword =~ s/('|"|`|#|;|\/|\s|\||<|\?|\\)/_/g;
-        $self->{'SA_DATABASE_PASSWORD'} = $saDbPassword;
-    }
-
-    0;
-}
-
-=item _setSpamassassinPlugin( $plugin, $action )
-
- Add or remove the plugin from the SpamAssassin folder
-
- Param string $action Action to perform ( add|remove )
+ Param string $action Action to perform (install|uninstall)
  Return int 0 on success, other on failure
 
 =cut
 
-sub _setSpamassassinPlugin
+sub _installSaPlugin
 {
-    my (undef, $plugin, $action) = @_;
+    my (undef, $action) = @_;
+    $action //= 'uninstall';
 
-    my $pluginDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/plugins/SpamAssassin/spamassassin-plugins/$plugin";
-    my $spamassassinFolder = '/etc/spamassassin';
+    for my $plugin(qw/ DecodeShortURLs iXhash2 /) {
+        for(qw/ cf pm /) {
+            if ($action eq 'install') {
+                my $file = iMSCP::File->new(
+                    filename => "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/spamassassin-plugins/$plugin/$plugin.$_"
+                );
+                my $rs = $file->copyFile( '/etc/spamassassin', { preserve => 'no' } );
+                return $rs if $rs;
 
-    unless (defined $action && ($action eq 'add' || $action eq 'remove')) {
-        error( sprintf( 'Unknown action: %s', $action ) );
-        return 1;
-    }
+                $file->{'filename'} = "/etc/spamassassin/$plugin.$_";
+                $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'} );
+                $rs ||= $file->mode( 0644 );
+                return $rs if $rs;
+                next;
+            }
 
-    for(qw/ cf pm /) {
-        if ($action eq 'add') {
-            my $rs = iMSCP::File->new( filename => "$pluginDir/$plugin.$_" )->copyFile( $spamassassinFolder );
+            next unless -f "/etc/spamassassin/$plugin.$_";
+            my $rs = iMSCP::File->new( filename => "/etc/spamassassin/$plugin.$_" )->delFile( );
             return $rs if $rs;
-            next;
         }
-
-        next unless -f "$spamassassinFolder/$plugin.$_";
-        my $rs = iMSCP::File->new( filename => "$spamassassinFolder/$plugin.$_" )->delFile( );
-        return $rs if $rs;
     }
 
     0;
 }
 
-=item _createSaUser( )
+=item _createSaUnixUser( )
 
- Create SpamAssassin user and home directory if needed
+ Create/Update SpamAssassin unix user and home directory
+
+ - Create/Update SA unix user
+ - Make sure that SA homedir exists (update case)
+ - Make sure that ownership is correctly set for SA homedir, including contained files
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _createSaUser
+sub _createSaUnixUser
 {
     my ($self) = @_;
-
-    my ($saUser) = $self->{'config'}->{'spamassassinOptions'} =~ /username=(\S*)/;
-    my $saGroup = $saUser;
-    my ($saHelperHomedir) = $self->{'config'}->{'spamassassinOptions'} =~ /helper-home-dir=(\S*)/;
-
-    require iMSCP::SystemUser;
 
     my $rs ||= iMSCP::SystemUser->new(
         {
-            username => $saUser,
-            group    => getgrnam( $saGroup ) ? $saGroup : undef,
+            username => $self->{'_sa_user'},
+            group    => $self->{'_sa_group'},
             system   => 1,
             comment  => 'SpamAssassin user',
-            home     => $saHelperHomedir,
-            shell    => '/bin/false'
+            home     => $self->{'_sa_homedir'},
+            shell    => '/bin/sh'
         }
     )->addSystemUser( );
-    $rs ||= iMSCP::Dir->new( dirname => $saHelperHomedir )->make( );
+    $rs ||= iMSCP::Dir->new( dirname => $self->{'_sa_homedir'} )->make( );
     $rs ||= setRights(
-        $saHelperHomedir,
+        $self->{'_sa_homedir'},
         {
-            user      => $saUser,
-            group     => $saGroup,
+            user      => $self->{'_sa_user'},
+            group     => $self->{'_sa_group'},
             recursive => 1
         }
     );
 }
 
-=item _checkRequirements( )
+=item _installDistributionPackages( )
  
- Check for requirements
+ Install required distribution packages
 
- Return int 0 if all requirements are met, other otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
-sub _checkRequirements
+sub _installDistributionPackages
 {
-    my ($self) = @_;
+    $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
 
-    my $ret = 0;
-    for(qw/ spamassassin spamass-milter libmail-dkim-perl libnet-ident-perl libencode-detect-perl pyzor razor /) {
-        next if $_ eq 'pyzor' && $self->{'config'}->{'use_pyzor'} ne 'yes';
-        next if $_ eq 'razor' && $self->{'config'}->{'use_razor2'} ne 'yes';
+    my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( sprintf("Couldn't update APT index: %s", $stderr || 'Unknown error' ) ) if $rs;
+    return $rs if $rs;
 
-        if (execute( "dpkg-query -W -f='\${Status}' $_ 2>/dev/null | grep -q '\\sinstalled\$'" )) {
-            error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
-            $ret ||= 1;
-        }
-    }
-
-    $ret;
+    $rs = execute(
+        [
+            'apt-get', '-o', 'DPkg::Options::=--force-confold', '-o', 'DPkg::Options::=--force-confdef',
+            '-o', 'DPkg::Options::=--force-confmiss', '--assume-yes', '--auto-remove', '--no-install-recommends',
+            '--purge', '--quiet', 'install', 'sa-compile', 'spamassassin', 'spamass-milter', 'libnet-ident-perl',
+            'libmail-dkim-perl', 'libmail-spf-perl', 'libencode-detect-perl', 'pyzor', 'razor'
+        ],
+        \$stdout,
+        \$stderr
+    );
+    debug( $stdout ) if $stdout;
+    error( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ) ) if $rs;
+    $rs;
 }
 
 =back

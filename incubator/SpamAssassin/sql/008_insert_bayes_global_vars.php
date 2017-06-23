@@ -24,10 +24,5 @@ $database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spa
 $table = quoteIdentifier('bayes_global_vars');
 
 return array(
-    'up' => "
-        INSERT IGNORE INTO $database.$table
-            (`variable`, `value`)
-        VALUE
-            ('VERSION', '3');
-    "
+    'up' => "INSERT IGNORE INTO $database.$table (`variable`, `value`) VALUE ('VERSION', '3');"
 );

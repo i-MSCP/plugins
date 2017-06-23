@@ -21,11 +21,11 @@
 
 use strict;
 use warnings;
-use FindBin qw/ $Bin /;
-use lib "$Bin/../../../../engine/PerlLib", "$Bin/../../../../engine/PerlVendor";
+use FindBin;
+use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../engine/PerlVendor";
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
-use iMSCP::Debug;
+use iMSCP::Debug qw/ getMessageByType newDebug /;
 use iMSCP::EventManager;
 use JSON;
 
