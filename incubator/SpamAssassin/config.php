@@ -91,7 +91,7 @@ return array(
 
     // Enable or disable DCC - Distributed Checksum Clearinghouse (default: no)
     //
-    // You must first install which is not provided by default DCC
+    // You must first install DCC which is not provided by default
     //
     // Possible values: yes, no
     'use_dcc'                   => 'no',
