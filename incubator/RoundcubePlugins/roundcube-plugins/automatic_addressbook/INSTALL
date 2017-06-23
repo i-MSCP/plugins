@@ -1,0 +1,46 @@
+Look at https://github.com/sblaisot/automatic_addressbook
+
+Installing automatic addressbook plugin
+---------------------------------------
+
+You need roundcube > 0.4 installed.
+
+automatic_addressbook plugin version 0.2 has been tester against roundcube 0.5 and 0.6.
+above versions have been tested against roundcube 0.8.0 and 0.8.1 with larry skin and mysql backend.
+
+Download the latest version archive
+
+1. Uncompress it and move it to the roundcube plugins dir :
+
+    tar xvjf automatic_addressbook-latest.tar.bz2
+    mv automatic_addressbook <path_to_roundcube>/plugins/
+
+2. Execute the relevant SQL/<db engine>.initial.sql script on your database (process depends on your DB engine)
+
+3. Add "automatic_addressbook" to the plugins list in
+   <path_to_roundcube>/config/main.inc.php or <path_to_roundcube>/config/config.inc.php depending on your roundcube version, for example :
+
+    $rcmail_config['plugins'] = array('automatic_addressbook',);
+
+It works :)
+
+
+Configuration
+-------------
+
+You can customize some settings :
+
+    copy config/config.inc.php.dist to config/config.inc.php
+    edit config/config.inc.php as you fancy
+
+Among others, you can choose if your users will have automatic_addressbook enabled or disabled by default (use_auto_abook option).
+
+
+Upgrading roundcube to 0.6
+--------------------------
+
+If you upgrade from roundcube 0.5 to 0.6, automatic addressbook plugin will continue to work :
+
+    Be sure to use the last version of the plugin ;
+    upgrade the plugin's database schemes using one of the automatic_addressbook/SQL/*.update.sql scripts.
+

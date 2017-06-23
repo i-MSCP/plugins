@@ -1,0 +1,44 @@
+{
+    "name": "sblaisot/automatic_addressbook",
+    "type": "roundcube-plugin",
+    "description": "The automatic addressbook plugin collect each address you send an email to and records it in an address book, making it available for later use or auto-completion.",
+    "keywords": ["addressbook","automatic"],
+    "homepage": "https://github.com/sblaisot/automatic_addressbook",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "Sebastien Blaisot",
+            "email": "sebastien@blaisot.org",
+            "role": "Developer"
+        },
+        {
+            "name": "Jocelyn Delalande",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://plugins.roundcube.net"
+        }
+    ],
+    "require":
+    {
+        "php": ">=5.3.0",
+        "roundcube/plugin-installer": ">=0.1.6"
+    },
+    "support":
+    {
+      "email": "sebastien@blaisot.org",
+      "issues": "https://github.com/sblaisot/automatic_addressbook/issues",
+      "source": "https://github.com/sblaisot/automatic_addressbook"
+    },
+    "extra":
+    {
+        "roundcube": {
+            "min-version": "0.6.0",
+            "max-version": "10.21",
+            "sql-dir": "SQL"
+        }
+    } 
+}
