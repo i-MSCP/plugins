@@ -898,7 +898,9 @@ sub _enableRoundcubePlugins
 # Begin Plugin::SpamAssassin
 @{[ $confFilename eq 'main.inc.php' ? '$rcmail_config' : '$config' ]}\['plugins'] = array_merge(
     @{[ $confFilename eq 'main.inc.php' ? '$rcmail_config' : '$config' ]}\['plugins'],
-    @{[ join ",\n    ", map qq/'$_'/, @plugins ]}
+    array(
+        @{[ join ",\n        ", map qq/'$_'/, @plugins ]}
+    )
 );
 # Ending Plugin::SpamAssassin
 EOF
