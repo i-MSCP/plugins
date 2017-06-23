@@ -166,7 +166,7 @@ sub disable
     $rs ||= $self->_installSaPlugins( 'uninstall' );
     $rs ||= $self->_configureSa( 'deconfigure' );
     $rs ||= $self->_dropSaSqlUser( );
-    return $rs if $rs;
+    return $rs if $rs || $self->{'action'} ne 'disable';
 
     local $@;
     eval {
