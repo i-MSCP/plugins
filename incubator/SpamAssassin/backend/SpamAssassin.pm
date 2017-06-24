@@ -715,18 +715,16 @@ sub _configureSa
                 SA_DATABASE_NAME     => "$main::imscpConfig{'DATABASE_NAME'}_spamassassin",
                 SA_DATABASE_USER     => 'sa_user',
                 SA_DATABASE_PASSWORD => $self->{'_sa_db_passwd'},
-                DISABLE_DCC          => $self->{'config'}->{'spamassassin'}->{'DCC'}->{enabled}
+                DISABLE_DCC          => $self->{'config'}->{'spamassassin'}->{'DCC'}->{'enabled'}
                     ? '' : 'AND preference NOT LIKE \'use_dcc\''
             },
             $fileContent
         );
 
         if ($self->{'config'}->{'spamassassin'}->{'Bayes'}->{'site_wide'}) {
-            $fileContent =~ s/^#bayes_sql_override_username/bayes_sql_override_username/gm;
-            $fileContent =~ s/^#bayes_auto_expire/bayes_auto_expire/gm;
+            $fileContent =~ s/^[#\s]+(bayes_(?:auto_expire|sql_override_username)/$1/gm;
         } else {
-            $fileContent =~ s/^bayes_sql_override_username/#bayes_sql_override_username/gm;
-            $fileContent =~ s/^bayes_auto_expire/#bayes_auto_expire/gm;
+            $fileContent =~ s/^(bayes_(?:auto_expire|sql_override_username)/#$1/gm;
         }
 
         local $UMASK = 027;

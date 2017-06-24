@@ -1,10 +1,17 @@
-# Userpref configuration
+#
+## Userpref configuration
+#
 user_scores_dsn DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
 user_scores_sql_username {SA_DATABASE_USER}
 user_scores_sql_password {SA_DATABASE_PASSWORD}
 user_scores_sql_custom_query SELECT preference, value FROM _TABLE_ WHERE (username = _USERNAME_ OR username = '$GLOBAL' OR username = CONCAT('%',_DOMAIN_)) {DISABLE_DCC} ORDER BY username ASC
 
-# Bayes configuration
+#
+## Bayes configuration
+#
+
+ifplugin Mail::SpamAssassin::Plugin::Bayes
+
 # See https://svn.apache.org/repos/asf/spamassassin/branches/3.1/sql/README.bayes for further details
 bayes_store_module Mail::SpamAssassin::BayesStore::MySQL
 bayes_sql_dsn DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
@@ -13,9 +20,18 @@ bayes_sql_password {SA_DATABASE_PASSWORD}
 bayes_sql_override_username $GLOBAL
 bayes_auto_expire 0
 
-# Auto-Whitelist configuration
+endif
+
+#
+## Auto-Whitelist configuration
+#
+
+ifplugin Mail::SpamAssassin::Plugin::AWL
+
 auto_whitelist_factory Mail::SpamAssassin::SQLBasedAddrList
 user_awl_dsn DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
 user_awl_sql_username {SA_DATABASE_USER}
 user_awl_sql_password {SA_DATABASE_PASSWORD}
 auto_whitelist_distinguish_signed 1
+
+endif
