@@ -90,7 +90,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     public function enable(PluginManager $pluginManager)
     {
         try {
-            $this->addSpamAssassinServicePort();
+            $this->setSpamAssassinServicePort();
         } catch (Exception $e) {
             throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
@@ -114,15 +114,23 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Add SpamAssassin service port
+     * Set SpamAssassin service port
+     *
+     * Only relevant in TCP mode (default mode is UDS since v2.0.0)
+     *
+     * TODO: register check status function which should call:
+     *  echo 'foo' | spamc -x --socket=/var/run/spamassassin.sock >/dev/null 2>1
      *
      * @return void
      */
-    protected function addSpamAssassinServicePort()
+    protected function setSpamAssassinServicePort()
     {
         $dbConfig = Registry::get('dbConfig');
         $pluginConfig = $this->getConfig();
-        preg_match("/port=([0-9]+)/", $pluginConfig['spamassassinOptions'], $spamAssassinPort);
-        $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
+        if (preg_match("/-(?:p\s+|port=)=(\d+)/", $pluginConfig['spamd_options']['options'], $spamAssassinPort)) {
+            $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
+        } else {
+            unset($dbConfig['PORT_SPAMASSASSIN']);
+        }
     }
 }

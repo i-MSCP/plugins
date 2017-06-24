@@ -5,24 +5,26 @@ SpamAssassin - ChangeLog
 Version 2.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: `sa_compile` configuration parameter (default to yes)
+    Added: `Rule2XSBody' SA plugin (SA-COMPILE(1p))
     Backported: Changes from https://github.com/smfreegard/DecodeShortURLs/pull/2 (DecodeShortURLs.cf file only)
-    Changed: The `sauserprefs_dont_override' configuration parameter is now an array
     Changed: MILTER default action from `accept' to `tempfail'
+    Changed: Usage of UDS mode instead of TCP mode for SPAMD(8p) -- Performance boost
     Enhancement: Automatically install distribution packages
-    Fixed: Bad ownership set on DecodeShortURLs and iXash2 SpamAssassin plugin files, leading to permission errors
-    Fixed: Creation of the hourly cronjob for heinlein-support.de must be atomic
+    Fixed: Bad ownership set on DecodeShortURLs and iXash2 SpamAssassin plugin files
+    Fixed: Creation of the hourly cronjob for heinlein support rulese must be atomic
     Fixed: Creation of the Roundcube plugin configuration files must be atomic
-    Fixed: Creation of the SpamAssassin configuration files must be atomic
+    Fixed: Creation of the SA configuration files must be atomic
     Fixed: Cronjobs are not registered when the plugin get re-activated
-    Fixed: Delay restart of SpamAssassin services in i-MSCP upgrade/reconfiguration mode
-    Fixed: Make use of iMSCP::Crypt library to generate SA SQL password (CS fix)
+    Fixed: Delay restart of SA services in i-MSCP upgrade/reconfiguration mode
+    Fixed: Make use of iMSCP::Crypt library to generate SA SQL password
     Fixed: Make sure that configuration files are created with expected UMASK(2)
-    Fixed: SpamAssassin database must be dropped on plugin uninstallation
-    Fixed: Stop and disable SpamAssassin services on plugin deactivation
+    Fixed: SA database must be dropped on plugin uninstallation
+    Fixed: Stop and disable SA services on plugin deactivation
     Updated: Roundcube MarkAsJunk2 plugin from version 1.9 to version 1.10
     Updated: Roundcube SAUserPrefs plugin from version 1.15 to version 1.16
     Removed: `i` sendmail macro (MILTER)
+    Removed: i-MSCP 00_imscp.pre SA configuration file
+    Rewritten: Plugin configuration file
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
@@ -31,14 +33,14 @@ Version 1.2.0
     Added: Build version number
     Fixed: Cannot pass additional flags to SPAMC(1) through SPAMASS_MILTER(8) due to internal configuration handling
     Fixed: Cronjob for razor discovery fail due to missing shell for the `debian-spamd' user
-    Fixed: On plugin update, i-MSCP SpamAssassin::change() method shouldn't be called twice
+    Fixed: On plugin update, the Plugin::SpamAssassin::change() method shouldn't be called twice
     Removed: Support for i-MSCP 1.3.x Serie
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.1.1
 ------------------------------------------------------------------------------------------------------------------------
 
-    Fixed: Wrong cron settings for cronjob_bayes_sa-learn
+    Fixed: Wrong cron settings for cronjob_bayes_sa_learn
     Fixed: Requirements check for pyzor & razor if not enabled in config
 
 ------------------------------------------------------------------------------------------------------------------------

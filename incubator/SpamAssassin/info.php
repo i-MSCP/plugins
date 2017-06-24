@@ -29,8 +29,8 @@ return array(
     'email'       => 'team@i-mscp.net',
     'version'     => '2.0.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-06-23',
-    'build'       => '2017062300',
+    'date'        => '2017-06-24',
+    'build'       => '2017062400',
     'name'        => 'SpamAssassin',
     'desc'        => 'Provides SpamAssassin software through MILTER.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'

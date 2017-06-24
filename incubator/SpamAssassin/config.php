@@ -21,212 +21,230 @@
  */
 
 return array(
-
-    // Enable/Disable Rule2XSBody plugin (default: yes)
-    //
-    // When set to yes, the site-wide parts of the SpamAssassin ruleset are
-    // compiled into native code using sa-compile and the SA Rule2XSBody plugin
-    // is enabled.
-    //
-    // See SA-COMPILE(1p) for further details
-    //
-    'sa_compile'                => 'yes',
-
-    // Enable or disable bayesian filtering (default: yes)
-    //
-    // possible values: yes, no
-    'use_bayes'                 => 'yes',
-
-    // Enable or disable site-wide Bayesian filter (default: no)
-    //
-    // When set to yes 'yes', global bayes database is enabled.
-    // This allow to share the bayesian database with all users.
-    // Possible values: yes, no
-    'site_wide_bayes'           => 'no',
-
-    // Cronjob for sa-learn (default: run every 12 hours)
-    // See man CRONTAB(5) for allowed values
-    'cronjob_bayes_sa-learn'    => array(
-        'minute' => '0',
-        'hour'   => '*/12',
-        'day'    => '*',
-        'month'  => '*',
-        'dweek'  => '*'
+    // SPAMD(8p) service configuration options
+    'spamd'          => array(
+        'options' => '-m 5 -q -x -u debian-spamd -g debian-spamd -H /var/lib/spamassassin'
+            . ' --socketpath=/var/run/spamassassin.sock --socketowner=debian-spamd --socketgroup=debian-spamd'
+            . ' --socketmode=0666'
     ),
 
-    // Cronjob for cleaning up of bayes database (default: run once per day)
-    // See man CRONTAB(5) for allowed values
-    'cronjob_clean_bayes_db'    => array(
-        'minute' => '@daily',
-        'hour'   => '',
-        'day'    => '',
-        'month'  => '',
-        'dweek'  => ''
-    ),
-
-    // Enable or disable AWL (auto whitelist) (default: no)
-    //
-    // Possible values: yes, no
-    'use_auto-whitelist'        => 'no',
-
-    // Cron job for cleanup of AWL (auto whitelist) database (default: once per day)
-    // See man CRONTAB(5) for allowed values
-    'cronjob_clean_awl_db'      => array(
-        'minute' => '@daily',
-        'hour'   => '',
-        'day'    => '',
-        'month'  => '',
-        'dweek'  => ''
-    ),
-
-    // Enable or disable Razor2 (default: yes)
-    //
-    // Possible values: yes, no
-    'use_razor2'                => 'yes',
-
-    // Enable or disable Pyzor (default: yes)
-    //
-    // Possible values: yes, no
-    'use_pyzor'                 => 'yes',
-
-    // Enable or disable DCC - Distributed Checksum Clearinghouse (default: no)
-    //
-    // You must first install DCC which is not provided by default
-    //
-    // Possible values: yes, no
-    'use_dcc'                   => 'no',
-
-    // Enable or disable RBL checks (default: no)
-    //
-    // Possible values: yes, no
-    // Note: You shouldn't enable this feature if you already use PolicydWeight
-    // or Postscreen plugins.
-    'use_rbl_checks'            => 'no',
-
-    // use_lang_check plugin (default: no)
-    // This plugin will try to guess the language used in the message text.
-    // Possible values: yes, no
-    'use_lang_check'            => 'no',
-
-    //
-    //// 3rd party SpamAssassin rules
-    //
-
-    // Heinlein Support SpamAssassin rules (default: yes)
-    //
-    // Latest SpamAssassin rules directly from the Heinlein Hosting live
-    // systems. Heinlein Support is a German ISP company and specialized on
-    // mail servers. The founder and owner Peer Heinlein has written several
-    // books about Dovecot and Postfix.
-    //
-    // For further details check the link below:
-    // https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
-    'heinlein-support_sa-rules' => 'yes',
-
-    //
-    //// 3rd party SpamAssassin plugins
-    //
-
-    // DecodeShortURLs plugin (default: yes)
-    //
-    // See https://github.com/smfreegard/DecodeShortURLs for further details.
-    // Possible values: yes, no
-    'DecodeShortURLs'           => 'yes',
-
-    // iXhash2 plugin (default: yes)
-    //
-    // See http://mailfud.org/iXhash2/ for further details.
-    // Possible value: yes, no
-    'iXhash2'                   => 'yes',
-
-    //
-    //// Roundcube plugins
-    //
-
-    // markasjunk2 plugin (default: yes)
-    //
-    // The markasjunk2 roundcube plugin adds a new button to the mailbox
-    // toolbar, which allow the users to mark the selected messages as
-    // Junk/Not Junk, optionally detaching original messages from spam reports
-    // if the message is not junk and learning the bayesian database with
-    // junk/not junk.
-    //
-    // Possible value: yes, no
-    'markasjunk2'               => 'yes',
-
-    // sauserprefs plugin (default: yes)
-    //
-    // The SAUserPrefs Roundcube plugin adds a 'Spam' tab to the 'Settings' in
-    // Roundcube, which allow the users to change their SpamAssassin preferences.
-    //
-    // SpamAssassin user preference are stored inside the i-MSCP SpamAssassin
-    // database.
-    //
-    // Possible values: yes, no
-    'sauserprefs'               => 'yes',
-
-    // Protected SA user preferences
-    // (default: {headers}, use_razor1, bayes_auto_learn_threshold_nonspam, bayes_auto_learn_threshold_spam)
-    //
-    // Any user preference listed in that configuration parameter will be
-    // protected against overriding by users. See Check
-    // webmail/plugins/sauserprefs/config.inc.php for list of available options.
-    //
-    // WARNING: Don't change anything if you don't know what you are doing.
-    'sauserprefs_dont_override' => array(
-        '{headers}',
-        'use_razor1',
-        'bayes_auto_learn_threshold_nonspam',
-        'bayes_auto_learn_threshold_spam'
-    ),
-
-    //
-    // SPAMASS_MILTER(8) configuration
-    //
-
-    'spamassMilter_config' => array(
-        // Reject spam (default: -1)
+    // SPAMASS_MILTER(8) service configuration options
+    'spamass_milter' => array(
+        // Policy for spam rejection
         //
-        // If set to '-1', mails are always rejected when they are detected as SPAM.
-        // If set to '15', mails are only rejected when the score is equal or greater then 15.
-        // Mails below that score are not rejected but tagged as SPAM.
-        //
-        // If you don't want to reject any mails, then use a value higher than '1000'.
-        //
-        // Note: Rejecting SPAM is supported because the checks are done totally legal
-        // before the MTA accepts the mails (before-queue filter with spamass-milter).
-        'reject_spam'          => '-1',
+        // If set to -1, mails are always rejected when they are detected as SPAM.
+        // If set to 15, mails are only rejected when the score is equal or greater then 15. Mails below that score
+        // are not rejected but tagged as SPAM.
+        // If you don't want to reject any mails, set a value higher than '1000'.
+        'spam_reject_policy'      => 15,
 
-        // Check mails if the sender has authenticated via SMTP AUTH (default: yes)
-        // If set to 'yes', all outgoing mails of authenticated senders are scanned.
-        'check_smtp_auth'      => 'yes',
+        // Ignores messages if the sender has authenticated via SMTP AUTH.
+        // Possible value: true, false
+        'ignore_auth_sender_msgs' => true,
 
-        // Don't scan listed networks (default: empty array)
+        // Don't scan listed networks
         //
-        // Mails will be passed through without being scanned if the originating IP is listed
-        // in networks. Networks is a comma-separated list, where each element can be either an
-        // IP address (nnn.nnn.nnn.nnn), a CIDR network (nnn.nnn.nnn.nnn/nn), or a network/netmask
-        // pair (nnn.nnn.nnn.nnn/nnn.nnn.nnn.nnn).
+        // Mails will be passed through without being scanned if the
+        // originating IP is listed in networks.
         //
-        // For example: networks => array('127.0.0.1', '172.16.12.0/24', '10.0.0.0/255.0.0.0')
-        'networks'             => array(),
+        // Networks is a comma-separated list, where each element can be either:
+        // - An IP address: nnn.nnn.nnn.nnn
+        // - A CIDR network: nnn.nnn.nnn.nnn/nn
+        // - A network/netmask pair: nnn.nnn.nnn.nnn/nnn.nnn.nnn.nnn
+        //
+        // For instance: '127.0.0.1', '172.16.12.0/24', '10.0.0.0/255.0.0.0'
+        'networks'                => array(
+            '127.0.0.1'
+        ),
 
-        // SPAMASS_MILTER(8) configuration options (default: -e -f -u spamass-milter)
+        // SPAMASS_MILTER(8) configuration options
         // You can pass your own options to SPAMASS_MILTER(8), including flags for
         // SPAMC(1) as described in SPAMASS_MILTER(8)
-        // WARNING: Don't change anything if you don't know what you are doing.
-        'spamassMilterOptions' => '-e -f -u spamass-milter',
+        // Warning: Don't add the -I, -i and -r SPAMC(1) options here as these
+        // are managed using named options above.
+        'options'                 => '-e -f -u spamass-milter -- -U /var/run/spamassassin.sock',
 
-        // SPAMASS_MILTER(8) socket path (default: /var/spool/postfix/spamass/spamass.sock)
-        // WARNING: Don't change anything if you don't know what you are doing.
-        'spamassMilterSocket'  => '/var/spool/postfix/spamass/spamass.sock'
+        // Socket path
+        'socket_path'             => '/var/spool/postfix/spamass/spamass.sock',
+
+        // Socket owner
+        'socket_owner'            => 'postfix:postfix',
+
+        // Socket mode
+        'socket_mode'             => '0666'
     ),
 
-    //
-    // SPAMD(8p) configuration
-    //
+    // SpamAssassin configuration options
+    'spamassassin'   => array(
+        // AWL plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_AWL.html
+        'AWL'                      => array(
+            // Possible values: true, false
+            'enabled'          => false,
 
-    // SPAMD(8p) configuration options (default:--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin)
-    // WARNING: Don't change anything if you don't know what you are doing.
-    'spamassassinOptions'  => '--max-children=5 --sql-config --nouser-config --username=debian-spamd --port=783 --helper-home-dir=/var/lib/spamassassin'
+            // Configuration sections where the plugin must be loaded
+            'config_sections'  => '/etc/spamassassin/v310.pre',
+
+            // Cronjob for cleaning up of AWL database
+            // See man CRONTAB(5) for allowed values
+            'cronjob_clean_db' => array(
+                'minute' => '@daily',
+                'hour'   => '',
+                'day'    => '',
+                'month'  => '',
+                'dweek'  => ''
+            ),
+        ),
+
+        // Bayes plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Bayes.html
+        'Bayes'                    => array(
+            // Possible values: true, false
+            'enabled'          => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections'  => '/etc/spamassassin/v320.pre',
+
+            // Enable/Disable site-wide SpamAssassin Bayesian classifier
+            //
+            // When set to yes 'yes', the $GLOBAL bayes database is enabled.
+            // This allow to share the bayesian database with all users.
+            //
+            // Possible values: true, false
+            'site_wide'        => false,
+
+            // Cronjob for sa-learn
+            // See man CRONTAB(5) for allowed values
+            'cronjob_sa_learn' => array(
+                'minute' => '0',
+                'hour'   => '*/12',
+                'day'    => '*',
+                'month'  => '*',
+                'dweek'  => '*'
+            ),
+
+            // Cronjob for cleaning up of bayes database
+            // See man CRONTAB(5) for allowed values
+            'cronjob_clean_db' => array(
+                'minute' => '@daily',
+                'hour'   => '',
+                'day'    => '',
+                'month'  => '',
+                'dweek'  => ''
+            )
+        ),
+
+        // DCC plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DCC.html
+        // WARNING: You must first install DCC which is not provided by default.
+        // See https://www.dcc-servers.net/dcc/INSTALL.html
+        'DCC'                      => array(
+            // Possible values: true, false
+            'enabled'         => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // DecodeShortURLs plugin
+        // See https://github.com/smfreegard/DecodeShortURLs
+        'DecodeShortURLs'          => array(
+            // Possible values: true, false
+            'enabled' => true
+        ),
+
+        // iXhash2 SpamAssasin plugin
+        // See http://mailfud.org/iXhash2/
+        'iXhash2'                  => array(
+            // Possible values: true, false
+            'enabled' => true
+        ),
+
+        // Pyzor plugin
+        // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Pyzor.html
+        'Pyzor'                    => array(
+            // Possible values: true, false
+            'enabled'         => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // Razor2 plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Razor2.html
+        'Razor2'                   => array(
+            // Possible values: true, false
+            'enabled'         => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // Rule2XSBody plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Rule2XSBody.html
+        'Rule2XSBody'              => array(
+            // Possible values: true, false
+            'enabled'         => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections' => '/etc/spamassassin/sa-compile.pre'
+        ),
+
+        // TextCat plugin
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_TextCat.html
+        'TextCat'                  => array(
+            // possible values: true, false
+            'enabled'         => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_sections' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // WARNING: You shouldn't enable this feature if you already use
+        // PolicydWeight or Postscreen plugins.
+        'use_rbl_checks'           => array(
+            // Possible value: true, false
+            'enabled' => true
+        ),
+
+        // Heinlein Support SpamAssassin ruleset
+        // See https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
+        'heinlein_support_ruleset' => array(
+            // Possible value: true, false
+            'enabled'     => true,
+
+            // Cronjob sleep timer (in second)
+            'sleep_timer' => 600,
+
+            // sa-update channel
+            'channel'     => 'spamassassin.heinlein-support.de'
+        )
+    ),
+
+    // Roundcube configuration options
+    // Only relevant if you use the Roundcube Webmail
+    'roundcube'      => array(
+        // markasjunk2 Roundcube plugin
+        'markasjunk2' => array(
+            // Possible value: true, false
+            'enabled' => true
+        ),
+
+        // sauserprefs Roundcube plugin
+        'sauserprefs' => array(
+            // Possible values: true, false
+            'enabled'                   => true,
+
+            // Protected SA user preferences
+            //
+            // Any user preference in that configuration parameter will be
+            // protected against overriding by users.
+            'sauserprefs_dont_override' => array(
+                '{headers}',
+                'use_razor1',
+                'bayes_auto_learn_threshold_nonspam',
+                'bayes_auto_learn_threshold_spam'
+            )
+        )
+    )
 );

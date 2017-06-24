@@ -5,6 +5,7 @@ user_scores_sql_password {SA_DATABASE_PASSWORD}
 user_scores_sql_custom_query SELECT preference, value FROM _TABLE_ WHERE (username = _USERNAME_ OR username = '$GLOBAL' OR username = CONCAT('%',_DOMAIN_)) {DISABLE_DCC} ORDER BY username ASC
 
 # Bayes configuration
+# See https://svn.apache.org/repos/asf/spamassassin/branches/3.1/sql/README.bayes for further details
 bayes_store_module Mail::SpamAssassin::BayesStore::MySQL
 bayes_sql_dsn DBI:mysql:{SA_DATABASE_NAME}:{DATABASE_HOST}:{DATABASE_PORT}
 bayes_sql_username {SA_DATABASE_USER}
