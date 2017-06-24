@@ -1,6 +1,8 @@
 <?php
 /**
  * i-MSCP PolicydSPF plugin
+ *
+ * @copyright 2016-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * @copyright 2016 Ninos Ego <me@ninosego.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +21,16 @@
  */
 
 return array(
-    'author'      => 'Ninos Ego',
-    'email'       => 'me@ninosego.de',
-    'version'     => '1.1.0',
-    'require_api' => '1.0.4',
-    'date'        => '2016-06-25',
+    'author'      => array(
+        'Laurent Declercq',
+        'Ninos Ego',
+    ),
+    'email'       => 'team@i-mscp.net',
+    'version'     => '1.2.0',
+    'require_api' => '1.4.0',
+    'date'        => '2017-06-24',
+    'build'       => '2017062400',
     'name'        => 'PolicydSPF',
-    'desc'        => 'Plugin that provides Postfix policy server for RFC 4408 SPF checking.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
+    'desc'        => 'Provides Simple Postfix policy server for RFC 4408/7208 SPF checking.',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
 );

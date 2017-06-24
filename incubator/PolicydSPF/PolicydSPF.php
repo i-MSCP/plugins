@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP PolicydSPF plugin
+ * @copyright 2017 Laurent Declercq <l.declercq@nuxwin.com>
  * @copyright 2016 Ninos Ego <me@ninosego.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +19,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+
 /**
  * Class iMSCP_Plugin_PolicydSPF
  */
-class iMSCP_Plugin_PolicydSPF extends iMSCP_Plugin_Action
+class iMSCP_Plugin_PolicydSPF extends PluginAction
 {
 }

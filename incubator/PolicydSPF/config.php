@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP PolicydSPF plugin
+ * @copyright 2016-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * @copyright 2016 Ninos Ego <me@ninosego.de>
  *
  * This program is free software; you can redistribute it and/or

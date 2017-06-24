@@ -5,7 +5,8 @@
 =cut
 
 # i-MSCP PolicydSPF plugin
-# Copyright (C) 2016 Ninos Ego <me@ninosego.de>
+# @copyright (C) 2016-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# @copyright 2016 Ninos Ego <me@ninosego.de>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -25,11 +26,10 @@ package Plugin::PolicydSPF;
 
 use strict;
 use warnings;
-use iMSCP::Debug;
-use iMSCP::Execute;
-use iMSCP::File;
-use iMSCP::TemplateParser;
-use Servers::mta;
+use autouse 'iMSCP::Debug' => qw/ debug error /;
+use autouse 'iMSCP::Execute' => qw/ execute /;
+use autouse 'iMSCP::TemplateParser' => qw/ getBloc replaceBloc /;
+use Class::Autouse qw/ :nostat iMSCP::File Servers::mta /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -40,7 +40,7 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item enable()
+=item enable( )
 
  Perform enable tasks
 
@@ -50,13 +50,13 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-    my $self = shift;
+    my ($self) = @_;
 
-    my $rs = $self->_checkRequirements();
+    my $rs = $self->_installDistributionPackages( );
     $rs ||= $self->_configurePostfix( 'configure' );
 }
 
-=item disable()
+=item disable( )
 
  Perform disable tasks
 
@@ -66,7 +66,7 @@ sub enable
 
 sub disable
 {
-    my $self = shift;
+    my ($self) = @_;
 
     return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
@@ -86,20 +86,20 @@ sub _configurePostfix
 {
     my ($self, $action) = @_;
 
-    my $mta = Servers::mta->factory();
+    my $mta = Servers::mta->factory( );
 
     if ($action eq 'configure') {
         my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
-        my $fileContent = $file->get();
+        my $fileContent = $file->get( );
         unless (defined $fileContent) {
-            error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+            error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
             return 1;
         }
 
-        my $confSnippet = <<EOF;
+        my $confSnippet = <<'EOF';
 # Plugin::PolicydSPF - Begin
 policy-spf  unix  -       n       n       -       -       spawn
-  user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
+ user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
 # Plugin::PolicydSPF - Ending
 EOF
         if (getBloc( "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $fileContent ) ne '') {
@@ -111,14 +111,14 @@ EOF
         }
 
         my $rs = $file->set( $fileContent );
-        $rs ||= $file->save();
+        $rs ||= $file->save( );
         $rs ||= $mta->postconf(
             (
-                'policy-spf_time_limit'        => {
+                'policy-spf_time_limit'      => {
                     action => 'replace',
                     values => [ "$self->{'config'}->{'policyd_spf_time_limit'}" ]
                 },
-                'smtpd_recipient_restrictions' => {
+                smtpd_recipient_restrictions => {
                     action => 'add',
                     before => qr/permit/,
                     values => [ "check_policy_service $self->{'config'}->{'policyd_spf_service'}" ]
@@ -128,11 +128,11 @@ EOF
         return $rs if $rs;
     } elsif ($action eq 'deconfigure') {
         my $rs = $mta->postconf(
-            'policy-spf_time_limit'        => {
+            'policy-spf_time_limit'      => {
                 action => 'replace',
                 values => [ '' ]
             },
-            'smtpd_recipient_restrictions' => {
+            smtpd_recipient_restrictions => {
                 action => 'remove',
                 values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
             }
@@ -140,20 +140,19 @@ EOF
         return $rs if $rs;
 
         my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
-        my $fileContent = $file->get();
+        my $fileContent = $file->get( );
         unless (defined $fileContent) {
-            error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+            error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
             return 1;
         }
         $fileContent = replaceBloc(
             "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
         );
         $rs = $file->set( $fileContent );
-        $rs ||= $file->save();
+        $rs ||= $file->save( );
         return $rs if $rs;
     }
 
-    $mta->{'restart'} = 1;
     0;
 }
 
@@ -163,28 +162,42 @@ EOF
 
 =over 4
 
-=item _checkRequirements()
+=item _installDistributionPackages( )
+ 
+ Install required distribution packages
 
- Check for requirements
-
- Return int 0 if all requirements are met, other otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
-sub _checkRequirements
+sub _installDistributionPackages
 {
-    if (execute( "dpkg-query -W -f='\${Status}' postfix-policyd-spf-perl 2>/dev/null | grep -q '\\sinstalled\$'" )) {
-        error( "The `postfix-policyd-spf-perl' package is not installed on your system" );
-        return 1;
-    }
+    $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
 
-    0;
+    my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( sprintf("Couldn't update APT index: %s", $stderr || 'Unknown error' ) ) if $rs;
+    return $rs if $rs;
+
+    $rs = execute(
+        [
+            'apt-get', '-o', 'DPkg::Options::=--force-confold', '-o', 'DPkg::Options::=--force-confdef',
+            '-o', 'DPkg::Options::=--force-confmiss', '--assume-yes', '--auto-remove', '--no-install-recommends',
+            '--purge', '--quiet', 'install', 'postfix-policyd-spf-perl'
+        ],
+        \$stdout,
+        \$stderr
+    );
+    debug( $stdout ) if $stdout;
+    error( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ) ) if $rs;
+    $rs;
 }
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS
 
+ Laurent Declercq <l.declercq@nuxwin.com>
  Ninos Ego <me@ninosego.de>
 
 =cut
