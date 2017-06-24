@@ -52,8 +52,14 @@ sub enable
 {
     my ($self) = @_;
 
-    my $rs = $self->_installDistributionPackages( );
-    $rs ||= $self->_configurePostfix( 'configure' );
+    unless (defined $main::execmode && $main::execmode eq 'setup'
+        || !grep( $_ eq $self->{'action'}, 'install', 'update' )
+    ) {
+        my $rs = $self->_installDistributionPackages( );
+        return $rs if $rs;
+    }
+
+    $self->_configurePostfix( 'configure' );
 }
 
 =item disable( )
@@ -73,7 +79,7 @@ sub disable
     $self->_configurePostfix( 'deconfigure' );
 }
 
-=item _configurePostfix($action)
+=item _configurePostfix( [ $action = 'deconfigure' ] )
 
  Configure Postfix
 
@@ -85,6 +91,7 @@ sub disable
 sub _configurePostfix
 {
     my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
     my $mta = Servers::mta->factory( );
 
@@ -99,7 +106,7 @@ sub _configurePostfix
         my $confSnippet = <<'EOF';
 # Plugin::PolicydSPF - Begin
 policy-spf  unix  -       n       n       -       -       spawn
- user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
+  user=nobody argv=/usr/sbin/postfix-policyd-spf-perl
 # Plugin::PolicydSPF - Ending
 EOF
         if (getBloc( "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", $fileContent ) ne '') {
@@ -125,35 +132,32 @@ EOF
                 }
             )
         );
-        return $rs if $rs;
-    } elsif ($action eq 'deconfigure') {
-        my $rs = $mta->postconf(
-            'policy-spf_time_limit'      => {
-                action => 'replace',
-                values => [ '' ]
-            },
-            smtpd_recipient_restrictions => {
-                action => 'remove',
-                values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
-            }
-        );
-        return $rs if $rs;
-
-        my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
-        my $fileContent = $file->get( );
-        unless (defined $fileContent) {
-            error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
-            return 1;
-        }
-        $fileContent = replaceBloc(
-            "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
-        );
-        $rs = $file->set( $fileContent );
-        $rs ||= $file->save( );
-        return $rs if $rs;
+        return $rs;
     }
 
-    0;
+    my $rs = $mta->postconf(
+        'policy-spf_time_limit'      => {
+            action => 'replace',
+            values => [ '' ]
+        },
+        smtpd_recipient_restrictions => {
+            action => 'remove',
+            values => [ qr/check_policy_service\s+\Q$self->{'config_prev'}->{'policyd_spf_service'}\E/ ]
+        }
+    );
+    return $rs if $rs;
+
+    my $file = iMSCP::File->new( filename => $mta->{'config'}->{'POSTFIX_MASTER_CONF_FILE'} );
+    my $fileContent = $file->get( );
+    unless (defined $fileContent) {
+        error( sprintf( "Couldn't read %s file", $file->{'filename'} ) );
+        return 1;
+    }
+    $fileContent = replaceBloc(
+        "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
+    );
+    $rs = $file->set( $fileContent );
+    $rs ||= $file->save( );
 }
 
 =back
