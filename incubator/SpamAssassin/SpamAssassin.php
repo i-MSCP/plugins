@@ -127,7 +127,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     {
         $dbConfig = Registry::get('dbConfig');
         $pluginConfig = $this->getConfig();
-        if (preg_match("/-(?:p\s+|port=)=(\d+)/", $pluginConfig['spamd_options']['options'], $spamAssassinPort)) {
+        if (preg_match("/-(?:p\s+|-port=)(\d+)/", $pluginConfig['spamd_options']['options'], $spamAssassinPort)) {
             $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
         } else {
             unset($dbConfig['PORT_SPAMASSASSIN']);
