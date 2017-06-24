@@ -48,7 +48,7 @@ sub getData
     };
 }
 
-newDebug( 'spamassassin-plugin-cronjob.log' );
+newDebug( 'spamassassin-plugin-clean-bayes-db.log' );
 iMSCP::Bootstrapper->getInstance()->boot(
     {
         norequirements  => 'yes',

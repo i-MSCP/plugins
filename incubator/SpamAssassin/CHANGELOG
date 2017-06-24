@@ -23,6 +23,7 @@ Version 2.0.0
     Fixed: Make sure that configuration files are created with expected UMASK(2)
     Fixed: SA database must be dropped on plugin uninstallation
     Fixed: Stop and disable SA services on plugin deactivation
+    Fixed: Synchronize the database and the journal once per learning session (sa-learn)
     Updated: Roundcube MarkAsJunk2 plugin from version 1.9 to version 1.10
     Updated: Roundcube SAUserPrefs plugin from version 1.15 to version 1.16
     Removed: `i` sendmail macro (MILTER)

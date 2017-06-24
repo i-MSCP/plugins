@@ -283,14 +283,17 @@ sub bayesSaLearn
 
     for (<$saLearnDir/*>) {
         my ($username, $learningMode) = /^\Q$saLearnDir\E\/(.*)__(spam|ham)__.*/ or next;
-        my $rs = execute( "sa-learn --$learningMode -u $username $_", \ my $stdout, \ my $stderr );
+        my $rs = execute( "sa-learn --no-sync --$learningMode -u $username $_", \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         $rs ||= iMSCP::File->new( filename => $_ )->delFile( ) if -f;
         return $rs if $rs;
     }
 
-    0;
+    my $rs = execute( "sa-learn --sync", \ my $stdout, \ my $stderr );
+    debug( $stdout ) if $stdout;
+    error( $stderr || 'Unknown error' ) if $rs;
+    $rs;
 }
 
 =back
@@ -998,10 +1001,10 @@ sub _configureRoundcubePlugins
             ) {
                 $rs = $self->_registerCronjob( 'bayes_sa_learn' );
                 return $rs if $rs;
+            } else {
+                $rs = $self->bayesSaLearn( );
+                return $rs if $rs;
             }
-
-            $rs = $self->bayesSaLearn( );
-            return $rs if $rs;
         }
     }
 
