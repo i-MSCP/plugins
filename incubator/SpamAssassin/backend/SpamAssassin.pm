@@ -118,7 +118,7 @@ sub enable
         $rs = $self->{'eventManager'}->register(
             'beforeSetupRestartServices',
             sub {
-                unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin services' ];
+                unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin' ];
                 0;
             },
         );

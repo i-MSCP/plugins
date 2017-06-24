@@ -35,7 +35,7 @@ return array(
         // If set to -1, mails are always rejected when they are detected as SPAM.
         // If set to 15, mails are only rejected when the score is equal or greater then 15. Mails below that score
         // are not rejected but tagged as SPAM.
-        // If you don't want to reject any mails, set a value higher than '1000'.
+        // If you don't want to reject any mails, set a value higher than 1000.
         'spam_reject_policy'      => 15,
 
         // Ignores messages if the sender has authenticated via SMTP AUTH.
@@ -237,7 +237,7 @@ return array(
 
         // Enable RBL check
         // WARNING: You shouldn't enable this feature if you already use the i-MSCP PolicydWeight
-        // or Postscreen plugins.
+        // and/or Postscreen plugins.
         'use_rbl_checks'           => array(
             // Possible value: true, false
             'enabled' => false
