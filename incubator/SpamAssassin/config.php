@@ -82,7 +82,7 @@ return array(
             // Possible values: true, false
             'enabled'          => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file'      => '/etc/spamassassin/v310.pre',
 
             // Cronjob for cleaning up of AWL database
@@ -102,7 +102,7 @@ return array(
             // Possible values: true, false
             'enabled'          => true,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file'      => '/etc/spamassassin/v320.pre',
 
             // Enable/Disable site-wide SpamAssassin Bayesian classifier
@@ -142,7 +142,7 @@ return array(
             // Possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
@@ -153,7 +153,7 @@ return array(
             // Possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/v312.pre'
         ),
 
@@ -190,7 +190,7 @@ return array(
             // Possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
@@ -200,7 +200,7 @@ return array(
             // Possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
@@ -210,7 +210,7 @@ return array(
             // Possible values: true, false
             'enabled'     => true,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/sa-compile.pre'
         ),
 
@@ -221,7 +221,7 @@ return array(
             // Possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/init.pre'
         ),
 
@@ -231,7 +231,7 @@ return array(
             // possible values: true, false
             'enabled'     => false,
 
-            // Configuration sections where the plugin must be loaded
+            // Configuration file(s) where the plugin must be loaded
             'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
