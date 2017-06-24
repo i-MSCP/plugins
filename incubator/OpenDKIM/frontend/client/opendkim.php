@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -20,13 +20,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace OpenDKIM;
-
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Plugin_OpenDKIM as OpenDKIM;
 use iMSCP_pTemplate as TemplateEngine;
-use PDO;
 
 /***********************************************************************************************************************
  * Functions
@@ -51,45 +48,45 @@ function opendkim_generatePage($tpl)
         array('OpenDKIM_Plugin', $_SESSION['user_id'])
     );
 
-    if ($stmt->rowCount()) {
-        while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
-            if ($row['opendkim_status'] == 'ok') {
-                $statusIcon = 'ok';
-            } elseif ($row['opendkim_status'] == 'disabled') {
-                $statusIcon = 'disabled';
-            } elseif (in_array(
-                $row['opendkim_status'],
-                array('toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable', 'todelete'))
-            ) {
-                $statusIcon = 'reload';
-            } else {
-                $statusIcon = 'error';
-            }
-
-            if ($row['domain_text']) {
-                if (strpos($row['domain_dns'], ' ') !== false) {
-                    $dnsName = explode(' ', $row['domain_dns']);
-                    $dnsName = $dnsName[0];
-                } else {
-                    $dnsName = $row['domain_dns'];
-                }
-            } else {
-                $dnsName = '';
-            }
-
-            $tpl->assign(array(
-                'DOMAIN_NAME' => decode_idna($row['domain_name']),
-                'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tr('Generation in progress.'),
-                'OPENDKIM_ID' => $row['opendkim_id'],
-                'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
-                'KEY_STATUS'  => translate_dmn_status($row['opendkim_status']),
-                'STATUS_ICON' => $statusIcon
-            ));
-            $tpl->parse('DOMAINKEY_ITEM', '.domainkey_item');
-        }
-    } else {
+    if (!$stmt->rowCount()) {
         $tpl->assign('CUSTOMER_LIST', '');
         set_page_message(tr('No domain with OpenDKIM support has been found.'), 'static_info');
+        return;
+    }
+
+    while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+        if ($row['opendkim_status'] == 'ok') {
+            $statusIcon = 'ok';
+        } elseif ($row['opendkim_status'] == 'disabled') {
+            $statusIcon = 'disabled';
+        } elseif (in_array($row['opendkim_status'],
+            array('toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable', 'todelete'))
+        ) {
+            $statusIcon = 'reload';
+        } else {
+            $statusIcon = 'error';
+        }
+
+        if ($row['domain_text']) {
+            if (strpos($row['domain_dns'], ' ') !== false) {
+                $dnsName = explode(' ', $row['domain_dns']);
+                $dnsName = $dnsName[0];
+            } else {
+                $dnsName = $row['domain_dns'];
+            }
+        } else {
+            $dnsName = '';
+        }
+
+        $tpl->assign(array(
+            'DOMAIN_NAME' => decode_idna($row['domain_name']),
+            'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tr('Generation in progress.'),
+            'OPENDKIM_ID' => $row['opendkim_id'],
+            'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
+            'KEY_STATUS'  => translate_dmn_status($row['opendkim_status']),
+            'STATUS_ICON' => $statusIcon
+        ));
+        $tpl->parse('DOMAINKEY_ITEM', '.domainkey_item');
     }
 }
 
@@ -127,4 +124,3 @@ generatePageMessage($tpl);
 $tpl->parse('LAYOUT_CONTENT', 'page');
 EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
 $tpl->prnt();
-

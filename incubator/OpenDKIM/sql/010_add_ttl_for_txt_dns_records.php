@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -21,10 +21,5 @@
  */
 
 return array(
-    'up'   => "
-        UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'
-    ",
-    'down' => "
-        UPDATE domain_dns SET domain_dns = 'mail._domainkey' WHERE owned_by = 'OpenDKIM_Plugin'
-    "
+    'up' => "UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'"
 );

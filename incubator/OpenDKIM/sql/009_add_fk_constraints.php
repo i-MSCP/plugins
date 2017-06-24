@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -21,7 +21,7 @@
  */
 
 return array(
-    'up'   => '
+    'up' => '
         ALTER TABLE opendkim ADD CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id)
         ON DELETE CASCADE;
 
@@ -30,13 +30,5 @@ return array(
 
         ALTER TABLE opendkim ADD CONSTRAINT alias_id FOREIGN KEY (alias_id) REFERENCES domain_aliasses (alias_id)
         ON DELETE CASCADE;
-    ',
-    'down' => '
-        ALTER TABLE opendkim DROP FOREIGN KEY admin_id;
-        ALTER TABLE opendkim DROP INDEX admin_id;
-        ALTER TABLE opendkim DROP FOREIGN KEY domain_id;
-        ALTER TABLE opendkim DROP INDEX domain_id;
-        ALTER TABLE opendkim DROP FOREIGN KEY alias_id;
-        ALTER TABLE opendkim DROP INDEX alias_id;
     '
 );

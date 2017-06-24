@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -34,7 +34,5 @@ return array(
             KEY opendkim_id (opendkim_id)
         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     ',
-    'down' => '
-        DROP TABLE IF EXISTS opendkim
-    '
+    'down' => 'DROP TABLE IF EXISTS opendkim'
 );

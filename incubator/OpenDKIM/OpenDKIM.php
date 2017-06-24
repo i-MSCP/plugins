@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -20,10 +20,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Events as Events;
+use iMSCP_Events_Event as Event;
+use iMSCP_Events_Manager_Interface as EventsManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_OpenDKIM
  */
-class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
+class iMSCP_Plugin_OpenDKIM extends PluginAction
 {
     /**
      * Plugin initialization
@@ -38,18 +46,18 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
     /**
      * Register event listeners
      *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @param EventsManagerInterface $eventsManager
      * @return void
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventsManagerInterface $eventsManager)
     {
         $eventsManager->registerListener(
             array(
-                iMSCP_Events::onResellerScriptStart,
-                iMSCP_Events::onClientScriptStart,
-                iMSCP_Events::onAfterAddDomainAlias,
-                iMSCP_Events::onAfterDeleteDomainAlias,
-                iMSCP_Events::onAfterDeleteCustomer
+                Events::onResellerScriptStart,
+                Events::onClientScriptStart,
+                Events::onAfterAddDomainAlias,
+                Events::onAfterDeleteDomainAlias,
+                Events::onAfterDeleteCustomer
             ),
             $this
         );
@@ -58,53 +66,53 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
     /**
      * Plugin installation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
         try {
             $this->migrateDb('up');
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Plugin update
      *
-     * @throws iMSCP_Plugin_Exception When update fail
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException When update fail
+     * @param PluginManager $pluginManager
      * @param string $fromVersion Version from which plugin update is initiated
      * @param string $toVersion Version to which plugin is updated
      * @return void
      */
-    public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
     {
         try {
             $this->migrateDb('up');
             $this->clearTranslations();
-            iMSCP_Registry::get('dbConfig')->del('PORT_OPENDKIM');
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+            Registry::get('dbConfig')->del('PORT_OPENDKIM');
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Plugin uninstallation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         try {
             $this->migrateDb('down');
             $this->clearTranslations();
-        } catch (iMSCP_Plugin_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -133,65 +141,67 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
     /**
      * onAfterDeleteCustomer event listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
      * @return void
      */
-    public function onAfterDeleteCustomer(iMSCP_Events_Event $event)
+    public function onAfterDeleteCustomer(Event $event)
     {
-        exec_query(
-            'UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?',
-            array('todelete', $event->getParam('customerId'))
-        );
+        exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array(
+            'todelete', $event->getParam('customerId')
+        ));
     }
 
     /**
      * onAfterAddDomainAlias event listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
      * @return void
      */
-    public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
+    public function onAfterAddDomainAlias(Event $event)
     {
         // Check that the domain alias is being added and not simply ordered
         $stmt = exec_query('SELECT alias_id FROM domain_aliasses WHERE alias_id = ? AND alias_status = ?', array(
             $event->getParam('domainAliasId'), 'toadd'
         ));
 
-        if ($stmt->rowCount()) {
-            // In case OpenDKIM is activated for the parent domain, we must activate it also for the domain alias which
-            // is being added
-            $stmt = exec_query(
-                'SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = ?',
-                array($event->getParam('domainId'), 'ok')
-            );
-
-            if ($stmt->rowCount()) {
-                $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-
-                exec_query(
-                    '
-                        INSERT INTO opendkim (
-                            admin_id, domain_id, alias_id, domain_name, opendkim_status
-                        ) VALUES (
-                            ?, ?, ?, ?, ?
-                        )
-                    ',
-                    array(
-                        $row['admin_id'], $event->getParam('domainId'), $event->getParam('domainAliasId'),
-                        encode_idna($event->getParam('domainAliasName')), 'toadd'
-                    )
-                );
-            }
+        if (!$stmt->rowCount()) {
+            return;
         }
+
+        // In case OpenDKIM is activated for the parent domain, we must activate it also for the domain alias which
+        // is being added
+        $stmt = exec_query(
+            'SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = ?',
+            array($event->getParam('domainId'), 'ok')
+        );
+
+        if (!$stmt->rowCount()) {
+            return;
+        }
+
+        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
+        exec_query(
+            '
+                INSERT INTO opendkim (
+                    admin_id, domain_id, alias_id, domain_name, opendkim_status
+                ) VALUES (
+                    ?, ?, ?, ?, ?
+                )
+            ',
+            array(
+                $row['admin_id'], $event->getParam('domainId'), $event->getParam('domainAliasId'),
+                encode_idna($event->getParam('domainAliasName')), 'toadd'
+            )
+        );
     }
 
     /**
      * onAfterDeleteDomainAlias event listener
      *
-     * @param iMSCP_Events_Event $event
+     * @param Event $event
      * @return void
      */
-    public function onAfterDeleteDomainAlias(iMSCP_Events_Event $event)
+    public function onAfterDeleteDomainAlias(Event $event)
     {
         exec_query('UPDATE opendkim SET opendkim_status = ? WHERE alias_id = ?', array(
             'todelete', $event->getParam('domainAliasId')
@@ -246,7 +256,9 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
     public function changeItemStatus($table, $field, $itemId)
     {
         if ($table == 'opendkim' && $field == 'opendkim_status') {
-            exec_query('UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?', array('tochange', $itemId));
+            exec_query('UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?', array(
+                    'tochange', $itemId)
+            );
         }
     }
 
@@ -285,7 +297,6 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
                 ',
                 array($customerId, 'ok')
             );
-
             $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
             $hasAccess = (bool)$row['cnt'];
         }
@@ -297,32 +308,38 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
      * Inject OpenDKIM links into the navigation object
      *
      * @param string $level UI level
+     * @return void;
      */
     protected function setupNavigation($level)
     {
-        if (iMSCP_Registry::isRegistered('navigation')) {
-            /** @var Zend_Navigation $navigation */
-            $navigation = iMSCP_Registry::get('navigation');
+        if (!Registry::isRegistered('navigation')) {
+            return;
+        }
 
-            if ($level == 'reseller') {
-                if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
-                    $page->addPage(array(
-                        'label'              => tr('OpenDKIM'),
-                        'uri'                => '/reseller/opendkim.php',
-                        'title_class'        => 'users',
-                        'privilege_callback' => array(
-                            'name' => 'resellerHasCustomers'
-                        )
-                    ));
-                }
-            } elseif ($level == 'client') {
-                if (($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
-                    $page->addPage(array(
-                        'label'       => tr('OpenDKIM'),
-                        'uri'         => '/client/opendkim.php',
-                        'title_class' => 'domains'
-                    ));
-                }
+        /** @var Zend_Navigation $navigation */
+        $navigation = Registry::get('navigation');
+
+        if ($level == 'reseller') {
+            if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
+                $page->addPage(array(
+                    'label'              => tr('OpenDKIM'),
+                    'uri'                => '/reseller/opendkim.php',
+                    'title_class'        => 'users',
+                    'privilege_callback' => array(
+                        'name' => 'resellerHasCustomers'
+                    )
+                ));
+            }
+            return;
+        }
+
+        if ($level == 'client') {
+            if (($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
+                $page->addPage(array(
+                    'label'       => tr('OpenDKIM'),
+                    'uri'         => '/client/opendkim.php',
+                    'title_class' => 'domains'
+                ));
             }
         }
     }
@@ -335,8 +352,7 @@ class iMSCP_Plugin_OpenDKIM extends iMSCP_Plugin_Action
     protected function clearTranslations()
     {
         /** @var Zend_Translate $translator */
-        $translator = iMSCP_Registry::get('translator');
-
+        $translator = Registry::get('translator');
         if ($translator->hasCache()) {
             $translator->clearCache($this->getName());
         }

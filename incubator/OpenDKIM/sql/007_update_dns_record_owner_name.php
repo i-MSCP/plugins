@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP OpenDKIM plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -21,5 +21,5 @@
  */
 
 return array(
-    'up'   => "UPDATE domain_dns SET owned_by = 'OpenDKIM_Plugin' WHERE owned_by = 'opendkim_feature'"
+    'up' => "UPDATE domain_dns SET owned_by = 'OpenDKIM_Plugin' WHERE owned_by = 'opendkim_feature'"
 );
