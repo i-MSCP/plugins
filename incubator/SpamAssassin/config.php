@@ -76,14 +76,14 @@ return array(
 
     // SpamAssassin configuration options
     'spamassassin'   => array(
-        // AWL plugin
+        // AWL plugin -- Normalize scores via auto-whitelist
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_AWL.html
         'AWL'                      => array(
             // Possible values: true, false
             'enabled'          => false,
 
             // Configuration sections where the plugin must be loaded
-            'config_sections'  => '/etc/spamassassin/v310.pre',
+            'config_file'      => '/etc/spamassassin/v310.pre',
 
             // Cronjob for cleaning up of AWL database
             // See man CRONTAB(5) for allowed values
@@ -96,14 +96,14 @@ return array(
             ),
         ),
 
-        // Bayes plugin
+        // Bayes plugin -- determine spammishness using a Bayesian classifier
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Bayes.html
         'Bayes'                    => array(
             // Possible values: true, false
             'enabled'          => true,
 
             // Configuration sections where the plugin must be loaded
-            'config_sections'  => '/etc/spamassassin/v320.pre',
+            'config_file'      => '/etc/spamassassin/v320.pre',
 
             // Enable/Disable site-wide SpamAssassin Bayesian classifier
             //
@@ -134,77 +134,34 @@ return array(
             )
         ),
 
-        // DCC plugin
+        // DCC plugin -- perform DCC check of messages
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DCC.html
         // WARNING: You must first install DCC which is not provided by default.
         // See https://www.dcc-servers.net/dcc/INSTALL.html
         'DCC'                      => array(
             // Possible values: true, false
-            'enabled'         => false,
+            'enabled'     => false,
 
             // Configuration sections where the plugin must be loaded
-            'config_sections' => '/etc/spamassassin/v310.pre'
+            'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
-        // DecodeShortURLs plugin
+        // DKIM plugin - perform DKIM verification tests
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DKIM.html
+        // WARNING: You shouldn't enable that plugin if you also use the i-MSCP OpenDKIM plugin.
+        'DKIM'                     => array(
+            // Possible values: true, false
+            'enabled'     => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/v312.pre'
+        ),
+
+        // DecodeShortURLs plugin -- Expand shortened URLs
         // See https://github.com/smfreegard/DecodeShortURLs
         'DecodeShortURLs'          => array(
             // Possible values: true, false
-            'enabled' => true
-        ),
-
-        // iXhash2 SpamAssasin plugin
-        // See http://mailfud.org/iXhash2/
-        'iXhash2'                  => array(
-            // Possible values: true, false
-            'enabled' => true
-        ),
-
-        // Pyzor plugin
-        // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Pyzor.html
-        'Pyzor'                    => array(
-            // Possible values: true, false
-            'enabled'         => true,
-
-            // Configuration sections where the plugin must be loaded
-            'config_sections' => '/etc/spamassassin/v310.pre'
-        ),
-
-        // Razor2 plugin
-        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Razor2.html
-        'Razor2'                   => array(
-            // Possible values: true, false
-            'enabled'         => true,
-
-            // Configuration sections where the plugin must be loaded
-            'config_sections' => '/etc/spamassassin/v310.pre'
-        ),
-
-        // Rule2XSBody plugin
-        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Rule2XSBody.html
-        'Rule2XSBody'              => array(
-            // Possible values: true, false
-            'enabled'         => true,
-
-            // Configuration sections where the plugin must be loaded
-            'config_sections' => '/etc/spamassassin/sa-compile.pre'
-        ),
-
-        // TextCat plugin
-        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_TextCat.html
-        'TextCat'                  => array(
-            // possible values: true, false
-            'enabled'         => true,
-
-            // Configuration sections where the plugin must be loaded
-            'config_sections' => '/etc/spamassassin/v310.pre'
-        ),
-
-        // WARNING: You shouldn't enable this feature if you already use
-        // PolicydWeight or Postscreen plugins.
-        'use_rbl_checks'           => array(
-            // Possible value: true, false
-            'enabled' => true
+            'enabled' => false
         ),
 
         // Heinlein Support SpamAssassin ruleset
@@ -218,6 +175,72 @@ return array(
 
             // sa-update channel
             'channel'     => 'spamassassin.heinlein-support.de'
+        ),
+
+        // iXhash2 SpamAssasin plugin - perform iXhash2 check of messages
+        // See http://mailfud.org/iXhash2/
+        'iXhash2'                  => array(
+            // Possible values: true, false
+            'enabled' => false
+        ),
+
+        // Pyzor plugin -- perform Pyzor check of messages
+        // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Pyzor.html
+        'Pyzor'                    => array(
+            // Possible values: true, false
+            'enabled'     => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // Razor2 plugin -- perform Razor check of messages
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Razor2.html
+        'Razor2'                   => array(
+            // Possible values: true, false
+            'enabled'     => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // Rule2XSBody plugin -- speed up SpamAssassin by compiling regexps
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Rule2XSBody.html
+        'Rule2XSBody'              => array(
+            // Possible values: true, false
+            'enabled'     => true,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/sa-compile.pre'
+        ),
+
+        // SPF plugin -- perform SPF verification tests
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_SPF.html
+        // WARNING: You shouldn't enable that plugin if you also use the PolicydSPF i-MSCP plugin.
+        'SPF'                      => array(
+            // Possible values: true, false
+            'enabled'     => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/init.pre'
+        ),
+
+        // TextCat plugin -- language guesser
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_TextCat.html
+        'TextCat'                  => array(
+            // possible values: true, false
+            'enabled'     => false,
+
+            // Configuration sections where the plugin must be loaded
+            'config_file' => '/etc/spamassassin/v310.pre'
+        ),
+
+        // Enable RBL check
+        // WARNING: You shouldn't enable this feature if you already use the i-MSCP PolicydWeight
+        // or Postscreen plugins.
+        'use_rbl_checks'           => array(
+            // Possible value: true, false
+            'enabled' => false
         )
     ),
 

@@ -5,8 +5,11 @@ SpamAssassin - ChangeLog
 Version 2.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: `Rule2XSBody' SA plugin (SA-COMPILE(1p))
+    Added: Plugin configuration parameters for the `DKIM' SA plugin (disabled by default)
+    Added: Plugin configuration parameters for the `SPF' SA plugin (disabled by default)
+    Added: Plugin configuration parameters for the `Rule2XSBody' SA plugin (enabled by default)
     Backported: Changes from https://github.com/smfreegard/DecodeShortURLs/pull/2 (DecodeShortURLs.cf file only)
+    Changed: DecodeShortURLs, iXhash2, Razor2 and Pyzor SA plugins are now disabled by default
     Changed: MILTER default action from `accept' to `tempfail'
     Changed: Usage of UDS mode instead of TCP mode for SPAMD(8p) -- Performance boost
     Enhancement: Automatically install distribution packages

@@ -722,9 +722,9 @@ sub _configureSa
         );
 
         if ($self->{'config'}->{'spamassassin'}->{'Bayes'}->{'site_wide'}) {
-            $fileContent =~ s/^[#\s]+(bayes_(?:auto_expire|sql_override_username)/$1/gm;
+            $fileContent =~ s/^[#\s]+(bayes_(?:auto_expire|sql_override_username))/$1/gm;
         } else {
-            $fileContent =~ s/^(bayes_(?:auto_expire|sql_override_username)/#$1/gm;
+            $fileContent =~ s/^(bayes_(?:auto_expire|sql_override_username))/#$1/gm;
         }
 
         local $UMASK = 027;
@@ -737,8 +737,8 @@ sub _configureSa
         return $rs if $rs;
 
         while(my ($plg, $data) = each %{$self->{'config'}->{'spamassassin'}}) {
-            next unless defined $data->{'config_sections'};
-            $rs = $self->_enableSaPlugin( $plg, $data->{'config_sections'}, $data->{'enabled'} ? 'enable' : 'disable' );
+            next unless defined $data->{'config_file'};
+            $rs = $self->_enableSaPlugin( $plg, $data->{'config_file'}, $data->{'enabled'} ? 'enable' : 'disable' );
             return $rs if $rs;
         }
     } elsif (-f '/etc/spamassassin/00_imscp.cf') {
@@ -767,12 +767,12 @@ sub _configureSa
     $file->save( );
 }
 
-=item _enableSaPlugin($plugin, $sections, $action)
+=item _enableSaPlugin($plugin, $confiles, $action)
 
- Enable/Disable the given SpamAssassin plugin in the given SpamAssassin configuration sections
+ Enable/Disable the given SpamAssassin plugin in the given SpamAssassin configuration file(s)
 
  Param string $plugin Plugin name
- Param string $sections SpamAssassin configuration section(s)
+ Param string $confiles SpamAssassin configuration file(s)
  Param string $action Action to perform (enable/disable)
  Return int 0 on success, other on failure
 
@@ -780,9 +780,9 @@ sub _configureSa
 
 sub _enableSaPlugin
 {
-    my (undef, $plugin, $sections, $action) = @_;
+    my (undef, $plugin, $confiles, $action) = @_;
 
-    for(split ',', $sections) {
+    for(split ',', $confiles) {
         next unless -f; # Ignore missing file silently
 
         my $file = iMSCP::File->new( filename => $_ );
