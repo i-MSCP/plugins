@@ -30,7 +30,7 @@ use warnings;
 use autouse 'iMSCP::Debug' => qw/ debug error /;
 use autouse 'iMSCP::Execute' => qw/ execute /;
 use autouse 'iMSCP::TemplateParser' => qw/ getBloc process replaceBloc /;
-use Class::Autouse qw/ :nostat iMSCP::Dir iMSCP::File iMSCP::Service  Servers::mtaServers::sqld /;
+use Class::Autouse qw/ :nostat iMSCP::Dir iMSCP::File iMSCP::Service  Servers::mta /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
