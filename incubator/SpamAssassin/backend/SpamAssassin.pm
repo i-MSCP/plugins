@@ -88,7 +88,7 @@ sub enable
         return $rs if $rs;
     }
 
-    my $rs = $self->_createSaUnixUser( );
+    my $rs = $self->_updateSaUnixUser( );
     $rs ||= $self->_createSaSqlUser( );
     $rs ||= $self->_configureSa( 'configure' );
     $rs ||= $self->_installSaPlugins( 'install');
@@ -216,8 +216,11 @@ sub discoverRazor
 {
     my ($self) = @_;
 
-    my $rs = execute(
-        "su -l $self->{'_sa_user'} -s /bin/sh -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr
+    my $rs = $self->guessSpamdUserProps( );
+    return $rs if $rs;
+
+    $rs = execute(
+        "su - $self->{'_sa_user'} -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr
     );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
@@ -315,16 +318,9 @@ sub _init
     my ($self) = @_;
 
     $self->{'FORCE_RETVAL'} = 'yes';
-    ($self->{'_sa_user'}) = $self->{'config'}->{'spamd'}->{'options'} =~ /-(?:u\s+|username=)(\S*)/ or die(
-        "Couldn't parse SpamAssassin username from the spamd `options' configuration parameter"
-    );
-    $self->{'_sa_group'} = getgrgid ( (getpwnam( $self->{'_sa_user'} ))[3] ) || $self->{'_sa_user'};
-    ($self->{'_sa_homedir'}) = $self->{'config'}->{'spamd'}->{'options'} =~ /-(?:H\s+|-helper-home-dir)(\S*)/ or die(
-        "Couldn't parse SpamAssassin homedir from the spamd `options' configuration parameter"
-    );
     $self->{'_panel_user'} = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
     $self->{'_panel_group'} = getgrgid ( (getpwnam( $self->{'_panel_user'} ))[3] ) or die(
-        "Couldn't find panel user group"
+        "Couldn't find panel unix user group"
     );
     $self;
 }
@@ -361,38 +357,30 @@ sub _installDistributionPackages
     $rs;
 }
 
-=item _createSaUnixUser( )
+=item _updateSaUnixUser( )
 
- Create/Update SpamAssassin unix user and its home directory
+ Update SpamAssassin unix user and its home directory
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _createSaUnixUser
+sub _updateSaUnixUser
 {
     my ($self) = @_;
 
-    my $rs = iMSCP::SystemUser->new(
+    my $rs = $self->guessSpamdUserProps( );
+    $rs ||= iMSCP::SystemUser->new(
         {
             username => $self->{'_sa_user'},
             group    => $self->{'_sa_group'},
             system   => 1,
-            comment  => 'SpamAssassin user',
+            comment  => '',
             home     => $self->{'_sa_homedir'},
             shell    => '/bin/sh'
         }
     )->addSystemUser( );
-    return $rs if $rs;
-
-    local $@;
-    eval {  iMSCP::Dir->new( dirname => $self->{'_sa_homedir'} )->make( ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    setRights(
+    $rs ||= setRights(
         $self->{'_sa_homedir'},
         {
             user      => $self->{'_sa_user'},
@@ -414,7 +402,10 @@ sub _setupPyzor
 {
     my ($self) = @_;
 
-    my $rs = execute( "su -l $self->{'_sa_user'} -s /bin/sh -c 'pyzor discover'", \ my $stdout, \ my $stderr );
+    my $rs = $self->guessSpamdUserProps( );
+    return $rs if $rs;
+
+    $rs = execute( "su - $self->{'_sa_user'} -c 'pyzor discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -434,8 +425,11 @@ sub _setupRazor
 
     return 0 if -d "$self->{'_sa_homedir'}/.razor";
 
+    my $rs = $self->guessSpamdUserProps( );
+    return $rs if $rs;
+
     for(qw/ create register /) {
-        my $rs = execute( "su -l $self->{'_sa_user'} -s /bin/sh -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
+        $rs = execute( "su  - $self->{'_sa_user'} -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         return $rs if $rs;
@@ -1210,6 +1204,48 @@ sub _installSaPlugins
             my $rs = iMSCP::File->new( filename => "/etc/spamassassin/$plugin.$_" )->delFile( );
             return $rs if $rs;
         }
+    }
+
+    0;
+}
+
+=item guessSpamdUserProps( )
+
+ Guess Spamd unix user propertie (user,group,homedir)
+ 
+ Return int 0 on success, 1 on failure
+
+=cut
+
+sub guessSpamdUserProps
+{
+    my ($self) = @_;
+
+    return if $self->{'_sa_homedir'};
+
+    local $@;
+    eval {
+        ($self->{'_sa_homedir'}) = $self->{'config'}->{'spamd'}->{'options'} =~ /-(?:H\s+|-helper-home-dir)(\S*)/ or die(
+            "Couldn't parase spamd helper homedir from the spamd `options' configuration parameter"
+        );
+
+        (my ($uid, $gid) = (CORE::stat($self->{'_sa_homedir'}))[4, 5]) or die(
+            sprintf( "Couldn't stat spamd helper homedir: %s", $! )
+        );
+
+        $self->{'_sa_user'} = getpwuid( $uid ) or die( "Couldn't find spamd user" );
+        $self->{'_sa_group'} = getgrgid ( $gid ) or die( "Couldn't find spamd group");
+        $self->{'config'}->{'spamd'}->{'options'} = process(
+            {
+                SPAMD_USER  => $self->{'_sa_user'},
+                SPAMD_GROUP => $self->{'_sa_group'}
+            },
+            $self->{'config'}->{'spamd'}->{'options'}
+        );
+    };
+    if ($@) {
+        error( $@ );
+        return 1;
     }
 
     0;

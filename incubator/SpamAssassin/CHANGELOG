@@ -19,6 +19,7 @@ Version 2.0.0
     Fixed: Creation of the SA configuration files must be atomic
     Fixed: Cronjobs are not registered when the plugin get re-activated
     Fixed: Delay restart of SA services in i-MSCP upgrade/reconfiguration mode
+    Fixed: Guess the SPAMD(8p) unix user/group instead of hardcoding them
     Fixed: Make use of iMSCP::Crypt library to generate SA SQL password
     Fixed: Make sure that configuration files are created with expected UMASK(2)
     Fixed: SA database must be dropped on plugin uninstallation

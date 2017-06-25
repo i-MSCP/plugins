@@ -22,9 +22,13 @@
 
 return array(
     // SPAMD(8p) service configuration options
+    // Available placeholders:
+    //  - {SPAMD_USER}: Replaced by SPAMD(8p) unix user
+    //  - {SPAMD_GROUP}: Replaced by SPAMD(8p) unix user group
+    // WARNING: Don't remove the -H option (helper homedir) as it is used to discover user and group
     'spamd'          => array(
-        'options' => '-m 5 -q -x -u debian-spamd -g debian-spamd -H /var/lib/spamassassin'
-            . ' --socketpath=/var/run/spamassassin.sock --socketowner=debian-spamd --socketgroup=debian-spamd'
+        'options' => '-m 5 -q -x -u {SPAMD_USER} -g {SPAMD_GROUP} -H /var/lib/spamassassin'
+            . ' --socketpath=/var/run/spamassassin.sock --socketowner={SPAMD_USER} --socketgroup={SPAMD_GROUP}'
             . ' --socketmode=0666'
     ),
 
@@ -60,6 +64,7 @@ return array(
         // SPAMASS_MILTER(8) configuration options
         // You can pass your own options to SPAMASS_MILTER(8), including flags for
         // SPAMC(1) as described in SPAMASS_MILTER(8)
+        //
         // Warning: Don't add the -I, -i and -r SPAMC(1) options here as these
         // are managed using named options above.
         'options'                 => '-e -f -u spamass-milter -- -U /var/run/spamassassin.sock',
