@@ -54,7 +54,7 @@ sub install
     my ($self) = @_;
 
     my $rs = $self->_installDistributionPackages( );
-    $rs ||= $self->_initClamAVdatabases( ) if $self->{'action'} eq 'install';
+    $rs ||= $self->_initClamAVdatabases( );
     $rs ||= $self->_installClamavUnofficialSigs( );
 }
 
