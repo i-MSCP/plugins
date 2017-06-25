@@ -522,9 +522,9 @@ sub _configureSpamassMilter
         $options .= ' -r '.$self->{'config'}->{'spamass_milter'}->{'spam_reject_policy'};
 
         $fileContent =~ s%^OPTIONS=.*%OPTIONS="@{[ $options.($spamcFlags // '') ]}"%m;
-        $fileContent =~ s/^[#\s]+SOCKET=.*/SOCKET="$socketPath"/m;
-        $fileContent =~ s/^[#\s]+SOCKETOWNER=.*/SOCKETOWNER="$socketOwner"/m;
-        $fileContent =~ s/^[#\s]+SOCKETMODE=.*/SOCKETMODE="$socketMode"/m;
+        $fileContent =~ s/^[#\s]*SOCKET=.*/SOCKET="$socketPath"/m;
+        $fileContent =~ s/^[#\s]*SOCKETOWNER=.*/SOCKETOWNER="$socketOwner"/m;
+        $fileContent =~ s/^[#\s]*SOCKETMODE=.*/SOCKETMODE="$socketMode"/m;
     } else {
         $fileContent =~ s/^OPTIONS=.*/OPTIONS="-u spamass-milter -i 127.0.0.1"/m;
         $fileContent =~ s%^SOCKET=.*%# SOCKET="/var/spool/postfix/spamass/spamass.sock"%m;
@@ -720,7 +720,7 @@ sub _configureSa
         );
 
         if ($self->{'config'}->{'spamassassin'}->{'Bayes'}->{'site_wide'}) {
-            $fileContent =~ s/^[#\s]+(bayes_(?:auto_expire|sql_override_username))/$1/gm;
+            $fileContent =~ s/^[#\s](bayes_(?:auto_expire|sql_override_username))/$1/gm;
         } else {
             $fileContent =~ s/^(bayes_(?:auto_expire|sql_override_username))/#$1/gm;
         }
