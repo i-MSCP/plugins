@@ -120,7 +120,7 @@ sub enable
             sub {
                 unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin' ];
                 0;
-            },
+            }
         );
         return $rs if $rs;
     } else {

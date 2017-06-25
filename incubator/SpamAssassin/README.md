@@ -32,7 +32,7 @@ analysis, header and body text analysis.
 
 ## Configuration
 
-See [Configuration file](../SpamAssassin/config.php)
+See [Configuration file](config.php)
 
 When changing a configuration parameter in the plugin configuration file, don't
 forget to trigger a plugin list update, else you're changes will not be token

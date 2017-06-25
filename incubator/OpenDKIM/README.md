@@ -29,7 +29,7 @@ adding a cryptographic signature to the headers of the message.
 
 ## Configuration
 
-See [Configuration file](../OpenDKIM/config.php)
+See [Configuration file](config.php)
 
 When changing a configuration parameter in the plugin configuration file, don't
 forget to trigger a plugin list update, else you're changes will not be token
@@ -68,46 +68,11 @@ dig -t txt mail._domainkey.example.com
 Open the link below and send a mail from the domain for which you activated OpenDKIM to the random mail address shown on
 that page.
 
-    http://www.brandonchecketts.com/emailtest.php
-
-Once you have sent the mail, click on the 'View Results' button and verify the DKIM information section. You should get
-a result similar to this:
-
+````
+http://www.brandonchecketts.com/emailtest.php
 ```
-    DKIM Information:
-    
-    DKIM Signature
-    
-    Message contains this DKIM Signature:
-    DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=example.com;
-        s=mail; t=1385558914;
-        bh=fdkeB/A0FkbVP2k4J4pNPoeWH6vqBm9+b0C3OY87Cw8=;
-        h=Date:From:To:Subject:From;
-        b=ZtWi/eDZtQ0RDv60FCDf4c+G9gqhFH3r6RPCw9vr400auTH0PnkOwt2BuLNpv4Uh4
-        wjBHhFnIqt+t/c9/DLCC8envKmnzco8BATgXl5I5HHLxDcGMFYlwHDgOLXcCKXOXA5
-        15oFPlimBrwZXnq3XOJCwopZmUmZZhUyYT8pZO9k=
-    
-    Signature Information:
-    v= Version:         1
-    a= Algorithm:       rsa-sha256
-    c= Method:          simple/simple
-    d= Domain:          example.com
-    s= Selector:        mail
-    q= Protocol:        
-    bh=                 fdkeB/A0FkbVP2k4J4pNPoeWH6vqBm9+b0C3OY87Cw8=
-    h= Signed Headers:  Date:From:To:Subject:From
-    b= Data:            ZtWi/eDZtQ0RDv60FCDf4c+G9gqhFH3r6RPCw9vr400auTH0PnkOwt2BuLNpv4Uh4
-        wjBHhFnIqt+t/c9/DLCC8envKmnzco8BATgXl5I5HHLxDcGMFYlwHDgOLXcCKXOXA5
-        15oFPlimBrwZXnq3XOJCwopZmUmZZhUyYT8pZO9k=
-    Public Key DNS Lookup
-    
-    Building DNS Query for mail._domainkey.example.com
-    Retrieved this publickey from DNS: v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDN+HbTA3/7KoENKhMr6qRO0cFeaDX1NSD5Xe7zkGhkvOnajIrhycu0XyxzHLTTSbFLq9juJmUbPmP9OVj44o0p/NqoLQ9oWjfkcM+7nq+S4QYGoM7h+SMcxjFm05mo0LdessYi/Sw5z6x87nMkLD/wQViDvctss4srrPTr/hqD+wIDAQAB
-    Validating Signature
-    
-    result = pass
-    Details:  
-```
+
+Once you have sent the mail, click on the 'View Results' button and verify the DKIM information section.
 
 ## License
 
