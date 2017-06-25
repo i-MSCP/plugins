@@ -27,7 +27,6 @@ Version 2.0.0
     Fixed: Synchronize the database and the journal once per learning session (sa-learn)
     Updated: Roundcube MarkAsJunk2 plugin from version 1.9 to version 1.10
     Updated: Roundcube SAUserPrefs plugin from version 1.15 to version 1.16
-    Removed: `i` sendmail macro (MILTER)
     Removed: i-MSCP 00_imscp.pre SA configuration file
     Rewritten: Plugin configuration file
 

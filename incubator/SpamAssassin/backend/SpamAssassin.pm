@@ -439,7 +439,7 @@ sub _setupRazor
     0;
 }
 
-=item _configureHeinleinRuleset( [ $action = 'deconfigure ] )
+=item _configureHeinleinRuleset( [ $action = 'deconfigure' ] )
 
  Configure/Deconfigure Heinlein SpamAssassin ruleset
 
@@ -516,7 +516,7 @@ sub _configureSpamassMilter
 
         # Extract SPAMC(1) flags before adding any option for SPAMASS_MILTER(8)
         # Flags will be re-appended later
-        $options =~ s/\s+\Q$spamcFlags\E$// if ($spamcFlags) = $options =~ /(\s+--\s+.*)$/;
+        $options =~ s/\Q$spamcFlags\E$// if ($spamcFlags) = $options =~ /(\s+--\s+.*)$/;
         $options .= " -i $_" for @{$self->{'config'}->{'spamass_milter'}->{'networks'}};
         $options .= ' -I' if $self->{'config'}->{'spamass_milter'}->{'ignore_auth_sender_msgs'};
         $options .= ' -r '.$self->{'config'}->{'spamass_milter'}->{'spam_reject_policy'};
@@ -551,7 +551,7 @@ sub _configurePostfix
     $action //= 'deconfigure';
 
     (my $milterValuePrev = $self->{'config_prev'}->{'spamass_milter'}->{'socket_path'}) =~ s%/var/spool/postfix%unix:%;
-    my $milterMacros = 'j {daemon_name} v {if_name} _';
+    my $milterMacros = 'i j {daemon_name} v {if_name} _';
 
     my $rs = Servers::mta->factory( )->postconf(
         (
@@ -565,7 +565,7 @@ sub _configurePostfix
             },
             milter_connect_macros => {
                 action => 'remove',
-                values => [ qr/(?:i\s+)?\Q$milterMacros\E/ ]
+                values => [ qr/\Q$milterMacros\E/ ]
             }
         )
     );
