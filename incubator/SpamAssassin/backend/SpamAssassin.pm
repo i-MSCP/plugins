@@ -62,7 +62,7 @@ sub update
 {
     my (undef, $fromVersion) = @_;
 
-    return 0 unless version->parse( $fromVersion ) >= version->parse('2.0.0' )
+    return 0 unless version->parse( $fromVersion ) < version->parse('2.0.0' )
         && -f '/etc/spamassassin/00_imscp.pre';
 
     # Remove obsolete file
@@ -347,7 +347,7 @@ sub _installDistributionPackages
             'apt-get', '-o', 'DPkg::Options::=--force-confold', '-o', 'DPkg::Options::=--force-confdef',
             '-o', 'DPkg::Options::=--force-confmiss', '--assume-yes', '--auto-remove', '--no-install-recommends',
             '--purge', '--quiet', 'install', 'sa-compile', 'spamassassin', 'spamass-milter', 'libnet-ident-perl',
-            'libmail-dkim-perl', 'libmail-spf-perl', 'libencode-detect-perl', 'pyzor', 'razor'
+            'libmail-dkim-perl', 'libmail-spf-perl', 'libencode-detect-perl', 'pyzor', 'razor', 'spamc'
         ],
         \$stdout,
         \$stderr

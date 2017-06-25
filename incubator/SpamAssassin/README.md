@@ -1,6 +1,6 @@
 # i-MSCP SpamAssassin plugin v2.0.0
 
-Provides SpamAssassin software through MILTER.
+Provides SpamAssassin spam filter through MILTER.
 
 ## Introduction
 
