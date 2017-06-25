@@ -398,7 +398,7 @@ sub _disableClamavUnofficialSigs
     0;
 }
 
-=item _configureClamavMilter( $action )
+=item _configureClamavMilter( [ $action = 'deconfigure' ] )
 
  Configure or deconfigure clamav-milter
 
@@ -410,8 +410,11 @@ sub _disableClamavUnofficialSigs
 sub _configureClamavMilter
 {
     my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
-    unless (-f '/etc/clamav/clamav-milter.conf') {
+    return 0 if !-f '/etc/clamav/clamav-milter.conf' && $action eq 'deconfigure';
+
+    unless (-f _) {
         error( 'File /etc/clamav/clamav-milter.conf not found' );
         return 1;
     }
@@ -461,7 +464,7 @@ sub _configureClamavMilter
     $rs ||= $file->save( );
 }
 
-=item _configurePostfix( $action )
+=item _configurePostfix( [ $action = 'deconfigure' ] )
 
  Configure or deconfigure postfix
 
@@ -473,6 +476,7 @@ sub _configureClamavMilter
 sub _configurePostfix
 {
     my ($self, $action) = @_;
+    $action //= 'deconfigure';
 
     my $mta = Servers::mta->factory( );
 
