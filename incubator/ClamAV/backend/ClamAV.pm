@@ -102,6 +102,7 @@ sub enable
     my $rs = $self->_configureClamavMilter( 'configure' );
     $rs ||= $self->_configurePostfix( 'configure' );
     $rs ||= $self->_configureClamavUnofficialSigs( 'configure' );
+    return $rs if $rs;
 
     my $serviceTasksSub = sub {
         local $@;
@@ -124,21 +125,16 @@ sub enable
     };
 
     if (defined $main::execmode && $main::execmode eq 'setup') {
-        $rs = $self->{'eventManager'}->register(
+        return $self->{'eventManager'}->register(
             'beforeSetupRestartServices',
             sub {
                 unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV' ];
                 0;
             }
         );
-        return $rs if $rs;
-    } else {
-        $rs = $serviceTasksSub->( );
-        return $rs if $rs;
-        undef $serviceTasksSub;
     }
-
-    0;
+ 
+    $serviceTasksSub->( );
 }
 
 =item disable( )
@@ -175,6 +171,8 @@ sub disable
         error( $@ );
         return 1;
     }
+    
+    0;
 }
 
 =back
