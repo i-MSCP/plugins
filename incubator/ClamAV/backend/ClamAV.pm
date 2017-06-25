@@ -107,7 +107,7 @@ sub enable
         local $@;
         eval {
             my $serviceMngr = iMSCP::Service->getInstance( );
-            for(qw/ clamav-freshclam clamav-daemon  /) {
+            for(qw/ clamav-freshclam clamav-daemon /) {
                 $serviceMngr->enable( $_ );
                 $serviceMngr->restart( $_ );
             }
@@ -166,7 +166,7 @@ sub disable
         $serviceMngr->stop( 'clamav-milter' );
         $serviceMngr->disable( 'clamav-milter' );
 
-        for(qw/ clamav-daemon clamav-freshclam   /) {
+        for(qw/ clamav-daemon clamav-freshclam /) {
             $serviceMngr->stop( $_ );
             $serviceMngr->disable( $_ );
         }
