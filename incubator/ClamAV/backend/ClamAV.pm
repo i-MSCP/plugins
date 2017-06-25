@@ -30,7 +30,7 @@ use warnings;
 use autouse 'iMSCP::Debug' => qw/ debug error /;
 use autouse 'iMSCP::Execute' => qw/ execute /;
 use autouse 'iMSCP::TemplateParser' => qw/ getBloc process replaceBloc /;
-use Class::Autouse qw/ :nostat iMSCP::Dir iMSCP::File iMSCP::Service  Servers::mta /;
+use Class::Autouse qw/ :nostat iMSCP::Dir iMSCP::File iMSCP::Service Servers::mta /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -68,9 +68,7 @@ sub install
 
 sub uninstall
 {
-    my ($self) = @_;
-
-    $self->_removeClamavUnofficialSigs( );
+    $_[0]->_removeClamavUnofficialSigs( );
 }
 
 =item update( )
@@ -83,9 +81,7 @@ sub uninstall
 
 sub update
 {
-    my ($self) = @_;
-
-    $self->install( );
+    $_[0]->install( );
 }
 
 =item enable( )
@@ -569,7 +565,7 @@ sub _initClamAVdatabases
 
     my $rs = execute( 'freshclam', \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
-    error( sprintf("Couldn't initialize ClamAV databases: %s", $stderr || 'Unknown error' ) ) if $rs;
+    error( sprintf( "Couldn't initialize ClamAV databases: %s", $stderr || 'Unknown error' ) ) if $rs;
     $rs;
 }
 

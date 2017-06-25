@@ -5,6 +5,7 @@ ClamAV - ChangeLog
 Version 1.3.0
 ------------------------------------------------------------------------------------------------------------------------
 
+    Enhancement: Automatically initialize ClamAV databases
     Enhancement: Automatically install distribution packages
     Fixed: Don't raise error on plugin uninstallation if clamav-milter configuration file is missing (package removed)
     Fixed: Stop and disable ClamAV services on plugin deactivation
