@@ -13,6 +13,9 @@ Provides ClamAV anti-virus through MILTER.
 2. Upload the plugin through the plugin management interface
 3. Activate the plugin through the plugin management interface
 
+Be aware that installation can take-up several minutes as the ClamAV database
+must be initialized, involving download of several cvd files.
+
 ## Update
 
 1. Be sure that all requirements as stated in the requirements section are met

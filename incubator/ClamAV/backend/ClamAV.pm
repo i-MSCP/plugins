@@ -54,6 +54,7 @@ sub install
     my ($self) = @_;
 
     my $rs = $self->_installDistributionPackages( );
+    $rs ||= $self->_initClamAVdatabase( ) if $self->{'action'} eq 'install';
     $rs ||= $self->_installClamavUnofficialSigs( );
 }
 
@@ -133,7 +134,7 @@ sub enable
             }
         );
     }
- 
+
     $serviceTasksSub->( );
 }
 
@@ -171,7 +172,7 @@ sub disable
         error( $@ );
         return 1;
     }
-    
+
     0;
 }
 
@@ -542,6 +543,29 @@ sub _installDistributionPackages
     );
     debug( $stdout ) if $stdout;
     error( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ) ) if $rs;
+    $rs;
+}
+
+=item _initClamAVdatabase
+
+ Initialize ClamAV database
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub _initClamAVdatabase
+{
+    local $@;
+    eval { iMSCP::Service->getInstance( )->stop( 'clamav-freshclam'); };
+    if ($@) {
+        error($@);
+        return 1;
+    }
+
+    my $rs = execute( 'freshclam', \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( sprintf("Couldn't initialize ClamAV databases: %s", $stderr || 'Unknown error' ) ) if $rs;
     $rs;
 }
 
