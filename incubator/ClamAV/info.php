@@ -27,11 +27,11 @@ return array(
         'Sascha Bay',
     ),
     'email'       => 'team@i-mscp.net',
-    'version'     => '1.2.1',
-    'require_api' => '1.0.4',
-    'date'        => '2017-05-03',
-    'build'       => '2017050301',
+    'version'     => '1.3.0',
+    'require_api' => '1.4.0',
+    'date'        => '2017-06-05',
+    'build'       => '2017062500',
     'name'        => 'ClamAV',
-    'desc'        => 'Plugin that allows to use ClamAV with i-MSCP.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:clamav'
+    'desc'        => 'Provides ClamAV anti-virus through MILTER.',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:clamav'
 );
