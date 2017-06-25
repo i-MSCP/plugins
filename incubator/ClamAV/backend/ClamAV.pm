@@ -54,7 +54,7 @@ sub install
     my ($self) = @_;
 
     my $rs = $self->_installDistributionPackages( );
-    $rs ||= $self->_initClamAVdatabase( ) if $self->{'action'} eq 'install';
+    $rs ||= $self->_initClamAVdatabases( ) if $self->{'action'} eq 'install';
     $rs ||= $self->_installClamavUnofficialSigs( );
 }
 
@@ -129,7 +129,7 @@ sub enable
         return $self->{'eventManager'}->register(
             'beforeSetupRestartServices',
             sub {
-                unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV' ];
+                unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV & cie' ];
                 0;
             }
         );
@@ -546,18 +546,18 @@ sub _installDistributionPackages
     $rs;
 }
 
-=item _initClamAVdatabase
+=item _initClamAVdatabases
 
- Initialize ClamAV database
+ Initialize ClamAV databases
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _initClamAVdatabase
+sub _initClamAVdatabases
 {
     local $@;
-    eval { iMSCP::Service->getInstance( )->stop( 'clamav-freshclam'); };
+    eval { iMSCP::Service->getInstance( )->stop( 'clamav-freshclam' ); };
     if ($@) {
         error($@);
         return 1;
