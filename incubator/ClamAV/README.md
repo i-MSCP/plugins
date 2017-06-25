@@ -38,8 +38,8 @@ into account.
 ## 3rd party ClamAV Unofficial Signatures
 
 The [clamav-unofficial-sigs](https://github.com/extremeshok/clamav-unofficial-sigs)
-script provides a simple way to download, test, and update third-party signature databases 
-provided by:
+script provides a simple way to download, test, and update third-party
+signature databases provided by:
 
 - [Sanesecurity](http://sanesecurity.com)
 - [Foxhole](http://sanesecurity.com/foxhole-databases)
