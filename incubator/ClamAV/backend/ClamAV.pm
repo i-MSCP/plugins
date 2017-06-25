@@ -168,7 +168,7 @@ sub disable
 
         for(qw/ clamav-daemon clamav-freshclam   /) {
             $serviceMngr->stop( $_ );
-            $serviceMngr->enable( $_ );
+            $serviceMngr->disable( $_ );
         }
     };
     if ($@) {
