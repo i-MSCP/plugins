@@ -1226,7 +1226,7 @@ sub guessSpamdUserProps
     local $@;
     eval {
         ($self->{'_sa_homedir'}) = $self->{'config'}->{'spamd'}->{'options'} =~ /-(?:H\s+|-helper-home-dir)(\S*)/ or die(
-            "Couldn't parase spamd helper homedir from the spamd `options' configuration parameter"
+            "Couldn't parse spamd helper homedir from the spamd `options' configuration parameter"
         );
 
         (my ($uid, $gid) = (CORE::stat($self->{'_sa_homedir'}))[4, 5]) or die(
