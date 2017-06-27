@@ -37,9 +37,7 @@ return array(
         DELETE FROM $saDb.userpref WHERE preference IN ('use_auto_whitelist', 'USER_IN_BLACKLIST', 'USER_IN_WHITELIST');
 
         -- Enable RBL checks by default. Those are disabled at site-wide when needed.
-        UPDATE $saDb.userpref
-        SET value = '1'
-        WHERE username = '\$GLOBAL' AND preference = skip_rbl_checks = '0';
+        UPDATE $saDb.userpref SET value = '1' WHERE username = '\$GLOBAL' AND preference = 'skip_rbl_checks';
         
         -- Remove any orphaned user preference
         DELETE u FROM $saDb.userpref u
