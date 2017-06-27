@@ -27,6 +27,7 @@ use iMSCP::Bootstrapper;
 use iMSCP::Database;
 use iMSCP::Debug qw/ getMessageByType newDebug /;
 use iMSCP::EventManager;
+use iMSCP::Service;
 use JSON;
 
 sub getData
@@ -56,6 +57,8 @@ iMSCP::Bootstrapper->getInstance()->boot(
         nolock          => 'yes'
     }
 );
+
+iMSCP::Service->getInstance( )->isRunning( 'mysql' ) or exit;
 
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
 require $pluginFile;

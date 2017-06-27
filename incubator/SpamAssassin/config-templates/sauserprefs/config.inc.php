@@ -95,17 +95,13 @@ $config['sauserprefs_score_inc'] = 1;
 //   'DELETE FROM bayes_vars WHERE username = %u;'
 // );
 $config['sauserprefs_bayes_delete_query'] = array(
-    'DELETE FROM bayes_seen WHERE id IN (SELECT id FROM bayes_vars WHERE username = %u)',
-    'DELETE FROM bayes_token WHERE id IN (SELECT id FROM bayes_vars WHERE username = %u)',
     '
-        UPDATE
-            bayes_vars
-        SET
-            spam_count="0", ham_count="0", token_count="0", last_expire="0", last_atime_delta="0",
-            last_expire_reduce="0", oldest_token_age="0", newest_token_age="0"
-        WHERE
-            username=%u
-    '
+        DELETE v, t, s
+        FROM bayes_vars v
+        LEFT JOIN bayes_token t ON t.id = v.id
+        LEFT JOIN bayes_seen s ON s.id = v.id
+        WHERE v.username = %s
+     '
 );
 
 // define languages

@@ -20,12 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
-$table = quoteIdentifier('userpref');
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
     'up' => "
-        ALTER TABLE $database.$table DROP INDEX `user_pref`;
-        ALTER TABLE $database.$table ADD UNIQUE `user_pref` ( `username`, `preference`, `value`);
+        ALTER TABLE $saDb.userpref DROP INDEX `user_pref`;
+        ALTER TABLE $saDb.userpref ADD UNIQUE `user_pref` ( `username`, `preference`, `value`);
     "
 );

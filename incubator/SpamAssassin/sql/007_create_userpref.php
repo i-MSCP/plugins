@@ -20,12 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
-$table = quoteIdentifier('userpref');
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
     'up' => "
-        CREATE TABLE IF NOT EXISTS $database.$table (
+        CREATE TABLE IF NOT EXISTS $saDb.userpref (
             `username` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
             `preference` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
             `value` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',

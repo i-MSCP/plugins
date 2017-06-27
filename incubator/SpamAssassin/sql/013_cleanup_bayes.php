@@ -20,15 +20,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+$imscpDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME);
 $saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
     'up' => "
-        CREATE TABLE IF NOT EXISTS $saDb.bayes_seen (
-            `id` int(11) NOT NULL DEFAULT '0',
-            `msgid` varchar(200) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '',
-            `flag` char(1) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-            PRIMARY KEY (`id`,`msgid`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+        -- Remove any orphaned bayesian data
+        DELETE v, t, s
+        FROM $saDb.bayes_vars v
+        LEFT JOIN $saDb.bayes_token t ON t.id = v.id
+        LEFT JOIN $saDb.bayes_seen s ON s.id = v.id
+        WHERE v.username <> '\$GLOBAL'
+        AND v.username NOT IN(SELECT m.mail_addr FROM $imscpDb.mail_users m WHERE mail_pass <> '_no_');
     "
 );

@@ -20,6 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Event as Event;
+use iMSCP_Events_Manager_Interface as EventsManagerInterface;
+use iMSCP_Exception_Database as ExceptionDatabase;
 use iMSCP_Plugin_Action as PluginAction;
 use iMSCP_Plugin_Exception as PluginException;
 use iMSCP_Plugin_Manager as PluginManager;
@@ -30,6 +35,59 @@ use iMSCP_Registry as Registry;
  */
 class iMSCP_Plugin_SpamAssassin extends PluginAction
 {
+    /**
+     * Register a callback for the given event(s)
+     *
+     * @param EventsManagerInterface $eventsManager
+     * @return void
+     */
+    public function register(EventsManagerInterface $eventsManager)
+    {
+        $eventsManager->registerListener(Events::onBeforeDeleteMail, $this);
+    }
+
+    /**
+     * Delete bayesian data and user preferences that belong to the  mail account being deleted
+     *
+     * @param Event $e
+     * @throws PluginException
+     * @return void
+     */
+    public function onBeforeDeleteMail(Event $e)
+    {
+        $db = Database::getInstance();
+
+        try {
+            $db->beginTransaction();
+            $stmt = exec_query('SELECT mail_addr FROM mail_users WHERE mail_id = ?', $e->getParam('mailId'));
+            if (!$stmt->rowCount()) {
+                return;
+            }
+
+            $username = $stmt->fetchRow(PDO::FETCH_COLUMN);
+            $cfg = Registry::get('config');
+            $saDbName = quoteIdentifier($cfg['DATABASE_NAME'] . '_spamassassin');
+
+
+            exec_query(
+                "
+                    DELETE v, t, s
+                    FROM $saDbName.bayes_vars v
+                    LEFT JOIN $saDbName.bayes_token t ON t.id = v.id
+                    LEFT JOIN $saDbName.bayes_seen s ON s.id = v.id
+                    WHERE v.username = ?
+                ",
+                $username
+            );
+            exec_query("DELETE u FROM $saDbName.userpref u WHERE u.username = ?", $username);
+
+            $db->commit();
+        } catch (ExceptionDatabase $e) {
+            $db->rollBack();
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
     /**
      * Plugin installation
      *

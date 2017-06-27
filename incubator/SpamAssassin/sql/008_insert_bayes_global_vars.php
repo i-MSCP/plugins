@@ -20,9 +20,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$database = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
-$table = quoteIdentifier('bayes_global_vars');
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
 
 return array(
-    'up' => "INSERT IGNORE INTO $database.$table (`variable`, `value`) VALUE ('VERSION', '3');"
+    'up' => "INSERT IGNORE INTO $saDb.bayes_global_vars (`variable`, `value`) VALUE ('VERSION', '3');"
 );

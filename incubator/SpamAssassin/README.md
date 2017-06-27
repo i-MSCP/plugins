@@ -10,8 +10,8 @@ analysis, header and body text analysis.
 
 ## Requirements
 
-* i-MSCP Serie >= 1.4.x
-* Roundcube >= 1.1.0 (Optional)
+* i-MSCP Serie ≥ 1.4.x
+* Roundcube Webmail (Optional)
 
 ## Installation
 
