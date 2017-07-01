@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP PolicydWeight plugin
-# Copyright (C) 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -25,10 +25,9 @@ package Plugin::PolicydWeight;
 
 use strict;
 use warnings;
-use iMSCP::Debug;
-use iMSCP::Execute;
-use iMSCP::Service;
-use Servers::mta;
+use autouse 'iMSCP::Debug' => qw/ debug error /;
+use autouse 'iMSCP::Execute' => qw/ execute /;
+use Class::Autouse qw/ :nostat iMSCP::Service Servers::mta /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -39,7 +38,7 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item enable()
+=item enable( )
 
  Perform enable tasks
 
@@ -49,33 +48,23 @@ use parent 'Common::SingletonClass';
 
 sub enable
 {
-    my $self = shift;
+    my ($self) = @_;
 
-    my $rs = $self->_checkRequirements();
-    return $rs if $rs;
+    unless (defined $main::execmode && $main::execmode eq 'setup'
+        || !grep( $_ eq $self->{'action'}, 'install', 'update' )
+    ) {
+        my $rs = $self->_installDistributionPackages( );
+        return $rs if $rs;
+    }
 
     unless (-f '/etc/policyd-weight.conf') {
-        $rs = execute( 'policyd-weight defaults >/etc/policyd-weight.conf', \ my $stdout, \ my $stderr );
+        my $rs = execute( 'policyd-weight defaults >/etc/policyd-weight.conf', \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         return $rs if $rs;
     }
 
-    local $@;
-    eval {
-        my $serviceMngr = iMSCP::Service->getInstance();
-
-        # Set pid pattern (policyd-weight sysvinit script under some distributions doesn't provides status command)
-        $serviceMngr->getProvider()->setPidPattern( 'policyd-weight' );
-        $serviceMngr->restart( 'policyd-weight' );
-    };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    my $mta = Servers::mta->factory();
-    $rs ||= $mta->postconf(
+    my $rs = Servers::mta->factory( )->postconf(
         smtpd_recipient_restrictions => {
             action => 'add',
             before => qr/permit/,
@@ -84,11 +73,35 @@ sub enable
     );
     return $rs if $rs;
 
-    $mta->{'reload'} = 1;
-    0;
+    my $serviceTasksSub = sub {
+        local $@;
+        eval {
+            my $serviceMngr = iMSCP::Service->getInstance( );
+            $serviceMngr->enable( 'policyd-weight' );
+            $serviceMngr->getProvider( )->setPidPattern( 'policyd-weight' );
+            $serviceMngr->restart( 'policyd-weight' );
+        };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+        0;
+    };
+
+    if (defined $main::execmode && $main::execmode eq 'setup') {
+        return $self->{'eventManager'}->register(
+            'beforeSetupRestartServices',
+            sub {
+                unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV & cie' ];
+                0;
+            }
+        );
+    }
+
+    $serviceTasksSub->( );
 }
 
-=item disable()
+=item disable( )
 
  Perform disable tasks
 
@@ -98,20 +111,30 @@ sub enable
 
 sub disable
 {
-    my $self = shift;
+    my ($self) = @_;
 
     return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
-    my $mta = Servers::mta->factory();
-    my $rs = $mta->postconf(
+    my $rs = Servers::mta->factory( )->postconf(
         smtpd_recipient_restrictions => {
             action => 'remove',
             values => [ qr/check_policy_service\s+\Qinet:127.0.0.1:$self->{'config_prev'}->{'policyd_weight_port'}\E/ ]
         }
     );
-    return $rs if $rs;
+    return $rs if $rs || $self->{'action'} ne 'disable';
 
-    $mta->{'reload'} = 1;
+    local $@;
+    eval {
+        my $serviceMngr = iMSCP::Service->getInstance( );
+        $serviceMngr->stop( 'policyd-weight' );
+        $serviceMngr->getProvider( )->setPidPattern( 'policyd-weight' );
+        $serviceMngr->disable( 'policyd-weight' );
+    };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
     0;
 }
 
@@ -121,22 +144,35 @@ sub disable
 
 =over 4
 
-=item _checkRequirements()
+=item _installDistributionPackages( )
+ 
+ Install required distribution packages
 
- Check for requirements
-
- Return int 0 if all requirements are met, other otherwise
+ Return int 0 on success, other on failure
 
 =cut
 
-sub _checkRequirements
+sub _installDistributionPackages
 {
-    if (execute( "dpkg-query -W -f='\${Status}' policyd-weight 2>/dev/null | grep -q '\\sinstalled\$'" )) {
-        error( "The `policyd-weight' package is not installed on your system" );
-        return 1;
-    }
+    local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
 
-    0;
+    my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
+    debug( $stdout ) if $stdout;
+    error( sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' ) ) if $rs;
+    return $rs if $rs;
+
+    $rs = execute(
+        [
+            'apt-get', '-o', 'DPkg::Options::=--force-confold', '-o', 'DPkg::Options::=--force-confdef',
+            '-o', 'DPkg::Options::=--force-confmiss', '--assume-yes', '--auto-remove', '--no-install-recommends',
+            '--purge', '--quiet', 'install', 'policyd-weight'
+        ],
+        \$stdout,
+        \$stderr
+    );
+    debug( $stdout ) if $stdout;
+    error( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ) ) if $rs;
+    $rs;
 }
 
 =back

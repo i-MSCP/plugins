@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PolicydWeight plugin
- * @copyright 2015-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,48 +18,66 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_PolicydWeight
  */
-class iMSCP_Plugin_PolicydWeight extends iMSCP_Plugin_Action
+class iMSCP_Plugin_PolicydWeight extends PluginAction
 {
+    /**
+     * Plugin installation
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param PluginManager $pluginManager
+     * @return void
+     */
+    public function install(PluginManager $pluginManager)
+    {
+        // Only there to force installation context, else distribution packages
+        // won't be installed and an error will be raised
+    }
+
     /**
      * Plugin activation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function enable(iMSCP_Plugin_Manager $pluginManager)
+    public function enable(PluginManager $pluginManager)
     {
         try {
-            # Make sure that postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
+            # Make sure that Postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
             if ($pluginManager->pluginIsKnown('Postgrey') && $pluginManager->pluginIsEnabled('Postgrey')) {
                 $pluginManager->pluginChange('Postgrey');
             }
 
-            iMSCP_Registry::get('dbConfig')->set(
+            Registry::get('dbConfig')->set(
                 'PORT_POLICYD_WEIGHT',
                 $this->getConfigParam('policyd_weight_port', 12525) . ';tcp;POLICYD_WEIGHT;1;127.0.0.1'
             );
-        } catch (iMSCP_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * Plugin deactivation
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
+     * @throws PluginException
+     * @param PluginManager $pluginManager
      * @return void
      */
-    public function disable(iMSCP_Plugin_Manager $pluginManager)
+    public function disable(PluginManager $pluginManager)
     {
         try {
-            iMSCP_Registry::get('dbConfig')->del('PORT_POLICYD_WEIGHT');
-        } catch (iMSCP_Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+            Registry::get('dbConfig')->del('PORT_POLICYD_WEIGHT');
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }

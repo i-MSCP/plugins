@@ -21,10 +21,11 @@
 return array(
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '1.1.0',
-    'require_api' => '1.0.4',
-    'date'        => '2016-06-25',
+    'version'     => '1.2.0',
+    'require_api' => '1.4.0',
+    'date'        => '2017-07-01',
+    'build'       => '2017070100',
     'name'        => 'PolicydWeight',
-    'desc'        => 'Plugin that provides the policyd-weight policy daemon for Postfix.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
+    'desc'        => 'Provides policyd-weight policy daemon for Postfix.',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
 );
