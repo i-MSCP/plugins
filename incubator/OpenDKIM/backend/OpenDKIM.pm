@@ -225,7 +225,8 @@ sub disable
         return $rs;
     }
 
-    $self->_postfixMainConfig( 'deconfigure' );
+    $rs = $self->_postfixMainConfig( 'deconfigure' );
+    return $rs if $rs || $self->{'action'} ne 'disable';
 
     local $@;
     eval {
