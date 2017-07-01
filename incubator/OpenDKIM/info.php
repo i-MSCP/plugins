@@ -29,8 +29,8 @@ return array(
     'email'       => 'team@i-mscp.net',
     'version'     => '1.2.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-06-24',
-    'build'       => '2017062400',
+    'date'        => '2017-07-01',
+    'build'       => '2017070100',
     'name'        => 'OpenDKIM',
     'desc'        => 'Provides DomainKeys Identified Mail (DKIM) service through MILTER.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:opendkim'

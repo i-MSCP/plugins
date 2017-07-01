@@ -65,16 +65,6 @@ sub install
     $rs ||= $self->_createOpendkimFile( 'SigningTable' );
     $rs ||= $self->_createOpendkimFile( 'TrustedHosts' );
     $rs ||= $self->_opendkimConfig( 'configure' );
-    return $rs if $rs;
-
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'opendkim' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    0;
 }
 
 =item uninstall( )
@@ -100,7 +90,6 @@ sub uninstall
 
     local $@;
     eval {
-        iMSCP::Service->getInstance( )->restart( 'opendkim' );
         iMSCP::Dir->new( dirname => '/etc/opendkim' )->remove( );
         iMSCP::Dir->new( dirname => '/var/spool/postfix/opendkim' )->remove( );
     };
@@ -137,16 +126,6 @@ sub update
 
     my $rs = $self->_createOpendkimDirectories( );
     $rs ||= $self->_opendkimConfig( 'configure' );
-    return $rs if $rs;
-
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'opendkim' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    0;
 }
 
 =item change( )
@@ -163,16 +142,6 @@ sub change
 
     my $rs = $self->_createOpendkimFile( 'TrustedHosts' );
     $rs ||= $self->_opendkimConfig( 'configure' );
-    return $rs if $rs;
-
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'opendkim' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
-    }
-
-    0;
 }
 
 =item enable( )
@@ -208,14 +177,32 @@ sub enable
     );
     return $rs if $rs;
 
-    local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'opendkim' ); };
-    if ($@) {
-        error( $@ );
-        return 1;
+    my $serviceTasksSub = sub {
+        local $@;
+        eval {
+            my $serviceMngr = iMSCP::Service->getInstance( );
+
+            $serviceMngr->enable( 'opendkim' );
+            $serviceMngr->restart( 'opendkim' );
+        };
+        if ($@) {
+            error( $@ );
+            return 1;
+        }
+        0;
+    };
+
+    if (defined $main::execmode && $main::execmode eq 'setup') {
+        return $self->{'eventManager'}->register(
+            'beforeSetupRestartServices',
+            sub {
+                unshift @{$_[0]}, [ $serviceTasksSub, 'OpenDKIM' ];
+                0;
+            }
+        );
     }
 
-    0;
+    $serviceTasksSub->( );
 }
 
 =item disable( )
@@ -239,6 +226,17 @@ sub disable
     }
 
     $self->_postfixMainConfig( 'deconfigure' );
+
+    local $@;
+    eval {
+        my $serviceMngr = iMSCP::Service->getInstance( );
+        $serviceMngr->stop( 'opendkim' );
+        $serviceMngr->disable( 'opendkim' );
+    };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
 }
 
 =item run( )
@@ -327,7 +325,7 @@ sub _init
 
 sub _installDistributionPackages
 {
-    $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
+    local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
 
     my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
