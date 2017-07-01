@@ -92,7 +92,7 @@ sub enable
         return $self->{'eventManager'}->register(
             'beforeSetupRestartServices',
             sub {
-                unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV & cie' ];
+                unshift @{$_[0]}, [ $serviceTasksSub, 'ClamAV' ];
                 0;
             }
         );

@@ -26,6 +26,6 @@ return array(
     'date'        => '2017-07-01',
     'build'       => '2017070100',
     'name'        => 'PolicydWeight',
-    'desc'        => 'Provides policyd-weight policy daemon for Postfix.',
+    'desc'        => 'Provides policyd-weight policy server for Postfix.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
 );
