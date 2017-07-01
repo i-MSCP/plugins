@@ -524,7 +524,7 @@ sub _configurePostfix
 
 sub _installDistributionPackages
 {
-    $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
+    local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
 
     my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
