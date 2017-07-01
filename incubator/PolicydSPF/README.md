@@ -9,8 +9,7 @@ Framework (SPF) checking. It is implemented in pure Perl and uses Mail::SPF.
 
 ## Requirements
 
-* i-MSCP >= Serie 1.4.x
-* i-MSCP Postfix server implementation
+- i-MSCP Serie ≥ 1.4.x
 
 ## Installation
 
@@ -31,7 +30,7 @@ Framework (SPF) checking. It is implemented in pure Perl and uses Mail::SPF.
 
 ## Configuration
 
-See [Configuration file](../PolicydSPF/config.php)
+See [Configuration file](config.php)
 
 When changing a configuration parameter in the plugin configuration file, don't
 forget to trigger a plugin list update, else you're changes will not be token

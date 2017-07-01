@@ -20,10 +20,23 @@
  */
 
 use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Manager as PluginManager;
 
 /**
  * Class iMSCP_Plugin_PolicydSPF
  */
 class iMSCP_Plugin_PolicydSPF extends PluginAction
 {
+    /**
+     * Plugin installation
+     *
+     * @throws iMSCP_Plugin_Exception
+     * @param PluginManager $pluginManager
+     * @return void
+     */
+    public function install(PluginManager $pluginManager)
+    {
+        // Only there to force installation context, else distribution packages
+        // won't be installed and an error will be raised
+    }
 }
