@@ -64,7 +64,6 @@ sub update
     return 0 unless version->parse( $fromVersion ) < version->parse('2.0.0' )
         && -f '/etc/spamassassin/00_imscp.pre';
 
-    # Remove obsolete file
     iMSCP::File->new( filename => '/etc/spamassassin/00_imscp.pre' )->delFile( );
 }
 
@@ -87,7 +86,7 @@ sub enable
         return $rs if $rs;
     }
 
-    my $rs = $self->_updateSaUnixUser( );
+    my $rs = $self->_updateSpamdUser( );
     $rs ||= $self->_createSaSqlUser( );
     $rs ||= $self->_configureSa( 'configure' );
     $rs ||= $self->_installSaPlugins( 'install');
@@ -221,10 +220,10 @@ sub discoverRazor
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserProps( );
+    my $rs = $self->guessSpamdUserAndGroup( );
     return $rs if $rs;
 
-    $rs = execute( "su - $self->{'_sa_user'} -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr );
+    $rs = execute( "su - $self->{'_spamd_user'} -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -258,7 +257,7 @@ sub cleanAwlDb
         $dbh->useDatabase( $oldDb ) if $oldDb;
     };
     if ($@) {
-        $dbh->useDatabase( $oldDb );
+        $dbh->useDatabase( $oldDb ) if $oldDb;
         error( $@ );
         return 1;
     }
@@ -368,34 +367,65 @@ sub _installDistributionPackages
     $rs;
 }
 
-=item _updateSaUnixUser( )
+=item _updateSpamdUser( )
 
- Update SpamAssassin unix user and its home directory
+ Update spamd unix user and its home directory
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _updateSaUnixUser
+sub _updateSpamdUser
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserProps( );
+    my $rs = $self->guessSpamdUserAndGroup( );
     $rs ||= iMSCP::SystemUser->new(
         {
-            username => $self->{'_sa_user'},
-            group    => $self->{'_sa_group'},
+            username => $self->{'_spamd_user'},
+            group    => $self->{'_spamd_group'},
             system   => 1,
             comment  => '',
-            home     => $self->{'_sa_homedir'},
+            home     => $self->{'config'}->{'spamd'}->{'homedir'},
             shell    => '/bin/sh'
         }
     )->addSystemUser( );
-    $rs ||= setRights(
-        $self->{'_sa_homedir'},
+
+    local $@;
+    eval {
+        iMSCP::Dir->new( dirname => $self->{'config'}->{'spamd'}->{'homedir'} )->make(
+            user  => $self->{'_spamd_user'},
+            group => $self->{'_spamd_group'}
+        );
+
+        iMSCP::Dir->new( dirname => "$self->{'config'}->{'spamd'}->{'homedir'}/sa-update-keys" )->make(
+            user  => $self->{'_spamd_user'},
+            group => $self->{'_spamd_group'},
+            mode  => 0700
+        );
+
+        my ($stderr, $stdout);
+        $rs = execute(
+            [
+                'su', '-', $self->{'_spamd_user'}, '-c',
+                "sa-update --gpghomedir $self->{'config'}->{'spamd'}->{'homedir'}/sa-update-keys --import "
+                    ."/usr/share/spamassassin/GPG.KEY"
+            ],
+            \$stdout, \$stderr,
+        );
+        debug( $stdout ) if $stdout;
+        !$rs or die( $stderr || 'Unknown error' );
+    };
+    if ($@) {
+        error( $@ );
+        return 1;
+    }
+
+    $rs = setRights(
+        $self->{'config'}->{'spamd'}->{'homedir'},
         {
-            user      => $self->{'_sa_user'},
-            group     => $self->{'_sa_group'},
+            user      => $self->{'_spamd_user'},
+            group     => $self->{'_spamd_group'},
             recursive => 1
         }
     );
@@ -413,10 +443,10 @@ sub _setupPyzor
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserProps( );
+    my $rs = $self->guessSpamdUserAndGroup( );
     return $rs if $rs;
 
-    $rs = execute( "su - $self->{'_sa_user'} -c 'pyzor discover'", \ my $stdout, \ my $stderr );
+    $rs = execute( "su - $self->{'_spamd_user'} -c 'pyzor discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -434,13 +464,13 @@ sub _setupRazor
 {
     my ($self) = @_;
 
-    return 0 if -d "$self->{'_sa_homedir'}/.razor";
+    return 0 if -d "$self->{'config'}->{'spamd'}->{'homedir'}/.razor";
 
-    my $rs = $self->guessSpamdUserProps( );
+    my $rs = $self->guessSpamdUserAndGroup( );
     return $rs if $rs;
 
     for(qw/ create register /) {
-        $rs = execute( "su  - $self->{'_sa_user'} -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
+        $rs = execute( "su  - $self->{'_spamd_user'} -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         return $rs if $rs;
@@ -730,9 +760,8 @@ sub _configureSa
         push @discardedPrefs, 'skip_rbl_checks' unless $self->{'config'}->{'spamassassin'}->{'rbl_checks'}->{'enabled'};
         # Discard report_safe preference if SPAM messages are always rejected
         push @discardedPrefs, 'report_safe' if $self->{'config'}->{'spamass_milter'}->{'spam_reject_policy'} == -1;
-        # Discard TextCat preferences the SA TextCat plugin is disabled
-        push @discardedPrefs, 'ok_languages', 'ok_locales'
-            unless $self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enabled'};
+        # Discard TextCat preferences if the SA TextCat plugin is disabled
+        push @discardedPrefs, 'ok_languages' unless $self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enabled'};
 
         $fileContent = process(
             {
@@ -758,7 +787,7 @@ sub _configureSa
 
         my $rs = $file->set( $fileContent );
         $rs ||= $file->save( );
-        $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $self->{'_sa_group'} );
+        $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $self->{'_spamd_group'} );
         $rs ||= $file->mode( 0640 );
         return $rs if $rs;
 
@@ -844,29 +873,32 @@ sub _setupSaPlugins
 {
     my ($self) = @_;
 
-    my ($c, $rs) = ($self->{'config'}->{'spamassassin'}, 0);
+    my $c = $self->{'config'}->{'spamassassin'};
 
-    $rs = $self->_enforceSaPref( 'use_bayes' ) if $c->{'Bayes'}->{'enabled'} && $c->{'Bayes'}->{'enforced'};
-    $rs ||= $self->_enforceSaPref( 'use_dcc' ) if $c->{'DCC'}->{'enabled'} && $c->{'DCC'}->{'enforced'};
-    $rs ||= $self->_enforceSaPref( 'use_pyzor' ) if $c->{'Pyzor'}->{'enabled'} && $c->{'Pyzor'}->{'enforced'};
-    $rs ||= $self->_enforceSaPref( 'use_razor2' ) if $c->{'Razor2'}->{'enabled'} && $c->{'Razor2'}->{'enforced'};
-    $rs ||= $self->_enforceSaPref( 'skip_rbl_checks' )
-        if ($c->{'rbl_checks'}->{'enabled'} && $c->{'rbl_checks'}->{'enforced'}) || $c->{'rbl_checks'}->{'enabled'};
-    return $rs if $rs;
+    my $rs = $self->_setGlobalSaPref(
+        [ 'use_bayes', 'use_bayes_rules', 'bayes_auto_learn' ],
+        ($c->{'Bayes'}->{'enforced'} ? 1 : 0, $c->{'Bayes'}->{'enforced'})
+    );
+
+    $rs = $self->_setGlobalSaPref( [ 'use_dcc' ], $c->{'DCC'}->{'enforced'} ? 1 : 0, $c->{'DCC'}->{'enforced'} );
+    $rs = $self->_setGlobalSaPref( [ 'use_pyzor' ], $c->{'Pyzor'}->{'enforced'} ? 1 : 0, $c->{'Pyzor'}->{'enforced'} );
+    $rs = $self->_setGlobalSaPref( [ 'use_bayes' ], $c->{'Razor2'}->{'enforced'} ? 1 : 0, $c->{'Razor2'}->{'enforced'} );
+    $rs = $self->_setGlobalSaPref(
+        [ 'skip_rbl_checks'], $c->{'rbl_checks'}->{'enforced'} ? 0 : 1, $c->{'rbl_checks'}->{'enforced'}
+    );
 
     if ($self->{'config'}->{'spamassassin'}->{'Bayes'}->{'site_wide'}) {
         # If the SA Bayes plugin operates at site-wide, we mus prevent users to
         # act on threshold-based auto-learning discriminator for SpamAssassin's
         # Bayes subsystem.
-        $rs ||= $self->_enforceSaPref( 'bayes_auto_learn_threshold_nonspam' );
-        $rs ||= $self->_enforceSaPref( 'bayes_auto_learn_threshold_spam' );
+        $rs ||= $self->_setGlobalSaPref( [ 'bayes_auto_learn_threshold_nonspam' ], '0.1', 1 );
+        $rs ||= $self->_setGlobalSaPref( [ 'bayes_auto_learn_threshold_spam' ], '12.0', 1 );
         return $rs if $rs;
     }
 
     $rs = ($c->{'AWL'}->{'enabled'}) ? $self->_registerCronjob( 'clean_awl_db' ) : $self->cleanAwlDb( );
     $rs ||= $self->_registerCronjob( 'clean_bayes_db' ) if $c->{'Bayes'}->{'enabled'} && $c->{'Bayes'}->{'site_wide'};
     $rs ||= $self->_setupPyzor( ) if $c->{'Pyzor'}->{'enabled'};
-
     return $rs if $rs || !$c->{'Razor2'}->{'enabled'};
 
     $rs = $self->_setupRazor( );
@@ -963,9 +995,9 @@ sub _configureRoundcubePlugins
 
             my @settings = @{$self->{'config'}->{'roundcube'}->{'sauserprefs'}->{'sauserprefs_dont_override'}};
 
-            # If SPAM is never tagged, there is not reasons to let user rewrite mail subject
-            # and change report related settings through Roundcube sauserprefs plugin
-            push @settings, 'rewrite_header Subject', '{report}'
+            # If SPAM is never tagged, there is not reasons to let user change headers and
+            # report related settings through Roundcube sauserprefs plugin
+            push @settings, '{headers}', '{report}', 'rewrite_header Subject'
                 if $self->{'config'}->{'spamass_milter'}->{'spam_reject_policy'} == -1;
             # Hide Bayes settings in Roundcube sauserprefs plugin if the SA plugin is disabled or enforced
             push @settings, '{bayes}' if !$self->{'config'}->{'spamassassin'}->{'Bayes'}->{'enabled'}
@@ -1006,9 +1038,8 @@ sub _configureRoundcubePlugins
             }
 
             # Hide TextCat setting in Roundcube sauserprefs plugin if the SA plugin is disabled or enforced
-            push @settings, 'ok_languages', 'ok_locales'
-                if !$self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enabled'}
-                    || $self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enforced'};
+            push @settings, 'ok_languages' if !$self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enabled'}
+                || $self->{'config'}->{'spamassassin'}->{'TextCat'}->{'enforced'};
 
             $fileContent =~ s/\Q{SAUSERPREFS_DONT_OVERRIDE}\E/@{[ join ",\n    ", map qq{'$_'}, uniq @settings ]}/g;
         } else {
@@ -1100,18 +1131,20 @@ EOF
     $file->save( );
 }
 
-=item _enforceSaPref( $preference )
+=item _setGlobalSaPref( \@preferences, $value [, $enforce = FALSE ] )
 
- Enforce the given SA preference
+ Update the given global SA preferences and enforce them if requested
 
- Param string $preference Preference name
+ Param arrayref \@preference Global List of SA preference names
+ Param string $value Global SA preference value
+ Param bool $enforce Whether or not the Global SA preference must be enforced
  Return int 0 on success, other on failure
 
 =cut
 
-sub _enforceSaPref
+sub _setGlobalSaPref
 {
-    my (undef, $preference) = @_;
+    my (undef, $preferences, $value, $enforce) = @_;
 
     my $dbh = iMSCP::Database->factory( );
     my $dbi = $dbh->getRawDb( );
@@ -1121,12 +1154,16 @@ sub _enforceSaPref
     eval {
         local $dbi->{'RaiseError'} = 1;
         $oldDb = $dbh->useDatabase( "$main::imscpConfig{'DATABASE_NAME'}_spamassassin" );
-        $dbi->do( "DELETE FROM userpref WHERE username <> ? AND preference = ?", undef, $preference, '$GLOBAL' );
-        $dbi->do( "UPDATE userpref SET value = 1 WHERE username = ? AND preference = ?", undef, $preference, '$GLOBAL' );
-        $dbh->useDatabase( $oldDb );
+
+        for(@{$preferences}) {
+            $dbi->do( "DELETE FROM userpref WHERE username <> ? AND preference = ?", undef, '$GLOBAL', $_ ) if $enforce;
+            $dbi->do( "UPDATE userpref SET value = ? WHERE username = ? AND preference = ?", undef, $value, '$GLOBAL', $_ );
+        }
+
+        $dbh->useDatabase( $oldDb ) if $oldDb;
     };
     if ($@) {
-        $dbh->useDatabase( $oldDb );
+        $dbh->useDatabase( $oldDb ) if $oldDb;
         error( $@ );
         return 1;
     }
@@ -1151,7 +1188,6 @@ sub _createSaSqlUser
 
     eval {
         $self->{'_sa_db_passwd'} = randomStr( 16, iMSCP::Crypt::ALNUM );
-
         local $dbi->{'RaiseError'} = 1;
         my $dbName = $main::imscpConfig{'DATABASE_NAME'}.'_spamassassin';
         my $qrs = $dbh->doQuery( '1', 'SHOW DATABASES LIKE ?', $dbName );
@@ -1200,7 +1236,7 @@ sub _installSaPlugins
                 return $rs if $rs;
 
                 $file->{'filename'} = "/etc/spamassassin/$plugin.$_";
-                $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'} );
+                $rs = $file->owner( $main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'} );
                 $rs ||= $file->mode( 0644 );
                 return $rs if $rs;
                 next;
@@ -1215,34 +1251,32 @@ sub _installSaPlugins
     0;
 }
 
-=item guessSpamdUserProps( )
+=item guessSpamdUserAndGroup( )
 
- Guess Spamd unix user propertie (user,group,homedir)
+ Guess Spamd unix user/group
  
  Return int 0 on success, 1 on failure
 
 =cut
 
-sub guessSpamdUserProps
+sub guessSpamdUserAndGroup
 {
     my ($self) = @_;
 
-    return if $self->{'_sa_homedir'};
+    return if defined $self->{'_spamd_user'};
 
     local $@;
     eval {
-        ($self->{'_sa_homedir'}) = $self->{'config'}->{'spamd'}->{'options'} =~ /-(?:H\s+|-helper-home-dir)(\S*)/ or die(
-            "Couldn't parse spamd helper homedir from the spamd `options' configuration parameter"
+        (my ($uid, $gid) = (CORE::stat($self->{'config'}->{'spamd'}->{'homedir'}))[4, 5]) or die(
+            sprintf( "Couldn't stat spamd user homedir: %s", $! )
         );
-        (my ($uid, $gid) = (CORE::stat($self->{'_sa_homedir'}))[4, 5]) or die(
-            sprintf( "Couldn't stat spamd helper homedir: %s", $! )
-        );
-        $self->{'_sa_user'} = getpwuid( $uid ) or die( "Couldn't find spamd unix user" );
-        $self->{'_sa_group'} = getgrgid ( $gid ) or die( "Couldn't find spamd unix group");
+        $self->{'_spamd_user'} = getpwuid( $uid ) or die( "Couldn't find spamd unix user" );
+        $self->{'_spamd_group'} = getgrgid ( $gid ) or die( "Couldn't find spamd unix group");
         $self->{'config'}->{'spamd'}->{'options'} = process(
             {
-                SPAMD_USER  => $self->{'_sa_user'},
-                SPAMD_GROUP => $self->{'_sa_group'}
+                SPAMD_USER    => $self->{'_spamd_user'},
+                SPAMD_GROUP   => $self->{'_spamd_group'},
+                SPAMD_HOMEDIR => $self->{'config'}->{'spamd'}->{'homedir'},
             },
             $self->{'config'}->{'spamd'}->{'options'}
         );

@@ -9,14 +9,11 @@ Version 2.0.0
     Added: Plugin configuration parameters for the `SPF' SA plugin (disabled by default)
     Added: Plugin configuration parameters for the `Rule2XSBody' SA plugin (enabled by default)
     Backported: Changes from https://github.com/smfreegard/DecodeShortURLs/pull/2 (DecodeShortURLs.cf file only)
-    Changed: DecodeShortURLs, DKIM, iXhash2, Razor2, Pyzor and SPF SA plugins are now disabled by default
+    Changed: DKIM and SPF SA plugins are now disabled by default
     Changed: MILTER default action from `accept' to `tempfail'
     Changed: Usage of UDS instead of TCP for SPAMD(8p) -- Performance boost
     Enhancement: Automatically install distribution packages
     Fixed: Bad ownership set on DecodeShortURLs and iXash2 SpamAssassin plugin files
-    Fixed: Creation of the hourly cronjob for heinlein support ruleset must be atomic
-    Fixed: Creation of the Roundcube plugin configuration files must be atomic
-    Fixed: Creation of the SA configuration files must be atomic
     Fixed: Cronjobs are not registered when the plugin get re-activated
     Fixed: Delay restart of SA services in i-MSCP upgrade/reconfiguration mode
     Fixed: Discard any user preference that belongs to a disabled plugins in user scores and preferences SQL query
@@ -32,8 +29,8 @@ Version 2.0.0
     Removed: `use_auto_whitelist' preference from the `userpref' database table as this preference is not settable
     Removed: Blacklist score preference (-6) from the `userpref' database table; Default (-100.00) fits better
     Removed: Whitelist score preference (10) from the `userpref' database table; Default (100.000) fits better
+    Review: Early exits if the storage server is not running (cronjobs)
     Review: Make use of an all-in-one SQL query instead of 6 queries to delete user bayesian data stored in database
-    Review: Exits early if the storage server is not running (cronjobs)
     Rewritten: Plugin configuration file
     Updated: Roundcube MarkAsJunk2 plugin from version 1.9 to version 1.10
     Updated: Roundcube SAUserPrefs plugin from version 1.15 to version 1.16

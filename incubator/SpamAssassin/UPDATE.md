@@ -1,38 +1,11 @@
 # Update to version 2.0.0
 
-## SpamAssassin user preferences -- Implementation details
-
-In previous versions, the user preferences were been reset each time the plugin
-was being reconfigured, which was a bad implementation. User preferences should
-not be resetted when that is not explicitly requested by the administrator.
-
-To solve this problem, the plugin configuration file has been fully rewritten,
-now providing the administrator with an additional `enforce ` configuration
-parameter that allows to force usage of a specific plugin.
-
-In enforced mode, users won't be able to act on the plugin through the user
-preferences interface that is provided by the Roundcube sauserprefs plugin and
-any existing user preference for that plugin, excepted those which username is
-`$GLOBAL`, will be deleted.
-
-Note that the `enforce` configuration parameter is only provided for plugins
-for which there are user preferences settable through the Roundcube sauserprefs
-plugin.
-
-To resume, the new policy is as follows:
-
-- When a plugin is being enabled, never reset user preferences, excepted if in
-  `enforced` mode.
-- When a plugin is being disabled, never reset user preferences. This don't
-  pose any problem because the SpamAssassin plugin will be fully disabled.
-
-There is only one exception for RBL checks. When RBL checks are being disabled
-enabled and enforced, user preferences that belong to them are always deleted.
-
 ## New default configuration values
 
 This new version comes with new default configuration values which better fit
-with common usage of SpamAssassin in shared hosting environments.
+with common usage of SpamAssassin in shared hosting environments and cover the
+case where other i-MSCP plugin providing identical features could be
+concurrently installed.
 
 ### Default policy for SPAM rejection
 
@@ -59,3 +32,39 @@ other i-MSCP plugins:
 
 Excepted the i-MSCP Postscreen plugin usage case, best would be to de-install
 the i-MSCP plugins listed above and enable their SpamAssassin counterparts.
+
+## Scores for blacklist and whitelist
+
+Scores for both blacklist and whitelist where resetted to SpamAssassin default
+values which fit better for the purpose of that feature.
+
+## SpamAssassin user preferences -- Implementation details
+
+In previous versions, the user preferences were been reset each time the plugin
+was being reconfigured, which was a bad implementation. User preferences should
+not be resetted when that is not explicitly requested by the administrator.
+
+To solve this problem, the plugin configuration file has been fully rewritten,
+now providing the administrator with an additional `enforce ` configuration
+parameter that allows to force usage of a specific plugin.
+
+In enforced mode, end-users won't be able to act on the plugin through their
+user preferences and existing user preferences for that plugin are deleted.
+
+Note that the `enforce` configuration parameter is only provided for some
+plugins.
+
+To resume, the new policy is as follows:
+
+- When a plugin is being enabled, never reset user preferences, excepted if in
+  `enforced` mode.
+- When a plugin is being disabled, never reset user preferences. This don't
+  pose any problem because the SpamAssassin plugin will be fully disabled.
+
+## SPAMD connection mode
+
+In previous versions, connection to SPAMD(8p) was established through TCP.
+Starting with this new version, connection is now established through UDS
+(Unix Domain Socket).
+
+This is a boost-performance change as the network stack is no longer involved.

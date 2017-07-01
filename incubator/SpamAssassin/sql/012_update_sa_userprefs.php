@@ -34,14 +34,26 @@ return array(
         --
         -- 2. Delete Blacklist/Whitelist score preferences as the defaults fit
         -- better for the purpose of that feature
-        DELETE FROM $saDb.userpref WHERE preference IN ('use_auto_whitelist', 'USER_IN_BLACKLIST', 'USER_IN_WHITELIST');
+        DELETE FROM $saDb.userpref
+        WHERE preference IN ('use_auto_whitelist', 'score USER_IN_BLACKLIST', 'score USER_IN_WHITELIST');
 
-        -- Enable RBL checks by default. Those are disabled at site-wide when needed.
+        -- Add missing preferences
+        INSERT IGNORE INTO $saDb.userpref
+            (username, preference, value)
+        VALUES
+            ('\$GLOBAL', 'ok_locales', 'all'),
+            ('\$GLOBAL', 'ok_languages', 'all');
+
+        -- New default values for SA plugins
         UPDATE $saDb.userpref SET value = '1' WHERE username = '\$GLOBAL' AND preference = 'skip_rbl_checks';
-        
+        UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use_bayes';
+        UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use_pyzor';
+        UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use razor2';
+        UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use_dcc';
+
         -- Remove any orphaned user preference
         DELETE u FROM $saDb.userpref u
-        WHERE v.username <> '\$GLOBAL'
+        WHERE u.username <> '\$GLOBAL'
         AND u.username NOT IN(SELECT m.mail_addr FROM $imscpDb.mail_users m WHERE mail_pass <> '_no_');
     "
 );

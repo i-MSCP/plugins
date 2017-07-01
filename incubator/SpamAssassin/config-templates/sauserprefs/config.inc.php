@@ -72,7 +72,7 @@ $config['sauserprefs_default_prefs'] = array(
     'use_razor2'                         => '0',
     'use_pyzor'                          => '0',
     'use_dcc'                            => '0',
-    'use_bayes'                          => '1',
+    'use_bayes'                          => '0',
     'skip_rbl_checks'                    => '1',
     'report_safe'                        => '1',
     'bayes_auto_learn'                   => '1',
@@ -81,7 +81,7 @@ $config['sauserprefs_default_prefs'] = array(
     'use_bayes_rules'                    => '1'
 );
 
-// spam score increment - increment values in the the score threshold drop down by this, from 0 to 10
+// spam score increment - increment values in the score threshold drop down by this, from 0 to 10
 $config['sauserprefs_score_inc'] = 1;
 
 // delete user bayesian data stored in database
@@ -100,7 +100,7 @@ $config['sauserprefs_bayes_delete_query'] = array(
         FROM bayes_vars v
         LEFT JOIN bayes_token t ON t.id = v.id
         LEFT JOIN bayes_seen s ON s.id = v.id
-        WHERE v.username = %s
+        WHERE v.username = %u
      '
 );
 

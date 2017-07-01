@@ -21,24 +21,27 @@
  */
 
 return array(
-    // SPAMD(8p) service configuration options
-    //
-    // Available placeholders:
-    //  - {SPAMD_USER}: Replaced by SPAMD(8p) unix user
-    //  - {SPAMD_GROUP}: Replaced by SPAMD(8p) unix user group
-    //
-    // Don't remove the -H (helper homedir) option as it is used to guess
-    // SPAMD(8p) user and group
+    // SPAMD(8p) service configuration
     'spamd'          => array(
-        // Options passed-in to SPAMD(8p)
+        // SPAMD(8p) unix user homedir
         //
         // Possible value: string
-        'options' => '-m 5 -q -x -u {SPAMD_USER} -g {SPAMD_GROUP} -H /var/lib/spamassassin'
-            . ' --socketpath=/var/run/spamassassin.sock --socketowner={SPAMD_USER} --socketgroup={SPAMD_GROUP}'
-            . ' --socketmode=0666'
+        'homedir' => '/var/lib/spamassassin',
+
+        // Options passed-in to SPAMD(8p)
+        //
+        // Available placeholders:
+        //  - {SPAMD_USER}: Replaced by SPAMD(8p) unix user
+        //  - {SPAMD_GROUP}: Replaced by SPAMD(8p) unix user group
+        //  - {SPAMD_HOMEDIR}: Replaced by SPAMD(8p) unix user homedir
+        //
+        // Possible value: string
+        'options' => '--max-children=5 --sql-config --nouser-config --username={SPAMD_USER} --groupname={SPAMD_GROUP}'
+            . ' --helper-home-dir={SPAMD_HOMEDIR} --socketpath=/var/run/spamassassin.sock --socketowner={SPAMD_USER}'
+            . ' --socketgroup={SPAMD_GROUP} --socketmode=0666'
     ),
 
-    // SPAMASS_MILTER(8) service configuration options
+    // SPAMASS_MILTER(8) service configuration
     'spamass_milter' => array(
         // Policy for SPAM rejection
         //
@@ -82,11 +85,11 @@ return array(
         // You can pass your own options to SPAMASS_MILTER(8), including flags
         // for SPAMC(1) as described in SPAMASS_MILTER(8)
         //
-        // Don't add the -I, -i and -r SPAMC(1) options as these are managed
+        // Don't add the -I, -i and -r SPAMASS_MILTER(8) options as these are managed
         // through the named options above.
         //
         // Possible value: string
-        'options'                 => '-e -f -u spamass-milter -- -U /var/run/spamassassin.sock',
+        'options'                 => '-e localhost -f -u spamass-milter -- --socket=/var/run/spamassassin.sock',
 
         // SPAMASS_MILTER(8) socket path
         //
@@ -113,7 +116,7 @@ return array(
         // disabled.
         'AWL'                      => array(
             // Possible values: true, false
-            'enabled'          => false,
+            'enabled'          => true,
 
             // SA configuration files in which the plugin must be loaded.
             //
@@ -140,11 +143,8 @@ return array(
             // Enforced mode
             //
             // Setting the value to TRUE will prevent users to act on that
-            // plugin through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
+            // plugin through their user preferences. Bayes SA plugin usage
+            // will be enforced for all users.
             //
             // Possible value: true, false
             'enforced'         => false,
@@ -198,11 +198,8 @@ return array(
             // Enforced mode
             //
             // Setting the value to TRUE will prevent users to act on that
-            // plugin through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
+            // plugin through their user preferences. DCC SA plugin usage
+            // will be enforced for all users.
             //
             // Possible value: true, false
             'enforced'    => false,
@@ -235,14 +232,14 @@ return array(
         // Note that this plugin is either enabled for all users or fully disabled.
         'DecodeShortURLs'          => array(
             // Possible values: true, false
-            'enabled' => false
+            'enabled' => true
         ),
 
         // Heinlein Support SpamAssassin ruleset
         // See https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
         'heinlein_support_ruleset' => array(
             // Possible value: true, false
-            'enabled'     => false,
+            'enabled'     => true,
 
             // Cronjob sleep timer (in seconds)
             // Possible value: integer
@@ -261,23 +258,20 @@ return array(
         // disabled.
         'iXhash2'                  => array(
             // Possible values: true, false
-            'enabled' => false
+            'enabled' => true
         ),
 
         // Pyzor plugin -- perform Pyzor check of messages
         // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Pyzor.html
         'Pyzor'                    => array(
             // Possible values: true, false
-            'enabled'     => false,
+            'enabled'     => true,
 
             // Enforced mode
             //
             // Setting the value to TRUE will prevent users to act on that
-            // plugin through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
+            // plugin through their user preferences. Pyzor SA plugin usage
+            // will be enforced for all users.
             //
             // Possible value: true, false
             'enforced'    => false,
@@ -292,16 +286,13 @@ return array(
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Razor2.html
         'Razor2'                   => array(
             // Possible values: true, false
-            'enabled'     => false,
+            'enabled'     => true,
 
             // Enforced mode
             //
             // Setting the value to TRUE will prevent users to act on that
-            // plugin through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
+            // plugin through their user preferences. Razor2 SA plugin usage
+            // will be enforced for all users.
             //
             // Possible value: true, false
             'enforced'    => false,
@@ -316,7 +307,7 @@ return array(
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Rule2XSBody.html
         'Rule2XSBody'              => array(
             // Possible values: true, false
-            'enabled'     => false,
+            'enabled'     => true,
 
             // SA configuration file in which the plugin must be loaded.
             //
@@ -346,19 +337,7 @@ return array(
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_TextCat.html
         'TextCat'                  => array(
             // possible values: true, false
-            'enabled'     => false,
-
-            // Enforced mode
-            //
-            // Setting the value to TRUE will prevent users to act on that
-            // plugin through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
-            //
-            // Possible value: true, false
-            'enforced'    => false,
+            'enabled'     => true,
 
             // SA configuration files in which the plugin must be loaded.
             //
@@ -366,9 +345,11 @@ return array(
             'config_file' => '/etc/spamassassin/v310.pre'
         ),
 
-        // RBL checks
+        // RBL checks (DNSEval and URIDNSBL SA plugins)
+        // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DNSEval.html
+        // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_URIDNSBL.html
         //
-        // You shouldn't enable this feature if you already use the i-MSCP
+        // You shouldn't enable those plugins if you already use the i-MSCP
         // PolicydWeight and/or Postscreen plugins.
         'rbl_checks'               => array(
             // Possible value: true, false
@@ -377,18 +358,15 @@ return array(
             // Enforced mode
             //
             // Setting the value to TRUE will prevent users to disable/enable
-            // RBL checks through their user preferences. Existing user
-            // preferences for that plugin excepted $GLOBAL will be deleted.
-            //
-            // Note: Only relevant when using the Roundcube Webmail and
-            // enabling the `sauserprefs' Roundcube plugin below.
+            // RBL checks through their user preferences. RBL checks will be
+            // enforced for all users.
             //
             // Possible value: true, false
             'enforced' => false
         )
     ),
 
-    // Roundcube configuration options
+    // Roundcube configuration
     //
     // Only relevant if you use the Roundcube Webmail
     'roundcube'      => array(
@@ -409,7 +387,7 @@ return array(
         // user preferences
         'sauserprefs' => array(
             // Possible values: true, false
-            'enabled'                   => false,
+            'enabled'                   => true,
 
             // Protected SA user preferences
             //

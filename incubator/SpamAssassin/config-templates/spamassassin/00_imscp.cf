@@ -14,8 +14,9 @@ user_scores_sql_custom_query SELECT preference, value FROM _TABLE_ WHERE usernam
 ## SA RBL checks
 #
 
-# By default RBL checks are disabled. They are enabled through user preferences when needed
-skip_rbl_checks = 1
+# By default RBL checks (DNSEval and URIDNSBL SA plugins) are disabled. They
+# are enabled/enforced through user preferences when needed.
+skip_rbl_checks 1
 
 #
 ## SA Bayes plugin configuration
