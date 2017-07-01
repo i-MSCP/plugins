@@ -9,7 +9,7 @@ adding a cryptographic signature to the headers of the message.
 
 ## Requirements
 
-* i-MSCP >= Serie 1.4.x
+- i-MSCP Serie ≥ 1.4.x
 
 ## Installation
 
