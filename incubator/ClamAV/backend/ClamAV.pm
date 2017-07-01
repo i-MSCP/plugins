@@ -528,7 +528,7 @@ sub _installDistributionPackages
 
     my $rs = execute( [ 'apt-get', 'update' ], \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
-    error( sprintf("Couldn't update APT index: %s", $stderr || 'Unknown error' ) ) if $rs;
+    error( sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' ) ) if $rs;
     return $rs if $rs;
 
     $rs = execute(

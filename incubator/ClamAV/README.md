@@ -4,8 +4,7 @@ Provides ClamAV anti-virus through MILTER.
 
 ## Requirements
 
-* i-MSCP >= Serie 1.4.x
-* i-MSCP Postfix server implementation
+- i-MSCP Serie ≥ 1.4.x
 
 ## Installation
 
