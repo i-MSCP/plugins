@@ -15,7 +15,7 @@ Version 2.0.0
     Enhancement: Automatically install distribution packages
     Fixed: Bad ownership set on DecodeShortURLs and iXash2 SpamAssassin plugin files
     Fixed: Cronjobs are not registered when the plugin get re-activated
-    Fixed: Delay restart of SA services in i-MSCP upgrade/reconfiguration mode
+    Fixed: Delay restart of SA services on i-MSCP upgrade/reconfiguration
     Fixed: Discard any user preference that belongs to a disabled plugins in user scores and preferences SQL query
     Fixed: Guess the SPAMD(8p) unix user/group instead of hard-coding them
     Fixed: Make sure that configuration files are created with expected UMASK(2)
