@@ -17,6 +17,7 @@ Version 2.0.0
     Fixed: Cronjobs are not registered when the plugin get re-activated
     Fixed: Delay restart of SA services on i-MSCP upgrade/reconfiguration
     Fixed: Discard any user preference that belongs to a disabled plugins in user scores and preferences SQL query
+    Fixed: Give SpamAssassin a higher priority by adding it at begin of the smtpd_milters list
     Fixed: Guess the SPAMD(8p) unix user/group instead of hard-coding them
     Fixed: Make sure that configuration files are created with expected UMASK(2)
     Fixed: Make use of iMSCP::Crypt library to generate SA SQL user password

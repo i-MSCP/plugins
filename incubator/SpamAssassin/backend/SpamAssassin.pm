@@ -116,7 +116,7 @@ sub enable
         $rs = $self->{'eventManager'}->register(
             'beforeSetupRestartServices',
             sub {
-                unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin & cie' ];
+                unshift @{$_[0]}, [ $serviceTasksSub, 'SpamAssassin' ];
                 0;
             }
         );
@@ -621,11 +621,13 @@ sub _configurePostfix
             },
             smtpd_milters         => {
                 action => 'add',
-                values => [ $milterValue ]
+                values => [ $milterValue ],
+                before => qw/.*/ # Make sure that SpamAssassin filtering is processed first
             },
             non_smtpd_milters     => {
                 action => 'add',
-                values => [ $milterValue ]
+                values => [ $milterValue ],
+                before => qw/.*/ # Make sure that SpamAssassin filtering is processed first
             },
             milter_connect_macros => {
                 action => 'replace',
