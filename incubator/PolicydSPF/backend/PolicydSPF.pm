@@ -117,8 +117,9 @@ EOF
             $fileContent .= $confSnippet;
         }
 
-        my $rs = $file->set( $fileContent );
-        $rs ||= $file->save( );
+        $file->set( $fileContent );
+
+        my $rs = $file->save( );
         $rs ||= $mta->postconf(
             (
                 'policy-spf_time_limit'      => {
@@ -156,8 +157,9 @@ EOF
     $fileContent = replaceBloc(
         "# Plugin::PolicydSPF - Begin\n", "# Plugin::PolicydSPF - Ending\n", '', $fileContent
     );
-    $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
+
+    $file->set( $fileContent );
+    $file->save( );
 }
 
 =back

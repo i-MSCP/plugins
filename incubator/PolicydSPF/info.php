@@ -28,8 +28,8 @@ return array(
     'email'       => 'team@i-mscp.net',
     'version'     => '1.2.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-07-01',
-    'build'       => '2017070100',
+    'date'        => '2017-07-03',
+    'build'       => '2017070300',
     'name'        => 'PolicydSPF',
     'desc'        => 'Provides Simple Postfix policy server for RFC 4408/7208 SPF checking.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:policydspf'
