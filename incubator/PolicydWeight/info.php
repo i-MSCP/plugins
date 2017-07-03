@@ -23,8 +23,8 @@ return array(
     'email'       => 'l.declercq@nuxwin.com',
     'version'     => '1.2.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-07-01',
-    'build'       => '2017070100',
+    'date'        => '2017-07-03',
+    'build'       => '2017070300',
     'name'        => 'PolicydWeight',
     'desc'        => 'Provides policyd-weight policy server for Postfix.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:policydweight'
