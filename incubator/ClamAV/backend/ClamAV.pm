@@ -426,9 +426,6 @@ sub _configureClamavMilter
     my $optionReg = '((?:'.(join '|', map(quotemeta, keys %{$options})).').*)';
 
     if ($action eq 'configure') {
-        my $clamavVersion = $self->_getClamavMilterVersion( );
-        return 1 unless defined $clamavVersion;
-
         $fileContent =~ s/^$optionReg/#$1/gim; # Disable default configuration options (those that we want redefine)
 
         my $configSnippet = "# Begin Plugin::ClamAV\n";
@@ -561,24 +558,6 @@ sub _initClamAVdatabases
     debug( $stdout ) if $stdout;
     error( sprintf( "Couldn't initialize ClamAV databases: %s", $stderr || 'Unknown error' ) ) if $rs;
     $rs;
-}
-
-=item _getClamavMilterVersion( )
-
- Get ClamAV Milter version
-
- Return string|undef ClamAV version on success, undef on failure
-
-=cut
-
-sub _getClamavMilterVersion
-{
-    my $rs = execute( 'clamav-milter --version', \ my $stdout, \ my $stderr );
-
-    return $stdout if !$rs && $stdout =~ s/clamav-milter\s+([\d.]+)/$1/;
-
-    error( sprintf( "Couldn't get version: %s", $stderr || 'Version not found' ) );
-    undef;
 }
 
 =back
