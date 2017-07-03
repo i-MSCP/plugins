@@ -423,17 +423,11 @@ sub _configureClamavMilter
     }
 
     my $options = $self->{'config'}->{'clamav_milter_options'};
-    my $optionReg = '((?:'.(join( '|', (keys %{$options}, 'AllowSupplementaryGroups') )).').*)';
+    my $optionReg = '((?:'.(join '|', map(quotemeta, keys %{$options})).').*)';
 
     if ($action eq 'configure') {
         my $clamavVersion = $self->_getClamavMilterVersion( );
         return 1 unless defined $clamavVersion;
-
-        # The `AllowSupplementaryGroups' option is not longer supported by ClamAV >= 0.99.2. Thus, we add it
-        # only if ClamAV version is lower than 0.99.2
-        if (version->parse( $clamavVersion ) >= version->parse( '0.99.2' )) {
-            delete $self->{'config'}->{'clamav_milter_options'}->{'AllowSupplementaryGroups'};
-        }
 
         $fileContent =~ s/^$optionReg/#$1/gim; # Disable default configuration options (those that we want redefine)
 
