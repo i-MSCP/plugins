@@ -27,7 +27,7 @@ return array(
         'Sascha Bay'
     ),
     'email'       => 'team@i-mscp.net',
-    'version'     => '2.0.0',
+    'version'     => '2.0.1',
     'require_api' => '1.4.0',
     'date'        => '2017-07-03',
     'build'       => '2017070300',

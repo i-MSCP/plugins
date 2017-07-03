@@ -33,10 +33,10 @@ use autouse 'iMSCP::Debug' => qw/ debug error /;
 use autouse 'iMSCP::Execute' => qw/ execute /;
 use autouse 'iMSCP::Rights' => qw/ setRights /;
 use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
-use autouse 'List::MoreUtils' => qw/ uniq /;
 use Class::Autouse qw/ :nostat
     iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser Servers::cron Servers::mta Servers::sqld /;
 use iMSCP::Umask;
+use List::MoreUtils qw / uniq /;
 use version;
 use parent 'Common::SingletonClass';
 
