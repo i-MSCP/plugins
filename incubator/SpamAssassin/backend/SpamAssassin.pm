@@ -622,12 +622,12 @@ sub _configurePostfix
             smtpd_milters         => {
                 action => 'add',
                 values => [ $milterValue ],
-                before => qw/.*/ # Make sure that SpamAssassin filtering is processed first
+                before => qr/.*/ # Make sure that SpamAssassin filtering is processed first
             },
             non_smtpd_milters     => {
                 action => 'add',
                 values => [ $milterValue ],
-                before => qw/.*/ # Make sure that SpamAssassin filtering is processed first
+                before => qr/.*/ # Make sure that SpamAssassin filtering is processed first
             },
             milter_connect_macros => {
                 action => 'replace',
