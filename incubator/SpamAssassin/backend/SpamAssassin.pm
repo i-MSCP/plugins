@@ -75,7 +75,7 @@ sub update
         return $rs if $rs;
     }
 
-    return 0 unless $fromVersion < version->parse('2.0.0' );
+    return 0 unless $fromVersion < version->parse( '2.0.0' );
 
     if (-f '/etc/spamassassin/00_imscp.pre') {
         my $rs = iMSCP::File->new( filename => '/etc/spamassassin/00_imscp.pre' )->delFile( );
@@ -100,7 +100,7 @@ sub enable
     unless (defined $main::execmode && $main::execmode eq 'setup'
         || !grep( $_ eq $self->{'action'}, 'install', 'update' )
     ) {
-        my $rs ||= $self->_installDistributionPackages( );
+        my $rs = $self->_installDistributionPackages( );
         return $rs if $rs;
     }
 
@@ -395,7 +395,7 @@ sub _installDistributionPackages
 
 =item _createSpamdUser( )
 
- Create/update spamd unix user
+ Create/Update spamd unix user
 
  Return int 0 on success, other on failure
 
@@ -408,7 +408,7 @@ sub _createSpamdUser
     my $rs = iMSCP::SystemGroup->getInstance( )->addSystemGroup( $self->{'config'}->{'spamd'}->{'group'}, 1 );
     $rs ||= iMSCP::SystemUser->new(
         {
-            username => $self->{'config_prev'}->{'spamd'}->{'user'},
+            username => $self->{'config'}->{'spamd'}->{'user'},
             group    => $self->{'config'}->{'spamd'}->{'group'},
             system   => 1,
             comment  => '',
@@ -1182,8 +1182,9 @@ sub _setGlobalSaPref
 
         for(@{$preferences}) {
             $dbi->do( "DELETE FROM userpref WHERE username <> ? AND preference = ?", undef, '$GLOBAL', $_ ) if $enforce;
-            $dbi->do( "UPDATE userpref SET value = ? WHERE username = ? AND preference = ?", undef, $value, '$GLOBAL',
-                $_ );
+            $dbi->do(
+                "UPDATE userpref SET value = ? WHERE username = ? AND preference = ?", undef, $value, '$GLOBAL', $_
+            );
         }
 
         $dbh->useDatabase( $oldDb ) if $oldDb;
