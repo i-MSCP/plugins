@@ -23,6 +23,12 @@
 return array(
     // SPAMD(8p) service configuration
     'spamd'          => array(
+        // SPAMD(8p) unix user
+        'user'    => 'debian-spamd',
+
+        // SPAMD(8p) unix user group
+        'group'   => 'debian-spamd',
+
         // SPAMD(8p) unix user homedir
         //
         // Possible value: string

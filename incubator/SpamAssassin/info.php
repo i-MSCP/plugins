@@ -27,10 +27,10 @@ return array(
         'Sascha Bay'
     ),
     'email'       => 'team@i-mscp.net',
-    'version'     => '2.0.1',
+    'version'     => '2.0.2',
     'require_api' => '1.4.0',
-    'date'        => '2017-07-03',
-    'build'       => '2017070300',
+    'date'        => '2017-07-05',
+    'build'       => '2017070500',
     'name'        => 'SpamAssassin',
     'desc'        => 'Provides SpamAssassin spam filter through MILTER.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'

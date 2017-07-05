@@ -34,7 +34,8 @@ use autouse 'iMSCP::Execute' => qw/ execute /;
 use autouse 'iMSCP::Rights' => qw/ setRights /;
 use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
 use Class::Autouse qw/ :nostat
-    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser Servers::cron Servers::mta Servers::sqld /;
+    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Service iMSCP::SystemUser iMSCP::SystemGroup Servers::cron
+    Servers::mta Servers::sqld /;
 use iMSCP::Umask;
 use List::MoreUtils qw / uniq /;
 use version;
@@ -61,10 +62,27 @@ sub update
 {
     my (undef, $fromVersion) = @_;
 
-    return 0 unless version->parse( $fromVersion ) < version->parse('2.0.0' )
-        && -f '/etc/spamassassin/00_imscp.pre';
+    $fromVersion = version->parse( $fromVersion );
 
-    iMSCP::File->new( filename => '/etc/spamassassin/00_imscp.pre' )->delFile( );
+    return 0 unless $fromVersion < version->parse( '2.0.2' );
+
+    if (getpwnam( 'debian-spamd' )) {
+        # sa-compile package post-installation tasks fail if the `debian-spamd'
+        # user shell is not a valid login shell
+        my $rs = execute( [ '/usr/sbin/usermod', '-s', '/bin/sh', 'debian-spamd' ], \my $stdout, \my $stderr);
+        debug( $stdout ) if $stdout;
+        error( $stderr || 'Unknown error' ) if $rs;
+        return $rs if $rs;
+    }
+
+    return 0 unless $fromVersion < version->parse('2.0.0' );
+
+    if (-f '/etc/spamassassin/00_imscp.pre') {
+        my $rs = iMSCP::File->new( filename => '/etc/spamassassin/00_imscp.pre' )->delFile( );
+        return $rs if $rs;
+    }
+
+    0;
 }
 
 =item enable( )
@@ -82,11 +100,11 @@ sub enable
     unless (defined $main::execmode && $main::execmode eq 'setup'
         || !grep( $_ eq $self->{'action'}, 'install', 'update' )
     ) {
-        my $rs = $self->_installDistributionPackages( );
+        my $rs ||= $self->_installDistributionPackages( );
         return $rs if $rs;
     }
 
-    my $rs = $self->_updateSpamdUser( );
+    my $rs = $self->_createSpamdUser( );
     $rs ||= $self->_createSaSqlUser( );
     $rs ||= $self->_configureSa( 'configure' );
     $rs ||= $self->_installSaPlugins( 'install');
@@ -220,10 +238,9 @@ sub discoverRazor
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserAndGroup( );
-    return $rs if $rs;
-
-    $rs = execute( "su - $self->{'_spamd_user'} -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr );
+    my $rs = execute(
+        "su - $self->{'config'}->{'spamd'}->{'user'} -c '/usr/bin/razor-admin -discover'", \ my $stdout, \ my $stderr
+    );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -331,6 +348,15 @@ sub _init
     $self->{'_panel_group'} = getgrgid ( (getpwnam( $self->{'_panel_user'} ))[3] ) or die(
         "Couldn't find panel unix user group"
     );
+    $self->{'config'}->{'spamd'}->{'options'} = process(
+        {
+            SPAMD_USER    => $self->{'config'}->{'spamd'}->{'user'},
+            SPAMD_GROUP   => $self->{'config'}->{'spamd'}->{'group'},
+            SPAMD_HOMEDIR => $self->{'config'}->{'spamd'}->{'homedir'},
+        },
+        $self->{'config'}->{'spamd'}->{'options'}
+    );
+
     $self;
 }
 
@@ -367,65 +393,65 @@ sub _installDistributionPackages
     $rs;
 }
 
-=item _updateSpamdUser( )
+=item _createSpamdUser( )
 
- Update spamd unix user and its home directory
+ Create/update spamd unix user
 
  Return int 0 on success, other on failure
 
 =cut
 
-sub _updateSpamdUser
+sub _createSpamdUser
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserAndGroup( );
+    my $rs = iMSCP::SystemGroup->getInstance( )->addSystemGroup( $self->{'config'}->{'spamd'}->{'group'}, 1 );
     $rs ||= iMSCP::SystemUser->new(
         {
-            username => $self->{'_spamd_user'},
-            group    => $self->{'_spamd_group'},
+            username => $self->{'config_prev'}->{'spamd'}->{'user'},
+            group    => $self->{'config'}->{'spamd'}->{'group'},
             system   => 1,
             comment  => '',
             home     => $self->{'config'}->{'spamd'}->{'homedir'},
             shell    => '/bin/sh'
         }
     )->addSystemUser( );
+    return $rs if $rs;
 
     local $@;
     eval {
         iMSCP::Dir->new( dirname => $self->{'config'}->{'spamd'}->{'homedir'} )->make(
-            user  => $self->{'_spamd_user'},
-            group => $self->{'_spamd_group'}
+            user  => $self->{'config'}->{'spamd'}->{'user'},
+            group => $self->{'config'}->{'spamd'}->{'group'}
         );
 
         iMSCP::Dir->new( dirname => "$self->{'config'}->{'spamd'}->{'homedir'}/sa-update-keys" )->make(
-            user  => $self->{'_spamd_user'},
-            group => $self->{'_spamd_group'},
+            user  => $self->{'config'}->{'spamd'}->{'user'},
+            group => $self->{'config'}->{'spamd'}->{'group'},
             mode  => 0700
         );
 
         my ($stderr, $stdout);
-        $rs = execute(
+        execute(
             [
-                'su', '-', $self->{'_spamd_user'}, '-c',
+                'su', '-', $self->{'config'}->{'spamd'}->{'user'}, '-c',
                 "sa-update --gpghomedir $self->{'config'}->{'spamd'}->{'homedir'}/sa-update-keys --import "
                     ."/usr/share/spamassassin/GPG.KEY"
             ],
             \$stdout, \$stderr,
-        );
+        ) == 0 or die( $stderr || 'Unknown error' );
         debug( $stdout ) if $stdout;
-        !$rs or die( $stderr || 'Unknown error' );
     };
     if ($@) {
         error( $@ );
         return 1;
     }
 
-    $rs = setRights(
+    setRights(
         $self->{'config'}->{'spamd'}->{'homedir'},
         {
-            user      => $self->{'_spamd_user'},
-            group     => $self->{'_spamd_group'},
+            user      => $self->{'config'}->{'spamd'}->{'user'},
+            group     => $self->{'config'}->{'spamd'}->{'group'},
             recursive => 1
         }
     );
@@ -443,10 +469,7 @@ sub _setupPyzor
 {
     my ($self) = @_;
 
-    my $rs = $self->guessSpamdUserAndGroup( );
-    return $rs if $rs;
-
-    $rs = execute( "su - $self->{'_spamd_user'} -c 'pyzor discover'", \ my $stdout, \ my $stderr );
+    my $rs = execute( "su - $self->{'config'}->{'spamd'}->{'user'} -c 'pyzor discover'", \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -466,11 +489,10 @@ sub _setupRazor
 
     return 0 if -d "$self->{'config'}->{'spamd'}->{'homedir'}/.razor";
 
-    my $rs = $self->guessSpamdUserAndGroup( );
-    return $rs if $rs;
-
     for(qw/ create register /) {
-        $rs = execute( "su  - $self->{'_spamd_user'} -c 'razor-admin -$_'", \ my $stdout, \ my $stderr );
+        my $rs = execute(
+            "su  - $self->{'config'}->{'spamd'}->{'user'} -c 'razor-admin -$_'", \ my $stdout, \ my $stderr
+        );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         return $rs if $rs;
@@ -789,7 +811,7 @@ sub _configureSa
 
         my $rs = $file->set( $fileContent );
         $rs ||= $file->save( );
-        $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $self->{'_spamd_group'} );
+        $rs ||= $file->owner( $main::imscpConfig{'ROOT_USER'}, $self->{'config'}->{'spamd'}->{'group'} );
         $rs ||= $file->mode( 0640 );
         return $rs if $rs;
 
@@ -884,9 +906,10 @@ sub _setupSaPlugins
 
     $rs = $self->_setGlobalSaPref( [ 'use_dcc' ], $c->{'DCC'}->{'enforced'} ? 1 : 0, $c->{'DCC'}->{'enforced'} );
     $rs = $self->_setGlobalSaPref( [ 'use_pyzor' ], $c->{'Pyzor'}->{'enforced'} ? 1 : 0, $c->{'Pyzor'}->{'enforced'} );
-    $rs = $self->_setGlobalSaPref( [ 'use_bayes' ], $c->{'Razor2'}->{'enforced'} ? 1 : 0, $c->{'Razor2'}->{'enforced'} );
+    $rs = $self->_setGlobalSaPref( [ 'use_bayes' ], $c->{'Razor2'}->{'enforced'} ? 1 : 0,
+        $c->{'Razor2'}->{'enforced'} );
     $rs = $self->_setGlobalSaPref(
-        [ 'skip_rbl_checks'], $c->{'rbl_checks'}->{'enforced'} ? 0 : 1, $c->{'rbl_checks'}->{'enforced'}
+        [ 'skip_rbl_checks' ], $c->{'rbl_checks'}->{'enforced'} ? 0 : 1, $c->{'rbl_checks'}->{'enforced'}
     );
 
     if ($self->{'config'}->{'spamassassin'}->{'Bayes'}->{'site_wide'}) {
@@ -1159,7 +1182,8 @@ sub _setGlobalSaPref
 
         for(@{$preferences}) {
             $dbi->do( "DELETE FROM userpref WHERE username <> ? AND preference = ?", undef, '$GLOBAL', $_ ) if $enforce;
-            $dbi->do( "UPDATE userpref SET value = ? WHERE username = ? AND preference = ?", undef, $value, '$GLOBAL', $_ );
+            $dbi->do( "UPDATE userpref SET value = ? WHERE username = ? AND preference = ?", undef, $value, '$GLOBAL',
+                $_ );
         }
 
         $dbh->useDatabase( $oldDb ) if $oldDb;
@@ -1248,44 +1272,6 @@ sub _installSaPlugins
             my $rs = iMSCP::File->new( filename => "/etc/spamassassin/$plugin.$_" )->delFile( );
             return $rs if $rs;
         }
-    }
-
-    0;
-}
-
-=item guessSpamdUserAndGroup( )
-
- Guess Spamd unix user/group
- 
- Return int 0 on success, 1 on failure
-
-=cut
-
-sub guessSpamdUserAndGroup
-{
-    my ($self) = @_;
-
-    return if defined $self->{'_spamd_user'};
-
-    local $@;
-    eval {
-        (my ($uid, $gid) = (CORE::stat($self->{'config'}->{'spamd'}->{'homedir'}))[4, 5]) or die(
-            sprintf( "Couldn't stat spamd user homedir: %s", $! )
-        );
-        $self->{'_spamd_user'} = getpwuid( $uid ) or die( "Couldn't find spamd unix user" );
-        $self->{'_spamd_group'} = getgrgid ( $gid ) or die( "Couldn't find spamd unix group");
-        $self->{'config'}->{'spamd'}->{'options'} = process(
-            {
-                SPAMD_USER    => $self->{'_spamd_user'},
-                SPAMD_GROUP   => $self->{'_spamd_group'},
-                SPAMD_HOMEDIR => $self->{'config'}->{'spamd'}->{'homedir'},
-            },
-            $self->{'config'}->{'spamd'}->{'options'}
-        );
-    };
-    if ($@) {
-        error( $@ );
-        return 1;
     }
 
     0;
