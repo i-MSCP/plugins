@@ -69,7 +69,7 @@ sub update
     if (getpwnam( 'debian-spamd' )) {
         # sa-compile package post-installation tasks fail if the `debian-spamd'
         # user shell is not a valid login shell
-        my $rs = execute( [ '/usr/sbin/usermod', '-s', '/bin/sh', 'debian-spamd' ], \my $stdout, \my $stderr);
+        my $rs = execute( [ '/usr/sbin/usermod', '-s', '/bin/sh', 'debian-spamd' ], \my $stdout, \my $stderr );
         debug( $stdout ) if $stdout;
         error( $stderr || 'Unknown error' ) if $rs;
         return $rs if $rs;
@@ -107,7 +107,7 @@ sub enable
     my $rs = $self->_createSpamdUser( );
     $rs ||= $self->_createSaSqlUser( );
     $rs ||= $self->_configureSa( 'configure' );
-    $rs ||= $self->_installSaPlugins( 'install');
+    $rs ||= $self->_installSaPlugins( 'install' );
     $rs ||= $self->_setupSaPlugins( );
     $rs ||= $self->_configureHeinleinRuleset( 'configure' );
     $rs ||= $self->_configureSpamassMilter( 'configure' );
@@ -319,7 +319,7 @@ sub bayesSaLearn
     }
 
     # Synchronize the database and the journal once per training session
-    my $rs = execute( "sa-learn --sync", \ my $stdout, \ my $stderr );
+    my $rs = execute( [ 'sa-learn', '--sync' ], \ my $stdout, \ my $stderr );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;
     $rs;
@@ -352,7 +352,7 @@ sub _init
         {
             SPAMD_USER    => $self->{'config'}->{'spamd'}->{'user'},
             SPAMD_GROUP   => $self->{'config'}->{'spamd'}->{'group'},
-            SPAMD_HOMEDIR => $self->{'config'}->{'spamd'}->{'homedir'},
+            SPAMD_HOMEDIR => $self->{'config'}->{'spamd'}->{'homedir'}
         },
         $self->{'config'}->{'spamd'}->{'options'}
     );
