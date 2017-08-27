@@ -175,7 +175,7 @@ sub disable
 
 =item run( )
 
- Create new entry for the OpenDKIM
+ Process OpenDKIM entries
 
  Return int 0 on success, other on failure
 
@@ -381,7 +381,7 @@ sub _opendkimConfigure
         # We remove the file only on the 'disable" action, not on 'change' or
         # 'update' actions.
         #
-        # Doing this necessarely mean that if the administrator deactivate the
+        # Doing this necessarily means that if the administrator deactivates the
         # plugin, all keys will be renewed when the plugin will be reactivated.
         # We do not have the choice because if we don't remove the file, this
         # could lead to orphaned keys (case where a domain is being removed

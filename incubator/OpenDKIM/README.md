@@ -24,7 +24,8 @@ adding a cryptographic signature to the headers of the message.
 
 ### Restore you plugin configuration file if needed
 
-1. Restore your plugin configuration file (compare it with the new version first)
+1. Restore your plugin configuration file (compare it with the new version
+   first)
 2. Update the plugin list through the plugin management interface
 
 ## Configuration
@@ -65,14 +66,27 @@ dig -t txt mail._domainkey.example.com
 
 ### External DKIM test
 
-Open the link below and send a mail from the domain for which you activated OpenDKIM to the random mail address shown on
-that page.
+Open the link below and send a mail from the domain for which you activated
+OpenDKIM to the random mail address shown on that page.
 
-````
+```
 http://www.brandonchecketts.com/emailtest.php
 ```
 
-Once you have sent the mail, click on the 'View Results' button and verify the DKIM information section.
+Once you have sent the mail, click on the 'View Results' button and verify the
+DKIM information section.
+
+## Plugin deactivation
+
+If you deactivate the plugin through the plugin management interface, all
+current key files will be deleted. This necessarily means that all keys will be
+renewed on plugin re-activation. This is by design and that is the expected
+behavior. Not doing this could lead to orphaned keys if a domain is deleted
+while the plugin is deactivated.
+
+Bear in mind that unlike a common idea, plugins do not need to be disabled
+before upgrading i-MSCP. Generally speaking, a plugin must be pre-disabled only
+when that is clearly stated in the i-MSCP  errata file.
 
 ## License
 
