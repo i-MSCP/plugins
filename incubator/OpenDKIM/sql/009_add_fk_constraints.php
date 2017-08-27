@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
+return [
     'up' => '
         ALTER TABLE opendkim ADD CONSTRAINT admin_id FOREIGN KEY (admin_id) REFERENCES admin (admin_id)
         ON DELETE CASCADE;
@@ -31,4 +31,4 @@ return array(
         ALTER TABLE opendkim ADD CONSTRAINT alias_id FOREIGN KEY (alias_id) REFERENCES domain_aliasses (alias_id)
         ON DELETE CASCADE;
     '
-);
+];

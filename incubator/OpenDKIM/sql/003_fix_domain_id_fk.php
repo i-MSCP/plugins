@@ -20,6 +20,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
+return [
     'up' => 'ALTER TABLE opendkim CHANGE domain_id domain_id INT(10) UNSIGNED NOT NULL'
-);
+];

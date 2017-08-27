@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
+return [
     'up'   => '
         CREATE TABLE IF NOT EXISTS opendkim (
             opendkim_id int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -35,4 +35,4 @@ return array(
         ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     ',
     'down' => 'DROP TABLE IF EXISTS opendkim'
-);
+];

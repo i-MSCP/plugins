@@ -52,13 +52,13 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function register(EventsManagerInterface $eventsManager)
     {
         $eventsManager->registerListener(
-            array(
+            [
                 Events::onResellerScriptStart,
                 Events::onClientScriptStart,
                 Events::onAfterAddDomainAlias,
                 Events::onAfterDeleteDomainAlias,
                 Events::onAfterDeleteCustomer
-            ),
+            ],
             $this
         );
     }
@@ -146,9 +146,9 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      */
     public function onAfterDeleteCustomer(Event $event)
     {
-        exec_query('UPDATE opendkim SET opendkim_status = ? WHERE admin_id = ?', array(
-            'todelete', $event->getParam('customerId')
-        ));
+        exec_query(
+            "UPDATE opendkim SET opendkim_status = 'todelete' WHERE admin_id = ?", $event->getParam('customerId')
+        );
     }
 
     /**
@@ -160,9 +160,10 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function onAfterAddDomainAlias(Event $event)
     {
         // Check that the domain alias is being added and not simply ordered
-        $stmt = exec_query('SELECT alias_id FROM domain_aliasses WHERE alias_id = ? AND alias_status = ?', array(
-            $event->getParam('domainAliasId'), 'toadd'
-        ));
+        $stmt = exec_query(
+            "SELECT alias_id FROM domain_aliasses WHERE alias_id = ? AND alias_status = 'toadd'",
+            $event->getParam('domainAliasId')
+        );
 
         if (!$stmt->rowCount()) {
             return;
@@ -171,8 +172,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
         // In case OpenDKIM is activated for the parent domain, we must activate it also for the domain alias which
         // is being added
         $stmt = exec_query(
-            'SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = ?',
-            array($event->getParam('domainId'), 'ok')
+            "SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = 'ok'",
+            $event->getParam('domainId')
         );
 
         if (!$stmt->rowCount()) {
@@ -181,17 +182,17 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
 
         $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
         exec_query(
-            '
+            "
                 INSERT INTO opendkim (
                     admin_id, domain_id, alias_id, domain_name, opendkim_status
                 ) VALUES (
-                    ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, 'toadd'
                 )
-            ',
-            array(
+            ",
+            [
                 $row['admin_id'], $event->getParam('domainId'), $event->getParam('domainAliasId'),
-                encode_idna($event->getParam('domainAliasName')), 'toadd'
-            )
+                encode_idna($event->getParam('domainAliasName'))
+            ]
         );
     }
 
@@ -203,9 +204,9 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      */
     public function onAfterDeleteDomainAlias(Event $event)
     {
-        exec_query('UPDATE opendkim SET opendkim_status = ? WHERE alias_id = ?', array(
-            'todelete', $event->getParam('domainAliasId')
-        ));
+        exec_query(
+            "UPDATE opendkim SET opendkim_status = 'todelete' WHERE alias_id = ?", $event->getParam('domainAliasId')
+        );
     }
 
     /**
@@ -216,10 +217,10 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function getRoutes()
     {
         $pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
-        return array(
+        return [
             '/reseller/opendkim.php' => $pluginDir . '/frontend/reseller/opendkim.php',
             '/client/opendkim.php'   => $pluginDir . '/frontend/client/opendkim.php'
-        );
+        ];
     }
 
     /**
@@ -233,16 +234,16 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
             "
                 SELECT opendkim_id AS item_id, opendkim_status AS status, domain_name AS item_name,
                     'opendkim' AS `table`, 'opendkim_status' AS field
-                FROM opendkim WHERE opendkim_status NOT IN(?, ?, ?, ?, ?, ?, ?)
-            ",
-            array('ok', 'disabled', 'toadd', 'tochange', 'toenable', 'todisable', 'todelete')
+                FROM opendkim
+                WHERE opendkim_status NOT IN('ok', 'toadd', 'tochange', 'todelete')
+            "
         );
 
         if ($stmt->rowCount()) {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -256,9 +257,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function changeItemStatus($table, $field, $itemId)
     {
         if ($table == 'opendkim' && $field == 'opendkim_status') {
-            exec_query('UPDATE opendkim SET opendkim_status = ? WHERE opendkim_id = ?', array(
-                    'tochange', $itemId)
-            );
+            exec_query("UPDATE opendkim SET opendkim_status = 'tochange' WHERE opendkim_id = ?", $itemId);
         }
     }
 
@@ -269,14 +268,9 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      */
     public function getCountRequests()
     {
-        $stmt = exec_query(
-            'SELECT COUNT(opendkim_id) AS cnt FROM opendkim WHERE opendkim_status IN (?, ?, ?, ?, ?)',
-            array('toadd', 'tochange', 'toenable', 'todisable', 'todelete')
-        );
-
-        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-
-        return $row['cnt'];
+        return execute_query(
+            "SELECT COUNT(opendkim_id) FROM opendkim WHERE opendkim_status IN ('toadd', 'tochange', 'todelete')"
+        )->fetchRow(PDO::FETCH_COLUMN);
     }
 
     /**
@@ -290,15 +284,16 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
         static $hasAccess = NULL;
 
         if (NULL === $hasAccess) {
-            $stmt = exec_query(
-                '
-                    SELECT COUNT(admin_id) as cnt FROM opendkim INNER JOIN admin USING(admin_id)
-                    WHERE admin_id = ? AND admin_status = ?
-                ',
-                array($customerId, 'ok')
-            );
-            $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
-            $hasAccess = (bool)$row['cnt'];
+            $hasAccess = (bool)exec_query(
+                "
+                    SELECT COUNT(admin_id)
+                    FROM opendkim
+                    INNER JOIN admin USING(admin_id)
+                    WHERE admin_id = ?
+                    AND admin_status = 'ok'
+                ",
+                $customerId
+            )->fetchRow(PDO::FETCH_COLUMN);
         }
 
         return $hasAccess;
@@ -321,25 +316,25 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
 
         if ($level == 'reseller') {
             if (($page = $navigation->findOneBy('uri', '/reseller/users.php'))) {
-                $page->addPage(array(
+                $page->addPage([
                     'label'              => tr('OpenDKIM'),
                     'uri'                => '/reseller/opendkim.php',
                     'title_class'        => 'users',
-                    'privilege_callback' => array(
+                    'privilege_callback' => [
                         'name' => 'resellerHasCustomers'
-                    )
-                ));
+                    ]
+                ]);
             }
             return;
         }
 
         if ($level == 'client') {
             if (($page = $navigation->findOneBy('uri', '/client/domains_manage.php'))) {
-                $page->addPage(array(
+                $page->addPage([
                     'label'       => tr('OpenDKIM'),
                     'uri'         => '/client/opendkim.php',
                     'title_class' => 'domains'
-                ));
+                ]);
             }
         }
     }

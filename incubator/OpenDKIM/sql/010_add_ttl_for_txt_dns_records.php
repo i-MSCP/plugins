@@ -20,6 +20,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
+return [
     'up' => "UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', '60') WHERE owned_by = 'OpenDKIM_Plugin'"
-);
+];

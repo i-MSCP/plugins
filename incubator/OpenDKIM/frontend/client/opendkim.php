@@ -35,17 +35,18 @@ use iMSCP_pTemplate as TemplateEngine;
  * @param $tpl TemplateEngine
  * @return void
  */
-function opendkim_generatePage($tpl)
+function opendkim_generatePage(TemplateEngine $tpl)
 {
     $stmt = exec_query(
-        '
+        "
             SELECT opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
-            FROM opendkim LEFT JOIN domain_dns ON(
+            FROM opendkim
+            LEFT JOIN domain_dns ON(
                 domain_dns.domain_id = opendkim.domain_id
-                AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0) AND owned_by = ?
+                AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0) AND owned_by = 'OpenDKIM_Plugin'
             ) WHERE admin_id = ?
-        ',
-        array('OpenDKIM_Plugin', $_SESSION['user_id'])
+        ",
+        $_SESSION['user_id']
     );
 
     if (!$stmt->rowCount()) {
@@ -59,9 +60,7 @@ function opendkim_generatePage($tpl)
             $statusIcon = 'ok';
         } elseif ($row['opendkim_status'] == 'disabled') {
             $statusIcon = 'disabled';
-        } elseif (in_array($row['opendkim_status'],
-            array('toadd', 'tochange', 'todelete', 'torestore', 'tochange', 'toenable', 'todisable', 'todelete'))
-        ) {
+        } elseif (in_array($row['opendkim_status'], ['toadd', 'tochange', 'todelete'])) {
             $statusIcon = 'reload';
         } else {
             $statusIcon = 'error';
@@ -78,14 +77,14 @@ function opendkim_generatePage($tpl)
             $dnsName = '';
         }
 
-        $tpl->assign(array(
+        $tpl->assign([
             'DOMAIN_NAME' => decode_idna($row['domain_name']),
             'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tr('Generation in progress.'),
             'OPENDKIM_ID' => $row['opendkim_id'],
             'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
             'KEY_STATUS'  => translate_dmn_status($row['opendkim_status']),
             'STATUS_ICON' => $statusIcon
-        ));
+        ]);
         $tpl->parse('DOMAINKEY_ITEM', '.domainkey_item');
     }
 }
@@ -97,30 +96,28 @@ function opendkim_generatePage($tpl)
 EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 check_login('user');
 
-if (!OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id']))) {
-    showBadRequestErrorPage();
-}
+OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id'])) or showBadRequestErrorPage();
 
 $tpl = new TemplateEngine();
-$tpl->define_dynamic(array(
+$tpl->define_dynamic([
     'layout'         => 'shared/layouts/ui.tpl',
     'page'           => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.tpl',
     'page_message'   => 'layout',
     'customer_list'  => 'page',
     'domainkey_item' => 'customer_list'
-));
-$tpl->assign(array(
+]);
+$tpl->assign([
     'TR_PAGE_TITLE'  => tr('Customers / OpenDKIM'),
     'TR_DOMAIN_NAME' => tr('Domain'),
     'TR_DOMAIN_KEY'  => tr('OpenDKIM domain key'),
     'TR_DNS_NAME'    => tr('Name'),
     'TR_KEY_STATUS'  => tr('Status')
-));
+]);
 
 generateNavigation($tpl);
 opendkim_generatePage($tpl);
 generatePageMessage($tpl);
 
 $tpl->parse('LAYOUT_CONTENT', 'page');
-EventManager::getInstance()->dispatch(Events::onClientScriptEnd, array('templateEngine' => $tpl));
+EventManager::getInstance()->dispatch(Events::onClientScriptEnd, ['templateEngine' => $tpl]);
 $tpl->prnt();

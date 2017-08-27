@@ -2,6 +2,26 @@ OpenDKIM - ChangeLog
 ====================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 1.3.0
+------------------------------------------------------------------------------------------------------------------------
+
+    Added: `postfix_rundir' and `postfix_user' plugin configuration parameters
+    Added: `opendkim_confdir', `opendkim_rundir', `opendkim_user' and `opendkim_group' plugin configuration parameters
+    Fixed: Couldn't start opendkim service under Debian 9/Stretch -- Systemd service conffile needs to be overridden
+    Fixed: Enable and start opendkim service on plugin activation
+    Fixed: Postfix user can't access opendkim socket after system reboot
+    Fixed: Reload opendkim service once per process and only when necessary
+    Fixed: Stop and disable opendkim service on plugin deactivation
+    Fixed: Store TXT-DATA as a single character string (i-MSCP versions lt 1.5.0)
+    Fixed: Store TXT-DATA as multiple character strings (i-MSCP versions ge 1.5.0)
+    Fixed: TXT-DATA is truncated due to wrong mail.txt file parsing
+    Renamed: `OpenDKIM_Socket plugin configuration parameter to `opendkim_socket'
+    Renamed: `PostfixMilterSocket' plugin configuration parameter to `postfix_milter_socket'
+    Review: Postfix user is now added in opendkim group
+    Review: OpenDKIM pidfile and socket are now created with permissions 0660
+    Review: OpenDKIM rundir is no longer world-readable
+
+------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0
 ------------------------------------------------------------------------------------------------------------------------
 

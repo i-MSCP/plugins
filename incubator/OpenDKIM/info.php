@@ -20,18 +20,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
-    'author'      => array(
+return [
+    'author'      => [
         'Laurent Declercq',
         'Sascha Bay',
         'Rene Schuster'
-    ),
-    'email'       => 'team@i-mscp.net',
-    'version'     => '1.2.0',
+    ],
+    'email'       => 'l.declercq@nuxwin.com',
+    'version'     => '1.3.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-07-03',
-    'build'       => '2017070300',
+    'date'        => '2017-08-27',
+    'build'       => '2017082700',
     'name'        => 'OpenDKIM',
     'desc'        => 'Provides DomainKeys Identified Mail (DKIM) service through MILTER.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
-);
+];
