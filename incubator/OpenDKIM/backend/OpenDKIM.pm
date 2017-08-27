@@ -363,7 +363,6 @@ sub _opendkimConfigure
         return 1;
     }
 
-
     # OpenDKIM files
     for( qw/ KeyTable SigningTable TrustedHosts / ) {
         my $file = iMSCP::File->new( filename => "$self->{'config'}->{'opendkim_confdir'}/$_" );
@@ -386,8 +385,8 @@ sub _opendkimConfigure
         # We do not have the choice because if we don't remove the file, this
         # could lead to orphaned keys (case where a domain is being removed
         # while the plugin is deactivated).
-        if ( $self->{'action'} eq 'disable' && -f $self->{'config_prev'}->{$_} ) {
-            $file->{'filename'} = $self->{'config_prev'}->{$_};
+        if ( $self->{'action'} eq 'disable' && -f "$self->{'config_prev'}->{'opendkim_confdir'}/$_" ) {
+            $file->{'filename'} = "$self->{'config_prev'}->{'opendkim_confdir'}/$_";
 
             my $rs = $file->delFile();
             return $rs if $rs;
