@@ -40,7 +40,7 @@ return [
     // Postfix user (default: $postfixConfig['POSTFIX_USER'])
     'postfix_user'              => $postfixConfig['POSTFIX_USER'],
 
-    /// OpenDKIM configuration directory (default: /etc/opendkim)
+    // OpenDKIM configuration directory (default: /etc/opendkim)
     'opendkim_confdir'          => '/etc/opendkim',
 
     // OpenDKIM key size (default: 2048)
