@@ -17,7 +17,7 @@ Version 1.3.0
     Fixed: TXT-DATA is truncated due to wrong mail.txt file parsing
     Renamed: `OpenDKIM_Socket plugin configuration parameter to `opendkim_socket'
     Renamed: `PostfixMilterSocket' plugin configuration parameter to `postfix_milter_socket'
-    Review: Postfix user is now added in opendkim group
+    Review: Postfix user is now added in OpenDKIM group
     Review: OpenDKIM pidfile and socket are now created with permissions 0660
     Review: OpenDKIM rundir is no longer world-readable
 
