@@ -257,8 +257,8 @@ sub _init
     my ($self) = @_;
 
     for (
-        qw/ postfix_rundir postfix_user postfix_milter_socket opendkim_confdir opendkim_rundir opendkim_socket
-        opendkim_user opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
+        qw/ postfix_rundir postfix_user postfix_milter_socket opendkim_confdir opendkim_keysize opendkim_rundir
+        opendkim_socket opendkim_user opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
     ) {
         $self->{'config'}->{$_} or die( sprintf( "Missing or undefined `%s' plugin configuration parameter", $_ ));
 
@@ -627,7 +627,16 @@ sub _addDomainKey
     # Generate the domain private key and the DNS TXT record suitable for
     # inclusion in DNS zone file. The DNS TXT record contains the public key
     $rs = execute(
-        "opendkim-genkey -D /etc/opendkim/keys/$domainName -r -s mail -d $domainName", \my $stdout, \my $stderr
+        [
+            'opendkim-genkey',
+            '-b', $self->{'config'}->{'opendkim_keysize'},
+            '-D', "/etc/opendkim/keys/$domainName",
+            '-r',
+            '-s', 'mail',
+            '-d', $domainName
+        ],
+        \my $stdout,
+        \my $stderr
     );
     debug( $stdout ) if $stdout;
     error( $stderr || 'Unknown error' ) if $rs;

@@ -40,8 +40,14 @@ return [
     // Postfix user (default: $postfixConfig['POSTFIX_USER'])
     'postfix_user'              => $postfixConfig['POSTFIX_USER'],
 
-    // OpenDKIM configuration directory (default: /etc/opendkim)
+    /// OpenDKIM configuration directory (default: /etc/opendkim)
     'opendkim_confdir'          => '/etc/opendkim',
+
+    // OpenDKIM key size (default: 2048)
+    //
+    // See https://tools.ietf.org/html/rfc6376#section-3.3.3
+    // Be aware that keys longer than 2048 bits couldn't be supported by all verifiers.
+    'opendkim_keysize'          => 2048,
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
     // Can be added in other setting using the %opendkim_rundir% placeholder

@@ -270,9 +270,8 @@ function opendkim_generatePage(TemplateEngine $tpl)
  * Main
  */
 
-EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 check_login('reseller');
-
+EventManager::getInstance()->dispatch(Events::onResellerScriptStart);
 resellerHasCustomers() or showBadRequestErrorPage();
 
 if (isset($_REQUEST['action'])) {

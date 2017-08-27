@@ -5,8 +5,8 @@ OpenDKIM - ChangeLog
 Version 1.3.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: `postfix_rundir' and `postfix_user' plugin configuration parameters
-    Added: `opendkim_confdir', `opendkim_rundir', `opendkim_user' and `opendkim_group' plugin configuration parameters
+    Added: `postfix_rundir' and `postfix_user' parameters
+    Added: `opendkim_confdir', `opendkim_keysize', `opendkim_rundir', `opendkim_user' and `opendkim_group' parameters
     Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch -- Systemd service conffile needs to be overridden
     Fixed: Enable and start OpenDKIM service on plugin activation
     Fixed: Postfix user can't access OpenDKIM socket after system reboot

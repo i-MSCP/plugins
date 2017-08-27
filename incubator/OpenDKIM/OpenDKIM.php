@@ -288,7 +288,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
                 "
                     SELECT COUNT(admin_id)
                     FROM opendkim
-                    INNER JOIN admin USING(admin_id)
+                    JOIN admin USING(admin_id)
                     WHERE admin_id = ?
                     AND admin_status = 'ok'
                 ",

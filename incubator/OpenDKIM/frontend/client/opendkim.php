@@ -93,9 +93,8 @@ function opendkim_generatePage(TemplateEngine $tpl)
  * Main
  */
 
-EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 check_login('user');
-
+EventManager::getInstance()->dispatch(Events::onClientScriptStart);
 OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id'])) or showBadRequestErrorPage();
 
 $tpl = new TemplateEngine();
