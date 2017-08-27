@@ -67,10 +67,7 @@ sub uninstall
     }
 
     local $@;
-    eval {
-        iMSCP::Dir->new( dirname => '/etc/opendkim' )->remove();
-        iMSCP::Dir->new( dirname => $self->{'config_prev'}->{'opendkim_rundir'} )->remove();
-    };
+    eval { iMSCP::Dir->new( dirname => $self->{'config_prev'}->{'opendkim_confdir'} )->remove(); };
     if ( $@ ) {
         error( $@ );
         return 1;
@@ -173,9 +170,7 @@ sub disable
     }
 
     $rs = $self->_postfixConfigure( 'deconfigure' );
-    return $rs if $rs || $self->{'action'} ne 'disable';
-
-    $self->_opendkimConfigure( 'deconfigure' );
+    $rs ||= $self->_opendkimConfigure( 'deconfigure' );
 }
 
 =item run( )
@@ -262,8 +257,8 @@ sub _init
     my ($self) = @_;
 
     for (
-        qw/ postfix_rundir postfix_milter_socket opendkim_confdir opendkim_rundir opendkim_socket opendkim_user
-        opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
+        qw/ postfix_rundir postfix_user postfix_milter_socket opendkim_confdir opendkim_rundir opendkim_socket
+        opendkim_user opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
     ) {
         $self->{'config'}->{$_} or die( sprintf( "Missing or undefined `%s' plugin configuration parameter", $_ ));
 
@@ -323,16 +318,27 @@ sub _opendkimConfigure
 
     local $@;
 
-    eval {
-        if ( $action eq 'configure' ) {
-            # Create postfix rundirrequired directories
-            iMSCP::Dir->new( dirname => $self->{'config'}->{'postfix_rundir'} )->make(
-                user  => $main::imscpConfig{'ROOT_USER'},
-                group => $main::imscpConfig{'ROOT_GROUP'},
-                mode  => 0755
-            );
+    if ( $action eq 'deconfigure' ) {
+        eval {
+            my $serviceMngr = iMSCP::Service->getInstance();
+            $serviceMngr->stop( 'opendkim' );
+            $serviceMngr->disable( 'opendkim' );
+        };
+        if ( $@ ) {
+            error( $@ );
+            return 1;
         }
+    }
 
+    eval {
+        # Postfix rundir
+        iMSCP::Dir->new( dirname => $self->{'config'}->{'postfix_rundir'} )->make(
+            user  => $main::imscpConfig{'ROOT_USER'},
+            group => $main::imscpConfig{'ROOT_GROUP'},
+            mode  => 0755
+        );
+
+        # OpenDKIM directories
         for( $self->{'config'}->{'opendkim_confdir'}, "$self->{'config'}->{'opendkim_confdir'}/keys",
             $self->{'config'}->{'opendkim_rundir'}
         ) {
@@ -343,13 +349,13 @@ sub _opendkimConfigure
                     {
                         user  => $self->{'config'}->{'opendkim_user'},
                         group => $self->{'config'}->{'opendkim_group'},
-                        mode  => ( $self->{'config'}->{'opendkim_rundir'} eq $_ ) ? 0755 : 0750
+                        mode  => 0750
                     }
                 );
                 next;
             }
 
-            $dir->remove();
+            $dir->remove( $self->{'config_prev'}->{'opendkim_rundir'} ) if $_ eq $self->{'config'}->{'opendkim_rundir'};
         }
     };
     if ( $@ ) {
@@ -357,7 +363,8 @@ sub _opendkimConfigure
         return 1;
     }
 
-    # Create required files
+
+    # OpenDKIM files
     for( qw/ KeyTable SigningTable TrustedHosts / ) {
         my $file = iMSCP::File->new( filename => "$self->{'config'}->{'opendkim_confdir'}/$_" );
 
@@ -371,10 +378,20 @@ sub _opendkimConfigure
             next;
         }
 
-        next unless -f $file->{'filename'};
+        # We remove the file only on the 'disable" action, not on 'change' or
+        # 'update' actions.
+        #
+        # Doing this necessarely mean that if the administrator deactivate the
+        # plugin, all keys will be renewed when the plugin will be reactivated.
+        # We do not have the choice because if we don't remove the file, this
+        # could lead to orphaned keys (case where a domain is being removed
+        # while the plugin is deactivated).
+        if ( $self->{'action'} eq 'disable' && -f $self->{'config_prev'}->{$_} ) {
+            $file->{'filename'} = $self->{'config_prev'}->{$_};
 
-        my $rs = $file->delFile();
-        return $rs if $rs;
+            my $rs = $file->delFile();
+            return $rs if $rs;
+        }
     }
 
     # Create or update the /etc/default/opendkim configuration file
@@ -406,7 +423,7 @@ EOF
     my $rs = $file->save();
     return $rs if $rs;
 
-    # OpenDKIM systemd configuration
+    # OpenDKIM Systemd configuration
 
     if ( -x '/lib/opendkim/opendkim.service.generate' ) {
         # Make sure that the opendkim.service conffile has not been redefined
@@ -416,14 +433,25 @@ EOF
             return $rs if $rs;
         }
 
-        # Override the default systemd configuration for OpenDKIM by
-        # generating the /etc/systemd/system/opendkim.service.d/override.conf
-        # and /etc/tmpfiles.d/opendkim.conf files, according changes made in
-        # the /etc/default/opendkim file.
-        execute( '/lib/opendkim/opendkim.service.generate', \my $stdout, \my $stderr );
-        debug( $stdout ) if $stdout;
-        error( $stderr || 'Unknown error' ) if $rs;
-        return $rs if $rs;
+        if ( $action eq 'configure' ) {
+            # Override the default systemd configuration for OpenDKIM by
+            # generating the /etc/systemd/system/opendkim.service.d/override.conf
+            # and /etc/tmpfiles.d/opendkim.conf files, according changes made in
+            # the /etc/default/opendkim file.
+            execute( '/lib/opendkim/opendkim.service.generate', \my $stdout, \my $stderr );
+            debug( $stdout ) if $stdout;
+            error( $stderr || 'Unknown error' ) if $rs;
+            return $rs if $rs;
+        } else {
+            # The /lib/opendkim/opendkim.service.generate script doesn't delete
+            # the /etc/systemd/system/opendkim.service.d itself, leaving the
+            # service configuration in an inconsistent state.
+            eval { iMSCP::Dir->new( dirname => '/etc/systemd/system/opendkim.service.d' )->remove(); };
+            if ( $@ ) {
+                error( $@ );
+                return 1;
+            }
+        }
     }
 
     # OpenDKIM main configuration file
@@ -489,16 +517,6 @@ EOF
         return $serviceTasksSub->();
     }
 
-    eval {
-        my $serviceMngr = iMSCP::Service->getInstance();
-        $serviceMngr->stop( 'opendkim' );
-        $serviceMngr->disable( 'opendkim' );
-    };
-    if ( $@ ) {
-        error( $@ );
-        return 1;
-    }
-
     0
 }
 
@@ -515,8 +533,6 @@ sub _postfixConfigure
 {
     my ($self, $action) = @_;
 
-    my $mta = Servers::mta->factory();
-
     my @milterPrevValues = ( qr/\Q$self->{'config_prev'}->{'postfix_milter_socket'}\E/ );
     if ( defined $self->{'config_prev'}->{'opendkim_port'} ) {
         # Remove the milter value from the deprecated opendkim_port
@@ -524,11 +540,7 @@ sub _postfixConfigure
         push @milterPrevValues, qr/\Qinet:localhost:$self->{'config_prev'}->{'opendkim_port'}\E/;
     }
 
-    if ( $action eq 'deconfigure' ) {
-        my $rs = iMSCP::SystemUser->new()->removeFromGroup( 'opendkim', 'postfix' );
-        return $rs if $rs;
-    }
-
+    my $mta = Servers::mta->factory();
     my $rs = $mta->postconf(
         (
             smtpd_milters     => {
@@ -541,9 +553,21 @@ sub _postfixConfigure
             }
         )
     );
-    return $rs if $rs || $action ne 'configure';
 
-    $rs = iMSCP::SystemUser->new()->addToGroup( 'opendkim', 'postfix' );
+    if ( $action eq 'deconfigure' ) {
+        # On deconfigure action, we reload postfix immediately,as the opendkim
+        # service will become immediately unavailable
+        return Servers::mta::factory()->reload();
+
+        $rs = iMSCP::SystemUser->new()->removeFromGroup(
+            $self->{'config'}->{'opendkim_group'}, $self->{'config'}->{'postfix_user'}
+        );
+        return $rs
+    }
+
+    $rs = iMSCP::SystemUser->new()->addToGroup(
+        $self->{'config'}->{'opendkim_group'}, $self->{'config'}->{'postfix_user'}
+    );
     return $rs if $rs;
 
     my $milterValue = $self->{'config'}->{'postfix_milter_socket'};
@@ -563,6 +587,8 @@ sub _postfixConfigure
             }
         )
     );
+
+    0;
 }
 
 =item _addDomainKey( $domainId, $aliasId, $domainName )

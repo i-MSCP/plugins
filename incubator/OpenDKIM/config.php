@@ -20,6 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Config_Handler_File as ConfigFile;
+use iMSCP_Registry as Registry;
+
+$postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/postfix.data');
+
 return [
     // Postfix smtpd milter for OpenDKIM (default: unix:/opendkim/opendkim.sock)
     //
@@ -30,10 +35,10 @@ return [
 
     // Postfix run directory (default: /var/spool/postfix/var/run)
     // Can be added in other setting using the %postfix_rundir% placeholder
-    'postfix_rundir'            => '/var/spool/postfix/var/run',
+    'postfix_rundir'            => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
 
-    // Postfix user (default: postfix)
-    'postfix_user'              => 'postfix',
+    // Postfix user (default: $postfixConfig['POSTFIX_USER'])
+    'postfix_user'              => $postfixConfig['POSTFIX_USER'],
 
     // OpenDKIM configuration directory (default: /etc/opendkim)
     'opendkim_confdir'          => '/etc/opendkim',
