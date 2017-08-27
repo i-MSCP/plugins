@@ -26,7 +26,7 @@ use iMSCP_Registry as Registry;
 $postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/postfix.data');
 
 return [
-    // Postfix smtpd milter for OpenDKIM (default: unix:/opendkim/opendkim.sock)
+    // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
     //
     // Possible values:
     //  'unix:/var/run/opendkim/opendkim.sock' for connection through UDS
