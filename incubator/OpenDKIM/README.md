@@ -84,9 +84,9 @@ renewed on plugin re-activation. This is by design and that is the expected
 behavior. Not doing this could lead to orphaned keys if a domain is deleted
 while the plugin is deactivated.
 
-Bear in mind that unlike a common idea, plugins do not need to be disabled
-before upgrading i-MSCP. Generally speaking, a plugin must be pre-disabled only
-when that is clearly stated in the i-MSCP  errata file.
+Bear in mind that unlike a common idea, plugins do not need to be deactivated
+before upgrading i-MSCP. Generally speaking, a plugin must be pre-deacivated
+only when that is clearly stated in the i-MSCP errata file.
 
 ## License
 
