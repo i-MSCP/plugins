@@ -85,7 +85,7 @@ behavior. Not doing this could lead to orphaned keys if a domain is deleted
 while the plugin is deactivated.
 
 Bear in mind that unlike a common idea, plugins do not need to be deactivated
-before upgrading i-MSCP. Generally speaking, a plugin must be pre-deacivated
+before upgrading i-MSCP. Generally speaking, a plugin must be pre-deactivated
 only when that is clearly stated in the i-MSCP errata file.
 
 ## License
