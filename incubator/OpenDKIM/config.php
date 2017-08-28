@@ -46,7 +46,7 @@ return [
     // OpenDKIM key size (default: 2048)
     //
     // See https://tools.ietf.org/html/rfc6376#section-3.3.3
-    // Be aware that keys longer than 2048 bits couldn't be supported by all verifiers.
+    // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
     'opendkim_keysize'          => 2048,
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
