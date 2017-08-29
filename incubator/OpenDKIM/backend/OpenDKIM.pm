@@ -315,6 +315,11 @@ sub _opendkimConfigure
 {
     my ($self, $action) = @_;
 
+    unless ( defined $action && grep($_ eq $action, 'configure', 'deconfigure') ) {
+        error( 'Missing or invalid $action parameter' );
+        return 1;
+    }
+
     local $@;
 
     if ( $action eq 'deconfigure' ) {
@@ -453,8 +458,9 @@ EOF
                     return 1;
                 }
 
-                $file = iMSCP::File->new( filename =>
-                    "$main::imscpConfig{'PLUGINS_DIR'}/OpenDKIM/systemd/override.conf" );
+                $file = iMSCP::File->new(
+                    filename => "$main::imscpConfig{'PLUGINS_DIR'}/OpenDKIM/systemd/override.conf"
+                );
                 $fContent = $file->get();
                 unless ( defined $fContent ) {
                     error( sprintf( "Couldn't read %s file", $file->{'filename'} ));
@@ -556,7 +562,7 @@ EOF
 
  Configure or deconfigure Postfix
 
- Param string $action Action to perform ( configure|deconfigure )
+ Param string $action Action to perform (configure|deconfigure)
  Return int 0 on success, other on failure
 
 =cut
@@ -564,6 +570,11 @@ EOF
 sub _postfixConfigure
 {
     my ($self, $action) = @_;
+
+    unless ( defined $action && grep($_ eq $action, 'configure', 'deconfigure') ) {
+        error( 'Missing or invalid $action parameter' );
+        return 1;
+    }
 
     my @milterPrevValues = ( qr/\Q$self->{'config_prev'}->{'postfix_milter_socket'}\E/ );
     if ( defined $self->{'config_prev'}->{'opendkim_port'} ) {
