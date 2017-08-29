@@ -88,24 +88,68 @@ sub update
 {
     my ($self, $fromVersion) = @_;
 
+    local $@;
+
     $fromVersion = version->parse( $fromVersion );
 
     if ( $fromVersion < version->parse( '1.1.1' ) ) {
         # Fix bug in versions < 1.1.1 where the `owned_by' field for DKIM DNS resource records was reseted back to
-        # `opendkim_feature', leading to orphaned custom DNS resource records 
-        my $rs = $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
-        unless ( defined $rs ) {
-            error( $self->{'dbh'}->errstr );
+        # `opendkim_feature', leading to orphaned custom DNS resource records
+        eval {
+            local $self->{'dbh'}->{'RaiseError'} = 1;
+            $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
+        };
+        if ( $@ ) {
+            error( $@ );
             return 1;
         }
     }
 
     if ( $fromVersion < version->parse( '1.3.0' ) ) {
-        local $@;
         eval { iMSCP::Dir->new( dirname => '/var/www/spool/postfix/opendkim' )->remove(); };
         if ( $@ ) {
             error( $@ );
             return 1;
+        }
+
+        if ( $self->{'config'}->{'opendkim_adsp_extension'} ) {
+            # Add DNS resource record for DKIM ADSP (Author Domain Signing Practices) extension
+            eval {
+                local $self->{'dbh'}->{'AutoCommit'} = 0;
+                local $self->{'dbh'}->{'RaiseError'} = 1;
+
+                my $sth = $self->{'dbh'}->prepare(
+                    "
+                        SELECT domain_id, IFNULL(alias_id, 0) AS alias_id
+                        FROM opendkim
+                        WHERE opendkim_status <> 'todelete'
+                    "
+                );
+
+                while ( my $row = $sth->fetchrow_hashref() ) {
+                    $self->{'dbh'}->do(
+                        "
+                            INSERT IGNORE INTO domain_dns (
+                                domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by,
+                                domain_dns_status
+                            ) VALUES (
+                                ?, ?, '_adsp._domainkey 60', 'IN', 'TXT', ?, 'OpenDKIM_Plugin', 'toadd'
+                            )
+                        ",
+                        undef,
+                        $row->{'domain_id'},
+                        $row->{'alias_id'},
+                        '"dkim=' . $self->{'config'}->{'opendkim_adsp_signing_practice'} . '"'
+                    );
+                }
+
+                $self->{'dbh'}->commit();
+            };
+            if ( $@ ) {
+                $self->{'dbh'}->rollback();
+                error( $@ );
+                return 1;
+            }
         }
     }
 
@@ -135,11 +179,13 @@ sub enable
     $rs ||= $self->_postfixConfigure( 'configure' );
     return $rs if $rs;
 
-    $rs = $self->{'dbh'}->do(
-        "UPDATE domain_dns SET domain_dns_status = 'toenable' WHERE owned_by = 'OpenDKIM_Plugin'"
-    );
-    unless ( defined $rs ) {
-        error( $self->{'dbh'}->errstr );
+    local $@;
+    eval {
+        local $self->{'dbh'}->{'RaiseError'} = 1;
+        $self->{'dbh'}->do( "UPDATE domain_dns SET domain_dns_status = 'toenable' WHERE owned_by = 'OpenDKIM_Plugin'" );
+    };
+    if ( $@ ) {
+        error( $@ );
         return 1;
     }
 
@@ -160,15 +206,19 @@ sub disable
 
     return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
-    my $rs = $self->{'dbh'}->do(
-        "UPDATE domain_dns SET domain_dns_status = 'todisable' WHERE owned_by = 'OpenDKIM_Plugin'"
-    );
-    unless ( defined $rs ) {
-        error( $self->{'dbh'}->errstr );
+    local $@;
+    eval {
+        local $self->{'dbh'}->{'RaiseError'} = 1;
+        $self->{'dbh'}->do(
+            "UPDATE domain_dns SET domain_dns_status = 'todisable' WHERE owned_by = 'OpenDKIM_Plugin'"
+        );
+    };
+    if ( $@ ) {
+        error( $@ );
         return 1;
     }
 
-    $rs = $self->_postfixConfigure( 'deconfigure' );
+    my $rs = $self->_postfixConfigure( 'deconfigure' );
     $rs ||= $self->_opendkimConfigure( 'deconfigure' );
 }
 
@@ -184,21 +234,17 @@ sub run
 {
     my ($self) = @_;
 
-    my $sth = $self->{'dbh'}->prepare(
-        "
-            SELECT opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id, domain_name, opendkim_status
-            FROM opendkim
-            WHERE opendkim_status IN('toadd', 'tochange', 'todelete')
-        "
-    );
-    unless ( $sth && $sth->execute() ) {
-        error( sprintf( "Couldn't prepare or execute SQL statement: %s", $self->{'dbh'}->errstr ));
-        return 1;
-    }
-
     local $@;
     eval {
         local $self->{'dbh'}->{'RaiseError'} = 1;
+
+        my $sth = $self->{'dbh'}->prepare(
+            "
+                SELECT opendkim_id, domain_id, IFNULL(alias_id, 0) AS alias_id, domain_name, opendkim_status
+                FROM opendkim
+                WHERE opendkim_status IN('toadd', 'tochange', 'todelete')
+            "
+        );
 
         while ( my $row = $sth->fetchrow_hashref() ) {
             my @sql;
@@ -256,8 +302,9 @@ sub _init
     my ($self) = @_;
 
     for (
-        qw/ postfix_rundir postfix_milter_socket opendkim_confdir opendkim_keysize opendkim_rundir
-        opendkim_socket opendkim_user opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
+        qw/ postfix_rundir postfix_milter_socket opendkim_adsp_extension opendkim_adsp_signing_practice opendkim_confdir
+        opendkim_keysize opendkim_rundir opendkim_socket opendkim_user opendkim_group opendkim_canonicalization
+        opendkim_trusted_hosts /
     ) {
         $self->{'config'}->{$_} or die( sprintf( "Missing or undefined `%s' plugin configuration parameter", $_ ));
 
@@ -337,9 +384,10 @@ sub _opendkimConfigure
     eval {
         # Postfix rundir
         iMSCP::Dir->new( dirname => $self->{'config'}->{'postfix_rundir'} )->make(
-            user  => $main::imscpConfig{'ROOT_USER'},
-            group => $main::imscpConfig{'ROOT_GROUP'},
-            mode  => 0755
+            user           => $main::imscpConfig{'ROOT_USER'},
+            group          => $main::imscpConfig{'ROOT_GROUP'},
+            mode           => 0755,
+            fixpermissions => 1
         );
 
         # OpenDKIM directories
@@ -351,9 +399,10 @@ sub _opendkimConfigure
             if ( $action eq 'configure' ) {
                 $dir->make(
                     {
-                        user  => $self->{'config'}->{'opendkim_user'},
-                        group => $self->{'config'}->{'opendkim_group'},
-                        mode  => 0750
+                        user           => $self->{'config'}->{'opendkim_user'},
+                        group          => $self->{'config'}->{'opendkim_group'},
+                        mode           => 0750,
+                        fixpermissions => 1
                     }
                 );
                 next;
@@ -638,6 +687,8 @@ sub _addDomainKey
 {
     my ($self, $domainId, $aliasId, $domainName) = @_;
 
+    local $@;
+
     # This action must be idempotent.
     # This allow to handle 'tochange' status which include key renewal.
     my $rs = $self->_deleteDomainKey( $domainId, $aliasId, $domainName );
@@ -646,9 +697,10 @@ sub _addDomainKey
     eval {
         iMSCP::Dir->new( dirname => "/etc/opendkim/keys/$domainName" )->make(
             {
-                user  => $self->{'config'}->{'opendkim_user'},
-                group => $self->{'config'}->{'opendkim_group'},
-                mode  => 0750
+                user           => $self->{'config'}->{'opendkim_user'},
+                group          => $self->{'config'}->{'opendkim_group'},
+                mode           => 0750,
+                fixpermissions => 1
             }
         );
     };
@@ -751,19 +803,47 @@ sub _addDomainKey
     $rs = $file->save();
     return $rs if $rs;
 
-    # Insert the TXT DNS record into the database
-    $rs = $self->{'dbh'}->do(
-        "
-            INSERT INTO domain_dns (
-                domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by, domain_dns_status
-            ) VALUES (
-                ?, ?, 'mail._domainkey 60', 'IN', 'TXT', ?, 'OpenDKIM_Plugin', 'toadd'
-            )
-        ",
-        undef, $domainId, $aliasId, $txtRecord
-    );
-    unless ( defined $rs ) {
-        error( $self->{'dbh'}->errstr );
+    # Schedule TXT DNS resource records addition
+    eval {
+        local $self->{'_dbh'}->{'AutoCommit'} = 0;
+        local $self->{'_dbh'}->{'RaiseError'} = 1;
+
+        $self->{'dbh'}->do(
+            "
+                INSERT INTO domain_dns (
+                    domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by, domain_dns_status
+                ) VALUES (
+                    ?, ?, 'mail._domainkey 60', 'IN', 'TXT', ?, 'OpenDKIM_Plugin', 'toadd'
+                )
+            ",
+            undef,
+            $domainId,
+            $aliasId,
+            $txtRecord
+        );
+
+        if ( $self->{'config'}->{'opendkim_adsp_extension'} ) {
+            $self->{'dbh'}->do(
+                "
+                    INSERT INTO domain_dns (
+                        domain_id, alias_id, domain_dns, domain_class, domain_type, domain_text, owned_by,
+                        domain_dns_status
+                    ) VALUES (
+                        ?, ?, '_adsp._domainkey 60', 'IN', 'TXT', ?, 'OpenDKIM_Plugin', 'toadd'
+                    )
+                ",
+                undef,
+                $domainId,
+                $aliasId,
+                '"dkim=' . $self->{'config'}->{'opendkim_adsp_signing_practice'} . '"'
+            );
+        }
+
+        $self->{'dbh'}->commit();
+    };
+    if ( $@ ) {
+        $self->{'dbh'}->rollback();
+        error( $@ );
         return 1;
     }
 
@@ -822,16 +902,20 @@ sub _deleteDomainKey
     $rs = $file->save();
     return $rs if $rs;
 
-    # Remove the TXT DNS record from the database
-    $rs = $self->{'dbh'}->do(
-        "
-            UPDATE domain_dns SET domain_dns_status = 'todelete'
-            WHERE domain_id = ? AND alias_id = ? AND owned_by = 'OpenDKIM_Plugin'
-        ",
-        undef, $domainId, $aliasId
-    );
-    unless ( defined $rs ) {
-        error( $self->{'dbh'}->errstr );
+    # Schedule TXT DNS resource records deletion
+    eval {
+        local $self->{'_dbh'}->{'RaiseError'} = 1;
+
+        $self->{'dbh'}->do(
+            "
+                UPDATE domain_dns SET domain_dns_status = 'todelete'
+                WHERE domain_id = ? AND alias_id = ? AND owned_by = 'OpenDKIM_Plugin'
+            ",
+            undef, $domainId, $aliasId
+        );
+    };
+    if ( $@ ) {
+        error( $@ );
         return 1;
     }
 

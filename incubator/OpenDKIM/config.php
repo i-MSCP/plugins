@@ -31,39 +31,49 @@ return [
     // Possible values:
     //  'unix:/var/run/opendkim/opendkim.sock' for connection through UDS
     //  'inet:localhost:12345' for connection through TCP
-    'postfix_milter_socket'     => 'unix:/var/run/opendkim/opendkim.sock',
+    'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
 
     // Postfix run directory (default: /var/spool/postfix/var/run)
     // Can be added in other setting using the %postfix_rundir% placeholder
-    'postfix_rundir'            => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
+    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
+
+    // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
+    'opendkim_adsp_extension'        => true,
+
+    // OpenDKIM ADSP signing practice (default: discardable)
+    //
+    // Possible values: unknown, all, discardable
+    // See https://tools.ietf.org/html/rfc5617#section-4.2.1
+    'opendkim_adsp_signing_practice' => 'discardable',
 
     // OpenDKIM configuration directory (default: /etc/opendkim)
-    'opendkim_confdir'          => '/etc/opendkim',
+    'opendkim_confdir'               => '/etc/opendkim',
 
     // OpenDKIM key size (default: 2048)
     //
     // See https://tools.ietf.org/html/rfc6376#section-3.3.3
     // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
-    'opendkim_keysize'          => 2048,
+    'opendkim_keysize'               => 2048,
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
+    //
     // Can be added in other setting using the %opendkim_rundir% placeholder
-    'opendkim_rundir'           => '%postfix_rundir%/opendkim',
+    'opendkim_rundir'                => '%postfix_rundir%/opendkim',
 
     // OpenDKIM socket (default: local:%opendkim_rundir%/opendkim.sock)
     //
     // Possible values:
     //  'local:%opendkim_rundir%/opendkim.sock' for UDS (recommended)
     //  'inet:12345@localhost' for connection through TCP
-    'opendkim_socket'           => 'local:%opendkim_rundir%/opendkim.sock',
+    'opendkim_socket'                => 'local:%opendkim_rundir%/opendkim.sock',
 
     // OpenDKIM user (default: opendkim)
-    'opendkim_user'             => 'opendkim',
+    'opendkim_user'                  => 'opendkim',
 
     // OpenDKIM group (default: $postfixConfig['POSTFIX_GROUP'])
-    'opendkim_group'            => $postfixConfig['POSTFIX_GROUP'],
+    'opendkim_group'                 => $postfixConfig['POSTFIX_GROUP'],
 
-    // OpenDKIM canonicalization method (default: simple)
+    // OpenDKIM canonicalization method (default: relaxed/simple)
     //
     // Canonicalization method(s) to be used when signing messages. When
     // verifying, the message's DKIM-Signature: header field specifies the
@@ -77,10 +87,10 @@ return [
     // header and the second to the body.
     //
     // Possible values: simple, relaxed, simple/relaxed or relaxed/simple
-    'opendkim_canonicalization' => 'simple',
+    'opendkim_canonicalization'      => 'relaxed/simple',
 
     // Trusted hosts (default: 127.0.0.1, localhost)
-    'opendkim_trusted_hosts'    => [
+    'opendkim_trusted_hosts'         => [
         '127.0.0.1',
         'localhost'
     ]

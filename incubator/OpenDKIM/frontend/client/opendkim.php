@@ -39,12 +39,14 @@ function opendkim_generatePage(TemplateEngine $tpl)
 {
     $stmt = exec_query(
         "
-            SELECT opendkim_id, domain_name, opendkim_status, domain_dns, domain_text
-            FROM opendkim
-            LEFT JOIN domain_dns ON(
-                domain_dns.domain_id = opendkim.domain_id
-                AND domain_dns.alias_id = IFNULL(opendkim.alias_id, 0) AND owned_by = 'OpenDKIM_Plugin'
-            ) WHERE admin_id = ?
+            SELECT t1.opendkim_id, t1.domain_name, t1.opendkim_status, t2.domain_dns, t2.domain_text
+            FROM opendkim AS t1
+            LEFT JOIN domain_dns AS t2 ON(
+                t2.domain_id = t1.domain_id
+                AND t2.domain_dns NOT LIKE '\\_adsp%'
+                AND t2.alias_id = IFNULL(t1.alias_id, 0)
+                AND t2.owned_by = 'OpenDKIM_Plugin'
+            ) WHERE t1.admin_id = ?
         ",
         $_SESSION['user_id']
     );
