@@ -470,7 +470,7 @@ EOF
                     $fContent
                 ));
 
-                $file->{'filename'} = '/etc/systemd/system/opendkim.service.d';
+                $file->{'filename'} = '/etc/systemd/system/opendkim.service.d/override.conf';
                 $rs = $file->save();
                 return $rs if $rs;
             }
