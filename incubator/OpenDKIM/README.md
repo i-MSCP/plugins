@@ -70,7 +70,7 @@ Open the link below and send a mail from the domain for which you activated
 OpenDKIM to the random mail address shown on that page.
 
 ```
-dkimvalidator.com
+http://dkimvalidator.com
 ```
 
 Once you have sent the mail, click on the 'View Results' button and verify the
