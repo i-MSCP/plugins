@@ -37,9 +37,6 @@ return [
     // Can be added in other setting using the %postfix_rundir% placeholder
     'postfix_rundir'            => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
 
-    // Postfix user (default: $postfixConfig['POSTFIX_USER'])
-    'postfix_user'              => $postfixConfig['POSTFIX_USER'],
-
     // OpenDKIM configuration directory (default: /etc/opendkim)
     'opendkim_confdir'          => '/etc/opendkim',
 
@@ -63,8 +60,8 @@ return [
     // OpenDKIM user (default: opendkim)
     'opendkim_user'             => 'opendkim',
 
-    // OpenDKIM group (default: opendkim)
-    'opendkim_group'            => 'opendkim',
+    // OpenDKIM group (default: $postfixConfig['POSTFIX_GROUP'])
+    'opendkim_group'            => $postfixConfig['POSTFIX_GROUP'],
 
     // OpenDKIM canonicalization method (default: simple)
     //

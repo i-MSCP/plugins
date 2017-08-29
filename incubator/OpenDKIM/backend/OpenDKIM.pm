@@ -34,7 +34,6 @@ use iMSCP::Execute qw/ execute /;
 use iMSCP::File;
 use iMSCP::Service;
 use iMSCP::TemplateParser qw/ getBloc process replaceBloc /;
-use iMSCP::SystemUser;
 use Servers::mta;
 use Text::Balanced qw/ extract_multiple extract_delimited /;
 use version;
@@ -257,7 +256,7 @@ sub _init
     my ($self) = @_;
 
     for (
-        qw/ postfix_rundir postfix_user postfix_milter_socket opendkim_confdir opendkim_keysize opendkim_rundir
+        qw/ postfix_rundir postfix_milter_socket opendkim_confdir opendkim_keysize opendkim_rundir
         opendkim_socket opendkim_user opendkim_group opendkim_canonicalization opendkim_trusted_hosts /
     ) {
         $self->{'config'}->{$_} or die( sprintf( "Missing or undefined `%s' plugin configuration parameter", $_ ));
@@ -349,7 +348,7 @@ sub _opendkimConfigure
                     {
                         user  => $self->{'config'}->{'opendkim_user'},
                         group => $self->{'config'}->{'opendkim_group'},
-                        mode  => 0750
+                        mode  => $self->{'config'}->{'opendkim_rundir'} eq $_ ? 0755 : 0750
                     }
                 );
                 next;
@@ -398,9 +397,13 @@ sub _opendkimConfigure
     my $fContent = $file->get() // '';
 
     if ( $action eq 'configure' ) {
+        # Needed to overrride group in sysvinit script
+        my $DAEMON_OPTS = ( !iMSCP::Service->getInstance()->isSystemd() || !-f '/lib/systemd/system/opendkim.service' )
+            ? "-u $self->{'config'}->{'opendkim_user'}:$self->{'config'}->{'opendkim_group'}" : '';
+
         my $cfg = <<"EOF";
 # Begin Plugin::OpenDKIM
-DAEMON_OPTS=""
+DAEMON_OPTS="$DAEMON_OPTS"
 RUNDIR=$self->{'config'}->{'opendkim_rundir'}
 SOCKET=$self->{'config'}->{'opendkim_socket'}
 USER=$self->{'config'}->{'opendkim_user'}
@@ -424,32 +427,60 @@ EOF
 
     # OpenDKIM Systemd configuration
 
-    if ( -x '/lib/opendkim/opendkim.service.generate' ) {
-        # Make sure that the opendkim.service conffile has not been redefined
-        # in old fashion way
+    if ( iMSCP::Service->getInstance()->isSystemd() ) {
+        # Make sure that the Systemd opendkim.service conffile has not been
+        # redefined in old fashion way
         if ( -f '/etc/systemd/system/opendkim.service' ) {
             $rs = iMSCP::File->new( filename => '/etc/systemd/system/opendkim.service' )->delFile();
             return $rs if $rs;
         }
 
         if ( $action eq 'configure' ) {
-            # Override the default systemd configuration for OpenDKIM by
-            # generating the /etc/systemd/system/opendkim.service.d/override.conf
-            # and /etc/tmpfiles.d/opendkim.conf files, according changes made in
-            # the /etc/default/opendkim file.
-            execute( '/lib/opendkim/opendkim.service.generate', \my $stdout, \my $stderr );
-            debug( $stdout ) if $stdout;
-            error( $stderr || 'Unknown error' ) if $rs;
-            return $rs if $rs;
+            if ( -x '/lib/opendkim/opendkim.service.generate' ) {
+                # Override the default systemd configuration for OpenDKIM by
+                # generating the /etc/systemd/system/opendkim.service.d/override.conf
+                # and /etc/tmpfiles.d/opendkim.conf files, according changes made in
+                # the /etc/default/opendkim file.
+                execute( '/lib/opendkim/opendkim.service.generate', \my $stdout, \my $stderr );
+                debug( $stdout ) if $stdout;
+                error( $stderr || 'Unknown error' ) if $rs;
+                return $rs if $rs;
+            } elsif ( -f '/lib/systemd/system/opendkim.service' ) {
+                # Make use of our own systemd override.conf file (Ubuntu 16.04)
+                eval { iMSCP::Dir->new( dirname => '/etc/systemd/system/opendkim.service.d' )->make() };
+                if ( $@ ) {
+                    error( $@ );
+                    return 1;
+                }
+
+                $file = iMSCP::File->new( filename =>
+                    "$main::imscpConfig{'PLUGINS_DIR'}/OpenDKIM/systemd/override.conf" );
+                $fContent = $file->get();
+                unless ( defined $fContent ) {
+                    error( sprintf( "Couldn't read %s file", $file->{'filename'} ));
+                    return 1;
+                }
+
+                $file->set( process(
+                    {
+                        OPENDKIM_RUNDIR => $self->{'config'}->{'opendkim_rundir'},
+                        OPENDKIM_USER   => $self->{'config'}->{'opendkim_user'},
+                        OPENDKIM_GROUP  => $self->{'config'}->{'opendkim_group'}
+                    },
+                    $fContent
+                ));
+
+                $file->{'filename'} = '/etc/systemd/system/opendkim.service.d';
+                $rs = $file->save();
+                return $rs if $rs;
+            }
         } else {
-            # The /lib/opendkim/opendkim.service.generate script doesn't delete
-            # the /etc/systemd/system/opendkim.service.d itself, leaving the
-            # service configuration in an inconsistent state.
             eval { iMSCP::Dir->new( dirname => '/etc/systemd/system/opendkim.service.d' )->remove(); };
             if ( $@ ) {
                 error( $@ );
                 return 1;
             }
+
         }
     }
 
@@ -469,6 +500,8 @@ UMask               0117
 Mode                sv
 Syslog              yes
 SyslogSuccess       yes
+LogWhy              no
+SignatureAlgorithm  rsa-sha256
 Canonicalization    $self->{'config'}->{'opendkim_canonicalization'}
 KeyTable            refile:$self->{'config'}->{'opendkim_confdir'}/KeyTable
 SigningTable        refile:$self->{'config'}->{'opendkim_confdir'}/SigningTable
@@ -552,22 +585,13 @@ sub _postfixConfigure
             }
         )
     );
+    return $rs if $rs;
 
     if ( $action eq 'deconfigure' ) {
-        # On deconfigure action, we reload postfix immediately,as the opendkim
-        # service will become immediately unavailable
+        # On deconfigure action, we reload postfix immediately,as the OpenDKIM
+        # service will become unavailable
         return Servers::mta::factory()->reload();
-
-        $rs = iMSCP::SystemUser->new()->removeFromGroup(
-            $self->{'config'}->{'opendkim_group'}, $self->{'config'}->{'postfix_user'}
-        );
-        return $rs
     }
-
-    $rs = iMSCP::SystemUser->new()->addToGroup(
-        $self->{'config'}->{'opendkim_group'}, $self->{'config'}->{'postfix_user'}
-    );
-    return $rs if $rs;
 
     my $milterValue = $self->{'config'}->{'postfix_milter_socket'};
     $mta->postconf(
@@ -586,8 +610,6 @@ sub _postfixConfigure
             }
         )
     );
-
-    0;
 }
 
 =item _addDomainKey( $domainId, $aliasId, $domainName )

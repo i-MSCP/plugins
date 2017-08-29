@@ -5,9 +5,10 @@ OpenDKIM - ChangeLog
 Version 1.3.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: `postfix_rundir' and `postfix_user' parameters
+    Added: OpenDKIM systemd override.conf file for Ubuntu 16.04/Xenial Xerus
     Added: `opendkim_confdir', `opendkim_keysize', `opendkim_rundir', `opendkim_user' and `opendkim_group' parameters
-    Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch -- Systemd service conffile needs to be overridden
+    Added: `postfix_rundir' parameter
+    Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch
     Fixed: Enable and start OpenDKIM service on plugin activation
     Fixed: Postfix user can't access OpenDKIM socket after system reboot
     Fixed: Reload OpenDKIM service once per process and only when necessary
@@ -17,7 +18,7 @@ Version 1.3.0
     Fixed: TXT-DATA is truncated due to wrong mail.txt file parsing
     Renamed: `OpenDKIM_Socket plugin configuration parameter to `opendkim_socket'
     Renamed: `PostfixMilterSocket' plugin configuration parameter to `postfix_milter_socket'
-    Review: Postfix user is now added in OpenDKIM group
+    Review: OpenDKIM is now run with opendkim:postfix as ownership (default)
     Review: OpenDKIM pidfile and socket are now created with permissions 0660
     Review: OpenDKIM rundir is no longer world-readable
 
