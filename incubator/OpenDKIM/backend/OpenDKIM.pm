@@ -348,7 +348,7 @@ sub _opendkimConfigure
                     {
                         user  => $self->{'config'}->{'opendkim_user'},
                         group => $self->{'config'}->{'opendkim_group'},
-                        mode  => $self->{'config'}->{'opendkim_rundir'} eq $_ ? 0755 : 0750
+                        mode  => 0750
                     }
                 );
                 next;
