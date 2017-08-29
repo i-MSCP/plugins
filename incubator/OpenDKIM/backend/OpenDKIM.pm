@@ -34,6 +34,7 @@ use iMSCP::Execute qw/ execute /;
 use iMSCP::File;
 use iMSCP::Service;
 use iMSCP::TemplateParser qw/ getBloc process replaceBloc /;
+use JSON;
 use Servers::mta;
 use Text::Balanced qw/ extract_multiple extract_delimited /;
 use version;
@@ -307,6 +308,8 @@ sub _init
         opendkim_trusted_hosts /
     ) {
         $self->{'config'}->{$_} or die( sprintf( "Missing or undefined `%s' plugin configuration parameter", $_ ));
+
+        next if JSON::is_bool( $self->{'config'}->{$_} );
 
         for my $config( qw/ config config_prev / ) {
             next if ref $self->{$config}->{$_} eq 'ARRAY';

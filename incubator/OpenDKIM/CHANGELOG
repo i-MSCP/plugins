@@ -2,10 +2,9 @@ OpenDKIM - ChangeLog
 ====================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 1.3.0
+Version 2.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    
     Added: `opendkim_confdir', `opendkim_keysize', `opendkim_rundir', `opendkim_user' and `opendkim_group' parameters
     Added: `opendkim_adspçextension' parameter -- Allows to enable/disable DKIM ADSP extension
     Added: `opendkim_adsp_signing_practice' parameter -- Allows to set DKIM ADSP signing practice
