@@ -5,10 +5,6 @@ OpenDKIM - ChangeLog
 Version 2.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
-    Added: `opendkim_confdir', `opendkim_keysize', `opendkim_rundir', `opendkim_user' and `opendkim_group' parameters
-    Added: `opendkim_adspçextension' parameter -- Allows to enable/disable DKIM ADSP extension
-    Added: `opendkim_adsp_signing_practice' parameter -- Allows to set DKIM ADSP signing practice
-    Added: `postfix_rundir' parameter
     Added: OpenDKIM systemd override.conf file for Ubuntu 16.04/Xenial Xerus
     Added: Support for DKIM ADSP (Author Domain Signing Practices) extension
     Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch

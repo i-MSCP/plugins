@@ -34,7 +34,6 @@ return [
     'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
 
     // Postfix run directory (default: /var/spool/postfix/var/run)
-    // Can be added in other setting using the %postfix_rundir% placeholder
     'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
 
     // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
@@ -56,8 +55,6 @@ return [
     'opendkim_keysize'               => 2048,
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
-    //
-    // Can be added in other setting using the %opendkim_rundir% placeholder
     'opendkim_rundir'                => '%postfix_rundir%/opendkim',
 
     // OpenDKIM socket (default: local:%opendkim_rundir%/opendkim.sock)
@@ -70,8 +67,14 @@ return [
     // OpenDKIM user (default: opendkim)
     'opendkim_user'                  => 'opendkim',
 
-    // OpenDKIM group (default: $postfixConfig['POSTFIX_GROUP'])
-    'opendkim_group'                 => $postfixConfig['POSTFIX_GROUP'],
+    // OpenDKIM group (default: opendkim)
+    'opendkim_group'                 => 'opendkim',
+
+    // OpenDKIM running user (default: %opendkim_user%)
+    'opendkim_running_user'          => '%opendkim_user%',
+
+    // OpenDKIM running group (default:  $postfixConfig['POSTFIX_GROUP'])
+    'opendkim_running_group'         => $postfixConfig['POSTFIX_GROUP'],
 
     // OpenDKIM canonicalization method (default: relaxed/simple)
     //
