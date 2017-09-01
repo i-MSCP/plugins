@@ -1,2 +1,5 @@
-- domain keys rotation
-- support for subdomains
+- Domain keys rotation
+- Reseller should just give DKIM permissions to his customers . Decision of enabling/disabling DKIM for one specific domain must be left to customers
+- Make customer able to enable/disable DKIM for one or many of its domains
+- Make customer able to enable/disable DKIM adsp extension and choose signing practice.
+- Add DNSSEC and DMARC support
