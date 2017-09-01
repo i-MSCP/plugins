@@ -332,7 +332,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
 
         if (NULL === $hasAccess) {
             $hasAccess = (bool)exec_query(
-                "SELECT EXISTS(SELECT 1 FROM opendkim WHERE admin_id = ? LIMIT 1)", $customerId
+                'SELECT EXISTS(SELECT 1 FROM opendkim WHERE admin_id = ? LIMIT 1)', $customerId
             )->fetchRow(PDO::FETCH_COLUMN);
         }
 

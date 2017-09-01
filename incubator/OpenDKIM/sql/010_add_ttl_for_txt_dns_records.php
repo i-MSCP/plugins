@@ -24,7 +24,7 @@ use iMSCP_Registry as Registry;
 
 /** @var iMSCP_Plugin_Manager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
-$ttl = $pluginManager->pluginGet('OpenDKIM')->getConfigParam('opendkim_dns_records_ttl', 60);
+$ttl = quoteValue($pluginManager->pluginGet('OpenDKIM')->getConfigParam('opendkim_dns_records_ttl', 60));
 
 return [
     'up' => "UPDATE domain_dns SET domain_dns = CONCAT(domain_dns, ' ', $ttl) WHERE owned_by = 'OpenDKIM_Plugin'"

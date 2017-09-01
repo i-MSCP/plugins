@@ -66,10 +66,10 @@ dig -t txt mail._domainkey.example.com
 
 ### External DKIM test
 
-Go to [dkimvalidator.com](http://dkimvalidator.com)  send a mail from the
-domain for which you activated OpenDKIM to the random mail address shown on
-that page. Once you have sent the mail, click on the `View Results` button and
-verify the DKIM information section. You should get a result similar to:
+Go to [dkimvalidator.com](http://dkimvalidator.com) and send a mail from the
+domain for which you activated OpenDKIM to the random mail address. Once you
+have sent the mail, wait few seconds and then, click on the `View Results`
+button. You should get a result similar to:
 
 ```
 
