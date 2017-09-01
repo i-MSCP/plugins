@@ -5,21 +5,38 @@ OpenDKIM - ChangeLog
 Version 2.0.0
 ------------------------------------------------------------------------------------------------------------------------
 
+    Added `opendkim_dns_records_ttl` parameter -- Allows to setup DKIM DNS resource records TTL
+    Added: `opendkim_adsp_extension' parameter -- Allows to enable/disable DKIM ADSP extension
+    Added: `opendkim_adsp_signing_practice` parameter -- Allows to setup ADSP signing practice
+    Added: `opendkim_confdir` parameter -- Path to OpenDKIm configuration directory
+    Added: `opendkim_group` parameter -- OpenDKIM unix group
+    Added: `opendkim_keysize` parameter -- Allows to setup keys size
+    Added: `opendkim_user` parameter -- OpenDKIM unix user
+    Added: `opendkim_rundir` parameter -- OpenDKIM rundir
+    Added: `postfix_rundir` parameter -- Postfix rundir
     Added: OpenDKIM systemd override.conf file for Ubuntu 16.04/Xenial Xerus
     Added: Support for DKIM ADSP (Author Domain Signing Practices) extension
+    Enhancement: Added support for subdomains (signer for subdomains is parent domain)
+    Enhancement: Make it possible to turn off the verifier mode (needed when used in conjunction with SpamAssassin/DKIM)
     Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch
-    Fixed: Enable and start OpenDKIM service on plugin activation
+    Fixed: Make sure that missing OpenDKIM entries are added when the plugin get re-activated
     Fixed: Postfix user can't access OpenDKIM socket after system reboot
     Fixed: Reload OpenDKIM service once per process and only when necessary
-    Fixed: Stop and disable OpenDKIM service on plugin deactivation
-    Fixed: Store TXT-DATA as a single character string (i-MSCP versions lt 1.5.0)
-    Fixed: Store TXT-DATA as multiple character strings (i-MSCP versions ge 1.5.0)
+    Fixed: Store TXT-DATA as a single <character-string> (i-MSCP versions lt 1.5.0)
+    Fixed: Store TXT-DATA as multiple <character-string>s (i-MSCP versions ge 1.5.0)
     Fixed: TXT-DATA is truncated due to wrong mail.txt file parsing
     Renamed: `OpenDKIM_Socket plugin configuration parameter to `opendkim_socket'
     Renamed: `PostfixMilterSocket' plugin configuration parameter to `postfix_milter_socket'
-    Review: OpenDKIM is now run with opendkim:postfix as ownership (default)
+    Review: Add the "DKIM-Filter" header field in signed messages
+    Review: Enable and start OpenDKIM service on plugin activation
+    Review: Enforce rsa-sha256 force mail signing
+    Review: Enforce safe keys
+    Review: Make use of a simple file for signing table instead of regular expression file (refile)
     Review: OpenDKIM pidfile and socket are now created with permissions 0660
     Review: OpenDKIM rundir is no longer world-readable
+    Review: Postfix user is now added into OpenDKIM group (Make  Postfix user able to access to the OpenDKIM UDS)
+    Review: Stop and disable OpenDKIM service on plugin deactivation
+    Rewritten: Backend part of the plugin
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 1.2.0

@@ -41,8 +41,12 @@ function opendkim_activate($customerId)
 {
     $stmt = exec_query(
         "
-            SELECT domain_id, domain_name FROM domain INNER JOIN admin ON(admin_id = domain_admin_id)
-            WHERE admin_id = ? AND created_by = ? AND admin_status = 'ok'
+            SELECT domain_id, domain_name
+            FROM domain AS t1
+            JOIN admin AS t2 ON(t2.admin_id = t1.domain_admin_id)
+            WHERE t2.admin_id = ?
+            AND t2.created_by = ?
+            AND t2.admin_status = 'ok'
         ",
         [$customerId, $_SESSION['user_id']]
     );
@@ -57,18 +61,47 @@ function opendkim_activate($customerId)
     try {
         $db->beginTransaction();
 
+        // Add entry for main domain name
         exec_query(
             "INSERT INTO opendkim (admin_id, domain_id, domain_name, opendkim_status) VALUES (?, ?, ?, 'toadd')",
             [$customerId, $row['domain_id'], $row['domain_name']]
         );
+
+        # Add entries for subdomains (sub)
+        exec_query(
+            "
+                INSERT INTO opendkim (admin_id, domain_id, domain_name, is_subdomain, opendkim_status)
+                SELECT domain_admin_id, t1.domain_id, CONCAT(t1.subdomain_name, '.', t2.domain_name), 1, 'toadd'
+                FROM subdomain AS t1
+                JOIN domain AS t2 ON(t2.domain_id = t1.domain_id)
+                WHERE t1.domain_id = ?
+                AND t1.subdomain_status <> 'todelete'
+            ",
+            $row['domain_id']
+        );
+
+        // Add entries for domain aliases
+        exec_query(
+            "
+                INSERT INTO opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
+                SELECT ?, domain_id, alias_id, alias_name, 'toadd'
+                FROM domain_aliasses
+                WHERE domain_id = ?
+                AND alias_status <> 'todelete'
+            ",
+            [$customerId, $row['domain_id']]
+        );
+
+        # Add entries for subdomains (alssub)
         exec_query(
             "
                 INSERT INTO opendkim (
-                    admin_id, domain_id, alias_id, domain_name, opendkim_status
-                ) SELECT ?, domain_id, alias_id, alias_name, 'toadd'
-                FROM domain_aliasses
-                WHERE domain_id = ?
-                AND alias_status = 'ok'
+                    admin_id, domain_id, alias_id, domain_name, is_subdomain, opendkim_status
+                ) SELECT ?, t2.domain_id, t2.alias_id, CONCAT(t1.subdomain_alias_name, '.', t2.alias_name), 1, 'toadd'
+                FROM subdomain_alias AS t1
+                JOIN domain_aliasses AS t2 ON(t2.alias_id = t1.alias_id)
+                WHERE t2.domain_id = ?
+                AND t1.subdomain_alias_status <> 'todelete'
             ",
             [$customerId, $row['domain_id']]
         );
@@ -118,7 +151,7 @@ function _opendkim_generateCustomerList(TemplateEngine $tpl)
             FROM admin
             WHERE created_by = ?
             AND admin_status = 'ok'
-            AND admin_id NOT IN (SELECT admin_id FROM opendkim)
+            AND admin_id NOT IN (SELECT DISTINCT admin_id FROM opendkim)
             ORDER BY admin_name ASC
         ",
         $_SESSION['user_id']
@@ -157,10 +190,12 @@ function opendkim_generatePage(TemplateEngine $tpl)
     $startIndex = isset($_GET['psi']) ? intval($_GET['psi']) : 0;
     $rowCount = exec_query(
         '
-            SELECT COUNT(admin_id)
-            FROM admin
-            JOIN opendkim USING(admin_id)
-            WHERE created_by = ? AND alias_id IS NULL
+            SELECT COUNT(t1.admin_id)
+            FROM opendkim AS t1
+            JOIN admin AS t2 USING(admin_id)
+            WHERE t2.created_by = ?
+            AND t1.alias_id IS NULL
+            AND t1.is_subdomain <> 1
         ',
         $_SESSION['user_id']
     )->fetchRow(PDO::FETCH_COLUMN);
@@ -173,11 +208,12 @@ function opendkim_generatePage(TemplateEngine $tpl)
 
     $stmt = exec_query(
         "
-            SELECT admin_name, admin_id
-            FROM admin
-            JOIN opendkim USING(admin_id)
-            WHERE created_by = ?
-            AND alias_id IS NULL
+            SELECT t1.admin_name, t1.admin_id
+            FROM admin AS t1
+            JOIN opendkim AS t2 USING(admin_id)
+            WHERE t1.created_by = ?
+            AND t2.alias_id IS NULL
+            AND t2.is_subdomain <> 1
             ORDER BY admin_id ASC LIMIT $startIndex, $rowsPerPage
         ",
         $_SESSION['user_id']
@@ -194,6 +230,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
                     AND t2.alias_id = IFNULL(t1.alias_id, 0)
                     AND t2.owned_by = 'OpenDKIM_Plugin'
                 ) WHERE t1.admin_id = ?
+                AND t1.is_subdomain <> 1
             ",
             $row['admin_id']
         );
@@ -212,22 +249,27 @@ function opendkim_generatePage(TemplateEngine $tpl)
 
                 if ($row2['domain_text']) {
                     if (strpos($row2['domain_dns'], ' ') !== false) {
-                        $dnsName = explode(' ', $row2['domain_dns']);
-                        $dnsName = $dnsName[0];
+                        list($dnsName, $ttl) = explode(' ', $row2['domain_dns']);
+                        if(substr($dnsName, -1) != '.') {
+                            $dnsName .= ".{$row2['domain_name']}.";
+                        }
                     } else {
                         $dnsName = $row2['domain_dns'];
+                        $ttl = tr('Default');
                     }
                 } else {
-                    $dnsName = '';
+                    $dnsName = tr('N/A');
+                    $ttl = tr('N/A');
                 }
 
                 $tpl->assign([
                     'KEY_STATUS'  => translate_dmn_status($row2['opendkim_status']),
                     'STATUS_ICON' => $statusIcon,
-                    'DOMAIN_NAME' => tohtml(decode_idna($row2['domain_name'])),
+                    'ZONE_NAME' => tohtml(decode_idna($row2['domain_name'])),
                     'DOMAIN_KEY'  => ($row2['domain_text'])
                         ? tohtml($row2['domain_text']) : tohtml(tr('Generation in progress.')),
-                    'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tohtml(tr('n/a')),
+                    'DNS_NAME'    => tohtml($dnsName),
+                    'DNS_TTL'     => tohtml($ttl),
                     'OPENDKIM_ID' => tohtml($row2['opendkim_id'])
                 ]);
 
@@ -318,10 +360,11 @@ $tpl->assign([
     'TR_PAGE_TITLE'           => tohtml(tr('Customers / OpenDKIM')),
     'TR_SELECT_NAME'          => tohtml(tr('Select a customer')),
     'TR_ACTIVATE_ACTION'      => tohtml(tr('Activate OpenDKIM for this customer')),
-    'TR_DOMAIN_NAME'          => tohtml(tr('Domain Name')),
-    'TR_DOMAIN_KEY'           => tohtml(tr('OpenDKIM domain key')),
+    'TR_ZONE_NAME'            => tohtml(tr('Zone Name')),
+    'TR_DOMAIN_KEY'           => tohtml(tr('DKIM Key')),
     'TR_STATUS'               => tohtml(tr('Status')),
     'TR_DNS_NAME'             => tohtml(tr('Name')),
+    'TR_DNS_TTL'              => tohtml(tr('TTL')),
     'DEACTIVATE_DOMAIN_ALERT' => tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?')),
     'TR_PREVIOUS'             => tohtml(tr('Previous')),
     'TR_NEXT'                 => tohtml(tr('Next'))

@@ -1,7 +1,9 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
+ * i-MSCP OpenDKIM plugin
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
+ * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,20 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * @category    iMSCP
- * @package     iMSCP_Plugin
- * @subpackage  OwnDDNS
- * @copyright   Sascha Bay <info@space2place.de>
- * @author      Sascha Bay <info@space2place.de>
- * @link        http://www.i-mscp.net i-MSCP Home Site
- * @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
  */
-return array(
-    'up' => "
-        UPDATE domain_dns SET owned_by = 'OwnDDNS_Plugin' WHERE owned_by = 'ownddns_feature'
-    ",
-    'down' => "
-        UPDATE domain_dns set owned_by = 'ownddns_feature' WHERE owned_by = 'OwnDDNS_Plugin'
-    "
-);
+
+return [
+    'up' => "ALTER TABLE opendkim ADD is_subdomain TINYINT NOT NULL DEFAULT '0' AFTER domain_name"
+];

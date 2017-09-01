@@ -66,27 +66,14 @@ dig -t txt mail._domainkey.example.com
 
 ### External DKIM test
 
-Open the link below and send a mail from the domain for which you activated
-OpenDKIM to the random mail address shown on that page.
+Go to [dkimvalidator.com](http://dkimvalidator.com)  send a mail from the
+domain for which you activated OpenDKIM to the random mail address shown on
+that page. Once you have sent the mail, click on the `View Results` button and
+verify the DKIM information section. You should get a result similar to:
 
 ```
-http://dkimvalidator.com
+
 ```
-
-Once you have sent the mail, click on the 'View Results' button and verify the
-DKIM information section.
-
-## Plugin deactivation
-
-If you deactivate the plugin through the plugin management interface, all
-current key files will be deleted. This necessarily means that all keys will be
-renewed on plugin re-activation. This is by design and that is the expected
-behavior. Not doing this could lead to orphaned keys if a domain is deleted
-while the plugin is deactivated.
-
-Bear in mind that unlike a common idea, plugins do not need to be deactivated
-before upgrading i-MSCP. Generally speaking, a plugin must be pre-deactivated
-only when that is clearly stated in the i-MSCP errata file.
 
 ## License
 

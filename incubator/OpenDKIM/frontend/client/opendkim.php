@@ -46,7 +46,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
                 AND t2.domain_dns NOT LIKE '\\_adsp%'
                 AND t2.alias_id = IFNULL(t1.alias_id, 0)
                 AND t2.owned_by = 'OpenDKIM_Plugin'
-            ) WHERE t1.admin_id = ?
+            ) WHERE t1.admin_id = ? AND t1.is_subdomain <> 1
         ",
         $_SESSION['user_id']
     );
@@ -68,24 +68,29 @@ function opendkim_generatePage(TemplateEngine $tpl)
             $statusIcon = 'error';
         }
 
-        if ($row['domain_text']) {
+        if ($row['domain_text'] !== NULL) {
             if (strpos($row['domain_dns'], ' ') !== false) {
-                $dnsName = explode(' ', $row['domain_dns']);
-                $dnsName = $dnsName[0];
+                list($dnsName, $ttl) = explode(' ', $row['domain_dns']);
+                if(substr($dnsName, -1) != '.') {
+                    $dnsName .= ".{$row['domain_name']}.";
+                }
             } else {
                 $dnsName = $row['domain_dns'];
+                $ttl = tr('Default');
             }
         } else {
-            $dnsName = '';
+            $dnsName = tr('N/A');
+            $ttl = tr('N/A');
         }
 
         $tpl->assign([
-            'DOMAIN_NAME' => decode_idna($row['domain_name']),
-            'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tr('Generation in progress.'),
-            'OPENDKIM_ID' => $row['opendkim_id'],
-            'DNS_NAME'    => ($dnsName) ? tohtml($dnsName) : tr('n/a'),
-            'KEY_STATUS'  => translate_dmn_status($row['opendkim_status']),
-            'STATUS_ICON' => $statusIcon
+            'ZONE_NAME' => tohtml(decode_idna($row['domain_name'])),
+            'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tohtml(tr('Generation in progress.')),
+            'OPENDKIM_ID' => tohtml($row['opendkim_id'], 'htmlAttr'),
+            'DNS_NAME'    => tohtml($dnsName),
+            'DNS_TTL'     => tohtml($ttl),
+            'KEY_STATUS'  => tohtml(translate_dmn_status($row['opendkim_status'])),
+            'STATUS_ICON' => tohtml($statusIcon, 'htmlAttr')
         ]);
         $tpl->parse('DOMAINKEY_ITEM', '.domainkey_item');
     }
@@ -108,11 +113,12 @@ $tpl->define_dynamic([
     'domainkey_item' => 'customer_list'
 ]);
 $tpl->assign([
-    'TR_PAGE_TITLE'  => tr('Customers / OpenDKIM'),
-    'TR_DOMAIN_NAME' => tr('Domain'),
-    'TR_DOMAIN_KEY'  => tr('OpenDKIM domain key'),
-    'TR_DNS_NAME'    => tr('Name'),
-    'TR_KEY_STATUS'  => tr('Status')
+    'TR_PAGE_TITLE' => tohtml(tr('Customers / OpenDKIM')),
+    'TR_KEY_STATUS' => tohtml(tr('Status')),
+    'TR_ZONE_NAME'  => tohtml(tr('Zone')),
+    'TR_DNS_NAME'   => tohtml(tr('Name')),
+    'TR_DNS_TTL'    => tohtml(tr('TTL')),
+    'TR_DOMAIN_KEY' => tohtml(tr('DKIM Ley'))
 ]);
 
 generateNavigation($tpl);

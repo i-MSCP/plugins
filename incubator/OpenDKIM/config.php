@@ -26,18 +26,10 @@ use iMSCP_Registry as Registry;
 $postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/postfix.data');
 
 return [
-    // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
-    //
-    // Possible values:
-    //  'unix:/var/run/opendkim/opendkim.sock' for connection through UDS
-    //  'inet:localhost:12345' for connection through TCP
-    'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
-
-    // Postfix run directory (default: /var/spool/postfix/var/run)
-    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
-
     // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
-    'opendkim_adsp_extension'        => true,
+    //
+    // Possible value: true (enabled), false (disabled)
+    'opendkim_adsp'                  => true,
 
     // OpenDKIM ADSP signing practice (default: discardable)
     //
@@ -45,41 +37,10 @@ return [
     // See https://tools.ietf.org/html/rfc5617#section-4.2.1
     'opendkim_adsp_signing_practice' => 'discardable',
 
-    // OpenDKIM configuration directory (default: /etc/opendkim)
-    'opendkim_confdir'               => '/etc/opendkim',
-
-    // OpenDKIM key size (default: 2048)
-    //
-    // See https://tools.ietf.org/html/rfc6376#section-3.3.3
-    // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
-    'opendkim_keysize'               => 2048,
-
-    // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
-    'opendkim_rundir'                => '%postfix_rundir%/opendkim',
-
-    // OpenDKIM socket (default: local:%opendkim_rundir%/opendkim.sock)
-    //
-    // Possible values:
-    //  'local:%opendkim_rundir%/opendkim.sock' for UDS (recommended)
-    //  'inet:12345@localhost' for connection through TCP
-    'opendkim_socket'                => 'local:%opendkim_rundir%/opendkim.sock',
-
-    // OpenDKIM user (default: opendkim)
-    'opendkim_user'                  => 'opendkim',
-
-    // OpenDKIM group (default: opendkim)
-    'opendkim_group'                 => 'opendkim',
-
-    // OpenDKIM running user (default: %opendkim_user%)
-    'opendkim_running_user'          => '%opendkim_user%',
-
-    // OpenDKIM running group (default:  $postfixConfig['POSTFIX_GROUP'])
-    'opendkim_running_group'         => $postfixConfig['POSTFIX_GROUP'],
-
     // OpenDKIM canonicalization method (default: relaxed/simple)
     //
     // Canonicalization method(s) to be used when signing messages. When
-    // verifying, the message's DKIM-Signature: header field specifies the
+    // verifying, the message's DKIM-Signature header field specifies the
     // canonicalization method.
     //
     // Possible values are 'relaxed' and 'simple' as defined by the DKIM
@@ -92,9 +53,60 @@ return [
     // Possible values: simple, relaxed, simple/relaxed or relaxed/simple
     'opendkim_canonicalization'      => 'relaxed/simple',
 
-    // Trusted hosts (default: 127.0.0.1, localhost)
+    // OpenDKIM configuration directory (default: /etc/opendkim)
+    'opendkim_confdir'               => '/etc/opendkim',
+
+    // OpenDKIM DNS resource records TTL (default: 60)
+    'opendkim_dns_records_ttl'       => 60,
+
+    // OpenDKIM group (default: opendkim)
+    'opendkim_group'                 => 'opendkim',
+
+    // OpenDKIM key size (default: 2048)
+    //
+    // See https://tools.ietf.org/html/rfc6376#section-3.3.3
+    // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
+    'opendkim_keysize'               => 2048,
+
+    // OpenDKIM operating mode (default: sv)
+    //
+    // Possible values: s (signer), v (verifier), sv (signer and verifier)
+    //
+    // Note: If you use SpamAssassin with its DKIM plugin, it is recommended to
+    // set the operating mode to 's' (signer). SpamAssassin DKIM will act as
+    // the verifier.
+    'opendkim_operating_mode'        => 'sv',
+
+    // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
+    'opendkim_rundir'                => '%postfix_rundir%/opendkim',
+
+    // OpenDKIM socket (default: local:%opendkim_rundir%/opendkim.sock)
+    //
+    // Possible values:
+    //  'local:%opendkim_rundir%/opendkim.sock' for UDS (recommended)
+    //  'inet:12345@localhost' for connection through TCP
+    'opendkim_socket'                => 'local:%opendkim_rundir%/opendkim.sock',
+
+    // Trusted hosts (default: 127.0.0.1, ::1, localhost, Registry::get('config')['SERVER_HOSTNAME'])
     'opendkim_trusted_hosts'         => [
         '127.0.0.1',
-        'localhost'
-    ]
+        '::1',
+        'localhost',
+        Registry::get('config')['SERVER_HOSTNAME']
+    ],
+
+    // OpenDKIM user (default: opendkim)
+    'opendkim_user'                  => 'opendkim',
+
+    // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
+    //
+    // Possible values:
+    //  'unix:/var/run/opendkim/opendkim.sock' for connection through UDS
+    //  'inet:localhost:12345' for connection through TCP
+    'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
+
+    // Postfix run directory (default: /var/spool/postfix/var/run)
+    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
+
+
 ];

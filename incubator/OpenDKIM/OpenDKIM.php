@@ -57,6 +57,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
                 Events::onClientScriptStart,
                 Events::onAfterAddDomainAlias,
                 Events::onAfterDeleteDomainAlias,
+                Events::onAfterAddSubdomain,
+                Events::onAfterDeleteSubdomain,
                 Events::onAfterDeleteCustomer
             ],
             $this
@@ -152,7 +154,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * onAfterAddDomainAlias event listener
+     * Add DKIM for the domain aliases being added
      *
      * @param Event $event
      * @return void
@@ -171,16 +173,12 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
 
         // In case OpenDKIM is activated for the parent domain, we must activate it also for the domain alias which
         // is being added
-        $stmt = exec_query(
-            "SELECT admin_id FROM opendkim WHERE domain_id = ? AND alias_id IS NULL AND opendkim_status = 'ok'",
-            $event->getParam('domainId')
-        );
+        $stmt = exec_query("SELECT admin_id FROM opendkim WHERE domain_id = ? LIMIT 1", $event->getParam('domainId'));
 
         if (!$stmt->rowCount()) {
             return;
         }
 
-        $row = $stmt->fetchRow(PDO::FETCH_ASSOC);
         exec_query(
             "
                 INSERT INTO opendkim (
@@ -190,14 +188,14 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
                 )
             ",
             [
-                $row['admin_id'], $event->getParam('domainId'), $event->getParam('domainAliasId'),
+                $stmt->fetchRow(PDO::FETCH_COLUMN), $event->getParam('domainId'), $event->getParam('domainAliasId'),
                 encode_idna($event->getParam('domainAliasName'))
             ]
         );
     }
 
     /**
-     * onAfterDeleteDomainAlias event listener
+     * Remove DKIM for the domain alias being deleted
      *
      * @param Event $event
      * @return void
@@ -210,6 +208,54 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
+     * Add DKIM for the subdomain being added
+     *
+     * @param iMSCP_Events_Event $e
+     */
+    public function onAfterAddSubdomain(Event $e)
+    {
+        if (!self::customerHasOpenDKIM($_SESSION['user_id'])
+            || !$this->getConfigParam('opendkim_adsp')
+        ) {
+            return;
+        }
+
+        exec_query(
+            "
+                INSERT INTO opendkim (
+                    admin_id, domain_id, alias_id, domain_name, is_subdomain, opendkim_status
+                ) VALUES (
+                    ?, ?, ?, ?, 1, 'toadd'
+                )
+            ",
+            [
+                $e->getParam('customerId'),
+                $e->getParam('subdomainType') == 'dmn'
+                    ? $e->getParam('parentDomainId') : get_user_domain_id($e->getParam('customerId')),
+                $e->getParam('subdomainType') == 'als' ? $e->getParam('parentDomainId') : NULL,
+                encode_idna($e->getParam('subdomainName'))
+            ]
+        );
+    }
+
+    /**
+     * Remove DKIM for subdomain being added when required
+     *
+     * @param iMSCP_Events_Event $event
+     */
+    public function onAfterDeleteSubdomain(Event $event)
+    {
+        if (!self::customerHasOpenDKIM($_SESSION['user_id'])
+            || !$this->getConfigParam('opendkim_adsp')) {
+            return;
+        }
+
+        exec_query(
+            "UPDATE opendkim SET opendkim_status = 'todelete' WHERE domain_name = ?", $event->getParam('subdomainName')
+        );
+    }
+
+    /**
      * Get routes
      *
      * @return array
@@ -217,6 +263,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function getRoutes()
     {
         $pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
+
         return [
             '/reseller/opendkim.php' => $pluginDir . '/frontend/reseller/opendkim.php',
             '/client/opendkim.php'   => $pluginDir . '/frontend/client/opendkim.php'
@@ -285,14 +332,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
 
         if (NULL === $hasAccess) {
             $hasAccess = (bool)exec_query(
-                "
-                    SELECT COUNT(admin_id)
-                    FROM opendkim
-                    JOIN admin USING(admin_id)
-                    WHERE admin_id = ?
-                    AND admin_status = 'ok'
-                ",
-                $customerId
+                "SELECT EXISTS(SELECT 1 FROM opendkim WHERE admin_id = ? LIMIT 1)", $customerId
             )->fetchRow(PDO::FETCH_COLUMN);
         }
 
