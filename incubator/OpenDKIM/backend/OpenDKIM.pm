@@ -1063,7 +1063,9 @@ sub _addMissingOpenDKIMEntries
 
         my $sth;
         if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
-            $self->{'dbh'}->prepare( "SELECT domain_id, domain_admin_id FROM domain WHERE domain_status <> 'todelete'" );
+            $self->{'dbh'}->prepare(
+                "SELECT domain_id, domain_admin_id AS admin_id FROM domain WHERE domain_status <> 'todelete'"
+            );
         } else {
             $self->{'dbh'}->prepare(
                 "SELECT admin_id, domain_id FROM opendkim WHERE opendkim_status <> 'todelete' GROUP BY admin_id, domain_id"
@@ -1076,7 +1078,7 @@ sub _addMissingOpenDKIMEntries
             eval {
                 $self->{'dbh'}->begin_work();
                 if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
-                    # Add entries for domain that were added while the plugin
+                    # Add entries for domains that were added while the plugin
                     # was dactivated (domain)
                     debug( "Adding missing OpenDKIM entries for domains of customer with ID $row->{'admin_id'}" );
                     $self->{'dbh'}->do(

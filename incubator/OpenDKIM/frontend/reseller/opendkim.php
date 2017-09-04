@@ -198,7 +198,7 @@ function activateOpenDKIM()
             [$adminId, $row['domain_id'], $row['domain_name']]
         );
 
-        # Add entries for subdomains (sub)
+        // Add entries for subdomains (sub)
         exec_query(
             "
                 INSERT IGNORE INTO opendkim (admin_id, domain_id, domain_name, is_subdomain, opendkim_status)
@@ -223,7 +223,7 @@ function activateOpenDKIM()
             [$adminId, $row['domain_id']]
         );
 
-        # Add entries for subdomains (alssub)
+        // Add entries for subdomains (alssub)
         exec_query(
             "
                 INSERT IGNORE INTO opendkim (
@@ -508,16 +508,16 @@ if (isset($_REQUEST['action'])) {
                 searchCustomer();
                 break;
             case 'activate':
-                if (!Registry::get('pluginManager')
-                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') == 'reseller') {
+                if (Registry::get('pluginManager')
+                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
                     showBadRequestErrorPage();
                 }
 
                 activateOpenDKIM();
                 break;
             case 'deactivate':
-                if (!Registry::get('pluginManager')
-                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') == 'reseller') {
+                if (Registry::get('pluginManager')
+                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
                     showBadRequestErrorPage();
                 }
 

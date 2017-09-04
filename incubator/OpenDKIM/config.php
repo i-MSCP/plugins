@@ -28,8 +28,8 @@ $postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/
 return [
     // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
     //
-    // When enabled, an ADSP DNS resource record will be added for all
-    // domains and subdomains for which OpenDKIM is enabled.
+    // When enabled, an ADSP DNS resource record is added for all domains and
+    // subdomains for which OpenDKIM is enabled.
     //
     // Possible values: true (enabled), false (disabled)
     // See https://en.wikipedia.org/wiki/Author_Domain_Signing_Practices
@@ -52,7 +52,8 @@ return [
     // OpenDKIM ADSP No Such Domain (default: true)
     //
     // If true, requests rejection of messages that are determined to be from
-    // nonexistent domains according to the author domain signing practises (ADSP) test.
+    // nonexistent domains according to the author domain signing practises
+    // (ADSP) test.
     //
     // Possible values: true (enabled), false (disabled)
     'opendkim_adsp_no_such_domain'   => true,
@@ -85,6 +86,8 @@ return [
     'opendkim_confdir'               => '/etc/opendkim',
 
     // OpenDKIM DNS resource records TTL (default: 60)
+    //
+    // Possible value: Time in seconds
     'opendkim_dns_records_ttl'       => 60,
 
     // OpenDKIM group (default: opendkim)
@@ -94,6 +97,7 @@ return [
     //
     // See https://tools.ietf.org/html/rfc6376#section-3.3.3
     // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
+    // Minimum key length is 1024 bits.
     'opendkim_keysize'               => 2048,
 
     // OpenDKIM operating mode (default: sv)
@@ -101,8 +105,8 @@ return [
     // Possible values: s (signer), v (verifier), sv (signer and verifier)
     //
     // Note: If you use SpamAssassin with its DKIM plugin, it is recommended to
-    // set the operating mode to 's' (signer). SpamAssassin DKIM will act as
-    // the verifier.
+    // set the operating mode to 's' (signer). SpamAssassin DKIM plugin will
+    // act as verifier.
     'opendkim_operating_mode'        => 'sv',
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
@@ -131,7 +135,7 @@ return [
     // Possible values:
     //  admin   : DKIM feature is automatically activated for all customers.
     //  reseller: DKIM feature is activated by resellers for customer of their
-    //            choice. This is the historical behavior.
+    //            choice. This is the historical behavior (before version 2.0.0).
     'plugin_working_level'           => 'admin',
 
     // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
