@@ -1057,106 +1057,97 @@ sub _addMissingOpenDKIMEntries
 {
     my ($self) = @_;
 
-    local $@;
-    eval {
-        local $self->{'dbh'}->{'RaiseError'} = 1;
+    local $self->{'dbh'}->{'RaiseError'} = 1;
 
-        my $sth;
-        if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
-            $self->{'dbh'}->prepare(
-                "SELECT domain_id, domain_admin_id AS admin_id FROM domain WHERE domain_status <> 'todelete'"
-            );
-        } else {
-            $self->{'dbh'}->prepare(
-                "SELECT admin_id, domain_id FROM opendkim WHERE opendkim_status <> 'todelete' GROUP BY admin_id, domain_id"
-            )
-        };
+    my $sth;
+    if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
+        $sth = $self->{'dbh'}->prepare(
+            "SELECT domain_id, domain_admin_id AS admin_id FROM domain WHERE domain_status <> 'todelete'"
+        );
+    } else {
+        $sth = $self->{'dbh'}->prepare(
+            "SELECT admin_id, domain_id FROM opendkim WHERE opendkim_status <> 'todelete' GROUP BY admin_id, domain_id"
+        )
+    };
 
-        $sth->execute();
+    $sth->execute();
 
-        while ( my $row = $sth->fetchrow_hashref() ) {
-            eval {
-                $self->{'dbh'}->begin_work();
-                if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
-                    # Add entries for domains that were added while the plugin
-                    # was dactivated (domain)
-                    debug( "Adding missing OpenDKIM entries for domains of customer with ID $row->{'admin_id'}" );
-                    $self->{'dbh'}->do(
-                        "
-                            INSERT IGNORE INTO opendkim (admin_id, domain_id, domain_name, opendkim_status)
-                            SELECT domain_admin_id, domain_id, domain_name, 'toadd'
-                            FROM domain
-                            WHERE domain_id = ?
-                            AND domain_status <> 'todelete'
-                        ",
-                        undef, $row->{'domain_id'}
-                    );
-                }
-
-                # Add entries for subdomains that were added while the plugin
-                # was dactivated (sub)
-                debug( "Adding missing OpenDKIM entries for subdomains (sub) of customer with ID $row->{'admin_id'}" );
+    while ( my $row = $sth->fetchrow_hashref() ) {
+        eval {
+            $self->{'dbh'}->begin_work();
+            if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
+                # Add entries for domains that were added while the plugin
+                # was dactivated (domain)
+                debug( "Adding missing OpenDKIM entries for domains of customer with ID $row->{'admin_id'}" );
                 $self->{'dbh'}->do(
                     "
-                        INSERT IGNORE INTO opendkim (
-                            admin_id, domain_id, domain_name, is_subdomain, opendkim_status
-                        ) SELECT t2.domain_admin_id, t1.domain_id, CONCAT(t1.subdomain_name, '.', t2.domain_name), 1,
-                            'toadd'
-                        FROM subdomain AS t1
-                        JOIN domain AS t2 ON(t2.domain_id = t1.domain_id)
-                        WHERE t1.domain_id = ?
-                        AND t1.subdomain_status <> 'todelete'
+                        INSERT IGNORE INTO opendkim (admin_id, domain_id, domain_name, opendkim_status)
+                        SELECT domain_admin_id, domain_id, domain_name, 'toadd'
+                        FROM domain
+                        WHERE domain_id = ?
+                        AND domain_status <> 'todelete'
                     ",
                     undef, $row->{'domain_id'}
                 );
-
-                # Add entries for domain aliases that were added while the plugin
-                # was dactivated
-                debug( "Adding missing OpenDKIM entries for domain aliases of customer with ID $row->{'admin_id'}" );
-                $self->{'dbh'}->do(
-                    "
-                        INSERT IGNORE INTO opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
-                        SELECT ?, domain_id, alias_id, alias_name, 'toadd'
-                        FROM domain_aliasses
-                        WHERE domain_id = ?
-                        AND alias_status <> 'todelete'
-                    ",
-                    undef, $row->{'admin_id'}, $row->{'domain_id'}
-                );
-
-                # Add entries for subdomains that were added while the plugin
-                # was dactivated (alssub)
-                debug( "Adding missing OpenDKIM entries for subdomains (alssub) of customer with ID $row->{'admin_id'}" );
-                $self->{'dbh'}->do(
-                    "
-                        INSERT IGNORE INTO opendkim (
-                            admin_id, domain_id, alias_id, domain_name, is_subdomain, opendkim_status
-                        ) SELECT ?, t2.domain_id, t1.alias_id, CONCAT(t1.subdomain_alias_name, '.', t2.alias_name), 1,
-                            'toadd'
-                        FROM subdomain_alias AS t1
-                        JOIN domain_aliasses AS t2 ON(t2.alias_id = t1.alias_id)
-                        WHERE t2.domain_id = ?
-                        AND subdomain_alias_status <> 'todelete'
-                    ",
-                    undef, $row->{'admin_id'}, $row->{'domain_id'}
-                );
-
-                $self->{'dbh'}->commit();
-            };
-            if ( $@ ) {
-                $self->{'dbh'}->rollback();
-                die;
             }
-        }
 
-        $self->run() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error' );
-    };
-    if ( $@ ) {
-        error( $@ );
-        return 1;
+            # Add entries for subdomains that were added while the plugin
+            # was dactivated (sub)
+            debug( "Adding missing OpenDKIM entries for subdomains (sub) of customer with ID $row->{'admin_id'}" );
+            $self->{'dbh'}->do(
+                "
+                    INSERT IGNORE INTO opendkim (
+                        admin_id, domain_id, domain_name, is_subdomain, opendkim_status
+                    ) SELECT t2.domain_admin_id, t1.domain_id, CONCAT(t1.subdomain_name, '.', t2.domain_name), 1,
+                        'toadd'
+                    FROM subdomain AS t1
+                    JOIN domain AS t2 ON(t2.domain_id = t1.domain_id)
+                    WHERE t1.domain_id = ?
+                    AND t1.subdomain_status <> 'todelete'
+                ",
+                undef, $row->{'domain_id'}
+            );
+
+            # Add entries for domain aliases that were added while the plugin
+            # was dactivated
+            debug( "Adding missing OpenDKIM entries for domain aliases of customer with ID $row->{'admin_id'}" );
+            $self->{'dbh'}->do(
+                "
+                    INSERT IGNORE INTO opendkim (admin_id, domain_id, alias_id, domain_name, opendkim_status)
+                    SELECT ?, domain_id, alias_id, alias_name, 'toadd'
+                    FROM domain_aliasses
+                    WHERE domain_id = ?
+                    AND alias_status <> 'todelete'
+                ",
+                undef, $row->{'admin_id'}, $row->{'domain_id'}
+            );
+
+            # Add entries for subdomains that were added while the plugin
+            # was dactivated (alssub)
+            debug( "Adding missing OpenDKIM entries for subdomains (alssub) of customer with ID $row->{'admin_id'}" );
+            $self->{'dbh'}->do(
+                "
+                    INSERT IGNORE INTO opendkim (
+                        admin_id, domain_id, alias_id, domain_name, is_subdomain, opendkim_status
+                    ) SELECT ?, t2.domain_id, t1.alias_id, CONCAT(t1.subdomain_alias_name, '.', t2.alias_name), 1,
+                        'toadd'
+                    FROM subdomain_alias AS t1
+                    JOIN domain_aliasses AS t2 ON(t2.alias_id = t1.alias_id)
+                    WHERE t2.domain_id = ?
+                    AND subdomain_alias_status <> 'todelete'
+                ",
+                undef, $row->{'admin_id'}, $row->{'domain_id'}
+            );
+
+            $self->{'dbh'}->commit();
+        };
+        if ( $@ ) {
+            $self->{'dbh'}->rollback();
+            die;
+        }
     }
 
-    0;
+    $self->run() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error' );
 }
 
 =back
