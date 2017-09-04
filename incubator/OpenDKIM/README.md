@@ -48,8 +48,7 @@ renewal of DKIM keys through their own management interface.
 
 When it works at `reseller` level, the plugin doesn't activate OpenDKIM
 automatically for customers. Resellers must enable the OpenDKIM feature
-manually for all of their customers. This is the historical (pre-version 2.0.0)
-behavior.
+manually for all of their customers.
 
 ## Usage of an external DNS server
 
@@ -81,7 +80,7 @@ opendkim-testkey: key not secure
 opendkim-testkey: key OK
 ```
 
-Note that the 'key not secure' message doesn't indicate an error. It is an
+Note that the `key not secure` message doesn't indicate an error. It is the
 expected consequence of not using DNSSSEC.
 
 You can also query your DNS server to check the TXT record for your domain:
@@ -100,7 +99,7 @@ button. You should get a result similar to:
 #### Original Message
 
 ```
-Received: from jessie32.bbox.nuxwin.com (176-154-36-71.abo.bbox.fr [176.154.36.71])
+Received: from jessie32.bbox.nuxwin.com (xxx-xxx-xx-xx.abo.bbox.fr [xxx.xxx.xx.xx])
 	by relay-4.us-west-2.relay-prod (Postfix) with ESMTPS id 9B57F160208
 	for <4GC3jd0ag5t798@dkimvalidator.com>; Sat,  2 Sep 2017 18:29:48 +0000 (UTC)
 Received: from panel.bbox.nuxwin.com (jessie32.bbox.nuxwin.com.local [127.0.0.1])
@@ -183,10 +182,9 @@ Details:
 ```
 Using this information that I obtained from the headers
 
-
 Helo Address = jessie32.bbox.nuxwin.com
 From Address = testing@sub1.weird.test.bbox.nuxwin.com
-From IP      = 176.154.36.71
+From IP      = xxx.xxx.xx.xx
 SPF Record Lookup
 
 Looking up TXT SPF record for sub1.weird.test.bbox.nuxwin.com
@@ -197,12 +195,12 @@ Result: pass (Mechanism 'include:weird.test.bbox.nuxwin.com' matched)
 
 Result code: pass
 Local Explanation: sub1.weird.test.bbox.nuxwin.com: Sender is authorized to use 'testing@sub1.weird.test.bbox.nuxwin.com' in 'mfrom' identity (mechanism 'include:weird.test.bbox.nuxwin.com' matched)
-spf_header = Received-SPF: pass (sub1.weird.test.bbox.nuxwin.com: Sender is authorized to use 'testing@sub1.weird.test.bbox.nuxwin.com' in 'mfrom' identity (mechanism 'include:weird.test.bbox.nuxwin.com' matched)) receiver=dkimvalidator.com; identity=mailfrom; envelope-from="testing@sub1.weird.test.bbox.nuxwin.com"; helo=jessie32.bbox.nuxwin.com; client-ip=176.154.36.71
+spf_header = Received-SPF: pass (sub1.weird.test.bbox.nuxwin.com: Sender is authorized to use 'testing@sub1.weird.test.bbox.nuxwin.com' in 'mfrom' identity (mechanism 'include:weird.test.bbox.nuxwin.com' matched)) receiver=dkimvalidator.com; identity=mailfrom; envelope-from="testing@sub1.weird.test.bbox.nuxwin.com"; helo=jessie32.bbox.nuxwin.com; client-ip=xxx.xxx.xx.xx
 ```
 
-
 Regarding the SpamAssassin information at bottom, you can ignore them as the
-SpamAssassin installation used is not able to validate DKIM signatures when DKIM ADSP extension is involved. 
+SpamAssassin installation used is not able to validate DKIM signatures when
+DKIM ADSP extension is involved. 
 
 ## License
 
