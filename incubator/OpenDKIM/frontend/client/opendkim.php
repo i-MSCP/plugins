@@ -24,6 +24,7 @@ use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Plugin_OpenDKIM as OpenDKIM;
 use iMSCP_pTemplate as TemplateEngine;
+use iMSCP_Registry as Registry;
 
 /***********************************************************************************************************************
  * Functions
@@ -39,21 +40,91 @@ function opendkim_generatePage(TemplateEngine $tpl)
 {
     $stmt = exec_query(
         "
-            SELECT t1.opendkim_id, t1.domain_name, t1.opendkim_status, t2.domain_dns, t2.domain_text
+            SELECT t1.domain_name, t1.opendkim_status, t2.domain_dns, t2.domain_text
             FROM opendkim AS t1
             LEFT JOIN domain_dns AS t2 ON(
                 t2.domain_id = t1.domain_id
                 AND t2.domain_dns NOT LIKE '\\_adsp%'
                 AND t2.alias_id = IFNULL(t1.alias_id, 0)
                 AND t2.owned_by = 'OpenDKIM_Plugin'
-            ) WHERE t1.admin_id = ? AND t1.is_subdomain <> 1
+            ) WHERE t1.admin_id = ?
+            AND t1.is_subdomain <> 1
         ",
         $_SESSION['user_id']
     );
 
     if (!$stmt->rowCount()) {
-        $tpl->assign('CUSTOMER_LIST', '');
-        set_page_message(tr('No domain with OpenDKIM support has been found.'), 'static_info');
+        showBadRequestErrorPage();
+    }
+
+    while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+        if ($row['opendkim_status'] == 'ok') {
+            $statusIcon = 'ok';
+        } elseif ($row['opendkim_status'] == 'disabled') {
+            $statusIcon = 'disabled';
+        } elseif (in_array($row['opendkim_status'], ['toadd', 'tochange', 'todelete'])) {
+            $statusIcon = 'reload';
+        } else {
+            $statusIcon = 'error';
+        }
+
+        if ($row['domain_text'] !== NULL) {
+            if (strpos($row['domain_dns'], ' ') !== false) {
+                list($dnsName, $ttl) = explode(' ', $row['domain_dns']);
+                if (substr($dnsName, -1) != '.') {
+                    $dnsName .= ".{$row['domain_name']}.";
+                }
+            } else {
+                $dnsName = $row['domain_dns'];
+                $ttl = tr('Default');
+            }
+        } else {
+            $dnsName = tr('N/A');
+            $ttl = tr('N/A');
+        }
+
+        $tpl->assign([
+            'DNS_STATUS'    => tohtml(translate_dmn_status($row['opendkim_status'])),
+            'STATUS_ICON'   => tohtml($statusIcon, 'htmlAttr'),
+            'DNS_ZONE_NAME' => tohtml(decode_idna($row['domain_name'])),
+            'DNS_NAME'      => tohtml($dnsName),
+            'DNS_TTL'       => tohtml($ttl)
+        ]);
+
+        if (NULL != $row['domain_text']) {
+            $tpl->assign([
+                'DNS_RDATA'   => tohtml($row['domain_text'], 'htmlAttr'),
+                'DKIM_KEY_NA' => ''
+            ]);
+            $tpl->parse('DKIM_KEY_TO_CLIPBOARD', 'dkim_key_to_clipboard');
+        } else {
+            $tpl->assign('DKIM_KEY_TO_CLIPBOARD', '');
+            $tpl->parse('DKIM_KEY_NA', 'dkim_key_na');
+        }
+
+        $tpl->parse('DKIM_KEY_DNS_ENTRY', '.dkim_key_dns_entry');
+    }
+
+    $stmt = exec_query(
+        "
+            SElECT t1.domain_name, t1.opendkim_status, t2.domain_dns, t2.domain_text
+            FROM opendkim AS t1
+            LEFT JOIN domain_dns AS t2 ON(
+                t2.domain_id = t1.domain_id
+                AND t2.alias_id = IFNULL(t1.alias_id, 0)
+                AND t2.domain_dns LIKE '\\_adsp%'
+                AND t2.owned_by = 'OpenDKIM_Plugin'
+            )
+            WHERE
+            t1.admin_id = ?
+            AND t1.is_subdomain <> 1
+            
+        ",
+        $_SESSION['user_id']
+    );
+
+    if (!$stmt->rowCount()) {
+        $tpl->assign('DKIM_ADSP_DNS', '');
         return;
     }
 
@@ -71,7 +142,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
         if ($row['domain_text'] !== NULL) {
             if (strpos($row['domain_dns'], ' ') !== false) {
                 list($dnsName, $ttl) = explode(' ', $row['domain_dns']);
-                if(substr($dnsName, -1) != '.') {
+                if (substr($dnsName, -1) != '.') {
                     $dnsName .= ".{$row['domain_name']}.";
                 }
             } else {
@@ -84,15 +155,23 @@ function opendkim_generatePage(TemplateEngine $tpl)
         }
 
         $tpl->assign([
-            'ZONE_NAME' => tohtml(decode_idna($row['domain_name'])),
-            'DOMAIN_KEY'  => ($row['domain_text']) ? tohtml($row['domain_text']) : tohtml(tr('Generation in progress.')),
-            'OPENDKIM_ID' => tohtml($row['opendkim_id'], 'htmlAttr'),
-            'DNS_NAME'    => tohtml($dnsName),
-            'DNS_TTL'     => tohtml($ttl),
-            'KEY_STATUS'  => tohtml(translate_dmn_status($row['opendkim_status'])),
-            'STATUS_ICON' => tohtml($statusIcon, 'htmlAttr')
+            'DNS_STATUS'    => tohtml(translate_dmn_status($row['opendkim_status'])),
+            'DNS_ZONE_NAME' => tohtml(decode_idna($row['domain_name'])),
+            'DNS_NAME'      => tohtml($dnsName),
+            'DNS_TTL'       => tohtml($ttl),
+            'STATUS_ICON'   => tohtml($statusIcon, 'htmlAttr')
         ]);
-        $tpl->parse('DOMAINKEY_ITEM', '.domainkey_item');
+
+        if (NULL != $row['domain_text']) {
+            $tpl->assign('DNS_RDATA', tohtml($row['domain_text'], 'htmlAttr'));
+            $tpl->assign('DKIM_ADSP_NA', '');
+            $tpl->parse('DKIM_ADSP_TO_CLIPBOARD', 'dkim_adsp_to_clipboard');
+        } else {
+            $tpl->assign('DKIM_ADSP_TO_CLIPBOARD', '');
+            $tpl->parse('DKIM_ADSP_NA', 'dkim_adsp_na');
+        }
+
+        $tpl->parse('DKIM_ADSP_DNS_ENTRY', '.dkim_adsp_dns_entry');
     }
 }
 
@@ -102,23 +181,25 @@ function opendkim_generatePage(TemplateEngine $tpl)
 
 check_login('user');
 EventManager::getInstance()->dispatch(Events::onClientScriptStart);
-OpenDKIM::customerHasOpenDKIM(intval($_SESSION['user_id'])) or showBadRequestErrorPage();
+OpenDKIM::customerHasOpenDKIM($_SESSION['user_id']) or showBadRequestErrorPage();
 
 $tpl = new TemplateEngine();
 $tpl->define_dynamic([
-    'layout'         => 'shared/layouts/ui.tpl',
-    'page'           => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.tpl',
-    'page_message'   => 'layout',
-    'customer_list'  => 'page',
-    'domainkey_item' => 'customer_list'
+    'layout'                 => 'shared/layouts/ui.tpl',
+    'page'                   => '../../plugins/OpenDKIM/themes/default/view/client/opendkim.phtml',
+    'page_message'           => 'layout',
+    'dkim_key_dns_entry'     => 'page',
+    'dkim_key_to_clipboard'  => 'dkim_key_dns_entry',
+    'dkim_key_na'            => 'dkim_key_dns_entry,',
+    'dkim_adsp_dns'          => 'page',
+    'dkim_adsp_dns_entry'    => 'dkim_adsp_dns',
+    'dkim_adsp_to_clipboard' => 'dkim_adsp_dns',
+    'dkim_adsp_na'           => 'dkim_adsp_dns'
 ]);
+
 $tpl->assign([
-    'TR_PAGE_TITLE' => tohtml(tr('Customers / OpenDKIM')),
-    'TR_KEY_STATUS' => tohtml(tr('Status')),
-    'TR_ZONE_NAME'  => tohtml(tr('Zone')),
-    'TR_DNS_NAME'   => tohtml(tr('Name')),
-    'TR_DNS_TTL'    => tohtml(tr('TTL')),
-    'TR_DOMAIN_KEY' => tohtml(tr('DKIM Ley'))
+    'TR_PAGE_TITLE'          => tohtml(tr('Client / Mail / DKIM DNS Records')),
+    'OPENDKIM_ASSET_VERSION' => tourl(Registry::get('pluginManager')->pluginGetInfo('OpenDKIM')['build'])
 ]);
 
 generateNavigation($tpl);

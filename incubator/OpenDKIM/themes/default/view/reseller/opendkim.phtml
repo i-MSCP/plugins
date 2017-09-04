@@ -1,0 +1,210 @@
+<style>
+    .hint {
+        font-variant: small-caps;
+        font-size: small;
+    }
+</style>
+<script>
+    $(function () {
+        window.confirm = (function () {
+            var native = window.confirm;
+            return function (msg, callback) {
+                ($.imscp && $.isFunction($.imscp.confirm)) ? $.imscp.confirm(msg, callback) : callback(native(msg));
+            }
+        })();
+
+        function flashMessage(type, message) {
+            $(".flash_message").remove();
+            $("<div>", {
+                "class": "flash_message " + type,
+                "html": $.parseHTML(message),
+                "hide": true
+            }).prependTo(".body").trigger('message_timeout');
+        }
+
+        function doRequest(rType, action, data) {
+            return $.ajax({
+                dataType: "json",
+                type: rType,
+                url: "opendkim?action=" + action,
+                data: data,
+                timeout: 5000
+            });
+        }
+
+        jQuery.fn.dataTableExt.oApi.fnProcessingIndicator = function (oSettings, onoff) {
+            if (typeof(onoff) === "undefined") {
+                onoff = true;
+            }
+
+            this.oApi._fnProcessingDisplay(oSettings, onoff);
+        };
+
+        var $dataTable = $(".datatable").dataTable({
+            language: <?= getDataTablesPluginTranslations(); ?>,
+            displayLength: 10,
+            processing: true,
+            serverSide: true,
+            pagingType: "simple",
+            ajaxSource: "opendkim?action=get_customer_list",
+            stateSave: true,
+            columnDefs: [{sortable: false, searchable: false, targets: [1, 2]}],
+            columns: [
+                {data: "admin_name"},
+                {data: "status"},
+                {data: "actions"}
+            ],
+            serverData: function (source, data, callback) {
+                $.ajax({
+                    dataType: "json",
+                    type: "GET",
+                    url: source,
+                    data: data,
+                    success: callback,
+                    timeout: 5000
+                }).done(function () {
+                    if (jQuery.fn.imscpTooltip) {
+                        $dataTable.find("span").imscpTooltip({extraClass: "tooltip_icon tooltip_notice"});
+                    } else {
+                        $dataTable.find("span").tooltip({tooltipClass: "ui-tooltip-notice", track: true});
+                    }
+                }).fail(function (jqXHR) {
+                    $dataTable.fnProcessingIndicator(false);
+                    flashMessage('error', $.parseJSON(jqXHR.responseText).message);
+                });
+            }
+        });
+
+        $("#admin_name").autocomplete({
+            source: "opendkim?action=search_customer",
+            minLength: 1,
+            delay: 500,
+            autoFocus: true,
+            change: function (event, ui) {
+                if (!ui.item) {
+                    this.value = "";
+                }
+            }
+        });
+
+        $("#page").on("click", "span[data-action]", function () {
+            $("input:reset").click();
+        }).on("click", "span[data-action],button", function (e) {
+            e.preventDefault();
+            var action = $(this).data("action");
+            var adminName =  $(this).data("admin-name");
+
+            switch (action) {
+<? if($this->isResellerWorkingLevel): ?>
+                case "activate":
+                    if ($("#admin_name").val() !== '') {
+                        doRequest("POST", action, $("#opendkim_frm").serialize()).done(
+                            function (data, textStatus, jqXHR) {
+                                $("input:reset").click();
+                                flashMessage((jqXHR.status === 200) ? "success" : "info", data.message);
+                                $dataTable.fnDraw();
+                            }
+                        );
+                    } else if (!$(".flash_message").length) {
+                        flashMessage("error", "<?= tojs(tr('You must enter a customer name.')); ?>")
+                    }
+                    break;
+                case "deactivate":
+                    confirm(
+                        "<?= tojs(tr('Are you sure you want to deactivate OpenDKIM for this customer?')); ?>",
+                        function (ret) {
+                            if (!ret) return;
+                            doRequest("POST", action, {
+                                admin_name: adminName
+                            }).done(function (data) {
+                                $dataTable.fnDraw();
+                                flashMessage("success", data.message);
+                            });
+                        });
+                    break;
+<? endif; ?>
+                case "renew_keys":
+                    confirm(
+                        "<?= tojs(tr('Are you sure you want to renew all DKIM keys for this customer?')); ?>",
+                        function (ret) {
+                            if (!ret) return;
+                            doRequest("POST", action, {
+                                admin_name: adminName
+                            }).done(function (data) {
+                                $dataTable.fnDraw();
+                                flashMessage("success", data.message);
+                            });
+                        });
+                    break;
+                default:
+                    flashMessage("error", "<?= tojs(tr('Unknown action.')); ?>");
+            }
+        });
+
+        $(document).ajaxStart(function () {
+            $dataTable.fnProcessingIndicator();
+        }).ajaxStop(function () {
+            $dataTable.fnProcessingIndicator(false);
+        }).ajaxError(function (e, jqXHR, settings, exception) {
+            if (jqXHR.status === 403) {
+                window.location.replace("/index.php");
+            } else if (jqXHR.status === 409) {
+                flashMessage("warning", jqXHR.responseJSON.message);
+            } else if (typeof jqXHR.responseJSON !== "undefined") {
+                flashMessage("error", jqXHR.responseJSON.message);
+            } else if (exception === "timeout") {
+                flashMessage("error", "<?= tojs(tr('Request Timeout: The server took too long to send the data.')); ?>");
+            } else {
+                flashMessage("error", "<?= tojs(tr('An unexpected error occurred. Please contact your administrator.')); ?>");
+            }
+        });
+    });
+</script>
+
+<div id="page">
+    <p class="hint"><?= tohtml(tr('List of customers for which OpenDKIM is currently activated.')); ?></p>
+    <br>
+    <table class="datatable">
+        <thead>
+        <tr>
+            <th><?= tohtml(tr('Customer name')); ?></th>
+            <th><?= tohtml(tr('Status')); ?></th>
+            <th><?= tohtml(tr('Actions')); ?></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td colspan="2"><?= tohtml(tr('Processing...')); ?></td>
+        </tr>
+        </tbody>
+    </table>
+<? if($this->isResellerWorkingLevel): ?>
+    <br>
+    <p class="hint"><?= tohtml(tr('Below you can activate OpenDKIM for your customers.')); ?></p>
+    <div>
+        <form name="opendkim_frm" id="opendkim_frm">
+            <table class="firstColFixed">
+                <thead>
+                <tr>
+                    <th colspan="2"><?= tohtml(tr('Activate OpenDKIM for one customer')); ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><label for="admin_name"><?= tohtml(tr('Customer name')); ?></label></td>
+                    <td><input type="text" name="admin_name" id="admin_name" placeholder="<?= tohtml(tr('Enter a customer name'), 'htmlAttr'); ?>">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: right;">
+                        <button data-action="activate"><?= tohtml(tr('Activate')); ?></button>
+                        <input type="hidden" id="admin_id" name="admin_id">
+                        <input type="reset" value="<?= tohtml(tr('Cancel')); ?>">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+<? endif; ?>
+</div>

@@ -28,10 +28,38 @@ $postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/
 return [
     // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
     //
-    // Possible value: true (enabled), false (disabled)
+    // When enabled, an ADSP DNS resource record will be added for all
+    // domains and subdomains for which OpenDKIM is enabled.
+    //
+    // Possible values: true (enabled), false (disabled)
+    // See https://en.wikipedia.org/wiki/Author_Domain_Signing_Practices
+    // Related parameter: opendkim_adsp_signing_practice
     'opendkim_adsp'                  => true,
 
+    // OpenDKIM ADSP action
+    //
+    // Action to be taken when an ADSP check against a message with no valid
+    // author signature results in the message being deemed suspicious and
+    // discardable. Possible values are "discard" (accept the message but
+    // throw it away), "reject" (bounce the message) or "none". If set to
+    // "none", discardable messages will still be delivered.
+    //
+    // Note that this parameter doesn't depend on the `opendkim_adsp' parameter.
+    //
+    // Possible values: discard, reject, none
+    'opendkim_adsp_action'           => 'reject',
+
+    // OpenDKIM ADSP No Such Domain (default: true)
+    //
+    // If true, requests rejection of messages that are determined to be from
+    // nonexistent domains according to the author domain signing practises (ADSP) test.
+    //
+    // Possible values: true (enabled), false (disabled)
+    'opendkim_adsp_no_such_domain'   => true,
+
     // OpenDKIM ADSP signing practice (default: discardable)
+    //
+    // Allows to select author signing practice for domains.
     //
     // Possible values: unknown, all, discardable
     // See https://tools.ietf.org/html/rfc5617#section-4.2.1
@@ -98,6 +126,14 @@ return [
     // OpenDKIM user (default: opendkim)
     'opendkim_user'                  => 'opendkim',
 
+    // Plugin working level (default: admin)
+    //
+    // Possible values:
+    //  admin   : DKIM feature is automatically activated for all customers.
+    //  reseller: DKIM feature is activated by resellers for customer of their
+    //            choice. This is the historical behavior.
+    'plugin_working_level'           => 'admin',
+
     // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
     //
     // Possible values:
@@ -106,7 +142,5 @@ return [
     'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
 
     // Postfix run directory (default: /var/spool/postfix/var/run)
-    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run",
-
-
+    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run"
 ];
