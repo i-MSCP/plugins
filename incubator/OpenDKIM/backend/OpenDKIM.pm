@@ -100,7 +100,7 @@ sub update
         return 0 if $fromVersion >= version->parse( '2.0.0' );
 
         if ( $fromVersion < version->parse( '1.1.0' ) ) {
-            debug( 'Processing update routines for version 1.1.0' );
+            debug( 'Processing update routines for versions older than 1.1.0' );
 
             if ( defined $self->{'config_prev'}->{'opendkim_port'} ) {
                 debug( 'Removing Postfix MILTER value from opendkim_port (prev)' );
@@ -121,17 +121,17 @@ sub update
         }
 
         if ( $fromVersion < version->parse( '1.1.1' ) ) {
-            debug( 'Processing update routines for version 1.1.1' );
+            debug( 'Processing update routines for versions older than 1.1.1' );
             debug( 'Removing possible opendkim_feature orphaned DNS record entries' );
             local $self->{'dbh'}->{'RaiseError'} = 1;
             $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
         }
 
         if ( $fromVersion < version->parse( '2.0.0' ) ) {
-            debug( 'Processing update routines for version 2.0.0' );
+            debug( 'Processing update routines for versions older than 2.0.0' );
 
             if ( defined $self->{'config_prev'}->{'PostfixMilterSocket'} ) {
-                debug( 'Setting postfix_milter_socket (prev) to PostfixMilterSocket (prev) value for update time' );
+                debug( 'Setting postfix_milter_socket (prev) to PostfixMilterSocket (prev) value for update process' );
                 $self->{'config_prev'}->{'postfix_milter_socket'} = $self->{'config_prev'}->{'PostfixMilterSocket'};
             }
 
@@ -1127,8 +1127,6 @@ sub _addMissingOpenDKIMEntries
         eval {
             $self->{'dbh'}->begin_work();
             if ( $self->{'config'}->{'plugin_working_level'} eq 'admin' ) {
-                # Add entries for domains that were added while the plugin
-                # was dactivated (domain)
                 debug( "Adding missing OpenDKIM entries for domains of customer with ID $row->{'admin_id'}" );
                 $self->{'dbh'}->do(
                     "
@@ -1142,8 +1140,6 @@ sub _addMissingOpenDKIMEntries
                 );
             }
 
-            # Add entries for subdomains that were added while the plugin
-            # was dactivated (sub)
             debug( "Adding missing OpenDKIM entries for subdomains (sub) of customer with ID $row->{'admin_id'}" );
             $self->{'dbh'}->do(
                 "
@@ -1159,8 +1155,6 @@ sub _addMissingOpenDKIMEntries
                 undef, $row->{'domain_id'}
             );
 
-            # Add entries for domain aliases that were added while the plugin
-            # was dactivated
             debug( "Adding missing OpenDKIM entries for domain aliases of customer with ID $row->{'admin_id'}" );
             $self->{'dbh'}->do(
                 "
@@ -1173,8 +1167,6 @@ sub _addMissingOpenDKIMEntries
                 undef, $row->{'admin_id'}, $row->{'domain_id'}
             );
 
-            # Add entries for subdomains that were added while the plugin
-            # was dactivated (alssub)
             debug( "Adding missing OpenDKIM entries for subdomains (alssub) of customer with ID $row->{'admin_id'}" );
             $self->{'dbh'}->do(
                 "
