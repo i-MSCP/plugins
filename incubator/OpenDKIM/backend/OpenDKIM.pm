@@ -27,7 +27,7 @@ package Plugin::OpenDKIM;
 
 use strict;
 use warnings;
-use Capture::Tiny; # Preloading is really needed here
+use Capture::Tiny; # Preloading is really needed here due to uid/gid change in _addDomain()
 use iMSCP::Database;
 use iMSCP::Debug qw/ debug error getMessageByType /;
 use iMSCP::Dir;
@@ -70,6 +70,7 @@ sub uninstall
         $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'OpenDKIM_Plugin'" );
         debug( "Removing OpenDKIM  $self->{'config_prev'}->{'opendkim_confdir'} directory" );
         iMSCP::Dir->new( dirname => $self->{'config_prev'}->{'opendkim_confdir'} )->remove();
+        $self->_uninstalllDistributionPackages();
     };
     if ( $@ ) {
         error( $@ );
@@ -96,21 +97,49 @@ sub update
     eval {
         $fromVersion = version->parse( $fromVersion );
 
-        return unless $fromVersion < version->parse( '2.0.0' );
+        return 0 if $fromVersion >= version->parse( '2.0.0' );
 
-        iMSCP::Dir->new( dirname => '/var/www/spool/postfix/opendkim' )->remove();
+        if ( $fromVersion < version->parse( '1.1.0' ) ) {
+            debug( 'Processing update routines for version 1.1.0' );
 
-        # Make sure that DNS resource records for DKIM ADSP extension will be
-        # added on update
-        $self->{'config_prev'}->{'opendkim_adsp'} = JSON::false;
+            if ( defined $self->{'config_prev'}->{'opendkim_port'} ) {
+                debug( 'Removing Postfix MILTER value from opendkim_port (prev)' );
+                my @milterPrevValues = ( qr/\Qinet:localhost:$self->{'config_prev'}->{'opendkim_port'}\E/ );
+                Servers::mta->factory()->postconf(
+                    (
+                        smtpd_milters     => {
+                            action => 'remove',
+                            values => [ @milterPrevValues ]
+                        },
+                        non_smtpd_milters => {
+                            action => 'remove',
+                            values => [ @milterPrevValues ]
+                        }
+                    )
+                ) == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error' );
+            }
+        }
 
-        return unless $fromVersion < version->parse( '1.1.1' );
+        if ( $fromVersion < version->parse( '1.1.1' ) ) {
+            debug( 'Processing update routines for version 1.1.1' );
+            debug( 'Removing possible opendkim_feature orphaned DNS record entries' );
+            local $self->{'dbh'}->{'RaiseError'} = 1;
+            $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
+        }
 
-        # Fix bug in versions < 1.1.1 where the `owned_by' field for DNS
-        # resource records was reseted back to `opendkim_feature', leading to
-        # orphaned custom DNS resource records
-        local $self->{'dbh'}->{'RaiseError'} = 1;
-        $self->{'dbh'}->do( "DELETE FROM domain_dns WHERE owned_by = 'opendkim_feature'" );
+        if ( $fromVersion < version->parse( '2.0.0' ) ) {
+            debug( 'Processing update routines for version 2.0.0' );
+
+            if ( defined $self->{'config_prev'}->{'PostfixMilterSocket'} ) {
+                debug( 'Setting postfix_milter_socket (prev) to PostfixMilterSocket (prev) value for update time' );
+                $self->{'config_prev'}->{'postfix_milter_socket'} = $self->{'config_prev'}->{'PostfixMilterSocket'};
+            }
+
+            debug( 'Removing old opendkim rundir' );
+            iMSCP::Dir->new( dirname => '/var/www/spool/postfix/opendkim' )->remove();
+            debug( 'Setting opendkim_adsp (prev) to FALSE for update time. Ensure addition of new ADSP DNS records' );
+            $self->{'config_prev'}->{'opendkim_adsp'} = JSON::false;
+        }
     };
     if ( $@ ) {
         error( $@ );
@@ -152,7 +181,7 @@ sub change
         if ( $self->{'config'}->{'opendkim_dns_records_ttl'} ne
             $self->{'config_prev'}->{'opendkim_dns_records_ttl'}
         ) {
-            # TTL for DNS resource records has been changed
+            # TTL for DNS records has been changed
             debug( "Updating DKIM DNS records TTL" );
             $self->{'dbh'}->do(
                 "
@@ -341,7 +370,10 @@ sub run
             }
         }
 
-        iMSCP::Service->getInstance()->reload( 'opendkim' );
+        my $serviceMngr = iMSCP::Service->getInstance();
+        # Under Ubuntu 14.04/Trusty Thar, status command always return 0
+        $serviceMngr->getProvider()->setPidPattern( 'opendkim' );
+        $serviceMngr->reload( 'opendkim' );
     };
     if ( $@ ) {
         $self->{'FORCE_RETVAL'} = 1;
@@ -393,7 +425,7 @@ sub _init
 
 =item _installDistributionPackages( )
  
- Install required distribution packages
+ Install OpenDKIM distribution packages
 
  Return void, die on failure
 
@@ -401,7 +433,7 @@ sub _init
 
 sub _installDistributionPackages
 {
-    debug( 'Installing required distribution packages' );
+    debug( 'Installing distribution packages' );
     local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
     my $stderr;
     execute( [ 'apt-get', 'update' ], \my $stdout, \$stderr ) == 0 or die(
@@ -416,6 +448,26 @@ sub _installDistributionPackages
         ],
         \$stdout, \$stderr
     ) == 0 or die( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ));
+    debug( $stdout ) if $stdout;
+}
+
+=item _uninstalllDistributionPackages()
+
+ Uninstall OpenDKIM distribution packages
+
+ Return void, die on failure
+
+=cut
+
+sub _uninstalllDistributionPackages
+{
+    debug( 'Uninstalling distribution packages' );
+    local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
+    my $stderr;
+    execute(
+        [ 'apt-get', '--assume-yes', '--auto-remove', '--purge', '--quiet', 'remove', 'opendkim', 'opendkim-tools' ],
+        \my $stdout, \$stderr
+    ) == 0 or die( sprintf( "Couldn't uninstall distribution packages: %s", $stderr || 'Unknown error' ));
     debug( $stdout ) if $stdout;
 }
 
@@ -478,6 +530,8 @@ sub _opendkimSetup
     } else {
         debug( "Stopping/Disabling OpenDKIM service" );
         my $serviceMngr = iMSCP::Service->getInstance();
+        # Under Ubuntu 14.04/Trusty Thar, status command always return 0
+        $serviceMngr->getProvider()->setPidPattern( 'opendkim' );
         $serviceMngr->stop( 'opendkim' );
         $serviceMngr->disable( 'opendkim' );
 
@@ -643,6 +697,8 @@ EOF
             debug( "Enabling/Starting OpenDKIM service" );
             my $serviceMngr = iMSCP::Service->getInstance();
             $serviceMngr->enable( 'opendkim' );
+            # Under Ubuntu 14.04/Trusty Thar, status command always return 0
+            $serviceMngr->getProvider()->setPidPattern( 'opendkim' );
             $serviceMngr->start( 'opendkim' );
         };
         if ( $@ ) {
@@ -683,13 +739,8 @@ sub _postfixSetup
         'Missing or invalid $action parameter'
     );
 
-    my @milterPrevValues = ( qr/\Q$self->{'config_prev'}->{'postfix_milter_socket'}\E/ );
-    if ( defined $self->{'config_prev'}->{'opendkim_port'} ) {
-        # Remove the milter value from the deprecated opendkim_port parameter
-        push @milterPrevValues, qr/\Qinet:localhost:$self->{'config_prev'}->{'opendkim_port'}\E/;
-    }
-
     debug( "Removing OpenDKIM configuration for Postfix" );
+    my @milterPrevValues = ( qr/\Q$self->{'config_prev'}->{'postfix_milter_socket'}\E/ );
     my $mta = Servers::mta->factory();
     $mta->postconf(
         (
@@ -1046,7 +1097,7 @@ sub _resumeDomainSigningEntries
 
  Add missing OpenDKIM entries in database
 
- This cover case where, depending on context, a domaoin, domain alias or
+ This covers the case where, depending on context, a domain, domain alias or
  subdomain has been added while the plugin was deactivated.
 
  Return void, die on failure

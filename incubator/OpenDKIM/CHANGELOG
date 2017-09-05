@@ -8,7 +8,7 @@ Version 2.0.0
     Added `opendkim_dns_records_ttl' parameter -- Allows to setup DKIM DNS resource records TTL
     Added: `opendkim_adsp_extension' parameter -- Allows to enable/disable DKIM ADSP extension
     Added: `opendkim_adsp_signing_practice' parameter -- Allows to setup ADSP signing practice
-    Added: `opendkim_confdir' parameter -- Path to OpenDKIm configuration directory
+    Added: `opendkim_confdir' parameter -- Path to OpenDKIM configuration directory
     Added: `opendkim_group' parameter -- OpenDKIM unix group
     Added: `opendkim_keysize' parameter -- Allows to setup keys size
     Added: `opendkim_user' parameter -- OpenDKIM unix user
@@ -17,14 +17,15 @@ Version 2.0.0
     Added: OpenDKIM systemd override.conf file for Ubuntu 16.04/Xenial Xerus
     Added: `plugin_working_level' parameter -- Allows to setup the plugin working level (See the UPDATE.md file)
     Added: Support for DKIM ADSP (Author Domain Signing Practices) extension (See the UPDATE.md file)
-    Enhancement: Added button for easy copying of DNS record data (client UI level).
+    Enhancement: Added button for easy copy of DKIM keys in clipboard (client UI level).
     Enhancement: Added support for subdomains (signer for subdomains is parent domain)
     Enhancement: Make it possible to turn off the verifier mode (needed when used in conjunction with SpamAssassin/DKIM)
-    Enhancement: Make resellers able to trigger DKIM keys renewal for a specific customer (reseller working level)
+    Enhancement: Make resellers able to trigger DKIM keys renewal for a specific customer (reseller UI level)
     Fixed: Couldn't start OpenDKIM service under Debian 9/Stretch
     Fixed: Make sure that missing OpenDKIM entries are added when the plugin get re-activated
     Fixed: Postfix user can't access OpenDKIM socket after system reboot
     Fixed: Reload OpenDKIM service once per process and only when necessary
+    Fixed: service status command for OpenDKIM under Ubuntu 14.04/Trusty thar always return 0. PID pattern must be set
     Fixed: Store TXT-DATA as a single <character-string> (i-MSCP versions lt 1.5.0)
     Fixed: Store TXT-DATA as multiple <character-string>s (i-MSCP versions ge 1.5.0)
     Fixed: TXT-DATA is truncated due to wrong mail.txt file parsing
@@ -38,9 +39,10 @@ Version 2.0.0
     Review: Moved: DKIM interface to mail section (client UI level)
     Review: OpenDKIM pidfile and socket are now created with permissions 0660
     Review: OpenDKIM rundir is no longer world-readable
-    Review: Postfix user is now added into OpenDKIM group (Make  Postfix user able to access to the OpenDKIM UDS)
-    Review: Review: Show DKIM DNS record data through tooltips and allow to copy them in clipboard
+    Review: Postfix user is now added into OpenDKIM group (Make Postfix user able to access to the OpenDKIM UDS)
+    Review: Review: Show DKIM DNS record rdata through tooltips and allow to copy them in clipboard
     Review: Stop and disable OpenDKIM service on plugin deactivation
+    Review: Uninstall OpenDKIM distribution package on plugin uninstallation
     Updated: Translation files
 
 ------------------------------------------------------------------------------------------------------------------------

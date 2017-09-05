@@ -233,7 +233,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function onAfterAddSubdomain(Event $e)
     {
         if (!self::customerHasOpenDKIM($_SESSION['user_id'])
-            || !$this->getConfigParam('opendkim_adsp')
+            || !$this->getConfigParam('opendkim_adsp', true)
         ) {
             return;
         }
@@ -264,7 +264,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     public function onAfterDeleteSubdomain(Event $e)
     {
         if (!self::customerHasOpenDKIM($_SESSION['user_id'])
-            || !$this->getConfigParam('opendkim_adsp')) {
+            || !$this->getConfigParam('opendkim_adsp', true)) {
             return;
         }
 
