@@ -662,14 +662,20 @@ SoftwareHeader      yes
 Syslog              yes
 SyslogSuccess       yes
 EOF
-        if ( $self->{'config'}->{'opendkim_adsp_action'} ne 'none' ) {
-            $cfg .= "ADSPAction          $self->{'config'}->{'opendkim_adsp_action'}\n";
-        }
+        # ADSP support has been discontinued (since version 2.10.0)
+        my ($opendkimVersion) = `/usr/sbin/opendkim -V 2> /dev/null` =~ /v([\d.]+)/;
+        $? == 0 or die( "Couldn't get OpenDKIM version" );
 
-        if ( $self->{'config'}->{'opendkim_adsp_no_such_domain'} ) {
-            $cfg .= "ADSPNoSuchDomain          yes\n";
-        } else {
-            $cfg .= "ADSPNoSuchDomain          no\n";
+        if ( version->parse( $opendkimVersion ) < version->parse( '2.10.0' ) ) {
+            if ( $self->{'config'}->{'opendkim_adsp_action'} ne 'none' ) {
+                $cfg .= "ADSPAction          $self->{'config'}->{'opendkim_adsp_action'}\n";
+            }
+
+            if ( $self->{'config'}->{'opendkim_adsp_no_such_domain'} ) {
+                $cfg .= "ADSPNoSuchDomain    yes\n";
+            } else {
+                $cfg .= "ADSPNoSuchDomain    no\n";
+            }
         }
 
         if ( getBloc( "# Begin Plugin::OpenDKIM\n", "# Ending Plugin::OpenDKIM\n", $fContent ) ne '' ) {

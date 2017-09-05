@@ -45,6 +45,8 @@ return [
     // "none", discardable messages will still be delivered.
     //
     // Note that this parameter doesn't depend on the `opendkim_adsp' parameter.
+    // Note also that this parameter is only relevant with OpenDKIM versions
+    // older than 2.10.0 as the ADSP support has been discontinued.
     //
     // Possible values: discard, reject, none
     'opendkim_adsp_action'           => 'reject',
@@ -55,12 +57,18 @@ return [
     // nonexistent domains according to the author domain signing practises
     // (ADSP) test.
     //
+    // Note that this parameter doesn't depend on the `opendkim_adsp' parameter.
+    // Note also that this parameter is only relevant with OpenDKIM versions
+    // older than 2.10.0 as the ADSP support has been discontinued.
+    //
     // Possible values: true (enabled), false (disabled)
     'opendkim_adsp_no_such_domain'   => true,
 
     // OpenDKIM ADSP signing practice (default: discardable)
     //
     // Allows to select author signing practice for domains.
+    //
+    // Note that this parameter depends on the `opendkim_adsp' parameter.
     //
     // Possible values: unknown, all, discardable
     // See https://tools.ietf.org/html/rfc5617#section-4.2.1
