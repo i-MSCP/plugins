@@ -27,7 +27,6 @@ package Plugin::OpenDKIM;
 
 use strict;
 use warnings;
-use Capture::Tiny; # Preloading is really needed here due to uid/gid change in _addDomain()
 use iMSCP::Database;
 use iMSCP::Debug qw/ debug error getMessageByType /;
 use iMSCP::Dir;
@@ -828,22 +827,18 @@ sub _addDomain
             fixpermissions => 1
         } );
 
-        {
-            debug( "Generating DKIM key for the $data->{'domain_name'} domain" );
-            local $) = getgrnam( $self->{'config'}->{'opendkim_user'} ) || die( "Couldn't setgid: %s", $! );
-            local $> = getpwnam( $self->{'config'}->{'opendkim_group'} ) || die( "Couldn't setuid: %s:", $! );
-            local $UMASK = 027;
-
-            my $stderr;
-            execute(
-                [
-                    '/usr/bin/opendkim-genkey', '-a', '-b', $self->{'config'}->{'opendkim_keysize'}, '-h', 'sha256',
-                    '-D', "/etc/opendkim/keys/$data->{'domain_name'}", '-r', '-s', 'mail', '-d', $data->{'domain_name'}
-                ],
-                \my $stdout, \$stderr
-            ) == 0 or die ( $stderr || 'Unknown error' );
-            debug( $stdout ) if $stdout;
-        }
+        debug( "Generating DKIM key for the $data->{'domain_name'} domain" );
+        local $UMASK = 077;
+        my $stderr;
+        execute(
+            [
+                'su', '-l', $self->{'config'}->{'opendkim_user'}, '-s', '/bin/sh', '-c',
+                "/usr/bin/opendkim-genkey -a -b $self->{'config'}->{'opendkim_keysize'} -h sha256 "
+                    . "-D /etc/opendkim/keys/$data->{'domain_name'} -r -s mail -d $data->{'domain_name'}"
+            ],
+            \my $stdout, \$stderr
+        ) == 0 or die ( $stderr || 'Unknown error' );
+        debug( $stdout ) if $stdout;
 
         $self->_addDomainSigningEntry( $data->{'domain_name'} );
         $self->_addDomainKeyEntry( $data->{'domain_name'} );

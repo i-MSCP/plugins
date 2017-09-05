@@ -109,7 +109,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
         "
             SElECT t1.domain_name, t1.opendkim_status, t2.domain_dns, t2.domain_text
             FROM opendkim AS t1
-            LEFT JOIN domain_dns AS t2 ON(
+            JOIN domain_dns AS t2 ON(
                 t2.domain_id = t1.domain_id
                 AND t2.alias_id = IFNULL(t1.alias_id, 0)
                 AND t2.domain_dns LIKE '\\_adsp%'
@@ -190,11 +190,11 @@ $tpl->define_dynamic([
     'page_message'           => 'layout',
     'dkim_key_dns_entry'     => 'page',
     'dkim_key_to_clipboard'  => 'dkim_key_dns_entry',
-    'dkim_key_na'            => 'dkim_key_dns_entry,',
+    'dkim_key_na'            => 'dkim_key_dns_entry',
     'dkim_adsp_dns'          => 'page',
     'dkim_adsp_dns_entry'    => 'dkim_adsp_dns',
-    'dkim_adsp_to_clipboard' => 'dkim_adsp_dns',
-    'dkim_adsp_na'           => 'dkim_adsp_dns'
+    'dkim_adsp_to_clipboard' => 'dkim_adsp_dns_entry',
+    'dkim_adsp_na'           => 'dkim_adsp_dns_entry'
 ]);
 
 $tpl->assign([
