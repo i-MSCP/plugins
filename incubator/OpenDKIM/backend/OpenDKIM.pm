@@ -832,7 +832,7 @@ sub _addDomain
         my $stderr;
         execute(
             [
-                'su', '-l', $self->{'config'}->{'opendkim_user'}, '-s', '/bin/sh', '-c',
+                '/bin/su', '-l', $self->{'config'}->{'opendkim_user'}, '-s', '/bin/sh', '-c',
                 "/usr/bin/opendkim-genkey -a -b $self->{'config'}->{'opendkim_keysize'} -h sha256 "
                     . "-D /etc/opendkim/keys/$data->{'domain_name'} -r -s mail -d $data->{'domain_name'}"
             ],

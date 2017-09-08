@@ -115,6 +115,7 @@ function renewKeys()
     }
 
     $adminName = strval($_POST['admin_name']);
+
     try {
         $stmt = exec_query(
             "
@@ -278,7 +279,7 @@ function deactivateOpenDKIM()
             [encode_idna($adminName), $_SESSION['user_id']]
         );
 
-        if ($stmt->fetchRow(PDO::FETCH_COLUMN) < 1) {
+        if (!$stmt->rowCount()) {
             sendJsonResponse(400, ['message' => tr('Bad request.')]);
         }
 
@@ -510,7 +511,7 @@ if (isset($_REQUEST['action'])) {
             case 'activate':
                 if (Registry::get('pluginManager')
                         ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
-                    showBadRequestErrorPage();
+                    sendJsonResponse(400, ['message' => tr('Bad request.')]);
                 }
 
                 activateOpenDKIM();
@@ -518,7 +519,7 @@ if (isset($_REQUEST['action'])) {
             case 'deactivate':
                 if (Registry::get('pluginManager')
                         ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
-                    showBadRequestErrorPage();
+                    sendJsonResponse(400, ['message' => tr('Bad request.')]);
                 }
 
                 deactivateOpenDKIM();

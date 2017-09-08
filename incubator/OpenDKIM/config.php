@@ -143,7 +143,7 @@ return [
     // Possible values:
     //  admin   : DKIM feature is automatically activated for all customers.
     //  reseller: DKIM feature is activated by resellers for customer of their
-    //            choice. This is the historical behavior (before version 2.0.0).
+    //            choice. This is the historical behavior (prior version 2.0.0).
     'plugin_working_level'           => 'admin',
 
     // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)

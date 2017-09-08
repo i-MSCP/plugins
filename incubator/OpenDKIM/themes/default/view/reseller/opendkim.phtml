@@ -44,8 +44,8 @@
             language: <?= getDataTablesPluginTranslations(); ?>,
             displayLength: 10,
             processing: true,
-            serverSide: true,
             pagingType: "simple",
+            serverSide: true,
             ajaxSource: "opendkim?action=get_customer_list",
             stateSave: true,
             columnDefs: [{sortable: false, searchable: false, targets: [1, 2]}],
@@ -174,7 +174,7 @@
         </thead>
         <tbody>
         <tr>
-            <td colspan="2"><?= tohtml(tr('Processing...')); ?></td>
+            <td colspan="3"><?= tohtml(tr('Loading data...')); ?></td>
         </tr>
         </tbody>
     </table>

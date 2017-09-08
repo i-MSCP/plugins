@@ -29,8 +29,8 @@ return [
     'email'       => 'l.declercq@nuxwin.com',
     'version'     => '2.0.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-09-01',
-    'build'       => '2017090100',
+    'date'        => '2017-09-08',
+    'build'       => '2017090800',
     'name'        => 'OpenDKIM',
     'desc'        => 'Provides DomainKeys Identified Mail (DKIM) service through MILTER.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:opendkim'
