@@ -1,4 +1,4 @@
-# i-MSCP OpenDKIM plugin v2.0.0
+# i-MSCP OpenDKIM plugin v2.0.1
 
 Provides DomainKeys Identified Mail (DKIM) service through MILTER.
 

@@ -704,7 +704,7 @@ EOF
             $serviceMngr->enable( 'opendkim' );
             # Under Ubuntu 14.04/Trusty Thar, status command always return 0
             $serviceMngr->getProvider()->setPidPattern( 'opendkim' );
-            $serviceMngr->start( 'opendkim' );
+            $serviceMngr->restart( 'opendkim' );
         };
         if ( $@ ) {
             error( $@ );
