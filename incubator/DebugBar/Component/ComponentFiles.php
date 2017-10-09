@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,15 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/** @see iMSCP_Plugin_DebugBar_Component_Interface */
-require_once 'Interface.php';
+namespace DebugBar\Component;
+
+use iMSCP_Events as Events;
+use iMSCP_Events_Event as Event;
 
 /**
- * Files component for the i-MSCP DebugBar Plugin
- *
- * Provide debug information about all included files.
+ * Class ComponentFiles
+ * @package DebugBar\Component
  */
-class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Component_Interface
+class ComponentFiles implements ComponentInterface
 {
     /**
      * @var string Component unique identifier
@@ -34,9 +35,11 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
     const IDENTIFIER = 'Files';
 
     /**
-     * @var string Listened event
+     * @var array Listened events
      */
-    protected $_listenedEvents = iMSCP_Events::onBeforeLoadTemplateFile;
+    protected $listenedEvents = [
+        Events::onBeforeLoadTemplateFile
+    ];
 
     /**
      * @var int Priority
@@ -44,38 +47,28 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
     protected $priority = -99;
 
     /**
-     * Implements onLoadTemplateFile listener method
-     *
-     * @param iMSCP_Events_Event $event
-     * @return void
-     */
-    public function onBeforeLoadTemplateFile($event)
-    {
-        $this->_loadedTemplateFiles[] = realpath($event->getParam('templatePath'));
-    }
-
-    /**
      * Stores included files
      *
      * @var
      */
-    protected $_includedFiles = array();
+    protected $includedFiles = [];
 
     /**
      * Store loaded template files
      *
      * @var array
      */
-    protected $_loadedTemplateFiles = array();
+    protected $loadedTemplateFiles = [];
 
     /**
-     * Returns component unique identifier
+     * Implements onLoadTemplateFile listener method
      *
-     * @return string Component unique identifier.
+     * @param Event $event
+     * @return void
      */
-    public function getIdentifier()
+    public function onBeforeLoadTemplateFile(Event $event)
     {
-        return self::IDENTIFIER;
+        $this->loadedTemplateFiles[] = realpath($event->getParam('templatePath'));
     }
 
     /**
@@ -85,7 +78,7 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
      */
     public function getListenedEvents()
     {
-        return $this->_listenedEvents;
+        return $this->listenedEvents;
     }
 
     /**
@@ -99,13 +92,35 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
     }
 
     /**
+     * Returns component unique identifier
+     *
+     * @return string Component unique identifier
+     */
+    public function getIdentifier()
+    {
+        return self::IDENTIFIER;
+    }
+
+    /**
      * Returns component tab
      *
      * @return string
      */
     public function getTab()
     {
-        return count($this->_getIncludedFiles()) + count($this->_loadedTemplateFiles) . ' ' . $this->getIdentifier();
+        return count($this->_getIncludedFiles()) + count($this->loadedTemplateFiles) . ' files loaded';
+    }
+
+    /**
+     * Returns list of included files
+     *
+     * @return array
+     */
+    protected function _getIncludedFiles()
+    {
+        $this->includedFiles = get_included_files();
+        natsort($this->includedFiles);
+        return $this->includedFiles;
     }
 
     /**
@@ -122,11 +137,19 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
         $xhtml .= count($includedPhpFiles) + count($loadedTemplateFiles) . ' Files Included/loaded' . PHP_EOL;
         $size = bytesHuman(array_sum(array_map('filesize', array_merge($includedPhpFiles, $loadedTemplateFiles))));
         $xhtml .= "\tTotal Size: $size</pre>";
-
         $xhtml .= "<h4>PHP Files</h4><pre>\t" . implode(PHP_EOL . "\t", $includedPhpFiles) . '</pre>';
         $xhtml .= "<h4>Templates Files</h4><pre>\t" . implode(PHP_EOL . "\t", $loadedTemplateFiles) . '</pre>';
-
         return $xhtml;
+    }
+
+    /**
+     * Returns list of loaded template files
+     *
+     * @return array
+     */
+    protected function _getLoadedTemplateFiles()
+    {
+        return $this->loadedTemplateFiles;
     }
 
     /**
@@ -137,28 +160,5 @@ class iMSCP_Plugin_DebugBar_Component_Files implements iMSCP_Plugin_DebugBar_Com
     public function getIconPath()
     {
         return '/DebugBar/themes/default/assets/images/files.png';
-    }
-
-    /**
-     * Returns list of included files
-     *
-     * @return array
-     */
-    protected function _getIncludedFiles()
-    {
-        $this->_includedFiles = get_included_files();
-        sort($this->_includedFiles);
-
-        return $this->_includedFiles;
-    }
-
-    /**
-     * Returns list of loaded template files
-     *
-     * @return array
-     */
-    protected function _getLoadedTemplateFiles()
-    {
-        return $this->_loadedTemplateFiles;
     }
 }

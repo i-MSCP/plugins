@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,10 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use DebugBar\Component\ComponentInterface as DebugBarComponentInterface;
+use iMSCP_Events as Events;
+use iMSCP_Events_Manager_Interface as EventsManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+
 /**
  * Class iMSCP_Plugin_DebugBar
  */
-class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
+class iMSCP_Plugin_DebugBar extends PluginAction
 {
     /**
      * @var iMSCP_Events_Event
@@ -29,56 +35,60 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
     protected $event;
 
     /**
-     * @var iMSCP_Plugin_DebugBar_Component_Interface[]
+     * @var DebugBarComponentInterface[]
      */
-    protected $components = array();
+    protected $components = [];
 
     /**
      * @var array Listened events
      */
-    protected $listenedEvents = array(
-        iMSCP_Events::onLoginScriptEnd,
-        iMSCP_Events::onLostPasswordScriptEnd,
-        iMSCP_Events::onAdminScriptEnd,
-        iMSCP_Events::onResellerScriptEnd,
-        iMSCP_Events::onClientScriptEnd,
-        iMSCP_Events::onExceptionToBrowserEnd
-    );
+    protected $listenedEvents = [
+        Events::onLoginScriptEnd,
+        Events::onLostPasswordScriptEnd,
+        Events::onAdminScriptEnd,
+        Events::onResellerScriptEnd,
+        Events::onClientScriptEnd,
+    ];
+
+    /**
+     * Plugin initialization
+     *
+     * @return void
+     */
+    public function init()
+    {
+        /** @var Zend_Loader_StandardAutoloader $loader */
+        $loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
+        $loader->registerNamespace($this->getName(), __DIR__);
+    }
 
     /**
      * Register a callback for the given event(s)
      *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @throws PluginException
+     * @param EventsManagerInterface $eventsManager
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventsManagerInterface $eventsManager)
     {
         if (is_xhr()) { // Do not act on AJAX requests
             return;
         }
 
         $components = $this->getConfigParam('components');
-        if (!$components) {
+        if (empty($components)) {
             return;
         }
 
         if (!is_array($components)) {
-            throw new iMSCP_Plugin_Exception(
-                'DebugBar plugin: components parameter must be an array containing list of DeburBar components'
+            throw new PluginException(
+                'DebugBar plugin: components parameter must be an array containing list of DebugBar components'
             );
         }
 
+        /** @var DebugBarComponentInterface $component */
         foreach ($components as $component) {
-            require_once 'Component/' . $component . '.php';
-            $componentClass = "iMSCP_Plugin_DebugBar_Component_$component";
+            $componentClass = "DebugBar\\Component\\Component$component";
             $component = new $componentClass();
-
-            if (!$component instanceof iMSCP_Plugin_DebugBar_Component_Interface) {
-                throw new iMSCP_Plugin_Exception(
-                    'Any DebugBar component must implement the iMSCP_Plugin_DebugBar_Component_Interface interface.'
-                );
-            }
-
             $events = $component->getListenedEvents();
             if (!empty($events)) {
                 $eventsManager->registerListener($events, $component, $component->getPriority());
@@ -87,15 +97,26 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
             $this->components[] = $component;
         }
 
-        $eventsManager->registerListener($this->getListenedEvents(), $this, -100);
+        $eventsManager->registerListener($this->getListenedEvents(), $this, -999);
     }
 
     /**
-     * Catch all calls for listener methods of this class to avoid to declarate them since they do same job
+     * Returns list of listened events
      *
-     * @throws iMSCP_Plugin_Exception
+     * @return array
+     */
+    public function getListenedEvents()
+    {
+        return $this->listenedEvents;
+    }
+
+    /**
+     * Catch all calls for listener methods of this class to avoid to declare
+     * them since they do same job
+     *
      * @param string $listenerMethod Listener method
-     * @param array $arguments Enumerated array containing listener method arguments (always an iMSCP_Events_Description object)
+     * @param array $arguments Enumerated array containing listener method
+     *                         arguments
      */
     public function __call($listenerMethod, $arguments)
     {
@@ -106,17 +127,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
     }
 
     /**
-     * Returns list of listeneds events
-     *
-     * @return array
-     */
-    public function getListenedEvents()
-    {
-        return $this->listenedEvents;
-    }
-
-    /**
-     * Builds the Debug Bar and adds it to the repsonse
+     * Builds the Debug Bar and adds it to the response
      *
      * @return void
      */
@@ -124,7 +135,7 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
     {
         $xhtml = '<div>';
 
-        /** @var $component iMSCP_Plugin_DebugBar_Component_Interface */
+        /** @var $component DebugBarComponentInterface */
         foreach ($this->components as $component) {
             if (($tab = $component->getTab()) != '') {
                 $xhtml .= '<span class="iMSCPdebug_span clickable" onclick="iMSCPdebugPanel(\'iMSCPdebug_' . $component->getIdentifier() . '\');">';
@@ -157,13 +168,13 @@ class iMSCP_Plugin_DebugBar extends iMSCP_Plugin_Action
     {
         $collapsed = isset($_COOKIE['iMSCPdebugCollapsed']) ? $_COOKIE['iMSCPdebugCollapsed'] : 0;
 
-        $backgroundColor = array(
-            'black' => '#000000',
-            'red' => '#5a0505',
-            'blue' => '#151e72',
-            'green' => '#055a0d',
+        $backgroundColor = [
+            'black'  => '#000000',
+            'red'    => '#5a0505',
+            'blue'   => '#151e72',
+            'green'  => '#055a0d',
             'yellow' => '#85742f'
-        );
+        ];
 
         $color = isset($_SESSION['user_id'])
             ? $backgroundColor[layout_getUserLayoutColor($_SESSION['user_id'])] : '#000000';

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,15 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/** @see iMSCP_Plugin_DebugBar_Component_Interface */
-require_once 'Interface.php';
+namespace DebugBar\Component;
+
+use iMSCP\Database\Events\Statement;
+use iMSCP_Events as Events;
 
 /**
- * Database component for the i-MSCP DebugBar Plugin
- *
- * Provide debug information about all queries made during script execution and their execution time.
+ * Class ComponentDatabase
+ * @package DebugBar\Component
  */
-class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_Component_Interface
+class ComponentDatabase implements ComponentInterface
 {
     /**
      * @var string Component unique identifier
@@ -41,48 +42,53 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
     /**
      * @var array Listened events
      */
-    protected $_listenedEvents = array(
-        iMSCP_Events::onBeforeQueryExecute,
-        iMSCP_Events::onAfterQueryExecute
-    );
+    protected $listenedEvents = [
+        Events::onBeforeQueryExecute,
+        Events::onAfterQueryExecute
+    ];
 
     /**
      * @var int Total time elapsed
      */
-    protected $_totalTimeElapsed = 0;
+    protected $totalTimeElapsed = 0;
 
     /**
-     * @var array queries and their execution time
+     * @var Statement[]
      */
-    protected $_queries = array();
-
-    /**
-     * @var int Query index
-     */
-    protected $_queryIndex = 0;
+    protected $statements = [];
 
     /**
      * Implements the onBeforeQueryExecute listener
      *
-     * @param  iMSCP_Database_Events_Database $event
+     * @param Statement $event
      * @return void
      */
     public function onBeforeQueryExecute($event)
     {
-        $this->_queries[$this->_queryIndex]['time'] = microtime(true);
-        $this->_queries[$this->_queryIndex]['queryString'] = $event->getQueryString();
+        $uid = spl_object_hash($event);
+
+        if (isset($this->statements[$uid])) {
+            $event->setParam('debug_bar_repeated_stmt', $event->getParam('debug_bar_repeated_stmt') + 1);
+            $event->setParam('debug_start_exec_time', microtime(true));
+            return;
+        }
+
+        $event->setParam('debug_bar_repeated_stmt', 1);
+        $this->statements[$uid] = $event;
+        $event->setParam('debug_start_exec_time', microtime(true));
     }
 
     /**
-     * Implements the onafterQueryExecute listener
+     * Implements the onAfterQueryExecute listener
      *
+     * @param Statement $event
      * @return void
      */
-    public function onAfterQueryExecute()
+    public function onAfterQueryExecute($event)
     {
-        $this->_queries[$this->_queryIndex]['time'] = ((microtime(true)) - $this->_queries[$this->_queryIndex]['time']);
-        $this->_totalTimeElapsed += $this->_queries[$this->_queryIndex]['time'];
-        $this->_queryIndex++;
+        $elapsed = microtime(true) - $event->getParam('debug_start_exec_time');
+        $this->totalTimeElapsed += $elapsed;
+        $event->setParam('debug_bar_total_exec_time', $event->getParam('debug_bar_total_exec_time', 0) + $elapsed);
     }
 
     /**
@@ -102,7 +108,7 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
      */
     public function getListenedEvents()
     {
-        return $this->_listenedEvents;
+        return $this->listenedEvents;
     }
 
     /**
@@ -122,7 +128,7 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
      */
     public function getTab()
     {
-        return (count($this->_queries)) . ' queries in ' . round($this->_totalTimeElapsed * 1000, 2) . ' ms';
+        return count($this->statements) . ' SQL statements in ' . round($this->totalTimeElapsed * 1000, 2) . ' ms';
     }
 
     /**
@@ -132,11 +138,16 @@ class iMSCP_Plugin_DebugBar_Component_Database implements iMSCP_Plugin_DebugBar_
      */
     public function getPanel()
     {
-        $xhtml = '<h4>Database queries and their execution time</h4><ol>';
+        $xhtml = '<h4>SQL statements and their execution time</h4><ol>';
 
-        foreach ($this->_queries as $query) {
-            $xhtml .= '<li><strong>[' . round($query['time'] * 1000, 2) . ' ms]</strong> '
-                . htmlspecialchars($query['queryString']) . '</li>';
+        foreach ($this->statements as $uuid => $event) {
+            $xhtml .= '<li><strong>'
+                . sprintf(
+                    '[Executed %d time(s) in %s ms]',
+                    $event->getParam('debug_bar_repeated_stmt', 1),
+                    round($event->getParam('debug_bar_total_exec_time') * 1000, 2)
+                )
+                . '</strong><br><br>' . tohtml($event->getStatement()) . '</li>';
         }
 
         return $xhtml . '</ol>';

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,10 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+namespace DebugBar\Component;
+
 /**
- * Interface for i-MSCP DebugBar components
+ * Interface ComponentInterface
+ * @package DebugBar\Component
  */
-interface iMSCP_Plugin_DebugBar_Component_Interface
+interface ComponentInterface
 {
     /**
      * Returns component unique identifier

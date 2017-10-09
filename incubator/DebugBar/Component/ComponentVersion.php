@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,15 +18,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/** @see iMSCP_Plugin_DebugBar_Component_Interface */
-require_once 'Interface.php';
+namespace DebugBar\Component;
+
+use iMSCP_Registry as Registry;
 
 /**
- * Version component for the i-MSCP DebugBar Plugin
- *
- * Provides version information about i-MSCP and also information about all PHP extensions loaded.
+ * Class iMSCP_Plugin_DebugBar_Component_Version
+ * @package DebugBar\Component
  */
-class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_Component_Interface
+class ComponentVersion implements ComponentInterface
 {
     /**
      * @var string Component unique identifier
@@ -41,7 +41,7 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
     /**
      * Returns component unique identifier
      *
-     * @return string Component unique identifier.
+     * @return string Component unique identifier
      */
     public function getIdentifier()
     {
@@ -59,37 +59,41 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
     }
 
     /**
-     * Gets menu tab for the Debugbar
+     * Gets menu tab for the DebugBar
      *
      * @return string
      */
     public function getTab()
     {
-        $version = iMSCP_Registry::get('config')->Version;
-        return ' ' . $version . ' / PHP ' . phpversion();
+        return ' ' . Registry::get('config')['Version'] . ' / PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION
+            . '.' . PHP_RELEASE_VERSION;
     }
 
     /**
-     * Gets content panel for the Debugbar
+     * Gets content panel for the DebugBar
      *
      * @return string
      */
     public function getPanel()
     {
-        /** @var iMSCP_Plugin_Manager $pluginManager */
-        $pluginManager = iMSCP_Registry::get('pluginManager');
-
-        $version = iMSCP_Registry::get('config')->Version;
+        /** @var \iMSCP_Plugin_Manager $pluginManager */
+        $pluginManager = Registry::get('pluginManager');
+        $version = Registry::get('config')['Version'];
         $pluginInfo = $pluginManager->pluginGetInfo('DebugBar');
-
         $panel = "<h4>i-MSCP DebugBar v{$pluginInfo['version']}</h4>" .
-            '<p>©2010-2015 <a href="http://www.i-mscp.net">i-MSCP Team</a><br />' .
-            'Author: <a href="mailto:' . $pluginInfo['email'] . '">' . $pluginInfo['author'] . '</a><br />' .
+            '<p>©2010-2017 <a href="http://www.i-mscp.net">i-MSCP Team</a><br>' .
+            'Author: <a href="mailto:' . $pluginInfo['email'] . '">' . $pluginInfo['author'] . '</a><br>' .
             'Includes images from the <a href="http://www.famfamfam.com/lab/icons/silk/">Silk Icon set</a> by Mark James</p>';
         $panel .= '<h4>i-MSCP ' . $version . ' / PHP ' . phpversion() . ' with extensions:</h4>';
         $extensions = get_loaded_extensions();
         natcasesort($extensions);
-        $panel .= "<pre>\t" . implode(PHP_EOL . "\t", $extensions) . '</pre>';
+
+        $panel .= "<pre>";
+        foreach ($extensions as $extension) {
+            $version = phpversion($extension);
+            $panel .= "\t" . $extension . ($version !== false ? " ($version)" : '') . PHP_EOL;
+        }
+        $panel .= '</pre>';
         return $panel;
     }
 
@@ -110,6 +114,6 @@ class iMSCP_Plugin_DebugBar_Component_Version implements iMSCP_Plugin_DebugBar_C
      */
     public function getListenedEvents()
     {
-        return array();
+        return [];
     }
 }

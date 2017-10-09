@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,15 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/** @see iMSCP_Plugin_DebugBar_Component_Interface */
-require_once 'Interface.php';
+namespace DebugBar\Component;
 
 /**
- * Variables component for the i-MSCP DebugBar Plugin
- *
- * Provides debug information about variables such as $_GET, $_POST...
+ * Class iMSCP_Plugin_DebugBar_Component_Variables
+ * @package DebugBar\Component
  */
-class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar_Component_Interface
+class ComponentVariables implements ComponentInterface
 {
     /**
      * @var string component unique identifier
@@ -39,23 +37,13 @@ class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar
     protected $priority = -98;
 
     /**
-     * Returns component unique identifier
-     *
-     * @return string Component unique identifier.
-     */
-    public function getIdentifier()
-    {
-        return self::IDENTIFIER;
-    }
-
-    /**
      * Returns list of events on which this component listens on
      *
      * @return array
      */
     public function getListenedEvents()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -79,6 +67,16 @@ class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar
     }
 
     /**
+     * Returns component unique identifier
+     *
+     * @return string Component unique identifier.
+     */
+    public function getIdentifier()
+    {
+        return self::IDENTIFIER;
+    }
+
+    /**
      * Returns the component panel
      *
      * @return string
@@ -86,39 +84,15 @@ class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar
     public function getPanel()
     {
         $vars = '<h4>Variables</h4>';
-
-        $vars .= '<h4>$_GET:</h4>'
-            . '<div id="iMSCPdebug_get">' . $this->humanize($_GET) . '</div>';
-
-        $vars .= '<h4>$_POST:</h4>'
-            . '<div id="iMSCPdebug_post">' . $this->humanize($_POST) . '</div>';
-
-        $vars .= '<h4>$_COOKIE:</h4>'
-            . '<div id="iMSCPdebug_cookie">' . $this->humanize($_COOKIE) . '</div>';
-
-        $vars .= '<h4>$_FILES:</h4>'
-            . '<div id="iMSCPdebug_file">' . $this->humanize($_FILES) . '</div>';
-
-        $vars .= '<h4>$_SESSION:</h4>'
-            . '<div id="iMSCPdebug_session">' . $this->humanize($_SESSION) . '</div>';
-
-        $vars .= '<h4>$_SERVER:</h4>'
-            . '<div id="iMSCPdebug_server">' . $this->humanize($_SERVER) . '</div>';
-
-        $vars .= '<h4>$_ENV:</h4>'
-            . '<div id="iMSCPdebug_env">' . $this->humanize($_ENV) . '</div>';
+        $vars .= '<h4>$_GET:</h4>' . '<div id="iMSCPdebug_get">' . $this->humanize($_GET) . '</div>';
+        $vars .= '<h4>$_POST:</h4>' . '<div id="iMSCPdebug_post">' . $this->humanize($_POST) . '</div>';
+        $vars .= '<h4>$_COOKIE:</h4>' . '<div id="iMSCPdebug_cookie">' . $this->humanize($_COOKIE) . '</div>';
+        $vars .= '<h4>$_FILES:</h4>' . '<div id="iMSCPdebug_file">' . $this->humanize($_FILES) . '</div>';
+        $vars .= '<h4>$_SESSION:</h4>' . '<div id="iMSCPdebug_session">' . $this->humanize($_SESSION) . '</div>';
+        $vars .= '<h4>$_SERVER:</h4>' . '<div id="iMSCPdebug_server">' . $this->humanize($_SERVER) . '</div>';
+        $vars .= '<h4>$_ENV:</h4>' . '<div id="iMSCPdebug_env">' . $this->humanize($_ENV) . '</div>';
 
         return $vars;
-    }
-
-    /**
-     * Returns component icon path
-     *
-     * @return string
-     */
-    public function getIconPath()
-    {
-        return '/DebugBar/themes/default/assets/images/variables.png';
     }
 
     /**
@@ -139,18 +113,28 @@ class iMSCP_Plugin_DebugBar_Component_Variables implements iMSCP_Plugin_DebugBar
             $key = htmlspecialchars($key);
 
             if (is_numeric($value)) {
-                $retVal .= $key . ' => ' . $value . '<br />';
+                $retVal .= $key . ' => ' . $value . '<br>';
             } elseif (is_string($value)) {
-                $retVal .= $key . ' => \'' . htmlspecialchars($value) . '\'<br />';
+                $retVal .= $key . ' => \'' . htmlspecialchars($value) . '\'<br>';
             } elseif (is_array($value)) {
                 $retVal .= $key . ' => ' . $this->humanize($value);
             } elseif (is_object($value)) {
-                $retVal .= $key . ' => ' . get_class($value) . ' Object()<br />';
+                $retVal .= $key . ' => ' . get_class($value) . ' Object()<br>';
             } elseif (is_null($value)) {
-                $retVal .= $key . ' => NULL<br />';
+                $retVal .= $key . ' => NULL<br>';
             }
         }
 
         return $retVal . '</div>';
+    }
+
+    /**
+     * Returns component icon path
+     *
+     * @return string
+     */
+    public function getIconPath()
+    {
+        return '/DebugBar/themes/default/assets/images/variables.png';
     }
 }

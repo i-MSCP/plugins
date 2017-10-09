@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,13 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
-    'author' => 'Laurent Declercq',
-    'email' => 'l.declercq@nuxwin.com',
-    'version' => '1.1.2',
-    'require_api' => '1.0.4',
-    'date' => '2016-06-25',
-    'name' => 'DebugBar',
-    'desc' => 'Plugin that provides debug information for i-MSCP.',
-    'url' => 'http://i-mscp.net'
-);
+return [
+    'author'      => 'Laurent Declercq',
+    'email'       => 'l.declercq@nuxwin.com',
+    'version'     => '1.2.0',
+    'require_api' => '1.5.1',
+    'date'        => '2017-10-09',
+    'build'       => '2017100900',
+    'name'        => 'DebugBar',
+    'desc'        => 'Provides debug information for i-MSCP.',
+    'url'         => 'https://i-mscp.net'
+];

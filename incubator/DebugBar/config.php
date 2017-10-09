@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DebugBar Plugin
- * Copyright (C) 2010-2016 by Laurent Declercq
+ * Copyright (C) 2010-2017 by Laurent Declercq
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,14 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
-    'components' => array(
+return [
+    // List of enabled DebugBar components
+    'components' => [
         'Version',
         'Variables',
         'Timer',
         'Memory',
         'Files',
         'Database',
-        'Cache'
-    )
-);
+        'APCu', // Tab will be show only if the APCu userland cache is enabled
+        'OPcache' // Tab will be show only if the OPcache cache is enabled
+    ]
+];
