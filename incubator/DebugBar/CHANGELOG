@@ -15,7 +15,6 @@ Version v2.0.0
     Review: Discard OPcache tab if it is not available or not enabled (OPcache component)
     Review: Make use of PHP namespaces
     Review: Make use of short array syntax (PHP)
-    Fixed: Show repeated SQL statements as single statement with execution counting information
 
 ------------------------------------------------------------------------------------------------------------------------
 Version v1.1.2
