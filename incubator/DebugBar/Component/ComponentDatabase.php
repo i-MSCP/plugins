@@ -63,7 +63,7 @@ class ComponentDatabase implements ComponentInterface
      * @param Statement $event
      * @return void
      */
-    public function onBeforeQueryExecute($event)
+    public function onBeforeQueryExecute(Statement $event)
     {
         $uid = spl_object_hash($event);
 
@@ -84,7 +84,7 @@ class ComponentDatabase implements ComponentInterface
      * @param Statement $event
      * @return void
      */
-    public function onAfterQueryExecute($event)
+    public function onAfterQueryExecute(Statement $event)
     {
         $elapsed = microtime(true) - $event->getParam('debug_start_exec_time');
         $this->totalTimeElapsed += $elapsed;
