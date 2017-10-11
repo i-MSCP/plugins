@@ -27,10 +27,10 @@ return [
         'Rene Schuster'
     ],
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '2.0.1',
+    'version'     => '2.1.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-10-02',
-    'build'       => '2017100200',
+    'date'        => '2017-10-11',
+    'build'       => '2017101100',
     'name'        => 'OpenDKIM',
     'desc'        => 'Provides DomainKeys Identified Mail (DKIM) service through MILTER.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:opendkim'

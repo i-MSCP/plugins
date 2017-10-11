@@ -26,6 +26,16 @@ use iMSCP_Registry as Registry;
 $postfixConfig = new ConfigFile(Registry::get('config')['CONF_DIR'] . '/postfix/postfix.data');
 
 return [
+    // OpenDKIM action to be taken when a signature fails to validate (default: reject)
+    //
+    // Possible value: accept (a), discard (d), quarantine (q), reject (r), tempfail (t)
+    'opendkim_action_on_bad_signature' => 'reject',
+
+    // OpenDKIM action to be taken when a a key cannot be found in DNS (default reject)
+    //
+    // Possible value: accept (a), discard (d), quarantine (q), reject (r), tempfail (t)
+    'opendkim_action_on_key_not_found' => 'reject',
+
     // OpenDKIM ADSP (Author Domain Signing Practices) extension (default: true)
     //
     // When enabled, an ADSP DNS resource record is added for all domains and
@@ -34,7 +44,7 @@ return [
     // Possible values: true (enabled), false (disabled)
     // See https://en.wikipedia.org/wiki/Author_Domain_Signing_Practices
     // Related parameter: opendkim_adsp_signing_practice
-    'opendkim_adsp'                  => true,
+    'opendkim_adsp'                    => true,
 
     // OpenDKIM ADSP action
     //
@@ -49,7 +59,7 @@ return [
     // older than 2.10.0 as the ADSP support has been discontinued.
     //
     // Possible values: discard, reject, none
-    'opendkim_adsp_action'           => 'reject',
+    'opendkim_adsp_action'             => 'reject',
 
     // OpenDKIM ADSP No Such Domain (default: true)
     //
@@ -62,7 +72,7 @@ return [
     // older than 2.10.0 as the ADSP support has been discontinued.
     //
     // Possible values: true (enabled), false (disabled)
-    'opendkim_adsp_no_such_domain'   => true,
+    'opendkim_adsp_no_such_domain'     => true,
 
     // OpenDKIM ADSP signing practice (default: discardable)
     //
@@ -72,7 +82,7 @@ return [
     //
     // Possible values: unknown, all, discardable
     // See https://tools.ietf.org/html/rfc5617#section-4.2.1
-    'opendkim_adsp_signing_practice' => 'discardable',
+    'opendkim_adsp_signing_practice'   => 'discardable',
 
     // OpenDKIM canonicalization method (default: relaxed/simple)
     //
@@ -88,25 +98,25 @@ return [
     // header and the second to the body.
     //
     // Possible values: simple, relaxed, simple/relaxed or relaxed/simple
-    'opendkim_canonicalization'      => 'relaxed/simple',
+    'opendkim_canonicalization'        => 'relaxed/simple',
 
     // OpenDKIM configuration directory (default: /etc/opendkim)
-    'opendkim_confdir'               => '/etc/opendkim',
+    'opendkim_confdir'                 => '/etc/opendkim',
 
     // OpenDKIM DNS resource records TTL (default: 60)
     //
     // Possible value: Time in seconds
-    'opendkim_dns_records_ttl'       => 60,
+    'opendkim_dns_records_ttl'         => 60,
 
     // OpenDKIM group (default: opendkim)
-    'opendkim_group'                 => 'opendkim',
+    'opendkim_group'                   => 'opendkim',
 
     // OpenDKIM key size (default: 2048)
     //
     // See https://tools.ietf.org/html/rfc6376#section-3.3.3
     // Be aware that keys longer than 2048 bits may not be supported by all verifiers.
     // Minimum key length is 1024 bits.
-    'opendkim_keysize'               => 2048,
+    'opendkim_keysize'                 => 2048,
 
     // OpenDKIM operating mode (default: sv)
     //
@@ -115,20 +125,20 @@ return [
     // Note: If you use SpamAssassin with its DKIM plugin, it is recommended to
     // set the operating mode to 's' (signer). SpamAssassin DKIM plugin will
     // act as verifier.
-    'opendkim_operating_mode'        => 'sv',
+    'opendkim_operating_mode'          => 'sv',
 
     // OpenDKIM rundir (default: %postfix_rundir%/opendkim)
-    'opendkim_rundir'                => '%postfix_rundir%/opendkim',
+    'opendkim_rundir'                  => '%postfix_rundir%/opendkim',
 
     // OpenDKIM socket (default: local:%opendkim_rundir%/opendkim.sock)
     //
     // Possible values:
     //  'local:%opendkim_rundir%/opendkim.sock' for UDS (recommended)
     //  'inet:12345@localhost' for connection through TCP
-    'opendkim_socket'                => 'local:%opendkim_rundir%/opendkim.sock',
+    'opendkim_socket'                  => 'local:%opendkim_rundir%/opendkim.sock',
 
     // Trusted hosts (default: 127.0.0.1, ::1, localhost, Registry::get('config')['SERVER_HOSTNAME'])
-    'opendkim_trusted_hosts'         => [
+    'opendkim_trusted_hosts'           => [
         '127.0.0.1',
         '::1',
         'localhost',
@@ -136,7 +146,7 @@ return [
     ],
 
     // OpenDKIM user (default: opendkim)
-    'opendkim_user'                  => 'opendkim',
+    'opendkim_user'                    => 'opendkim',
 
     // Plugin working level (default: admin)
     //
@@ -144,15 +154,15 @@ return [
     //  admin   : DKIM feature is automatically activated for all customers.
     //  reseller: DKIM feature is activated by resellers for customer of their
     //            choice. This is the historical behavior (prior version 2.0.0).
-    'plugin_working_level'           => 'admin',
+    'plugin_working_level'             => 'admin',
 
     // Postfix smtpd milter for OpenDKIM (default: unix:/var/run/opendkim/opendkim.sock)
     //
     // Possible values:
     //  'unix:/var/run/opendkim/opendkim.sock' for connection through UDS
     //  'inet:localhost:12345' for connection through TCP
-    'postfix_milter_socket'          => 'unix:/var/run/opendkim/opendkim.sock',
+    'postfix_milter_socket'            => 'unix:/var/run/opendkim/opendkim.sock',
 
     // Postfix run directory (default: /var/spool/postfix/var/run)
-    'postfix_rundir'                 => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run"
+    'postfix_rundir'                   => "{$postfixConfig['POSTFIX_QUEUE_DIR']}/var/run"
 ];

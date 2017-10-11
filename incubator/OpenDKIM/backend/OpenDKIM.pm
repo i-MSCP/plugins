@@ -402,10 +402,10 @@ sub _init
     my ($self) = @_;
 
     for ( qw/
-        opendkim_adsp opendkim_adsp_action opendkim_adsp_no_such_domain opendkim_adsp_signing_practice
-        opendkim_canonicalization opendkim_confdir opendkim_dns_records_ttl opendkim_keysize opendkim_rundir
-        opendkim_socket opendkim_user opendkim_group opendkim_trusted_hosts plugin_working_level postfix_rundir
-        postfix_milter_socket
+        opendkim_action_on_bad_signature opendkim_action_on_key_not_found opendkim_adsp opendkim_adsp_action
+        opendkim_adsp_no_such_domain opendkim_adsp_signing_practice opendkim_canonicalization opendkim_confdir
+        opendkim_dns_records_ttl opendkim_keysize opendkim_rundir opendkim_socket opendkim_user opendkim_group
+        opendkim_trusted_hosts plugin_working_level postfix_rundir postfix_milter_socket
         /
     ) {
         defined $self->{'config'}->{$_} or die(
@@ -441,9 +441,9 @@ sub _installDistributionPackages
     debug( $stdout ) if $stdout;
     execute(
         [
-            'apt-get', '-o', 'DPkg::Options::=--force-confold', '-o', 'DPkg::Options::=--force-confdef',
-            '-o', 'DPkg::Options::=--force-confmiss', '--assume-yes', '--auto-remove', '--no-install-recommends',
-            '--purge', '--quiet', 'install', 'opendkim', 'opendkim-tools'
+            'apt-get', '-o', 'DPkg::Options::=--force-confnew', '-o', 'DPkg::Options::=--force-confmiss',
+            '--assume-yes', '--auto-remove', '--no-install-recommends', '--purge', '--quiet', 'install', 'opendkim',
+            'opendkim-tools'
         ],
         \$stdout, \$stderr
     ) == 0 or die( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ));
@@ -555,8 +555,8 @@ sub _opendkimSetup
 
     if ( $action eq 'configure' ) {
         debug( "Updating OpenDKIM /etc/default/opendkim file" );
-        # Needed to overrride group in sysvinit script
-        my $DAEMON_OPTS = ( !iMSCP::Service->getInstance()->isSystemd() || !-f '/lib/systemd/system/opendkim.service' )
+        # Needed to overrride group in sysvinit script (Debian 8/Jessie, Ubuntu 14.04/Trusty Thar)
+        my $DAEMON_OPTS = !iMSCP::Service->getInstance()->isSystemd() || !-f '/lib/systemd/system/opendkim.service'
             ? "-u $self->{'config'}->{'opendkim_user'}:$self->{'config'}->{'opendkim_group'}" : '';
 
         my $cfg = <<"EOF";
@@ -594,25 +594,33 @@ EOF
             );
         }
 
-        # Make sure to start with clean setup
+        # Make sure to start/end with clean setup
+
         debug( "Removing /etc/systemd/system/opendkim.service.d systemd directory" );
         iMSCP::Dir->new( dirname => '/etc/systemd/system/opendkim.service.d' )->remove();
 
+        if ( -f '/etc/tmpfiles.d/opendkim.conf' ) {
+            debug( "Removing /etc/tmpfiles.d/opendkim.conf systemd directory" );
+            iMSCP::File->new( filename => '/etc/tmpfiles.d/opendkim.conf' )->delFile() == 0 or die(
+                getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
+            );
+        }
+
         if ( $action eq 'configure' ) {
             if ( -x '/lib/opendkim/opendkim.service.generate' ) {
-                debug( "Generating OpenDKIM system override.conf file" );
                 # Override the default systemd configuration for OpenDKIM by
                 # generating the /etc/systemd/system/opendkim.service.d/override.conf
                 # and /etc/tmpfiles.d/opendkim.conf files, according changes made in
-                # the /etc/default/opendkim file.
+                # the /etc/default/opendkim file. (Debian 9/Stretch)
+                debug( "Generating OpenDKIM system override.conf file" );
                 my $stderr;
                 execute( '/lib/opendkim/opendkim.service.generate', \my $stdout, \$stderr ) == 0 or die(
                     $stderr || 'Unknown error'
                 );
                 debug( $stdout ) if $stdout;
             } elsif ( -f '/lib/systemd/system/opendkim.service' ) {
-                debug( "Generating OpenDKIM system override.conf file" );
                 # Make use of our own systemd override.conf file (Ubuntu 16.04)
+                debug( "Generating OpenDKIM system override.conf file" );
                 iMSCP::Dir->new( dirname => '/etc/systemd/system/opendkim.service.d' )->make();
 
                 $file = iMSCP::File->new(
@@ -652,12 +660,17 @@ KeyTable            file:$self->{'config'}->{'opendkim_confdir'}/KeyTable
 LogWhy              no
 MinimumKeyBits      1024
 Mode                $self->{'config'}->{'opendkim_operating_mode'}
+On-BadSignature     $self->{'config'}->{'opendkim_action_on_bad_signature'}
+On-KeyNotFound      $self->{'config'}->{'opendkim_action_on_key_not_found'}
+PidFile             $self->{'config'}->{'opendkim_rundir'}/opendkim.pid
 QueryCache          no
 UMask               0117
+UserID              $self->{'config'}->{'opendkim_user'}:$self->{'config'}->{'opendkim_group'}
 RequireSafeKeys     yes
 SignatureAlgorithm  rsa-sha256
 SigningTable        file:$self->{'config'}->{'opendkim_confdir'}/SigningTable
 SoftwareHeader      yes
+Socket              $self->{'config'}->{'opendkim_socket'}
 Syslog              yes
 SyslogSuccess       yes
 EOF
