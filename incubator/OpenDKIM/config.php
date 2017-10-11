@@ -31,7 +31,7 @@ return [
     // Possible value: accept (a), discard (d), quarantine (q), reject (r), tempfail (t)
     'opendkim_action_on_bad_signature' => 'reject',
 
-    // OpenDKIM action to be taken when a a key cannot be found in DNS (default reject)
+    // OpenDKIM action to be taken when a key cannot be found in DNS (default: reject)
     //
     // Possible value: accept (a), discard (d), quarantine (q), reject (r), tempfail (t)
     'opendkim_action_on_key_not_found' => 'reject',
