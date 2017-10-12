@@ -50,14 +50,14 @@ function opendkim_generatePage(TemplateEngine $tpl)
             ) WHERE t1.admin_id = ?
             AND t1.is_subdomain <> 1
         ",
-        $_SESSION['user_id']
+        [$_SESSION['user_id']]
     );
 
     if (!$stmt->rowCount()) {
         showBadRequestErrorPage();
     }
 
-    while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+    while ($row = $stmt->fetchRow()) {
         if ($row['opendkim_status'] == 'ok') {
             $statusIcon = 'ok';
         } elseif ($row['opendkim_status'] == 'disabled') {
@@ -93,8 +93,9 @@ function opendkim_generatePage(TemplateEngine $tpl)
 
         if (NULL != $row['domain_text']) {
             $tpl->assign([
-                'DNS_RDATA'   => tohtml($row['domain_text'], 'htmlAttr'),
-                'DKIM_KEY_NA' => ''
+                'DNS_RDATA'        => tohtml($row['domain_text'], 'htmlAttr'),
+                'DNS_RDATA_SINGLE' => tohtml(preg_replace('/"\s*/', '', $row['domain_text'])),
+                'DKIM_KEY_NA'      => ''
             ]);
             $tpl->parse('DKIM_KEY_TO_CLIPBOARD', 'dkim_key_to_clipboard');
         } else {
@@ -120,7 +121,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
             AND t1.is_subdomain <> 1
             
         ",
-        $_SESSION['user_id']
+        [$_SESSION['user_id']]
     );
 
     if (!$stmt->rowCount()) {
@@ -128,7 +129,7 @@ function opendkim_generatePage(TemplateEngine $tpl)
         return;
     }
 
-    while ($row = $stmt->fetchRow(PDO::FETCH_ASSOC)) {
+    while ($row = $stmt->fetchRow()) {
         if ($row['opendkim_status'] == 'ok') {
             $statusIcon = 'ok';
         } elseif ($row['opendkim_status'] == 'disabled') {

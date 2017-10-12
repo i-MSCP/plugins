@@ -43,9 +43,9 @@ use iMSCP_Registry as Registry;
  */
 function getOpendkimStatus($adminId)
 {
-    $stmt = exec_query(
-        "SELECT opendkim_status FROM opendkim WHERE admin_id = ? AND opendkim_status <> 'ok' LIMIT 1", $adminId
-    );
+    $stmt = exec_query("SELECT opendkim_status FROM opendkim WHERE admin_id = ? AND opendkim_status <> 'ok' LIMIT 1", [
+        $adminId
+    ]);
 
     if (!$stmt->rowCount()) {
         return 'ok';
@@ -58,7 +58,7 @@ function getOpendkimStatus($adminId)
             FROM opendkim WHERE admin_id = ?
             AND opendkim_status NOT IN ('ok', 'toadd', 'todelete', 'tochange') LIMIT 1
         ",
-        $adminId
+        [$adminId]
     );
 
     return $stmt->fetchRow(PDO::FETCH_COLUMN) ?: $status;
@@ -119,14 +119,14 @@ function renewKeys()
     try {
         $stmt = exec_query(
             "
-            SELECT admin_id
-            FROM opendkim AS t1
-            JOIN admin AS t2 USING(admin_id)
-            WHERE t2.admin_name = ?
-            AND t2.created_by = ?
-            AND t2.admin_status = 'ok'
-            LIMIT 1
-        ",
+                SELECT admin_id
+                FROM opendkim AS t1
+                JOIN admin AS t2 USING(admin_id)
+                WHERE t2.admin_name = ?
+                AND t2.created_by = ?
+                AND t2.admin_status = 'ok'
+                LIMIT 1
+            ",
             [encode_idna($adminName), $_SESSION['user_id']]
         );
 
@@ -136,7 +136,7 @@ function renewKeys()
 
         exec_query(
             "UPDATE opendkim SET opendkim_status = 'tochange' WHERE admin_id = ? AND is_subdomain <> 1",
-            $stmt->fetchRow(PDO::FETCH_COLUMN)
+            [$stmt->fetchRow(PDO::FETCH_COLUMN)]
         );
         send_request();
         write_log(
@@ -209,7 +209,7 @@ function activateOpenDKIM()
                 WHERE t1.domain_id = ?
                 AND t1.subdomain_status <> 'todelete'
             ",
-            $row['domain_id']
+            [$row['domain_id']]
         );
 
         // Add entries for domain aliases
@@ -283,9 +283,9 @@ function deactivateOpenDKIM()
             sendJsonResponse(400, ['message' => tr('Bad request.')]);
         }
 
-        exec_query(
-            "UPDATE opendkim SET opendkim_status = 'todelete' WHERE admin_id = ?", $stmt->fetchRow(PDO::FETCH_COLUMN)
-        );
+        exec_query("UPDATE opendkim SET opendkim_status = 'todelete' WHERE admin_id = ?", [
+            $stmt->fetchRow(PDO::FETCH_COLUMN)
+        ]);
         send_request();
         write_log(sprintf('OpenDKIM has been deactivate for the %s customer.', $adminName), E_USER_NOTICE);
         sendJsonResponse(200, ['message' => tr('OpenDKIM will be deactivated for the %s customer.', $adminName)]);
@@ -321,7 +321,7 @@ function searchCustomer()
             ",
             [clean_input($_GET['term']) . '%', $_SESSION['user_id']]
         );
-        sendJsonResponse(200, ($stmt->rowCount()) ? $stmt->fetchAll(PDO::FETCH_COLUMN) : []);
+        sendJsonResponse(200, $stmt->rowCount() > 0 ? $stmt->fetchAll(PDO::FETCH_COLUMN) : []);
     } catch (Exception $e) {
         write_log(sprintf("OpenDKIM: Couldn't search customer: %s", $e->getMessage()), E_USER_ERROR);
         sendJsonResponse(500, ['message' => tr('An unexpected error occurred. Please contact your administrator.')]);
@@ -402,23 +402,22 @@ function getCustomerList()
         }
 
         /* Get data to display */
-        /** @var \iMSCP_Database_ResultSet $rResult */
         $rResult = exec_query(
             '
                 SELECT SQL_CALC_FOUND_ROWS DISTINCT ' . implode(', ', $cols) . "
                 FROM $table AS t1
                 INNER JOIN admin USING(admin_id)
-                $where $order $limit
+                $where
+                $order
+                $limit
             ",
-            $_SESSION['user_id']
+            [$_SESSION['user_id']]
         );
 
         /* Data set length after filtering */
-        /** @var \iMSCP_Database_ResultSet $resultFilterTotal */
         $filteredTotal = execute_query('SELECT FOUND_ROWS()')->fetchRow(PDO::FETCH_COLUMN);
 
         /* Total data set length */
-        /** @var \iMSCP_Database_ResultSet $resultTotal */
         $total = exec_query(
             "
                 SELECT COUNT(DISTINCT $idxCol)
@@ -427,7 +426,7 @@ function getCustomerList()
                 WHERE admin_type = 'user'
                 AND created_by = ?
             ",
-            $_SESSION['user_id']
+            [$_SESSION['user_id']]
         )->fetchRow(PDO::FETCH_COLUMN);
 
         /* Output */
@@ -461,7 +460,8 @@ function getCustomerList()
        class="icon i_reload clickable">$trRenewKeys</span>
 EOF;
                 if (Registry::get('pluginManager')
-                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') == 'reseller'
+                        ->pluginGet('OpenDKIM')
+                        ->getConfigParam('plugin_working_level', 'reseller') == 'reseller'
                 ) {
                     $row['actions'] .= <<<EOF
 
@@ -510,7 +510,8 @@ if (isset($_REQUEST['action'])) {
                 break;
             case 'activate':
                 if (Registry::get('pluginManager')
-                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
+                        ->pluginGet('OpenDKIM')
+                        ->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
                     sendJsonResponse(400, ['message' => tr('Bad request.')]);
                 }
 
@@ -518,7 +519,9 @@ if (isset($_REQUEST['action'])) {
                 break;
             case 'deactivate':
                 if (Registry::get('pluginManager')
-                        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') != 'reseller') {
+                        ->pluginGet('OpenDKIM')
+                        ->getConfigParam('plugin_working_level', 'reseller') != 'reseller'
+                ) {
                     sendJsonResponse(400, ['message' => tr('Bad request.')]);
                 }
 
@@ -542,8 +545,10 @@ $tpl->define_dynamic([
     'page_message' => 'layout',
 ]);
 $tpl->assign('TR_PAGE_TITLE', tohtml(tr('Reseller / Customers / OpenDKIM')));
+/** @noinspection PhpUndefinedFieldInspection isResellerWorkingLevel */
 $tpl->isResellerWorkingLevel = Registry::get('pluginManager')
-        ->pluginGet('OpenDKIM')->getConfigParam('plugin_working_level', 'reseller') == 'reseller';
+        ->pluginGet('OpenDKIM')
+        ->getConfigParam('plugin_working_level', 'reseller') == 'reseller';
 
 generateNavigation($tpl);
 generatePageMessage($tpl);

@@ -44,7 +44,8 @@
         <td>{DNS_TTL}</td>
         <td>
             <!-- BDP: dkim_key_to_clipboard -->
-            <input type="button" class="clipboard" title="{DNS_RDATA}" data-clipboard-text="{DNS_RDATA}" value="<?= tohtml(tr('Copy data to clipboard', 'htmlAttr')); ?>">
+            <input type="button" class="clipboard" title="{DNS_RDATA}" data-clipboard-text="{DNS_RDATA}" value="<?= tohtml(tr('Copy data to clipboard (RFC compliant)', 'htmlAttr')); ?>">
+            <input type="button" class="clipboard" title="{DNS_RDATA_SINGLE}" data-clipboard-text="{DNS_RDATA_SINGLE}" value="<?= tohtml(tr('Copy data to clipboard', 'htmlAttr')); ?>">
             <!-- EDP: dkim_key_to_clipboard -->
             <!-- BDP: dkim_key_na -->
             <?= tohtml(tr('N/A')); ?>

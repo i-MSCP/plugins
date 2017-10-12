@@ -32,6 +32,7 @@ return [
     'Cancel'                                                           => 'Cancel',
     'Client / Mail / DKIM DNS Records'                                 => 'Client / Mail / DKIM DNS Records',
     'Copy data to clipboard'                                           => 'Copy data to clipboard',
+    'Copy data to clipboard (RFC compliant)'                           => 'Copy data to clipboard (RFC compliant)',
     'Customer name'                                                    => 'Customer name',
     'Data'                                                             => 'Data',
     'Data successfully copied to clipboard.'                           => 'Data successfully copied to clipboard.',

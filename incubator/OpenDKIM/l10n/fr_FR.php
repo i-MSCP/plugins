@@ -34,6 +34,7 @@ return [
     'Cancel'                                                           => 'Annuler',
     'Client / Mail / DKIM DNS Records'                                 => 'Client / Mail / DNS DKIM',
     'Copy data to clipboard'                                           => 'Copier les données dans le presse-papier',
+    'Copy data to clipboard (RFC compliant)'                           => 'Copier les données dans le presse-papier (RFC conforme)',
     'Customer name'                                                    => 'Nom du client',
     'Data'                                                             => 'Données',
     'Data successfully copied to clipboard.'                           => 'Données copiées avec succès dans le presse-papier',

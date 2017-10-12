@@ -34,6 +34,7 @@ return [
     'Cancel'                                                           => 'Stornieren',
     'Client / Mail / DKIM DNS Records'                                 => 'Kunde / Mail / DKIM DNS Records',
     'Copy data to clipboard'                                           => 'Daten in die Zwischenablage kopieren',
+    'Copy data to clipboard (RFC compliant)'                           => 'Daten in die Zwischenablage kopieren (RFC-konform)',
     'Customer name'                                                    => 'Kundenname',
     'Data'                                                             => 'Daten',
     'Data successfully copied to clipboard.'                           => 'Daten wurden erfolgreich in die Zwischenablage kopiert.',

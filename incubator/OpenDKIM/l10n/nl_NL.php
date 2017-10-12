@@ -32,6 +32,7 @@ return [
     'Cancel'                                                           => 'Annuleren',
     'Client / Mail / DKIM DNS Records'                                 => 'Klant / E-mail / DKIM DNS Records',
     'Copy data to clipboard'                                           => 'Kopiëer naar klembord',
+    'Copy data to clipboard (RFC compliant)'                           => 'Kopiëer naar klembord (RFC-compatibel)',
     'Customer name'                                                    => 'Klantnaam',
     'Data'                                                             => 'Data',
     'Data successfully copied to clipboard.'                           => 'Data gekopieerd naar klembord.',

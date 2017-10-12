@@ -7,6 +7,7 @@ Version 2.1.0
 
     Added: `opendkim_action_on_bad_signature` parameter -- Action to be taken when a signature fails to validate
     Added: `opendkim_action_on_key_not_found` parameter -- Action to be taken when a key cannot be found in DNS
+    Enhancement: Make customers able to copy DKIM keys as a single string without quotes (Not RFC compliant)
     Fixed: Messages not rejected on invalid signature
     Fixed: OpenDKIM service isn't restarted on configuration change
     Fixed: Sets the OpenDKIM user/group in the configuration file (See debian bug #864162)
