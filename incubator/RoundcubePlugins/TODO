@@ -1,2 +1,0 @@
-- Make use of Roundcube installer for installation of the plugins (such as database initialization and update) instead
-  of re-inventing the wheel by porting plugin database schemas into i-MSCP plugin SQL migration files.

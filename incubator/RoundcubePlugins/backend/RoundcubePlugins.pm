@@ -6,8 +6,6 @@
 
 # i-MSCP - internet Multi Server Control Panel
 # Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
-# Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,121 +25,96 @@ package Plugin::RoundcubePlugins;
 
 use strict;
 use warnings;
-use autouse 'iMSCP::Debug' => qw / debug error /;
-use autouse 'iMSCP::Execute' => qw / execute escapeShell /;
-use autouse 'iMSCP::Rights' => qw/ setRights /;
-use autouse 'iMSCP::TemplateParser' => qw/ process replaceBloc /;
-use Class::Autouse qw/ :nostat iMSCP::Database iMSCP::Dir iMSCP::File Servers::po iMSCP::Service Servers::cron /;
-use version;
+use iMSCP::Debug qw/ debug error getMessageByType /;
+use iMSCP::Dir;
+use iMSCP::Execute qw/ execute /;
+use iMSCP::File;
+use iMSCP::Composer;
+use iMSCP::Service;
+use iMSCP::TemplateParser qw/ replaceBloc /;
+use JSON;
+use PHP::Var qw/ export /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This package provides the backend part for the i-MSCP RoundcubePlugins plugin.
+ i-MSCP RoundcubePlugins plugin (backend).
 
 =head1 PUBLIC METHODS
 
 =over 4
 
-=item install( )
+=item uninstall()
 
- Perform install tasks
+ Perform uninstalation tasks
 
- Return int 0 on success, other on failure
-
-=cut
-
-sub install
-{
-    my $self = shift;
-
-    my $rs = $self->_checkRequirements( );
-    $rs ||= $self->_installPlugins( );
-    return $rs if $rs;
-}
-
-=item uninstall( )
-
- Perform uninstall tasks
-
- Return int 0 on success, other on failure
+ Return int 0 on success, die on failure
 
 =cut
 
 sub uninstall
 {
-    $_[0]->_uninstallPlugins( );
-}
+    my ($self) = @_;
 
-=item update( $fromVersion )
-
- Perform update tasks
-
- Param string $fromVersion Version from which the plugin is being updated
- Return int 0 on success, other on failure
-
-=cut
-
-sub update
-{
-    my ($self, $fromVersion) = @_;
-
-    if (version->parse($fromVersion) < version->parse('2.0.0')) {
-        # Remove pop3fetcher plugin which is no longer provided
-        my $rs = iMSCP::Dir->new(
-            dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/pop3fetcher"
-        )->remove( );
-        $rs ||= Servers::cron->factory( )->deleteTask(
-            {
-                TASKID => 'Plugin::RoundcubePlugins::pop3fetcher'
-            }
+    for( 'composer.json', 'composer.lock' ) {
+        next unless -f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_";
+        iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_" )->delFile() == 0 or die(
+            getMessageByType( 'error', { amount => 1, remove => 1 } )
         );
-        return $rs if $rs;
     }
 
-    $self->install();
-}
+    for ( keys %{$self->{'config_prev'}->{'plugins'}} ) {
+        next if !defined $self->{'config_prev'}->{'plugins'}->{$_}->{'git'}->{'target_dir'}
+            || $self->{'config_prev'}->{'plugins'}->{$_}->{'git'}->{'target_dir'} eq '/';
+        iMSCP::Dir->new( dirname => $self->{'config_prev'}->{'plugins'}->{$_}->{'git'}->{'target_dir'} )->remove()
+    }
 
-=item change( )
-
- Perform change tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub change
-{
-    $_[0]->install();
+    iMSCP::Dir->new(
+        dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins"
+    )->remove();
 }
 
 =item enable( )
 
  Perform enable tasks
 
- Return int 0 on success, other on failure
+ Return int 0 on success, die on failure
 
 =cut
 
 sub enable
 {
-    my $self = shift;
+    my ($self) = @_;
 
-    my $rs = $self->_checkRequirements( );
-    $rs ||= $self->_setRoundcubePlugin( 'enable' );
-    return $rs if $rs;
+    my $composer = $self->_getComposer();
+    my $composerJson = $composer->getComposerJson( 'scalar' );
+    my (@toConfigurePlugins, @toActivatePlugins);
 
-    $self->_scheduleDovecotRestart( ) if $main::imscpConfig{'PO_SERVER'} eq 'dovecot';
+    while ( my ($plugin, $meta) = each( %{$self->{'config'}->{'plugins'}} ) ) {
+        next unless $meta->{'enabled'};
+        push @toConfigurePlugins, $plugin;
 
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        local $@;
-        eval { iMSCP::Service->getInstance( )->reload( 'imscp_panel' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
+        if ( $meta->{'git'}->{'repository'} && $meta->{'git'}->{'target_dir'} ) {
+            $self->_cloneGitRepository( $meta->{'git'}->{'repository'}, $meta->{'git'}->{'target_dir'} );
+        }
+
+        unless ( $meta->{'composer'} ) {
+            push @toActivatePlugins, $plugin;
+            next;
+        }
+
+        if ( $meta->{'composer'}->{'repositories'} ) {
+            push @{$composerJson->{'repositories'}}, $meta->{'composer'}->{'repositories'};
+        }
+
+        while ( my ($package, $version) = each( %{$meta->{'composer'}->{'require'}} ) ) {
+            $composer->requirePackage( $package, $version );
         }
     }
 
+    $composer->setStdRoutines( \&_stdRoutine, \&_stdRoutine )->installPackages();
+    $self->_configurePlugins( @toConfigurePlugins );
+    $self->_activatePlugins( @toActivatePlugins );
     0;
 }
 
@@ -149,28 +122,19 @@ sub enable
 
  Perform disable tasks
 
- Return int 0 on success, other on failure
+ Return int 0 on success, die on failure
 
 =cut
 
 sub disable
 {
-    my $self = shift;
+    my ($self) = @_;
 
-    my $rs = $self->_setRoundcubePlugin( 'disable' );
-    return $rs if $rs;
+    # Outside of real 'disable' action, tasks done are useless
+    return 0 unless $self->{'action'} eq 'disable';
 
-    $self->_scheduleDovecotRestart( ) if $main::imscpConfig{'PO_SERVER'} eq 'dovecot';
-
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        local $@;
-        eval { iMSCP::Service->getInstance( )->reload( 'imscp_panel' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
-    }
-
+    $self->_activatePlugins();
+    $self->_getComposer()->setStdRoutines( \&_stdRoutine, \&_stdRoutine )->installPackages();
     0;
 }
 
@@ -180,510 +144,193 @@ sub disable
 
 =over 4
 
-=item _init( )
+=item _getComposer()
 
- Initialize plugin
+ Get composer object
 
- Return Plugin::RoundcubePlugins or die on failure
-
-=cut
-
-sub _init
-{
-    my $self = shift;
-
-    # Force return value from plugin module
-    $self->{'FORCE_RETVAL'} = 'yes';
-    $self;
-}
-
-=item _installPlugins( )
-
- Install plugins
-
- Return int 0 on success, other on failure
+ Return iMSCP::Composer, die on failure
 
 =cut
 
-sub _installPlugins
+sub _getComposer
 {
-    my $self = shift;
+    my $rcDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail";
+    my $composerJson = iMSCP::File->new( filename => "$rcDir/composer.json-dist" )->get();
+    defined $composerJson or die( sprintf( "Couldn't read Roundcube composer.json-dist file" ));
 
-    my $roundcubePlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
-    my $configPlugin = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/config-templates";
-    my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-
-    my $rs = execute( "cp -fR $roundcubePlugin/* $pluginFolder/", \my $stdout, \my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-    return $rs if $rs;
-
-    $rs = execute( "cp -fR $configPlugin/* $pluginFolder/", \$stdout, \$stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr && $rs;
-
-    $rs ||= $self->_installComposerPackages( );
-    return $rs if $rs;
-
-    my $panelUName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-    my $panelGName = $panelUName;
-
-    $rs = setRights(
-        $pluginFolder,
-        { user => $panelUName, group => $panelGName, dirmode => '0550', filemode => '0440', recursive => 1 }
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins" )->make(
+        {
+            user  => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+            group => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+            mode  => 0750
+        }
     );
 
-    for(qw/ password newmail_notifier rcguard /) {
-        $rs ||= $self->_configurePlugin( $_, 'config.inc.php' );
-        return $rs if $rs;
-    }
-
-    if ($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-        $rs = $self->_configurePlugin( 'managesieve', 'config.inc.php' );
-        return $rs if $rs;
-    }
-
-    0;
+    my $composer = iMSCP::Composer->new(
+        user          => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+        home_dir      => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins",
+        working_dir   => $rcDir,
+        composer_path => '/usr/local/bin/composer',
+        composer_json => $composerJson
+    );
+    $composerJson = $composer->getComposerJson( 'scalar' );
+    # We provide our own installer for Roundcube plugins
+    delete $composerJson->{'require'}->{'roundcube/plugin-installer'};
+    $composer->requirePackage( 'imscp/roundcube-plugin-installer', '^1.0' );
+    $composerJson->{'config'} = {
+        'cache-files-ttl'   => 15552000,
+        cafile              => $main::imscpConfig{'DISTRO_CA_BUNDLE'},
+        capath              => $main::imscpConfig{'DISTRO_CA_PATH'},
+        'discard-changes'   => JSON::true,
+        'htaccess-protect'  => JSON::false,
+        'preferred-install' => 'dist',
+        'process-timeout'   => 2000
+    };
+    $composerJson->{'minimum-stability'} = 'dev';
+    $composerJson->{'prefer-stable'} = JSON::true;
+    $composer;
 }
 
-=item _uninstallPlugins( )
+=item _activatePlugins( )
 
- Uninstall plugins
+ Activate plugins (disable those that are not enabled)
 
- Return int 0 on success, other on failure
+ Return void, die on failure
 
 =cut
 
-sub _uninstallPlugins
+sub _activatePlugins
 {
-    my $self = shift;
+    my (undef, @plugins) = @_;
 
-    my $pluginSrcDir = "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins/roundcube-plugins";
-    my $pluginDestDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-
-    for (iMSCP::Dir->new( dirname => $pluginSrcDir )->getDirs( )) {
-        my $rs = iMSCP::Dir->new( dirname => "$pluginDestDir/$_" )->remove( );
-        return $rs if $rs;
-    }
-
-    my $rs = $self->_deconfigurePlugin( 'managesieve', 'config.inc.php' );
-    $rs ||= $self->_deconfigurePlugin( 'managesieve', 'imscp_default.sieve' );
-    $rs ||= $self->_deconfigurePlugin( 'newmail_notifier', 'config.inc.php' );
-}
-
-=item _setRoundcubePlugin( $action )
-
- Activate or deactivate the plugins
-
- Param string $action Action to be performed (enable|disable)
- Return int 0 on success, other on failure
-
-=cut
-
-sub _setRoundcubePlugin
-{
-    my ($self, $action) = @_;
-
-    my $pluginConffile = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php";
-    my $file = iMSCP::File->new( filename => $pluginConffile );
-    my $fileContent = $file->get( );
-    unless (defined $fileContent) {
-        error( sprintf( "Couldn't read %s", $pluginConffile ) );
-        return 1;
-    }
+    my $file = iMSCP::File->new(
+        filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php"
+    );
+    my $fileContent = $file->get();
+    defined $fileContent or die ( sprintf( "Couldn't read %s", $file->{'filename'} ));
 
     $fileContent = replaceBloc(
-        "\n# Begin Plugin::RoundcubePlugins\n",
-        "Ending Plugin::RoundcubePlugins\n",
+        qr/(:?^\n)?\Q# Begin Plugin::RoundcubePlugins\E\n/m,
+        qr/\Q# Ending Plugin::RoundcubePlugins\E\n/,
         '',
         $fileContent
     );
 
-    if ($action eq 'enable') {
-        my @plugins = ();
+    if ( @plugins ) {
+        $fileContent .= <<"EOF";
 
-        for (qw/additional_message_headers calendar contextmenu emoticons logon_page newmail_notifier odfviewer
-            password pdfviewer rcguard tasklist vcard_attachments zipdownload/
-        ) {
-            next unless lc($self->{'config'}->{$_.'_plugin'}) eq 'yes';
-            push @plugins, $_;
-        }
-
-        if (lc($self->{'config'}->{'archive_plugin'}) eq 'yes') {
-            push @plugins, 'archive';
-
-            if ($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-                my $rs = $self->_modifyDovecotConfig( 'archive', 'add' );
-                return $rs if $rs;
-            }
-        } elsif ($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-            my $rs = $self->_modifyDovecotConfig( 'archive', 'remove' );
-            return $rs if $rs;
-        }
-
-        if (lc($self->{'config'}->{'managesieve_plugin'}) eq 'yes'
-            && $main::imscpConfig{'PO_SERVER'} eq 'dovecot'
-        ) {
-            my $rs = $self->_checkManagesieveRequirements( );
-            return $rs if $rs;
-
-            push @plugins, 'managesieve';
-
-            $rs = $self->_modifyDovecotConfig( 'managesieve', 'add' );
-            return $rs if $rs;
-        } elsif ($main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-            my $rs = $self->_modifyDovecotConfig( 'managesieve', 'remove' );
-            return $rs if $rs;
-        }
-
-        my $roundcubePluginConfig = "\n# Begin Plugin::RoundcubePlugins\n";
-        $roundcubePluginConfig .= '$config[\'plugins\'] = array_merge($config[\'plugins\'], array('.
-            "\n\t".( join ', ', map { qq/'$_'/ } @plugins )."\n));\n";
-        $roundcubePluginConfig .= "# Ending Plugin::RoundcubePlugins\n";
-        $fileContent .= $roundcubePluginConfig;
-    } elsif ($action eq 'disable' && $main::imscpConfig{'PO_SERVER'} eq 'dovecot') {
-        my $rs = $self->_modifyDovecotConfig( 'archive', 'remove' );
-        $rs ||= $self->_modifyDovecotConfig( 'managesieve', 'remove' );
-        return $rs if $rs;
+# Begin Plugin::RoundcubePlugins
+\$config[\'plugins\'] = array_merge(\$config[\'plugins\'], @{ [ substr( export( \@plugins, purity => 1 ), 0, -1 ) ]});
+# Ending Plugin::RoundcubePlugins
+EOF
     }
 
-    my $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
+    $file->set( $fileContent );
+    $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
 }
 
-=item _configurePlugin( $pluginName, $$pluginConffileTpl )
+=item _configurePlugins(@plugins)
 
- Configure the given plugin
+ Configure plugins
 
- Param string pluginName Plugin name
- Param string $pluginConffileTpl Plugin configuration file template
- Return int 0 on success, other on failure
+ Param list @plugins List of plugins to configure
+ Return void, die on failure
 
 =cut
 
-sub _configurePlugin
+sub _configurePlugins
 {
-    my ($self, $pluginName, $pluginConffileTpl) = @_;
+    my ($self, @plugins) = @_;
 
-    my $pluginFolder = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
-    my $file = iMSCP::File->new( filename => "$pluginFolder/$pluginName/$pluginConffileTpl" );
-    my $fileContent = $file->get( );
-    unless (defined $fileContent) {
-        error( sprintf( "Couldn't read %s", $file->{'filename'} ) );
-        return 1;
-    }
+    my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    my $data = { };
-    if ($pluginName eq 'managesieve') {
-        $data = {
-            managesieve_default     => "$pluginFolder/$pluginName/imscp_default.sieve",
-            managesieve_vacation    => $self->{'config'}->{'managesieve_config'}->{'managesieve_vacation'},
-            managesieve_script_name => $self->{'config'}->{'managesieve_config'}->{'managesieve_script_name'}
-        };
-    } elsif ($pluginName eq 'newmail_notifier') {
-        $data = {
-            newmail_notifier_basic   => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_basic'}
-                ? 'true' : 'false',
-            newmail_notifier_sound   => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_sound'}
-                ? 'true' : 'false',
-            newmail_notifier_desktop => $self->{'config'}->{'newmail_notifier_config'}->{'newmail_notifier_desktop'}
-                ? 'true' : 'false'
-        };
-    } elsif ($pluginName eq 'password') {
-        my ($imscpVersion) = $main::imscpConfig{'Version'} =~ /^(?:git\s+)?(\d+.\d+)/i;
-        unless (defined $imscpVersion) {
-            error( "Couldn't not determine i-MSCP version in use" );
-            return 1;
-        }
+    for( @plugins ) {
+        my $conffile = $self->{'config'}->{'plugins'}->{$_}->{'config'}->{'file'} || 'config.inc.php';
+        $self->{'config'}->{'plugins'}->{$_}->{'config'}->{'parameters'} &&
+            ref $self->{'config'}->{'plugins'}->{$_}->{'config'}->{'parameters'} eq 'HASH' || next;
 
-        my ($passwordScheme, $passwordShemeSqlMacro);
-        if (version->parse( $imscpVersion ) >= version->parse( '1.4' )) {
-            $passwordScheme = 'sha512-crypt';
-            $passwordShemeSqlMacro = '%P';
-        } else {
-            $passwordScheme = 'clear';
-            $passwordShemeSqlMacro = '%p';
-        }
+        next unless -f "$pluginsDir/$_/$conffile";
 
-        tie %{$self->{'ROUNDCUBE'}},
-            'iMSCP::Config',
-            fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
+        my $file = iMSCP::File->new( filename => "$pluginsDir/$_/$conffile" );
+        my $fileContent = $file->get;
+        defined $fileContent or die( sprintf( "Couldn't read the %s file", $file->{'filename'} ));
 
-        (my $dbUser = $self->{'ROUNDCUBE'}->{'DATABASE_USER'}) =~ s%(')%\\$1%g;
-        (my $dbPass = $self->{'ROUNDCUBE'}->{'DATABASE_PASSWORD'}) =~ s%(')%\\$1%g;
-
-        $data = {
-            password_confirm_current  => $self->{'config'}->{'password_config'}->{'password_confirm_current'}
-                ? 'true' : 'false',
-            password_minimum_length   => $self->{'config'}->{'password_config'}->{'password_minimum_length'},
-            password_require_nonalpha => $self->{'config'}->{'password_config'}->{'password_require_nonalpha'}
-                ? 'true' : 'false',
-            password_force_new_user   => $self->{'config'}->{'password_config'}->{'password_force_new_user'}
-                ? 'true' : 'false',
-            DB_NAME                   => $main::imscpConfig{'DATABASE_NAME'},
-            DB_HOST                   => $main::imscpConfig{'DATABASE_HOST'},
-            DB_PORT                   => $main::imscpConfig{'DATABASE_PORT'},
-            DB_USER                   => $dbUser,
-            DB_PASS                   => $dbPass,
-            PASSWORD_SCHEME           => $passwordScheme,
-            PASSWORD_SCHEME_SQL_MACRO => $passwordShemeSqlMacro,
-        };
-    } elsif ($pluginName eq 'rcguard') {
-        $data = {
-            recaptcha_publickey  => $self->{'config'}->{'rcguard_config'}->{'recaptcha_publickey'},
-            recaptcha_privatekey => $self->{'config'}->{'rcguard_config'}->{'recaptcha_privatekey'},
-            failed_attempts      => $self->{'config'}->{'rcguard_config'}->{'failed_attempts'},
-            expire_time          => $self->{'config'}->{'rcguard_config'}->{'expire_time'},
-            recaptcha_https      => $self->{'config'}->{'rcguard_config'}->{'recaptcha_https'} ? 'true' : 'false'
-        };
-    }
-
-    my $rs = $file->set( process( $data, $fileContent ) );
-    $rs ||= $file->save( );
-}
-
-=item _deconfigurePlugin( $pluginName, $$pluginConffileTpl )
-
- Deconfigure the given plugin
-
- Param string pluginName Plugin name
- Param string $pluginConffileTpl Plugin configuration file template
- Return int 0 on success, other on failure
-
-=cut
-
-sub _deconfigurePlugin
-{
-    my (undef, $pluginName, $pluginConffileTpl) = @_;
-
-    my $filePath = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/$pluginName/$pluginConffileTpl";
-    return 0 unless -f $filePath;
-
-    iMSCP::File->new( filename => $filePath )->delFile( );
-}
-
-=item _checkManagesieveRequirements( )
-
- Check the managesieve requirements
-
- Return int 0 if all requirement are met, other otherwise
-
-=cut
-
-sub _checkManagesieveRequirements
-{
-    my $ret = 0;
-
-    for(qw/ dovecot-sieve dovecot-managesieved /) {
-        if (execute( "dpkg-query -W  -f='\${Status}' $_ 2>/dev/null | grep -q '\\sinstalled\$'" )) {
-            error( sprintf( 'The `%s` package is not installed on your system', $_ ) );
-            $ret ||= 1;
-        }
-    }
-
-    $ret;
-}
-
-=item _modifyDovecotConfig( $plugin, $action )
-
- Modify dovecot config file dovecot.conf
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _modifyDovecotConfig
-{
-    my (undef, $plugin, $action) = @_;
-
-    # Get the Dovecot config file
-    my $dovecotConfig = '/etc/dovecot/dovecot.conf';
-
-    my $file = iMSCP::File->new( filename => $dovecotConfig );
-    my $fileContent = $file->get( );
-    unless (defined $fileContent) {
-        error( sprintf( "Couldn't read %s file", $dovecotConfig ) );
-        return 1;
-    }
-
-    # check the Dovecot version
-    my $rs = execute( '/usr/sbin/dovecot --version', \ my $stdout, \ my $stderr );
-    debug( $stdout ) if $stdout;
-    error( $stderr ) if $stderr;
-    error( "Couldnt't get Dovecot version. Is Dovecot installed?" ) if $rs && !$stderr;
-    return $rs if $rs;
-
-    chomp( $stdout );
-    $stdout =~ m/^([0-9\.]+)\s*/;
-    my $version = $1;
-
-    unless ($version) {
-        error( 'Could not find Dovecot version' );
-        return 1;
-    }
-
-    if ($plugin eq 'archive') {
-        if (version->parse( $version ) > version->parse( '2.1.0' )) {
-            $fileContent =~ s/\n\t# Begin Plugin::RoundcubePlugin::archive.*Ending Plugin::RoundcubePlugin::archive\n//sm;
-            if ($action eq 'add') {
-                $fileContent =~ s/^(namespace\s+inbox\s+\{.*?)(^\})/$1\n\t# Begin Plugin::RoundcubePlugin::archive\n\tmailbox Archive \{\n\t\tauto = subscribe\n\t\tspecial_use = \\Archive\n\t\}\n\t# Ending Plugin::RoundcubePlugin::archive\n$2/sm;
-            }
-        } else {
-            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::archive::1st.*Ending Plugin::RoundcubePlugin::archive::1st\n//sm;
-            if ($action eq 'add') {
-                $fileContent =~ s/^(plugin\s+\{)/$1\n\t# Begin Plugin::RoundcubePlugin::archive::1st\n\tautocreate = INBOX.Archive\n\tautosubscribe = INBOX.Archive\n\t# Ending Plugin::RoundcubePlugin::archive::1st/sm;
-            }
-        }
-    } elsif ($plugin eq 'managesieve') {
-        if ($action eq 'add') {
-            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::1st.*Ending Plugin::RoundcubePlugin::managesieve::1st\n//sgm;
-            $fileContent =~ s/^(plugin\s+\{)/$1\n\t# Begin Plugin::RoundcubePlugin::managesieve::1st\n\tsieve = ~\/dovecot.sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::1st/sgm;
-
-            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::2nd.*(\tmail_plugins\s+=.*?)\s+sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd\n/$1\n/sgm;
-            $fileContent =~ s/^(protocol\s+lda.*?)(\tmail_plugins\s+=.*?)$/$1\t# Begin Plugin::RoundcubePlugin::managesieve::2nd\n$2 sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd/sgm;
-
-            if (version->parse( $version ) < version->parse( '2.0.0' )) {
-                $fileContent =~ s/^# Begin Plugin::RoundcubePlugin::managesieve::3nd.*(protocols\s+=.*?)\s+managesieve.*Ending Plugin::RoundcubePlugin::managesieve::3nd\n/$1\n/sgm;
-                $fileContent =~ s/^(protocols\s+=.*?)$/# Begin Plugin::RoundcubePlugin::managesieve::3nd\n$1 managesieve\n\nprotocol managesieve {\n\tlisten = localhost:4190\n}\n# Ending Plugin::RoundcubePlugin::managesieve::3nd/sgm;
-            }
-        } elsif ($action eq 'remove') {
-            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::1st.*Ending Plugin::RoundcubePlugin::managesieve::1st\n//sgm;
-            $fileContent =~ s/^\t# Begin Plugin::RoundcubePlugin::managesieve::2nd.*(\tmail_plugins\s*=.*?)\s+sieve\n\t# Ending Plugin::RoundcubePlugin::managesieve::2nd\n/$1\n/sgm;
-
-            if (version->parse( $version ) < version->parse( '2.0.0' )) {
-                $fileContent =~ s/^# Begin Plugin::RoundcubePlugin::managesieve::3nd.*(protocols\s+=.*?)\s+managesieve.*Ending Plugin::RoundcubePlugin::managesieve::3nd\n/$1\n/sgm;
-            }
-        }
-    }
-
-    $rs = $file->set( $fileContent );
-    $rs ||= $file->save( );
-}
-
-=item _scheduleDovecotRestart( )
-
- Schedule Dovecot restart
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _scheduleDovecotRestart
-{
-    Servers::po->factory( )->{'restart'} = 'yes';
-    0;
-}
-
-=item _checkRequirements( )
-
- Check for requirements
-
- Return int 0 if all requirements are met, other otherwise
-
-=cut
-
-sub _checkRequirements
-{
-    my $self = shift;
-
-    unless (grep($_ eq 'Roundcube', split ',', $main::imscpConfig{'WEBMAIL_PACKAGES'})) {
-        error( 'Roundcube is not installed. You must install Install it by running the imscp-reconfigure script.' );
-        return 1;
-    }
-
-    tie %{$self->{'ROUNDCUBE'}}, 'iMSCP::Config', fileName => "$main::imscpConfig{'CONF_DIR'}/roundcube/roundcube.data";
-
-    my $version = $self->{'ROUNDCUBE'}->{'ROUNDCUBE_VERSION'};
-
-    if (version->parse( $version ) < version->parse( '1.2.0' )) {
-        error( sprintf( 'Your Roundcube version (%s) is not compatible with this plugin.', $version ) );
-        return 1;
-    }
-
-    0;
-}
-
-=item _installComposerPackages( )
-
- Install required composer package for calendaring library
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _installComposerPackages
-{
-    my $webmailDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail";
-
-    return 0 unless -f "$webmailDir/composer.json" || -f "$webmailDir/composer.json-dist";
-
-    if (-f "$webmailDir/composer.json-dist") {
-        my $rs = iMSCP::File->new( filename => "$webmailDir/composer.json-dist" )->moveFile(
-            "$webmailDir/composer.json"
+        $fileContent = replaceBloc(
+            qr/(:?^\n)?\Q# Begin Plugin::RoundcubePlugins\E\n/m,
+            qr/\Q# Ending Plugin::RoundcubePlugins\E\n/,
+            '',
+            $fileContent
         );
-        return $rs if $rs;
 
+        $fileContent =~ s/\n*\Q?>\E\n*/\n/m;
+        $fileContent .= "\n# Begin Plugin::RoundcubePlugins\n";
+        while ( my ($pname, $value) = each( %{$self->{'config'}->{'plugins'}->{$_}->{'config'}->{'parameters'}} ) ) {
+            $fileContent .= export( "config['$pname']" => ref $value ? $value : \$value, purity => 1 ) . "\n";
+        }
+        $fileContent .= "# Ending Plugin::RoundcubePlugins\n";
+
+        $file->{'filename'} = "$pluginsDir/$_/config.inc.php";
+        $file->set( $fileContent );
+        $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
     }
 
-    my $panelUName = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-    my $panelGName = $panelUName;
+    0;
+}
 
-    # Make sure that Web user can write into base directory
-    my $rs = setRights( $webmailDir, { user => $panelUName, group => $panelGName, mode => '0750' } );
-    return $rs if $rs;
+=item _cloneGitRepository( $repository, $targetDir )
 
-    # Make sure that composer.json and composer.lock (if any) files are writable and owned by expected Web user
-    for('composer.json', 'composer.lock') {
-        next unless -f "$webmailDir/$_";
-        $rs = setRights( "$webmailDir/$_", { user => $panelUName, group => $panelGName, mode => '0600' } );
-        return $rs if $rs;
-    };
+ Clone the given git repository, update it if it already exists
 
-    # Make sure that composer vendor directory is writable and owned by expected Web user
-    $rs = setRights(
-        "$webmailDir/vendor",
-        { user => $panelUName, group => $panelGName, dirmode => '0700', filemode => '0600', recursive => 1 }
-    );
-    return $rs if $rs;
+ Param string $repository Git repository URL
+ Param string $targetDir Local target directory for the repository
+ Return void, die on failure
 
-    unless (-f "/var/local/imscp/composer.phar") {
-        error("Couldn't find composer.phar file in /var/local/imscp/ directory");
-        return 1;
-    }
+=cut
 
-    my $imscpWebUser = $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
-    $rs = execute(
-        sprintf(
-            "su -l $imscpWebUser -s /bin/sh -c %s",
-            escapeShell(
-                "COMPOSER_HOME=$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer " # Override composer homedir
-                    .'COMPOSER_PROCESS_TIMEOUT=2000 ' # Increase composer process timeout for slow connections
-                    .'COMPOSER_NO_INTERACTION=1 ' # not user interaction
-                    .'COMPOSER_DISCARD_CHANGES=true ' # discard any change made in vendor
-                    ."php -d date.timezone=$main::imscpConfig{'TIMEZONE'} -d allow_url_fopen=1 "
-                    .'-d suhosin.executor.include.whitelist=phar '
-                    ."/var/local/imscp/composer.phar require  --no-ansi -n -d=$webmailDir --update-no-dev "
-                    .'--ignore-platform-reqs --prefer-stable --no-suggest sabre/vobject ~3.3.3'
-            )
-        ),
+sub _cloneGitRepository
+{
+    my ($self, $repository, $targetDir) = @_;
+
+    return if $self->{'seen_git_repository'}->{$repository};
+
+    my $rs = execute(
+        [
+            '/bin/su',
+            '-l', $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+            '-s', '/bin/sh',
+            '-c', "/usr/bin/git @{ [ -d $targetDir ? qq/-C $targetDir pull/ : 'clone --depth 1' ]}"
+                . " --quiet $repository" . " @{ [ -d _ ? '' : $targetDir ]}"
+        ],
         \my $stdout,
         \my $stderr
     );
     debug( $stdout ) if $stdout;
-    debug( $stderr ) unless $rs || !$stderr;
-    error( $stderr || 'Unknown error') if $rs;
-    $rs;
+    $rs == 0 or die( sprintf( "Couldn't clone git repository: %s", $stderr || 'Unknown error' ));
+
+    $self->{'seen_git_repository'}->{$repository} = 1;
+}
+
+=item _stdRoutine
+
+ STD routine for the iMSCP::Composer object
+
+ Return void
+ 
+=cut
+
+sub _stdRoutine
+{
+    ( my $out = $_[0] ) =~ s/\x08+/\n/g;
+    $out =~ s/^[\s\n]+|[\s\n]+$//g;
+    debug( $out ) if $out ne '';
 }
 
 =back
 
-=head1 AUTHORS
+=head1 AUTHOR
 
  Laurent Declercq <l.declercq@nuxwin.com>
- Rene Schuster <mail@reneschuster.de>
- Sascha Bay <info@space2place.de>
 
 =cut
 
 1;
-__END__

@@ -2,8 +2,6 @@
 /**
  * i-MSCP - internet Multi Server Control Panel
  * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,129 +18,229 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
-    // adds originating IP address for the emails sent via Roundcube (Default: yes)
-    // Possible values: yes, no
-    'additional_message_headers_plugin' => 'yes',
+use iMSCP_Registry as Registry;
 
-    // archive plugin (default: yes)
-    // Possible values: yes, no
-    'archive_plugin'                    => 'yes',
+$pluginDir = Registry::get('config')['PLUGINS_DIR'] . '/RoundcubePlugins';
 
-    // calendar plugin (default: yes)
-    // Possible values: yes, no
-    'calendar_plugin'                   => 'yes',
+return [
+    // Roundcube plugin definitions
+    // See the README.md file inside the plugin archive for
+    // further details.
+    'plugins' => [
+        // Part of RoundCube distribution
+        'additional_message_headers' => [
+            'enabled' => true,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'additional_message_headers' => [
+                        'X-Remote-Browser'   => "{\$_SERVER['HTTP_USER_AGENT']}",
+                        'X-Originating-IP'   => "[{\$_SERVER['REMOTE_ADDR']}]",
+                        'X-RoundCube-Server' => "{\$_SERVER['SERVER_ADDR']}",
+                    ]
+                ]
+            ]
+        ],
 
-    // contextmenu plugin (default: yes) 
-    // Possible values: yes, no
-    'contextmenu_plugin'                => 'yes',
+        // Part of RoundCube distribution
+        'archive'                    => [
+            'enabled' => true
+        ],
 
-    // emoticons plugin (default: yes)
-    // Possible values: yes, no
-    'emoticons_plugin'                  => 'yes',
+        // Part of Kolab distribution
+        'calendar'                   => [
+            'enabled'  => true,
+            'git'      => [
+                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
+                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
+            ],
+            'composer' => [
+                'repositories' => [
+                    'type' => 'path',
+                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/calendar",
+                ],
+                'require'      => [
+                    'kolab/calendar' => '^3.3.0'
+                ]
+            ],
+            'config'   => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'calendar_driver'       => 'database',
+                    'calendar_default_view' => 'agendaDay'
+                ]
+            ]
+        ],
+        /*
+                'contextmenu'      => [
+                    'enabled' => false,
+                ],
+        */
+        // Part of RoundCube distribution
+        'emoticons'                  => [
+            'enabled' => true,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'emoticons_display' => false,
+                    'emoticons_compose' => true
+                ]
+            ]
+        ],
 
-    // logon_page plugin (default: yes)
-    // Possible values: yes, no
-    'logon_page_plugin'                 => 'yes',
+        // Part of Kolab distribution
+        'logon_page'                 => [
+            'enabled'  => true,
+            'git'      => [
+                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
+                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
+            ],
+            'composer' => [
+                'repositories' => [
+                    'type' => 'path',
+                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/logon_page"
+                ],
+                'require'      => [
+                    'kolab/logon_page' => '^3.3.0'
+                ]
+            ]
+        ],
 
-    // managesieve plugin (default: no)
-    // Possible values: yes, no
-    'managesieve_plugin'                => 'no',
+        /*
+                // Part of RoundCube distribution
+                'managesieve'      => [
+                    'enabled' => false,
+                    'config'  => [
+                        'file'       => 'config.inc.php',
+                        'parameters' => [
+                            'managesieve_vacation'    => '1',
+                            'managesieve_script_name' => 'managesieve'
+                        ]
+                    ]
+                ],
+        */
 
-    // Configuration parameters for the managesieve plugin
-    'managesieve_config'                => array(
-        // Enables separate management interface for vacation responses (out-of-office) (default: 1)
-        // 0 - no separate section,
-        // 1 - add Vacation section (default),
-        // 2 - add Vacation section, but hide Filters section (no additional managesieve filters)
-        'managesieve_vacation'    => '1',
+        // Part of RoundCube distribution
+        'newmail_notifier'           => [
+            'enabled' => true,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'newmail_notifier_basic'           => true,
+                    'newmail_notifier_sound'           => true,
+                    'newmail_notifier_desktop'         => true,
+                    'newmail_notifier_desktop_timeout' => 10
+                ]
+            ]
+        ],
 
-        // The name of the script which will be used when there's no user script (default: managesieve)
-        'managesieve_script_name' => 'managesieve'
-    ),
+        // Part of Kolab distribution
+        'odfviewer'                  => [
+            'enabled'  => true,
+            'git'      => [
+                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
+                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
+            ],
+            'composer' => [
+                'repositories' => [
+                    'type' => 'path',
+                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/odfviewer"
+                ],
+                'require'      => [
+                    'kolab/odfviewer' => '^3.3.0'
+                ]
+            ]
+        ],
 
-    // newmail_notifier plugin (default: yes)
-    // Possible values: yes, no
-    'newmail_notifier_plugin'           => 'yes',
+        // Part of Kolab distribution
+        'pdfviewer'                  => [
+            'git'      => [
+                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
+                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
+            ],
+            'enabled'  => true,
+            'composer' => [
+                'repositories' => [
+                    'type' => 'path',
+                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/pdfviewer"
+                ],
+                'require'      => [
+                    'kolab/pdfviewer' => '^3.3.0'
+                ]
+            ]
+        ],
 
-    // Configuration parameters for the newmail_notifier plugin
-    'newmail_notifier_config'           => array(
-        // Enables basic notification (default: true)
-        // Possible values: true, false
-        'newmail_notifier_basic'   => true,
+        // Part of RoundCube distribution
+        'password'                   => [
+            'enabled' => false,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'password_confirm_current'  => true,
+                    'password_minimum_length'   => 6,
+                    'password_require_nonalpha' => false,
+                    'password_force_new_user'   => false
+                ]
+            ]
+        ],
 
-        // Enables sound notification (default: false)
-        // Possible values: true, false
-        'newmail_notifier_sound'   => false,
+        /*
+        'rcguard' => [
+            'enabled' => false,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'recaptcha_publickey'  => '',
+                    'recaptcha_privatekey' => '',
+                    'failed_attempts'      => 3,
+                    'expire_time'          => 30,
+                    'recaptcha_https'      => false
+                ]
+            ]
+        ],
+        */
 
-        // Enables desktop notification (default: false)
-        // Possible values: true, false
-        'newmail_notifier_desktop' => false
-    ),
+        'tasklist'          => [
+            'enabled'  => true,
+            'git'      => [
+                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
+                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
+            ],
+            'composer' => [
+                'repositories' => [
+                    'type' => 'path',
+                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/tasklist"
+                ],
+                'require'      => [
+                    'kolab/tasklist' => '^3.3.0'
+                ]
+            ],
+            'config'   => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'tasklist_driver'     => 'database',
+                    'tasklist_sort_col'   => '',
+                    'tasklist_sort_order' => 'asc',
+                ]
+            ]
+        ],
 
-    // odfviewer plugin (default: yes)
-    // Possible values: yes, no
-    'odfviewer_plugin'                  => 'yes',
+        // Part of rc distribution
+        'vcard_attachments' => [
+            'enabled' => true,
+        ],
 
-    // password plugin (default: yes)
-    // Possible values: yes, no
-    'password_plugin'                   => 'yes',
-
-    // Configuration parameters for the password plugin
-    'password_config'                   => array(
-        // Determine whether current password is required to change password (default: true)
-        // Possible values: true, false
-        'password_confirm_current'  => true,
-
-        // Require the new password to be of a certain length (default: 6)
-        // Possible values: A number or blank to allow passwords of any length
-        'password_minimum_length'   => 6,
-
-        // Require the new password to contain a letter and punctuation character (default: false)
-        // Possible values: true, false
-        'password_require_nonalpha' => false,
-
-        // Enables forcing new users to change their password at their first login (default: false)
-        // Possible values: true, false
-        'password_force_new_user'   => false
-    ),
-
-    // pdfviewer plugin (default: yes)
-    // Possible values: yes, no
-    'pdfviewer_plugin'                  => 'yes',
-
-    // rcguard plugin (default: no)
-    // Possible values: yes, no
-    'rcguard_plugin'                    => 'no',
-
-    // Configuration parameter for the rcguard plugin
-    'rcguard_config'                    => array(
-        // Public key for reCAPTCHA
-        'recaptcha_publickey'  => '',
-
-        // Private key for reCAPTCHA
-        'recaptcha_privatekey' => '',
-
-        // Number of failed logins before reCAPTCHA is shown (default: 3)
-        'failed_attempts'      => 3,
-
-        // Time in minutes after which new login attempt will be allowed (default: 30)
-        'expire_time'          => 30,
-
-        // Use HTTPS for reCAPTCHA (default: false)
-        // Possible values: true, false
-        'recaptcha_https'      => false
-    ),
-
-    // tasklist plugin (default: yes)
-    // Possible values: yes, no
-    'tasklist_plugin'                   => 'yes',
-
-    // vcard_attachments plugin (default: yes)
-    // Possible values: yes, no
-    'vcard_attachments_plugin'          => 'yes',
-
-    // zipdownload plugin (default: yes)
-    // Possible values: yes, no
-    'zipdownload_plugin'                => 'yes'
-);
+        // Part of rc distribution
+        'zipdownload'       => [
+            'enabled' => true,
+            'config'  => [
+                'file'       => 'config.inc.php',
+                'parameters' => [
+                    'zipdownload_attachments' => 1,
+                    'zipdownload_selection'   => false,
+                    'zipdownload_charset'     => 'ISO-8859-1'
+                ]
+            ]
+        ]
+    ]
+];
