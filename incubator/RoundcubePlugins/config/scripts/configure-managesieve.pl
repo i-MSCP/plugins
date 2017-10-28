@@ -73,7 +73,7 @@ if ( $action eq 'pre-configure' ) {
     my $stderr = '';
     executeNoWait( [ 'apt-get', 'update' ], \&_std, sub { $stderr .= $_[0] } ) == 0 or die(
         sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' )
-    );
+    ) == 0 or die( sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' ));
     executeNoWait(
         [
             'apt-get', '-o', 'DPkg::Options::=--force-confnew', '-o', 'DPkg::Options::=--force-confmiss',
