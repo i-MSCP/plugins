@@ -72,7 +72,7 @@ sub update
         defined $fileContent or die sprintf( "Couldn't read %s file", $file->{'filename'} );
 
         $fileContent = replaceBloc(
-            qr/(?:^\n)?\t?\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m,
+            qr/^\s*\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m,
             qr/\Q# Ending Plugin::RoundcubePlugin::\E.*\n/,
             '',
             $fileContent
@@ -222,11 +222,9 @@ sub _getComposer
         composer_json => $composerJson
     );
     $composerJson = $composer->getComposerJson( 'scalar' );
-
     # We provide our own installer for Roundcube plugins
     delete $composerJson->{'require'}->{'roundcube/plugin-installer'};
     $composer->requirePackage( 'imscp/roundcube-plugin-installer', '^1.0' );
-
     $composerJson->{'config'} = {
         'cache-files-ttl'   => 15552000,
         cafile              => $main::imscpConfig{'DISTRO_CA_BUNDLE'},
@@ -357,7 +355,7 @@ sub _togglePlugins
     defined $fileContent or die ( sprintf( "Couldn't read %s", $file->{'filename'} ));
 
     if ( $fileContent =~ /\$config\s*\[\s*['"]plugins['"]\s*\]\s*=\s*(?:array\s*\(|\[)(.*)(?:\)|\]);/is ) {
-        my @activePlugins = split /[,]+/, $1 =~ s/[\s'"]+//grs;
+        my @activePlugins = split /,+/, $1 =~ s/[\s'"]+//grs;
 
         for my $plugin ( @plugins ) {
             if ( $self->{'action'} eq 'enable' && !grep($_ eq $plugin, @activePlugins) ) {
