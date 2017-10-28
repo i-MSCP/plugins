@@ -354,7 +354,7 @@ sub _togglePlugins
     my $fileContent = $file->get();
     defined $fileContent or die ( sprintf( "Couldn't read %s", $file->{'filename'} ));
 
-    if ( $fileContent =~ /\$config\s*\[\s*['"]plugins['"]\s*\]\s*=\s*(?:array\s*\(|\[)(.*)(?:\)|\]);/is ) {
+    if ( $fileContent =~ /\$config\s*\[\s*['"]plugins['"]\s*\]\s*=\s*(?:array\s*\(|\[)(.*)(?:\)|\])\s*;/is ) {
         my @activePlugins = split /,+/, $1 =~ s/[\s'"]+//grs;
 
         for my $plugin ( @plugins ) {

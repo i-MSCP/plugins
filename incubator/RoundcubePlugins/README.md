@@ -9,21 +9,17 @@ Provides plugins for the Roundcube Webmail Suite.
 
 ## Installation
 
-1. Be sure that all requirements as stated in the requirements section are met
+1. Be sure that all requirements are met
 2. Upload the plugin through the plugin management interface
-3. Install the plugin through the plugin management interface
-
-Note that plugin activation can take up several minutes.
+3. Activate the plugin through the plugin management interface
 
 ## Update
 
-1. Be sure that all requirements as stated in the requirements section are met
+1. Be sure that all requirements are met
 2. Backup your plugin configuration file if needed
 3. Upload the plugin through the plugin management interface
 4. Restore your plugin configuration file if needed
 5. Update the plugin list through the plugin management interface
-
-Note that plugin update can take up several minutes.
 
 ## Configuration
 
@@ -206,11 +202,11 @@ Note that the script must provides a correct
 For instance:
 
 - `#!/usr/bin/env perl` for a Perl script
-- `#!/usr/bin/env php` for a PHP for a PHP script
+- `#!/usr/bin/env php` for a PHP script
 - `#!/bin/sh` for a shell script
 - ...
 
-See [configure-managesieve.pl](config/scripts/configure-managesieve.pl) for a
+See [configure-managesieve.pl](config/scripts/configure-managesieve.pl) for an
 example.
 
 ## List of default Roundcube plugin definitions
