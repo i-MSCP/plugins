@@ -72,7 +72,7 @@ Basically, a `composer` section is what you would put in a
 dependency manager (Composer) able to download and install a PHP dependency,
 here, a Roundcube plugin.
 
-In the example above, we require the vendor/name composer package.
+In the example above, we require the `vendor/name` composer package.
 
 You can learn further about composer by looking at the official
 [documentation](https://getcomposer.org/doc/).

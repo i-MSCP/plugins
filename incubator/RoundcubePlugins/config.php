@@ -18,69 +18,61 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-use iMSCP_Registry as Registry;
-
-$pluginDir = Registry::get('config')['PLUGINS_DIR'] . '/RoundcubePlugins';
-
 return [
     // Roundcube plugin definitions
     // See the README.md file inside the plugin archive for
     // further details.
     'plugins' => [
-        // Part of RoundCube distribution
+
+        // Add additional headers to or remove them from outgoing messages
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/additional_message_headers
         'additional_message_headers' => [
-            'enabled' => true,
+            'enabled' => false,
             'config'  => [
-                'file'       => 'config.inc.php',
-                'parameters' => [
-                    'additional_message_headers' => [
-                        'X-Remote-Browser'   => "{\$_SERVER['HTTP_USER_AGENT']}",
-                        'X-Originating-IP'   => "[{\$_SERVER['REMOTE_ADDR']}]",
-                        'X-RoundCube-Server' => "{\$_SERVER['SERVER_ADDR']}",
-                    ]
-                ]
+                'include_file' => __DIR__ . '/config/included/additional_message_headers.php'
             ]
         ],
 
-        // Part of RoundCube distribution
+        // Adds a button to move the selected messages to an archive folder
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/archive
         'archive'                    => [
             'enabled' => true
         ],
 
-        // Part of Kolab distribution
+        // Provide calendaring features
+        // See https://plugins.roundcube.net/packages/kolab/calendar
         'calendar'                   => [
             'enabled'  => true,
-            'git'      => [
-                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
-            ],
             'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/calendar",
-                ],
-                'require'      => [
-                    'kolab/calendar' => '^3.3.0'
+                'require' => [
+                    'kolab/calendar' => '~3.3.0'
                 ]
             ],
             'config'   => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'calendar_driver'       => 'database',
                     'calendar_default_view' => 'agendaDay'
                 ]
             ]
         ],
-        /*
-                'contextmenu'      => [
-                    'enabled' => false,
-                ],
-        */
-        // Part of RoundCube distribution
+
+        // Creates context menus for various parts of Roundcube using commands
+        // from the toolbars
+        // See https://github.com/JohnDoh/Roundcube-Plugin-Context-Menu
+        'contextmenu'                => [
+            'enabled'  => true,
+            'composer' => [
+                'require' => [
+                    'johndoh/contextmenu' => '~2.3.0'
+                ]
+            ]
+        ],
+
+        // Adds emoticons support
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/emoticons
         'emoticons'                  => [
             'enabled' => true,
             'config'  => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'emoticons_display' => false,
                     'emoticons_compose' => true
@@ -88,43 +80,43 @@ return [
             ]
         ],
 
-        // Part of Kolab distribution
+        // Logon screen additions
+        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/logon_page
         'logon_page'                 => [
-            'enabled'  => true,
+            'enabled'  => false,
             'git'      => [
                 'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
             ],
             'composer' => [
                 'repositories' => [
                     'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/logon_page"
+                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/logon_page'
                 ],
                 'require'      => [
-                    'kolab/logon_page' => '^3.3.0'
+                    'kolab/logon_page' => '~3.3.0'
                 ]
             ]
         ],
 
-        /*
-                // Part of RoundCube distribution
-                'managesieve'      => [
-                    'enabled' => false,
-                    'config'  => [
-                        'file'       => 'config.inc.php',
-                        'parameters' => [
-                            'managesieve_vacation'    => '1',
-                            'managesieve_script_name' => 'managesieve'
-                        ]
-                    ]
+        // Adds a possibility to manage Sieve scripts (incoming mail filters)
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins//managesieve
+        'managesieve'                => [
+            'enabled' => false,
+            'config'  => [
+                'parameters' => [
+                    'managesieve_default'     => __DIR__ . '/scripts/imscp_default.sieve',
+                    'managesieve_script_name' => 'managesieve',
+                    'managesieve_vacation'    => '1',
                 ],
-        */
+                'script'     => __DIR__ . '/config/scripts/configure-managesieve.pl'
+            ]
+        ],
 
-        // Part of RoundCube distribution
+        // Provide notifications for new emails
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/newmail_notifier
         'newmail_notifier'           => [
             'enabled' => true,
             'config'  => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'newmail_notifier_basic'           => true,
                     'newmail_notifier_sound'           => true,
@@ -134,47 +126,47 @@ return [
             ]
         ],
 
-        // Part of Kolab distribution
+        // Open Document Viewer plugin
+        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/odfviewer
         'odfviewer'                  => [
             'enabled'  => true,
             'git'      => [
                 'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
             ],
             'composer' => [
                 'repositories' => [
                     'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/odfviewer"
+                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/odfviewer'
                 ],
                 'require'      => [
-                    'kolab/odfviewer' => '^3.3.0'
+                    'kolab/odfviewer' => '~3.3.0'
                 ]
             ]
         ],
 
-        // Part of Kolab distribution
+        // Inline PDF viewer plugin
+        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/pdfviewer
         'pdfviewer'                  => [
             'git'      => [
                 'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
             ],
             'enabled'  => true,
             'composer' => [
                 'repositories' => [
                     'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/pdfviewer"
+                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/pdfviewer'
                 ],
                 'require'      => [
-                    'kolab/pdfviewer' => '^3.3.0'
+                    'kolab/pdfviewer' => '~3.3.0'
                 ]
             ]
         ],
 
-        // Part of RoundCube distribution
+        // Password change feature for Roundcube
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/password
         'password'                   => [
-            'enabled' => false,
+            'enabled' => true,
             'config'  => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'password_confirm_current'  => true,
                     'password_minimum_length'   => 6,
@@ -184,39 +176,36 @@ return [
             ]
         ],
 
-        /*
-        'rcguard' => [
-            'enabled' => false,
-            'config'  => [
-                'file'       => 'config.inc.php',
-                'parameters' => [
-                    'recaptcha_publickey'  => '',
-                    'recaptcha_privatekey' => '',
-                    'failed_attempts'      => 3,
-                    'expire_time'          => 30,
-                    'recaptcha_https'      => false
+        // Enforces reCAPTCHA for users that have too many failed logins
+        // See https://github.com/dsoares/rcguard
+        'rcguard'                    => [
+            'enabled'  => false,
+            'composer' => [
+                'require' => [
+                    'dsoares/rcguard' => '~1.0.0'
+                ],
+                'config'  => [
+                    'parameters' => [
+                        'recaptcha_publickey'  => '',
+                        'recaptcha_privatekey' => '',
+                        'failed_attempts'      => 3,
+                        'expire_time'          => 30,
+                        'recaptcha_https'      => false
+                    ]
                 ]
             ]
         ],
-        */
 
-        'tasklist'          => [
-            'enabled'  => true,
-            'git'      => [
-                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-                'target_dir' => "$pluginDir/roundcube-plugins/kolab"
-            ],
+        // Task management plugin
+        // See https://plugins.roundcube.net/packages/kolab/tasklist
+        'tasklist'                   => [
+            'enabled'  => false,
             'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/tasklist"
-                ],
-                'require'      => [
-                    'kolab/tasklist' => '^3.3.0'
+                'require' => [
+                    'kolab/tasklist' => '~3.3.0'
                 ]
             ],
             'config'   => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'tasklist_driver'     => 'database',
                     'tasklist_sort_col'   => '',
@@ -225,20 +214,22 @@ return [
             ]
         ],
 
-        // Part of rc distribution
-        'vcard_attachments' => [
-            'enabled' => true,
+        // Detects vCard attachments and allows to add them to address book
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/vcard_attachments
+        'vcard_attachments'          => [
+            'enabled' => true
         ],
 
-        // Part of rc distribution
-        'zipdownload'       => [
+        // Adds an option to download all attachments to a message in one zip
+        // file
+        // See https://github.com/roundcube/roundcubemail/tree/master/plugins/zipdownload
+        'zipdownload'                => [
             'enabled' => true,
             'config'  => [
-                'file'       => 'config.inc.php',
                 'parameters' => [
                     'zipdownload_attachments' => 1,
                     'zipdownload_selection'   => false,
-                    'zipdownload_charset'     => 'ISO-8859-1'
+                    'zipdownload_charset'     => 'UTF-8'
                 ]
             ]
         ]
