@@ -5,26 +5,7 @@ Provides plugins for the Roundcube Webmail Suite.
 ## Requirements
 
 - i-MSCP 1.5.x Serie (version >= 1.5.2)
-- Dovecot (Only needed if you want use the managesieve Roundcube plugin)
 - Roundcube >= 1.3.x
-
-### Debian / Ubuntu packages
-
-The following packages are required if you want to install the managesieve
-plugin for the Roundcube Webmail.
-
-- dovecot-sieve
-- dovecot-managesieved
-
-You can install these packages by running the following commands:
-
-```
-# apt-get update
-# apt-get install --no-install-recommends dovecot-sieve dovecot-managesieved
-```
-
-Prior executing the command above, be sure that you're using the i-MSCP Dovecot
-server implementation.
 
 ## Installation
 
@@ -32,7 +13,7 @@ server implementation.
 2. Upload the plugin through the plugin management interface
 3. Install the plugin through the plugin management interface
 
-Note that plugin installation can take up several minutes.
+Note that plugin activation can take up several minutes.
 
 ## Update
 
@@ -46,50 +27,44 @@ Note that plugin update can take up several minutes.
 
 ## Configuration
 
-See[Configuration file](../RoundcubePlugins/config.php)
+See the [configuration](../RoundcubePlugins/config.php) file for a fast overview.
 
-When changing a configuration parameter in the plugin configuration file, do
-not forget to trigger a plugin list update through the plugin management
+When changing a configuration parameter in the plugin configuration file, you
+must not forget to trigger a plugin list update through the plugin management
 interface, else your changes won't be taken into account.
 
-## Roundcube plugin definitions
+### Roundcube plugin definitions
 
 This plugin make it possible to install any Roundcube plugin by adding plugin
 definitions in the plugin [configuration file](../RoundcubePlugins/config.php).
 
-### Basic Roundcube plugin definition
+#### Basic Roundcube plugin definition
 
 A basic Roundcube plugin definition looks as follows:
 
 ```php
-        'calendar' => [
-            'enabled' => true
-        ],
+    'name' => [
+        'enabled' => true
+    ]
 ```
 
-Here we provide a definition for the `calendar` Roundcube plugin and we tell
-the plugin that it must be activated.
+Here we provide a definition for the `name` plugin and we tell that it must be
+enabled.
 
-### Installing a Roundcube plugin through the PHP dependency manager (Composer)
+#### Installing a Roundcube plugin through the PHP dependency manager (Composer)
 
-Most of time, you will have to go one step further by telling the plugin how to
-get and install the Roundcube plugin. This can be done by adding a composer
-section as follows
-
+Most of time, you will have to go one step further by telling how to get and
+install the plugin. This can be done by adding a `composer` section as follows:
 
 ```php
-        'calendar' => [
-            'enabled' => true
-            'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/calendar",
-                ],
-                'require'      => [
-                    'kolab/calendar' => '^3.3.0'
-                ]
+    'name' => [
+        ...
+        'composer' => [
+            'require' => [
+                'vendor/name' => '^1.0'
             ]
         ]
+    ]
 ```
 
 Basically, a `composer` section is what you would put in a
@@ -97,45 +72,146 @@ Basically, a `composer` section is what you would put in a
 dependency manager (Composer) able to download and install a PHP dependency,
 here, a Roundcube plugin.
 
-In the example above, we define a `Path` repository for the `kolab/calendar`
-Roundcube plugin and we require a non-breaking update using the `^` operator.
+In the example above, we require the vendor/name composer package.
 
 You can learn further about composer by looking at the official
 [documentation](https://getcomposer.org/doc/).
 
-### Roundcube plugin configuration
+#### Roundcube plugins not available through plugins.roundcube.net nor through packagist.org
 
-One step further can be needed if you want to override default Roundcube
-plugin parameters. To to so, you can add a `config` section that tells the
-plugin the name of the Roundcube plugin configuration file name and the
-parameters that must be overridden. All this can be done as follows:
+Sometime, a plugin is not available through official
+[Roundcube plugin](https://plugins.roundcube.net/) repository, nor through
+[packagist.org](https://packagist.org) repository. In such a case and
+if the plugin provides a `composer.json` file, you can define your own
+repository as follows:
 
 ```php
-        'calendar' => [
-            'enabled' => true
-            'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => "$pluginDir/roundcube-plugins/kolab/plugins/calendar"
-                ],
-                'require'      => [
-                    'kolab/calendar' => '^3.3.0'
-                ]
+    'name' => [
+        ...
+        'composer' => [
+            'repositories'    => [
+                'type' => 'path',
+                'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/name',
             ],
-            'config' => [
-                'file' => 'config.inc.php',
-                'parameters' => [
-                    'calendar_driver' => 'database',
-                    'calendar_default_view' => 'agendaDay'
-                ]
-            ]
+            ...
         ]
+    ]
 ```
 
-Basically, if you want to override a Roundcube plugin configuration parameter,
+In the above example, we define a `path` repository in which composer will look
+for the `name` plugin. We assume here that the Roundcube plugin has been
+downloaded manually under the `<PERSISTENT_PATH>/plugins/RoundcubePlugins/name`
+directory.
+
+#### Getting a Roundcube plugin from a Git repository
+
+It is possible to grab a plugin from a Git repository automatically by adding a
+`git` section as follows:
+
+```php
+    'name' => [
+        ...
+        'git'      => [
+            'repository' => 'https://domain.tld/vendor/name.git'
+        ],
+        ...
+    ]
+```
+
+By doing this, the repository will be automatically cloned under the
+`<PERSISTENT_PATH>/plugins/RoundcubePlugins/name` directory (eg:
+`/var/www/imscp/gui/data/persistent/plugins/RoundcubePlugins/repository_name)`
+
+However, note that usage of the `git` section above is only needed if the Git
+repository holds more than one plugin. Most of time, you can do the same thing
+through composer, using a
+[VCS](https://getcomposer.org/doc/05-repositories.md#vcs) repository.
+
+For instance:
+
+```php
+    'name' => [
+        ...
+        'composer' => [
+            'repositories' => [
+                'type' => 'vcs',
+                'url'  => "https://domain.tld/vendor/name.git"
+            ],
+            ...
+        ]
+    ]
+```
+
+#### Roundcube plugin configuration
+
+A last step is needed if you want to override default Roundcube plugin
+parameters. To to so, you can add a `config` section as follow:
+
+```php
+    'name' => [
+        ...
+        'config'  => [
+            'file'       => 'config.inc.php',
+            'include_file' => '/foo/bar/baz.php,
+            'parameters' => [
+                'param1' => 'value',
+                'param2' => 'value'
+            ]
+        ]
+    ]
+```
+
+where:
+
+- `file` is an OPTIONAL parameter that allows to override default plugin
+configuration template filename
+- `include_file` is an OPTIONAL parameter that allows to provide the path of a file
+that will be included in the Roundcube plugin configuration file. Note that the
+file must be readable by the control panel user (eg: vu2000). A good place for
+that file could be the `<PERSISTENT_PATH>/plugins/RoundcubePlugins` directory.
+- `parameters`: is an OPTIONAL parameter that allows to provide plugin parameters.
+Those parameters will be added at the end of the plugin configuration file
+
+To resume, if you want to override a Roundcube plugin configuration parameter,
 you must not edit its configuration file directly. Instead, you must process as
-above. This is needed because i-MSCP will not save your changes on
-reconfiguration/update.
+above. This is needed because the i-MSCP Roundcube package doesn't save your
+changes on reconfiguration/update.
+
+##### Configuration script
+
+Sometime a plugin can require more configuration works. For that purpose, you
+can provide your own configuration script as follows
+
+```php
+    'name' => [
+        ...
+        'config'  => [
+            ...
+            'script' => '/foo/bar/baz.pl'
+        ]
+    ]
+```
+In the above example, we provide the `/foo/bar/baz.pl` Perl script. That script
+will be executed automatically with the current action passed as first
+argument:
+
+- On Roundcube plugin pre-configuration: `/foo/bar/baz.pl pre-configure`
+- On Roundcube plugin configuration: `/foo/bar/baz.pl configure`
+- On Roundcube pre-deconfiguration: `/foo/bar/baz.pl pre-deconfigure`
+- On Roundcube deconfiguration: `/foo/bar/baz.pl deconfigure`
+
+Note that the script must provides a correct
+[shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)).
+
+For instance:
+
+- `#!/usr/bin/env perl` for a Perl script
+- `#!/usr/bin/env php` for a PHP for a PHP script
+- `#!/bin/sh` for a shell script
+- ...
+
+See [configure-managesieve.pl](config/scripts/configure-managesieve.pl) for a
+example.
 
 ## List of default Roundcube plugin definitions
 
@@ -146,7 +222,7 @@ reconfiguration/update.
 - `emoticons`: Adds emoticons support.
 - `logon_page`: Logon screen additions.
 - `managesieve`: Adds a possibility to manage Sieve scripts (incoming mail filters).
-- `newmail_notifier`: Provide notifications for new email.
+- `newmail_notifier`: Provide notifications for new emails.
 - `odfviewer`: Open Document Viewer plugin.
 - `pdfviewer`: Inline PDF viewer plugin.
 - `password`: Password Change for Roundcube.
