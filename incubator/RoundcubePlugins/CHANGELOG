@@ -2,14 +2,15 @@ RoundcubePlugins - ChangeLog
 ============================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 3.0.0 (full rewrite)
+Version 3.0.0 (full rewrite - Require i-MSCP >= 1.5.2)
 ------------------------------------------------------------------------------------------------------------------------
 
-    Full rewrite:
-     - Roundcube plugins are now installed through the PHP dependency manager (Composer)
-     - It is now possible to install additional plugins by adding plugin definitions in the plugin configuration file
-     - It is now possible to override any Roundcube plugin configuration parameter through the plugin configuration file
-     - It is now possible to target specific Roundcube plugin version through the plugin configuration file
+    - Added: Translation files (Dutch, German, English, Spanish, French, Russian)
+    - Make it possible to install any Roundcube plugin by adding plugin definitions in the plugin configuration file
+    - Make it possible to override any Roundcube plugin configuration parameter through the plugin configuration file
+    - Make it possible to target specific Roundcube plugin version through the plugin configuration file
+    - Removed: Local copies of Roundcube plugins; they are are now downloaded from upstream repositories)
+    - Removed: SQL migration files -- Roundcube plugins SQL schemas are now managed by the iMSCP/roundcube-plugin-installer
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.0.1

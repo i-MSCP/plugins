@@ -83,7 +83,7 @@ return [
         // Logon screen additions
         // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/logon_page
         'logon_page'                 => [
-            'enabled'  => false,
+            'enabled'  => true,
             'git'      => [
                 'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
             ],
@@ -95,15 +95,22 @@ return [
                 'require'      => [
                     'kolab/logon_page' => '~3.3.0'
                 ]
+            ],
+            'config'   => [
+                'script' => __DIR__ . '/config/scripts/configure-logon-page.pl'
             ]
         ],
 
         // Adds a possibility to manage Sieve scripts (incoming mail filters)
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins//managesieve
+        // Require: i-MSCP Dovecot server implementation
         'managesieve'                => [
-            'enabled' => false,
+            'enabled' => true,
             'config'  => [
                 'parameters' => [
+                    'managesieve_port' => 4190,
+                    'managesieve_host' => 'localhost',
+                    'managesieve_auth_type' => 'PLAIN',
                     'managesieve_default'     => __DIR__ . '/scripts/imscp_default.sieve',
                     'managesieve_script_name' => 'managesieve',
                     'managesieve_vacation'    => '1',

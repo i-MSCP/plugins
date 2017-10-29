@@ -18,18 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$dbName = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_roundcube');
-
 return [
-    'down' => "
-        DROP TABLE IF EXISTS $dbName.rcguard;
-        DROP TABLE IF EXISTS $dbName.tasks;
-        DROP TABLE IF EXISTS $dbName.tasklists;
-        DROP TABLE IF EXISTS $dbName.pop3fetcher_accounts;
-        DROP TABLE IF EXISTS $dbName.itipinvitations;
-        DROP TABLE IF EXISTS $dbName.attachments;
-        DROP TABLE IF EXISTS $dbName.events;
-        DROP TABLE IF EXISTS $dbName.calendars;
-        DELETE FROM $dbName.system WHERE NAME = 'calendar-database-version';  
-    "
+    'This plugin requires the i-MSCP Roundcube package.' => 'Este plugin requiere el paquete i-MSCP Roundcube.'
 ];

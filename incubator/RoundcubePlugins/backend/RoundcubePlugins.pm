@@ -63,6 +63,9 @@ sub update
 
     return 0 if version->parse( $fromVersion ) > version->parse( '3.0.0' );
 
+    # Remove old .composer directory
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer" )->remove();
+
     # Remove old-way configuration
     for( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}c/tools/webmail/config/config.inc.php" ) {
         next unless -f;
@@ -71,14 +74,12 @@ sub update
         my $fileContent = $file->get();
         defined $fileContent or die sprintf( "Couldn't read %s file", $file->{'filename'} );
 
-        $fileContent = replaceBloc(
+        $file->set( replaceBloc(
             qr/^\s*\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m,
             qr/\Q# Ending Plugin::RoundcubePlugin::\E.*\n/,
             '',
             $fileContent
-        );
-
-        $file->set( $fileContent );
+        ));
         $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
     }
 
@@ -265,12 +266,11 @@ sub _configurePlugins
             chmod( '+x', $config->{'script'} ) or die( sprintf( "Couldn't turns on the execute bit on the %s file" ));
 
             my $stderr = '';
-            my $rs = executeNoWait(
+            executeNoWait(
                 [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'pre-configure' : 'pre-deconfigure' ],
                 \&_stdRoutine,
                 sub { $stderr .= $_[0] }
-            );
-            $rs == 0 or die( $stderr || 'Unknown error' );
+            ) == 0 or die( $stderr || 'Unknown error' );
         }
 
         if ( $self->{'action'} eq 'enable' ) {
@@ -323,12 +323,11 @@ EOT
 
         if ( $config->{'script'} ) {
             my $stderr = '';
-            my $rs = executeNoWait(
+            executeNoWait(
                 [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'configure' : 'deconfigure' ],
                 \&_stdRoutine,
                 sub { $stderr .= $_[0] }
-            );
-            $rs == 0 or die( $stderr || 'Unknown error' );
+            ) == 0 or die( $stderr || 'Unknown error' );
         }
     }
 

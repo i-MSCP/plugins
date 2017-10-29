@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-package Plugin::RoundcubePlugins::Configure::Managesieve;
+package Plugin::RoundcubePlugins::Configure::Archive;
 
 # i-MSCP - internet Multi Server Control Panel
 # Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
@@ -59,28 +59,12 @@ iMSCP::Getopt->debug( 0 );
 my $action = shift or die 'Action missing';
 
 if ( !iMSCP::Service->getInstance()->hasService( 'dovecot' ) ) {
-    die( 'dovecot service not found' );
+    exit;
 }
 
-if ( $action eq 'pre-configure' ) {
-    local $ENV{'DEBIAN_FRONTEND'} = 'noninteractive';
-
-    my $stderr = '';
-    executeNoWait( [ 'apt-get', 'update' ], \&_std, sub { $stderr .= $_[0] } ) == 0 or die(
-        sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' )
-    ) == 0 or die( sprintf( "Couldn't update APT index: %s", $stderr || 'Unknown error' ));
-    executeNoWait(
-        [
-            'apt-get', '-o', 'DPkg::Options::=--force-confnew', '-o', 'DPkg::Options::=--force-confmiss',
-            '--assume-yes', '--auto-remove', '--no-install-recommends', '--purge', '--quiet', 'install',
-            'dovecot-sieve', 'dovecot-managesieved'
-        ],
-        \&_std,
-        sub { $stderr .= $_[0] }
-    ) == 0 or die( sprintf( "Couldn't install distribution packages: %s", $stderr || 'Unknown error' ));
-    undef $stderr;
-} elsif ( grep($action eq $_, 'configure', 'deconfigure') ) {
+if ( grep($action eq $_, 'configure', 'deconfigure') ) {
     &_configureDovecot;
+    iMSCP::Service->getInstance()->reload( 'dovecot' );
 }
 
 sub _configureDovecot
@@ -90,31 +74,26 @@ sub _configureDovecot
     iMSCP::Dir->new( dirname => "$poSrv->{'config'}->{'DOVECOT_CONF_DIR'}/imscp.d" )->make();
 
     my $file = iMSCP::File->new(
-        filename => "$poSrv->{'config'}->{'DOVECOT_CONF_DIR'}/imscp.d/imscp_managesieve.conf"
+        filename => "$poSrv->{'config'}->{'DOVECOT_CONF_DIR'}/imscp.d/imscp_archive.conf"
     );
 
     if ( -f $file->{'filename'} ) {
         $file->delFile() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
     }
 
-    return unless $action eq 'pre-configure';
+    return unless $action eq 'configure';
 
     $file->set( <<'EOT' );
-plugin {
-    sieve = file:~/sieve;active=~/.dovecot.sieve
+namespace inbox {
+    mailbox Archive {
+        auto = subscribe
+        special_use = \Archive
+    }
 }
-
-protocol lda {
-    mail_plugins = $mail_plugins sieve
-}
-
 EOT
     $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
-}
 
-sub _std
-{
-    debug( $_[0] ) if $_[0] =~ s///;
+    iMSCP::Service->getInstance()->reload( 'dovecot' ) if iMSCP::Service->getInstance()->hasService( 'dovecot' );
 }
 
 1;

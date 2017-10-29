@@ -18,41 +18,44 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-use iMSCP_Plugin as Plugin;
-use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Events as Events;
+use iMSCP_Events_Description as Event;
+use iMSCP_Events_Manager_Interface as EventManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
 use iMSCP_Plugin_Manager as PluginManager;
 
 /**
  * Class iMSCP_Plugin_RoundcubePlugins
  */
-class iMSCP_Plugin_RoundcubePlugins extends Plugin
+class iMSCP_Plugin_RoundcubePlugins extends PluginAction
 {
     /**
      * {@inheritdoc}
      */
-    public function update(PluginManager $pm, $fromVersion, $toVersion)
+    public function init()
     {
-        try {
-            $this->checkRequirements();
-
-            if (version_compare($fromVersion, '3.0.0', '>=')) {
-                return;
-            }
-
-            $this->migrateDb('down');
-        } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
-        }
+        l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function enable(PluginManager $pm)
+    public function register(EventManagerInterface $em)
     {
-        if (!in_array('Roundcube', getWebmailList())) {
-            throw new DomainException(tr('This plugin requires the i-MSCP Roundcube package.'));
+        if ($this->getPluginManager()->pluginIsEnabled($this->getName())) {
+            return;
         }
+
+        $em->registerListener(Events::onBeforeEnablePlugin, function (Event $e) {
+            if ($e->getParam('pluginName') != $this->getName()) {
+                return;
+            }
+
+            if (!in_array('Roundcube', getWebmailList())) {
+                set_page_message(tr('This plugin requires the i-MSCP Roundcube package.'), 'error');
+                $e->stopPropagation();
+            }
+        });
     }
 
     /**
@@ -60,18 +63,7 @@ class iMSCP_Plugin_RoundcubePlugins extends Plugin
      */
     public function uninstall(PluginManager $pm)
     {
-        // Only there to tell the plugin manager that this plugin provide uninstallation routine (backend).
-    }
-
-    /**
-     * Check for plugin requirements
-     *
-     * @return void
-     */
-    protected function checkRequirements()
-    {
-        if (!in_array('Roundcube', getWebmailList())) {
-            throw new DomainException(tr('This plugin requires the i-MSCP Roundcube package.'));
-        }
+        // Only there to tell the plugin manager that this plugin provide
+        // uninstallation routine (backend).
     }
 }
