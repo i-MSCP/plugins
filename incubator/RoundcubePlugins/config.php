@@ -23,11 +23,10 @@ return [
     // See the README.md file inside the plugin archive for
     // further details.
     'plugins' => [
-
         // Add additional headers to or remove them from outgoing messages
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins/additional_message_headers
         'additional_message_headers' => [
-            'enabled' => false,
+            'enabled' => true,
             'config'  => [
                 'include_file' => __DIR__ . '/config/included/additional_message_headers.php'
             ]
@@ -105,12 +104,12 @@ return [
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins//managesieve
         // Require: i-MSCP Dovecot server implementation
         'managesieve'                => [
-            'enabled' => true,
+            'enabled' => false,
             'config'  => [
                 'parameters' => [
-                    'managesieve_port' => 4190,
-                    'managesieve_host' => 'localhost',
-                    'managesieve_auth_type' => 'PLAIN',
+                    'managesieve_port'        => 4190,
+                    'managesieve_host'        => 'localhost',
+                    'managesieve_auth_type'   => 'PLAIN',
                     'managesieve_default'     => __DIR__ . '/scripts/imscp_default.sieve',
                     'managesieve_script_name' => 'managesieve',
                     'managesieve_vacation'    => '1',
@@ -206,7 +205,7 @@ return [
         // Task management plugin
         // See https://plugins.roundcube.net/packages/kolab/tasklist
         'tasklist'                   => [
-            'enabled'  => false,
+            'enabled'  => true,
             'composer' => [
                 'require' => [
                     'kolab/tasklist' => '~3.3.0'

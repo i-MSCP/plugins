@@ -60,12 +60,12 @@ if ( $action eq 'configure' ) {
             "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins/logon_page"
         ) == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
     }
-} elsif ( $action eq 'deconfigure' ) {
-    if ( -f "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins" ) {
-        iMSCP::File->new( filename => "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins" )->delFile() == 0 or die(
-            getMessageByType( 'error', { amount => 1, remove => 1 } )
-        );
-    }
+} elsif ( $action eq 'deconfigure'
+    && -f "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins"
+) {
+    iMSCP::File->new( filename => "$main::imscpConfig{'PLUGINS_DIR'}/RoundcubePlugins" )->delFile() == 0 or die(
+        getMessageByType( 'error', { amount => 1, remove => 1 } )
+    );
 }
 
 1;

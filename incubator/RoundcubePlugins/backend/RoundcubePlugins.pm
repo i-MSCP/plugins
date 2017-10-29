@@ -30,15 +30,13 @@ use File::chmod qw/ chmod /;
 use iMSCP::Composer;
 use iMSCP::Debug qw/ debug error getMessageByType /;
 use iMSCP::Dir;
-use iMSCP::Execute qw/ execute executeNoWait /;
+use iMSCP::Execute qw/ executeNoWait /;
 use iMSCP::File;
 use iMSCP::TemplateParser qw/ replaceBloc /;
 use JSON;
 use PHP::Var qw/ export /;
 use version;
 use parent 'Common::SingletonClass';
-
-$File::chmod::UMASK = 0;
 
 =head1 DESCRIPTION
 
@@ -63,11 +61,20 @@ sub update
 
     return 0 if version->parse( $fromVersion ) > version->parse( '3.0.0' );
 
+    # Make sure that composer.json-dist is available
+    if ( -f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json"
+        && !-f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json-dist"
+    ) {
+        iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json" )->moveFile(
+            "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json-dist"
+        ) == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
+    }
+
     # Remove old .composer directory
     iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer" )->remove();
 
     # Remove old-way configuration
-    for( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}c/tools/webmail/config/config.inc.php" ) {
+    for( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php" ) {
         next unless -f;
 
         my $file = iMSCP::File->new( filename => $_ );
@@ -83,6 +90,13 @@ sub update
         $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
     }
 
+    # Fix permissions, else composer will fail to delete older files
+    my $stderr = '';
+    executeNoWait(
+        [ 'perl', "$main::imscpConfig{'ENGINE_ROOT_DIR'}/setup/set-gui-permissions.pl", '-v' ],
+        \&_stdRoutine,
+        sub { $stderr .= $_[0] }
+    ) == 0 or die( $stderr || 'Unknown error' );
     0;
 }
 
@@ -263,7 +277,10 @@ sub _configurePlugins
             ref $config->{'script'} eq '' or die( 'Invalid `include_file` parameter' );
             -f $config->{'script'} or die( sprintf( 'File %s is missing or not executable', $config->{'script'} ));
             # Make sure that the script is executable
-            chmod( '+x', $config->{'script'} ) or die( sprintf( "Couldn't turns on the execute bit on the %s file" ));
+            $File::chmod::UMASK = 0; # Stick to system CHMOD(1) behavior
+            chmod( 'u+x', $config->{'script'} ) or die(
+                sprintf( "Couldn't turns on the executable bit on the %s file", $config->{'script'} )
+            );
 
             my $stderr = '';
             executeNoWait(
@@ -400,25 +417,24 @@ sub _cloneGitRepository
 
     my $targetDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins/"
         . basename( $repository, '.git' );
-
-    my $rs = execute(
+    my $stderr = '';
+    executeNoWait(
         [
             '/bin/su',
             '-l', $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
             '-s', '/bin/sh',
-            '-c', "/usr/bin/git @{ [ -d $targetDir ? qq/-C $targetDir pull/ : 'clone --depth 1' ]}"
-                . " --quiet $repository" . " @{ [ -d _ ? '' : $targetDir ]}"
+            '-c', "LANG=C /usr/bin/git @{ [ -d $targetDir ? qq/-C $targetDir pull/ : 'clone --depth 1' ]} $repository"
+                . " @{ [ -d _ ? '' : $targetDir ]}"
         ],
-        \my $stdout,
-        \my $stderr
-    );
-    debug( $stdout ) if $stdout;
-    $rs == 0 or die( sprintf( "Couldn't clone/pull the %s repository: %s", $repository, $stderr || 'Unknown error' ));
+        \&_stdRoutine,
+        sub { $stderr .= $_[0] }
+    ) == 0 or die( sprintf( "Couldn't clone/pull the %s repository: %s", $repository, $stderr || 'Unknown error' ));
+    0;
 }
 
 =item _stdRoutine
 
- STD routine for the iMSCP::Composer object
+ STD routine
 
  Return void
  

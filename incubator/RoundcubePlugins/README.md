@@ -13,6 +13,9 @@ Provides plugins for the Roundcube Webmail Suite.
 2. Upload the plugin through the plugin management interface
 3. Activate the plugin through the plugin management interface
 
+Note that depending on connection speed, installation can take up several
+minutes.
+
 ## Update
 
 1. Be sure that all requirements are met
@@ -20,6 +23,8 @@ Provides plugins for the Roundcube Webmail Suite.
 3. Upload the plugin through the plugin management interface
 4. Restore your plugin configuration file if needed
 5. Update the plugin list through the plugin management interface
+
+Note that depending on connection speed, update can take up several minutes.
 
 ## Configuration
 
