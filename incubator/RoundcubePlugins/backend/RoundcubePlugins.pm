@@ -241,13 +241,16 @@ sub _getComposer
     delete $composerJson->{'require'}->{'roundcube/plugin-installer'};
     $composer->requirePackage( 'imscp/roundcube-plugin-installer', '^1.0' );
     $composerJson->{'config'} = {
-        'cache-files-ttl'   => 15552000,
-        cafile              => $main::imscpConfig{'DISTRO_CA_BUNDLE'},
-        capath              => $main::imscpConfig{'DISTRO_CA_PATH'},
-        'discard-changes'   => JSON::true,
-        'htaccess-protect'  => JSON::false,
-        'preferred-install' => 'dist',
-        'process-timeout'   => 2000
+        'cache-files-ttl'        => 15552000,
+        cafile                   => $main::imscpConfig{'DISTRO_CA_BUNDLE'},
+        capath                   => $main::imscpConfig{'DISTRO_CA_PATH'},
+        'classmap-authoritative' => JSON::false,
+        'discard-changes'        => JSON::true,
+        'htaccess-protect'       => JSON::false,
+        'optimize-autoloader'    => JSON::true,
+        'apcu-autoloader'        => JSON::true,
+        'preferred-install'      => 'dist',
+        'process-timeout'        => 2000
     };
     $composerJson->{'minimum-stability'} = 'dev';
     $composerJson->{'prefer-stable'} = JSON::true;
