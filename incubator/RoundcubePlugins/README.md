@@ -186,13 +186,13 @@ Sometime a plugin can require more configuration works. For that purpose, you
 can provide your own configuration script as follows
 
 ```php
-    'name' => [
+'name' => [
+    ...
+    'config'  => [
         ...
-        'config'  => [
-            ...
-            'script' => '/foo/bar/baz.pl'
-        ]
+        'script' => '/foo/bar/baz.pl'
     ]
+]
 ```
 In the above example, we provide the `/foo/bar/baz.pl` Perl script. That script
 will be executed automatically with the current action passed as first
