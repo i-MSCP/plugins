@@ -1,11 +1,11 @@
 # i-MSCP RoundcubePlugins plugin v3.0.0
 
-Provides plugins for the Roundcube Webmail Suite.
+Provides Roundcube plugins through PHP dependency manager (Composer).
 
 ## Requirements
 
-- i-MSCP 1.5.x Serie (version >= 1.5.2)
-- Roundcube >= 1.3.x
+- i-MSCP 1.5.x Serie (version ≥ 1.5.2)
+- Roundcube ≥ 1.3.x
 
 ## Installation
 
@@ -59,10 +59,10 @@ install the plugin. This can be done by adding a `composer` section as follows:
 
 ```php
     'name' => [
-        ...
+        'enabled'  => true,
         'composer' => [
             'require' => [
-                'vendor/name' => '^1.0'
+                'vendor/name' => '~1.0.0'
             ]
         ]
     ]
@@ -80,73 +80,75 @@ You can learn further about composer by looking at the official
 
 #### Roundcube plugins not available through plugins.roundcube.net nor through packagist.org
 
-Sometime, a plugin is not available through official
-[Roundcube plugin](https://plugins.roundcube.net/) repository, nor through
-[packagist.org](https://packagist.org) repository. In such a case and
-if the plugin provides a `composer.json` file, you can define your own
-repository as follows:
+Not all Roundcube plugins are available through official
+[Roundcube plugin](https://plugins.roundcube.net/) repository, or through
+[packagist.org](https://packagist.org) repository. In such a case you can
+define your own repository. For instance:
 
 ```php
     'name' => [
-        ...
-        'composer' => [
-            'repositories'    => [
-                'type' => 'path',
-                'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/name',
-            ],
-            ...
-        ]
-    ]
-```
-
-In the above example, we define a `path` repository in which composer will look
-for the `name` plugin. We assume here that the Roundcube plugin has been
-downloaded manually under the `<PERSISTENT_PATH>/plugins/RoundcubePlugins/name`
-directory.
-
-#### Getting a Roundcube plugin from a Git repository
-
-It is possible to grab a plugin from a Git repository automatically by adding a
-`git` section as follows:
-
-```php
-    'name' => [
-        ...
-        'git'      => [
-            'repository' => 'https://domain.tld/vendor/name.git'
-        ],
-        ...
-    ]
-```
-
-By doing this, the repository will be automatically cloned under the
-`<PERSISTENT_PATH>/plugins/RoundcubePlugins/name` directory (eg:
-`/var/www/imscp/gui/data/persistent/plugins/RoundcubePlugins/repository_name)`
-
-However, note that usage of the `git` section above is only needed if the Git
-repository holds more than one plugin. Most of time, you can do the same thing
-through composer, using a
-[VCS](https://getcomposer.org/doc/05-repositories.md#vcs) repository.
-
-For instance:
-
-```php
-    'name' => [
-        ...
+        'enabled' => true
         'composer' => [
             'repositories' => [
                 'type' => 'vcs',
                 'url'  => "https://domain.tld/vendor/name.git"
             ],
-            ...
+            'require' => '^1.0'
         ]
     ]
 ```
 
+Note that the repository must conform to composer requirements.
+
+Read [Composer repositories](https://getcomposer.org/doc/05-repositories.md)
+for more details about supported repository types.
+
+#### Installing a Roundcube plugin from a Git repository that hold many plugins
+
+Roundcube plugins are not always maintained through their own repository and
+therefore, they are not made publicly available through the PHP dependency
+manager. You can still install these plugins as follows:
+
+Let's take the example of the Kolab `odfviewer` Roundcube plugin that is made
+available through the [Kolab Roundcube plugins](https://git.kolab.org/diffusion/RPK/)
+repository:
+
+##### Cloning the repository
+
+```shell
+
+git clone -b roundcubemail-plugins-kolab-3.3.3 --single-branch --depth 1 \
+https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemail-plugins-kolab-3.3.3
+```
+
+#### Adding plugin definition
+
+```php
+    'odfviewer' => [
+        'enabled'  => true,
+        'composer' => [
+            'repositories' => [
+                [
+                    'type'    => 'path',
+                    'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
+                    "options" => [
+                        "symlink" => false
+                    ]
+                ]
+            ],
+            'require'      => [
+                'kolab/odfviewer' => '3.3.0'
+            ]
+        ]
+    ]
+```
+
+See [PATH repository](https://getcomposer.org/doc/05-repositories.md#path) for
+more details about the composer 'Path' repository.
+
 #### Roundcube plugin configuration
 
-A last step is needed if you want to override default Roundcube plugin
-parameters. To to so, you can add a `config` section as follow:
+You can override default Roundcube plugin configuration as follows:
 
 ```php
     'name' => [
@@ -221,11 +223,8 @@ example.
 - `calendar`: Provide calendaring features.
 - `contextmenu`: Creates context menus for various parts of Roundcube using commands from the toolbars.
 - `emoticons`: Adds emoticons support.
-- `logon_page`: Logon screen additions.
 - `managesieve`: Adds a possibility to manage Sieve scripts (incoming mail filters).
 - `newmail_notifier`: Provide notifications for new emails.
-- `odfviewer`: Open Document Viewer plugin.
-- `pdfviewer`: Inline PDF viewer plugin.
 - `password`: Password Change for Roundcube.
 - `rcguard`: Enforces reCAPTCHA for users that have too many failed logins
 - `tasklist`: Task management plugin.

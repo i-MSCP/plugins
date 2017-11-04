@@ -79,27 +79,6 @@ return [
             ]
         ],
 
-        // Logon screen additions
-        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/logon_page
-        'logon_page'                 => [
-            'enabled'  => true,
-            'git'      => [
-                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-            ],
-            'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/logon_page'
-                ],
-                'require'      => [
-                    'kolab/logon_page' => '~3.3.0'
-                ]
-            ],
-            'config'   => [
-                'script' => __DIR__ . '/config/scripts/configure-logon-page.pl'
-            ]
-        ],
-
         // Adds a possibility to manage Sieve scripts (incoming mail filters)
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins//managesieve
         // Require: i-MSCP Dovecot server implementation
@@ -128,42 +107,6 @@ return [
                     'newmail_notifier_sound'           => true,
                     'newmail_notifier_desktop'         => true,
                     'newmail_notifier_desktop_timeout' => 10
-                ]
-            ]
-        ],
-
-        // Open Document Viewer plugin
-        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/odfviewer
-        'odfviewer'                  => [
-            'enabled'  => true,
-            'git'      => [
-                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-            ],
-            'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/odfviewer'
-                ],
-                'require'      => [
-                    'kolab/odfviewer' => '~3.3.0'
-                ]
-            ]
-        ],
-
-        // Inline PDF viewer plugin
-        // See https://git.kolab.org/diffusion/RPK/browse/master/plugins/pdfviewer
-        'pdfviewer'                  => [
-            'git'      => [
-                'repository' => 'https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git',
-            ],
-            'enabled'  => true,
-            'composer' => [
-                'repositories' => [
-                    'type' => 'path',
-                    'url'  => PERSISTENT_PATH . '/plugins/RoundcubePlugins/roundcubemail-plugins-kolab/plugins/pdfviewer'
-                ],
-                'require'      => [
-                    'kolab/pdfviewer' => '~3.3.0'
                 ]
             ]
         ],
@@ -236,6 +179,28 @@ return [
                     'zipdownload_attachments' => 1,
                     'zipdownload_selection'   => false,
                     'zipdownload_charset'     => 'UTF-8'
+                ]
+            ]
+        ],
+
+        #
+        ## Add your own Roundcube plugin definitions below
+        #
+
+        'odfviewer' => [
+            'enabled'  => true,
+            'composer' => [
+                'repositories' => [
+                    [
+                        'type'    => 'path',
+                        'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
+                        "options" => [
+                            "symlink" => false
+                        ]
+                    ]
+                ],
+                'require'      => [
+                    'kolab/odfviewer' => '3.3.0'
                 ]
             ]
         ]

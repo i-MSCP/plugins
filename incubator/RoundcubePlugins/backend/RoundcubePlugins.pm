@@ -26,6 +26,7 @@ package Plugin::RoundcubePlugins;
 use strict;
 use warnings;
 use File::Basename qw/ basename /;
+use File::Spec;
 use File::chmod qw/ chmod /;
 use iMSCP::Composer;
 use iMSCP::Debug qw/ debug error getMessageByType /;
@@ -144,13 +145,8 @@ sub enable
     while ( my ($plugin, $meta) = each( %{$self->{'config'}->{'plugins'}} ) ) {
         next unless $meta->{'enabled'};
 
-        if ( $meta->{'git'}->{'repository'} ) {
-            $self->_cloneGitRepository( $meta->{'git'}->{'repository'} );
-        }
-
         if ( $meta->{'composer'}->{'repositories'} ) {
-            # TODO: Remove duplicate repositories
-            push @{$composerJson->{'repositories'}}, $meta->{'composer'}->{'repositories'};
+            push @{$composerJson->{'repositories'}}, $_ for @{ $meta->{'composer'}->{'repositories'}};
         }
 
         while ( my ($package, $version) = each( %{$meta->{'composer'}->{'require'}} ) ) {
@@ -399,40 +395,6 @@ EOF
 
     $file->set( $fileContent );
     $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
-}
-
-=item _cloneGitRepository( $repository )
-
- Clone the given git repository, update it if it already exists
-
- Param string $repository Git repository URL
- Return void, die on failure
-
-=cut
-
-sub _cloneGitRepository
-{
-    my ($self, $repository) = @_;
-
-    return if $self->{'_seen_git_repositories'}->{$repository};
-
-    $self->{'_seen_git_repositories'}->{$repository} = 1;
-
-    my $targetDir = "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins/"
-        . basename( $repository, '.git' );
-    my $stderr = '';
-    executeNoWait(
-        [
-            '/bin/su',
-            '-l', $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-            '-s', '/bin/sh',
-            '-c', "LANG=C /usr/bin/git @{ [ -d $targetDir ? qq/-C $targetDir pull/ : 'clone --depth 1' ]} $repository"
-                . " @{ [ -d _ ? '' : $targetDir ]}"
-        ],
-        \&_stdRoutine,
-        sub { $stderr .= $_[0] }
-    ) == 0 or die( sprintf( "Couldn't clone/pull the %s repository: %s", $repository, $stderr || 'Unknown error' ));
-    0;
 }
 
 =item _stdRoutine

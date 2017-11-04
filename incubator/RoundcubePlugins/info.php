@@ -22,11 +22,11 @@ return [
     'author'                => 'Laurent Declercq',
     'email'                 => 'l.declercq@nuxwin.com>',
     'version'               => '3.0.0',
-    'build'                 => '2017102900',
-    'date'                  => '2017-10-29',
+    'build'                 => '2017110400',
+    'date'                  => '2017-14-04',
     'require_api'           => '1.5.1',
     'require_cache_flush'   => 'opcache',
     'name'                  => 'RoundcubePlugins',
-    'desc'                  => 'Provides plugins for the Roundcube Webmail Suite.',
+    'desc'                  => 'Provides Roundcube plugins through PHP dependency manager (Composer).',
     'url'                   => 'https://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 ];
