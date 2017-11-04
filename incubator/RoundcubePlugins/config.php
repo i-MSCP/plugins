@@ -19,7 +19,10 @@
  */
 
 return [
-    // Roundcube plugin definitions
+    //
+    //// Default Roundcube plugin definitions
+    //
+
     // See the README.md file inside the plugin archive for
     // further details.
     'plugins' => [
@@ -183,26 +186,8 @@ return [
             ]
         ],
 
-        #
-        ## Add your own Roundcube plugin definitions below
-        #
-
-        'odfviewer' => [
-            'enabled'  => true,
-            'composer' => [
-                'repositories' => [
-                    [
-                        'type'    => 'path',
-                        'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
-                        "options" => [
-                            "symlink" => false
-                        ]
-                    ]
-                ],
-                'require'      => [
-                    'kolab/odfviewer' => '3.3.0'
-                ]
-            ]
-        ]
+        //
+        //// Add your own Roundcube plugin definitions below
+        //
     ]
 ];
