@@ -44,9 +44,9 @@ definitions in the plugin [configuration file](../RoundcubePlugins/config.php).
 A basic Roundcube plugin definition looks as follows:
 
 ```php
-    'name' => [
-        'enabled' => true
-    ]
+'name' => [
+    'enabled' => true
+]
 ```
 
 Here we provide a definition for the `name` plugin and we tell that it must be
@@ -58,14 +58,14 @@ Most of time, you will have to go one step further by telling how to get and
 install the plugin. This can be done by adding a `composer` section as follows:
 
 ```php
-    'name' => [
-        'enabled'  => true,
-        'composer' => [
-            'require' => [
-                'vendor/name' => '~1.0.0'
-            ]
+'name' => [
+    'enabled'  => true,
+    'composer' => [
+        'require' => [
+            'vendor/name' => '~1.0.0'
         ]
     ]
+]
 ```
 
 Basically, a `composer` section is what you would put in a
@@ -86,16 +86,16 @@ Not all Roundcube plugins are available through official
 define your own repository. For instance:
 
 ```php
-    'name' => [
-        'enabled' => true
-        'composer' => [
-            'repositories' => [
-                'type' => 'vcs',
-                'url'  => "https://domain.tld/vendor/name.git"
-            ],
-            'require' => '^1.0'
-        ]
+'name' => [
+    'enabled'  => true,
+    'composer' => [
+        'repositories' => [
+            'type' => 'vcs',
+            'url'  => "https://domain.tld/vendor/name.git"
+        ],
+        'require'      => '^1.0'
     ]
+]
 ```
 
 Note that the repository must conform to composer requirements.
@@ -124,44 +124,44 @@ https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemai
 #### Adding plugin definition
 
 ```php
-    'odfviewer' => [
-        'enabled'  => true,
-        'composer' => [
-            'repositories' => [
-                [
-                    'type'    => 'path',
-                    'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
-                    "options" => [
-                        "symlink" => false
-                    ]
+'odfviewer' => [
+    'enabled'  => true,
+    'composer' => [
+        'repositories' => [
+            [
+                'type'    => 'path',
+                'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
+                "options" => [
+                    "symlink" => false
                 ]
-            ],
-            'require'      => [
-                'kolab/odfviewer' => '3.3.0'
             ]
+        ],
+        'require'      => [
+            'kolab/odfviewer' => '3.3.0'
         ]
     ]
+]
 ```
 
 See [PATH repository](https://getcomposer.org/doc/05-repositories.md#path) for
-more details about the composer 'Path' repository.
+more details about the composer `Path` repository.
 
 #### Roundcube plugin configuration
 
 You can override default Roundcube plugin configuration as follows:
 
 ```php
-    'name' => [
-        ...
-        'config'  => [
-            'file'       => 'config.inc.php',
-            'include_file' => '/foo/bar/baz.php,
-            'parameters' => [
-                'param1' => 'value',
-                'param2' => 'value'
-            ]
+'name' => [
+    ...
+    'config'  => [
+        'file'         => 'config.inc.php',
+        'include_file' => '/foo/bar/baz.php,
+        'parameters' => [
+            'param1' => 'value',
+            'param2' => 'value'
         ]
     ]
+]
 ```
 
 where:
