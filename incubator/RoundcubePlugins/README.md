@@ -91,7 +91,7 @@ define your own repository. For instance:
     'composer' => [
         'repositories' => [
             'type' => 'vcs',
-            'url'  => "https://domain.tld/vendor/name.git"
+            'url'  => 'https://domain.tld/vendor/name.git'
         ],
         'require'      => '^1.0'
     ]
@@ -131,8 +131,8 @@ https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemai
             [
                 'type'    => 'path',
                 'url'     => '/usr/local/src/roundcubemail-plugins-kolab-3.3.3/plugins/odfviewer',
-                "options" => [
-                    "symlink" => false
+                'options' => [
+                    'symlink' => false
                 ]
             ]
         ],
@@ -155,7 +155,7 @@ You can override default Roundcube plugin configuration as follows:
     ...
     'config'  => [
         'file'         => 'config.inc.php',
-        'include_file' => '/foo/bar/baz.php,
+        'include_file' => '/foo/bar/baz.php',
         'parameters' => [
             'param1' => 'value',
             'param2' => 'value'
