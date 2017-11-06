@@ -137,7 +137,7 @@ https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemai
             ]
         ],
         'require'      => [
-            'kolab/odfviewer' => '3.3.0'
+            'kolab/odfviewer' => '3.3.3'
         ]
     ]
 ]

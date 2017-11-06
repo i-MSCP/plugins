@@ -26,7 +26,6 @@ package Plugin::RoundcubePlugins;
 use strict;
 use warnings;
 use File::Basename qw/ basename /;
-use File::Spec;
 use File::chmod qw/ chmod /;
 use iMSCP::Composer;
 use iMSCP::Debug qw/ debug error getMessageByType /;
@@ -89,6 +88,9 @@ sub update
             $fileContent
         ));
         $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
+
+        require iMSCP::Service;
+        iMSCP::Service->getInstance()->reload( 'dovecot' );
     }
 
     # Fix permissions, else composer will fail to delete older files
@@ -146,7 +148,7 @@ sub enable
         next unless $meta->{'enabled'};
 
         if ( $meta->{'composer'}->{'repositories'} ) {
-            push @{$composerJson->{'repositories'}}, $_ for @{ $meta->{'composer'}->{'repositories'}};
+            push @{$composerJson->{'repositories'}}, $_ for @{$meta->{'composer'}->{'repositories'}};
         }
 
         while ( my ($package, $version) = each( %{$meta->{'composer'}->{'require'}} ) ) {
@@ -156,7 +158,9 @@ sub enable
         push @plugins, $plugin;
     }
 
-    $composer->setStdRoutines( \&_stdRoutine, \&_stdRoutine )->installPackages();
+    $composer
+        ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
+        ->updatePackages();
     $self->_configurePlugins( @plugins );
     $self->_togglePlugins( @plugins );
     0;
@@ -179,7 +183,7 @@ sub disable
     if ( $self->{'action'} eq 'disable' ) {
         $self->_getComposer()
             ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
-            ->installPackages();
+            ->updatePackages();
         @plugins = grep (
             $self->{'config_prev'}->{'plugins'}->{$_}->{'enabled'}, keys %{$self->{'config_prev'}->{'plugins'}}
         );
@@ -346,8 +350,6 @@ EOT
             ) == 0 or die( $stderr || 'Unknown error' );
         }
     }
-
-    0;
 }
 
 =item _togglePlugins( @plugins )
@@ -380,10 +382,9 @@ sub _togglePlugins
             }
         }
 
-        return unless $fileContent =~
-            s/\$config\s*\[['"]plugins['"]\s*\].*;/\$config['plugins'] = @{ [ export( [ sort @activePlugins ], purity =>
-                1, short                                                                                              =>
-                1 ) ] }/is
+        return unless $fileContent =~ s/\$config\s*\[['"]plugins['"]\s*\].*;/\$config['plugins'] = @{
+            [ export( [ sort @activePlugins ], purity => 1, short => 1 ) ]
+        }/is
     } else {
         @plugins = undef if $self->{'action'} eq 'disable';
         $fileContent .= <<"EOF";
