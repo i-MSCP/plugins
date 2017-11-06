@@ -23,7 +23,7 @@ return [
     'email'                 => 'l.declercq@nuxwin.com>',
     'version'               => '3.0.0',
     'build'                 => '2017110400',
-    'date'                  => '2017-14-04',
+    'date'                  => '2017-11-06',
     'require_api'           => '1.5.1',
     'require_cache_flush'   => 'opcache',
     'name'                  => 'RoundcubePlugins',
