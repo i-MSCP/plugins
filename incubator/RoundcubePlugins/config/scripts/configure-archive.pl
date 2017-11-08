@@ -64,7 +64,7 @@ if ( !iMSCP::Service->getInstance()->hasService( 'dovecot' ) ) {
 
 if ( grep($action eq $_, 'configure', 'deconfigure') ) {
     &_configureDovecot;
-    iMSCP::Service->getInstance()->reload( 'dovecot' );
+    iMSCP::Service->getInstance()->restart( 'dovecot' );
 }
 
 sub _configureDovecot

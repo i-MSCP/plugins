@@ -90,7 +90,7 @@ sub update
         $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
 
         require iMSCP::Service;
-        iMSCP::Service->getInstance()->reload( 'dovecot' );
+        iMSCP::Service->getInstance()->restart( 'dovecot' );
     }
 
     # Fix permissions, else composer will fail to delete older files

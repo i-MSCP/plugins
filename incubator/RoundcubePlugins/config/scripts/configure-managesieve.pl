@@ -81,6 +81,7 @@ if ( $action eq 'pre-configure' ) {
     undef $stderr;
 } elsif ( grep($action eq $_, 'configure', 'deconfigure') ) {
     &_configureDovecot;
+    iMSCP::Service->getInstance()->restart( 'dovecot' );
 }
 
 sub _configureDovecot
