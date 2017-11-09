@@ -111,12 +111,12 @@ manager. You can still install these plugins as follows:
 
 Let's take the example of the Kolab `odfviewer` Roundcube plugin that is made
 available through the [Kolab Roundcube plugins](https://git.kolab.org/diffusion/RPK/)
-repository:
+git repository:
 
 ##### Cloning the repository
 
 ```shell
-
+cd /usr/local/src
 git clone -b roundcubemail-plugins-kolab-3.3.3 --single-branch --depth 1 \
 https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemail-plugins-kolab-3.3.3
 ```
@@ -144,7 +144,7 @@ https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git roundcubemai
 ```
 
 See [PATH repository](https://getcomposer.org/doc/05-repositories.md#path) for
-more details about the composer `Path` repository.
+more details about the composer `path` repository.
 
 #### Roundcube plugin configuration
 

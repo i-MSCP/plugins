@@ -19,5 +19,5 @@
  */
 
 return [
-    'This plugin requires the i-MSCP Roundcube package.' => 'Ce plugin requiert le package i-MSCP Roundcube.'
+    'This plugin requires the i-MSCP Roundcube package.' => 'Cette extension requiert le paquet i-MSCP Roundcube.'
 ];
