@@ -19,10 +19,7 @@ minutes.
 ## Update
 
 1. Be sure that all requirements are met
-2. Backup your plugin configuration file if needed
-3. Upload the plugin through the plugin management interface
-4. Restore your plugin configuration file if needed
-5. Update the plugin list through the plugin management interface
+2. Upload the plugin through the plugin management interface
 
 Note that depending on connection speed, update can take up several minutes.
 
@@ -171,7 +168,8 @@ configuration template filename
 - `include_file` is an OPTIONAL parameter that allows to provide the path of a file
 that will be included in the Roundcube plugin configuration file. Note that the
 file must be readable by the control panel user (eg: vu2000). A good place for
-that file could be the `<PERSISTENT_PATH>/plugins/RoundcubePlugins` directory.
+that file could be the `/var/www/imscp/gui/data/persistent/plugins/RoundcubePlugins`
+directory.
 - `parameters`: is an OPTIONAL parameter that allows to provide plugin parameters.
 Those parameters will be added at the end of the plugin configuration file
 

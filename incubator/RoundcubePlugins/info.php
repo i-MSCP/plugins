@@ -19,14 +19,14 @@
  */
 
 return [
-    'author'                => 'Laurent Declercq',
-    'email'                 => 'l.declercq@nuxwin.com>',
-    'version'               => '3.0.0',
-    'date'                  => '2017-11-13',
-    'build'                 => '2017111300',
-    'require_api'           => '1.5.1',
-    'require_cache_flush'   => 'opcache',
-    'name'                  => 'RoundcubePlugins',
-    'desc'                  => 'Provides Roundcube plugins through PHP dependency manager (Composer).',
-    'url'                   => 'https://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
+    'author'              => 'Laurent Declercq',
+    'email'               => 'l.declercq@nuxwin.com>',
+    'version'             => '3.0.0',
+    'date'                => '2017-11-13',
+    'build'               => '2017111300',
+    'require_api'         => '1.5.1',
+    'require_cache_flush' => 'opcache',
+    'name'                => 'RoundcubePlugins',
+    'desc'                => 'Provides Roundcube plugins through PHP dependency manager (Composer).',
+    'url'                 => 'https://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 ];
