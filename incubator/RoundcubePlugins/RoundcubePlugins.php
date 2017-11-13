@@ -18,23 +18,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+namespace iMSCP\Plugin;
+
 use iMSCP_Events as Events;
 use iMSCP_Events_Description as Event;
 use iMSCP_Events_Manager_Interface as EventManagerInterface;
 use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
 use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
 
 /**
- * Class iMSCP_Plugin_RoundcubePlugins
+ * Class RoundcubePlugins
+ * @package iMSCP\Plugin
  */
-class iMSCP_Plugin_RoundcubePlugins extends PluginAction
+class RoundcubePlugins extends PluginAction
 {
     /**
      * {@inheritdoc}
      */
     public function init()
     {
-        l10n_addTranslations(__DIR__ . '/l10n', 'Array', $this->getName());
+        l10n_addTranslations(__DIR__ . '/l10n', 'Array', 'RoundcubePlugins');
     }
 
     /**
@@ -42,12 +47,12 @@ class iMSCP_Plugin_RoundcubePlugins extends PluginAction
      */
     public function register(EventManagerInterface $em)
     {
-        if ($this->getPluginManager()->pluginIsEnabled($this->getName())) {
+        if ($this->getPluginManager()->pluginIsEnabled('RoundcubePlugins')) {
             return;
         }
 
         $em->registerListener(Events::onBeforeEnablePlugin, function (Event $e) {
-            if ($e->getParam('pluginName') != $this->getName()) {
+            if ($e->getParam('pluginName') != 'RoundcubePlugins') {
                 return;
             }
 
@@ -63,7 +68,24 @@ class iMSCP_Plugin_RoundcubePlugins extends PluginAction
      */
     public function uninstall(PluginManager $pm)
     {
-        // Only there to tell the plugin manager that this plugin provide
-        // uninstallation routine (backend).
+        try {
+            $this->clearTranslations();
+        } catch (\Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Clear translations if any
+     *
+     * @return void
+     */
+    protected function clearTranslations()
+    {
+        /** @var \Zend_Translate $translator */
+        $translator = Registry::get('translator');
+        if ($translator->hasCache()) {
+            $translator->clearCache('RoundcubePlugins');
+        }
     }
 }

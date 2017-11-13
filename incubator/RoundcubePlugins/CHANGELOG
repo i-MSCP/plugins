@@ -2,15 +2,15 @@ RoundcubePlugins - ChangeLog
 ============================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 3.0.0 (full rewrite - Require i-MSCP >= 1.5.2 / Plugin API 1.5.1)
+Version 3.0.0 (full rewrite - Require i-MSCP ≥ 1.6.x Serie / Roundcube ≥ 1.3.0)
 ------------------------------------------------------------------------------------------------------------------------
 
-    - Added: Translation files (Dutch, German, English, Spanish, French, Russian)
-    - Make it possible to install any Roundcube plugin by adding plugin definitions in the plugin configuration file
-    - Make it possible to override any Roundcube plugin configuration parameter through the plugin configuration file
-    - Make it possible to target specific Roundcube plugin version through the plugin configuration file
-    - Removed: Local copies of Roundcube plugins; they are now downloaded from upstream repositories
-    - Removed: SQL migration files -- SQL schemas are now managed by the iMSCP roundcube plugin installer
+    Added: Translation files (Dutch, German, English, Spanish, French, Russian)
+    Make it possible to install any Roundcube plugin by adding plugin definitions in the plugin configuration file
+    Make it possible to override any Roundcube plugin configuration parameter through the plugin configuration file
+    Make it possible to target specific Roundcube plugin version through the plugin configuration file
+    Removed: Local copies of Roundcube plugins; they are now downloaded from upstream repositories
+    Removed: SQL migration files -- SQL schemas are now managed by the iMSCP roundcube plugin installer
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.0.1

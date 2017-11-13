@@ -4,8 +4,8 @@ Provides Roundcube plugins through PHP dependency manager (Composer).
 
 ## Requirements
 
-- i-MSCP 1.5.x Serie (version ≥ 1.5.2)
-- Roundcube ≥ 1.3.x
+- i-MSCP ≥ 1.6.x Serie
+- Roundcube ≥ 1.3.0
 
 ## Installation
 
