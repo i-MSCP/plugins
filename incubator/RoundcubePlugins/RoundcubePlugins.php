@@ -79,6 +79,7 @@ class RoundcubePlugins extends PluginAction
      * Clear translations if any
      *
      * @return void
+     * @throws \Zend_Exception
      */
     protected function clearTranslations()
     {

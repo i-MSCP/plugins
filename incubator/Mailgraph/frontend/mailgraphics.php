@@ -1,8 +1,8 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,18 +19,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace Mailgraph;
-
 use iMSCP_Plugin_Manager as PluginManager;
 use iMSCP_Registry as Registry;
 
 check_login('admin');
 
-$whichGraph = (isset($_GET['graph']) && $_GET['graph'] != '') ? clean_input($_GET['graph']) : '';
+$whichGraph = (isset($_GET['graph']) && $_GET['graph'] !== '') ? clean_input($_GET['graph']) : '';
 
 /** @var PluginManager $pluginManager */
 $pluginManager = Registry::get('pluginManager');
-
 $pluginDir = $pluginManager->pluginGetDirectory();
 
 switch ($whichGraph) {

@@ -1,10 +1,10 @@
-# i-MSCP RecaptchaPMA plugin v1.1.1
+# i-MSCP RecaptchaPMA plugin v1.1.2
 
-This plugin add reCAPTCHA support to phpMyAdmin.
+Provides reCAPTCHA feature to phpMyAdmin.',
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x, Serie 1.4.x
 * Account on https://www.google.com/recaptcha/
 
 ## Installation
@@ -33,21 +33,17 @@ change by updating the plugin list through the plugin management interface.
 
 ## License
 
-```
-Copyright (C) 2014-2016 Sascha Bay <info@space2place.de>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-```
+    i-MSCP RecaptchaPAM plugin
+    Copyright (C) 2017 Laurent Declercq@nuxwin.com>
+    Copyright (C) 2014-2016 Sascha Bay <info@space2place.de>
+    
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 of the License
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
-
-## Author
-
-* Sascha Bay <info@space2place.de>

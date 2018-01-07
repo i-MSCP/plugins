@@ -21,13 +21,15 @@
 return [
     // List of enabled DebugBar components
     'components' => [
-        'Version',
-        'Variables',
-        'Timer',
-        'Memory',
-        'Files',
-        'Database',
-        'APCu', // Tab will be show only if the APCu userland cache is enabled
-        'OPcache' // Tab will be show only if the OPcache cache is enabled
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentVersion',
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentVariables',
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentTimer',
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentMemory',
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentFiles',
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentDatabase',
+        // Tab will be show only if the APCu userland cache is enabled
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentAPCu',
+        // Tab will be show only if the OPcache cache is enabled
+        '\\iMSCP\\Plugin\\DebugBar\\Component\\ComponentOPcache'
     ]
 ];

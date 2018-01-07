@@ -22,7 +22,7 @@
 use strict;
 use warnings;
 use FindBin;
-use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../engine/PerlVendor";
+use lib "$FindBin::Bin/../../../../engine/PerlLib";
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
 use iMSCP::Debug qw/ getMessageByType newDebug /;

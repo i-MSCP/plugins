@@ -1,10 +1,10 @@
-# i-MSCP Mailgraph plugin v1.1.2
+# i-MSCP Mailgraph plugin v1.1.3
 
-Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail).
+Provides statistical graphics for SMTP traffic (Postfix and Sendmail).
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x, Serie 1.4.x
 
 ### Debian / Ubuntu package
 
@@ -12,10 +12,8 @@ Plugin that provides statistical graphics for SMTP traffic (Postfix and Sendmail
 
 You can install this package by running the following commands:
 
-```
-# apt-get update
-# apt-get install mailgraph
-```
+    # apt-get update
+    # apt-get --no-install-recommends install mailgraph
 
 ## Installation
 
@@ -34,28 +32,24 @@ You can install this package by running the following commands:
 
 See [Configuration file](../Mailgraph/config.php)
 
-**Note:** When changing a configuration parameter in the plugin configuration file, do not forget to trigger plugin
-change by updating the plugin list through the plugin management interface.
+When changing a configuration parameter in the plugin configuration file, do not
+forget to trigger plugin change by updating the plugin list through the plugin
+management interface.
 
 ## License
 
-```
-Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+    i-MSCP Mailgraph plugin
+    Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+    
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 of the License
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-```
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
-
-## Authors
-
-* Laurent Declercq <l.declercq@nuxwin.com>
-* Sascha Bay <info@space2place.de>

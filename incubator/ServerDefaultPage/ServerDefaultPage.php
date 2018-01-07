@@ -27,10 +27,7 @@ use iMSCP_Plugin_Manager as PluginManager;
 class iMSCP_Plugin_ServerDefaultPage extends PluginAction
 {
     /**
-     * Plugin installation
-     *
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pluginManager)
     {
@@ -38,10 +35,7 @@ class iMSCP_Plugin_ServerDefaultPage extends PluginAction
     }
 
     /**
-     * Plugin uninstallation
-     *
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function uninstall(PluginManager $pluginManager)
     {

@@ -1,4 +1,4 @@
-# i-MSCP RoundcubePlugins plugin v3.0.0
+# i-MSCP RoundcubePlugins plugin v3.0.1
 
 Provides Roundcube plugins through PHP dependency manager (Composer).
 

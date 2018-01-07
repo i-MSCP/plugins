@@ -36,7 +36,7 @@ use iMSCP::TemplateParser qw/ replaceBloc /;
 use JSON;
 use PHP::Var qw/ export /;
 use version;
-use parent 'Common::SingletonClass';
+use parent 'iMSCP::Common::Singleton';
 
 =head1 DESCRIPTION
 
@@ -74,7 +74,7 @@ sub update
     iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer" )->remove();
 
     # Remove old-way configuration
-    for( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php" ) {
+    for ( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php" ) {
         next unless -f;
 
         my $file = iMSCP::File->new( filename => $_ );
@@ -82,10 +82,7 @@ sub update
         defined $fileContent or die sprintf( "Couldn't read %s file", $file->{'filename'} );
 
         $file->set( replaceBloc(
-            qr/^\s*\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m,
-            qr/\Q# Ending Plugin::RoundcubePlugin::\E.*\n/,
-            '',
-            $fileContent
+            qr/^\s*\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m, qr/\Q# Ending Plugin::RoundcubePlugin::\E.*\n/, '', $fileContent
         ));
         $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
 
@@ -96,9 +93,7 @@ sub update
     # Fix permissions, else composer will fail to delete older files
     my $stderr = '';
     executeNoWait(
-        [ 'perl', "$main::imscpConfig{'ENGINE_ROOT_DIR'}/setup/set-gui-permissions.pl", '-v' ],
-        \&_stdRoutine,
-        sub { $stderr .= $_[0] }
+        [ 'perl', "$main::imscpConfig{'ENGINE_ROOT_DIR'}/setup/set-gui-permissions.pl", '-v' ], \&_stdRoutine, sub { $stderr .= $_[0] }
     ) == 0 or die( $stderr || 'Unknown error' );
     0;
 }
@@ -113,16 +108,14 @@ sub update
 
 sub uninstall
 {
-    for( 'composer.json', 'composer.lock' ) {
+    for ( 'composer.json', 'composer.lock' ) {
         next unless -f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_";
         iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_" )->delFile() == 0 or die(
             getMessageByType( 'error', { amount => 1, remove => 1 } )
         );
     }
 
-    iMSCP::Dir->new(
-        dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins"
-    )->remove();
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins" )->remove();
 }
 
 =item enable( )
@@ -158,9 +151,7 @@ sub enable
         push @plugins, $plugin;
     }
 
-    $composer
-        ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
-        ->updatePackages();
+    $composer->setStdRoutines( \&_stdRoutine, \&_stdRoutine )->updatePackages();
     $self->_configurePlugins( @plugins );
     $self->_togglePlugins( @plugins );
     0;
@@ -181,12 +172,8 @@ sub disable
     my @plugins;
 
     if ( $self->{'action'} eq 'disable' ) {
-        $self->_getComposer()
-            ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
-            ->updatePackages();
-        @plugins = grep (
-            $self->{'config_prev'}->{'plugins'}->{$_}->{'enabled'}, keys %{$self->{'config_prev'}->{'plugins'}}
-        );
+        $self->_getComposer()->setStdRoutines( \&_stdRoutine, \&_stdRoutine )->updatePackages();
+        @plugins = grep ($self->{'config_prev'}->{'plugins'}->{$_}->{'enabled'}, keys %{$self->{'config_prev'}->{'plugins'}});
     } else {
         while ( my ($plugin, $meta) = each( %{$self->{'config'}->{'plugins'}} ) ) {
             next if $meta->{'enabled'} || !$self->{'config_prev'}->{'plugins'}->{$plugin}->{'enabled'};
@@ -221,13 +208,11 @@ sub _getComposer
     my $composerJson = iMSCP::File->new( filename => "$rcDir/composer.json-dist" )->get();
     defined $composerJson or die( sprintf( "Couldn't read Roundcube composer.json-dist file" ));
 
-    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins" )->make(
-        {
-            user  => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-            group => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-            mode  => 0750
-        }
-    );
+    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins" )->make( {
+        user  => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+        group => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
+        mode  => 0750
+    } );
 
     my $composer = iMSCP::Composer->new(
         user          => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
@@ -272,7 +257,7 @@ sub _configurePlugins
 
     my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
 
-    for( @plugins ) {
+    for ( @plugins ) {
         my $config = $self->{'config'}->{'plugins'}->{$_}->{'config'} || next;
         ref $config eq 'HASH' or die( 'Invalid `config` parameter' );
 
@@ -281,15 +266,11 @@ sub _configurePlugins
             -f $config->{'script'} or die( sprintf( 'File %s is missing or not executable', $config->{'script'} ));
             # Make sure that the script is executable
             $File::chmod::UMASK = 0; # Stick to system CHMOD(1) behavior
-            chmod( 'u+x', $config->{'script'} ) or die(
-                sprintf( "Couldn't turns on the executable bit on the %s file", $config->{'script'} )
-            );
+            chmod( 'u+x', $config->{'script'} ) or die( sprintf( "Couldn't turns on the executable bit on the %s file", $config->{'script'} ));
 
             my $stderr = '';
             executeNoWait(
-                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'pre-configure' : 'pre-deconfigure' ],
-                \&_stdRoutine,
-                sub { $stderr .= $_[0] }
+                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'pre-configure' : 'pre-deconfigure' ], \&_stdRoutine, sub { $stderr .= $_[0] }
             ) == 0 or die( $stderr || 'Unknown error' );
         }
 
@@ -344,9 +325,7 @@ EOT
         if ( $config->{'script'} ) {
             my $stderr = '';
             executeNoWait(
-                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'configure' : 'deconfigure' ],
-                \&_stdRoutine,
-                sub { $stderr .= $_[0] }
+                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'configure' : 'deconfigure' ], \&_stdRoutine, sub { $stderr .= $_[0] }
             ) == 0 or die( $stderr || 'Unknown error' );
         }
     }
@@ -365,9 +344,7 @@ sub _togglePlugins
 {
     my ($self, @plugins) = @_;
 
-    my $file = iMSCP::File->new(
-        filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php"
-    );
+    my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php" );
     my $fileContent = $file->get();
     defined $fileContent or die ( sprintf( "Couldn't read %s", $file->{'filename'} ));
 
@@ -384,7 +361,7 @@ sub _togglePlugins
 
         return unless $fileContent =~ s/\$config\s*\[['"]plugins['"]\s*\].*;/\$config['plugins'] = @{
             [ export( [ sort @activePlugins ], purity => 1, short => 1 ) ]
-        }/is
+            }/is
     } else {
         @plugins = undef if $self->{'action'} eq 'disable';
         $fileContent .= <<"EOF";

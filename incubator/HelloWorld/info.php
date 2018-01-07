@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP HelloWorld plugin
- * Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,12 +19,13 @@
  */
 
 return array(
-    'author' => 'Laurent Declercq',
-    'email' => 'l.declercq@nuxwin.com',
-    'version' => '1.0.1',
+    'author'      => 'Laurent Declercq',
+    'email'       => 'l.declercq@nuxwin.com',
+    'version'     => '1.0.1',
     'require_api' => '1.0.4',
-    'date' => '2016-06-15',
-    'name' => 'HelloWorld',
-    'desc' => 'A plugin sample that say Hello World when the i-MSCP login page is loaded',
-    'url' => 'http://i-mscp.net'
+    'date'        => '2017-05-04',
+    'build'       => '2017050400',
+    'name'        => 'HelloWorld',
+    'desc'        => 'Provides plugin sample that say Hello World when the i-MSCP login page is loaded.',
+    'url'         => 'https://i-mscp.net'
 );

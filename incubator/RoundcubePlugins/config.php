@@ -23,8 +23,6 @@ return [
     //// Default Roundcube plugin definitions
     //
 
-    // See the README.md file inside the plugin archive for
-    // further details.
     'plugins' => [
         // Add additional headers to or remove them from outgoing messages
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins/additional_message_headers
@@ -38,7 +36,10 @@ return [
         // Adds a button to move the selected messages to an archive folder
         // See https://github.com/roundcube/roundcubemail/tree/master/plugins/archive
         'archive'                    => [
-            'enabled' => true
+            'enabled' => true,
+            'config'  => [
+                'script'     => __DIR__ . '/config/scripts/configure-archive.pl'
+            ]
         ],
 
         // Provide calendaring features

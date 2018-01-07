@@ -21,10 +21,10 @@
 return [
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '2.0.0',
+    'version'     => '2.0.1',
     'require_api' => '1.5.1',
-    'date'        => '2017-10-09',
-    'build'       => '2017100900',
+    'date'        => '2017-11-13',
+    'build'       => '2017111300',
     'name'        => 'DebugBar',
     'desc'        => 'Provides debug information for i-MSCP.',
     'url'         => 'https://i-mscp.net'

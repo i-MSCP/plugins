@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@
  * Functions
  */
 
-namespace Mailgraph;
-
 use iMSCP_Events as Events;
 use iMSCP_Events_Aggregator as EventManager;
 use iMSCP_Plugin_Manager as PluginManager;
@@ -34,14 +32,13 @@ use iMSCP_Registry as Registry;
 /**
  * Generate page
  *
- * @param $tpl TemplateEngine
+ * @param TemplateEngine $tpl 
  * @return void
  */
 function mailgraph_generatePage($tpl)
 {
     /** @var PluginManager $pluginManager */
     $pluginManager = Registry::get('pluginManager');
-
     $pluginDir = $pluginManager->pluginGetDirectory();
 
     if (file_exists($pluginDir . '/Mailgraph/tmp_graph/mailgraph_day.png')) {
@@ -121,25 +118,23 @@ function mailgraph_generatePage($tpl)
  * Main
  */
 
-EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 check_login('admin');
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 
 $cfg = Registry::get('config');
-$hostname = $cfg['SERVER_HOSTNAME'];
 
 $tpl = new TemplateEngine();
 $tpl->define_dynamic(array(
-    'layout' => 'shared/layouts/ui.tpl',
-    'page' => '../../plugins/Mailgraph/frontend/mailgraph.tpl',
+    'layout'       => 'shared/layouts/ui.tpl',
+    'page'         => '../../plugins/Mailgraph/frontend/mailgraph.tpl',
     'page_message' => 'layout'
 ));
-
 $tpl->assign(array(
-    'TR_PAGE_TITLE' => tr('Statistics / Mailgraph'),
+    'TR_PAGE_TITLE'         => tr('Statistics / Mailgraph'),
     'MAILGRAPHIC_NOT_EXIST' => tr("The requested graphic doesn't exist."),
-    'TR_MAILGRAPH' => tr("Mailgraph - %s", $hostname),
-    'TR_MAILGRAPH_VIRUS' => tr("Mailgraph virus - %s", $hostname),
-    'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $hostname)
+    'TR_MAILGRAPH'          => tr("Mailgraph - %s", $cfg['SERVER_HOSTNAME']),
+    'TR_MAILGRAPH_VIRUS'    => tr("Mailgraph virus - %s", $cfg['SERVER_HOSTNAME']),
+    'TR_MAILGRAPH_GREYLIST' => tr("Mailgraph greylist - %s", $cfg['SERVER_HOSTNAME'])
 ));
 
 generateNavigation($tpl);

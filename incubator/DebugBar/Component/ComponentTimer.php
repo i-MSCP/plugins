@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace DebugBar\Component;
+namespace iMSCP\Plugin\DebugBar\Component;
 
 use iMSCP_Events as Events;
 
@@ -228,8 +228,9 @@ class ComponentTimer implements ComponentInterface
                 $xhtml .= '</div>';
             }
 
+            $q = http_build_query(array_merge($_GET, ['debug_bar_action' => 'reset_timer_data' ]));
             $xhtml .= '<br>';
-            $xhtml .= '<div class="buttons"><a href="?debug_bar_action=reset_timer_data" type="submit" class="link_as_button">Reset</a></div>';
+            $xhtml .= "<div class=\"buttons\"><a href=\"?$q\" type=\"submit\" class=\"link_as_button\">Reset</a></div>";
             $xhtml .= '</div>';
         }
 
@@ -298,5 +299,6 @@ class ComponentTimer implements ComponentInterface
 
         unset($_SESSION['iMSCPdebug_Time']);
         set_page_message(tr('Timer has been reset.'), 'success');
+        redirectTo($_SERVER['HTTP_REFERER']);
     }
 }

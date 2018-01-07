@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DomainAutoApproval plugin
- * Copyright (C) 2012-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2017 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,36 +18,42 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+use iMSCP_Authentication as Authentication;
+use iMSCP_Database as Database;
+use iMSCP_Events as Events;
+use iMSCP_Events_Event as Event;
+use iMSCP_Events_Manager_Interface as EventsManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_DomainAutoApproval
  */
-class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
+class iMSCP_Plugin_DomainAutoApproval extends PluginAction
 {
     /**
      * Register a callback for the given event(s)
      *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @param EventsManagerInterface $eventsManager
      * @return void
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventsManagerInterface $eventsManager)
     {
         # We register this listener with low priority to let any other plugin which listen on the same event a chance
         # to act before the redirect
-        $eventsManager->registerListener(iMSCP_Events::onAfterAddDomainAlias, $this, -99);
+        $eventsManager->registerListener(Events::onAfterAddDomainAlias, $this, -99);
     }
 
     /**
      * onAfterAddDomainAlias listener
      *
-     * @throws iMSCP_Exception
-     * @throws iMSCP_Exception_Database
-     * @param iMSCP_Events_Event $event
      * @throws Exception
+     * @param Event $event
      * @return void
      */
-    public function onAfterAddDomainAlias(iMSCP_Events_Event $event)
+    public function onAfterAddDomainAlias(Event $event)
     {
-        $userIdentity = iMSCP_Authentication::getInstance()->getIdentity();
+        $userIdentity = Authentication::getInstance()->getIdentity();
 
         // 1. Do not act if the logged-in user is not the real client (due to changes in i-MSCP v1.2.12)
         // 2. Do not act if the event has been triggered from reseller interface
@@ -72,7 +78,7 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
             return;
         }
 
-        $db = iMSCP_Database::getInstance();
+        $db = Database::getInstance();
 
         try {
             $db->beginTransaction();
@@ -80,16 +86,18 @@ class iMSCP_Plugin_DomainAutoApproval extends iMSCP_Plugin_Action
 
             exec_query('UPDATE domain_aliasses SET alias_status = ? WHERE alias_id = ?', array('toadd', $domainAliasId));
 
-            $config = iMSCP_Registry::get('config');
+            $config = Registry::get('config');
             if ($config['CREATE_DEFAULT_EMAIL_ADDRESSES'] && $userIdentity->email !== '') {
-                client_mail_add_default_accounts(get_user_domain_id($userIdentity->admin_id), $userIdentity->email, $domainAliasNameAscii, 'alias', $domainAliasId);
+                client_mail_add_default_accounts(get_user_domain_id(
+                    $userIdentity->admin_id), $userIdentity->email, $domainAliasNameAscii, 'alias', $domainAliasId
+                );
             }
 
             $db->commit();
             send_request();
             write_log(sprintf('DomainAutoApproval plugin: The `%s` domain alias has been auto-approved', decode_idna($domainAliasNameAscii)), E_USER_NOTICE);
             set_page_message(tr('Domain alias auto-approved.'), 'success');
-        } catch (iMSCP_Exception $e) {
+        } catch (Exception $e) {
             $db->rollBack();
             throw $e;
         }

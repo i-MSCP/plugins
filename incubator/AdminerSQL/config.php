@@ -1,7 +1,6 @@
 <?php
 /**
  * i-MSCP AdminerSQL plugin
- *
  * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *

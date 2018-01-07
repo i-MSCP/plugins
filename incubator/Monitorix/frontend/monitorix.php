@@ -1,7 +1,6 @@
 <?php
 /**
  * i-MSCP Monitorix plugin
- *
  * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
@@ -136,10 +135,8 @@ function selectedGraphic($tpl, $graphName, $showWhen)
  * Main
  */
 
-EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 check_login('admin');
-
-$cfg = Registry::get('config');
+EventManager::getInstance()->dispatch(Events::onAdminScriptStart);
 
 $tpl = new TemplateEngine();
 $tpl->define_dynamic(array(
@@ -155,7 +152,7 @@ $graphName = (isset($_POST['graph_name']) && $_POST['graph_name'] !== '-1') ? cl
 if(isset($_POST['action']) && $_POST['action'] == 'go_show') {
     if($graphName == '') {
         $tpl->assign(array(
-            'M_HOUR_SELECTED' => $cfg['HTML_SELECTED'],
+            'M_HOUR_SELECTED' => ' selected',
             'M_DAY_SELECTED' => '',
             'M_WEEK_SELECTED' => '',
             'M_MONTH_SELECTED' => '',
@@ -168,7 +165,7 @@ if(isset($_POST['action']) && $_POST['action'] == 'go_show') {
     }
 } else {
     $tpl->assign(array(
-        'M_HOUR_SELECTED' => $cfg['HTML_SELECTED'],
+        'M_HOUR_SELECTED' => ' selected',
         'M_DAY_SELECTED' => '',
         'M_WEEK_SELECTED' => '',
         'M_MONTH_SELECTED' => '',

@@ -28,7 +28,6 @@ list update.
 ## License
 
     i-MSCP AdminerSQL plugin
-    
     Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
     Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 
@@ -43,8 +42,3 @@ list update.
 
 
 See [GPL v2](http://www.gnu.org/licenses/gpl-2.0.html "GPL v2")
-
-## Authors
-
-* Sascha Bay <info@space2place.de>
-* Laurent Declercq <l.declercq@nuxwin.com>

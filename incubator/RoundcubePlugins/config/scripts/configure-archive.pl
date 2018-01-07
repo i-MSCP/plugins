@@ -38,7 +38,7 @@ use iMSCP::Getopt;
 use iMSCP::Service;
 use iMSCP::TemplateParser qw/ getBloc replaceBloc process /;
 use POSIX qw / locale_h /;
-use Servers::po;
+use iMSCP::Servers::Po;
 
 setlocale( LC_MESSAGES, "C.UTF-8" );
 
@@ -69,7 +69,7 @@ if ( grep($action eq $_, 'configure', 'deconfigure') ) {
 
 sub _configureDovecot
 {
-    my $poSrv = Servers::po->factory();
+    my $poSrv = iMSCP::Servers::Po->factory();
 
     iMSCP::Dir->new( dirname => "$poSrv->{'config'}->{'DOVECOT_CONF_DIR'}/imscp.d" )->make();
 

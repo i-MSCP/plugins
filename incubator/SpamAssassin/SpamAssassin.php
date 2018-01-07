@@ -36,10 +36,7 @@ use iMSCP_Registry as Registry;
 class iMSCP_Plugin_SpamAssassin extends PluginAction
 {
     /**
-     * Register a callback for the given event(s)
-     *
-     * @param EventsManagerInterface $eventsManager
-     * @return void
+     * @inheritdoc
      */
     public function register(EventsManagerInterface $eventsManager)
     {
@@ -50,8 +47,9 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
      * Delete bayesian data and user preferences that belong to the  mail account being deleted
      *
      * @param Event $e
-     * @throws PluginException
      * @return void
+     * @throws Zend_Exception
+     * @throws iMSCP_Plugin_Exception
      */
     public function onBeforeDeleteMail(Event $e)
     {
@@ -64,7 +62,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
                 return;
             }
 
-            $username = $stmt->fetchRow(PDO::FETCH_COLUMN);
+            $username = $stmt->fetchColumn();
             $cfg = Registry::get('config');
             $saDbName = quoteIdentifier($cfg['DATABASE_NAME'] . '_spamassassin');
 
@@ -88,11 +86,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin installation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pluginManager)
     {
@@ -104,11 +98,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin uninstallation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function uninstall(PluginManager $pluginManager)
     {
@@ -120,13 +110,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin update
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @param string $fromVersion Version from which plugin update is initiated
-     * @param string $toVersion Version to which plugin is updated
-     * @return void
+     * @inheritdoc
      */
     public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
     {
@@ -138,11 +122,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin activation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function enable(PluginManager $pluginManager)
     {
@@ -154,11 +134,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin deactivation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function disable(PluginManager $pluginManager)
     {
@@ -179,6 +155,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
      *  echo 'foo' | spamc -x --socket=/var/run/spamassassin.sock >/dev/null 2>1
      *
      * @return void
+     * @throws Zend_Exception
      */
     protected function setSpamAssassinServicePort()
     {

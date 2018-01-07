@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP Mailgraph plugin
+ * Copyright (C) 2010-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -18,31 +19,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Events as Events;
+use iMSCP_Events_Manager_Interface as EventsMananagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_Mailgraph
  */
-class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
+class iMSCP_Plugin_Mailgraph extends PluginAction
 {
     /**
-     * Register a callback for the given event(s).
-     *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @inheritdoc
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventsMananagerInterface $eventsManager)
     {
-        $eventsManager->registerListener(iMSCP_Events::onAdminScriptStart, $this);
+        $eventsManager->registerListener(Events::onAdminScriptStart, $this);
     }
 
     /**
-     * Plugin installation
-     *
-     * This method is automatically called by the plugin manager when the plugin is being installed.
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
-     * @return void
+     * @inheritdoc
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin is installable
     }
@@ -51,6 +50,8 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
      * onAdminScriptStart listener
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     public function onAdminScriptStart()
     {
@@ -58,17 +59,13 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
     }
 
     /**
-     * Get routes
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getRoutes()
     {
-        $pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
-
         return array(
-            '/admin/mailgraph.php' => $pluginDir . '/frontend/mailgraph.php',
-            '/admin/mailgraphics.php' => $pluginDir . '/frontend/mailgraphics.php'
+            '/admin/mailgraph.php'    =>__DIR__ . '/frontend/mailgraph.php',
+            '/admin/mailgraphics.php' => __DIR__ . '/frontend/mailgraphics.php'
         );
     }
 
@@ -76,22 +73,24 @@ class iMSCP_Plugin_Mailgraph extends iMSCP_Plugin_Action
      * Inject Mailgraph links into the navigation object
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     protected function setupNavigation()
     {
-        if (iMSCP_Registry::isRegistered('navigation')) {
-            /** @var Zend_Navigation $navigation */
-            $navigation = iMSCP_Registry::get('navigation');
+        if (!Registry::isRegistered('navigation')) {
+            return;
+        }
 
-            if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
-                $page->addPage(
-                    array(
-                        'label' => tr('Mailgraph'),
-                        'uri' => '/admin/mailgraph.php',
-                        'title_class' => 'stats'
-                    )
-                );
-            }
+        /** @var Zend_Navigation $navigation */
+        $navigation = Registry::get('navigation');
+
+        if (($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
+            $page->addPage(array(
+                'label'       => tr('Mailgraph'),
+                'uri'         => '/admin/mailgraph.php',
+                'title_class' => 'stats'
+            ));
         }
     }
 }

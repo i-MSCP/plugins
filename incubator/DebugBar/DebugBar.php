@@ -18,24 +18,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-use DebugBar\Component\ComponentInterface as DebugBarComponentInterface;
+namespace iMSCP\Plugin;
+
+use iMSCP\Plugin\DebugBar\Component\ComponentInterface;
 use iMSCP_Events as Events;
+use iMSCP_Events_Event as Event;
 use iMSCP_Events_Manager_Interface as EventsManagerInterface;
 use iMSCP_Plugin_Action as PluginAction;
 use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Registry as Registry;
 
 /**
- * Class iMSCP_Plugin_DebugBar
+ * Class DebugBar
+ * @package DebugBar
  */
-class iMSCP_Plugin_DebugBar extends PluginAction
+class DebugBar extends PluginAction
 {
     /**
-     * @var iMSCP_Events_Event
+     * @var Event
      */
     protected $event;
 
     /**
-     * @var DebugBarComponentInterface[]
+     * @var ComponentInterface[]
      */
     protected $components = [];
 
@@ -47,7 +52,7 @@ class iMSCP_Plugin_DebugBar extends PluginAction
         Events::onLostPasswordScriptEnd,
         Events::onAdminScriptEnd,
         Events::onResellerScriptEnd,
-        Events::onClientScriptEnd,
+        Events::onClientScriptEnd
     ];
 
     /**
@@ -57,9 +62,9 @@ class iMSCP_Plugin_DebugBar extends PluginAction
      */
     public function init()
     {
-        /** @var Zend_Loader_StandardAutoloader $loader */
-        $loader = Zend_Loader_AutoloaderFactory::getRegisteredAutoloader('Zend_Loader_StandardAutoloader');
-        $loader->registerNamespace($this->getName(), __DIR__);
+        /** @var \iMSCP\Application $app */
+        $app = Registry::get('iMSCP_Application');
+        $app->getAutoloader()->addPsr4('iMSCP\\Plugin\\DebugBar\\Component\\', __DIR__ . '/Component');
     }
 
     /**
@@ -85,9 +90,8 @@ class iMSCP_Plugin_DebugBar extends PluginAction
             );
         }
 
-        /** @var DebugBarComponentInterface $component */
-        foreach ($components as $component) {
-            $componentClass = "DebugBar\\Component\\Component$component";
+        /** @var ComponentInterface $component */
+        foreach ($components as $componentClass) {
             $component = new $componentClass();
             $events = $component->getListenedEvents();
             if (!empty($events)) {
@@ -135,7 +139,7 @@ class iMSCP_Plugin_DebugBar extends PluginAction
     {
         $xhtml = '<div>';
 
-        /** @var $component DebugBarComponentInterface */
+        /** @var $component ComponentInterface */
         foreach ($this->components as $component) {
             if (($tab = $component->getTab()) != '') {
                 $xhtml .= '<span class="iMSCPdebug_span clickable" onclick="iMSCPdebugPanel(\'iMSCPdebug_' . $component->getIdentifier() . '\');">';
@@ -151,7 +155,7 @@ class iMSCP_Plugin_DebugBar extends PluginAction
         $xhtml .= '<span class="iMSCPdebug_span iMSCPdebug_last clickable" id="iMSCPdebug_toggler" onclick="iMSCPdebugSlideBar()">&#171;</span>';
         $xhtml .= '</div>';
 
-        /** @var $templateEngine iMSCP_pTemplate */
+        /** @var $templateEngine \iMSCP_pTemplate */
         $templateEngine = $this->event->getParam('templateEngine');
         $response = $templateEngine->getLastParseResult();
         $response = preg_replace('@(</head>)@i', $this->buildHeader() . PHP_EOL . '$1', $response);

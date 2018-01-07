@@ -1,6 +1,7 @@
 <?php
 /**
  * i-MSCP RecaptchaPMA Plugin
+ * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2010-2016 by Sascha Bay
  *
  * This program is free software; you can redistribute it and/or
@@ -18,25 +19,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+
 /**
  * Class iMSCP_Plugin_RecaptchaPMA
  */
-class iMSCP_Plugin_RecaptchaPMA extends iMSCP_Plugin_Action
+class iMSCP_Plugin_RecaptchaPMA extends PluginAction
 {
     /**
-     * Plugin activation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
-     * @return void
+     * @inheritdoc
      */
-    public function enable(iMSCP_Plugin_Manager $pluginManager)
+    public function enable(PluginManager $pluginManager)
     {
         $config = $this->getConfig();
+
         if (!isset($config['reCaptchaLoginPublicKey']) || $config['reCaptchaLoginPublicKey'] == '' ||
             !isset($config['reCaptchaLoginPrivateKey']) || $config['reCaptchaLoginPrivateKey'] == ''
         ) {
-            throw new iMSCP_Plugin_Exception('You must first set public and private keys in plugin configuration file.');
+            throw new PluginException('You must first set public and private keys in plugin configuration file.');
         }
     }
 }

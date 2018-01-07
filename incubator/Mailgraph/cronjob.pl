@@ -1,7 +1,7 @@
 #!/usr/bin/perl
+
 # i-MSCP Mailgraph plugin
-# Copyright (C) 2010-2016 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2010-2016 Sascha Bay <info@space2place.de>
+# Copyright (C) 2010-2017 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,7 +19,9 @@
 
 use strict;
 use warnings;
-use lib '{IMSCP_PERLLIB_PATH}';
+use Cwd qw/ abs_path /;
+use FindBin qw/ $Bin /;
+use lib abs_path("$Bin/../../../engine/PerlLib");
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
 use iMSCP::Debug;
@@ -45,7 +47,7 @@ sub getData
     };
 }
 
-newDebug( 'monitorix-plugin-cronjob.log' );
+newDebug( 'mailgraph-plugin-cronjob.log' );
 iMSCP::Bootstrapper->getInstance()->boot(
     {
         norequirements  => 'yes',
@@ -57,8 +59,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Mailgraph/backend/Mailgraph.pm";
 require $pluginFile;
 
-my $pluginClass = "Plugin::Mailgraph";
-$pluginClass->getInstance( getData() )->buildGraphs() == 0 or die(
+Plugin::Mailgraph->getInstance( getData() )->buildGraphs() == 0 or die(
     getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
 );
 

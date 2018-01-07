@@ -34,9 +34,7 @@ use iMSCP_Registry as Registry;
 class iMSCP_Plugin_OpenDKIM extends PluginAction
 {
     /**
-     * Plugin initialization
-     *
-     * @return void
+     * @inheritdoc
      */
     public function init()
     {
@@ -44,22 +42,14 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Register event listeners
-     *
-     * @param EventsManagerInterface $em
-     * @return void
+     * @inheritdoc
      */
     public function register(EventsManagerInterface $em)
     {
         $em->registerListener(
             [
-                Events::onResellerScriptStart,
-                Events::onClientScriptStart,
-                Events::onAfterAddDomainAlias,
-                Events::onAfterDeleteDomainAlias,
-                Events::onAfterAddSubdomain,
-                Events::onAfterDeleteSubdomain,
-                Events::onAfterDeleteCustomer
+                Events::onResellerScriptStart, Events::onClientScriptStart, Events::onAfterAddDomainAlias,
+                Events::onAfterDeleteDomainAlias, Events::onAfterAddSubdomain, Events::onAfterDeleteSubdomain, Events::onAfterDeleteCustomer
             ],
             $this
         );
@@ -70,11 +60,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Plugin installation
-     *
-     * @throws PluginException
-     * @param PluginManager $pm
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pm)
     {
@@ -86,13 +72,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Plugin update
-     *
-     * @throws PluginException When update fail
-     * @param PluginManager $pm
-     * @param string $fromVersion Version from which plugin update is initiated
-     * @param string $toVersion Version to which plugin is updated
-     * @return void
+     * @inheritdoc
      */
     public function update(PluginManager $pm, $fromVersion, $toVersion)
     {
@@ -106,11 +86,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Plugin uninstallation
-     *
-     * @throws PluginException
-     * @param PluginManager $pm
-     * @return void
+     * @inheritdoc
      */
     public function uninstall(PluginManager $pm)
     {
@@ -126,6 +102,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      * onResellerScriptStart event listener
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     public function onResellerScriptStart()
     {
@@ -136,6 +114,9 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      * onClientScriptStart event listener
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
+     * @throws iMSCP_Exception_Database
      */
     public function onClientScriptStart()
     {
@@ -151,6 +132,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param Event $e
      * @return void
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterAddDomain(Event $e)
     {
@@ -165,6 +147,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param Event $e
      * @return void
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterDeleteCustomer(Event $e)
     {
@@ -176,6 +159,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param Event $e
      * @return void
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterAddDomainAlias(Event $e)
     {
@@ -206,8 +190,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
                 )
             ",
             [
-                $stmt->fetchRow(PDO::FETCH_COLUMN), $e->getParam('domainId'), $e->getParam('domainAliasId'),
-                encode_idna($e->getParam('domainAliasName'))
+                $stmt->fetchColumn(), $e->getParam('domainId'), $e->getParam('domainAliasId'), encode_idna($e->getParam('domainAliasName'))
             ]
         );
     }
@@ -217,6 +200,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param Event $e
      * @return void
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterDeleteDomainAlias(Event $e)
     {
@@ -229,6 +213,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      * Add DKIM for the subdomain being added
      *
      * @param iMSCP_Events_Event $e
+     * @throws iMSCP_Exception
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterAddSubdomain(Event $e)
     {
@@ -260,6 +246,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      * Remove DKIM for subdomain being added when required
      *
      * @param iMSCP_Events_Event $e
+     * @throws iMSCP_Exception_Database
      */
     public function onAfterDeleteSubdomain(Event $e)
     {
@@ -268,15 +255,11 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
             return;
         }
 
-        exec_query("UPDATE opendkim SET opendkim_status = 'todelete' WHERE domain_name = ?", [
-            $e->getParam('subdomainName')
-        ]);
+        exec_query("UPDATE opendkim SET opendkim_status = 'todelete' WHERE domain_name = ?", [$e->getParam('subdomainName')]);
     }
 
     /**
-     * Get routes
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getRoutes()
     {
@@ -287,9 +270,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Get status of item with errors
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getItemWithErrorStatus()
     {
@@ -310,12 +291,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Set status of the given plugin item to 'tochange'
-     *
-     * @param string $table Table name
-     * @param string $field Status field name
-     * @param int $itemId OpenDKIM item unique identifier
-     * @return void
+     * @inheritdoc
      */
     public function changeItemStatus($table, $field, $itemId)
     {
@@ -327,9 +303,7 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
     }
 
     /**
-     * Return count of request in progress
-     *
-     * @return int
+     * @inheritdoc
      */
     public function getCountRequests()
     {
@@ -343,15 +317,14 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param int $customerId Customer unique identifier
      * @return bool
+     * @throws iMSCP_Exception_Database
      */
     public static function customerHasOpenDKIM($customerId)
     {
         static $hasAccess = NULL;
 
         if (NULL === $hasAccess) {
-            $hasAccess = exec_query('SELECT EXISTS(SELECT 1 FROM opendkim WHERE admin_id = ? LIMIT 1)', [
-                $customerId
-            ])->fetchRow(PDO::FETCH_COLUMN) == 1;
+            $hasAccess = exec_query('SELECT EXISTS(SELECT 1 FROM opendkim WHERE admin_id = ? LIMIT 1)', [$customerId])->fetchColumn() == 1;
         }
 
         return $hasAccess;
@@ -362,6 +335,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      *
      * @param string $level UI level
      * @return void;
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     protected function setupNavigation($level)
     {
@@ -402,6 +377,8 @@ class iMSCP_Plugin_OpenDKIM extends PluginAction
      * Clear translations if any
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws iMSCP_Plugin_Exception
      */
     protected function clearTranslations()
     {

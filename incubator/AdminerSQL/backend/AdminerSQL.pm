@@ -5,7 +5,6 @@
 =cut
 
 # i-MSCP AdminerSQL plugin
-#
 # Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
@@ -33,7 +32,7 @@ use iMSCP::Dir;
 use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::Service;
-use parent 'Common::SingletonClass';
+use parent 'iMSCP::Common::Singleton';
 
 =head1 DESCRIPTION
 
@@ -55,31 +54,28 @@ sub enable
 {
     my $self = shift;
 
-    my $curDir = getcwd( );
+    my $curDir = getcwd();
     my $prodDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer";
     my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/AdminerSQL/src";
     my $panelUName = my $panelGName =
-        $main::imscpConfig{'SYSTEM_USER_PREFIX'}.$main::imscpConfig{'SYSTEM_USER_MIN_UID'};
+        $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'};
 
     # Create production directory
-    my $rs = iMSCP::Dir->new( dirname => $prodDir )->make(
-        {
-            user  => $panelUName,
-            group => $panelGName,
-            mode  => 0550
-        }
-    );
+    my $rs = iMSCP::Dir->new( dirname => $prodDir )->make( {
+        user  => $panelUName,
+        group => $panelGName,
+        mode  => 0550
+    } );
     return $rs if $rs;
 
     my $file = iMSCP::File->new( filename => "$srcDir/designs/$self->{'config'}->{'theme'}/adminer.css" );
     $rs = $file->copyFile( "$srcDir/adminer/static/default.css" );
     return $rs if $rs;
 
-    my $fileSuffix = '-4.3.1'
-        .(($self->{'config'}->{'driver'} eq 'all') ? '' : '-'.$self->{'config'}->{'driver'}).'.php';
+    my $fileSuffix = '-4.3.1' . ( ( $self->{'config'}->{'driver'} eq 'all' ) ? '' : '-' . $self->{'config'}->{'driver'} ) . '.php';
 
-    unless (chdir( $srcDir )) {
-        error( sprintf( "Coudln't change directory to $srcDir: %s", $! ) );
+    unless ( chdir( $srcDir ) ) {
+        error( sprintf( "Coudln't change directory to $srcDir: %s", $! ));
         return 1;
     }
 
@@ -109,16 +105,16 @@ sub enable
     $rs ||= $file->moveFile( "$prodDir/editor.php" );
     return $rs if $rs;
 
-    unless (chdir( $curDir )) {
-        error( sprintf( "Couldn't change directory to %s: %s", $curDir, $! ) );
+    unless ( chdir( $curDir ) ) {
+        error( sprintf( "Couldn't change directory to %s: %s", $curDir, $! ));
         return 1;
     }
 
     return 0 if defined $main::execmode && $main::execmode eq 'setup';
 
     local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
-    if ($@) {
+    eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+    if ( $@ ) {
         error( $@ );
         return 1;
     }
@@ -136,13 +132,13 @@ sub enable
 
 sub disable
 {
-    my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove( );
+    my $rs = iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/adminer" )->remove();
 
-    return $rs if $rs || (defined $main::execmode && $main::execmode eq 'setup');
+    return $rs if $rs || ( defined $main::execmode && $main::execmode eq 'setup' );
 
     local $@;
-    eval { iMSCP::Service->getInstance( )->restart( 'imscp_panel' ); };
-    if ($@) {
+    eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+    if ( $@ ) {
         error( $@ );
         return 1;
     }

@@ -29,11 +29,7 @@ use iMSCP_Registry as Registry;
 class iMSCP_Plugin_PolicydWeight extends PluginAction
 {
     /**
-     * Plugin installation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pluginManager)
     {
@@ -42,11 +38,7 @@ class iMSCP_Plugin_PolicydWeight extends PluginAction
     }
 
     /**
-     * Plugin activation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function enable(PluginManager $pluginManager)
     {
@@ -66,11 +58,7 @@ class iMSCP_Plugin_PolicydWeight extends PluginAction
     }
 
     /**
-     * Plugin deactivation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function disable(PluginManager $pluginManager)
     {

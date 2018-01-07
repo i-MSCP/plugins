@@ -1,18 +1,10 @@
-# i-MSCP Demo plugin v1.1.2
+# i-MSCP Demo plugin v1.1.3
 
-Plugin which allows to create an i-MSCP Demo server in few minutes.
-
-## Introduction
-
-The demo plugin allows to setup an i-MSCP demo server in few minutes. It allow to:
-
-1. Display a dialog box on the login page to allow the users to choose the account they want use to login
-2. Protect some users accounts against deletion and password modification
-3. Provide an actions list that must be disabled
+Setup i-MSCP demo server.
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x, Serie 1.4.x
 
 ## Installation
 
@@ -189,27 +181,21 @@ change by updating the plugin list through the plugin management interface.
 
 ## License
 
-```
-i-MSCP Demo plugin
-Copyright (C) 2012-2016 Laurent Declercq <l.declercq@nuxwin.com>
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-```
+    i-MSCP Demo plugin
+    Copyright (C) 2012-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+    
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 See [LICENSE](LICENSE)
-
-## Author
-
-* Laurent Declercq <l.declercq@nuxwin.com>

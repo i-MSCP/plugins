@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Monitorix plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +20,16 @@
  */
 
 return array(
-    'author' => array(
+    'author'      => array(
         'Laurent Declercq',
         'Sascha Bay'
     ),
-    'email' => 'plugins@i-mscp.net',
-    'version' => '1.2.2',
+    'email'       => 'plugins@i-mscp.net',
+    'version'     => '1.2.3',
     'require_api' => '1.0.4',
-    'date' => '2016-06-25',
-    'name' => 'Monitorix',
-    'desc' => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
-    'url' => 'http://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
+    'date'        => '2017-05-04',
+    'build'       => '2017050400',
+    'name'        => 'Monitorix',
+    'desc'        => 'Plugin providing a lightweight system monitoring tool for Linux/UNIX servers',
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:monitorix'
 );

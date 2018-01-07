@@ -28,11 +28,7 @@ use iMSCP_Plugin_Manager as PluginManager;
 class iMSCP_Plugin_PolicydSPF extends PluginAction
 {
     /**
-     * Plugin installation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pluginManager)
     {

@@ -21,7 +21,7 @@
 return [
     'author'              => 'Laurent Declercq',
     'email'               => 'l.declercq@nuxwin.com>',
-    'version'             => '3.0.0',
+    'version'             => '3.0.1',
     'date'                => '2017-11-13',
     'build'               => '2017111300',
     'require_api'         => '1.5.1',

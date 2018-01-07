@@ -1,35 +1,25 @@
-# i-MSCP Monitorix plugin v1.2.2
+# i-MSCP Monitorix plugin v1.2.3
 
 Plugin providing a lightweight system monitoring tool for Linux/UNIX servers.
 
 ## Requirements
 
-* i-MSCP Serie 1.3.x
+* i-MSCP Serie 1.3.x, Serie 1.4.x
 * Monitorix version >= 3.5.0
 
 ### Debian / Ubuntu packages
 
-* rrdtool
-* libmime-lite-perl
-* libhttp-server-simple-perl
-* libconfig-general-perl
-* librrds-perl
+* rrdtool, libmime-lite-perl, libhttp-server-simple-perl, libconfig-general-perl, librrds-perl
 
 You can install these packages by running the following commands:
 
-```bash
-# apt-get update
-# apt-get install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
-```
+    # apt-get update
+    # apt-get --no-install-recommends install rrdtool libmime-lite-perl libhttp-server-simple-perl libconfig-general-perl librrds-perl
 
 #### Monitorix package
 
 1. Download the monitorix package from http://www.monitorix.org/downloads.html
-2. Install the package by running the following commands:
-
-```bash
-# dpkg -i monitorix*.deb
-```
+2. Install the package by running the following commands: `dpkg -i monitorix*.deb`
 
 ## Installation
 
@@ -61,21 +51,17 @@ Monitorix configuration parameters apply. This can lead to an Nginx start failur
 also listens on the port 8080. To solve this this issue, you must either deinstall the monitorix package, or edit the 
 `/etc/monitorix/monitorix.conf` file manually to disable the monitorix httpd daemon:
 
-```
-<httpd_builtin>
+    <httpd_builtin>
         enabled = y
         ...
-</httpd_builtin>
-```
+    </httpd_builtin>
 
 should become
 
-```
-<httpd_builtin>
+    <httpd_builtin>
         enabled = n
         ...
-</httpd_builtin>
-```
+    </httpd_builtin>
 
 Once done, you should be able to start the Nginx service.
  
@@ -85,29 +71,22 @@ You can translate this plugin by copying the [l10n/en_GB.php](l10n/en_GB.php) la
 array values inside the new file.
 
 Feel free to post your language files in our forum for intergration in a later release. You can also fork the plugin
-repository and do a pull request if you've a github account.
-
-**Note:** File encoding must be UTF-8.
+repository and do a pull request if you've a github account. Note that the file encoding must be UTF-8, else it won't be
+accepted.
 
 ## License
 
-```
-Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
-Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 of the License
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-```
+    i-MSCP Monitorix plugin
+    Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+    
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; version 2 of the License
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
 See [LICENSE](LICENSE)
-
-## Authors
-
-* Laurent Declercq <l.declercq@nuxwin.com>
-* Sascha Bay <info@space2place.de>

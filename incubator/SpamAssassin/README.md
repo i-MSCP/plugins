@@ -93,9 +93,9 @@ For the other plugins, this depend of their nature:
 
 ## 3rd-party SpamAssassin ruleset
 
-By default the plugin will setup an additional channel for download of SpamAssassin
-ruleset. This channel is provided by Heinlein Support that is a German ISP that
-is specialized in mail servers.
+By default the plugin will setup an additional channel for download of
+SpamAssassin ruleset. This channel is provided by Heinlein Support, German ISP
+that is specialized in mail servers.
  
 Heinlein Support founder and owner [Peer Heinlein](https://de.wikipedia.org/wiki/Peer_Heinlein)
 has written several [books](https://portal.dnb.de/opac.htm?method=simpleSearch&query=123703522)

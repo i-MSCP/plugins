@@ -31,5 +31,5 @@ return array(
     'build'       => '2017050300',
     'name'        => 'AdminerSQL',
     'desc'        => 'Provides Adminer database management tool.',
-    'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
+    'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:adminersql'
 );

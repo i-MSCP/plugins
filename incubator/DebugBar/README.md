@@ -24,7 +24,7 @@ Right now, the followings components are provided:
 
 ## Requirements
 
-* i-MSCP Serie ≥ 1.5.x (version ≥ 1.5.2)
+* i-MSCP Serie ≥ 1.6.x
 
 ## Installation
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Monitorix plugin
- * Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2013-2017 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+use iMSCP_Events as Events;
+use iMSCP_Events_Manager_Interface as EventsManagerInterface;
+use iMSCP_Plugin_Action as PluginAction;
+use iMSCP_Plugin_Exception as PluginException;
+use iMSCP_Plugin_Manager as PluginManager;
+use iMSCP_Registry as Registry;
+
 /**
  * Class iMSCP_Plugin_Monitorix
  */
-class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
+class iMSCP_Plugin_Monitorix extends PluginAction
 {
     /**
-     * Plugin initialization
-     *
-     * @return void
+     * @inheritdoc
      */
     public function init()
     {
@@ -35,58 +40,42 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
     }
 
     /**
-     * Register a callback for the given event(s)
-     *
-     * @param iMSCP_Events_Manager_Interface $eventsManager
+     * @inheritdoc
      */
-    public function register(iMSCP_Events_Manager_Interface $eventsManager)
+    public function register(EventsManagerInterface $eventsManager)
     {
-        $eventsManager->registerListener(iMSCP_Events::onAdminScriptStart, $this);
+        $eventsManager->registerListener(Events::onAdminScriptStart, $this);
     }
 
     /**
-     * Plugin installation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
-     * @return void
+     * @inheritdoc
      */
-    public function install(iMSCP_Plugin_Manager $pluginManager)
+    public function install(PluginManager $pluginManager)
     {
         // Only there to tell the plugin manager that this plugin is installable
     }
 
     /**
-     * Plugin uninstallation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param iMSCP_Plugin_Manager $pluginManager
-     * @return void
+     * @inheritdoc
      */
-    public function uninstall(iMSCP_Plugin_Manager $pluginManager)
+    public function uninstall(PluginManager $pluginManager)
     {
         try {
             $this->clearTranslations();
-        } catch(Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
-     * Plugin update
-     *
-     * @throws iMSCP_Plugin_Exception When update fail
-     * @param iMSCP_Plugin_Manager $pluginManager
-     * @param string $fromVersion Version from which plugin update is initiated
-     * @param string $toVersion Version to which plugin is updated
-     * @return void
+     * @inheritdoc
      */
-    public function update(iMSCP_Plugin_Manager $pluginManager, $fromVersion, $toVersion)
+    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
     {
         try {
             $this->clearTranslations();
-        } catch(Exception $e) {
-            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
+        } catch (Exception $e) {
+            throw new PluginException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -94,6 +83,8 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
      * onAdminScriptStart listener
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     public function onAdminScriptStart()
     {
@@ -101,16 +92,14 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
     }
 
     /**
-     * Get routes
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getRoutes()
     {
         $pluginDir = $this->getPluginManager()->pluginGetDirectory() . '/' . $this->getName();
 
         return array(
-            '/admin/monitorix.php' => $pluginDir . '/frontend/monitorix.php',
+            '/admin/monitorix.php'         => $pluginDir . '/frontend/monitorix.php',
             '/admin/monitorixgraphics.php' => $pluginDir . '/frontend/monitorixgraphics.php'
         );
     }
@@ -119,36 +108,42 @@ class iMSCP_Plugin_Monitorix extends iMSCP_Plugin_Action
      * Inject Monitorix links into the navigation object
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws Zend_Navigation_Exception
      */
     protected function setupNavigation()
     {
-        if(iMSCP_Registry::isRegistered('navigation')) {
-            /** @var Zend_Navigation $navigation */
-            $navigation = iMSCP_Registry::get('navigation');
-
-            if(($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
-                $page->addPage(
-                    array(
-                        'label' => tr('Monitorix'),
-                        'uri' => '/admin/monitorix.php',
-                        'title_class' => 'stats'
-                    )
-                );
-            }
+        if (!Registry::isRegistered('navigation')) {
+            return;
         }
+
+        /** @var Zend_Navigation $navigation */
+        $navigation = iMSCP_Registry::get('navigation');
+
+        if (!($page = $navigation->findOneBy('uri', '/admin/server_statistic.php'))) {
+            return;
+        }
+
+        $page->addPage(array(
+            'label'       => tr('Monitorix'),
+            'uri'         => '/admin/monitorix.php',
+            'title_class' => 'stats'
+        ));
     }
 
     /**
      * Clear translations if any
      *
      * @return void
+     * @throws Zend_Exception
+     * @throws iMSCP_Plugin_Exception
      */
     protected function clearTranslations()
     {
         /** @var Zend_Translate $translator */
-        $translator = iMSCP_Registry::get('translator');
+        $translator = Registry::get('translator');
 
-        if($translator->hasCache()) {
+        if ($translator->hasCache()) {
             $translator->clearCache($this->getName());
         }
     }

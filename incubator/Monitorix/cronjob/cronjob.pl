@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+#
 # i-MSCP Monitorix plugin
 # Copyright (C) 2013-2016 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
@@ -19,7 +20,9 @@
 
 use strict;
 use warnings;
-use lib '{IMSCP_PERLLIB_PATH}';
+use Cwd qw/ abs_path /;
+use FindBin qw/ $Bin /;
+use lib abs_path("$Bin/../../../../engine/PerlLib"), abs_path("$Bin/../../../../engine/PerlVendor");
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
 use iMSCP::Debug;
@@ -57,8 +60,7 @@ iMSCP::Bootstrapper->getInstance()->boot(
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/Monitorix/backend/Monitorix.pm";
 require $pluginFile;
 
-my $pluginClass = "Plugin::Monitorix";
-$pluginClass->getInstance( getData() )->buildGraphs() == 0 or die(
+Plugin::Monitorix->getInstance( getData() )->buildGraphs() == 0 or die(
     getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
 );
 

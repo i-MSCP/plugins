@@ -5,7 +5,8 @@
 =cut
 
 # i-MSCP RecaptchaPMA plugin
-# Copyright (C) 2010-2016 by Sascha Bay
+# Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2016 by Sascha Bay <info@space2place.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -31,7 +32,7 @@ use iMSCP::File;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use version;
-use parent 'Common::SingletonClass';
+use parent 'iMSCP::Common::Singleton';
 
 =head1 DESCRIPTION
 
@@ -54,14 +55,13 @@ sub enable
     my $self = shift;
 
     my $rs = $self->_pmaConfig( 'configure' );
-    return $rs if $rs;
 
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        eval {iMSCP::Service->getInstance()->restart('imscp_panel');};
-        if($@) {
-            error($@);
-            return 1;
-        }
+    return 0 if $rs || ( defined $main::execmode && $main::execmode eq 'setup' );
+
+    eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+    if ( $@ ) {
+        error( $@ );
+        return 1;
     }
 
     0;
@@ -80,15 +80,13 @@ sub disable
     my $self = shift;
 
     my $rs = $self->_pmaConfig( 'deconfigure' );
-    return $rs if $rs;
+    return $rs if $rs || ( defined $main::execmode && $main::execmode eq 'setup' );
 
-    unless (defined $main::execmode && $main::execmode eq 'setup') {
-        local $@;
-        eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
-        if ($@) {
-            error( $@ );
-            return 1;
-        }
+    local $@;
+    eval { iMSCP::Service->getInstance()->restart( 'imscp_panel' ); };
+    if ( $@ ) {
+        error( $@ );
+        return 1;
     }
 
     0;
@@ -131,30 +129,25 @@ sub _pmaConfig
 
     my $file = iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/pma/config.inc.php" );
     my $fileContent = $file->get();
-    unless (defined $fileContent) {
-        error( sprintf( 'Could not read %s file', $file->{'filename'} ) );
+    unless ( defined $fileContent ) {
+        error( sprintf( 'Could not read %s file', $file->{'filename'} ));
         return 1;
     }
 
-    if ($action eq 'configure') {
-        my $configSnippet = <<EOF;
+    if ( $action eq 'configure' ) {
+        my $configSnippet = <<"EOF";
 # Begin Plugin::RecaptchaPMA
 \$cfg['CaptchaLoginPublicKey'] = "$self->{'config'}->{'reCaptchaLoginPublicKey'}";
 \$cfg['CaptchaLoginPrivateKey'] = "$self->{'config'}->{'reCaptchaLoginPrivateKey'}";
 # Ending Plugin::RecaptchaPMA
 EOF
-
-        if (getBloc( "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $fileContent ) ne '') {
-            $fileContent = replaceBloc(
-                "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $configSnippet, $fileContent
-            );
+        if ( getBloc( "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $fileContent ) ne '' ) {
+            $fileContent = replaceBloc( "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", $configSnippet, $fileContent );
         } else {
             $fileContent .= $configSnippet;
         }
-    } elsif ($action eq 'deconfigure') {
-        $fileContent = replaceBloc(
-            "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", '', $fileContent
-        );
+    } elsif ( $action eq 'deconfigure' ) {
+        $fileContent = replaceBloc( "# Begin Plugin::RecaptchaPMA\n", "# Ending Plugin::RecaptchaPMA\n", '', $fileContent );
     }
 
     my $rs = $file->set( $fileContent );
@@ -163,8 +156,9 @@ EOF
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS
 
+ Laurent Declercq <l.declercq@nuxwin.com>
  Sascha Bay <info@space2place.de>
 
 =cut

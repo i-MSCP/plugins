@@ -29,10 +29,9 @@ use warnings;
 use autouse 'iMSCP::Rights' => qw/ setRights /;
 use autouse 'iMSCP::Debug' => qw/ error /;
 use autouse 'iMSCP::TemplateParser' => qw / replaceBloc /;
-use Class::Autouse qw/ :nostat
-    iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Net iMSCP::OpenSSL Servers::cron Servers::httpd /;
+use Class::Autouse qw/ :nostat iMSCP::Database iMSCP::Dir iMSCP::File iMSCP::Net iMSCP::OpenSSL iMSCP::Servers::Cron iMSCP::Servers::Httpd /;
 use version;
-use parent 'Common::SingletonClass';
+use parent 'iMSCP::Common::Singleton';
 
 # self-ref for use in event listener
 my $instance;
@@ -57,7 +56,7 @@ sub install
 {
     my ($self) = @_;
 
-    $self->_copyFolder( );
+    $self->_copyFolder();
 }
 
 =item uninstall( )
@@ -71,14 +70,14 @@ sub install
 sub uninstall
 {
     local $@;
-    eval { iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage" )->remove( ); };
-    if ($@) {
+    eval { iMSCP::Dir->new( dirname => "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage" )->remove(); };
+    if ( $@ ) {
         error( $@ );
         return 1;
     }
 
-    if (-f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem") {
-        return iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile( );
+    if ( -f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" ) {
+        return iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile();
     }
 
     0;
@@ -99,8 +98,8 @@ sub update
 
     $fromVersion = version->parse( $fromVersion );
 
-    if ($fromVersion < version->parse( '1.0.6' )) {
-        my $rs = $self->_copyFolder( );
+    if ( $fromVersion < version->parse( '1.0.6' ) ) {
+        my $rs = $self->_copyFolder();
         return $rs if $rs;
     }
 
@@ -113,7 +112,7 @@ sub update
             "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage"
         );
     };
-    if ($@) {
+    if ( $@ ) {
         error( $@ );
         return 1;
     }
@@ -133,27 +132,24 @@ sub enable
 {
     my ($self) = @_;
 
-    if ($self->{'config'}->{'certificate'} eq '') {
-        my $rs = $self->createSelfSignedCertificate( );
-        $rs ||= Servers::cron->factory( )->addTask(
-            {
-                TASKID  => 'Plugin::ServerDefaultPage',
-                MINUTE  => '@monthly',
-                COMMAND => 'nice -n 10 ionice -c2 -n5 '
-                    ."perl $main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/cronjob.pl > /dev/null 2>&1"
-            }
-        );
-        $rs ||= _updateVhost( );
+    if ( $self->{'config'}->{'certificate'} eq '' ) {
+        my $rs = $self->createSelfSignedCertificate();
+        $rs ||= iMSCP::Servers::Cron->factory()->addTask( {
+            TASKID  => 'Plugin::ServerDefaultPage',
+            MINUTE  => '@monthly',
+            COMMAND => "nice -n 10 ionice -c2 -n5 perl $main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/cronjob.pl > /dev/null 2>&1"
+        } );
+        $rs ||= _updateVhost();
         return $rs;
     }
 
-    if (-f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem") {
-        my $rs = iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile( );
+    if ( -f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" ) {
+        my $rs = iMSCP::File->new( filename => "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" )->delFile();
         return $rs if $rs;
     }
 
-    my $rs = Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::ServerDefaultPage' } );
-    $rs ||= _updateVhost( );
+    my $rs = iMSCP::Servers::Cron->factory()->deleteTask( { TASKID => 'Plugin::ServerDefaultPage' } );
+    $rs ||= _updateVhost();
 }
 
 =item disable( )
@@ -170,8 +166,8 @@ sub disable
 
     my $rs = $self->_deleteVhost( '00_ServerDefaultPage.conf' );
     $rs ||= $self->_deleteVhost( '00_ServerDefaultPage_ssl.conf' );
-    $rs ||= Servers::cron->factory( )->deleteTask( { TASKID => 'Plugin::ServerDefaultPage' } );
-    Servers::httpd->factory( )->{'restart'} = 1 unless $rs;
+    $rs ||= iMSCP::Servers::Cron->factory()->deleteTask( { TASKID => 'Plugin::ServerDefaultPage' } );
+    iMSCP::Servers::Httpd->factory()->{'restart'} = 1 unless $rs;
     $rs;
 }
 
@@ -191,9 +187,7 @@ sub run
 
     # Register an event listener that is responsible to update IP addresses
     # into ServerDefaultPage vhost files
-    $self->{'eventManager'}->register(
-        'beforeAddIpAddr', sub { $self->{'eventManager'}->register( 'afterAddIpAddr', \&_updateVhost ); }
-    );
+    $self->{'eventManager'}->register( 'beforeAddIpAddr', sub { $self->{'eventManager'}->register( 'afterAddIpAddr', \&_updateVhost ); } );
 }
 
 =item createSelfSignedCertificate( )
@@ -215,19 +209,17 @@ sub createSelfSignedCertificate
         certificate_chain_name         => 'serverdefaultpage'
     );
 
-    if (-f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem") {
+    if ( -f "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" ) {
         my $expireDate = $openSSL->getCertificateExpiryTime( "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" );
-        return 0 if defined $expireDate && $expireDate > (time()+2419200 );
+        return 0 if defined $expireDate && $expireDate > ( time()+2419200 );
     }
 
-    my $rs = $openSSL->createSelfSignedCertificate(
-        {
-            common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
-            email       => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
-        }
-    );
+    my $rs = $openSSL->createSelfSignedCertificate( {
+        common_name => $main::imscpConfig{'SERVER_HOSTNAME'},
+        email       => $main::imscpConfig{'DEFAULT_ADMIN_ADDRESS'}
+    } );
 
-    Servers::httpd->factory( )->{'restart'} = 1 unless $rs;
+    iMSCP::Servers::Httpd->factory()->{'restart'} = 1 unless $rs;
     $rs;
 }
 
@@ -269,27 +261,23 @@ sub _createVhost
 {
     my ($self, $vhostTplFile, $ipAddresses, $port) = @_;
 
-    my $httpd = Servers::httpd->factory( );
-    my $net = iMSCP::Net->getInstance( );
+    my $httpd = iMSCP::Servers::Httpd->factory();
+    my $net = iMSCP::Net->getInstance();
 
     $httpd->setData(
         {
-            IPS_PORTS      => join(
-                ' ', map { ( $net->getAddrVersion( $_ ) eq 'ipv4' ? $_ : "[$_]" ).":$port" } @{$ipAddresses}
-            ),
-            BASE_SERVER_IP => $net->getAddrVersion($main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
-                ? $main::imscpConfig{'BASE_SERVER_IP'}
-                : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
+            IPS_PORTS      => join( ' ', map { ( $net->getAddrVersion( $_ ) eq 'ipv4' ? $_ : "[$_]" ) . ":$port" } @{$ipAddresses} ),
+            BASE_SERVER_IP => $net->getAddrVersion( $main::imscpConfig{'BASE_SERVER_IP'} ) eq 'ipv4'
+                ? $main::imscpConfig{'BASE_SERVER_IP'} : "[$main::imscpConfig{'BASE_SERVER_IP'}]",
             APACHE_WWW_DIR => $main::imscpConfig{'USER_WEB_DIR'},
-            CERTIFICATE    => ($self->{'config'}->{'certificate'} eq '')
-                ? "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem"
-                : $self->{'config'}->{'certificate'},
+            CERTIFICATE    => ( $self->{'config'}->{'certificate'} eq '' )
+                ? "$main::imscpConfig{'CONF_DIR'}/serverdefaultpage.pem" : $self->{'config'}->{'certificate'},
         }
     );
 
     $httpd->buildConfFile(
         "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/$vhostTplFile",
-        { },
+        {},
         { destination => "$httpd->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostTplFile" }
     );
 }
@@ -307,11 +295,11 @@ sub _deleteVhost
 {
     my (undef, $vhostFilename) = @_;
 
-    my $httpd = Servers::httpd->factory( );
+    my $httpd = iMSCP::Servers::Httpd->factory();
 
     return 0 unless -f "$httpd->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFilename";
 
-    iMSCP::File->new( filename => "$httpd->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFilename" )->delFile( );
+    iMSCP::File->new( filename => "$httpd->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/before/$vhostFilename" )->delFile();
 }
 
 =item _copyFolder( )
@@ -326,18 +314,15 @@ sub _copyFolder( )
 {
     my $srcDir = "$main::imscpConfig{'PLUGINS_DIR'}/ServerDefaultPage/templates/default";
     my $targetDir = "$main::imscpConfig{'USER_WEB_DIR'}/ServerDefaultPage";
-    my $httpd = Servers::httpd->factory( );
+    my $httpd = iMSCP::Servers::Httpd->factory();
 
-    my $rs = iMSCP::Dir->new( dirname => $targetDir )->make(
-        {
-            user  => $httpd->{'config'}->{'HTTPD_USER'},
-            group => $httpd->{'config'}->{'HTTPD_GROUP'},
-            mode  => 0750
-        }
-    );
+    my $rs = iMSCP::Dir->new( dirname => $targetDir )->make( {
+        user  => $httpd->{'config'}->{'HTTPD_USER'},
+        group => $httpd->{'config'}->{'HTTPD_GROUP'},
+        mode  => 0750
+    } );
     $rs ||= iMSCP::Dir->new( dirname => $srcDir )->rcopy( $targetDir );
-    $rs ||= setRights(
-        $targetDir,
+    $rs ||= setRights( $targetDir,
         {
             user      => $httpd->{'config'}->{'HTTPD_USER'},
             group     => $httpd->{'config'}->{'HTTPD_GROUP'},
@@ -359,16 +344,16 @@ sub _copyFolder( )
 sub _getIps( )
 {
     my $ipAddresses = eval {
-        my $dbh = iMSCP::Database->factory( )->getRawDb( );
+        my $dbh = iMSCP::Database->factory()->getRawDb();
         local $dbh->{'RaiseError'} = 1;
 
         my $sth = $dbh->prepare( "SELECT ip_number FROM server_ips WHERE ip_status IN ('toadd', 'tochange', 'ok')" );
         $sth->execute();
-        $sth->fetchall_arrayref( { ip_number => 1 });
+        $sth->fetchall_arrayref( { ip_number => 1 } );
     };
-    !$@ or die ( sprintf( "Couldn't get list of IP addresses: %s", $@ ) );
+    !$@ or die ( sprintf( "Couldn't get list of IP addresses: %s", $@ ));
 
-    my $net = iMSCP::Net->getInstance( );
+    my $net = iMSCP::Net->getInstance();
     map { $net->normalizeAddr( $_->{'ip_number'} ) } @{$ipAddresses};
 }
 
@@ -391,16 +376,16 @@ sub _updateVhost
     return $rs if $rs;
 
     local $@;
-    my @ipAddresses = eval { $instance->_getIps( ); };
-    if ($@) {
-        error($@);
+    my @ipAddresses = eval { $instance->_getIps(); };
+    if ( $@ ) {
+        error( $@ );
         return 1;
     }
 
     $rs = $instance->_createVhost( '00_ServerDefaultPage.conf', \@ipAddresses, 80 );
     $rs ||= $instance->_createVhost( '00_ServerDefaultPage_ssl.conf', \@ipAddresses, 443 );
 
-    Servers::httpd->factory( )->{'restart'} = 1 unless $rs;
+    iMSCP::Servers::Httpd->factory()->{'restart'} = 1 unless $rs;
 
     # Avoid re-creating vhosts files on each IP address addition (BC for i-MSCP version < 1.4.4)
     undef $instance;
