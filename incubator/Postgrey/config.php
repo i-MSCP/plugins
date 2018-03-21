@@ -19,6 +19,9 @@
  */
 
 return array(
+    // Postgrey server host (default: 127.0.0.1)
+    'postgrey_host' => '127.0.0.1',
+
     // Postgrey listening port (default: 10023)
     'postgrey_port' => 10023
 );

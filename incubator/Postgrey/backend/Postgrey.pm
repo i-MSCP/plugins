@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP Postgrey plugin
-# Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ sub enable
             smtpd_recipient_restrictions => {
                 action => 'add',
                 before => qr/permit/,
-                values => [ "check_policy_service inet:127.0.0.1:$self->{'config'}->{'postgrey_port'}" ]
+                values => [ "check_policy_service inet:$self->{'config'}->{'postgrey_host'}:$self->{'config'}->{'postgrey_port'}" ]
             }
         )
     );
@@ -113,7 +113,7 @@ sub disable
         (
             smtpd_recipient_restrictions => {
                 action => 'remove',
-                values => [ qr/check_policy_service\s+\Qinet:127.0.0.1:$self->{'config_prev'}->{'postgrey_port'}\E/ ]
+                values => [ qr/check_policy_service\s+\Qinet:$self->{'config_prev'}->{'postgrey_host'}:$self->{'config_prev'}->{'postgrey_port'}\E/ ]
             }
         )
     );

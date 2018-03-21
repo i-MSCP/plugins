@@ -1,4 +1,4 @@
-# i-MSCP Postgrey plugin v1.2.0
+# i-MSCP Postgrey plugin v1.3.0
 
 Provides a greylisting implementation for Postfix using Postgrey policy server.
 

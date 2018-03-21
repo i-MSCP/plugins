@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Postgrey plugin
- * @copyright 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,10 @@
 return array(
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '1.2.0',
+    'version'     => '1.3.0',
     'require_api' => '1.4.0',
-    'date'        => '2017-07-03',
-    'build'       => '2017070300',
+    'date'        => '2018-03-20',
+    'build'       => '2018032000',
     'name'        => 'Postgrey',
     'desc'        => 'Provides a greylisting implementation for Postfix using Postgrey policy server.',
     'url'         => 'https://wiki.i-mscp.net/doku.php?id=plugins:postgrey',

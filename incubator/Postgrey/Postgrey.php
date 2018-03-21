@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP Postgrey plugin
- * @copyright 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,6 @@ class iMSCP_Plugin_Postgrey extends PluginAction
     /**
      * Plugin installation
      *
-     * @throws iMSCP_Plugin_Exception
      * @param PluginManager $pluginManager
      * @return void
      */
@@ -52,15 +51,14 @@ class iMSCP_Plugin_Postgrey extends PluginAction
     {
         try {
             # Make sure that Postgrey smtp restriction is evaluated first. This is based on plugin_priority field.
-            if ($pluginManager->pluginIsKnown('PolicydWeight')
-                && $pluginManager->pluginIsEnabled('PolicydWeight')
-            ) {
+            if ($pluginManager->pluginIsKnown('PolicydWeight') && $pluginManager->pluginIsEnabled('PolicydWeight')) {
                 $pluginManager->pluginChange('PolicydWeight');
             }
 
             Registry::get('dbConfig')->set(
                 'PORT_POSTGREY',
-                $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;127.0.0.1'
+                $this->getConfigParam('postgrey_port', 10023) . ';tcp;POSTGREY;1;'
+                . $this->getConfigParam('postgrey_host', 'localhost')
             );
         } catch (Exception $e) {
             throw new PluginException($e->getMessage(), $e->getCode(), $e);
