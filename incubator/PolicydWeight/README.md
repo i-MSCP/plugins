@@ -1,4 +1,4 @@
-# i-MSCP PolicydWeight plugin v2.0.0
+# i-MSCP PolicydWeight plugin v1.3.0
 
 Provides policyd-weight policy daemon for Postfix.
 

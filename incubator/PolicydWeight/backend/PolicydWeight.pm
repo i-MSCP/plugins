@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP PolicydWeight plugin
-# Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@ sub enable
         smtpd_recipient_restrictions => {
             action => 'add',
             before => qr/permit/,
-            values => [ "check_policy_service inet:127.0.0.1:$self->{'config'}->{'policyd_weight_port'}" ]
+            values => [ "check_policy_service inet:$self->{'config'}->{'policyd_weight_host'}:$self->{'config'}->{'policyd_weight_port'}" ]
         }
     );
     return $rs if $rs;
@@ -118,7 +118,7 @@ sub disable
     my $rs = Servers::mta->factory( )->postconf(
         smtpd_recipient_restrictions => {
             action => 'remove',
-            values => [ qr/check_policy_service\s+\Qinet:127.0.0.1:$self->{'config_prev'}->{'policyd_weight_port'}\E/ ]
+            values => [ qr/check_policy_service\s+\Qinet:$self->{'config_prev'}->{'policyd_weight_host'}:$self->{'config_prev'}->{'policyd_weight_port'}\E/ ]
         }
     );
     return $rs if $rs || $self->{'action'} ne 'disable';

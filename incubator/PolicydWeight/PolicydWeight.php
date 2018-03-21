@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP PolicydWeight plugin
- * @copyright 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * @copyright 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,6 @@ class iMSCP_Plugin_PolicydWeight extends PluginAction
     /**
      * Plugin installation
      *
-     * @throws iMSCP_Plugin_Exception
      * @param PluginManager $pluginManager
      * @return void
      */
@@ -58,7 +57,8 @@ class iMSCP_Plugin_PolicydWeight extends PluginAction
 
             Registry::get('dbConfig')->set(
                 'PORT_POLICYD_WEIGHT',
-                $this->getConfigParam('policyd_weight_port', 12525) . ';tcp;POLICYD_WEIGHT;1;127.0.0.1'
+                $this->getConfigParam('policyd_weight_port', 12525) . ';tcp;POLICYD_WEIGHT;1;'
+                . $this->getConfigParam('policyd_weight_host', 'localhost')
             );
         } catch (Exception $e) {
             throw new PluginException($e->getMessage(), $e->getCode(), $e);
