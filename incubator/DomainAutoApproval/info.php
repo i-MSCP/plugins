@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-return array(
+return [
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
     'version'     => '1.1.3',
@@ -28,4 +28,4 @@ return array(
     'name'        => 'DomainAutoApproval',
     'desc'        => 'Provides automatic approval for client domain aliases.',
     'url'         => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
-);
+];
