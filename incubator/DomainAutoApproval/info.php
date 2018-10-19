@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP DomainAutoApproval plugin
- * Copyright (C) 2012-2016 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2012-2018 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,12 +19,13 @@
  */
 
 return array(
-    'author' => 'Laurent Declercq',
-    'email' => 'l.declercq@nuxwin.com',
-    'version' => '1.1.2',
+    'author'      => 'Laurent Declercq',
+    'email'       => 'l.declercq@nuxwin.com',
+    'version'     => '1.1.3',
     'require_api' => '1.0.4',
-    'date' => '2016-06-25',
-    'name' => 'DomainAutoApproval',
-    'desc' => 'Plugin that allows auto-approval of domain aliases created by clients.',
-    'url' => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
+    'date'        => '2018-10-19',
+    'build'       => '2018101900',
+    'name'        => 'DomainAutoApproval',
+    'desc'        => 'Provides automatic approval for client domain aliases.',
+    'url'         => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
 );
