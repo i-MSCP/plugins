@@ -66,7 +66,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
             $saDbName = quoteIdentifier($cfg['DATABASE_NAME'] . '_spamassassin');
 
             exec_query("DELETE t1 FROM $saDbName.bayes_token AS t1 JOIN $saDbName.bayes_vars AS t2 USING(id) WHERE t2.username = ?", [$username]);
-            exec_query("DELETE t1 FROM $saDbName.bayes_seen AS t1 JOIN $saDbName.bayes_vars AS t2 WHERE t2.username = ?", [$username]);
+            exec_query("DELETE t1 FROM $saDbName.bayes_seen AS t1 JOIN $saDbName.bayes_vars AS t2 USING(id) WHERE t2.username = ?", [$username]);
             exec_query("DELETE FROM $saDbName.bayes_vars WHERE username = ?", [$username]);
             exec_query("DELETE FROM $saDbName.userpref WHERE username = ?", [$username]);
 

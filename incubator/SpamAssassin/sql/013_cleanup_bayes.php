@@ -35,7 +35,7 @@ return [
         AND NOT EXISTS( SELECT 1 FROM $imscpDb.mail_users AS t3 WHERE t3.mail_addr = t2.username AND t3.mail_pass <> '_no_');
 
         DELETE t1 FROM $saDb.bayes_seen AS t1
-        JOIN $saDb.bayes_vars AS t2
+        JOIN $saDb.bayes_vars AS t2 USING(id)
         WHERE t2.username <> '\$GLOBAL'
         AND NOT EXISTS( SELECT 1 FROM $imscpDb.mail_users AS t3 WHERE t3.mail_addr = t2.username AND t3.mail_pass <> '_no_');
 
