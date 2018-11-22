@@ -1,6 +1,6 @@
-# i-MSCP SpamAssassin plugin v2.0.2
+# i-MSCP SpamAssassin plugin v2.1.0
 
-Provides SpamAssassin spam filter through MILTER.
+Provides SpamAssassin antispam solution for Postfix through MILTER.
 
 ## Introduction
 
@@ -17,7 +17,7 @@ Apache SpamAssassin is a project of the Apache Software Foundation (ASF).
 
 ## Requirements
 
-- i-MSCP Serie ≥ 1.4.x
+- i-MSCP Series 1.4.x, 1.5.x
 - Roundcube Webmail (OPTIONAL)
 
 ## Installation
@@ -271,7 +271,7 @@ whitespace nor line break.
 ## License
 
     i-MSCP SpamAssassin plugin
-    Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+    Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
     Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
     Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
     

@@ -2,6 +2,17 @@ SpamAssassin - ChangeLog
 ========================
 
 ------------------------------------------------------------------------------------------------------------------------
+Version 2.1.0
+------------------------------------------------------------------------------------------------------------------------
+
+    Fixed: SQL Errcode: 28  'No space left on device' - mail account deletion - SA bayesian data removal
+    Fixed: SQL Errcode: 28  'No space left on device' - plugin update - db update (013) (Closes: thread 18477, 17208)
+    Fixed: SQL Errcode: 28  'No space left on device' - Roundcube sauserprefs - User user bayesian data deletion  
+    Review: Make use of short array syntax (PHP)
+    Updated: AWL cleaner SQL query in backend/SpamAssassin.pm (Closes: #IP-1808) - Thanks to Mike Rhyner for his patch
+    Updated: AWL SA plugin SQL database table schema for SA 3.4.2 (Closes: #IP-1808)
+
+------------------------------------------------------------------------------------------------------------------------
 Version 2.0.2
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # i-MSCP SpamAssassin plugin
-# Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 # Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 #
@@ -50,23 +50,19 @@ sub getData
 }
 
 newDebug( 'spamassassin-plugin-clean-awl-db.log' );
-iMSCP::Bootstrapper->getInstance()->boot(
-    {
-        norequirements  => 'yes',
-        config_readonly => 'yes',
-        nolock          => 'yes'
-    }
-);
+iMSCP::Bootstrapper->getInstance()->boot( {
+    norequirements  => 'yes',
+    config_readonly => 'yes',
+    nolock          => 'yes'
+} );
 
-iMSCP::Service->getInstance( )->isRunning( 'mysql' ) or exit;
+iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
 
 my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
 require $pluginFile;
 
 my $pluginClass = "Plugin::SpamAssassin";
-$pluginClass->getInstance( getData() )->cleanAwlDb() == 0 or die(
-    getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error'
-);
+$pluginClass->getInstance( getData())->cleanAwlDb() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error' );
 
 1;
 __END__

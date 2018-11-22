@@ -1,9 +1,9 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
- * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+ * Copyright (C) 2013-2018 Sascha Bay <info@space2place.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,9 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-return array(
+return [
     // SPAMD(8p) service configuration
-    'spamd'          => array(
+    'spamd'          => [
         // SPAMD(8p) unix user
         //
         // Possible value: string
@@ -49,10 +49,10 @@ return array(
         'options' => '--max-children=5 --sql-config --nouser-config --username={SPAMD_USER} --groupname={SPAMD_GROUP}'
             . ' --helper-home-dir={SPAMD_HOMEDIR} --socketpath=/var/run/spamassassin.sock --socketowner={SPAMD_USER}'
             . ' --socketgroup={SPAMD_GROUP} --socketmode=0666'
-    ),
+    ],
 
     // SPAMASS_MILTER(8) service configuration
-    'spamass_milter' => array(
+    'spamass_milter' => [
         // Policy for SPAM rejection
         //
         // - If set to -1, SPAM messages are always rejected.
@@ -88,7 +88,7 @@ return array(
         // For instance: '127.0.0.1', '172.16.12.0/24', '10.0.0.0/255.0.0.0'
         //
         // Possible value: array
-        'networks'                => array(),
+        'networks'                => [],
 
         // Options passed-in to SPAMASS_MILTER(8)
         //
@@ -115,16 +115,16 @@ return array(
         //
         // Possible value: string
         'socket_mode'             => '0666'
-    ),
+    ],
 
     // SpamAssassin configuration options
-    'spamassassin'   => array(
+    'spamassassin'   => [
         // AWL plugin -- Normalize scores via auto-whitelist
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_AWL.html
         //
         // Note that this plugin is either enabled for all users or fully
         // disabled.
-        'AWL'                      => array(
+        'AWL'                      => [
             // Possible values: true, false
             'enabled'          => true,
 
@@ -135,18 +135,18 @@ return array(
 
             // Cronjob for cleaning up of AWL database
             // See man CRONTAB(5) for allowed values
-            'cronjob_clean_db' => array(
+            'cronjob_clean_db' => [
                 'minute' => '@daily',
                 'hour'   => '',
                 'day'    => '',
                 'month'  => '',
                 'dweek'  => ''
-            )
-        ),
+            ]
+        ],
 
         // Bayes plugin -- determine spammishness using a Bayesian classifier
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Bayes.html
-        'Bayes'                    => array(
+        'Bayes'                    => [
             // Possible values: true, false
             'enabled'          => true,
 
@@ -177,31 +177,31 @@ return array(
 
             // Cronjob for sa-learn
             // See man CRONTAB(5) for allowed values
-            'cronjob_sa_learn' => array(
+            'cronjob_sa_learn' => [
                 'minute' => '0',
                 'hour'   => '*/12',
                 'day'    => '*',
                 'month'  => '*',
                 'dweek'  => '*'
-            ),
+            ],
 
             // Cronjob for cleaning up of bayes database
             // See man CRONTAB(5) for allowed values
-            'cronjob_clean_db' => array(
+            'cronjob_clean_db' => [
                 'minute' => '@daily',
                 'hour'   => '',
                 'day'    => '',
                 'month'  => '',
                 'dweek'  => ''
-            )
-        ),
+            ]
+        ],
 
         // DCC plugin -- perform DCC check of messages
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DCC.html
         //
         // You must first install DCC which is not provided by default.
         // See https://www.dcc-servers.net/dcc/INSTALL.html
-        'DCC'                      => array(
+        'DCC'                      => [
             // Possible values: true, false
             'enabled'     => false,
 
@@ -218,7 +218,7 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/v310.pre'
-        ),
+        ],
 
         // DKIM plugin - perform DKIM verification tests
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DKIM.html
@@ -226,7 +226,7 @@ return array(
         // This plugin is either enabled for all users or fully disabled.
         //
         // You shouldn't enable that plugin if you also use the i-MSCP OpenDKIM plugin.
-        'DKIM'                     => array(
+        'DKIM'                     => [
             // Possible values: true, false
             'enabled'     => false,
 
@@ -234,20 +234,20 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/v312.pre'
-        ),
+        ],
 
         // DecodeShortURLs plugin -- Expand shortened URLs
         // See https://github.com/smfreegard/DecodeShortURLs
         //
         // Note that this plugin is either enabled for all users or fully disabled.
-        'DecodeShortURLs'          => array(
+        'DecodeShortURLs'          => [
             // Possible values: true, false
             'enabled' => true
-        ),
+        ],
 
         // Heinlein Support SpamAssassin ruleset
         // See https://www.heinlein-support.de/blog/news/aktuelle-spamassassin-regeln-von-heinlein-support/
-        'heinlein_support_ruleset' => array(
+        'heinlein_support_ruleset' => [
             // Possible value: true, false
             'enabled'     => true,
 
@@ -259,21 +259,21 @@ return array(
             //
             // Possible value: string
             'channel'     => 'spamassassin.heinlein-support.de'
-        ),
+        ],
 
         // iXhash2 SpamAssassin plugin - perform iXhash2 check of messages
         // See http://mailfud.org/iXhash2/
         //
         // Note that this plugin is either enabled for all users or fully
         // disabled.
-        'iXhash2'                  => array(
+        'iXhash2'                  => [
             // Possible values: true, false
             'enabled' => true
-        ),
+        ],
 
         // Pyzor plugin -- perform Pyzor check of messages
         // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Pyzor.html
-        'Pyzor'                    => array(
+        'Pyzor'                    => [
             // Possible values: true, false
             'enabled'     => true,
 
@@ -290,11 +290,11 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/v310.pre'
-        ),
+        ],
 
         // Razor2 plugin -- perform Razor check of messages
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Razor2.html
-        'Razor2'                   => array(
+        'Razor2'                   => [
             // Possible values: true, false
             'enabled'     => true,
 
@@ -311,11 +311,11 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/v310.pre'
-        ),
+        ],
 
         // Rule2XSBody plugin -- speed up SpamAssassin by compiling regexps
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_Rule2XSBody.html
-        'Rule2XSBody'              => array(
+        'Rule2XSBody'              => [
             // Possible values: true, false
             'enabled'     => true,
 
@@ -323,7 +323,7 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/sa-compile.pre'
-        ),
+        ],
 
         // SPF plugin -- perform SPF verification tests
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_SPF.html
@@ -333,7 +333,7 @@ return array(
         //
         // You shouldn't enable that plugin if you also use the PolicydSPF
         // i-MSCP plugin.
-        'SPF'                      => array(
+        'SPF'                      => [
             // Possible values: true, false
             'enabled'     => false,
 
@@ -341,11 +341,11 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/init.pre'
-        ),
+        ],
 
         // TextCat plugin -- language guesser
         // See https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_TextCat.html
-        'TextCat'                  => array(
+        'TextCat'                  => [
             // possible values: true, false
             'enabled'     => true,
 
@@ -353,7 +353,7 @@ return array(
             //
             // Possible value: string
             'config_file' => '/etc/spamassassin/v310.pre'
-        ),
+        ],
 
         // RBL checks (DNSEval and URIDNSBL SA plugins)
         // https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Plugin_DNSEval.html
@@ -361,7 +361,7 @@ return array(
         //
         // You shouldn't enable those plugins if you already use the i-MSCP
         // PolicydWeight and/or Postscreen plugins.
-        'rbl_checks'               => array(
+        'rbl_checks'               => [
             // Possible value: true, false
             'enabled'  => false,
 
@@ -373,29 +373,29 @@ return array(
             //
             // Possible value: true, false
             'enforced' => false
-        )
-    ),
+        ]
+    ],
 
     // Roundcube configuration
     //
     // Only relevant if you use the Roundcube Webmail
-    'roundcube'      => array(
+    'roundcube'      => [
         // MarkAsJunk2 Roundcube plugin
         // See https://github.com/JohnDoh/Roundcube-Plugin-Mark-as-Junk-2
         //
         // Make users able to mark their mails as SPAM|HAM for SA learning
         // Requires the SA Bayes plugin
-        'markasjunk2' => array(
+        'markasjunk2' => [
             // Possible value: true, false
             'enabled' => true
-        ),
+        ],
 
         // SAUserPrefs Roundcube plugin
         // See https://github.com/JohnDoh/Roundcube-Plugin-SpamAssassin-User-Prefs-SQL
         //
         // Make users able to customize SpamAssassin behavior through their own
         // user preferences
-        'sauserprefs' => array(
+        'sauserprefs' => [
             // Possible values: true, false
             'enabled'                   => true,
 
@@ -407,11 +407,11 @@ return array(
             // See the sauserprefs plugin documentation for further details.
             //
             // Possible value: array
-            'sauserprefs_dont_override' => array(
+            'sauserprefs_dont_override' => [
                 // razor1 support is officially deprecated.
                 // There is no reason to show it in plugin.
                 'use_razor1'
-            )
-        )
-    )
-);
+            ]
+        ]
+    ]
+];

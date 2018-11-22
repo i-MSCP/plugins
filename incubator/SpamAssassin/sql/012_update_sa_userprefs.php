@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,10 +20,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$imscpDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME);
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$imscpDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME']);
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
 
-return array(
+return [
     'up' => "
         -- Remove unwanted user preferences
         -- 
@@ -52,8 +52,8 @@ return array(
         UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use_dcc';
 
         -- Remove any orphaned user preference
-        DELETE u FROM $saDb.userpref u
-        WHERE u.username <> '\$GLOBAL'
-        AND u.username NOT IN(SELECT m.mail_addr FROM $imscpDb.mail_users m WHERE mail_pass <> '_no_');
+        DELETE t1 FROM $saDb.userpref t1
+        WHERE t1.username <> '\$GLOBAL'
+        AND t1.username NOT EXISTS(SELECT 1 FROM $imscpDb.mail_users AS t2 WHERE t2.mail_addr = t1.username AND t2.mail_pass <> '_no_');
     "
-);
+];

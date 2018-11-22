@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,9 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
 
-return array(
+return [
     'up' => "
         CREATE TABLE IF NOT EXISTS $saDb.bayes_global_vars (
             `variable` varchar(30) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -30,4 +30,4 @@ return array(
             PRIMARY KEY (`variable`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
     "
-);
+];

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -36,10 +36,7 @@ use iMSCP_Registry as Registry;
 class iMSCP_Plugin_SpamAssassin extends PluginAction
 {
     /**
-     * Register a callback for the given event(s)
-     *
-     * @param EventsManagerInterface $eventsManager
-     * @return void
+     * @inheritdoc
      */
     public function register(EventsManagerInterface $eventsManager)
     {
@@ -47,7 +44,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Delete bayesian data and user preferences that belong to the  mail account being deleted
+     * Delete bayesian data and user preferences that belong to the mail account being deleted
      *
      * @param Event $e
      * @throws PluginException
@@ -68,17 +65,10 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
             $cfg = Registry::get('config');
             $saDbName = quoteIdentifier($cfg['DATABASE_NAME'] . '_spamassassin');
 
-            exec_query(
-                "
-                    DELETE v, t, s
-                    FROM $saDbName.bayes_vars v
-                    LEFT JOIN $saDbName.bayes_token t ON t.id = v.id
-                    LEFT JOIN $saDbName.bayes_seen s ON s.id = v.id
-                    WHERE v.username = ?
-                ",
-                $username
-            );
-            exec_query("DELETE u FROM $saDbName.userpref u WHERE u.username = ?", $username);
+            exec_query("DELETE t1 FROM $saDbName.bayes_token AS t1 JOIN $saDbName.bayes_vars AS t2 USING(id) WHERE t2.username = ?", [$username]);
+            exec_query("DELETE t1 FROM $saDbName.bayes_seen AS t1 JOIN $saDbName.bayes_vars AS t2 WHERE t2.username = ?", [$username]);
+            exec_query("DELETE FROM $saDbName.bayes_vars WHERE username = ?", [$username]);
+            exec_query("DELETE FROM $saDbName.userpref WHERE username = ?", [$username]);
 
             $db->commit();
         } catch (ExceptionDatabase $e) {
@@ -88,11 +78,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin installation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function install(PluginManager $pluginManager)
     {
@@ -104,11 +90,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin uninstallation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function uninstall(PluginManager $pluginManager)
     {
@@ -120,13 +102,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin update
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @param string $fromVersion Version from which plugin update is initiated
-     * @param string $toVersion Version to which plugin is updated
-     * @return void
+     * @inheritdoc
      */
     public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
     {
@@ -138,11 +114,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin activation
-     *
-     * @throws PluginException
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function enable(PluginManager $pluginManager)
     {
@@ -154,11 +126,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
     }
 
     /**
-     * Plugin deactivation
-     *
-     * @throws iMSCP_Plugin_Exception
-     * @param PluginManager $pluginManager
-     * @return void
+     * @inheritdoc
      */
     public function disable(PluginManager $pluginManager)
     {
@@ -187,8 +155,9 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
 
         if (preg_match("/-(?:p\s+|-port=)(\d+)/", $pluginConfig['spamd_options']['options'], $spamAssassinPort)) {
             $dbConfig['PORT_SPAMASSASSIN'] = $spamAssassinPort[1] . ';tcp;SPAMASSASSIN;1;127.0.0.1';
-        } else {
-            unset($dbConfig['PORT_SPAMASSASSIN']);
+            return;
         }
+
+        unset($dbConfig['PORT_SPAMASSASSIN']);
     }
 }

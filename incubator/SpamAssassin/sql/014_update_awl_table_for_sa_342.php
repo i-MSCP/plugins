@@ -2,8 +2,6 @@
 /**
  * i-MSCP SpamAssassin plugin
  * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
- * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
- * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,14 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/**
+ * See https://youtrack.i-mscp.net/issue/IP-1808
+ */
+
 $saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
 
 return [
     'up' => "
-        CREATE TABLE IF NOT EXISTS $saDb.bayes_expire (
-            `id` int(11) NOT NULL DEFAULT '0',
-            `runtime` int(11) NOT NULL DEFAULT '0',
-            KEY `bayes_expire_idx1` (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+        ALTER TABLE $saDb.awl ADD `last_hit` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
     "
 ];

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,17 +20,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$imscpDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME);
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')->DATABASE_NAME . '_spamassassin');
+$imscpDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME']);
+$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
 
-return array(
-    'up' => "
-        -- Remove any orphaned bayesian data
-        DELETE v, t, s
-        FROM $saDb.bayes_vars v
-        LEFT JOIN $saDb.bayes_token t ON t.id = v.id
-        LEFT JOIN $saDb.bayes_seen s ON s.id = v.id
-        WHERE v.username <> '\$GLOBAL'
-        AND v.username NOT IN(SELECT m.mail_addr FROM $imscpDb.mail_users m WHERE mail_pass <> '_no_');
+//
+// Remove orphaned bayesian data if any
+//
+
+return [
+    'up' => "        
+        DELETE t1 FROM $saDb.bayes_token AS t1
+        JOIN $saDb.bayes_vars AS t2 USING(id)
+        WHERE t2.username <> '\$GLOBAL'
+        AND NOT EXISTS( SELECT 1 FROM $imscpDb.mail_users AS t3 WHERE t3.mail_addr = t2.username AND t3.mail_pass <> '_no_');
+
+        DELETE t1 FROM $saDb.bayes_seen AS t1
+        JOIN $saDb.bayes_vars AS t2
+        WHERE t2.username <> '\$GLOBAL'
+        AND NOT EXISTS( SELECT 1 FROM $imscpDb.mail_users AS t3 WHERE t3.mail_addr = t2.username AND t3.mail_pass <> '_no_');
+
+        DELETE t1 FROM $saDb.bayes_vars AS t1
+        WHERE t1.username <> '\$GLOBAL'
+        AND NOT EXISTS( SELECT 1 FROM $imscpDb.mail_users AS t2 WHERE t2.mail_addr = t1.username AND t2.mail_pass <> '_no_');
     "
-);
+];
