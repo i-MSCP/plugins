@@ -19,13 +19,13 @@
  */
 
 return [
+    'name'        => 'DomainAutoApproval',
+    'desc'        => 'Provides automatic approval for client domain aliases',
+    'url'         => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval',
+    'version'     => '1.1.4',
+    'build'       => '2018122100',
+    'date'        => '2018-12-21',
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
-    'version'     => '1.1.3',
-    'require_api' => '1.0.4',
-    'date'        => '2018-10-19',
-    'build'       => '2018101900',
-    'name'        => 'DomainAutoApproval',
-    'desc'        => 'Provides automatic approval for client domain aliases.',
-    'url'         => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval'
+    'require_api' => '1.0.4'
 ];

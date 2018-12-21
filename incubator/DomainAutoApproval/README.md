@@ -1,4 +1,4 @@
-# i-MSCP DomainAutoApproval plugin v1.1.3
+# i-MSCP DomainAutoApproval plugin v1.1.4
 
 Provides automatic approval for client domain aliases.
 
@@ -17,14 +17,6 @@ Provides automatic approval for client domain aliases.
 2. Upload the plugin through the plugin management interface
 3. Restore your plugin configuration file (compare it with new version first)
 4. Update the plugin list through the plugin management interface
-
-## Configuration
-
-See [Configuration file](../DomainAutoApproval/config.php)
-
-**Note:** When changing a configuration parameter in the plugin configuration
-file, you **MUST** not forget to trigger a plugin list update, else, your
-changes won't be taken into consideration.
 
 ## License
 

@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @noinspection PhpUndefinedFunctionInspection PhpUnhandledExceptionInspection PhpDocMissingThrowsInspection
  */
 
 use iMSCP_Authentication as Authentication;
@@ -34,29 +36,31 @@ class iMSCP_Plugin_DomainAutoApproval extends PluginAction
     /**
      * @inheritdoc
      */
-    public function register(EventsManagerInterface $eventsManager)
+    public function register(EventsManagerInterface $em)
     {
         // Registers the listener with a low priority to let other listeners
         // operate before the redirect
-        $eventsManager->registerListener(Events::onAfterAddDomainAlias, $this, -99);
+        $em->registerListener(Events::onAfterAddDomainAlias, $this, -99);
     }
 
     /**
      * onAfterAddDomainAlias listener
      *
      * @throws Exception
-     * @param Event $event
+     * @param Event $e
      * @return void
      */
-    public function onAfterAddDomainAlias(Event $event)
+    public function onAfterAddDomainAlias(Event $e)
     {
-        // Don't act in super user (admin, reseller) context
-        if (isset($_SESSION['logged_from_type'])) {
+        $identity = Authentication::getInstance()->getIdentity();
+
+        // Only act when event has been triggered from client UI
+        if ($identity->admin_type !== 'user') {
             return;
         }
 
         // Domain alias being added (punycode representation)
-        $alias = $event->getParam('domainAliasName');
+        $alias = $e->getParam('domainAliasName');
 
         // Domain aliases that need to be ignored by this plugin, regardless
         // value of both the 'approval_rule' and 'client_accounts' parameters.
@@ -64,7 +68,6 @@ class iMSCP_Plugin_DomainAutoApproval extends PluginAction
             return;
         }
 
-        $identity = Authentication::getInstance()->getIdentity();
         $rule = $this->getConfigParam('approval_rule', false);
         $isClientListed = in_array($identity->admin_name, $this->getConfigParam('client_accounts', []));
 
@@ -74,10 +77,8 @@ class iMSCP_Plugin_DomainAutoApproval extends PluginAction
             return;
         }
 
-        $aliasId = $event->getParam('domainAliasId');
-
+        $aliasId = $e->getParam('domainAliasId');
         exec_query("UPDATE domain_aliasses SET alias_status = 'toadd' WHERE alias_id = ?", [$aliasId]);
-
         $isAtLeast15x = version_compare($this->getPluginManager()->pluginGetApiVersion(), '1.5.0', '>=');
 
         $config = Registry::get('config');
@@ -89,10 +90,7 @@ class iMSCP_Plugin_DomainAutoApproval extends PluginAction
             }
         }
 
-        //
         // Bypass default workflow by committing changes and redirecting
-        //
-
         Database::getInstance()->commit();
         send_request();
         $alias = decode_idna($alias);
