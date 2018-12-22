@@ -54,8 +54,9 @@ class iMSCP_Plugin_DomainAutoApproval extends PluginAction
     {
         $identity = Authentication::getInstance()->getIdentity();
 
-        // Only act when event has been triggered from client UI
-        if ($identity->admin_type !== 'user') {
+        // Do not act if the event hasn't been triggered from client UI
+        // Do not act if connected from admin or reseller UI
+        if ($identity->admin_type != 'user' || isset($_SESSION['logged_from_type'])) {
             return;
         }
 

@@ -23,8 +23,8 @@ return [
     'desc'        => 'Provides automatic approval for client domain aliases',
     'url'         => 'https://github.com/i-MSCP/plugins/tree/master/incubator/DomainAutoApproval',
     'version'     => '1.1.4',
-    'build'       => '2018122100',
-    'date'        => '2018-12-21',
+    'build'       => '2018122200',
+    'date'        => '2018-12-22',
     'author'      => 'Laurent Declercq',
     'email'       => 'l.declercq@nuxwin.com',
     'require_api' => '1.0.4'
