@@ -558,6 +558,7 @@ sub _initClamAVdatabases
     execute( 'freshclam', \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
     debug( $stderr ) if $stdout;
+    0;
 }
 
 =back
