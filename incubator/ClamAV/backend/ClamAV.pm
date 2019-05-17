@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP ClamAV plugin
-# Copyright (C) 2014-2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2014-2019 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2017 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
@@ -554,10 +554,10 @@ sub _initClamAVdatabases
         return 1;
     }
 
-    my $rs = execute( 'freshclam', \my $stdout, \my $stderr );
+    # Don't catch error as there is a bug in freshclam as provided by Debian Stretch package
+    execute( 'freshclam', \my $stdout, \my $stderr );
     debug( $stdout ) if $stdout;
-    error( sprintf( "Couldn't initialize ClamAV databases: %s", $stderr || 'Unknown error' ) ) if $rs;
-    $rs;
+    debug( $stderr ) if $stdout;
 }
 
 =back
