@@ -91,10 +91,9 @@ return [
                 'parameters' => [
                     'managesieve_port'      => 4190,
                     'managesieve_auth_type' => 'PLAIN',
-                    'managesieve_default'   => __DIR__ . '/scripts/imscp_default.sieve',
+                    'managesieve_default'   => "{$config['CONF_DIR']}/dovecot/sieve.default",
                     'managesieve_vacation'  => 1
-                ],
-                'script'     => __DIR__ . '/config/scripts/configure-managesieve.pl'
+                ]
             ]
         ],
 
