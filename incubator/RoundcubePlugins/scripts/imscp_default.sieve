@@ -1,18 +1,17 @@
 require ["fileinto","vacation"];
-# rule:[Spam]
-if header :contains "X-Spam-Flag" "YES" {
-    fileinto "INBOX.Junk";
-    stop;
-}
-# rule:[Vacation]
-if false # true
+# rule:[spam]
+if header :contains "X-Spam-Flag" "YES"
 {
-    vacation :days 1 :subject "Out of office" text:
+        fileinto "INBOX.Junk";
+        stop;
+}
+# rule:[vacation]
+if true
+{
+        vacation :days 1 :subject "Out of office" text:
 Hello,
 
-Thank you for your message. I'm currently out of office, with no email access.
-
-Kind regards
+Thank you for your message. I'm out of office, with no email access.
 .
 ;
 }

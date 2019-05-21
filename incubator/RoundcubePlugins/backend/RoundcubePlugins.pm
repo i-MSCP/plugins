@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2019 Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,16 +25,18 @@ package Plugin::RoundcubePlugins;
 
 use strict;
 use warnings;
-use File::Basename qw/ basename /;
-use File::chmod qw/ chmod /;
+use File::Basename 'basename';
+use File::chmod 'chmod';
+use iMSCP::Boolean;
 use iMSCP::Composer;
 use iMSCP::Debug qw/ debug error getMessageByType /;
 use iMSCP::Dir;
-use iMSCP::Execute qw/ executeNoWait /;
+use iMSCP::Execute 'executeNoWait';
 use iMSCP::File;
-use iMSCP::TemplateParser qw/ replaceBloc /;
+use iMSCP::Service;
+use iMSCP::TemplateParser 'replaceBloc';
 use JSON;
-use PHP::Var qw/ export /;
+use PHP::Var 'export';
 use version;
 use parent 'Common::SingletonClass';
 
@@ -46,159 +48,297 @@ use parent 'Common::SingletonClass';
 
 =over 4
 
-=item update( $fromVersion )
+=item install( )
 
- Process uninstalation tasks
-
- Param string $fromVersion Version from which the plugin is being updated
- Return int 0 on success, die on failure
+ Installation tasks
+ 
+ Return int 0 on success, 1 on failure
 
 =cut
 
-sub update
+sub install
 {
-    my (undef, $fromVersion) = @_;
-
-    return 0 if version->parse( $fromVersion ) > version->parse( '3.0.0' );
-
-    # Make sure that composer.json-dist is available
-    if ( -f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json"
-        && !-f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json-dist"
-    ) {
-        iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json" )->moveFile(
-            "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/composer.json-dist"
-        ) == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
+    local $@;
+    eval {
+        iMSCP::Dir->new(
+            dirname => "$::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins"
+        )->make( {
+            user  => $::imscpConfig{'SYSTEM_USER_PREFIX'} . $::imscpConfig{'SYSTEM_USER_MIN_UID'},
+            group => $::imscpConfig{'SYSTEM_USER_PREFIX'} . $::imscpConfig{'SYSTEM_USER_MIN_UID'},
+            mode  => 0750
+        } );
+    };
+    if ( $@ ) {
+        error( $@ );
+        return 1;
     }
 
-    # Remove old .composer directory
-    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer" )->remove();
-
-    # Remove old-way configuration
-    for( '/etc/dovecot/dovecot.conf', "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php" ) {
-        next unless -f;
-
-        my $file = iMSCP::File->new( filename => $_ );
-        my $fileContent = $file->get();
-        defined $fileContent or die sprintf( "Couldn't read %s file", $file->{'filename'} );
-
-        $file->set( replaceBloc(
-            qr/^\s*\Q# Begin Plugin::RoundcubePlugin::\E.*\n/m,
-            qr/\Q# Ending Plugin::RoundcubePlugin::\E.*\n/,
-            '',
-            $fileContent
-        ));
-        $file->save() == 0 or die ( getMessageByType( 'error', { amount => 1 => remove => 1 } ));
-
-        require iMSCP::Service;
-        iMSCP::Service->getInstance()->restart( 'dovecot' );
-    }
-
-    # Fix permissions, else composer will fail to delete older files
-    my $stderr = '';
-    executeNoWait(
-        [ 'perl', "$main::imscpConfig{'ENGINE_ROOT_DIR'}/setup/set-gui-permissions.pl", '-v' ],
-        \&_stdRoutine,
-        sub { $stderr .= $_[0] }
-    ) == 0 or die( $stderr || 'Unknown error' );
     0;
 }
 
-=item uninstall()
+=item uninstall( )
 
- Process uninstalation tasks
+ Uninstallation tasks
 
- Return int 0 on success, die on failure
+ Return int 0 on success, 1 on failure
 
 =cut
 
 sub uninstall
 {
-    for( 'composer.json', 'composer.lock' ) {
-        next unless -f "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_";
-        iMSCP::File->new( filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/$_" )->delFile() == 0 or die(
-            getMessageByType( 'error', { amount => 1, remove => 1 } )
-        );
+    local $@;
+    eval {
+        iMSCP::Dir->new(
+            dirname => "$::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins"
+        )->remove();
+    };
+    if ( $@ ) {
+        error( $@ );
+        return 1;
     }
 
-    iMSCP::Dir->new(
-        dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins"
-    )->remove();
+    0;
 }
 
 =item enable( )
 
- Process enable tasks
+ Configure and activate the Roundcube plugins
 
- Return int 0 on success, die on failure
+ Return int 0 on success, 1 on failure
 
 =cut
 
 sub enable
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    # Force 'enable' action (subtask of change action)
-    $self->{'action'} = 'enable';
+    local $@;
+    my $rs = eval {
+        return 0 unless defined $self->{'config'}->{'plugin_definitions'}
+            && ref $self->{'config'}->{'plugin_definitions'} eq 'HASH';
 
-    my $composer = $self->_getComposer();
-    my $composerJson = $composer->getComposerJson( 'scalar' );
-    my @plugins;
+        my @pluginNames;
+        my $composer = $self->_getComposer();
+        my $composerJson = $composer->getComposerJson( TRUE );
 
-    while ( my ($plugin, $meta) = each( %{$self->{'config'}->{'plugins'}} ) ) {
-        next unless $meta->{'enabled'};
+        while ( my ( $pluginName, $pluginDef ) = each( %{
+            $self->{'config'}->{'plugin_definitions'} }
+        ) ) {
+            next unless $pluginDef->{'enabled'};
 
-        if ( $meta->{'composer'}->{'repositories'} ) {
-            push @{$composerJson->{'repositories'}}, $_ for @{$meta->{'composer'}->{'repositories'}};
+            # Add the composer repositories if there are some defined
+            if ( exists $pluginDef->{'composer'}->{'repositories'}
+                && ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY'
+            ) {
+                for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
+                    next unless ref $repository eq 'HASH'
+                        && exists $repository->{'type'}
+                        && ref \$repository->{'type'} eq 'SCALAR'
+                        && length $repository->{'type'}
+                        && exists $repository->{'url'}
+                        && ref \$repository->{'url'} eq 'SCALAR'
+                        && length $repository->{'url'};
+
+                    unless ( grep {
+                        $_->{'type'} eq $repository->{'type'}
+                            && $_->{'url'} eq $repository->{'url'}
+                    } @{ $composerJson->{'repositories'} } ) {
+                        push @{ $composerJson->{'repositories'} }, $repository;
+                    }
+                }
+            }
+
+            # Add the composer packages if there are some defined
+            if ( exists $pluginDef->{'composer'}->{'require'}
+                && ref $pluginDef->{'composer'}->{'require'} eq 'HASH'
+            ) {
+                while ( my ( $package, $version ) = each(
+                    %{ $pluginDef->{'composer'}->{'require'} }
+                ) ) {
+                    next unless ref \$version eq 'SCALAR';
+                    $composer->require( $package, $version );
+                }
+            }
+
+            # Execute the plugin configuration script for the 'preconfigure'
+            # stage if one is provided
+            if ( exists $pluginDef->{'config'}->{'script'}
+                && ref \$pluginDef->{'config'}->{'script'} eq 'SCALAR'
+                && length $pluginDef->{'config'}->{'script'}
+                && -f $pluginDef->{'config'}->{'script'}
+            ) {
+                # Make sure that the configuration script is executable
+                $File::chmod::UMASK = 0; # Stick to system CHMOD(1) behavior
+                chmod( 'u+x', $pluginDef->{'config'}->{'script'} ) or die( sprintf(
+                    "Couldn't turns on the executable bit on the %s file",
+                    $pluginDef->{'config'}->{'script'}
+                ));
+
+                my $stderr = '';
+                executeNoWait(
+                    [
+                        $pluginDef->{'config'}->{'script'},
+                        'preconfigure',
+                        ( exists $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'}
+                            && ref $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'} eq 'ARRAY'
+                            ? @{ $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'} }
+                            : ()
+                        )
+                    ],
+                    \&_stdRoutine,
+                    sub { $stderr .= $_[0] }
+                ) == 0 or die( $stderr || 'Unknown error' );
+            }
+
+            # Schedule the plugin for configuration and activation
+            push @pluginNames, $pluginName;
         }
 
-        while ( my ($package, $version) = each( %{$meta->{'composer'}->{'require'}} ) ) {
-            $composer->requirePackage( $package, $version );
+        # Return early if there are no plugins to configure and activate
+        return 0 unless @pluginNames;
+
+        $composer
+            ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
+            ->update( TRUE );
+
+        $self->_configurePlugins( @pluginNames );
+        $self->_togglePlugins( 'activate', @pluginNames );
+
+        if ( !defined $::execmode || $::execmode ne 'setup' ) {
+            # Reload the imscp_panel service to flush opcache cache
+            iMSCP::Service->getInstance()->reload( 'imscp_panel' );
         }
 
-        push @plugins, $plugin;
+        0;
+    };
+    if ( $@ ) {
+        error( $@ );
+        $rs = 1;
     }
 
-    $composer
-        ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
-        ->updatePackages();
-    $self->_configurePlugins( @plugins );
-    $self->_togglePlugins( @plugins );
-    0;
+    $rs;
 }
 
 =item disable( )
 
- Process disable tasks
+ Deactivate and deconfigure the Roundcube plugins
 
- Return int 0 on success, die on failure
+ Return int 0 on success, 1 on failure
 
 =cut
 
 sub disable
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    my @plugins;
+    local $@;
+    my $rs = eval {
+        return 0 unless defined $self->{'config_prev'}->{'plugin_definitions'}
+            && ref $self->{'config_prev'}->{'plugin_definitions'} eq 'HASH';
 
-    if ( $self->{'action'} eq 'disable' ) {
-        $self->_getComposer()
-            ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
-            ->updatePackages();
-        @plugins = grep (
-            $self->{'config_prev'}->{'plugins'}->{$_}->{'enabled'}, keys %{$self->{'config_prev'}->{'plugins'}}
-        );
-    } else {
-        while ( my ($plugin, $meta) = each( %{$self->{'config'}->{'plugins'}} ) ) {
-            next if $meta->{'enabled'} || !$self->{'config_prev'}->{'plugins'}->{$plugin}->{'enabled'};
-            push @plugins, $plugin;
+        my @pluginNames;
+        my $composer = $self->_getComposer();
+        my $composerJson = $composer->getComposerJson( TRUE );
+
+        while ( my ( $pluginName, $pluginDef ) = each(
+            %{ $self->{'config_prev'}->{'plugin_definitions'} }
+        ) ) {
+            next unless $pluginDef->{'enabled'};
+
+            # Remove the composer packages if there are some defined
+            if ( exists $pluginDef->{'composer'}->{'require'}
+                && ref $pluginDef->{'composer'}->{'require'} eq 'HASH'
+            ) {
+                for my $package ( keys %{ $pluginDef->{'composer'}->{'require'} } ) {
+                    $composer->remove( $package );
+                }
+            }
+
+            # Remove the composer repositories if there are some defined
+            if ( exists $pluginDef->{'composer'}->{'repositories'}
+                && ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY'
+            ) {
+                for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
+                    next unless ref $repository eq 'HASH'
+                        && exists $repository->{'type'}
+                        && ref \$repository->{'type'} eq 'SCALAR'
+                        && length $repository->{'type'}
+                        && exists $repository->{'url'}
+                        && ref \$repository->{'url'} eq 'SCALAR'
+                        && length $repository->{'url'};
+
+                    @{ $composerJson->{ 'repositories' } } = grep {
+                        $_->{'type'} ne $repository->{'type'}
+                            && $_->{'url'} ne $repository->{'url'}
+                    } @{ $composerJson->{'repositories'} };
+                }
+            }
+
+            # Execute the plugin configuration script for the
+            # 'predeconfigure' stage if one is provided
+            if ( exists $pluginDef->{'config'}->{'script'}
+                && ref \$pluginDef->{'config'}->{'script'} eq 'SCALAR'
+                && length $pluginDef->{'config'}->{'script'}
+                && -f $pluginDef->{'config'}->{'script'}
+            ) {
+                # Make sure that the script is executable
+                $File::chmod::UMASK = 0; # Stick to system CHMOD(1) behavior
+                chmod( 'u+x', $pluginDef->{'config'}->{'script'} ) or die( sprintf(
+                    "Couldn't turns on the executable bit on the %s file",
+                    $pluginDef->{'config'}->{'script'}
+                ));
+
+                my $stderr = '';
+                executeNoWait(
+                    [
+                        $pluginDef->{'config'}->{'script'},
+                        'predeconfigure',
+                        ( exists $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'}
+                            && ref $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'} eq 'ARRAY'
+                            ? @{ $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'} }
+                            : ()
+                        )
+                    ],
+                    \&_stdRoutine,
+                    sub { $stderr .= $_[0] }
+                ) == 0 or die( $stderr || 'Unknown error' );
+            }
+
+            # Schedule the plugin for deactivation and deconfiguration
+            push @pluginNames, $pluginName;
         }
+
+        # Return early if there are no plugins to deactivate and deconfigure
+        return 0 unless @pluginNames;
+
+        # No need to run composer on the 'change' action as this will be done
+        # in enable()
+        if ( $self->{'action'} ne 'change' ) {
+            $composer
+                ->setStdRoutines( \&_stdRoutine, \&_stdRoutine )
+                ->update( TRUE );
+        }
+
+        $self->_togglePlugins( 'deactivate', @pluginNames );
+        $self->_deconfigurePlugins( @pluginNames );
+
+        # No need to reload the imscp_panel service on the 'change' action as
+        # this will be done in enable()
+        if ( $self->{'action'} ne 'change'
+            && ( !defined $::execmode || $::execmode ne 'setup' )
+        ) {
+            # Reload the imscp_panel service to flush opcache cache
+            iMSCP::Service->getInstance()->reload( 'imscp_panel' );
+        }
+
+        0;
+    };
+    if ( $@ ) {
+        error( $@ );
+        $rs = 1;
     }
 
-    return 0 unless @plugins;
-
-    $self->_togglePlugins( @plugins );
-    $self->_configurePlugins( @plugins );
-    0;
+    $rs;
 }
 
 =back
@@ -207,7 +347,7 @@ sub disable
 
 =over 4
 
-=item _getComposer()
+=item _getComposer( )
 
  Get iMSCP::Composer object
 
@@ -217,134 +357,116 @@ sub disable
 
 sub _getComposer
 {
-    my $rcDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail";
-    my $composerJson = iMSCP::File->new( filename => "$rcDir/composer.json-dist" )->get();
-    defined $composerJson or die( sprintf( "Couldn't read Roundcube composer.json-dist file" ));
+    my ( $self ) = @_;
 
-    iMSCP::Dir->new( dirname => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins" )->make(
-        {
-            user  => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-            group => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-            mode  => 0750
-        }
+    $self->{'_composer'} //= iMSCP::Composer->new(
+        user                 => $::imscpConfig{'SYSTEM_USER_PREFIX'}
+            . $::imscpConfig{'SYSTEM_USER_MIN_UID'},
+        composer_home        => "$::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/.composer",
+        composer_working_dir => "$::imscpConfig{'GUI_ROOT_DIR'}/vendor/imscp/roundcube/roundcubemail",
+        composer_json        => 'composer.json'
     );
-
-    my $composer = iMSCP::Composer->new(
-        user          => $main::imscpConfig{'SYSTEM_USER_PREFIX'} . $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
-        home_dir      => "$main::imscpConfig{'GUI_ROOT_DIR'}/data/persistent/plugins/RoundcubePlugins",
-        working_dir   => $rcDir,
-        composer_path => '/usr/local/bin/composer',
-        composer_json => $composerJson
-    );
-    $composerJson = $composer->getComposerJson( 'scalar' );
-    # We provide our own installer for Roundcube plugins
-    delete $composerJson->{'require'}->{'roundcube/plugin-installer'};
-    $composer->requirePackage( 'imscp/roundcube-plugin-installer', '^1.0' );
-    $composerJson->{'config'} = {
-        'cache-files-ttl'        => 15552000,
-        cafile                   => $main::imscpConfig{'DISTRO_CA_BUNDLE'},
-        capath                   => $main::imscpConfig{'DISTRO_CA_PATH'},
-        'classmap-authoritative' => JSON::false,
-        'discard-changes'        => JSON::true,
-        'htaccess-protect'       => JSON::false,
-        'optimize-autoloader'    => JSON::true,
-        'apcu-autoloader'        => JSON::true,
-        'preferred-install'      => 'dist',
-        'process-timeout'        => 2000
-    };
-    $composerJson->{'minimum-stability'} = 'dev';
-    $composerJson->{'prefer-stable'} = JSON::true;
-    $composer;
 }
 
-=item _configurePlugins(@plugins)
+=item _configurePlugins( @pluginNames )
 
- Configure (or deconfigure) the given plugins
+ Configure the given plugins
 
- Param list @plugins List of plugins to configure (or deconfigure)
+ Param list @pluginNames List of plugins to configure
  Return void, die on failure
 
 =cut
 
 sub _configurePlugins
 {
-    my ($self, @plugins) = @_;
+    my ( $self, @pluginNames ) = @_;
 
-    my $pluginsDir = "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/plugins";
+    my $pluginsDir = "$::imscpConfig{'GUI_ROOT_DIR'}/vendor/imscp/roundcube/roundcubemail/plugins";
+    my $pluginDefs = $self->{'config'}->{'plugin_definitions'};
 
-    for( @plugins ) {
-        my $config = $self->{'config'}->{'plugins'}->{$_}->{'config'} || next;
-        ref $config eq 'HASH' or die( 'Invalid `config` parameter' );
+    for my $pluginName ( @pluginNames ) {
+        next unless defined( my $config = $pluginDefs->{$pluginName}->{'config'} );
 
-        if ( $config->{'script'} ) {
-            ref $config->{'script'} eq '' or die( 'Invalid `include_file` parameter' );
-            -f $config->{'script'} or die( sprintf( 'File %s is missing or not executable', $config->{'script'} ));
-            # Make sure that the script is executable
-            $File::chmod::UMASK = 0; # Stick to system CHMOD(1) behavior
-            chmod( 'u+x', $config->{'script'} ) or die(
-                sprintf( "Couldn't turns on the executable bit on the %s file", $config->{'script'} )
-            );
+        ref $config eq 'HASH' or die( sprintf(
+            "Invalid 'config' section in the '%s' Roundcube plugin definition. Associative array expected.",
+            $pluginName
+        ));
 
-            my $stderr = '';
-            executeNoWait(
-                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'pre-configure' : 'pre-deconfigure' ],
-                \&_stdRoutine,
-                sub { $stderr .= $_[0] }
-            ) == 0 or die( $stderr || 'Unknown error' );
-        }
+        # Override the default plugin configuration template file with the
+        # provided one if defined, else look for a default one
+        my $conffile = exists $config->{'file'}
+            && ref \$config->{'file'} eq 'SCALAR'
+            && length $config->{'file'}
+            ? $config->{'file'} : 'config.inc.php.dist';
 
-        if ( $self->{'action'} eq 'enable' ) {
-            my $conffile = $config->{'file'} || 'config.inc.php.dist';
-            next unless -f "$pluginsDir/$_/$conffile";
+        if ( -f "$pluginsDir/$pluginName/$conffile" ) {
+            my $file = iMSCP::File->new( filename => "$pluginsDir/$pluginName/$conffile" );
+            defined( my $fileC = $file->getAsRef ) or die( getMessageByType(
+                'error', { amount => 1, remove => TRUE }
+            ));
 
-            my $file = iMSCP::File->new( filename => "$pluginsDir/$_/$conffile" );
-            my $fileContent = $file->get;
-            defined $fileContent or die( sprintf( "Couldn't read the %s file", $file->{'filename'} ));
-
-            $fileContent = replaceBloc(
+            ${ $fileC } = replaceBloc(
                 qr%(:?^\n)?\Q// i-MSCP Plugin::RoundcubePlugins BEGIN.\E\n%m,
                 qr%\Q// i-MSCP Plugin::RoundcubePlugins ENDING.\E\n%,
                 '',
-                $fileContent
+                ${ $fileC }
             );
+            ${ $fileC } =~ s/\n*\Q?>\E\n*/\n/m;
 
-            $fileContent =~ s/\n*\Q?>\E\n*/\n/m;
+            # - Insert the provided plugin configuration parameters if any
+            # - Insert the 'include' statement for the external plugin
+            #   configuration file if any
+            if ( exists $config->{'parameters'}
+                || exists $config->{'include_file'}
+            ) {
+                ${ $fileC } .= "\n// i-MSCP Plugin::RoundcubePlugins BEGIN.\n";
 
-            if ( $config->{'parameters'} || $config->{'include_file'} ) {
-                $fileContent .= "\n// i-MSCP Plugin::RoundcubePlugins BEGIN.\n";
-
-                if ( $config->{'include_file'} ) {
-                    ref $config->{'include_file'} eq '' or die( 'Invalid `include_file` parameter' );
-                    -f $config->{'include_file'} or die( sprintf( "File %s not found", $config->{'include_file'} ));
-                    $fileContent .= "include_once '$config->{'include_file'}';\n";
+                if ( exists $config->{'include_file'}
+                    && ref \$config->{'include_file'} eq 'SCALAR'
+                    && length $config->{'include_file'}
+                    && -f $config->{'include_file'}
+                ) {
+                    ${ $fileC } .= "include_once '$config->{'include_file'}';\n";
                 }
 
-                if ( $config->{'parameters'} ) {
-                    ref $config->{'parameters'} eq 'HASH' or die( 'Invalid `parameters` parameter' );
-
-                    while ( my ($pname, $value) = each( %{$config->{'parameters'}} ) ) {
-                        $fileContent .= <<"EOT";
-@{[ export( qq/config['$pname']/ => ref $value ? $value : \$value, purity => 1, short => 1 ) ]}
+                if ( exists $config->{'parameters'}
+                    && ref $config->{'parameters'} eq 'HASH'
+                ) {
+                    while ( my ( $pname, $value ) = each(
+                        %{ $config->{'parameters'} }
+                    ) ) {
+                        ${ $fileC } .= <<"EOT";
+@{[ export( qq/config['$pname']/ => ref $value ? $value : \$value, purity => TRUE, short => TRUE ) ]}
 EOT
                     }
                 }
 
-                $fileContent .= "// i-MSCP Plugin::RoundcubePlugins ENDING.\n";
+                ${ $fileC } .= "// i-MSCP Plugin::RoundcubePlugins ENDING.\n";
             }
 
-            $file->{'filename'} = "$pluginsDir/$_/config.inc.php";
-            $file->set( $fileContent );
-            $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
-        } elsif ( -f "$pluginsDir/$_/config.inc.php" ) {
-            iMSCP::File->new( filename => "$pluginsDir/$_/config.inc.php" )->delFile() == 0 or die(
-                getMessageByType( 'error', { amount => 1, remove => 1 } )
-            );
+            $file->{'filename'} = "$pluginsDir/$pluginName/config.inc.php";
+            $file->save() == 0 or die( getMessageByType(
+                'error', { amount => 1, remove => TRUE }
+            ));
         }
 
-        if ( $config->{'script'} ) {
+        # Execute the plugin configuration script for the 'configure' stage if
+        # one is defined
+        if ( exists $config->{'script'}
+            && ref \$config->{'script'} eq 'SCALAR'
+            && length $config->{'script'}
+        ) {
             my $stderr = '';
             executeNoWait(
-                [ $config->{'script'}, $self->{'action'} eq 'enable' ? 'configure' : 'deconfigure' ],
+                [
+                    $config->{'script'},
+                    'configure',
+                    ( exists $config->{'script_argv'}->{'configure'}
+                        && ref $config->{'script_argv'}->{'configure'} eq 'ARRAY'
+                        ? @{ $config->{'script_argv'}->{'configure'} }
+                        : ()
+                    )
+                ],
                 \&_stdRoutine,
                 sub { $stderr .= $_[0] }
             ) == 0 or die( $stderr || 'Unknown error' );
@@ -352,50 +474,121 @@ EOT
     }
 }
 
-=item _togglePlugins( @plugins )
+=item _configurePlugins( @pluginNames )
 
- Activate (or deactivate) the given plugins
+ Deconfigure the given plugins
 
- Param list @plugins Plugin to activate (or deactivate)
+ Param list @pluginNames List of plugins to deconfigure
+ Return void, die on failure
+
+=cut
+
+sub _deconfigurePlugins
+{
+    my ( $self, @pluginNames ) = @_;
+
+    my $pluginsDir = "$::imscpConfig{'GUI_ROOT_DIR'}/vendor/imscp/roundcube/roundcubemail/plugins";
+    my $pluginDefs = $self->{'config_prev'}->{'plugin_definitions'};
+
+    for my $pluginName ( @pluginNames ) {
+        next unless defined( my $config = $pluginDefs->{$pluginName}->{'config'} );
+
+        ref $config eq 'HASH' or die( sprintf(
+            "Invalid 'config' section in the '%s' Roundcube plugin definition. Associative array expected.",
+            $pluginName
+        ));
+
+        if ( -f "$pluginsDir/$pluginName/config.inc.php" ) {
+            iMSCP::File->new(
+                filename => "$pluginsDir/$pluginName/config.inc.php"
+            )->delFile() == 0 or die( getMessageByType(
+                'error', { amount => 1, remove => TRUE }
+            ));
+        }
+
+        # Execute the plugin configuration script for the 'deconfigure' stage
+        # if one is defined
+        if ( exists $config->{'script'}
+            && ref \$config->{'script'} eq 'SCALAR'
+            && length $config->{'script'}
+        ) {
+            my $stderr = '';
+            executeNoWait(
+                [
+                    $config->{'script'},
+                    'deconfigure',
+                    ( exists $config->{'script_argv'}->{'deconfigure'}
+                        && ref $config->{'script_argv'}->{'deconfigure'} eq 'ARRAY'
+                        ? @{ $config->{'script_argv'}->{'deconfigure'} }
+                        : ()
+                    )
+                ],
+                \&_stdRoutine,
+                sub { $stderr .= $_[0] }
+            ) == 0 or die( $stderr || 'Unknown error' );
+        }
+    }
+}
+
+=item _togglePlugins( $action, @pluginNames )
+
+ Activate or deactivate the given plugins
+
+ Param string $action Action to be performed (activate|deactivate)
+ Param list @pluginNames Plugin to activate or deactivate
  Return void, die on failure
 
 =cut
 
 sub _togglePlugins
 {
-    my ($self, @plugins) = @_;
+    my ( undef, $action, @pluginNames ) = @_;
+
+    grep ( $action eq $_, qw/ activate deactivate / ) or die(
+        'Invalid $action parameter'
+    );
 
     my $file = iMSCP::File->new(
-        filename => "$main::imscpConfig{'GUI_PUBLIC_DIR'}/tools/webmail/config/config.inc.php"
+        filename => "$::imscpConfig{'GUI_ROOT_DIR'}/vendor/imscp/roundcube/roundcubemail/config/config.inc.php"
     );
-    my $fileContent = $file->get();
-    defined $fileContent or die ( sprintf( "Couldn't read %s", $file->{'filename'} ));
+    defined( my $fileC = $file->getAsRef()) or die( getMessageByType(
+        'error', { amount => 1, remove => TRUE }
+    ));
 
-    if ( $fileContent =~ /\$config\s*\[\s*['"]plugins['"]\s*\]\s*=\s*(?:array\s*\(|\[)(.*)(?:\)|\])\s*;/is ) {
-        my @activePlugins = split /,+/, $1 =~ s/[\s'"]+//grs;
+    my @activePlugins;
 
-        for my $plugin ( @plugins ) {
-            if ( $self->{'action'} eq 'enable' && !grep($_ eq $plugin, @activePlugins) ) {
-                push @activePlugins, $plugin;
-            } elsif ( $self->{'action'} eq 'disable' ) {
-                @activePlugins = grep( $_ ne $plugin, @activePlugins);
+    if ( ${ $fileC } =~ /\$config\s*\[\s*['"]plugins['"]\s*\]\s*=\s*(?:array\s*\(|\[)(.*)(?:\)|\])\s*;/is ) {
+        @activePlugins = split /,+/, $1 =~ s/[\s'"]+//grs;
+
+        for my $pluginName ( @pluginNames ) {
+            if ( $action eq 'activate' ) {
+                # Add the plugin to the list of activated plugins
+                # unless it is already in the list
+                unless ( grep ( $_ eq $pluginName, @activePlugins ) ) {
+                    push @activePlugins, $pluginName;
+                }
+            } else {
+                # Remove the plugin from the activated plugins list
+                @activePlugins = grep ( $_ ne $pluginName, @activePlugins );
             }
         }
 
-        return unless $fileContent =~ s/\$config\s*\[['"]plugins['"]\s*\].*;/\$config['plugins'] = @{
-            [ export( [ sort @activePlugins ], purity => 1, short => 1 ) ]
-        }/is
+        #${ $fileC } =~ s/\$config\s*\[\s*['"]plugins['"]\s*\].*?;/\$config['plugins'] = @{ [
+        ${ $fileC } =~ s/(\$config\s*\[\s*['"]plugins['"]\s*\]).*?;/$1 = @{ [
+            export( [ sort @activePlugins ], purity => TRUE, short => TRUE )
+        ] }/is
     } else {
-        @plugins = undef if $self->{'action'} eq 'disable';
-        $fileContent .= <<"EOF";
+        @activePlugins = @pluginNames if $action eq 'activate';
+        ${ $fileC } .= <<"EOF";
 
 // List of active plugins (in plugins/ directory)
-\$config[\'plugins\'] = @{ [ export( [ sort @plugins ], purity => 1, short => 1 ) ] }
+\$config[\'plugins\'] = @{ [ export( [ sort @activePlugins ], purity => TRUE, short => TRUE ) ] }
 EOF
     }
 
-    $file->set( $fileContent );
-    $file->save() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ));
+    $file->save() == 0 or die( getMessageByType(
+        'error', { amount => TRUE, remove => TRUE }
+    ));
 }
 
 =item _stdRoutine
@@ -408,9 +601,10 @@ EOF
 
 sub _stdRoutine
 {
-    ( my $out = $_[0] ) =~ s/\x08+/\n/g;
-    $out =~ s/^[\s\n]+|[\s\n]+$//g;
-    debug( $out ) if $out ne '';
+    $_[0] =~ s/\x08+/\n/g;
+    $_[0] =~ s/^[\s\n]+|[\s\n]+$//g;
+
+    debug( $_[0] ) if length $_[0];
 }
 
 =back
@@ -422,3 +616,4 @@ sub _stdRoutine
 =cut
 
 1;
+__END__

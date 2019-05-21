@@ -1,7 +1,7 @@
 <?php
 /**
- * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2017 Laurent Declercq <l.declercq@nuxwin.com>
+ * i-MSCP RoundcubePlugins plugin
+ * Copyright (C) 2019 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,11 +22,10 @@ return [
     'author'              => 'Laurent Declercq',
     'email'               => 'l.declercq@nuxwin.com>',
     'version'             => '3.0.0',
-    'date'                => '2017-11-13',
-    'build'               => '2017111300',
+    'date'                => '2019-05-21',
+    'build'               => '2019052100',
     'require_api'         => '1.5.1',
-    'require_cache_flush' => 'opcache',
     'name'                => 'RoundcubePlugins',
-    'desc'                => 'Provides Roundcube plugins through PHP dependency manager (Composer).',
+    'desc'                => 'Provides several plugins for the Roundcube webmail.',
     'url'                 => 'https://wiki.i-mscp.net/doku.php?id=plugins:roundcubeplugins'
 ];
