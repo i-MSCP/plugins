@@ -46,14 +46,14 @@ A basic Roundcube plugin definition looks as follows:
 ]
 ```
 
-Here we provide a definition for the `name` Roundcube plugin and we tell that
-it must be enabled. Such a section should be sufficient for plugins that are
-provided with the Roundcube distribution, and which don't require further
+Here we provide a definition for the `name` Roundcube plugin, and we tell that
+it must be enabled. Such a section should be sufficient for the plugins that
+are provided with the Roundcube distribution, and which don't require further
 configuration.
 
 #### Roundcube plugin made available through the composer PHP dependency manager
 
-For the Roundcube plugins which are provided as composer packages, that is,
+For the Roundcube plugins that are provided as composer packages, that is,
 through the composer PHP dependency manager, we need to go one step further to
 tell the plugin how to get and install them. This is done by adding a
 `composer` section in the plugin definition as follows:
@@ -73,8 +73,8 @@ tell the plugin how to get and install them. This is done by adding a
 
 The `composer` section above is a PHP transcription of what we would have
 inserted in the Roundcube [composer.json](https://getcomposer.org/doc/04-schema.md)
-file to ask the composer PHP dependency manager to install the `name` composer
-package.
+file to ask the composer PHP dependency manager to install the `vendor/name`
+composer package.
 
 Basically put, we tell the composer PHP dependency manager that we want install
 the `vendor/name` composer package, in a version greater or equal to the version
@@ -134,8 +134,8 @@ git checkout roundcubemail-plugins-kolab-3.4.5
 ```
 
 Note: Of course, a pre-configuration script would fit better for such a task.
-See the [configure-kolab.pl](config/scripts/configure-managesieve.pl) script
-for an example.
+See the [configure-kolab.pl](config/scripts/configure-kolab.pl) script for an
+example.
 
 ###### Defining the `path` repository
 
@@ -227,11 +227,11 @@ executed by the plugin backend:
 
 The `/foo/bar/configure-baz.pl` Perl script provided in the above example would
 be executed at different stages, with the current stage passed-in as first
-argument. Different stages are:
+argument. The stages are:
 
 - On the Roundcube plugin `preconfiguration` stage (before execution of composer)
 - On the Roundcube plugin `configuration` stage (after execution of composer)
-- On the Roundcube predeconfiguration `stage` (before execution of composer)
+- On the Roundcube `predeconfiguration` stage (before execution of composer)
 - On the Roundcube `deconfiguration` stage (after execution of composer)
 
 You can also pass additional arbitrary parameters to the configuration scripts,
@@ -302,9 +302,9 @@ address book...
 one zip file...
 
 Note that none of these plugins are enabled by default. You have to enable them
-by editing the config.php plugin configuration file and updating the plugin list
-through the plugin management interface. This is done like this because
-requirements are not always same for all hosting providers.
+by editing the [plugin configuration file](../RoundcubePlugins/config.php), and
+by updating the plugin list through the plugin management interface. This is done
+like this because requirements are not always same for all hosting providers.
 
 ## License
 
