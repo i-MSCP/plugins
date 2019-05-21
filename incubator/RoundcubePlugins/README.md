@@ -31,7 +31,7 @@ interface, else your changes won't be taken into account.
 ### Roundcube plugin definitions
 
 This plugin make it possible to install any Roundcube plugin by adding
-Roundcube plugin definitions the in
+Roundcube plugin definitions in the
 [plugin configuration file](../RoundcubePlugins/config.php).
 
 #### Basic Roundcube plugin definition
