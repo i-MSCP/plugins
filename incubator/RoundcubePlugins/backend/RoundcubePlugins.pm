@@ -455,6 +455,7 @@ EOT
         if ( exists $config->{'script'}
             && ref \$config->{'script'} eq 'SCALAR'
             && length $config->{'script'}
+            && -f $config->{'script'}
         ) {
             my $stderr = '';
             executeNoWait(
@@ -511,6 +512,7 @@ sub _deconfigurePlugins
         if ( exists $config->{'script'}
             && ref \$config->{'script'} eq 'SCALAR'
             && length $config->{'script'}
+            && -f $config->{'script'}
         ) {
             my $stderr = '';
             executeNoWait(
