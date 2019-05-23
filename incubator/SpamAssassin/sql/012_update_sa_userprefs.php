@@ -52,8 +52,8 @@ return [
         UPDATE $saDb.userpref SET value = '0' WHERE username = '\$GLOBAL' AND preference = 'use_dcc';
 
         -- Remove any orphaned user preference
-        DELETE t1 FROM $saDb.userpref t1
+        DELETE t1 FROM $saDb.userpref AS t1
         WHERE t1.username <> '\$GLOBAL'
-        AND t1.username NOT EXISTS(SELECT 1 FROM $imscpDb.mail_users AS t2 WHERE t2.mail_addr = t1.username AND t2.mail_pass <> '_no_');
+        AND NOT EXISTS(SELECT 1 FROM $imscpDb.mail_users AS t2 WHERE t2.mail_addr = t1.username AND t2.mail_pass <> '_no_');
     "
 ];

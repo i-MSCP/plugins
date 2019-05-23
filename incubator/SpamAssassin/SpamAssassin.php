@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,121 +20,133 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-use iMSCP_Database as Database;
-use iMSCP_Events as Events;
-use iMSCP_Events_Event as Event;
-use iMSCP_Events_Manager_Interface as EventsManagerInterface;
-use iMSCP_Exception_Database as ExceptionDatabase;
-use iMSCP_Plugin_Action as PluginAction;
-use iMSCP_Plugin_Exception as PluginException;
-use iMSCP_Plugin_Manager as PluginManager;
-use iMSCP_Registry as Registry;
-
 /**
  * Class iMSCP_Plugin_SpamAssassin
  */
-class iMSCP_Plugin_SpamAssassin extends PluginAction
+class iMSCP_Plugin_SpamAssassin extends iMSCP_Plugin_Action
 {
     /**
      * @inheritdoc
      */
-    public function register(EventsManagerInterface $eventsManager)
+    public function register(iMSCP_Events_Manager_Interface $events)
     {
-        $eventsManager->registerListener(Events::onBeforeDeleteMail, $this);
+        $events->registerListener(iMSCP_Events::onBeforeDeleteMail, $this);
     }
 
     /**
      * Delete bayesian data and user preferences that belong to the mail account being deleted
      *
-     * @param Event $e
-     * @throws PluginException
+     * @param iMSCP_Events_Event $event
      * @return void
+     * @throws Exception
      */
-    public function onBeforeDeleteMail(Event $e)
+    public function onBeforeDeleteMail(iMSCP_Events_Event $event)
     {
-        $db = Database::getInstance();
+        $db = iMSCP_Database::getInstance();
 
         try {
             $db->beginTransaction();
-            $stmt = exec_query('SELECT mail_addr FROM mail_users WHERE mail_id = ?', $e->getParam('mailId'));
+            $stmt = exec_query(
+                'SELECT mail_addr FROM mail_users WHERE mail_id = ?',
+                [$event->getParam('mailId')]
+            );
             if (!$stmt->rowCount()) {
                 return;
             }
 
             $username = $stmt->fetchRow(PDO::FETCH_COLUMN);
-            $cfg = Registry::get('config');
-            $saDbName = quoteIdentifier($cfg['DATABASE_NAME'] . '_spamassassin');
+            $saDbName = quoteIdentifier(
+                iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin'
+            );
 
-            exec_query("DELETE t1 FROM $saDbName.bayes_token AS t1 JOIN $saDbName.bayes_vars AS t2 USING(id) WHERE t2.username = ?", [$username]);
-            exec_query("DELETE t1 FROM $saDbName.bayes_seen AS t1 JOIN $saDbName.bayes_vars AS t2 USING(id) WHERE t2.username = ?", [$username]);
-            exec_query("DELETE FROM $saDbName.bayes_vars WHERE username = ?", [$username]);
-            exec_query("DELETE FROM $saDbName.userpref WHERE username = ?", [$username]);
+            exec_query(
+                "
+                    DELETE t1 FROM $saDbName.bayes_token AS t1
+                    JOIN $saDbName.bayes_vars AS t2 USING(id)
+                    WHERE t2.username = ?
+                ",
+                [$username]
+            );
+            exec_query(
+                "
+                    DELETE t1 FROM $saDbName.bayes_seen AS t1
+                    JOIN $saDbName.bayes_vars AS t2 USING(id)
+                    WHERE t2.username = ?
+                ",
+                [$username]
+            );
+            exec_query("DELETE FROM $saDbName.bayes_vars WHERE username = ?", [
+                $username
+            ]);
+            exec_query("DELETE FROM $saDbName.userpref WHERE username = ?", [
+                $username
+            ]);
 
             $db->commit();
-        } catch (ExceptionDatabase $e) {
+        } catch (iMSCP_Exception_Database $e) {
             $db->rollBack();
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function install(PluginManager $pluginManager)
+    public function install(iMSCP_Plugin_Manager $pm)
     {
         try {
             $this->migrateDb('up');
         } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function uninstall(PluginManager $pluginManager)
+    public function uninstall(iMSCP_Plugin_Manager $pm)
     {
         try {
             $this->migrateDb('down');
         } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function update(PluginManager $pluginManager, $fromVersion, $toVersion)
+    public function update(iMSCP_Plugin_Manager $pm, $fromVersion, $toVersion)
     {
         try {
             $this->migrateDb('up');
         } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function enable(PluginManager $pluginManager)
+    public function enable(iMSCP_Plugin_Manager $pm)
     {
         try {
             $this->setSpamAssassinServicePort();
         } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function disable(PluginManager $pluginManager)
+    public function disable(iMSCP_Plugin_Manager $pm)
     {
         try {
-            $dbConfig = Registry::get('dbConfig');
+            $dbConfig = iMSCP_Registry::get('dbConfig');
             unset($dbConfig['PORT_SPAMASSASSIN']);
         } catch (Exception $e) {
-            throw new PluginException($e->getMessage(), $e->getCode(), $e);
+            throw new iMSCP_Plugin_Exception($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -150,7 +162,7 @@ class iMSCP_Plugin_SpamAssassin extends PluginAction
      */
     protected function setSpamAssassinServicePort()
     {
-        $dbConfig = Registry::get('dbConfig');
+        $dbConfig = iMSCP_Registry::get('dbConfig');
         $pluginConfig = $this->getConfig();
 
         if (preg_match("/-(?:p\s+|-port=)(\d+)/", $pluginConfig['spamd_options']['options'], $spamAssassinPort)) {

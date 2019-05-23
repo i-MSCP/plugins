@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # i-MSCP SpamAssassin plugin
-# Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
 # Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
 #
@@ -23,46 +23,69 @@ use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../engine/PerlVendor";
+use iMSCP::Boolean;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
-use iMSCP::Debug qw/ getMessageByType newDebug /;
+use iMSCP::Debug qw/ getMessageByType newDebug setDebug setVerbose /;
 use iMSCP::EventManager;
 use iMSCP::Service;
 use JSON;
+use POSIX 'locale_h';
 
-sub getData
+sub getPluginBackendInstance
 {
-    my $row = iMSCP::Database->factory()->doQuery(
-        'plugin_name',
-        'SELECT plugin_name, plugin_info, plugin_config, plugin_config_prev FROM plugin WHERE plugin_name = ?',
-        'SpamAssassin'
-    );
-    ref $row eq 'HASH' or die( $row );
-    $row->{'SpamAssassin'} or die( 'SpamAssassin plugin data not found in database' );
+    defined( my $row = iMSCP::Database->factory()->getRawDb()->selectrow_hashref(
+        "
+            SELECT `plugin_name`, `plugin_info`, `plugin_config`, `plugin_config_prev`
+            FROM `plugin`
+            WHERE `plugin_name` = 'SpamAssassin'
+        "
+    ) or die( 'SpamAssassin plugin configuration not found in database' ));
 
-    {
+    my $classFile = "$::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
+    require $classFile;
+
+    my $class = 'Plugin::SpamAssassin';
+    $class->getInstance( {
         action       => 'cron',
-        config       => decode_json( $row->{'SpamAssassin'}->{'plugin_config'} ),
-        config_prev  => decode_json( $row->{'SpamAssassin'}->{'plugin_config_prev'} ),
+        config       => decode_json( $row->{'plugin_config'} ),
+        config_prev  => decode_json( $row->{'plugin_config_prev'} ),
         eventManager => iMSCP::EventManager->getInstance(),
-        info         => decode_json( $row->{'SpamAssassin'}->{'plugin_info'} )
-    };
+        info         => decode_json( $row->{'plugin_info'} )
+    } );
 }
 
-newDebug( 'spamassassin-plugin-bayes-sa-learn.log' );
-iMSCP::Bootstrapper->getInstance()->boot( {
-    norequirements  => 'yes',
-    config_readonly => 'yes',
-    nolock          => 'yes'
-} );
+eval {
+    @{ENV}{qw/ LANG PATH /} = (
+        'C.UTF-8',
+        '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    );
 
-iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
+    setlocale( LC_MESSAGES, 'C.UTF-8' );
+    newDebug( 'spamassassin-plugin-bayes-sa-learn.log' );
+    setDebug( iMSCP::Getopt->debug( TRUE ));
+    setVerbose( iMSCP::Getopt->verbose( TRUE ));
 
-my $pluginFile = "$main::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
-require $pluginFile;
+    iMSCP::Bootstrapper->getInstance()->lock(
+        '/var/lock/spamassassin-plugin-bayes-sa-learn.lock', TRUE
+    ) or exit;
 
-my $pluginClass = "Plugin::SpamAssassin";
-$pluginClass->getInstance( getData())->bayesSaLearn() == 0 or die( getMessageByType( 'error', { amount => 1, remove => 1 } ) || 'Unknown error' );
+    iMSCP::Bootstrapper->getInstance()->boot( {
+        norequirements  => TRUE,
+        config_readonly => TRUE,
+        nolock          => TRUE
+    } );
+
+    iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
+
+    getPluginBackendInstance->bayesSaLearn() == 0 or die( getMessageByType(
+        'error', { amount => 1, remove => TRUE }
+    ) || 'Unknown error' );
+};
+if ( $@ ) {
+    error( $@ );
+    return 1;
+}
 
 1;
 __END__

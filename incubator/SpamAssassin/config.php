@@ -374,44 +374,5 @@ return [
             // Possible value: true, false
             'enforced' => false
         ]
-    ],
-
-    // Roundcube configuration
-    //
-    // Only relevant if you use the Roundcube Webmail
-    'roundcube'      => [
-        // MarkAsJunk2 Roundcube plugin
-        // See https://github.com/JohnDoh/Roundcube-Plugin-Mark-as-Junk-2
-        //
-        // Make users able to mark their mails as SPAM|HAM for SA learning
-        // Requires the SA Bayes plugin
-        'markasjunk2' => [
-            // Possible value: true, false
-            'enabled' => true
-        ],
-
-        // SAUserPrefs Roundcube plugin
-        // See https://github.com/JohnDoh/Roundcube-Plugin-SpamAssassin-User-Prefs-SQL
-        //
-        // Make users able to customize SpamAssassin behavior through their own
-        // user preferences
-        'sauserprefs' => [
-            // Possible values: true, false
-            'enabled'                   => true,
-
-            // Protected SA user preferences
-            //
-            // Users won't be able to acts on preferences listed in
-            // that configuration parameter.
-            //
-            // See the sauserprefs plugin documentation for further details.
-            //
-            // Possible value: array
-            'sauserprefs_dont_override' => [
-                // razor1 support is officially deprecated.
-                // There is no reason to show it in plugin.
-                'use_razor1'
-            ]
-        ]
     ]
 ];
