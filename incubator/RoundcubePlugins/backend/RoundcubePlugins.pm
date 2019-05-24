@@ -133,10 +133,10 @@ sub enable
                 for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
                     next unless ref $repository eq 'HASH'
                         && exists $repository->{'type'}
-                        && ref \$repository->{'type'} eq 'SCALAR'
+                        && ref \( $repository->{'type'} // \1 ) eq 'SCALAR'
                         && length $repository->{'type'}
                         && exists $repository->{'url'}
-                        && ref \$repository->{'url'} eq 'SCALAR'
+                        && ref \( $repository->{'url'} // \1 ) eq 'SCALAR'
                         && length $repository->{'url'};
 
                     unless ( grep {
@@ -155,7 +155,7 @@ sub enable
                 while ( my ( $package, $version ) = each(
                     %{ $pluginDef->{'composer'}->{'require'} }
                 ) ) {
-                    next unless ref \$version eq 'SCALAR';
+                    next unless ref \( $version // \1 ) eq 'SCALAR';
                     $composer->require( $package, $version );
                 }
             }
@@ -163,7 +163,7 @@ sub enable
             # Execute the plugin configuration script for the 'preconfigure'
             # stage if one is provided
             if ( exists $pluginDef->{'config'}->{'script'}
-                && ref \$pluginDef->{'config'}->{'script'} eq 'SCALAR'
+                && ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
                 && length $pluginDef->{'config'}->{'script'}
                 && -f $pluginDef->{'config'}->{'script'}
             ) {
@@ -261,10 +261,10 @@ sub disable
                 for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
                     next unless ref $repository eq 'HASH'
                         && exists $repository->{'type'}
-                        && ref \$repository->{'type'} eq 'SCALAR'
+                        && ref \( $repository->{'type'} // \1 ) eq 'SCALAR'
                         && length $repository->{'type'}
                         && exists $repository->{'url'}
-                        && ref \$repository->{'url'} eq 'SCALAR'
+                        && ref \( $repository->{'url'} // \1 ) eq 'SCALAR'
                         && length $repository->{'url'};
 
                     @{ $composerJson->{ 'repositories' } } = grep {
@@ -277,7 +277,7 @@ sub disable
             # Execute the plugin configuration script for the
             # 'predeconfigure' stage if one is provided
             if ( exists $pluginDef->{'config'}->{'script'}
-                && ref \$pluginDef->{'config'}->{'script'} eq 'SCALAR'
+                && ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
                 && length $pluginDef->{'config'}->{'script'}
                 && -f $pluginDef->{'config'}->{'script'}
             ) {
@@ -395,7 +395,7 @@ sub _configurePlugins
         # Override the default plugin configuration template file with the
         # provided one if defined, else look for a default one
         my $conffile = exists $config->{'file'}
-            && ref \$config->{'file'} eq 'SCALAR'
+            && ref \( $config->{'file'} // \1 ) eq 'SCALAR'
             && length $config->{'file'}
             ? $config->{'file'} : 'config.inc.php.dist';
 
@@ -422,7 +422,7 @@ sub _configurePlugins
                 ${ $fileC } .= "\n// i-MSCP Plugin::RoundcubePlugins BEGIN.\n";
 
                 if ( exists $config->{'include_file'}
-                    && ref \$config->{'include_file'} eq 'SCALAR'
+                    && ref \( $config->{'include_file'} // \1 ) eq 'SCALAR'
                     && length $config->{'include_file'}
                     && -f $config->{'include_file'}
                 ) {
@@ -453,7 +453,7 @@ EOT
         # Execute the plugin configuration script for the 'configure' stage if
         # one is defined
         if ( exists $config->{'script'}
-            && ref \$config->{'script'} eq 'SCALAR'
+            && ref \( $config->{'script'} // \1 ) eq 'SCALAR'
             && length $config->{'script'}
             && -f $config->{'script'}
         ) {
@@ -510,7 +510,7 @@ sub _deconfigurePlugins
         # Execute the plugin configuration script for the 'deconfigure' stage
         # if one is defined
         if ( exists $config->{'script'}
-            && ref \$config->{'script'} eq 'SCALAR'
+            && ref \( $config->{'script'} // \1 ) eq 'SCALAR'
             && length $config->{'script'}
             && -f $config->{'script'}
         ) {

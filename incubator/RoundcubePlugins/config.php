@@ -316,6 +316,7 @@ return [
                         'bayes_auto_learn_threshold_spam'    => '12.0',
                         'use_bayes_rules'                    => '1'
                     ],
+                    'sauserprefs_abook_import'       => false,
                     'sauserprefs_bayes_delete_query' => [
                         'DELETE FROM `bayes_seen` WHERE `id` IN (SELECT `id` FROM `bayes_vars` WHERE `username` = %u);',
                         'DELETE FROM `bayes_token` WHERE `id` IN (SELECT `id` FROM `bayes_vars` WHERE `username` = %u);',
