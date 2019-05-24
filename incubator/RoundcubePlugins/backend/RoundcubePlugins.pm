@@ -114,8 +114,9 @@ sub enable
 
     local $@;
     my $rs = eval {
-        return 0 unless defined $self->{'config'}->{'plugin_definitions'}
-            && ref $self->{'config'}->{'plugin_definitions'} eq 'HASH';
+        # Return early if there are no plugin definitions
+        return 0 unless ref $self->{'config'}->{'plugin_definitions'} eq 'HASH'
+            && %{ $self->{'config'}->{'plugin_definitions'} };
 
         my @pluginNames;
         my $composer = $self->_getComposer();
@@ -225,8 +226,9 @@ sub disable
 
     local $@;
     my $rs = eval {
-        return 0 unless defined $self->{'config_prev'}->{'plugin_definitions'}
-            && ref $self->{'config_prev'}->{'plugin_definitions'} eq 'HASH';
+        # Return early if there are no plugin definitions
+        return 0 unless ref $self->{'config_prev'}->{'plugin_definitions'} eq 'HASH'
+            && %{ $self->{'config_prev'}->{'plugin_definitions'} };
 
         my @pluginNames;
         my $composer = $self->_getComposer();
