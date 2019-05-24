@@ -127,15 +127,11 @@ sub enable
             next unless $pluginDef->{'enabled'};
 
             # Add the composer repositories if there are some defined
-            if ( exists $pluginDef->{'composer'}->{'repositories'}
-                && ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY'
-            ) {
+            if ( ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY' ) {
                 for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
                     next unless ref $repository eq 'HASH'
-                        && exists $repository->{'type'}
                         && ref \( $repository->{'type'} // \1 ) eq 'SCALAR'
                         && length $repository->{'type'}
-                        && exists $repository->{'url'}
                         && ref \( $repository->{'url'} // \1 ) eq 'SCALAR'
                         && length $repository->{'url'};
 
@@ -149,9 +145,7 @@ sub enable
             }
 
             # Add the composer packages if there are some defined
-            if ( exists $pluginDef->{'composer'}->{'require'}
-                && ref $pluginDef->{'composer'}->{'require'} eq 'HASH'
-            ) {
+            if ( ref $pluginDef->{'composer'}->{'require'} eq 'HASH' ) {
                 while ( my ( $package, $version ) = each(
                     %{ $pluginDef->{'composer'}->{'require'} }
                 ) ) {
@@ -162,8 +156,7 @@ sub enable
 
             # Execute the plugin configuration script for the 'preconfigure'
             # stage if one is provided
-            if ( exists $pluginDef->{'config'}->{'script'}
-                && ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
+            if ( ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
                 && length $pluginDef->{'config'}->{'script'}
                 && -f $pluginDef->{'config'}->{'script'}
             ) {
@@ -179,8 +172,7 @@ sub enable
                     [
                         $pluginDef->{'config'}->{'script'},
                         'preconfigure',
-                        ( exists $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'}
-                            && ref $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'} eq 'ARRAY'
+                        ( ref $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'} eq 'ARRAY'
                             ? @{ $pluginDef->{'config'}->{'script_argv'}->{'preconfigure'} }
                             : ()
                         )
@@ -246,24 +238,18 @@ sub disable
             next unless $pluginDef->{'enabled'};
 
             # Remove the composer packages if there are some defined
-            if ( exists $pluginDef->{'composer'}->{'require'}
-                && ref $pluginDef->{'composer'}->{'require'} eq 'HASH'
-            ) {
+            if ( ref $pluginDef->{'composer'}->{'require'} eq 'HASH' ) {
                 for my $package ( keys %{ $pluginDef->{'composer'}->{'require'} } ) {
                     $composer->remove( $package );
                 }
             }
 
             # Remove the composer repositories if there are some defined
-            if ( exists $pluginDef->{'composer'}->{'repositories'}
-                && ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY'
-            ) {
+            if ( ref $pluginDef->{'composer'}->{'repositories'} eq 'ARRAY' ) {
                 for my $repository ( @{ $pluginDef->{'composer'}->{'repositories'} } ) {
                     next unless ref $repository eq 'HASH'
-                        && exists $repository->{'type'}
                         && ref \( $repository->{'type'} // \1 ) eq 'SCALAR'
                         && length $repository->{'type'}
-                        && exists $repository->{'url'}
                         && ref \( $repository->{'url'} // \1 ) eq 'SCALAR'
                         && length $repository->{'url'};
 
@@ -276,8 +262,7 @@ sub disable
 
             # Execute the plugin configuration script for the
             # 'predeconfigure' stage if one is provided
-            if ( exists $pluginDef->{'config'}->{'script'}
-                && ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
+            if ( ref \( $pluginDef->{'config'}->{'script'} // \1 ) eq 'SCALAR'
                 && length $pluginDef->{'config'}->{'script'}
                 && -f $pluginDef->{'config'}->{'script'}
             ) {
@@ -293,8 +278,7 @@ sub disable
                     [
                         $pluginDef->{'config'}->{'script'},
                         'predeconfigure',
-                        ( exists $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'}
-                            && ref $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'} eq 'ARRAY'
+                        ( ref $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'} eq 'ARRAY'
                             ? @{ $pluginDef->{'config'}->{'script_argv'}->{'predeconfigure'} }
                             : ()
                         )
@@ -394,8 +378,7 @@ sub _configurePlugins
 
         # Override the default plugin configuration template file with the
         # provided one if defined, else look for a default one
-        my $conffile = exists $config->{'file'}
-            && ref \( $config->{'file'} // \1 ) eq 'SCALAR'
+        my $conffile = ref \( $config->{'file'} // \1 ) eq 'SCALAR'
             && length $config->{'file'}
             ? $config->{'file'} : 'config.inc.php.dist';
 
@@ -421,17 +404,14 @@ sub _configurePlugins
             ) {
                 ${ $fileC } .= "\n// i-MSCP Plugin::RoundcubePlugins BEGIN.\n";
 
-                if ( exists $config->{'include_file'}
-                    && ref \( $config->{'include_file'} // \1 ) eq 'SCALAR'
+                if ( ref \( $config->{'include_file'} // \1 ) eq 'SCALAR'
                     && length $config->{'include_file'}
                     && -f $config->{'include_file'}
                 ) {
                     ${ $fileC } .= "include_once '$config->{'include_file'}';\n";
                 }
 
-                if ( exists $config->{'parameters'}
-                    && ref $config->{'parameters'} eq 'HASH'
-                ) {
+                if ( ref $config->{'parameters'} eq 'HASH' ) {
                     while ( my ( $pname, $value ) = each(
                         %{ $config->{'parameters'} }
                     ) ) {
@@ -452,8 +432,7 @@ EOT
 
         # Execute the plugin configuration script for the 'configure' stage if
         # one is defined
-        if ( exists $config->{'script'}
-            && ref \( $config->{'script'} // \1 ) eq 'SCALAR'
+        if ( ref \( $config->{'script'} // \1 ) eq 'SCALAR'
             && length $config->{'script'}
             && -f $config->{'script'}
         ) {
@@ -462,8 +441,7 @@ EOT
                 [
                     $config->{'script'},
                     'configure',
-                    ( exists $config->{'script_argv'}->{'configure'}
-                        && ref $config->{'script_argv'}->{'configure'} eq 'ARRAY'
+                    ( ref $config->{'script_argv'}->{'configure'} eq 'ARRAY'
                         ? @{ $config->{'script_argv'}->{'configure'} }
                         : ()
                     )
@@ -509,8 +487,7 @@ sub _deconfigurePlugins
 
         # Execute the plugin configuration script for the 'deconfigure' stage
         # if one is defined
-        if ( exists $config->{'script'}
-            && ref \( $config->{'script'} // \1 ) eq 'SCALAR'
+        if ( ref \( $config->{'script'} // \1 ) eq 'SCALAR'
             && length $config->{'script'}
             && -f $config->{'script'}
         ) {
@@ -519,8 +496,7 @@ sub _deconfigurePlugins
                 [
                     $config->{'script'},
                     'deconfigure',
-                    ( exists $config->{'script_argv'}->{'deconfigure'}
-                        && ref $config->{'script_argv'}->{'deconfigure'} eq 'ARRAY'
+                    ( ref $config->{'script_argv'}->{'deconfigure'} eq 'ARRAY'
                         ? @{ $config->{'script_argv'}->{'deconfigure'} }
                         : ()
                     )
