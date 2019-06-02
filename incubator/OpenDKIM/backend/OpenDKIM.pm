@@ -797,7 +797,7 @@ sub _postfixSetup
         (
             milter_default_action => {
                 action => 'replace',
-                values => [ 'tempfail' ]
+                values => [ 'accept' ]
             },
             smtpd_milters         => {
                 action => 'add',
