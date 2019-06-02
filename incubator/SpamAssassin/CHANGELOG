@@ -2,19 +2,40 @@ SpamAssassin - ChangeLog
 ========================
 
 ------------------------------------------------------------------------------------------------------------------------
-Version 2.1.0
+Version 3.0.0 (require i-MSCP >= 1.5.3, plugin API 1.5.1)
 ------------------------------------------------------------------------------------------------------------------------
 
+    
     Added: SPAMD(8p) `user' and `group' configuration parameters
+    Changed: MILTER default action from 'tempfail' to 'accept'
     Changed: SPAMD(8p) unix user/group no longer guessed
+    Enhancement: Make it possible to setup own SA plugin configuration definitions (Thanks to Mike Rhyner for the idea)
+    Enhancement: Per MILTER application settings (connect_timeout, default_action) - (Postfix >= 3.0.0 only)
+    Enhancement: Support for ZMI_GERMAN 3rd-party SA ruleset (disabled by default)
+    Dropped: Support for i-MSCP versions < 1.5.3 (Plugin API 1.5.1)
+    Fixed: Do not add cronjobs for 3rd-party SA ruleset update if automatic SA ruleset update isn't enabled
+    Fixed: Do not add cronjobs for disabled SA plugins
     Fixed: Failure while processing sa-compile package post-installation tasks due to invalid login shell
-    Fixed: SQL Errcode: 28  'No space left on device' - mail account deletion - SA bayesian data removal
-    Fixed: SQL Errcode: 28  'No space left on device' - plugin update - db update (013) (Closes: thread 18477, 17208)
-    Fixed: SQL Errcode: 28  'No space left on device' - Roundcube sauserprefs - User user bayesian data deletion  
-    Review: Make use of short array syntax (PHP)
-    Updated: AWL cleaner SQL query in backend/SpamAssassin.pm (Closes: #IP-1808) - Thanks to Mike Rhyner for his patch
-    Updated: AWL SA plugin SQL database table schema for SA 3.4.2 (Closes: #IP-1808)
+    Fixed: Pyzor 'discover' command  isn't longer available - Make use of default pyzor server
+    Fixed: SQL Errcode: 28 'No space left on device' - mail account deletion - SA bayesian data removal (Closes: IP-1796)
+    Fixed: SQL Errcode: 28 'No space left on device' - plugin update - db update (013) (Closes: thread 18477, 17208)
+##Fixed: SQL Errcode: 28 'No space left on device' - Roundcube sauserprefs - User bayesian data deletion (log to be moved into RoundcubePlugins plugin)
+#    Fixed: Wrong SA global preference set for the Razor2 SA plugin ('use_bayes' while 'use_razor2' is expected)
     Removed: MarkAsJunk2 and SAUserPrefs Roundcube plugins (moved into the RoundcubePlugins plugin)
+    Review: AWL, Bayes, Pyzor, Razor, Rule2XSBody and TextCat SA plugins now disabled by default
+    Review: iXhash2 and DecodeShortURLs 3rd-party SA plugins now disabled by default
+    Review: Initialize Pyzor with the'ping' command rather than the 'discover' command ('discover' command no longer available)
+    Review: Make use of short PHP array syntax (plugin frontEnd)
+    Review: Make Razor2 plugin cronjob configurable
+    Review: 3rd-party SA heinlein-support ruleset are now disabled by default
+    Review: SA SQL username now randomly generated
+    Review: Set SPAMC(1) '--max-size' configuration parameter to 2 MiB (default value of 512 KiB is far to small)
+#    Review: Uninstall distribution packages required by plugins when those last are not enabled
+    Rewritten: Plugin backend
+    Review: Make use of short array syntax (PHP)
+    Review: Update 3rd-party SA heinlein-support ruleset through a daily cronjob rather than an hourly cronjob   
+    Updated: AWL SA plugin cleaner SQL query for SA 3.4.2 (Closes: #IP-1808) - Thanks to Mike Rhyner for his patch
+    Updated: AWL SA plugin SQL database table schema for SA 3.4.2 (Closes: IP-1808)
 
 ------------------------------------------------------------------------------------------------------------------------
 Version 2.0.1

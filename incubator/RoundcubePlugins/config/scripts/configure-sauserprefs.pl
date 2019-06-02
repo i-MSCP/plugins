@@ -114,16 +114,19 @@ sub configure
         ->{'sauserprefs_dont_override'};
     $dontOverride = [] unless ref $dontOverride eq 'ARRAY';
 
-    # If SPAM is never tagged, there is no reasons to let's the user change
-    # headers and  report related settings through Roundcube sauserprefs plugin
+    # If SPAM mail are never tagged, there is no reasons to let's the user change
+    # headers and report related settings through Roundcube sauserprefs plugin
     if ( $saPluginConfig->{'spamass_milter'}->{'spam_reject_policy'} == -1 ) {
         push @{ $dontOverride }, '{headers}', '{report}', 'rewrite_header Subject'
     }
 
-    # Hide Bayes settings in Roundcube sauserprefs plugin if the SA plugin is
-    # disabled or enforced
-    if ( !$saPluginConfig->{'spamassassin'}->{'Bayes'}->{'enabled'}
-        || $saPluginConfig->{'spamassassin'}->{'Bayes'}->{'enforced'}
+    my $saPluginDefs = $saPluginConfig->{'spamassassin'}->{'plugin_definitions'};
+    goto WRITE_CONFIG unless ref $saPluginConfig eq 'HASH';
+    
+    # Hide Bayes settings in Roundcube sauserprefs plugin if the SA
+    # Bayes  plugin is disabled or enforced
+    if ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::Bayes'}->{'enabled'}
+        || $saPluginDefs->{'Mail::SpamAssassin::Plugin::Bayes'}->{'enforced'}
     ) {
         push @{ $dontOverride }, '{bayes}';
     }
@@ -131,55 +134,55 @@ sub configure
     # If the SA Bayes plugin operates on a site-wide basis, we must
     # prevent users to act on threshold-based auto-learning
     # discriminator for SpamAssassin's Bayes subsystem.
-    if ( $saPluginConfig->{'spamassassin'}->{'Bayes'}->{'site_wide'} ) {
-        push @{ $dontOverride }, 'bayes_auto_learn_threshold_nonspam',
+    if ( $saPluginDefs->{'Mail::SpamAssassin::Plugin::Bayes'}->{'site_wide'} ) {
+        push @{ $dontOverride },
+            'bayes_auto_learn_threshold_nonspam',
             'bayes_auto_learn_threshold_spam';
     }
-
-    if (
-        ( !$saPluginConfig->{'spamassassin'}->{'DCC'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'DCC'}->{'enforced'}
-        ) && ( !$saPluginConfig->{'spamassassin'}->{'Pyzor'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'Pyzor'}->{'enforced'}
-        ) && ( !$saPluginConfig->{'spamassassin'}->{'Razor2'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'Razor2'}->{'enforced'}
-        ) && ( !$saPluginConfig->{'spamassassin'}->{'rbl_checks'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'rbl_checks'}->{'enforced'}
+    
+    if ( ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::DCC'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::DCC'}->{'enforced'}
+        ) && ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::Pyzor'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::Pyzor'}->{'enforced'}
+        ) && ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::Razor2'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::Razor2'}->{'enforced'}
+        ) && ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::URIDNSBL'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::URIDNSBL'}->{'enforced'}
         )
     ) {
-        # All plugins for which parameters are settable trough Roundcube
-        # sauserprefs plugin are enabled or enforced. Thus, there is no
-        # reasons to show them in the plugin interface
+        # All plugins for which parameters are settable through the Roundcube
+        # sauserprefs plugin are disabled or enforced. Thus, there is no
+        # reasons to let's user act on them.
         push @{ $dontOverride }, '{tests}';
     } else {
         # Hide DCC setting in Roundcube sauserprefs plugin if the SA plugin is
         # disabled or enforced
-        if ( !$saPluginConfig->{'spamassassin'}->{'DCC'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'DCC'}->{'enforced'}
+        if ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::DCC'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::DCC'}->{'enforced'}
         ) {
             push @{ $dontOverride }, 'use_dcc';
         }
 
         # Hide Pyzor setting in Roundcube sauserprefs plugin if the SA plugin
         # is disabled or enforced
-        if ( !$saPluginConfig->{'spamassassin'}->{'Pyzor'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'Pyzor'}->{'enforced'}
+        if ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::Pyzor'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::Pyzor'}->{'enforced'}
         ) {
             push @{ $dontOverride }, 'use_pyzor';
         }
 
         # Hide Razor2 setting in Roundcube sauserprefs plugin if the SA plugin
         # is disabled or enforced
-        if ( !$saPluginConfig->{'spamassassin'}->{'Razor2'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'Razor2'}->{'enforced'}
+        if ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::Razor2'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::Razor2'}->{'enforced'}
         ) {
             push @{ $dontOverride }, 'use_razor2';
         }
 
         # Hide RBL checks setting in Roundcube sauserprefs plugin if SA RBL
         # checks are disabled or enforced
-        if ( !$saPluginConfig->{'spamassassin'}->{'rbl_checks'}->{'enabled'}
-            || $saPluginConfig->{'spamassassin'}->{'rbl_checks'}->{'enforced'}
+        if ( !$saPluginDefs->{'Mail::SpamAssassin::Plugin::URIDNSBL'}->{'enabled'}
+            || $saPluginDefs->{'Mail::SpamAssassin::Plugin::URIDNSBL'}->{'enforced'}
         ) {
             push @{ $dontOverride }, 'use_rbl_checks';
         }
@@ -187,12 +190,13 @@ sub configure
 
     # Hide TextCat setting in Roundcube sauserprefs plugin if the SA plugin is
     # disabled or enforced
-    if ( !$saPluginConfig->{'spamassassin'}->{'TextCat'}->{'enabled'}
-        || $saPluginConfig->{'spamassassin'}->{'TextCat'}->{'enforced'}
+    if ( !$saPluginConfig->{'spamassassin'}->{'Mail::SpamAssassin::Plugin::TextCat'}->{'enabled'}
+        || $saPluginConfig->{'spamassassin'}->{'Mail::SpamAssassin::Plugin::TextCat'}->{'enforced'}
     ) {
         push @{ $dontOverride }, 'ok_languages';
     }
 
+    WRITE_CONFIG:
     ${ $fileC } =~ s/(\$config\s*\[\s*['"]sauserprefs_dont_override['"]\s*\]).*?;/$1 = @{ [
         export(
             [ sort { $a cmp $b } uniq( @{ $dontOverride } ) ],

@@ -19,72 +19,55 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# Script for clearing of SpamAssassin Bayes database.
+
 use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../engine/PerlVendor";
 use iMSCP::Boolean;
 use iMSCP::Bootstrapper;
-use iMSCP::Database;
-use iMSCP::Debug qw/ getMessageByType newDebug setDebug setVerbose /;
-use iMSCP::EventManager;
-use iMSCP::Service;
+use iMSCP::Debug qw/ newDebug setDebug setVerbose /;
+use iMSCP::Execute 'execute';
+use iMSCP::Getopt;
 use JSON;
 use POSIX 'locale_h';
-
-sub getPluginBackendInstance
-{
-    defined( my $row = iMSCP::Database->factory()->getRawDb()->selectrow_hashref(
-        "
-            SELECT `plugin_name`, `plugin_info`, `plugin_config`, `plugin_config_prev`
-            FROM `plugin`
-            WHERE `plugin_name` = 'SpamAssassin'
-        "
-    ) or die( 'SpamAssassin plugin configuration not found in database' ));
-
-    my $classFile = "$::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
-    require $classFile;
-
-    my $class = 'Plugin::SpamAssassin';
-    $class->getInstance( {
-        action       => 'cron',
-        config       => decode_json( $row->{'plugin_config'} ),
-        config_prev  => decode_json( $row->{'plugin_config_prev'} ),
-        eventManager => iMSCP::EventManager->getInstance(),
-        info         => decode_json( $row->{'plugin_info'} )
-    } );
-}
 
 eval {
     @{ENV}{qw/ LANG PATH /} = (
         'C.UTF-8',
         '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     );
+    delete $ENV{'LANGUAGE'};
 
     setlocale( LC_MESSAGES, 'C.UTF-8' );
-    newDebug( 'spamassassin-plugin-bayes-sa-learn.log' );
+    newDebug( 'sa-bayes-clear-db.log' );
     setDebug( iMSCP::Getopt->debug( TRUE ));
     setVerbose( iMSCP::Getopt->verbose( TRUE ));
 
     iMSCP::Bootstrapper->getInstance()->lock(
-        '/var/lock/spamassassin-plugin-bayes-sa-learn.lock', TRUE
+        'sa-bayes-clear-db.lock', TRUE
     ) or exit;
 
     iMSCP::Bootstrapper->getInstance()->boot( {
-        norequirements  => TRUE,
         config_readonly => TRUE,
-        nolock          => TRUE
+        nodatabase      => TRUE,
+        nokeys          => TRUE,
+        nolock          => TRUE,
+        norequirements  => TRUE
     } );
 
-    iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
-
-    getPluginBackendInstance->bayesSaLearn() == 0 or die( getMessageByType(
-        'error', { amount => 1, remove => TRUE }
-    ) || 'Unknown error' );
+    my ( $stdout, $stderr );
+    execute(
+        [ '/usr/bin/sa-learn', '--force-expire' ],
+        \$stdout,
+        \$stderr
+    ) == 0 or die( $stderr || 'Unknown error' );
+    debug( $stdout ) if $stdout;
 };
 if ( $@ ) {
     error( $@ );
-    return 1;
+    exit 1;
 }
 
 1;

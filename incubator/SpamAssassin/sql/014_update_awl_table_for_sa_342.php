@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,10 +22,11 @@
  * See https://youtrack.i-mscp.net/issue/IP-1808
  */
 
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
+$saDb = iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin';
 
 return [
     'up' => "
-        ALTER TABLE $saDb.awl ADD `last_hit` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+        ALTER TABLE `$saDb`.`awl`
+        ADD `last_hit` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     "
 ];

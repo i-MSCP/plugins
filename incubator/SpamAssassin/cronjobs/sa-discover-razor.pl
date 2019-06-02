@@ -19,6 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# Script for Razor discovering.
+
 use strict;
 use warnings;
 use FindBin;
@@ -26,10 +28,10 @@ use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../e
 use iMSCP::Boolean;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
-use iMSCP::Debug qw/ getMessageByType newDebug setDebug setVerbose /;
+use iMSCP::Debug qw/ newDebug setDebug setVerbose /;
+use iMSCP::Execute 'execute';
 use iMSCP::EventManager;
 use iMSCP::Getopt;
-use iMSCP::Service;
 use JSON;
 use POSIX 'locale_h';
 
@@ -61,31 +63,40 @@ eval {
         'C.UTF-8',
         '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     );
+    delete $ENV{'LANGUAGE'};
 
     setlocale( LC_MESSAGES, 'C.UTF-8' );
-    newDebug( 'spamassassin-plugin-clean-bayes-db.log' );
+    newDebug( 'sa-discover-razor.log' );
     setDebug( iMSCP::Getopt->debug( TRUE ));
     setVerbose( iMSCP::Getopt->verbose( TRUE ));
 
     iMSCP::Bootstrapper->getInstance()->lock(
-        'spamassassin-plugin-clean-bayes-db.lock', TRUE
+        'sa-discover-razor.lock', TRUE
     ) or exit;
 
     iMSCP::Bootstrapper->getInstance()->boot( {
-        norequirements  => TRUE,
         config_readonly => TRUE,
-        nolock          => TRUE
+        nodatabase      => TRUE,
+        nokeys          => TRUE,
+        nolock          => TRUE,
+        norequirements  => TRUE
     } );
 
-    iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
-
-    getPluginBackendInstance->cleanBayesDb() == 0 or die( getMessageByType(
-        'error', { amount => 1, remove => TRUE }
-    ) || 'Unknown error' );
+    my ( $stdout, $stderr );
+    execute(
+        [
+            '/bin/su',
+            '-', getPluginBackendInstance()->{'config'}->{'spamd'}->{'user'} // 'debian-spamd',
+            '-c', '/usr/bin/razor-admin -discover'
+        ],
+        \$stdout,
+        \$stderr
+    ) == 0 or die( $stderr || 'unknown error' );
+    debug( $stdout ) if $stdout;
 };
 if ( $@ ) {
     error( $@ );
-    return 1;
+    exit 1;
 }
 
 1;

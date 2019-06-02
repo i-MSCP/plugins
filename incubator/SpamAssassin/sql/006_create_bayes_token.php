@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,11 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
+$saDb = iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin';
 
 return [
     'up' => "
-        CREATE TABLE IF NOT EXISTS $saDb.bayes_token (
+        CREATE TABLE IF NOT EXISTS `$saDb`.`bayes_token` (
             `id` int(11) NOT NULL DEFAULT '0',
             `token` char(5) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
             `spam_count` int(11) NOT NULL DEFAULT '0',
@@ -32,6 +32,6 @@ return [
             `atime` int(11) NOT NULL DEFAULT '0',
             PRIMARY KEY (`id`,`token`),
             KEY `bayes_token_idx1` (`id`,`atime`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
     "
 ];

@@ -2,8 +2,8 @@
 #
 # i-MSCP SpamAssassin plugin
 # Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
-# Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 # Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
+# Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,6 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# Script for cleanup for SpamAssassin AWL database.
+
 use strict;
 use warnings;
 use FindBin;
@@ -26,10 +28,9 @@ use lib "$FindBin::Bin/../../../../engine/PerlLib", "$FindBin::Bin/../../../../e
 use iMSCP::Boolean;
 use iMSCP::Bootstrapper;
 use iMSCP::Database;
-use iMSCP::Debug qw/ getMessageByType newDebug setDebug setVerbose /;
+use iMSCP::Debug qw/ newDebug setDebug setVerbose /;
 use iMSCP::EventManager;
 use iMSCP::Getopt;
-use iMSCP::Service;
 use JSON;
 use POSIX 'locale_h';
 
@@ -41,7 +42,7 @@ sub getPluginBackendInstance
             FROM `plugin`
             WHERE `plugin_name` = 'SpamAssassin'
         "
-    ) or die( 'SpamAssassin plugin configuration not found in database' ));
+    ) or die( 'SpamAssassin plugin data not found in database.' ));
 
     my $classFile = "$::imscpConfig{'PLUGINS_DIR'}/SpamAssassin/backend/SpamAssassin.pm";
     require $classFile;
@@ -61,14 +62,15 @@ eval {
         'C.UTF-8',
         '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     );
+    delete $ENV{'LANGUAGE'};
 
     setlocale( LC_MESSAGES, 'C.UTF-8' );
-    newDebug( 'spamassassin-plugin-discover-razor.log' );
+    newDebug( 'sa-awl-clean-db.log' );
     setDebug( iMSCP::Getopt->debug( TRUE ));
     setVerbose( iMSCP::Getopt->verbose( TRUE ));
 
     iMSCP::Bootstrapper->getInstance()->lock(
-        'spamassassin-plugin-discover-razor.lock', TRUE
+        '/var/lock/sa-awl-clean-db.lock', TRUE
     ) or exit;
 
     iMSCP::Bootstrapper->getInstance()->boot( {
@@ -77,15 +79,21 @@ eval {
         nolock          => TRUE
     } );
 
-    iMSCP::Service->getInstance()->isRunning( 'mysql' ) or exit;
+    my $dbh = iMSCP::Database->factory();
+    my $dbi = $dbh->getRawDb();
 
-    getPluginBackendInstance->discoverRazor() == 0 or die( getMessageByType(
-        'error', { amount => 1, remove => TRUE }
-    ) || 'Unknown error' );
+    $dbh->useDatabase( "$::imscpConfig{'DATABASE_NAME'}_spamassassin" );
+    $dbi->do(
+        '
+            DELETE FROM `awl`
+            WHERE (`count` = 1 AND `last_hit` < DATE_SUB(NOW( ), INTERVAL 1 WEEK))
+            OR (`last_hit` < DATE_SUB(NOW( ), INTERVAL 1 MONTH))
+        '
+    );
 };
 if ( $@ ) {
     error( $@ );
-    return 1;
+    exit 1;
 }
 
 1;

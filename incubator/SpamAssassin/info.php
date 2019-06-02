@@ -27,11 +27,11 @@ return [
         'Sascha Bay'
     ],
     'email'       => 'team@i-mscp.net',
-    'version'     => '2.1.0',
+    'version'     => '3.0.0',
     'require_api' => '1.5.1',
-    'date'        => '2019-05-20',
-    'build'       => '20190520',
+    'date'        => '2019-05-27',
+    'build'       => '20190527',
     'name'        => 'SpamAssassin',
-    'desc'        => 'Provides SpamAssassin anti-spam solution for Postfix through MILTER.',
+    'desc'        => 'Provides the SpamAssassin anti-spam solution through Postfix MILTER.',
     'url'         => 'http://wiki.i-mscp.net/doku.php?id=plugins:spamassassin'
 ];

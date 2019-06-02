@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP SpamAssassin plugin
- * Copyright (C) 2015-2018 Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2015-2019 Laurent Declercq <l.declercq@nuxwin.com>
  * Copyright (C) 2013-2016 Sascha Bay <info@space2place.de>
  * Copyright (C) 2013-2016 Rene Schuster <mail@reneschuster.de>
  *
@@ -20,11 +20,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-$saDb = quoteIdentifier(iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin');
+$saDb = iMSCP_Registry::get('config')['DATABASE_NAME'] . '_spamassassin';
 
 return [
     'up' => "
-        ALTER TABLE $saDb.userpref DROP INDEX `user_pref`;
-        ALTER TABLE $saDb.userpref ADD UNIQUE `user_pref` ( `username`, `preference`, `value`);
+        ALTER TABLE `$saDb`.`userpref` DROP INDEX `user_pref`;
+        ALTER TABLE `$saDb`.`userpref` ADD UNIQUE `user_pref` ( `username`, `preference`, `value`)
     "
 ];
